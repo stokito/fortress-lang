@@ -4,8 +4,8 @@ api For
 
     grammar M extends {Expression, Identifier}
         Expr |Expr:=
-            ffor {i:Id <- e:Expr ,? SPACE}* ; Do block:Expr ; End =>
-            <[ ffor2 i** ; e** ; fdo block ; fend ]>
+            for {i:Id <- e:Expr ,? SPACE}* ; do block:Expr ; end =>
+            <[ for2 i** ; e** ; do block ; end ]>
             (*
             case i of
                 Empty => <[ block ]>
@@ -15,19 +15,21 @@ api For
                     end
             end
             *)
-        | ffor2 i:Id* ; e:Expr* ; Do block:Expr ; End =>
+        | for2 i:Id* ; e:Expr* ; do block:Expr ; end =>
             case i of
                 Empty => <[ block ]>
                 Cons(ia, ib) =>
                     case e of
-                        Cons (ea, eb) => <[ ( (ea).loop( fn ia => (ffor2 ib** ; eb** ; fdo block ; fend) ) ) ]>
+                        Cons (ea, eb) => <[ ( (ea).loop( fn ia => (for2 ib** ; eb** ; do block ; end) ) ) ]>
                     end
             end
 
+        (*
         Do :Expr:=
             fdo => <[ "" ]>
 
         End :Expr:=
             fend => <[ "" ]>
+            *)
     end
 end

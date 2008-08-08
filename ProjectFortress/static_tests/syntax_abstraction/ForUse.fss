@@ -12,15 +12,15 @@ run(args:String...) = do
     n = <|1,2,3|>
     b = <|100,101,102|>
     println "With seq"
-    ffor a <- seq(n) ; fdo
+    for a <- seq(n) ; do
         (println a) ;
-    fend
+    end
 
     println "And without seq"
 
-    ffor a <- n , q <- b ; fdo
+    for a <- n , q <- b ; do
         (println a " and " q) ;
-    fend
+    end
     println "Ok, im done!"
 end
 
