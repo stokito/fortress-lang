@@ -1,0 +1,27 @@
+component ForUse
+import For.{...}
+import List.{...}
+import Set.{...}
+export Executable
+
+run(args:String...) = do
+(*
+    n = <|1,2,3,4,5,6,7,8,9,10|>
+    b = <|100,101,102,103,104|>
+    *)
+    n = <|1,2,3|>
+    b = <|100,101,102|>
+    println "With seq"
+    ffor a <- seq(n) ; fdo
+        (println a) ;
+    fend
+
+    println "And without seq"
+
+    ffor a <- n , q <- b ; fdo
+        (println a " and " q) ;
+    fend
+    println "Ok, im done!"
+end
+
+end

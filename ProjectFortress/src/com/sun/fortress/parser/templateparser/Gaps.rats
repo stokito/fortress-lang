@@ -81,8 +81,14 @@ Name NameGap =
      };
 
 Id IdGap = 
-     <GAP> prefix "Id" w a1:Id params:ParamList? w suffix
+     <GAP> prefix "Id" w a1:Id params:ParamList? w suffix w DoubleStar
      { if (params == null) params = new LinkedList<Id>();
+       /* yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params); */
+       yyValue = new _EllipsesId(createSpan(yyStart, yyCount), ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params));
+     }
+     / <GAP2> prefix "Id" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       /* yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params); */
        yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params);
      };
 

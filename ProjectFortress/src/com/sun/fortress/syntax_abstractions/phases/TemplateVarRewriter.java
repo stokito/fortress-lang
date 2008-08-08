@@ -40,6 +40,7 @@ import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
 import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
 
@@ -67,6 +68,7 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     @Override public Node forCaseTransformer(CaseTransformer that) {
+        Debug.debug( Debug.Type.SYNTAX, 2, "Case type for " + that.getGapName() + " is " + vars.get(that.getGapName()) );
         caseBaseType = Option.wrap(vars.get(that.getGapName()));
         return super.forCaseTransformer(that);
     }
