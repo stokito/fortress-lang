@@ -44,13 +44,16 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     private boolean _noQualified;
+    private boolean _unMangle;
 
     public FortressAstToConcrete() {
         _noQualified = false;
     }
 
-    public FortressAstToConcrete( boolean noQualified ) {
+    public FortressAstToConcrete( boolean noQualified,
+                                  boolean unMangle ) {
         _noQualified = noQualified;
+        _unMangle = unMangle;
     }
 
     /* indentation utilities *************************************************/
@@ -1900,6 +1903,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return " " + oper + " ";
     }
 
+    private String unMangle( String name ) {
+        if ( name.startsWith("$") )
+            return "fortress_" + name.substring(1);
+        else return name;
+    }
+
     @Override public String forOpExprOnly(final OpExpr that, Option<String> exprType_result,
                                           final String op_result,
                                           final List<String> args_result) {
@@ -2896,7 +2905,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
         if ( api_result.isSome() && !_noQualified )
             s.append( api_result.unwrap() ).append( "." );
-        s.append( that.getText() );
+        if ( _unMangle )
+            s.append( unMangle(that.getText()) );
+        else
+            s.append( that.getText() );
         return s.toString();
     }
 
