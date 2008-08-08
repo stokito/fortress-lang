@@ -126,9 +126,9 @@ public class FortressParser {
             ParserBase p =
                 ParserMediator.getParser(api_name, temporaryParserClass, in, f.toString());
             CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
-            // dump(original, "original-" + f.getName());
+            dump(original, "original-" + f.getName());
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
-            // dump(cu, "dump-" + f.getName());
+            dump(cu, "dump-" + f.getName());
             return new Result(cu, f.lastModified());
         } catch (Exception e) {
             String desc =

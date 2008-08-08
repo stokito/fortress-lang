@@ -356,10 +356,13 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     /* find the first length of some repeated pattern variable */
-    private int findRepeatedVar( EllipsesEnvironment env ){
-        for ( Id var : env.getVars() ){
+    private int findRepeatedVar( EllipsesEnvironment env, List<Id> freeVariables ){
+        // for ( Id var : env.getVars() ){
+        for ( Id var : freeVariables ){
             if ( env.getLevel( var ) > 0 ){
-                return ((List) env.getValue( var )).size();
+                int size = ((List) env.getValue( var )).size();
+                Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
+                return size;
             }
         }
         throw new MacroError( "No repeated variables!" );
@@ -371,7 +374,7 @@ public class Transform extends TemplateUpdateVisitor {
     private List<EllipsesEnvironment> decompose( EllipsesEnvironment env, List<Id> freeVariables ){
         List<EllipsesEnvironment> all = new ArrayList<EllipsesEnvironment>();
 
-        int repeats = findRepeatedVar( env );
+        int repeats = findRepeatedVar( env, freeVariables );
         for ( int i = 0; i < repeats; i++){
             EllipsesEnvironment newEnv = new EllipsesEnvironment();
 

@@ -11,7 +11,11 @@ api Or
                 Cons(xa,xb) => <[
                     do
                         println "Hello " xa
-                        if xa then xa else or xb** end
+                        n = typecase f = xa of
+                                Boolean => f
+                                else => true
+                            end
+                        if n then n else or xb** end
                     end
                     ]>
             end
