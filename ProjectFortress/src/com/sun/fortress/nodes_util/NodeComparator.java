@@ -439,6 +439,8 @@ public class NodeComparator {
             return compare((TraitType) left, (TraitType) right);
         } else if (left instanceof MatrixType) {
             return compare((MatrixType) left, (MatrixType) right);
+        } else if (left instanceof AnyType) {
+            return compare((AnyType) left, (AnyType) right);
         } else {
 
         }
