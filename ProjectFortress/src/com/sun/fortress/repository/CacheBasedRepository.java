@@ -154,7 +154,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     }
 
     private String deCase(APIName s) {
-        return "-" + Integer.toString(s.hashCode()&0x7fffffff,16);
+        return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
     }
 
     public String compFileName(APIName name) {

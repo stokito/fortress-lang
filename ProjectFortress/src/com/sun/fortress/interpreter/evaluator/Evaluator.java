@@ -537,8 +537,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (param.isNone()) {
             Option<OpRef> compare = x.getCompare();
             if (compare.isSome()) {
-                String op = NodeUtil.nameString(compare.unwrap().getOriginalName());
-                return forBlock(findExtremum(x,(Fcn) e.getValue(op)).getBody());
+                FValue op = getOp(compare.unwrap());
+                return forBlock(findExtremum(x,(Fcn) op).getBody());
             } else
                 return error(x,errorMsg("Missing operator for the extremum ",
                                         "expression ", x));
@@ -549,7 +549,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Fcn fcn = (Fcn) e.getValue("=");
             Option<OpRef> compare = x.getCompare();
             if (compare.isSome())
-                fcn = (Fcn) e.getValue(NodeUtil.nameString(compare.unwrap().getOriginalName()));
+                fcn = (Fcn) getOp(compare.unwrap());
 
             // Iterate through the cases
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
@@ -1030,7 +1030,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private FValue getOp(OpRef op) {
         try {
-            return e.getValue(op);
+            if (op.getLexicalDepth() != Environment.TOP_LEVEL) {
+                bug("Expect all oprefs to be top level " + op);
+            }
+            if (op.getOps().size() != 1)
+                bug("Should have rewritten ops to length 1, op="+
+                        op + ", list =" + op.getOps());
+            FValue v = e.getValue(op.getOps().get(0), Environment.TOP_LEVEL);
+            return v;
+            //return e.getValue(op);
         } catch (FortressException ex) {
             throw ex.setContext(op,e);
         }
@@ -1690,7 +1698,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     @Override
     public FValue forFnRef(FnRef x) {
-        Id name = x.getOriginalName();
+        Id name = x.getFns().get(0); //x.getOriginalName();
         FValue g = forIdOfRef(name);
         return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }
