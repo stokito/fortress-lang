@@ -74,6 +74,7 @@ public class Transform extends TemplateUpdateVisitor {
         this.env = env;
     }
 
+    /* entry point to this class */
     public static Node transform( GlobalEnvironment env, Node node ){
         return node.accept( new Transform( populateTransformers(env), 
 					   new HashMap<String,Object>() ) );
@@ -123,7 +124,7 @@ public class Transform extends TemplateUpdateVisitor {
 
                 if ( ! (binding instanceof CurriedTransformer) ){
                     throw new MacroError("Parameterized template gap is not bound " +
-					 "to a _CurriedTransformer, instead bound to " + 
+					 "to a CurriedTransformer, instead bound to " + 
 					 binding.getClass().getName());
                 }
 
@@ -144,6 +145,8 @@ public class Transform extends TemplateUpdateVisitor {
                     vars.put( name, lookupVariable(parameter, new LinkedList<Id>()) );
                 }
                 // return curry((Node)binding, vars);
+
+                /* the type of the transformer doesn't matter */
 		Node newNode = 
 		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(), 
 						  vars, new LinkedList<String>());
@@ -304,16 +307,20 @@ public class Transform extends TemplateUpdateVisitor {
         for ( Map.Entry<String,Object> var : arguments.entrySet() ){
             String varName = var.getKey();
             // Node argument = ((Node)var.getValue()).accept(this);
+            /*
             if ( var.getValue() instanceof List ){
                 Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
                 env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
             }
-            Object argument = traverse( var.getValue() );
-            /*
-            if ( argument instanceof _RepeatedExpr ){
-                argument = ((_RepeatedExpr) argument).getNodes();
-            }
             */
+            Object argument = traverse( var.getValue() );
+
+            /* this is almost definately in the wrong place */
+            if ( argument instanceof List ){
+                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
+                env.add( NodeFactory.makeId( varName ), 1, argument );
+            }
+            
             // checkFullyTransformed(argument);
             evaluated.put(varName, argument);
             Debug.debug( Debug.Type.SYNTAX, 3,
@@ -373,6 +380,8 @@ public class Transform extends TemplateUpdateVisitor {
      */
     private List<EllipsesEnvironment> decompose( EllipsesEnvironment env, List<Id> freeVariables ){
         List<EllipsesEnvironment> all = new ArrayList<EllipsesEnvironment>();
+        
+        Debug.debug( Debug.Type.SYNTAX, 2, "Free variables in the decomposed list: " + freeVariables );
 
         int repeats = findRepeatedVar( env, freeVariables );
         for ( int i = 0; i < repeats; i++){
@@ -401,7 +410,6 @@ public class Transform extends TemplateUpdateVisitor {
         node.accept( new NodeDepthFirstVisitor_void(){
             @Override
             public void defaultTemplateGap(TemplateGap t){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Free variable: " + t.getGapId() );
                 vars.add( t.getGapId() );
             }
         });
@@ -421,6 +429,7 @@ public class Transform extends TemplateUpdateVisitor {
     private List<Node> handleEllipses( _Ellipses that ){
         if ( controllable( env, that ) ){
             List<Node> nodes = new ArrayList<Node>();
+            Debug.debug( Debug.Type.SYNTAX, 2, "Original env " + env );
             for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getRepeatedNode() ) ) ){
                 Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
                 // nodes.add( that.getRepeatedNode().accept( new EllipsesVisitor( newEnv ) ) );
