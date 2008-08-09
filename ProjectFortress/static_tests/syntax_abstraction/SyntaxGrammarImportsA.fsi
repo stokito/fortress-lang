@@ -21,10 +21,10 @@ api SyntaxGrammarImportsA
 
   grammar A
       Hello :Expr:=
-         hello <[ "Hello" ]>
+         hello => <[ "Hello" ]>
 
       World :Expr:=
-         the answer <[ 42 ]>
+         the answer => <[ 42 ]>
   end
 
 end

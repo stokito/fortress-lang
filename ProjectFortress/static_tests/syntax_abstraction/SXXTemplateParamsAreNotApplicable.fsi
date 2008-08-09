@@ -19,7 +19,7 @@ api SXXTemplateParamsAreNotApplicable
   import FortressAst.{...}
 
   grammar A 
-    Foo(e:LooseJuxt) :Expr:= b:[ab] foo a:_ <[ e(foo) a(foo) b(foo) ]>
+    Foo(e:LooseJuxt) :Expr:= b:[ab] foo a:_ => <[ e(foo) a(foo) b(foo) ]>
   end
 
 end
