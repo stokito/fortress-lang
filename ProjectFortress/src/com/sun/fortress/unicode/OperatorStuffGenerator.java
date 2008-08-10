@@ -154,8 +154,11 @@ public class OperatorStuffGenerator {
                         e.addAlias(e.name(), namesToElements, doofusUser,
                                 fortressName(tokens[0]), true);
                         for (int i = 1; i < tokens.length; i++) {
+                            name = tokens[i].trim();
+                            if ( name.startsWith("\\U") )
+                                name = name.toLowerCase();
                             e.addAlias(e.name(), namesToElements, doofusUser,
-                                    tokens[i].trim(), true);
+                                       name, true);
                         }
                         groups.putItem(currentGroup, e);
                     }
