@@ -125,6 +125,8 @@ public class StringEncodedAggregate {
                 throw new Error("Key " + key + " in map contains delimiter " + d);
             if (value.indexOf(d) != -1)
                 throw new Error("Value " + value + " in map contains delimiter " + d);
+            if (key.startsWith("\\\\u"))
+                key = "\\u" + key.substring(3);
             sb.append(key);
             sb.append(d);
             sb.append("\"+\"");

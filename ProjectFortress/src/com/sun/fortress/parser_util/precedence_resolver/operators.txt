@@ -216,12 +216,12 @@ inequivalence_operators
   neither approximately nor actually equal to
   not asymptotically equal to, nsimeq
   not almost equal to, napprox
-  not equal to, =/=, ne
+  not equal to, =/=, ne, \u2260
   not identical to, neqv
   not equivalent to
 
 less_than_operators
-  less-than sign, lt <
+  less-than sign, lt, <
   less-than or equal to, le, <=
   less-than over equal to
   less-than but not equal to
