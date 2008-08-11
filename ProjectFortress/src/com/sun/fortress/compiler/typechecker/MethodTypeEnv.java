@@ -46,14 +46,14 @@ class MethodTypeEnv extends TypeEnv {
         entries = _entries;
         parent = _parent;
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
+
     	Set<Method> methods = entries.matchFirst(no_api_var);
         if (methods.isEmpty()) {
             return parent.binding(var);
@@ -66,7 +66,7 @@ class MethodTypeEnv extends TypeEnv {
                 overloads.add(genericArrowFromDecl(_method.ast()));
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
-                LValueBind binding = _method.ast();
+                GetterSetter binding = _method.ast();
                 overloads.add(makeArrowType(binding.getSpan(),
                                             Types.VOID,
                                              // all types have been filled in at this point
@@ -74,7 +74,7 @@ class MethodTypeEnv extends TypeEnv {
 
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
-                LValueBind binding = _method.ast();
+                GetterSetter binding = _method.ast();
 
                 overloads.add(makeArrowType(binding.getSpan(),
                                             binding.getType().unwrap(),
@@ -101,12 +101,12 @@ class MethodTypeEnv extends TypeEnv {
 	@Override
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
    	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
+
     	Set<Method> methods = entries.matchFirst(no_api_var);
         if (methods.isEmpty()) {
             return parent.declarationSite(var);
         }
-		
+
 		throw new IllegalArgumentException("The declarationSite method should not be called on any functions, but was called on " + var);
 	}
 
@@ -116,16 +116,16 @@ class MethodTypeEnv extends TypeEnv {
 		Set<Pair<IdOrOpOrAnonymousName, Method>> new_entries = new HashSet<Pair<IdOrOpOrAnonymousName, Method>>();
 		Iterator<Pair<IdOrOpOrAnonymousName, Method>> iter = entries.iterator();
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		while(iter.hasNext()) {
 			Pair<IdOrOpOrAnonymousName, Method> p = iter.next();
-			
+
 			Method m = p.second();
 			Method new_m = (Method)m.acceptNodeUpdateVisitor(rep);
-			
+
 			new_entries.add(Pair.make(p.first(), new_m));
 		}
-		
+
 		return new MethodTypeEnv(CollectUtil.makeRelation(new_entries),
 				parent.replaceAllIVars(ivars));
 	}

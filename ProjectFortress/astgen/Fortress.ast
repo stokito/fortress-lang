@@ -84,9 +84,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         interface Decl();
     /**
      * left-hand-side of assignments, local variable declarations, or
-     * top-level declarations.
+     * top-level variable declarations
      */
     interface Lhs();
+    /**
+     * getter or setter declarations
+     */
+    interface GetterSetter(Option<Type> type = Option.<Type>none());
     /**
      * with static parameters
      * implemented by trait, object, and function declarations and
@@ -370,7 +374,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             LValueBind(Id name, Option<Type> type = Option.<Type>none(),
                        List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       boolean mutable) implements Lhs;
+                       boolean mutable) implements Lhs, GetterSetter;
             /**
              * left-hand side of matrix unpasting
              * Unpasting ::= [ UnpastingElems ]
@@ -463,7 +467,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * e.g.) transient x: String
              */
             NormalParam(Option<Type> type = Option.<Type>none(),
-                        Option<Expr> defaultExpr = Option.<Expr>none());
+                        Option<Expr> defaultExpr = Option.<Expr>none())
+                       implements Lhs, GetterSetter;
             /**
              * varargs parameter
              * Varargs ::= BindId : Type ...
@@ -568,7 +573,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             abstract TerminalDecl(SyntaxDef syntaxDef);
                 /**
-                 * terminal definition result of rewrite of keyword and token 
+                 * terminal definition result of rewrite of keyword and token
 		 * symbols in disambigutation of syntax abstractions
                  */
                 _TerminalDef();
@@ -599,7 +604,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                       TransformerDecl transformer);
-            
+
             SuperSyntaxDef(Option<String> modifier, Id nonterminal, Id grammar);
 
         /**
@@ -632,13 +637,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             CaseTransformer(Id gapName, List<CaseTransformerClause> clauses);
 
-        /** 
+        /**
          * Case transformer clause
          */
         CaseTransformerClause(Id constructor, List<Id> parameters, Transformer body);
 
         /**
-          * syntax symbol 
+          * syntax symbol
           */
         abstract SyntaxSymbol();
             /**
@@ -744,8 +749,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * expression
          */
-        root abstract Expr(ignoreForEquals boolean parenthesized = false, ignoreForEquals Option<Type> exprType = Option.<Type>none());
-        
+        root abstract Expr(ignoreForEquals boolean parenthesized = false,
+                           ignoreForEquals Option<Type> exprType = Option.<Type>none());
+
             /**
              * expression annotated with a type
              */
