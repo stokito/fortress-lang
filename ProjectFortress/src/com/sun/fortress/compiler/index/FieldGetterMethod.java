@@ -23,7 +23,7 @@ import java.util.List;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.GetterSetter;
+import com.sun.fortress.nodes.ImplicitGetterSetter;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
@@ -36,15 +36,15 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class FieldGetterMethod extends Method {
 
-    private final GetterSetter _ast;
+    private final ImplicitGetterSetter _ast;
     private final Id _declaringTrait;
 
-    public FieldGetterMethod(GetterSetter ast, Id declaringTrait) {
+    public FieldGetterMethod(ImplicitGetterSetter ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
 
-    public GetterSetter ast() { return _ast; }
+    public ImplicitGetterSetter ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
@@ -83,7 +83,7 @@ public class FieldGetterMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FieldGetterMethod((GetterSetter)this._ast.accept(visitor), this._declaringTrait);
+		return new FieldGetterMethod((ImplicitGetterSetter)this._ast.accept(visitor), this._declaringTrait);
 	}
 
 
