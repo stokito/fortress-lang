@@ -492,7 +492,7 @@ public class PrecedenceMap {
 
     private void makeEquiv(String op1, String op2) {
         CanonOp i = getEquiv(op1);
-        if (rep.put(op2,i) != null) {
+        if (rep.put(op2,i) != null && !op1.equals(op2)) {
             bug("Duplicate equivalence of operator "+op2);
         }
     }
