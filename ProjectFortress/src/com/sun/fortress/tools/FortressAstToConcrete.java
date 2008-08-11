@@ -272,7 +272,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         return s.toString();
     }
-    
+
     @Override public String defaultTransformationNode(_SyntaxTransformation that){
         return "(* ..transformation.. *)";
     }
@@ -1063,7 +1063,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forNodeTransformer(NodeTransformer that) {
         return "(* ..macro.. *)";
     }
-    
+
     @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that, String constructor_result, List<String> parameters_result, String body_result) {
         StringBuilder s = new StringBuilder();
 
@@ -1849,6 +1849,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          List<String> staticArgs_result) {
         return handleParen( canonicalOp(originalName_result),
                             that.isParenthesized() );
+    }
+
+    @Override public String for_RewriteInstantiatedFnRefsOnly(_RewriteInstantiatedFnRefs that,
+                                                              Option<String> exprType_result,
+                                                              List<String> fns_result) {
+        return "(* _RewriteInstantiatedFnRefs *)";
     }
 
     @Override public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result,
