@@ -52,58 +52,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDecl;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.AbsExternalSyntax;
-import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DimDecl;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.GrammarMemberDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierAbstract;
-import com.sun.fortress.nodes.ModifierAtomic;
-import com.sun.fortress.nodes.ModifierGetter;
-import com.sun.fortress.nodes.ModifierHidden;
-import com.sun.fortress.nodes.ModifierIO;
-import com.sun.fortress.nodes.ModifierOverride;
-import com.sun.fortress.nodes.ModifierPrivate;
-import com.sun.fortress.nodes.ModifierSettable;
-import com.sun.fortress.nodes.ModifierSetter;
-import com.sun.fortress.nodes.ModifierTest;
-import com.sun.fortress.nodes.ModifierTransient;
-import com.sun.fortress.nodes.ModifierValue;
-import com.sun.fortress.nodes.ModifierVar;
-import com.sun.fortress.nodes.ModifierWidens;
-import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.PropertyDecl;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TestDecl;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.UnitDecl;
-import com.sun.fortress.nodes.VarAbsDeclOrDecl;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes._TerminalDef;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -112,6 +61,8 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class IndexBuilder {
 
@@ -246,18 +197,18 @@ public class IndexBuilder {
     public static ObjectTraitIndex buildObjectExprIndex(ObjectExpr obj) {
     	Id fake_object_name = new Id("FAKE_NAME");
     	IndexBuilder builder = new IndexBuilder();
-    	
+
     	// Make fake object
     	ObjectDecl decl = new ObjectDecl(fake_object_name,
     			                         Collections.<StaticParam>emptyList(),
     			                         obj.getExtendsClause(),
     			                         obj.getDecls());
-    	
+
     	Map<Id,TypeConsIndex> index_holder = new HashMap<Id,TypeConsIndex>();
     	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(), new HashMap<Id,Variable>());
     	return (ObjectTraitIndex)index_holder.get(fake_object_name);
     }
-    
+
     /** Create a ComponentIndex and add it to the given map. */
     private void buildComponent(Component ast,
             Map<APIName, ComponentIndex> components,
@@ -379,7 +330,21 @@ public class IndexBuilder {
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
             for (Param p : ast.getParams().unwrap()) {
-                fields.put(p.getName(), new ParamVariable(p));
+                ModifierSet mods = extractModifiers(p.getMods());
+                Id paramName = p.getName();
+                fields.put(paramName, new ParamVariable(p));
+                if (!mods.isHidden) {
+                    if ( p instanceof NormalParam)
+                        getters.put(paramName, new FieldGetterMethod((NormalParam)p, name));
+                    else
+                        bug(p, "Varargs object parameters should not define getters.");
+                }
+                if (mods.isSettable || mods.isVar) {
+                    if ( p instanceof NormalParam)
+                        setters.put(paramName, new FieldSetterMethod((NormalParam)p, name));
+                    else
+                        bug(p, "Varargs object parameters should not define setters.");
+                }
             }
             Constructor c = new Constructor(name,
                     ast.getStaticParams(),
@@ -446,7 +411,7 @@ public class IndexBuilder {
             if (!mods.isHidden) {
                 getters.put(name, new FieldGetterMethod(b, declaringTrait));
             }
-            if (mods.isSettable) {
+            if (mods.isSettable || mods.isVar) {
                 setters.put(name, new FieldSetterMethod(b, declaringTrait));
             }
         }
@@ -469,7 +434,7 @@ public class IndexBuilder {
             if (!mods.isHidden) {
                 getters.put(name, new FieldGetterMethod(b, declaringTrait));
             }
-            if (mods.isSettable) {
+            if (mods.isSettable || mods.isVar) {
                 setters.put(name, new FieldSetterMethod(b, declaringTrait));
             }
         }

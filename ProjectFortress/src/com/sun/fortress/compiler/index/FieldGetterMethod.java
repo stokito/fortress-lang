@@ -23,7 +23,7 @@ import java.util.List;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.GetterSetter;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
@@ -36,21 +36,21 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class FieldGetterMethod extends Method {
 
-    private final LValueBind _ast;
+    private final GetterSetter _ast;
     private final Id _declaringTrait;
 
-    public FieldGetterMethod(LValueBind ast, Id declaringTrait) {
+    public FieldGetterMethod(GetterSetter ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
 
-    public LValueBind ast() { return _ast; }
+    public GetterSetter ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
 		return Option.none();
 	}
-	
+
 	@Override
 	public List<Param> parameters() {
 		return Collections.emptyList();
@@ -83,8 +83,8 @@ public class FieldGetterMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FieldGetterMethod((LValueBind)this._ast.accept(visitor), this._declaringTrait);
+		return new FieldGetterMethod((GetterSetter)this._ast.accept(visitor), this._declaringTrait);
 	}
-	
-	
+
+
 }
