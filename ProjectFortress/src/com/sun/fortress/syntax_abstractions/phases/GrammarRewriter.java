@@ -137,9 +137,8 @@ public class GrammarRewriter {
             Api idResult = (Api) api.ast().accept(id);
             if (id.errors().isEmpty()) {
                 // 2) Disambiguate nonterminal parameters
-                NonterminalParameterDisambiguator npd = new NonterminalParameterDisambiguator(env);
-                Api npdResult = (Api) idResult.accept(npd);
-                errors.addAll(npd.errors());
+                // No longer done.
+                Api npdResult = idResult;
 
                 // 3) Remove whitespace where instructed by non-whitespace symbols
                 WhitespaceElimination we = new WhitespaceElimination();
