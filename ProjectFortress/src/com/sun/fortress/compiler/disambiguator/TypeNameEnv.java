@@ -21,6 +21,7 @@ import java.util.*;
 
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.IdOrOpName;
@@ -72,9 +73,9 @@ public abstract class TypeNameEnv {
      */
     public List<APIName> implicitlyImportedApis() {
         List<APIName> result = new ArrayList<APIName>();
-        result.add(NodeFactory.makeAPIName("AnyType"));
-        result.add(NodeFactory.makeAPIName("FortressBuiltin"));
-        result.add(NodeFactory.makeAPIName("FortressLibrary"));
+        for(String defaultLib : WellKnownNames.defaultLibrary) {
+            result.add(NodeFactory.makeAPIName(defaultLib));
+        }
         return result;
     }
     /**

@@ -45,6 +45,8 @@ public class WellKnownNames {
     public static String arrayElementTypeName = "T";
     public static String arrayGetter = "get";
     public static String arrayPutter = "init";
+    
+    public static String matrix = "Matrix";
 
     public static String loop = "loop";
     public static String generate = "__generate";
