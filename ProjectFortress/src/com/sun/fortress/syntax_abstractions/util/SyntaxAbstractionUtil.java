@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AsIfExpr;
 import com.sun.fortress.nodes.Assignment;
@@ -69,10 +70,10 @@ import edu.rice.cs.plt.tuple.Option;
 public class SyntaxAbstractionUtil {
 
     public static final String FORTRESSAST = "FortressAst";
-    public static final String FORTRESSBUILTIN = "FortressBuiltin";
+    public static final String FORTRESSBUILTIN = WellKnownNames.fortressBuiltin;
     public static final String STRINGLITERALEXPR = "StringLiteralExpr";
     public static final String STRINGLITERAL = "StringLiteral";
-    public static final String FORTRESSLIBRARY = "FortressLibrary";
+    public static final String FORTRESSLIBRARY = WellKnownNames.fortressLibrary;
     public static final String MAYBE = "Maybe";
     public static final String JUST = "Just";
     public static final String NOTHING = "Nothing";

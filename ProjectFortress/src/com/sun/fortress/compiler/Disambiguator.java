@@ -38,6 +38,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
@@ -89,9 +90,6 @@ import edu.rice.cs.plt.tuple.Option;
  * treated as static errors.
  */
 public class Disambiguator {
-    private static final String FORTRESS_LIBRARY_NAME = "FortressLibrary";
-	private static final String ANY_TYPE_API_NAME = "AnyType";
-	private static final String FORTRESS_BUILTIN_NAME = "FortressBuiltin";
 
 	/**
      * Disambiguate the names of nonterminals.
@@ -230,7 +228,7 @@ public class Disambiguator {
 				Boolean implib = true;
 				for( AliasedAPIName api : that.getApis() ) {
 					APIName name = api.getApi();
-					if(name.getText().equals(FORTRESS_LIBRARY_NAME))
+					if(name.getText().equals(WellKnownNames.fortressLibrary))
 						implib=false;
 					if( !exceptions.containsKey(name) )
 						exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>());
@@ -254,7 +252,7 @@ public class Disambiguator {
 					allowed.get(name).addAll(names);
 				else
 					allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
-				return !name.getText().equals(FORTRESS_LIBRARY_NAME);
+				return !name.getText().equals(WellKnownNames.fortressLibrary);
 			}
 
 			@Override
@@ -264,7 +262,7 @@ public class Disambiguator {
 					exceptions.get(name).addAll(that.getExcept());
 				else
 					exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExcept()));
-				return !name.getText().equals(FORTRESS_LIBRARY_NAME);
+				return !name.getText().equals(WellKnownNames.fortressLibrary);
 			}
     	};
     	
@@ -290,19 +288,13 @@ public class Disambiguator {
     		else if( allowed.containsKey(name) ) {
     			Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
     			result.put(name, keep(index, allowed_));
-    		}
-    		else if( name.getText().equals(FORTRESS_BUILTIN_NAME) ) {
-    			// Fortress builtin is always implicitly imported
-    			result.put(name, index);
-    		}
-    		else if( name.getText().equals(ANY_TYPE_API_NAME) ) {
-    			// For now, AnyType is always implicitly imported.
-    			result.put(name, index);
-    		}
-    		else if( name.getText().equals(FORTRESS_LIBRARY_NAME) && 
-    				 importlibrary ) {
-    			// Fortress Library is import implicitly if nothing else is imported
-    			result.put(name, index);
+    		} else {
+    		    for(String builtin : WellKnownNames.defaultLibrary) {    		        
+    		        if (builtin.equals(name.getText())) {
+    		              result.put(name, index);
+    		              break;
+    		        }
+    		    }
     		}
     	}
     	return result;

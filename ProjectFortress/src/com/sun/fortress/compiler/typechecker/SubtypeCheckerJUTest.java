@@ -21,6 +21,8 @@ import junit.framework.TestCase;
 import java.util.*;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
+
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -238,22 +240,22 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         TypeArg zzA = NodeFactory.makeTypeArg("ZZ32");
         IntArg zero = NodeFactory.makeIntArgVal("0");
         IntArg three = NodeFactory.makeIntArg("three");
-        Id arrName1 = NodeFactory.makeId(span, "FortressLibrary", "Array1");
+        Id arrName1 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(1));
         TraitType arr1 = NodeFactory.makeTraitType(span, false,
                                                    arrName1, zzA,
                                                    zero, three);
-        Id arrName2 = NodeFactory.makeId(span, "FortressLibrary", "Array2");
+        Id arrName2 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(2));
         TraitType arr2 = NodeFactory.makeTraitType(span, false,
                                                    arrName2, zzA,
                                                    zero, three,
                                                    zero, three);
-        Id arrName3 = NodeFactory.makeId(span, "FortressLibrary", "Array3");
+        Id arrName3 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(3));
         TraitType arr3 = NodeFactory.makeTraitType(span, false,
                                                    arrName3, zzA,
                                                    zero, three,
                                                    zero, three,
                                                    zero, three);
-        Id matName = NodeFactory.makeId(span, "FortressLibrary", "Matrix");
+        Id matName = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.matrix);
         TraitType mat  = NodeFactory.makeTraitType(span, false,
                                                    matName, zzA,
                                                    three, three);
@@ -302,12 +304,12 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         apis.put(builtin.ast().getName(), builtin);
 
         ApiIndex library =
-            api("FortressLibrary",
-                absTrait("Object", "AnyType.Any"),
-                absTrait("Array1", "AnyType.Any"),
-                absTrait("Array2", "AnyType.Any"),
-                absTrait("Array3", "AnyType.Any"),
-                absTrait("Matrix", "AnyType.Any"));
+            api(WellKnownNames.fortressLibrary,
+                absTrait(WellKnownNames.objectTypeName, "AnyType.Any"),
+                absTrait(WellKnownNames.arrayMaker(1), "AnyType.Any"),
+                absTrait(WellKnownNames.arrayMaker(2), "AnyType.Any"),
+                absTrait(WellKnownNames.arrayMaker(3), "AnyType.Any"),
+                absTrait(WellKnownNames.matrix, "AnyType.Any"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);

@@ -170,6 +170,13 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
+        for(String defaultLib : WellKnownNames.defaultLibrary) {
+            APIName libAPI = NodeFactory.makeAPIName(defaultLib);
+            if (p.getName().equals(libAPI)) {
+                error("Fortress built-in library " + defaultLib + " does not export executable.");
+            }
+        }
+        
         ComponentWrapper comp = new ComponentWrapper((Component) p, linker, WellKnownNames.defaultLibrary);
 
         /*
