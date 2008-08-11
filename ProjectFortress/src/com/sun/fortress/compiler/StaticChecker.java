@@ -168,27 +168,60 @@ public class StaticChecker {
                                                       StaticParamEnv.make(),
                                                       typeEnv,
                                                       component);
-
+            // typecheck... 
             TypeCheckerResult result = component_ast.accept(typeChecker);
 
-            // We need to make sure type inference succeeded.
-            if( !result.getNodeConstraints().isSatisfiable() ) {
-            	// Oh no! Type inference failed. Our error message will suck.
-            	String err = "Type inference failed";
-            	result = TypeCheckerResult.addError(result, TypeError.make(err, component_ast));
-            	return result;
-            }
-            else{
-            	InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
-            	Node replaced = result.ast().accept(rep);
+            // then replace inference variables...
+            InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
+            component_ast = (Component)result.ast().accept(rep);
+            
+            // then typecheck again!!!
+            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
+            
+            typeEnv = TypeEnv.make(component);
 
-            	Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
-            		result.getNodeTypeEnvs();
-            	
-            	node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
-            	
-            	return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
-            }
+            // Add all top-level function names to the component-level environment.
+            typeEnv = typeEnv.extendWithFunctions(component.functions());
+
+            // Iterate over top-level variables, adding each to the component-level environment.
+            typeEnv = typeEnv.extend(component.variables());
+
+            // Add all top-level object names declared in the component-level environment.
+            typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
+
+            typeChecker = new TypeChecker(new TraitTable(component, env),
+                                          StaticParamEnv.make(),
+                                          typeEnv,
+                                          component);
+            
+            result = component_ast.accept(typeChecker);
+            return result;
+            
+//            Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
+//                result.getNodeTypeEnvs();
+//            
+//            node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
+//            
+//            return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
+//            
+//            // We need to make sure type inference succeeded.
+//            if( !result.getNodeConstraints().isSatisfiable() ) {
+//            	// Oh no! Type inference failed. Our error message will suck.
+//            	String err = "Type inference failed";
+//            	result = TypeCheckerResult.addError(result, TypeError.make(err, component_ast));
+//            	return result;
+//            }
+//            else{
+//            	InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
+//            	Node replaced = result.ast().accept(rep);
+//
+//            	Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
+//            		result.getNodeTypeEnvs();
+//            	
+//            	node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
+//            	
+//            	return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
+//            }
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }
