@@ -18,6 +18,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import java.util.List;
 
+import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Expr;
@@ -57,7 +58,35 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 		}
 	}
 
-	@Override
+
+
+
+
+    @Override
+    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result,
+            IdOrOpOrAnonymousName name_result,
+            List<StaticParam> staticParams_result, List<Param> params_result,
+            Option<Type> returnType_result,
+            Option<List<BaseType>> throwsClause_result,
+            WhereClause where_result, Contract contract_result) {
+        // Is return type given? 
+        // This could be an abstract method in a trait
+        
+        Option<Type> new_ret_type = 
+            returnType_result.isNone() ?
+                    Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
+                    returnType_result;
+        
+        return super.forAbsFnDeclOnly(that, mods_result, name_result,
+                staticParams_result, params_result, new_ret_type,
+                throwsClause_result, where_result, contract_result);
+    }
+
+
+
+
+
+    @Override
 	public Node forFnDefOnly(FnDef that, List<Modifier> mods_result,
 			IdOrOpOrAnonymousName name_result,
 			List<StaticParam> staticParams_result, List<Param> params_result,
