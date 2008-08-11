@@ -1181,6 +1181,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                               List<StaticArg> staticArgs
                                   = Collections.<StaticArg>emptyList());
                     /**
+                     * A list of FnRefs used for infering static arguments
+                     */
+                    _RewriteInstantiatedFnRefs(List<FnRef> fns = Collections.<FnRef>emptyList());
+                                   
+                    /**
                      * functional applicaiton
                      */
                     abstract AppExpr();
