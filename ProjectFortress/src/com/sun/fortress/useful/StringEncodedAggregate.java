@@ -54,6 +54,8 @@ public class StringEncodedAggregate {
             }
             if (s.indexOf(d) != -1)
                     throw new Error("String " + s + " in set contains delimiter " + d);
+            if (s.startsWith("\\\\u"))
+                s = "\\u" + s.substring(3);
             sb.append(s);
             sb.append(d);
         }
@@ -130,6 +132,8 @@ public class StringEncodedAggregate {
             sb.append(key);
             sb.append(d);
             sb.append("\"+\"");
+            if (value.startsWith("\\\\u"))
+                value = "\\u" + value.substring(3);
             sb.append(value);
             sb.append(d);
         }
