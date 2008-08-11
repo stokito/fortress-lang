@@ -66,7 +66,7 @@ class MethodTypeEnv extends TypeEnv {
                 overloads.add(genericArrowFromDecl(_method.ast()));
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
-                GetterSetter binding = _method.ast();
+                ImplicitGetterSetter binding = _method.ast();
                 overloads.add(makeArrowType(binding.getSpan(),
                                             Types.VOID,
                                              // all types have been filled in at this point
@@ -74,7 +74,7 @@ class MethodTypeEnv extends TypeEnv {
 
             } else { // method instanceof FieldSetterMethod
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
-                GetterSetter binding = _method.ast();
+                ImplicitGetterSetter binding = _method.ast();
 
                 overloads.add(makeArrowType(binding.getSpan(),
                                             binding.getType().unwrap(),

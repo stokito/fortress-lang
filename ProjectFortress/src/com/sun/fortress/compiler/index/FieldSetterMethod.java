@@ -24,7 +24,7 @@ import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.GetterSetter;
+import com.sun.fortress.nodes.ImplicitGetterSetter;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
@@ -37,15 +37,15 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class FieldSetterMethod extends Method {
 
-    private final GetterSetter _ast;
+    private final ImplicitGetterSetter _ast;
     private final Id _declaringTrait;
 
-    public FieldSetterMethod(GetterSetter ast, Id declaringTrait) {
+    public FieldSetterMethod(ImplicitGetterSetter ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
 
-    public GetterSetter ast() { return _ast; }
+    public ImplicitGetterSetter ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
@@ -84,7 +84,7 @@ public class FieldSetterMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FieldSetterMethod((GetterSetter)this._ast.accept(visitor), this._declaringTrait);
+		return new FieldSetterMethod((ImplicitGetterSetter)this._ast.accept(visitor), this._declaringTrait);
 	}
 
 }

@@ -90,7 +90,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * getter or setter declarations
      */
-    interface GetterSetter(Option<Type> type = Option.<Type>none());
+    interface ImplicitGetterSetter(Option<Type> type = Option.<Type>none());
     /**
      * with static parameters
      * implemented by trait, object, and function declarations and
@@ -374,7 +374,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             LValueBind(Id name, Option<Type> type = Option.<Type>none(),
                        List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       boolean mutable) implements Lhs, GetterSetter;
+                       boolean mutable) implements Lhs, ImplicitGetterSetter;
             /**
              * left-hand side of matrix unpasting
              * Unpasting ::= [ UnpastingElems ]
@@ -468,7 +468,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             NormalParam(Option<Type> type = Option.<Type>none(),
                         Option<Expr> defaultExpr = Option.<Expr>none())
-                       implements Lhs, GetterSetter;
+                       implements Lhs, ImplicitGetterSetter;
             /**
              * varargs parameter
              * Varargs ::= BindId : Type ...
@@ -1190,7 +1190,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * A list of FnRefs used for infering static arguments
                      */
                     _RewriteInstantiatedFnRefs(List<FnRef> fns = Collections.<FnRef>emptyList());
-                                   
+
                     /**
                      * functional applicaiton
                      */
