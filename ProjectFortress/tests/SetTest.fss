@@ -66,8 +66,8 @@ run(args:String...):() = do
 
     sets: (Set[\ZZ32\])[4] = [b c d e]
 
-    for s <- sets, (i,v) <- s.indexValuePairs() do
-        assert(i+1,v," indexValuePairs wrong for ",s)
+    for s <- sets, (i,v') <- s.indexValuePairs() do
+        assert(i+1,v'," indexValuePairs wrong for ",s)
     end
 
     for s1 <- sets, s2 <- sets do

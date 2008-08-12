@@ -39,9 +39,9 @@ summationTest(n) = do
      n (n-1) / 2
 end
 
-summationVerify(n,result) = (result = summationTest(n))
+summationVerify(n,result') = (result' = summationTest(n))
 
-summationVerifyWrong(n,result) = false
+summationVerifyWrong(n,result') = false
 
 atom_sum(n) = do
     var s:ZZ32 := 0

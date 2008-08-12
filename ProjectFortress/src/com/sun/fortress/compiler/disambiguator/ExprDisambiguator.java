@@ -134,14 +134,16 @@ import edu.rice.cs.plt.tuple.Pair;
  */
 public class ExprDisambiguator extends NodeUpdateVisitor {
 
-    private static final boolean CHECK_FOR_SHADOWING = false;
+    private static final boolean CHECK_FOR_SHADOWING = true;
 
     private NameEnv _env;
+    private Set<Id> _uninitializedNames; 
     private List<StaticError> _errors;
     private Option<Id> _innerMostLabel;
 
     public ExprDisambiguator(NameEnv env, List<StaticError> errors) {
         _env = env;
+        _uninitializedNames = Collections.emptySet();
         _errors = errors;
         _innerMostLabel = Option.<Id>none();
     }
@@ -151,13 +153,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         _innerMostLabel = innerMostLabel;
     }
 
+    private ExprDisambiguator(NameEnv env, Set<Id> uninitializedNames, List<StaticError> errors, Option<Id> innerMostLabel) {
+        this(env, errors, innerMostLabel);
+        _uninitializedNames = uninitializedNames;
+    }
+
     /**
      * Check that the variable corresponding to the give Id does not shadow any variables or
      * functions in scope.
      */
     private void checkForShadowingVar(Id var) {
         if (CHECK_FOR_SHADOWING) {
-            if (! var.getText().equals("self")) {
+            if (! var.getText().equals("self") && ! var.getText().equals("_") &&
+                ! _uninitializedNames.contains(var)) {
                 for(Id shadowed : _env.explicitVariableNames(var)) {
                     // Check Spans to ensure shadowed declaration is distinct.
                     // This is necessary because Fortress supports recursive definitions.
@@ -212,16 +220,27 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return extendWithVarsNoCheck(vars);
     }
 
+    private ExprDisambiguator extendWithVars(Set<Id> vars, Set<Id> uninitializedNames) { 
+        checkForShadowingVars(vars);
+        return extendWithVarsNoCheck(vars, uninitializedNames);
+    }
+
     private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars) {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
-        return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
+    }
+
+    private ExprDisambiguator extendWithVarsNoCheck(Set<Id> vars, Set<Id> uninitializedNames) {
+        NameEnv newEnv = new LocalVarEnv(_env, vars);
+        uninitializedNames.addAll(_uninitializedNames);
+        return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._innerMostLabel);
     }
 
     private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames){
         checkForShadowingFunctions(definedNames);
 
         NameEnv newEnv = new LocalFnEnv(_env, CollectUtil.makeSet(IterUtil.relax(definedNames)));
-        return new ExprDisambiguator(newEnv, _errors, this._innerMostLabel);
+        return new ExprDisambiguator(newEnv, _uninitializedNames, _errors, this._innerMostLabel);
     }
 
     private ExprDisambiguator extendWithSelf(Span span) {
@@ -243,9 +262,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<LValue> lhsResult = recurOnListOfLValue(that.getLhs());
         Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
         Set<Id> definedNames = extractDefinedVarNames(lhsResult);
+        Set<Id> uninitializedNames = new HashSet<Id>();
+        
+        // Record uninitialized local variables so that:
+        //   1. We can check that these variables are initialized before use.
+        //   2. We don't signal shadowing errors when they are initialized.
+        if (rhsResult.isNone()) { 
+            uninitializedNames = definedNames;
+        }
+
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         NameEnv newEnv = new LocalVarEnv(_env, definedNames);
-        ExprDisambiguator v = extendWithVars(definedNames);
+        ExprDisambiguator v = extendWithVars(definedNames, uninitializedNames);
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         return forLocalVarDeclOnly(that, type_result , bodyResult, lhsResult, rhsResult);
     }
