@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.TypeAbstractVisitor;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnionType;
@@ -493,5 +494,29 @@ public class TypesUtil {
             Node n = node.unwrap();
             return Option.<Node>some(closeConstraints(n, subtypeChecker, results));
         }
+    }
+
+    /** Given a list of Types, produce a list of static arguments, each one a TypeArg. */
+    public static List<StaticArg> staticArgsFromTypes(List<Type> types) {
+        if( types.isEmpty() ) return Collections.emptyList();
+        
+        List<StaticArg> result = new ArrayList<StaticArg>(types.size());
+        for( Type ty : types ) {
+            result.add(NodeFactory.makeTypeArg(ty));
+        }
+        return result;
+    }
+
+    public static boolean overloadingRequiresStaticArgs(List<Type> overloaded_types) {
+        for(Type overloaded_type : overloaded_types ) {
+            for( Type conj : conjuncts(overloaded_type) ) {
+                Boolean b = conj.accept(new TypeAbstractVisitor<Boolean>(){
+                    @Override public Boolean for_RewriteGenericArrowType(_RewriteGenericArrowType that) { return !that.getStaticParams().isEmpty(); }
+                    @Override public Boolean forType(Type that) { return Boolean.FALSE; }
+                });
+                if( b ) return true;
+            }
+        }
+        return false;
     }
 }
