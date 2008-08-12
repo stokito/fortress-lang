@@ -42,7 +42,7 @@ public class EvaluatorTask extends BaseTask {
 
     public EvaluatorTask(FortressRepository fr, CompilationUnit prog,
                          boolean tests, String toRun, List<String> args_) {
-		super();
+        super();
         p = prog;
         runTests = tests;
         args = args_;
@@ -55,23 +55,22 @@ public class EvaluatorTask extends BaseTask {
     }
 
     public void compute() {
-		// The FortressTaskRunner isn't created yet when we first make our EvaluatorTask, so we need to initialize the thread state here.
-		taskState = new TaskState();
-		FortressTaskRunner.setCurrentTask(this);
-	
-		try {
-			theResult =  Driver.runProgramTask(p, runTests, args, functionToRun,
+        // The FortressTaskRunner isn't created yet when we first make our EvaluatorTask, so we need to initialize the thread state here.
+        taskState = new TaskState();
+        FortressTaskRunner.setCurrentTask(this);
+
+        try {
+            theResult =  Driver.runProgramTask(p, runTests, args, functionToRun,
                                                fortressRepository);
-		} catch (IOException e) {
-			causedException = true;
-			err = e;
-			//            e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			fortressRepository.clear();
-			taskState = null;
-		}
-	}
+        } catch (IOException e) {
+            recordException(e);
+            //            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            fortressRepository.clear();
+            taskState = null;
+        }
+    }
 
     public FValue result() {
         return theResult;

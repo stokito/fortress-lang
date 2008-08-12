@@ -309,6 +309,11 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         env = _env;
     }
 
+    @Override
+    public FType defaultCase(Node n) {
+        return bug(n,errorMsg("Can't EvalType this node type."));
+    }
+
     public FType forOpArg(OpArg b) {
         return FTypeOpr.make(NodeUtil.nameString(b.getName().getOriginalName()));
     }

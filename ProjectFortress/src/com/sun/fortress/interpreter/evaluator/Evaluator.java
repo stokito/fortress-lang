@@ -309,22 +309,22 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAtomicExpr(AtomicExpr x) {
         final Expr expr = x.getExpr();
         final Evaluator current = new Evaluator(this);
-		FValue res = FVoid.V;
-		try {
-			res = FortressTaskRunner.doIt (
-										   new Callable<FValue>() {
-											   public FValue call() {
-												   Evaluator ev = new Evaluator(current.e.extendAt(expr));
-												   return expr.accept(ev);
-											   }
-										   }
-										   );
-		} catch (RuntimeException re) {
-			throw re;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return res;
+        FValue res = FVoid.V;
+        try {
+            res = FortressTaskRunner.doIt (
+                                           new Callable<FValue>() {
+                                               public FValue call() {
+                                                   Evaluator ev = new Evaluator(current.e.extendAt(expr));
+                                                   return expr.accept(ev);
+                                               }
+                                           }
+                                           );
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return res;
     }
 
     public FValue forTryAtomicExpr(TryAtomicExpr x) {
@@ -332,7 +332,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         final Evaluator current = new Evaluator(this);
         FValue res = FVoid.V;
         // Inside a transaction tryAtomic is a noop
-		// Why is this?  It seems inconsistent with the rest of our transaction story.  chf
+        // Why is this?  It seems inconsistent with the rest of our transaction story.  chf
         if (FortressTaskRunner.inATransaction()) {
             Evaluator ev = new Evaluator(current.e.extendAt(expr));
             return expr.accept(ev);
@@ -346,14 +346,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
                         return res1;
                     }
                 }
-											  );
+                                              );
         } catch (AbortedException ae) {
             FObject f = (FObject) e.getValue(WellKnownNames.tryatomicFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
         } catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+            throw new RuntimeException(e);
+        }
         return res;
     }
 
@@ -474,7 +474,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Added some special-case code to avoid explosion of TupleTasks.
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
-				
+                
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
         } else if (sz > 1) {
@@ -483,9 +483,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             for (Expr e : exprs) {
                 tasks[count++] = new TupleTask(e, this);
             }
-			BaseTask currentTask = FortressTaskRunner.getTask();
-			TupleTask.forkJoin(tasks);
-			FortressTaskRunner.setCurrentTask(currentTask);
+            BaseTask currentTask = FortressTaskRunner.getTask();
+            TupleTask.forkJoin(tasks);
+            FortressTaskRunner.setCurrentTask(currentTask);
             for (int i = 0; i < count; i++) {
                 if (tasks[i].causedException()) {
                     Throwable t = tasks[i].taskException();
@@ -496,7 +496,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     } else {
                         error(exprs.get(i), errorMsg("Wrapped Exception",t));
                     }
-				}
+                }
                 resList.add(tasks[i].getRes());
             }
         }
@@ -1064,18 +1064,18 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
 
 
-	// This method is not necessary in the long run. These nodes will
+    // This method is not necessary in the long run. These nodes will
     // be removed by the static end. For now, since we are not
     // correctly rebuilding the AST in all cases, some are getting
     // through. Just create an OpExpr that is multifix, since that's
     // what the op fixity was before. Talk to me if you think I am
     // dumb. Nels
     @Override
-	public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-    	return this.forOpExpr(new OpExpr(that.getSpan(), that.isParenthesized(), that.getMultifix_op(), that.getArgs()));
-	}
+    public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
+        return this.forOpExpr(new OpExpr(that.getSpan(), that.isParenthesized(), that.getMultifix_op(), that.getArgs()));
+    }
 
-	/** Assumes {@code x.getOps()} is a list of length 1.  At the
+    /** Assumes {@code x.getOps()} is a list of length 1.  At the
      * moment it appears that this is true for every OpExpr node that
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {
@@ -1574,7 +1574,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                   FortressError f_exc = new FortressError(x,e,f);
                   throw f_exc;
                 }
-			}
+            }
             // Nothing has handled or excluded exc; re-throw!
             throw exc;
         } finally {
@@ -1704,11 +1704,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     @Override
-	public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
-    	Id name = that.getObj();
-    	FValue g = forIdOfRef(name);
+    public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
+        Id name = that.getObj();
+        FValue g = forIdOfRef(name);
         return applyToActualStaticArgs(g,that.getStaticArgs(),that);
-	}
+    }
 
     private FValue forIdOfRef(Id x) {
         String s = x.getText();

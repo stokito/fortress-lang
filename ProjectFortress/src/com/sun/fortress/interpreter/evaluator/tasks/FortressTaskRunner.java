@@ -38,35 +38,35 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     private static ContentionManager manager = new FortressManager3();
-    
+
     public volatile BaseTask task;
 
     public BaseTask task() {return task;}
 
     public static BaseTask getTask() {
-		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-		return runner.task();
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        return runner.task();
     }
 
     public static TaskState getTaskState() {
-		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-		TaskState result = runner.task().taskState();
-		return result;
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        TaskState result = runner.task().taskState();
+        return result;
     }
 
     public static Transaction transaction() {
-	return getTaskState().transaction();
+    return getTaskState().transaction();
     }
 
     public static boolean inATransaction() {
-		return transaction() != null;
+        return transaction() != null;
     }
 
     public void setTask(BaseTask t) {task = t;}
 
     public static void setCurrentTask(BaseTask task) {
-		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-		runner.setTask(task);
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.setTask(task);
     }
 
 
@@ -82,7 +82,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return whether the current transaction may commit successfully.
      */
     public static boolean validate() {
-		return getTaskState().validate();
+        return getTaskState().validate();
     }
 
     /**
@@ -92,7 +92,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      *         there is no current transaction.
      */
     static public Transaction getTransaction() {
-		return getTaskState().transaction();
+        return getTaskState().transaction();
     }
 
     /**
@@ -103,28 +103,28 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     public static ContentionManager getContentionManager() { return manager;}
 
-    public static void debugPrintln(String msg) { 
-		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-		System.out.println(runner.getName() + ":" + runner.task() + ":" + msg);
+    public static void debugPrintln(String msg) {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        System.out.println(runner.getName() + ":" + runner.task() + ":" + msg);
     }
 
-    public static <T> T doItOnce(Callable<T> xaction) throws AbortedException, Exception {		
-		getTaskState().beginTransaction();
-		try {
-			T result = xaction.call();
-			if (getTaskState().commitTransaction()) {
-				return result;
-			} else {
-				getTransaction().abort();
-				throw new AbortedException(getTransaction(), " commit failed");
-			}
-		} catch (FortressError fe) {
-			throw fe;
-		} finally {
-			TaskState ts = getTaskState();
-			if (ts != null)
-				ts.giveUpTransaction();		
-		}
+    public static <T> T doItOnce(Callable<T> xaction) throws AbortedException, Exception {
+        getTaskState().beginTransaction();
+        try {
+            T result = xaction.call();
+            if (getTaskState().commitTransaction()) {
+                return result;
+            } else {
+                getTransaction().abort();
+                throw new AbortedException(getTransaction(), " commit failed");
+            }
+        } catch (FortressError fe) {
+            throw fe;
+        } finally {
+            TaskState ts = getTaskState();
+            if (ts != null)
+                ts.giveUpTransaction();
+        }
     }
 
     /**
@@ -135,26 +135,26 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     public static <T> T doIt(Callable<T> xaction) throws Exception {
         while (true) {
-			// Someday figure out how aborted transactions get this far...
-			Transaction me = getTransaction();
-			if (me != null && !me.isActive())
-				throw new AbortedException(me, "Got to doit with an aborted current transaction");
-			try {
-				T result = doItOnce(xaction);
-				return result;
-			} catch (OrphanedException oe) {
-			} catch (AbortedException ae) {
-			}
-		}
-	}
+            // Someday figure out how aborted transactions get this far...
+            Transaction me = getTransaction();
+            if (me != null && !me.isActive())
+                throw new AbortedException(me, "Got to doit with an aborted current transaction");
+            try {
+                T result = doItOnce(xaction);
+                return result;
+            } catch (OrphanedException oe) {
+            } catch (AbortedException ae) {
+            }
+        }
+    }
 
     /**
      * get thread ID for debugging
      * @return unique id
      */
     public static int getID() {
-		FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-		return runner.hashCode();
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        return runner.hashCode();
     }
 
 }
