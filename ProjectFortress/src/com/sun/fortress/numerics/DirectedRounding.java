@@ -17,8 +17,6 @@
 
 package com.sun.fortress.numerics;
 
-import java.lang.Math.*;
-
 /**
  * @author Guy L. Steele, Jr.
  *
