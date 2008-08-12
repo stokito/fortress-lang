@@ -33,7 +33,7 @@ public abstract class NameEnv extends TypeNameEnv {
      */
     public abstract Set<Id> explicitVariableNames(Id name);
     /** 
-     * Produce the set of all unaliased explcit variable names in this environment.
+     * Produce the set of all unaliased expilcit variable names in this environment.
      */
     public abstract List<Id> explicitVariableNames();
     /**
