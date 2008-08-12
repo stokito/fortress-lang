@@ -26,7 +26,8 @@ public class CheckBlasEnvironment {
         String javaLib = System.getenv("JAVA_LIB");        
         boolean problem = false;
         if (javaLib == null) {
-            System.err.println("You must specify a $JAVA_LIB environment variable"); 
+            System.err.println("You must specify a $JAVA_LIB environment variable");
+	    System.err.println("(try /System/Library/Frameworks/JavaVM.framework/Versions/Current)"); 
             problem = true;
         }        
         if (problem) System.exit(-1);        
@@ -37,7 +38,7 @@ public class CheckBlasEnvironment {
         if (osName.equals("Linux")) {
             checkLinux();
         } else if (osName.equals("Mac OS X")) {
-            
+	    checkOSX();            
         } else {
             System.err.println("The Fortress build system currently does not support");
             System.err.println("blas bindings for the the " + osName + " platform.");
