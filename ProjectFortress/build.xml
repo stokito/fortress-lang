@@ -407,6 +407,14 @@ testOnly, testCruiseControl"/>
         </javac>
     </target>
 
+    <target name="check.blas" depends="init">
+	<javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics">
+            <classpath refid="compile.classpath"/>
+        </javac>
+	<java failonerror="true" classname="com.sun.fortress.numerics.CheckBlasEnvironment">
+            <classpath refid="compile.classpath"/>
+	</java>
+    </target>
 
     <target name="check.linux">
         <condition property="blas.islinux">
@@ -465,7 +473,7 @@ testOnly, testCruiseControl"/>
     </target>
 
 
-    <target name="blas" depends="blas.linux,blas.osx"></target>
+    <target name="blas" depends="check.blas,blas.linux,blas.osx"></target>
 
     <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
      description="Compile all interpreter code.">
