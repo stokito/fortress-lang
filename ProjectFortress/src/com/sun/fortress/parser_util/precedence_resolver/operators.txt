@@ -61,19 +61,15 @@ c_2_1_division
 
 addition_and_subtraction
   plus sign, +, \u002b
-  hyphen-minus, \u002d
-  minus sign, -, \u2212
+  hyphen-minus, \u002d, minus sign, -, \u2212
 
 multiplication_and_division
-  asterisk, *, \u002a
-  middle dot, dot, \u00b7
-  multiplication sign, times, by, \u00d7
+  asterisk, *, \u002a, asterisk operator, \u2217
+  middle dot, dot, \u00b7, dot operator, \u22c5
+  multiplication sign, times, by, \u00d7, vector or cross product, cross, \u2a2f
   solidus, /, \u002f
   division sign, div, \u00f7
   division slash, \u2215
-  asterisk operator, \u2217
-  dot operator, \u22c5
-  vector or cross product, cross, \u2a2f
 
 dot_above_addition_and_subtraction
   dot plus, dotplus, \u2214
