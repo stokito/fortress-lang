@@ -154,6 +154,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	private final Map<Id, Option<Set<Type>>> labelExitTypes; // Note: this is mutable state.
 
+	private final boolean postInference; // Is this pass of the typechecker a post-inference pass?
+	
 	private StaticParamEnv staticParamEnv;
 
 	private final TypeAnalyzer subtypeChecker;
@@ -162,30 +164,34 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	private TypeEnv typeEnv;
 
-	public TypeChecker(TraitTable _table,
-			StaticParamEnv _staticParams,
-			TypeEnv _typeEnv,    
-			CompilationUnitIndex _compilationUnit) {
-		table = _table;
-		staticParamEnv = _staticParams;
-		typeEnv = _typeEnv;
-		compilationUnit = _compilationUnit;
-		subtypeChecker = TypeAnalyzer.make(table);
-		labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
+	public TypeChecker(TraitTable table,
+			StaticParamEnv staticParams,
+			TypeEnv typeEnv,    
+			CompilationUnitIndex compilationUnit,
+			boolean postInference) {
+	    this.table = table;
+		this.staticParamEnv = staticParams;
+		this.typeEnv = typeEnv;
+		this.compilationUnit = compilationUnit;
+		this.subtypeChecker = TypeAnalyzer.make(table);
+		this.labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
+		this.postInference = postInference;
 	}
 
-	private TypeChecker(TraitTable _table,
-			StaticParamEnv _staticParams,
-			TypeEnv _typeEnv,
-			CompilationUnitIndex _compilationUnit,
-			TypeAnalyzer _subtypeChecker,
-			Map<Id, Option<Set<Type>>> _labelExitTypes) {
-		table = _table;
-		staticParamEnv = _staticParams;
-		typeEnv = _typeEnv;
-		compilationUnit = _compilationUnit;
-		subtypeChecker = _subtypeChecker;
-		labelExitTypes = _labelExitTypes;
+	private TypeChecker(TraitTable table,
+			StaticParamEnv staticParams,
+			TypeEnv typeEnv,
+			CompilationUnitIndex compilationUnit,
+			TypeAnalyzer subtypeChecker,
+			Map<Id, Option<Set<Type>>> labelExitTypes,
+			boolean postInference) {
+	    this.table = table;
+		this.staticParamEnv = staticParams;
+		this.typeEnv = typeEnv;
+		this.compilationUnit = compilationUnit;
+		this.subtypeChecker = subtypeChecker;
+		this.labelExitTypes = labelExitTypes;
+		this.postInference = postInference;
 	}
 
 	/**
@@ -441,7 +447,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithLValues(bindings),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+				postInference);
 	}
 
 	 private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
@@ -450,7 +457,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithParams(newParams).extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
@@ -459,7 +467,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extend(newParams).extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 	 
 	 private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
@@ -468,7 +477,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithStaticParams(newStaticParams),
 				compilationUnit,
 				subtypeChecker.extend(newStaticParams, whereClause),
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 private TypeChecker extend(LocalVarDecl decl) {
@@ -476,7 +486,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extend(decl),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 private TypeChecker extend(Param newParam) {
@@ -484,7 +495,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extend(newParam),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 private TypeChecker extend(WhereClause whereClause) {
@@ -493,7 +505,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv,
 				compilationUnit,
 				subtypeChecker.extend(Collections.<StaticParam>emptyList(), whereClause),
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 public TypeChecker extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
@@ -501,7 +514,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithFnDefs(fns),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 	 
 	 public TypeChecker extendWithFunctions(Relation<IdOrOpOrAnonymousName, FunctionalMethod> methods) {
@@ -509,7 +523,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithFunctions(methods),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 
 	 public TypeChecker extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
@@ -517,7 +532,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithMethods(methods),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 	 
 	 public TypeChecker extendWithout(Node declSite, Set<? extends IdOrOpOrAnonymousName> names) {
@@ -525,7 +541,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				typeEnv.extendWithout(declSite, names),
 				compilationUnit,
 				subtypeChecker,
-				labelExitTypes);
+				labelExitTypes,
+                postInference);
 	}
 	 
 	 private Option<Type> findFieldInTraitHierarchy(List<TraitType> supers, FieldRef that) {
@@ -749,7 +766,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 result_type = Option.none();
 		 }
 
-		 Node new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
+		 _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
+		 
+		 // On the post-inference pass, an application could produce Inference vars
+         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+             // close constraints
+             new_node = (_RewriteFnApp)TypesUtil.closeConstraints(new_node, subtypeChecker, function_result, argument_result, result);
+             result_type = (Option<Type>)TypesUtil.closeConstraints(result_type, subtypeChecker, function_result, argument_result, result);
+         }
+		 
 		 return TypeCheckerResult.compose(new_node, result_type,
 				 subtypeChecker, function_result, argument_result, result);
 	 }
@@ -1247,7 +1272,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				 }
 			 }
 		 }
-		 //Assignment(Span in_span, boolean in_parenthesized, Option<Type> in_exprType, List<Lhs> in_lhs, Option<OpRef> in_opr, Expr in_rhs)
+		 
 		 Assignment new_node = new Assignment(that.getSpan(),
 		                                      that.isParenthesized(),
 		                                      Option.<Type>some(Types.VOID),
@@ -1255,18 +1280,27 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		                                      (Option<OpRef>)TypeCheckerResult.astFromResult(opr_result_),
 		                                      (Expr)rhs_result.ast());
 		 
-		 return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, opr_result, tuple_result, rhs_result,
+		 TypeCheckerResult result = TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, opr_result, tuple_result, rhs_result,
 		         TypeCheckerResult.compose(new_node, subtypeChecker, app_results),
 		         TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
-	 }
-	 
+		 
+        // Application of operator (e.g., +=) could result in open constraints
+        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+             // close constraints
+             new_node = (Assignment)TypesUtil.closeConstraints(new_node, result);
+        }
+
+        return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
+     }
+
 	 private TypeCheckerResult forAtomic(Expr body, final String errorMsg) {
 		 TypeChecker newChecker = new TypeChecker(table,
 				 staticParamEnv,
 				 typeEnv,
 				 compilationUnit,
 				 subtypeChecker,
-				 labelExitTypes) {
+				 labelExitTypes,
+				 postInference) {
 			 @Override public TypeCheckerResult forSpawn(Spawn that) {
 				 // Use TypeChecker's forSpawn method, but compose an error onto the result
 				 return TypeCheckerResult.compose(
@@ -1465,10 +1499,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		                                  makeList(tripleFirsts(clauses_result)),
 		                                  (Option<Block>)TypeCheckerResult.astFromResult(else_result_));
 		 
-		 return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, application_result, bool_result, 
-		         param_result, compare_result, equalsOp_result, inOp_result, else_result,
+		 TypeCheckerResult result = TypeCheckerResult.compose(new_node, result_type, subtypeChecker, application_result, bool_result, 
+                 param_result, compare_result, equalsOp_result, inOp_result, else_result,
                  TypeCheckerResult.compose(new_node, subtypeChecker, makeList(tripleSeconds(clauses_result))),
                  TypeCheckerResult.compose(new_node, subtypeChecker, makeList(tripleThirds(clauses_result))));
+		 
+		 // The application of operators (IN, EQUALS) could cause Inference Vars to be introduced
+		 if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+		     new_node = (CaseExpr)TypesUtil.closeConstraints(new_node, result);
+		     result_type = (Type)TypesUtil.closeConstraints(result_type, result);
+		 }
+		 
+		 return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, result);
 	 }
 
 	 @Override
@@ -2045,8 +2087,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		                    (List<GeneratorClause>)TypeCheckerResult.astFromResults(gens_result),
 		                    (DoFront)body_result.ast());
 
-		 return TypeCheckerResult.compose(for_,Types.VOID, subtypeChecker, body_void, body_result,
-				 TypeCheckerResult.compose(for_, subtypeChecker, gens_result)).addNodeTypeEnvEntry(for_, typeEnv);
+		 TypeCheckerResult result = TypeCheckerResult.compose(for_, subtypeChecker, body_void, body_result,
+                 TypeCheckerResult.compose(for_, subtypeChecker, gens_result)).addNodeTypeEnvEntry(for_, typeEnv);
+		 
+         // For can contain open constraints because of the generator clauses
+         if( postInference && TypesUtil.containsInferenceVarTypes(for_) ) {
+             // close constraints
+             for_ = (For)TypesUtil.closeConstraints(for_, subtypeChecker, result);
+         }
+		 
+         return TypeCheckerResult.compose(for_, Types.VOID, subtypeChecker, result);
 	 }
 	 
 	 @Override
@@ -2070,8 +2120,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		                                           (Expr)body_result.ast(),
 		                                           (List<GeneratorClause>)TypeCheckerResult.astFromResults(res));
 		
-		return TypeCheckerResult.compose(new_node,Types.VOID, subtypeChecker, body_result, void_body,
-				TypeCheckerResult.compose(new_node, subtypeChecker, res)).addNodeTypeEnvEntry(new_node, typeEnv);
+		TypeCheckerResult result = TypeCheckerResult.compose(new_node, subtypeChecker, body_result, void_body,
+                TypeCheckerResult.compose(new_node, subtypeChecker, res)).addNodeTypeEnvEntry(new_node, typeEnv); 
+		
+        // Generated expressions can contain open constraints because of the generator clauses
+        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+            // close constraints
+            new_node = (GeneratedExpr)TypesUtil.closeConstraints(new_node, subtypeChecker, result);
+        }
+		
+		return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
 	 }
 
 	 private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseGetBindings(GeneratorClause that,
@@ -2203,7 +2261,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 	 
 	 // This method not only typechecks an IfClause, but also returns the type of that clause's
-	 // body. We don't include this in the TypeCheckerResult because an IfClayse is not an Expr
+	 // body. We don't include this in the TypeCheckerResult because an IfClause is not an Expr
 	 // and we didn't want to confuse things by giving it a type.
 	 private Pair<TypeCheckerResult, Option<Type>> forIfClauseWithType(IfClause that) {
 	     // For generalized 'if' we must introduce new bindings.
@@ -2219,14 +2277,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
          TypeCheckerResult body_result = that.getBody().accept(tc_with_new_bindings);
          //return forIfClauseOnly(that, test_result, body_result);
          
-          IfClause new_node = new IfClause(that.getSpan(), 
+         Option<Type> result_type = body_result.type();
+         IfClause new_node = new IfClause(that.getSpan(), 
                   (GeneratorClause)test_result.ast(),
                   (Block)body_result.ast());
         
+          // If can contain open constraints because of the generator
+          if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+              // close constraints
+              new_node = (IfClause)TypesUtil.closeConstraints(new_node, subtypeChecker, test_result, body_result);
+              result_type = (Option<Type>)TypesUtil.closeConstraints(result_type, subtypeChecker, test_result, body_result);
+          }
+          
           TypeCheckerResult tcr = TypeCheckerResult.compose(new_node,
                      subtypeChecker, test_result, body_result).addNodeTypeEnvEntry(new_node, typeEnv);
           
-          return Pair.make(tcr, body_result.type());
+          return Pair.make(tcr, result_type);
 	 }
 
 	 @Override
@@ -2279,6 +2345,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	                          some(result_type),
 	                          (List<IfClause>)TypeCheckerResult.astFromResults(clauses_result),
 	                          (Option<Block>)TypeCheckerResult.astFromResult(elseClause_result));
+	     
 	     return TypeCheckerResult.compose(new_node, result_type, subtypeChecker,
 	             TypeCheckerResult.compose(new_node, subtypeChecker, clauses_result),
 	             TypeCheckerResult.compose(new_node, subtypeChecker, clauses_void),
@@ -2961,12 +3028,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	     
          // If we have a type, constraints must be propagated up.	     
 	     TypeCheckerResult result = new TypeCheckerResult(new_node, app_result.unwrap().second());
-
+	     result = TypeCheckerResult.compose(new_node, applicationType,
+                 subtypeChecker, op_result, result,
+                 TypeCheckerResult.compose(new_node, subtypeChecker, args_result));
 	     
+         // On the post-inference pass, an application could produce Inference vars
+         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+             // close constraints
+             new_node = (OpExpr)TypesUtil.closeConstraints(new_node, subtypeChecker, result);
+             applicationType = (Type)TypesUtil.closeConstraints(applicationType, subtypeChecker, result);
+         }
 	     
-		 return TypeCheckerResult.compose(new_node, applicationType,
-				 subtypeChecker, op_result, result,
-				 TypeCheckerResult.compose(new_node, subtypeChecker, args_result));
+		 return TypeCheckerResult.compose(new_node, applicationType, subtypeChecker, result);
 	 }
 	 
 	 @Override
@@ -3575,6 +3648,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                     Option.<Type>some(Types.VOID),
                                     (GeneratorClause)res.first().ast(),
                                     (Do)body_result.ast());
+         
+         // While can contain open constraints because of the generator
+         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+             // close constraints
+             new_node = (While)TypesUtil.closeConstraints(new_node, subtypeChecker, res.first(), body_result, void_result);
+         }
          
          return TypeCheckerResult.compose(new_node,Types.VOID, subtypeChecker,
                  res.first(), body_result, void_result).addNodeTypeEnvEntry(new_node, typeEnv);		 
