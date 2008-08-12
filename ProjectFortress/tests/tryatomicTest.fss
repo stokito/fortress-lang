@@ -20,18 +20,18 @@ export Executable
 
 run(args:String...):()=do
     iters : ZZ32 = 3000
-    successes : ZZ32 := 0
-    failures : ZZ32 := 0
-    for i <- 0#iters do
+    successes : ZZ32 ≔ 0
+    failures : ZZ32 ≔ 0
+    for i ← 0#iters do
         try
             tryatomic do successes+= 1 end
         catch e
-            TryAtomicFailure => atomic do failures+= 1 end
+            TryAtomicFailure ⇒ atomic do failures+= 1 end
         end
     end
     count = successes + failures
 
-    if count=/=iters then
+    if count≠iters then
         println("FAIL: count = " count " successes = " successes " failues = " failures)
    end
 end
