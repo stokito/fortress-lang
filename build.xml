@@ -7,6 +7,9 @@
     <target name="compile">
         <ant target="compile"/>
     </target>
+    <target name="blas">
+	<ant target="blas"/>
+    </target>
     <target name="test">
         <ant target="test"/>
     </target>
