@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeChecker;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.APIName;
@@ -167,7 +170,8 @@ public class StaticChecker {
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
                                                       StaticParamEnv.make(),
                                                       typeEnv,
-                                                      component);
+                                                      component,
+                                                      false);
             // typecheck... 
             TypeCheckerResult result = component_ast.accept(typeChecker);
 
@@ -192,36 +196,16 @@ public class StaticChecker {
             typeChecker = new TypeChecker(new TraitTable(component, env),
                                           StaticParamEnv.make(),
                                           typeEnv,
-                                          component);
+                                          component,
+                                          true);
             
             result = component_ast.accept(typeChecker);
-            return result;
             
-//            Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
-//                result.getNodeTypeEnvs();
-//            
-//            node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
-//            
-//            return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
-//            
-//            // We need to make sure type inference succeeded.
-//            if( !result.getNodeConstraints().isSatisfiable() ) {
-//            	// Oh no! Type inference failed. Our error message will suck.
-//            	String err = "Type inference failed";
-//            	result = TypeCheckerResult.addError(result, TypeError.make(err, component_ast));
-//            	return result;
-//            }
-//            else{
-//            	InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
-//            	Node replaced = result.ast().accept(rep);
-//
-//            	Map<Pair<Node,Span>, TypeEnv> node_type_envs = 
-//            		result.getNodeTypeEnvs();
-//            	
-//            	node_type_envs = replaceIVarsInNodeTypeEnv(result.getIVarResults(), node_type_envs);
-//            	
-//            	return TypeCheckerResult.replaceAST(result, replaced, node_type_envs);
-//            }
+            // There should be no Inference vars left at this point
+            if( TypesUtil.containsInferenceVarTypes(result.ast()) )
+                bug("Result of typechecking still contains inference varaibles. " + result.ast());
+            
+            return result;
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }

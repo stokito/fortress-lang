@@ -25,10 +25,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.sun.fortress.nodes.AbstractArrowType;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Domain;
+import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitType;
@@ -44,6 +47,7 @@ import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnionType;
+import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
@@ -53,6 +57,7 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
@@ -361,6 +366,24 @@ public class TypesUtil {
         });
     }
 
+    /** Does the given ast contain InferenceVarTypes? */
+    public static boolean containsInferenceVarTypes(Node ast) {
+        final Box<Boolean> result_ = new Box<Boolean>() {
+            Boolean b = Boolean.FALSE;
+            public void set(Boolean arg0) { b = arg0; }
+            public Boolean value() { return b; }
+        };
+        
+        ast.accept(new NodeDepthFirstVisitor_void() {
+            @Override
+            public void for_InferenceVarType(_InferenceVarType that) { 
+                result_.set(Boolean.TRUE); 
+            }
+        });
+        
+        return result_.value();
+    }
+    
     /**
      * Attempts to apply the given static args to the given type, checking if the given type is
      * even a arrow type, and if so, if the number of args given is the number expected by the
@@ -431,5 +454,44 @@ public class TypesUtil {
     				Types.OBJECT :
     				Types.makeIntersection(extends_types);
     	return self_type;
+    }
+
+    /**
+     * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
+     * constraints on those inference vars, solve, and replace the inference vars
+     * in the node.
+     */
+    public static Node closeConstraints(Node node, TypeCheckerResult result) {
+        result.getIVarResults();
+        InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
+        Node new_node = node.accept(rep);
+        return new_node;
+    }
+    
+    /**
+     * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
+     * constraints on those inference vars, solve, and replace the inference vars
+     * in the node.
+     */
+    public static Node closeConstraints(Node node, 
+            TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
+        TypeCheckerResult result = TypeCheckerResult.compose(node, subtypeChecker, results);
+        return closeConstraints(node, result);
+    }
+
+    /**
+     * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
+     * constraints on those inference vars, solve, and replace the inference vars
+     * in the node.
+     */
+    public static Option<? extends Node> closeConstraints(Option<? extends Node> node,  
+            TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
+        if( node.isNone() ) {
+            return Option.<Node>none();
+        }
+        else {
+            Node n = node.unwrap();
+            return Option.<Node>some(closeConstraints(n, subtypeChecker, results));
+        }
     }
 }

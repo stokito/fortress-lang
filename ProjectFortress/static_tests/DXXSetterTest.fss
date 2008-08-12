@@ -18,7 +18,8 @@
 component DXXSetterTest
  export Executable
  object Foo
-   var z:String = "blah"
+   z:String = "blah" (* Should be no setter, since z is not mutable
+                      *)
  end
  run(args:String...):() = do
    Foo.z := "bar"
