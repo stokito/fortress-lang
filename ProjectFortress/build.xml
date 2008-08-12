@@ -407,44 +407,27 @@ testOnly, testCruiseControl"/>
         </javac>
     </target>
 
-    <target name="blas.check.errors">
-	<condition property="blas.arch" value="linux">
-	    <os name="Linux" />
-	</condition>
-	<condition property="blas.isrunnable">
-	    <not><or>
-	<equals arg1="${env.JAVA_HOME}" arg2="$${env.JAVA_HOME}" />
-	<equals arg1="${env.BLAS_INCLUDE}" arg2="$${env.BLAS_INCLUDE}" />
-	<equals arg1="${env.BLAS_LIB}" arg2="$${env.BLAS_LIB}" />
-	<equals arg1="${blas.arch}" arg2="$${blas.arch}" />
-	    </or></not>
-	</condition>
+
+    <target name="check.linux">
+        <condition property="blas.islinux">
+             <equals arg1="${os.name}" arg2="Linux" />
+        </condition>
     </target>
 
-    <target name="blas.errors" depends="blas.check.errors" unless="blas.isrunnable">
-	<echo>Looks like either build.xml has not been configured for ${os.name},
-or you forgot to set $JAVA_HOME, $BLAS_INCLUDE,
-and $BLAS_LIB. $JAVA_HOME should be set to the root directory
-of your Java install. $BLAS_INCLUDE should point to the path
-that contains cblas.h (try /usr/include/atlas).  And $BLAS_LIB
-should point to the path that contains libblas.[a|so]
-(try /usr/lib/atlas).</echo>
-    </target>
-
-    <target name="blas" depends="blas.check.errors,blas.errors" if="blas.isrunnable">
+    <target name="blas.linux" depends="check.linux" if="blas.islinux">
 	    <echo message="Generating C header and stub files." />
 	    <javah class="com.sun.fortress.numerics.Blas"
 		   destdir="c"
 		   classpath="build"
 		    />
-	    <echo message="Now compiling C stubs for blas on arch ${blas.arch}."/>
+	    <echo message="Now compiling C stubs for blas on arch linux."/>
 	    <exec executable="gcc" failonerror="true">
 		    <arg value="-fPIC" />
 		    <arg value="-Ic" />
 		    <arg value="-I${env.BLAS_INCLUDE}" />
 		    <arg value="-L${env.BLAS_LIB}" />
 		    <arg value="-I${env.JAVA_HOME}/include" />
-		    <arg value="-I${env.JAVA_HOME}/include/${blas.arch}" />
+		    <arg value="-I${env.JAVA_HOME}/include/linux" />
 		    <arg value="c/blas.c" />
 		    <arg value="-lcblas" />
 		    <arg value="-lblas" />
@@ -452,6 +435,37 @@ should point to the path that contains libblas.[a|so]
 		    <arg value="-olibblas.so" />
 	    </exec>
     </target>
+
+    <target name="check.osx">
+        <condition property="blas.is.osx">
+             <equals arg1="${os.name}" arg2="Mac OS X" />
+        </condition>
+    </target>
+
+    <target name="blas.osx" depends="check.osx" if="blas.is.osx">
+	    <echo message="Generating C header and stub files." />
+	    <javah class="com.sun.fortress.numerics.Blas"
+		   destdir="c"
+		   classpath="build"
+		    />
+	    <echo message="Now compiling C stubs for blas on arch OS X."/>
+	    <exec executable="gcc" failonerror="true">
+		    <arg line="-D _OSX" />
+		    <arg value="-fPIC" />
+		    <arg value="-Ic" />
+		    <arg line="-framework Accelerate" />
+		    <arg value="-I${env.JAVA_LIB}/Headers" />
+		    <arg value="c/blas.c" />
+		    <arg value="-lcblas" />
+		    <arg value="-lblas" />
+		    <arg value="-shared" />
+		    <arg value="-bundle" />
+		    <arg line="-o libblas.so" />
+	    </exec>
+    </target>
+
+
+    <target name="blas" depends="blas.linux,blas.osx"></target>
 
     <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
      description="Compile all interpreter code.">

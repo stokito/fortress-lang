@@ -1,7 +1,11 @@
 #include "com_sun_fortress_numerics_Blas.h"
 
 #include <jni.h>
+#ifdef _OSX
+#include <Accelerate/Accelerate.h>
+#else
 #include <cblas.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
