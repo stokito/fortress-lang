@@ -31,19 +31,19 @@
  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
  <!-- Directories in the ${basedir} directory -->
  <property name="cache0" location="${basedir}/../default_repository/caches"/>
+ <property name="cache1" location="${basedir}/../.fortress_cache"/>
+ <property name="cache2" location="${basedir}/../.interpreter_cache"/>
+ <property name="cache3" location="${basedir}/.interpreter_cache"/>
+ <property name="cache4" location="${basedir}/../.syntax_cache"/>
+ <property name="cache5" location="${basedir}/.syntax_cache"/>
+ <property name="cache6" location="${basedir}/../.analyzed_cache"/>
+ <property name="cache7" location="${basedir}/.analyzed_cache"/>
+ <property name="cache8" location="${basedir}/../.presyntax_cache"/>
+ <property name="cache9" location="${basedir}/.presyntax_cache"/>
+ <property name="cache10" location="${basedir}/../.bytecode_cache"/>
+ <property name="cache11" location="${basedir}/.bytecode_cache"/>
  <property name="cache12" location="${basedir}/../local_repository/caches"/>
-	 <property name="cache1" location="${basedir}/../.fortress_cache"/>
-	 <property name="cache2" location="${basedir}/../.interpreter_cache"/>
-	 <property name="cache3" location="${basedir}/.interpreter_cache"/>
-	 <property name="cache4" location="${basedir}/../.syntax_cache"/>
-	 <property name="cache5" location="${basedir}/.syntax_cache"/>
-	 <property name="cache6" location="${basedir}/../.analyzed_cache"/>
-	 <property name="cache7" location="${basedir}/.analyzed_cache"/>
-	 <property name="cache8" location="${basedir}/../.presyntax_cache"/>
-	 <property name="cache9" location="${basedir}/.presyntax_cache"/>
-	 <property name="cache10" location="${basedir}/../.bytecode_cache"/>
-	 <property name="cache11" location="${basedir}/.bytecode_cache"/>
-<property name="astgen.src" location="${basedir}/astgen"/>
+ <property name="astgen.src" location="${basedir}/astgen"/>
  <property name="build" location="${basedir}/build"/>
  <property name="docs" location="${basedir}/docs"/>
  <property name="src" location="${basedir}/src"/>
@@ -188,7 +188,8 @@ testOnly, testCruiseControl"/>
         ${java.specification.vendor}"/>
         <echo message="Java Runtime Environment
               specification name:
-        ${java.specification.name}"/>        <echo message="Java class format version
+        ${java.specification.name}"/>
+        <echo message="Java class format version
         number: ${java.class.version}"/>
         <echo message="Java class path:
         ${java.class.path}"/>
@@ -227,14 +228,17 @@ testOnly, testCruiseControl"/>
         <delete dir="${nodes}"/>
         <delete dir="${junit.dir}"/>
 
-        <delete file="${nodesUtil}/BaseNodeMaker.java"/> <!-- No longer needed, but eases the upgrade-->
-        <delete file="${nodesUtil}/InterfaceMaker.java"/> <!-- No longer needed, but eases the upgrade-->
+        <!-- No longer needed, but eases the upgrade-->
+        <delete file="${nodesUtil}/BaseNodeMaker.java"/> 
+        <!-- No longer needed, but eases the upgrade-->
+        <delete file="${nodesUtil}/InterfaceMaker.java"/>
         <delete file="${parser}/Fortress.java"/>
         <delete file="${parser}/FortressInstrumented.java"/>
         <delete file="${preparser}/PreFortress.java"/>
         <delete file="${templateparser}/TemplateParser.java"/>
         <delete file="${precedenceResolver}/Operators.java"/>
-        <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/> <!-- No longer needed, but eases the upgrade-->
+        <!-- No longer needed, but eases the upgrade-->
+        <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/>
         <delete file="${instrumentation.outfile}"/>
         <delete file="${library}/FortressAst.fsi" />
         <delete file="${library}/FortressAst.fss" />
@@ -249,7 +253,6 @@ testOnly, testCruiseControl"/>
     <target name="cleanCache"
             description="Delete any cached Fortress ASTs in the development tree">
         <delete dir="${cache0}"/>
-        <delete dir="${cache12}"/>
     	<delete dir="${cache1}"/>
     	<delete dir="${cache2}"/>
     	<delete dir="${cache3}"/>
@@ -261,7 +264,7 @@ testOnly, testCruiseControl"/>
     	<delete dir="${cache9}"/>
     	<delete dir="${cache10}"/>
     	<delete dir="${cache11}"/>
-
+        <delete dir="${cache12}"/>
     </target>
 
     <!-- Generation of Operators.java depends only on the files listed below.
@@ -404,22 +407,49 @@ testOnly, testCruiseControl"/>
         </javac>
     </target>
 
-    <target name="blas">
+    <target name="blas.check.errors">
+	<condition property="blas.arch" value="linux">
+	    <os name="Linux" />
+	</condition>
+	<condition property="blas.isrunnable">
+	    <not><or>
+	<equals arg1="${env.JAVA_HOME}" arg2="$${env.JAVA_HOME}" />
+	<equals arg1="${env.BLAS_INCLUDE}" arg2="$${env.BLAS_INCLUDE}" />
+	<equals arg1="${env.BLAS_LIB}" arg2="$${env.BLAS_LIB}" />
+	<equals arg1="${blas.arch}" arg2="$${blas.arch}" />
+	    </or></not>
+	</condition>
+    </target>
+
+    <target name="blas.errors" depends="blas.check.errors" unless="blas.isrunnable">
+	<echo>Looks like either build.xml has not been configured for ${os.name},
+or you forgot to set $JAVA_HOME, $BLAS_INCLUDE,
+and $BLAS_LIB. $JAVA_HOME should be set to the root directory
+of your Java install. $BLAS_INCLUDE should point to the path
+that contains cblas.h (try /usr/include/atlas).  And $BLAS_LIB
+should point to the path that contains libblas.[a|so]
+(try /usr/lib/atlas).</echo>
+    </target>
+
+    <target name="blas" depends="blas.check.errors,blas.errors" if="blas.isrunnable">
+	    <echo message="Generating C header and stub files." />
 	    <javah class="com.sun.fortress.numerics.Blas"
 		   destdir="c"
 		   classpath="build"
 		    />
-	    <exec executable="gcc">
+	    <echo message="Now compiling C stubs for blas on arch ${blas.arch}."/>
+	    <exec executable="gcc" failonerror="true">
 		    <arg value="-fPIC" />
 		    <arg value="-Ic" />
+		    <arg value="-I${env.BLAS_INCLUDE}" />
+		    <arg value="-L${env.BLAS_LIB}" />
 		    <arg value="-I${env.JAVA_HOME}/include" />
-		    <arg value="-I${env.JAVA_HOME}/include/linux" />
+		    <arg value="-I${env.JAVA_HOME}/include/${blas.arch}" />
 		    <arg value="c/blas.c" />
 		    <arg value="-lcblas" />
 		    <arg value="-lblas" />
 		    <arg value="-shared" />
-		    <arg value="-o" />
-		    <arg value="libblas.so" />
+		    <arg value="-olibblas.so" />
 	    </exec>
     </target>
 
