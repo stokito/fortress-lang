@@ -18,7 +18,7 @@ component unicodeTest
 
 export Executable
 
-류:ZZ32 := 3
+류:ZZ32 ≔ 3
 
 run(args:String...) = do
   류 += 5

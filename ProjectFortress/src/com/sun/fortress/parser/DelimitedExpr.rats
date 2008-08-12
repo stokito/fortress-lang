@@ -344,6 +344,10 @@ FlowExpr Comprehension =
 String mapstoOp =
      !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->" ;
 
+/* The operator "<-" should not be in the left-hand sides of
+   generator clause lists. */
+String leftarrowOp = !("<-" w Expr (w leftarrow / w comma)) "<-";
+
 /* Entry ::= Expr w |-> w Expr */
 Expr Entry = a1:Expr w mapsto w a2:Expr
      { yyValue = ExprFactory.makeTuple(a1, a2); };

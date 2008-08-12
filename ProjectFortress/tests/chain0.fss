@@ -27,8 +27,8 @@ t(x:ZZ32, y:ZZ32) = if x = y then println "PASS" else
 
 run(args:String...) = do
 
-t( 0 <= 0 < 1 = 1 < 2 <= 2 )
-t( NOT (0 >= 0 > 1 = 1 > 2 >= 2 ) )
+t( 0 ≤ 0 < 1 = 1 < 2 ≤ 2 )
+t( NOT (0 ≥ 0 > 1 = 1 > 2 ≥ 2 ) )
 t( 1 MAX 3 > 2 )
 
 t((3 MOD 4), 3 )

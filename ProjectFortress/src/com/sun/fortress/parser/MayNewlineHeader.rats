@@ -524,7 +524,7 @@ StaticArg StaticArg =
      { yyValue = new OpArg(createSpan(yyStart,yyCount), ExprFactory.makeOpRef(a1)); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /
-                      w "OR":op / w "AND":op / w "IMPLIES":op / w equals) /
+                      w OR / w AND / w IMPLIES / w equals) /
        "Unity" / "dimensionless" / "true" / "false")
      a1:IntExpr
      { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }

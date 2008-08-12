@@ -129,8 +129,8 @@ LValueBind VarWType = a1:BindId w a2:IsType
 /* InitVal ::= (=|:=) w NoNewlineExpr */
 com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
      a1:(equals / colonequals) w a2:NoNewlineExpr
-     { yyValue = new com.sun.fortress.useful.Pair<Expr,Boolean>(a2,
-                                                                a1.equals(":="));
+     { boolean isMutable = a1.equals(":=") || a1.equals("\u2254");
+       yyValue = new com.sun.fortress.useful.Pair<Expr,Boolean>(a2, isMutable);
      };
 
 /* AbsVarDecl ::=

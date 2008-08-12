@@ -70,7 +70,7 @@ transient void s  = void:Space*;      // space optional
 transient void sr = void:Space+;      // space required
 
 transient void nl = s void:Newline w ; // required newline in whitespace
-transient void br = nl / s ";" w;      // line break
+transient void br = nl / s semicolon w;      // line break
 
 /* RectSeparator ::= (w ;)+ w / nl / sr */
 transient Integer RectSeparator =
