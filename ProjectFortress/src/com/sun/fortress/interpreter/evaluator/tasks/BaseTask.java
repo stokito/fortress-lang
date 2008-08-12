@@ -30,28 +30,27 @@ import com.sun.fortress.interpreter.evaluator.tasks.TaskState;
 
 public abstract class BaseTask extends RecursiveAction {
     Throwable err = null;
-    boolean causedException = false;
     TaskState taskState = null;
     final private int depth;
     final private BaseTask parent;
 
-	// Debugging
-	private static Boolean debug = false;
+    // Debugging
+    private static Boolean debug = false;
     private static AtomicInteger counter = new AtomicInteger();
     private int count;
     String name;
 
     public BaseTask(BaseTask p) {
         parent = p;
-		taskState = new TaskState(p.taskState());
-		depth = p.depth() + 1;
-		if (debug) {
-			count = counter.getAndIncrement();
-			name =  p.name() + "." + count;
-		} else {
-			name = "BaseTask";
-			count = 0;
-		}
+        taskState = new TaskState(p.taskState());
+        depth = p.depth() + 1;
+        if (debug) {
+            count = counter.getAndIncrement();
+            name =  p.name() + "." + count;
+        } else {
+            name = "BaseTask";
+            count = 0;
+        }
     }
 
     public int depth() { return depth;}
@@ -60,20 +59,19 @@ public abstract class BaseTask extends RecursiveAction {
 
     // For primordial evaluator task
     public BaseTask() {
-		parent = null;
-		depth = 0;
-		count = 0;
-		name = "0";
-	}
-	    
+        parent = null;
+        depth = 0;
+        count = 0;
+        name = "0";
+    }
+
     public BaseTask parent() { return parent;}
 
     public void recordException(Throwable t) {
-        causedException = true;
         err = t;
     }
 
-    public boolean causedException() {return causedException;}
+    public boolean causedException() {return err!=null;}
     public Throwable taskException() {return err;}
 
     public abstract void print();
@@ -86,11 +84,11 @@ public abstract class BaseTask extends RecursiveAction {
         }
     }
 
-    // Jan made this lazy.  Revisit it FIXME 
+    // Jan made this lazy.  Revisit it FIXME
     public TaskState taskState() { return taskState; }
 
     public String toString() {
-		return "[BaseTask" + name() + ":" + taskState() + "]" ;
+        return "[BaseTask" + name() + ":" + taskState() + "]" ;
     }
 
 }

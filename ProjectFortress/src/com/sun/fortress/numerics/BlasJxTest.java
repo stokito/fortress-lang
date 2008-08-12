@@ -27,7 +27,7 @@ public class BlasJxTest extends TestCase {
     public BlasJxTest(){
         Blas b = new Blas();
     }
-    
+
     public void testDot1(){
         double[] x = new double[]{1.0};
         double[] y = new double[]{1.0};
@@ -71,7 +71,7 @@ public class BlasJxTest extends TestCase {
     }
 
     public void testVectorMatrixMultiply1(){
-        double[] matrix = new double[]{ 2.0, 0.0, 0.0,  7.0, 
+        double[] matrix = new double[]{ 2.0, 0.0, 0.0,  7.0,
                                         0.0, 3.0, 0.0, 11.0,
                                         0.0, 0.0, 5.0, 13.0, };
         double[] vector = new double[]{ 2.0, 2.0, 2.0, 2.0 };
@@ -85,11 +85,11 @@ public class BlasJxTest extends TestCase {
     }
 
     public void testMatrixMatrixMultiply1(){
-        double[] m0 = new double[]{ 2.0, 0.0, 0.0,  7.0, 
+        double[] m0 = new double[]{ 2.0, 0.0, 0.0,  7.0,
                                     0.0, 3.0, 0.0, 11.0,
                                     0.0, 0.0, 5.0, 13.0, };
 
-        double[] m1 = new double[]{ 4,  0, 0, 14, 
+        double[] m1 = new double[]{ 4,  0, 0, 14,
                                     0,  9, 0, 33,
                                     0,  0,25, 65,
                                    14, 33,65,339, };

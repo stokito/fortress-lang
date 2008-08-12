@@ -37,23 +37,23 @@ public class SpawnTask extends BaseTask {
     SingleFcn fcn;
     Evaluator eval;
     private volatile FValue val;
-	private volatile Boolean resultIsReady;
+    private volatile Boolean resultIsReady;
 
     public void compute() {
-		FortressTaskRunner.setCurrentTask(this);
+        FortressTaskRunner.setCurrentTask(this);
         List<FValue> args = new ArrayList<FValue>();
         HasAt loc = new HasAt.FromString("SpawnTask");
         Environment e = eval.e;
         val = fcn.apply(args, loc, e);
-		resultIsReady = true;
+        resultIsReady = true;
     }
 
     public SpawnTask(SingleFcn sf, Evaluator e) {
-		super();
+        super();
         fcn = sf;
         eval = e;
-		resultIsReady = false;
-		taskState = new TaskState();
+        resultIsReady = false;
+        taskState = new TaskState();
     }
 
     public void print() {
@@ -70,8 +70,7 @@ public class SpawnTask extends BaseTask {
     }
 
     public void waitForResult() {
-		int i = 0;
+        int i = 0;
         while (!resultIsReady) ;
-	}
+    }
 }
- 

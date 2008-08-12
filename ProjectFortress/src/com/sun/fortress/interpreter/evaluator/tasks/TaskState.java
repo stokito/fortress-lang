@@ -28,23 +28,23 @@ import java.util.Set;
 
 public class TaskState {
 
-	// We increment depth when we enter a transaction.  We decrement depth when we end a transaction which happens after
-	// commit, or a parent aborts.
+    // We increment depth when we enter a transaction.  We decrement depth when we end a transaction which happens after
+    // commit, or a parent aborts.
 
     private Transaction transaction;
 
     public TaskState() {
-		transaction = null;
+        transaction = null;
     }
 
     public TaskState(TaskState ts) {
-		transaction = ts.transaction();
+        transaction = ts.transaction();
     }
 
-    public int transactionNesting() { 
-		if (transaction == null)
-			return 0;
-		else return transaction.getNestingDepth();
+    public int transactionNesting() {
+        if (transaction == null)
+            return 0;
+        else return transaction.getNestingDepth();
     }
 
     /**
@@ -66,11 +66,11 @@ public class TaskState {
      */
     public boolean validate() {
         try {
-			if (transaction == null)
-				throw new PanicException(Thread.currentThread().getName() + "Attempting to validate null transaction");
+            if (transaction == null)
+                throw new PanicException(Thread.currentThread().getName() + "Attempting to validate null transaction");
             return transaction.validate();
         } catch (AbortedException ex) {
-			return false;
+            return false;
         }
     }
 
@@ -78,36 +78,36 @@ public class TaskState {
      * Starts a new transaction.
      */
     public void beginTransaction() {
-		if (transaction == null) {
-			transaction = new Transaction();
-		} else if (!transaction.isActive()) 
-			throw new AbortedException(transaction, "Parent death detected in beginTransaction");
-		else {
-			Transaction parent = transaction;
-			Transaction child = new Transaction(transaction);
-			transaction = child;
+        if (transaction == null) {
+            transaction = new Transaction();
+        } else if (!transaction.isActive())
+            throw new AbortedException(transaction, "Parent death detected in beginTransaction");
+        else {
+            Transaction parent = transaction;
+            Transaction child = new Transaction(transaction);
+            transaction = child;
 
-			if (!parent.isActive()) {
-				child.abort();
-				transaction = parent;
-				throw new AbortedException(parent, "Parent death detected in beginTransaction");
-			}
-		}
+            if (!parent.isActive()) {
+                child.abort();
+                transaction = parent;
+                throw new AbortedException(parent, "Parent death detected in beginTransaction");
+            }
+        }
     }
 
     /**
      * Attempts to commit the current transaction of the invoking
-     * <code>Thread</code>.  
+     * <code>Thread</code>.
      *
      *
      * @return whether commit succeeded.
      */
     public boolean commitTransaction() {
-		if (validate() && transaction.commit()) {
-			return true;
-		}
-		abortTransaction();
-		return false;
+        if (validate() && transaction.commit()) {
+            return true;
+        }
+        abortTransaction();
+        return false;
     }
 
     /**
@@ -115,18 +115,18 @@ public class TaskState {
      * Does not end transaction, but ensures it will never commit.
      */
     public void abortTransaction() {
-		if (transaction != null && transaction.isActive()) {
-			transaction.abort();
-		}
+        if (transaction != null && transaction.isActive()) {
+            transaction.abort();
+        }
     }
 
     public void giveUpTransaction() {
-		if (transaction == null) {
-			throw new PanicException(Thread.currentThread().getName() + "Giving up null transaction");
-		}
-		//	if (transaction.isActive()) {
-		//	    throw new PanicException(Thread.currentThread().getName() + "How did an active transaction escape?");
-		//	}
-		transaction = transaction.getParent();
+        if (transaction == null) {
+            throw new PanicException(Thread.currentThread().getName() + "Giving up null transaction");
+        }
+        //    if (transaction.isActive()) {
+        //        throw new PanicException(Thread.currentThread().getName() + "How did an active transaction escape?");
+        //    }
+        transaction = transaction.getParent();
     }
 }

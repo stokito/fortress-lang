@@ -46,6 +46,10 @@ run(args:String...):() = do
 
     u = b UNION f
     assert(u, set(1#15), " union")
+    v = a UNION b
+    w = b UNION a
+    assert(v,b," empty union")
+    assert(w,b," union empty")
     inter = b INTERSECTION f
     assert(inter, set(6#5), " intersection")
     df = b DIFFERENCE f
