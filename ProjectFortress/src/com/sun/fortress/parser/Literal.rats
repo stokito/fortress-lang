@@ -36,7 +36,7 @@ import Identifier;
    | StringLiteralExpr
  */
 Expr LiteralExpr =
-   <VOID> VoidLiteralExpr
+     <VOID> VoidLiteralExpr
    / <NUMERICAL> NumericLiteralExpr
    / <CHAR>CharLiteralExpr
    / <STRING> StringLiteralExpr
@@ -110,7 +110,7 @@ transient IntLiteralExpr IntLiteralExpr =
 
 private transient String NumericCharacter = [0-9a-zA-Z];
 private transient String NumericWord =
-    a1s:NumericCharacter+ a2s:("'" / NumericCharacter)* &{ NodeUtil.validNumericWord(a2s.list()) }
+    a1s:NumericCharacter+ a2s:(NumericSpace / NumericCharacter)* &{ NodeUtil.validNumericWord(a2s.list()) }
     { yyValue = "";
       for (String n: a1s.list()) {
           yyValue += n;
@@ -120,6 +120,7 @@ private transient String NumericWord =
       }
     };
 
+private transient String NumericSpace = "'" / "\u202f" ;
 private transient String NumericSeparator = "." ;
 
 private transient String RadixSpecifier =

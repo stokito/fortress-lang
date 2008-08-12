@@ -67,7 +67,7 @@ NormalParam AbsParam :=
  */
 FnHeaderFront OpHeaderFront :=
      <Enclosing> opr big:(w BIG)? w
-     opa1:("{" w "|->"
+     opa1:(opencurly w mapsto
            {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
                                                 "{|->");}
          / LeftEncloser
@@ -80,7 +80,9 @@ FnHeaderFront OpHeaderFront :=
        String left  = leftOp.getText();
        String right = opa4.getText();
        if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
-           left.equals("{|->") && right.equals("}")) {
+           (left.equals("{|->") || left.equals("{\u21a6") ||
+            left.equals("\u007b|->") || left.equals("\u007b\u21a6")) &&
+           (right.equals("}") || right.equals("\u007d"))) {
            if (big != null) {
                leftOp = NodeFactory.makeOpBig(leftOp.getSpan(), "BIG " + left);
                opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
@@ -105,7 +107,7 @@ FnHeaderFront OpHeaderFront :=
  */
 FnHeaderFront AbsOpHeaderFront :=
      <Enclosing> opr big:(w BIG)? w
-     opa1:("{" w "|->"
+     opa1:(opencurly w mapsto
            {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
                                                 "{|->");}
          / LeftEncloser

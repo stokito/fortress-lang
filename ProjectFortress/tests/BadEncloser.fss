@@ -23,12 +23,12 @@ export Executable
    *darned hard* to write down. *)
 
 opr ~():ZZ32 = 45
-opr |||():ZZ32 = 17
+opr ⫴():ZZ32 = 17
 
 run(args:String...) = do
-  a = |||
+  a = ⫴
   b = ~
-  c = (~) + (|||)
+  c = (~) + (⫴)
 end
 
 end

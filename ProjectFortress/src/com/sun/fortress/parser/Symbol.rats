@@ -68,7 +68,10 @@ transient private String slashes = "/" (sd "/")*
 transient private String lesses = "<" (sd "<")*;
 transient private String greaters = ">" (sd ">")*;
 
-transient private String encloser = !(bar) bars !([*.>/\\] / "->") ;
+transient private String encloser =
+     !(bar) bars !([*.>/\\] / "->")
+   / "\u2016"
+   / "\u2af4" ;
 
 transient private String leftEncloser =
      leftEncloserMulti &{PrecedenceMap.ONLY.isLeft(yyValue)}
@@ -176,51 +179,51 @@ OpRef CompoundOp =
 String doublerightarrow = "=>" &(w BlockElems w match);
 
 /* The operator "BY" should not be used with ExtentRange. */
-String crossOp = "BY":OpName &(w ExtentRange);
+String crossOp = "BY":OpName &(w ExtentRange) / "\u2a2f":singleOp;
 
 transient String leftarrow = "<-";
 
 transient String caret = "^" !("T");
-transient String colonequals = ":=";
+transient String colonequals = ":=" / "\u2254";
 transient String equals = "=" (!op);
-transient String equalsOp = "=":singleOp;
+transient String equalsOp = "=":singleOp / "\u003d":singleOp;
 transient String semicolon = ";";
 transient String one = "1";
 
 transient String colon = ":" (!op);
-transient String colonOp = ":":singleOp;
+transient String colonOp = ":":singleOp / "\u003a":singleOp;
 transient String closecurly = "}";
 transient String opencurly = "{":leftEncloser;
 transient String closesquare = "]";
 transient String opensquare = !(opendoublesquare) "[":leftEncloser;
 transient String ellipses = "...";
 
-transient String lessthanequal    = "<=":op / "LE":op;
-transient String lessthan         = "<":op  / "LT":op;
-transient String greaterthanequal = ">=":op / "GE":op;
-transient String greaterthan      = ">":op  / "GT":op;
+transient String lessthanequal    = "<=":op / "LE":op / "\u2264":op;
+transient String lessthan         = "<":op  / "LT":op / "\u003c":op;
+transient String greaterthanequal = ">=":op / "GE":op / "\u2265":op;
+transient String greaterthan      = ">":op  / "GT":op / "\u003e":op;
 
-transient String NOT     = "NOT":op;
-transient String OR      = "OR":op;
-transient String AND     = "AND":op;
-transient String IMPLIES = "IMPLIES":op;
+transient String NOT     = "NOT":op / "\u00ac":op;
+transient String OR      = "OR":op / "\u2228":op;
+transient String AND     = "AND":op / "\u2227":op;
+transient String IMPLIES = "IMPLIES":op / "\u2192":op;
 
-transient String DOT = "DOT":OpName;
-transient String slash = "/":singleOp;
+transient String DOT = "DOT":OpName / "\u00b7":op;
+transient String slash = "/":singleOp / "\u002f":singleOp;
 transient String rightarrow = "->";
 
-transient void closeangle = "|>";
-transient void closedoublesquare = "\\]";
+transient void closeangle = "|>" / "\u27e9";
+transient void closedoublesquare = "\\]" / "\u27e7";
 transient void closeparen = ")";
 transient void cross = "BY";
-transient void mapsto = "|->";
+transient void mapsto = "|->" / "\u21a6";
 transient void match = "=>";
-transient void minus = "-":singleOp;
-transient void openangle = "<|":leftEncloser;
-transient void opendoublesquare = "[\\";
+transient void minus = "-":singleOp / "\u2212":singleOp;
+transient void openangle = "<|":leftEncloser / "\u27e8":leftEncloser;
+transient void opendoublesquare = "[\\" / "\u27e6";
 transient void openparen = !(leftEncloser) "(";
-transient void plus = "+":singleOp;
-transient void pound = "#":singleOp;
+transient void plus = "+":singleOp / "\u002b":singleOp;
+transient void pound = "#":singleOp / "\u0023":singleOp;
 transient void star = !("**") "*":singleOp;
 transient void underscore = "_";
 
