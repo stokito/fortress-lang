@@ -1,0 +1,36 @@
+component JavaStringIsGenerator
+import JavaString.{...}
+export Executable
+
+  run(args:String...):() = do
+    for ch <- "H" do
+        println ch
+    end
+    
+    typecase chs="Hell" of
+        Generator[\Char\] => println "Hell is a Generator[[Char]]"
+        else => println "Hell is NOT a Generator[[Char]]"
+    end
+      
+    typecase chs="Hell" of
+        String => println "Hell is a String"
+        else => println "Hell is NOT a String"
+    end
+    
+    typecase chs="Hell" of
+        JavaString => println "Hell is a JavaString"
+        else => println "Hell is NOT a JavaString"
+    end
+    
+    c : Char = 'd'
+    
+    if c MATCH "Hold" then println "It matches!" 
+    end
+   
+    case c of
+        "Hold" => println "d is in \"Hold\""
+        else => println "d is not in \"Hold\""
+    end
+  end
+
+end
