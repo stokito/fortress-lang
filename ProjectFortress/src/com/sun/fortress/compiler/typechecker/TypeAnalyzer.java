@@ -1100,6 +1100,10 @@ public class TypeAnalyzer {
           return new SubtypeHistory(_entries, _expansions + 1);
         }
 
+        public Type normalize(Type t) {
+            return TypeAnalyzer.this.normalize(t);
+        }
+        
         public ConstraintFormula subtypeNormal(Type s, Type t) {
             return TypeAnalyzer.this.sub(s, t, this);
         }

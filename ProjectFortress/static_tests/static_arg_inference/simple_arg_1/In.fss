@@ -1,0 +1,14 @@
+component In
+  export Executable
+ 
+  object Blank[\T\](t:T) end
+
+  topLevelFn[\T\](b:Blank[\T\]):T
+
+  callSiteFn():String = do
+    a:Blank[\String\] = Blank[\String\]("Some string")
+    topLevelFn(a)
+  end
+
+  run(args:String...):() = ()
+end

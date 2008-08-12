@@ -76,6 +76,7 @@ import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.UnionRelation;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
@@ -741,43 +742,132 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 
 	 }
-	 
+
+    /**
+     * Given a list of functional refs and the argument to which they are to be applied, find the FunctionalRef
+     * whose type is the statically most applicable to the given arg.
+     */
+    private Option<? extends FunctionalRef> findStaticallyMostApplicableFn(List<? extends FunctionalRef> fns, Type arg_type) {
+        final List<Pair<FunctionalRef, Type>> pruned_fns = new ArrayList<Pair<FunctionalRef, Type>>(fns.size());
+        // prune down the list of fns to just the ones that apply
+        for( FunctionalRef fn : fns ) {
+            TypeCheckerResult r = recur(fn);
+            if( r.isSuccessful() ) {
+                // If applicationType indicates the method applies, we keep it in pruned_fns
+                Type fn_type = r.type().unwrap();
+                Option<?> applies = TypesUtil.applicationType(subtypeChecker, fn_type, new ArgList(arg_type));
+                if( applies.isSome() ) 
+                    pruned_fns.add(Pair.make(fn, fn_type));
+            }
+        }
+        
+        if( pruned_fns.isEmpty() ) 
+            return none();
+        
+        // then, find the one with out of that group with the most specific arguments.
+        final Box<Pair<FunctionalRef, Type>> most_applicable = new Box<Pair<FunctionalRef, Type>>(){
+            private Pair<FunctionalRef, Type> ma = IterUtil.first(pruned_fns);
+            public void set(Pair<FunctionalRef, Type> arg0) { ma = arg0; }
+            public Pair<FunctionalRef, Type> value() { return ma; }
+        };
+        // Loops through all the pruned_fns finding one with the most specific arg type
+        for( final Pair<FunctionalRef, Type> pruned_fn : IterUtil.skipFirst(pruned_fns) ) {
+            Type cur_type = pruned_fn.second();
+            cur_type.accept(new TypeAbstractVisitor_void() {
+                @Override
+                public void forAbstractArrowType(final AbstractArrowType cur_type) {
+                    // do some gnarly double dispatch
+                    most_applicable.value().second().accept(new TypeAbstractVisitor_void(){
+                        @Override
+                        public void forAbstractArrowType(AbstractArrowType most_appl) {
+                            // Where is arg of cur_type <: arg of most_appl?
+                            ConstraintFormula sub =
+                                subtypeChecker.subtype(Types.stripKeywords(cur_type.getDomain()), 
+                                                       Types.stripKeywords(most_appl.getDomain()));
+                            if( sub.solve().isTrue() ) {
+                                // TODO: We should actually throw an error if they are equal!
+                                most_applicable.set(pruned_fn);
+                            }
+                        }
+                        @Override public void forType(Type that) { bug("An applicable function should have an arrow type: " + that); }
+                    });
+                }
+                @Override public void forType(Type that) { bug("An applicable function should have an arrow type: " + that); }
+            });
+        }
+        
+        return some(most_applicable.value().first());
+    }
+
     @Override
-	 public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that, Option<TypeCheckerResult> exprType_result, 
-			 TypeCheckerResult function_result, TypeCheckerResult argument_result) {
-		 // check sub expressions
-		 if( function_result.type().isNone() || argument_result.type().isNone() )
-			 return TypeCheckerResult.compose(that, subtypeChecker, function_result, argument_result);
+    public TypeCheckerResult for_RewriteFnApp(_RewriteFnApp that) {
+        if( postInference && that.getFunction() instanceof _RewriteInstantiatedFnRefs ) {
+            // if we have finished typechecking, and we have encountered a reference to an overloaded function
+            _RewriteInstantiatedFnRefs fns = (_RewriteInstantiatedFnRefs)that.getFunction();
+            TypeCheckerResult arg_result = recur(that.getArgument());
+            
+            if( !arg_result.isSuccessful() ) {
+                return TypeCheckerResult.compose(that, subtypeChecker, arg_result);
+            }
+            
+            Type arg_type = arg_result.type().unwrap();
+            Option<FnRef> fn_ = (Option<FnRef>)findStaticallyMostApplicableFn(fns.getFns(), arg_type);
+            
+            if( fn_.isNone() ) {
+                // This indicates that no overloading will work.
+                String err = "No applicable overloading of the function " + IterUtil.first(fns.getFns()).getOriginalName() + " exists for argument of type " + arg_type;
+                TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that.getArgument()));
+                return TypeCheckerResult.compose(that, subtypeChecker, err_result, arg_result);
+            }
+            
+            FnRef fn = fn_.unwrap();
+            _RewriteFnApp chosen_overloading_app = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), fn, that.getArgument());
+            
+            // Now just check the rewritten expression by the normal means
+            return super.for_RewriteFnApp(chosen_overloading_app);
+        }
+        else {
+            // delegate to super, which will call for_RewriteFnAppOnly
+            return super.for_RewriteFnApp(that);
+        }
+    }
+    
+    @Override
+    public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that, Option<TypeCheckerResult> exprType_result, 
+            TypeCheckerResult function_result, TypeCheckerResult argument_result) {
+        // check sub expressions
+        if( function_result.type().isNone() || argument_result.type().isNone() )
+            return TypeCheckerResult.compose(that, subtypeChecker, function_result, argument_result);
 
-		 Option<Pair<Type,ConstraintFormula>> app_result =
-			 TypesUtil.applicationType(subtypeChecker, function_result.type().unwrap(),
-					 new ArgList(argument_result.type().unwrap()));
+        Option<Pair<Type,ConstraintFormula>> app_result =
+            TypesUtil.applicationType(subtypeChecker, function_result.type().unwrap(),
+                    new ArgList(argument_result.type().unwrap()));
 
-		 Option<Type> result_type;
-		 TypeCheckerResult result;
+        Option<Type> result_type;
+        TypeCheckerResult result;
 
-		 if( app_result.isSome() ) {
-			 result = new TypeCheckerResult(that,app_result.unwrap().second());
-			 result_type = Option.some(app_result.unwrap().first());
-		 }
-		 else {
-			 String err = "Applicable overloading of function " + that.getFunction() + " could not be found for argument type " + argument_result.type(); // error message needs work
-			 result = new TypeCheckerResult(that, TypeError.make(err, that));
-			 result_type = Option.none();
-		 }
+        if( app_result.isSome() ) {
+            result = new TypeCheckerResult(that,app_result.unwrap().second());
+            result_type = Option.some(app_result.unwrap().first());
+        }
+        else {
+            String err = "Applicable overloading of function " + that.getFunction() + " could not be found for argument type " + argument_result.type(); // error message needs work
+            result = new TypeCheckerResult(that, TypeError.make(err, that));
+            result_type = Option.none();
+        }
 
-		 _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
-		 
-		 // On the post-inference pass, an application could produce Inference vars
-         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-             // close constraints
-             new_node = (_RewriteFnApp)TypesUtil.closeConstraints(new_node, subtypeChecker, function_result, argument_result, result);
-             result_type = (Option<Type>)TypesUtil.closeConstraints(result_type, subtypeChecker, function_result, argument_result, result);
-         }
-		 
-		 return TypeCheckerResult.compose(new_node, result_type,
-				 subtypeChecker, function_result, argument_result, result);
-	 }
+        _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
+
+        // On the post-inference pass, an application could produce Inference vars
+        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+            // close constraints
+            new_node = (_RewriteFnApp)TypesUtil.closeConstraints(new_node, subtypeChecker, function_result, argument_result, result);
+            result_type = (Option<Type>)TypesUtil.closeConstraints(result_type, subtypeChecker, function_result, argument_result, result);
+        }
+
+        return TypeCheckerResult.compose(new_node, result_type,
+                subtypeChecker, function_result, argument_result, result);
+    }
 
 	 @Override
 	 public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<TypeCheckerResult> exprType_result, 
@@ -2023,42 +2113,117 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				 this.subtypeChecker, all_results).addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
 
-	 @Override
-	 public TypeCheckerResult forFnRefOnly(FnRef that, Option<TypeCheckerResult> exprType_result, 
-			 TypeCheckerResult originalName_result,
-			 List<TypeCheckerResult> fns_result,
-			 List<TypeCheckerResult> staticArgs_result) {
+    @Override
+    public TypeCheckerResult forFnRefOnly(final FnRef that, Option<TypeCheckerResult> exprType_result, 
+                                          TypeCheckerResult originalName_result,
+                                          List<TypeCheckerResult> fns_result,
+                                          List<TypeCheckerResult> staticArgs_result) {
 
-         // Get intersection of overloaded function types.
-		 LinkedList<Type> overloadedTypes = new LinkedList<Type>();
-		 for (TypeCheckerResult fn_result : fns_result) {
-			 if (fn_result.type().isSome()) {
-				 // This is the ONLY location where we have access to the static arguments that were
-				 // explicitly passed, if there are any, so we should instantiate those arguments, and
-				 // remove any that cannot possibly match.
-				 Option<Type> instantiated_type =
-					 TypesUtil.applyStaticArgsIfPossible(fn_result.type().unwrap(),that.getStaticArgs());
+        // Could we give a type to each of our fns?
+        for( TypeCheckerResult r : fns_result ) {
+            if( !r.isSuccessful() )
+                return TypeCheckerResult.compose(that, subtypeChecker, fns_result);
+        }
+        
+        // Gather types of all overloadings
+        List<Type> overloaded_types = CollectUtil.makeList(IterUtil.map(fns_result, new Lambda<TypeCheckerResult, Type>() {
+            public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
 
-				 if( instantiated_type.isSome() )
-					 overloadedTypes.add(instantiated_type.unwrap());
-			 }
-		 }
-		 Option<Type> type = (overloadedTypes.isEmpty()) ?
-				 Option.<Type>none() :
-				 Option.<Type>some(new IntersectionType(overloadedTypes));
+        Node new_node;
+        Option<Type> type;
 
-		FnRef new_node = new FnRef(that.getSpan(),
-		                           that.isParenthesized(),
-		                           type,
-		                           that.getLexicalDepth(),
-		                           that.getOriginalName(),
-		                           that.getFns(),
-		                           that.getStaticArgs());
-				 
-		 return TypeCheckerResult.compose(new_node, type, subtypeChecker,
-		         TypeCheckerResult.compose(new_node, subtypeChecker, fns_result), 
-		         TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result));
-	 }
+        // if no static args are provided, and we have several overloadings, we 
+        // will create a 
+        if( that.getStaticArgs().isEmpty()  && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
+            // if there is an overloading that requires static args, and we don't have any, we'll
+            // create a _FnInstantitedOverloading
+            List<FnRef> fn_refs = new ArrayList<FnRef>();
+            List<Type> arrow_types = new ArrayList<Type>();
+            
+            for( Type overloaded_type : overloaded_types ) {
+                for( Type overloading : TypesUtil.conjuncts(overloaded_type) ) {
+                    // If type needs static args, create inference vars, and apply to the signature
+                    Option<Pair<Type,List<StaticArg>>> new_type_and_args_ = 
+                        overloading.accept(new TypeAbstractVisitor<Option<Pair<Type,List<StaticArg>>>>() {
+
+                            @Override
+                            public Option<Pair<Type, List<StaticArg>>> for_RewriteGenericArrowType(
+                                    _RewriteGenericArrowType gen_arr_type) {
+                                // If the arrow type is generic, it needs static args, so make up inference variables
+                                List<StaticArg> new_args =
+                                    TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
+                                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args);
+                                
+                                if( instantiated_type.isNone() ) 
+                                    return none();
+                                else
+                                    return some(Pair.make(instantiated_type.unwrap(), new_args));
+                            }
+
+                            @Override
+                            public Option<Pair<Type, List<StaticArg>>> forType(Type that) {
+                                // any other sort of Type does not get rewritten, and has no args
+                                return some(Pair.make(that, Collections.<StaticArg>emptyList()));
+                            }
+                        
+                    });
+                    
+                    // For now, we don't consider overloadings that require inference of bools/nats/ints
+                    if( new_type_and_args_.isNone() ) continue;
+                    
+                    Type new_type = new_type_and_args_.unwrap().first();
+                    List<StaticArg> new_args = new_type_and_args_.unwrap().second();
+                    
+                    // create new FnRef for this application of static params
+                    FnRef fn_ref = new FnRef(that.getSpan(),
+                                             that.isParenthesized(),
+                                             some(new_type),
+                                             that.getLexicalDepth(),
+                                             that.getOriginalName(),
+                                             that.getFns(),
+                                             new_args);
+                    fn_refs.add(fn_ref);
+                    arrow_types.add(new_type);
+                }
+            }
+            
+            type = (arrow_types.isEmpty()) ?
+                    Option.<Type>none() :
+                        Option.<Type>some(new IntersectionType(arrow_types));
+            
+            new_node = new _RewriteInstantiatedFnRefs(that.getSpan(),
+                                                      that.isParenthesized(),
+                                                      type,
+                                                      fn_refs);
+        }
+        else {
+            // otherwise, we just operate according to the normal procedure, apply args or none were necessary
+            List<Type> arrow_types = new ArrayList<Type>();
+            
+            for( Type ty : overloaded_types ) {
+                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs());
+                
+                if( instantiated_type.isSome() )
+                    arrow_types.add(instantiated_type.unwrap());
+            }
+            
+            type = (arrow_types.isEmpty()) ?
+                    Option.<Type>none() :
+                        Option.<Type>some(new IntersectionType(arrow_types));
+            
+            new_node = new FnRef(that.getSpan(),
+                                that.isParenthesized(),
+                                type,
+                                that.getLexicalDepth(),
+                                that.getOriginalName(),
+                                that.getFns(),
+                                that.getStaticArgs());
+        }
+        
+        return TypeCheckerResult.compose(new_node, type, subtypeChecker,
+                TypeCheckerResult.compose(new_node, subtypeChecker, fns_result), 
+                TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result));
+    }
 	 
 	 @Override
 	 public TypeCheckerResult forFor(For that) {

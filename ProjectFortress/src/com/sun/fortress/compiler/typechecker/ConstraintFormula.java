@@ -65,9 +65,11 @@ public abstract class ConstraintFormula {
 	// Created as the result of calling 'solve()'
 	private static class SolvedFormula extends ConstraintFormula {
 		private final Map<_InferenceVarType, Type> inferredTypes;			
+		final private SubtypeHistory history;
 		
-		public SolvedFormula(Map<_InferenceVarType, Type> inferred_types) {
+		public SolvedFormula(Map<_InferenceVarType, Type> inferred_types, SubtypeHistory history) {
 			this.inferredTypes = inferred_types;
+			this.history = history;
 		}
 
 		@Override
@@ -81,14 +83,26 @@ public abstract class ConstraintFormula {
 			return bug("Once constraint has been solved, this should not be called");
 		}
 
-		// For this implementation, getMap() actually does hard work! It
-		// implements section 20.3 of the specification.
-		@Override
-		public Map<_InferenceVarType, Type> getMap() {
-			return Collections.unmodifiableMap(inferredTypes);
-		}
+        // For this implementation, getMap() actually does hard work! It
+        // implements section 20.3 of the specification.
+        @Override
+        public Map<_InferenceVarType, Type> getMap() {
+            Map<_InferenceVarType, Type> result = new HashMap<_InferenceVarType, Type>();
+            // for each inferred type
+            for( Map.Entry<_InferenceVarType, Type> entry : inferredTypes.entrySet() ) {
+                result.put(entry.getKey(), closestExpressibleType(entry.getValue()));
+            }
 
-		@Override public boolean isFalse() { return false; }
+            return result;
+        }
+
+        private Type closestExpressibleType(Type value) {
+            // TODO: As of 8/12/08 discussion w/ EA, we won't actually do
+            // closest expressible types. Just normalize, then simplify.
+            return history.normalize(value);
+        }
+
+        @Override public boolean isFalse() { return false; }
 		@Override public boolean isTrue() { return true; }
 
 		@Override
@@ -414,7 +428,7 @@ public abstract class ConstraintFormula {
 				}
 			}
 			
-			return new SolvedFormula(inferred_types);
+			return new SolvedFormula(inferred_types, history);
 		}
 		
 		private Map<_InferenceVarType,Type> solveHelper(Set<_InferenceVarType> ivars, 
