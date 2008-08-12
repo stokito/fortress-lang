@@ -17,8 +17,6 @@
 
 package com.sun.fortress.numerics;
 
-import java.lang.Math.*;
-
 public class Blas {
 
     static{

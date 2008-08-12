@@ -468,7 +468,7 @@ testOnly, testCruiseControl"/>
 		    <arg value="-lblas" />
 		    <arg value="-shared" />
 		    <arg value="-bundle" />
-		    <arg line="-o libblas.so" />
+		    <arg line="-o libblas.dylib" />
 	    </exec>
     </target>
 
