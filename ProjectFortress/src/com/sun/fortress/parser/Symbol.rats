@@ -148,7 +148,7 @@ private String multiOp =
    / mapstoOp
    / "<<<"
    / "<->"
-   / leftarrow
+   / leftarrowOp
    / "<=>"
    / "->"
    / doublerightarrow
@@ -181,7 +181,7 @@ String doublerightarrow = "=>" &(w BlockElems w match);
 /* The operator "BY" should not be used with ExtentRange. */
 String crossOp = "BY":OpName &(w ExtentRange) / "\u2a2f":singleOp;
 
-transient String leftarrow = "<-";
+transient String leftarrow = "<-" / "\u2190";
 
 transient String caret = "^" !("T");
 transient String colonequals = ":=" / "\u2254";
@@ -210,14 +210,14 @@ transient String IMPLIES = "IMPLIES":op / "\u2192":op;
 
 transient String DOT = "DOT":OpName / "\u00b7":op;
 transient String slash = "/":singleOp / "\u002f":singleOp;
-transient String rightarrow = "->";
+transient String rightarrow = "->" / "\u2192";
 
 transient void closeangle = "|>" / "\u27e9";
 transient void closedoublesquare = "\\]" / "\u27e7";
 transient void closeparen = ")";
-transient void cross = "BY";
+transient void cross = "BY" / "\u2a2f";
 transient void mapsto = "|->" / "\u21a6";
-transient void match = "=>";
+transient void match = "=>" / "\u21d2";
 transient void minus = "-":singleOp / "\u2212":singleOp;
 transient void openangle = "<|":leftEncloser / "\u27e8":leftEncloser;
 transient void opendoublesquare = "[\\" / "\u27e6";
