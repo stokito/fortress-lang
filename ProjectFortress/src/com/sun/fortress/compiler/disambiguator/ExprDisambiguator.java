@@ -137,7 +137,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private static final boolean CHECK_FOR_SHADOWING = true;
 
     private NameEnv _env;
-    private Set<Id> _uninitializedNames; 
+    private Set<Id> _uninitializedNames;
     private List<StaticError> _errors;
     private Option<Id> _innerMostLabel;
 
@@ -220,7 +220,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return extendWithVarsNoCheck(vars);
     }
 
-    private ExprDisambiguator extendWithVars(Set<Id> vars, Set<Id> uninitializedNames) { 
+    private ExprDisambiguator extendWithVars(Set<Id> vars, Set<Id> uninitializedNames) {
         checkForShadowingVars(vars);
         return extendWithVarsNoCheck(vars, uninitializedNames);
     }
@@ -263,11 +263,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Expr> rhsResult = recurOnOptionOfExpr(that.getRhs());
         Set<Id> definedNames = extractDefinedVarNames(lhsResult);
         Set<Id> uninitializedNames = new HashSet<Id>();
-        
+
         // Record uninitialized local variables so that:
         //   1. We can check that these variables are initialized before use.
         //   2. We don't signal shadowing errors when they are initialized.
-        if (rhsResult.isNone()) { 
+        if (rhsResult.isNone()) {
             uninitializedNames = definedNames;
         }
 
@@ -632,7 +632,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                     (WhereClause) that.getWhere().accept(v),
                                     v.recurOnOptionOfListOfParam(that.getParams()),
                                     v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                                    (Contract) that.getContract().accept(v),
+                                    v.recurOnOptionOfContract(that.getContract()),
                                     v.recurOnListOfAbsDecl(that.getDecls()));
     }
 
@@ -711,7 +711,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  (WhereClause) that.getWhere().accept(v),
                                  v.recurOnOptionOfListOfParam(that.getParams()),
                                  v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                                 (Contract) that.getContract().accept(v),
+                                 v.recurOnOptionOfContract(that.getContract()),
                                  v.recurOnListOfDecl(that.getDecls()));
     }
 
@@ -740,7 +740,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				v.recurOnOptionOfType(that.getReturnType()),
 				v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
 				(WhereClause) that.getWhere().accept(v),
-				(Contract) that.getContract().accept(v));
+				v.recurOnOptionOfContract(that.getContract()));
     }
 
 
@@ -768,7 +768,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             v.recurOnOptionOfType(that.getReturnType()),
                             v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                             (WhereClause) that.getWhere().accept(v),
-                            (Contract) that.getContract().accept(v),
+                            v.recurOnOptionOfContract(that.getContract()),
                             (Expr) that.getBody().accept(v));
     }
 

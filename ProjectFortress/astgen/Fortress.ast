@@ -291,7 +291,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                              = Option.<List<Param>>none(),
                                          Option<List<BaseType>> throwsClause
                                              = Option.<List<BaseType>>none(),
-                                         Contract contract = new Contract(),
+                                         Option<Contract> contract
+                                             = Option.<Contract>none(),
                                          List<? extends AbsDeclOrDecl> decls)
                                         implements GenericAbsDeclOrDeclWithParams;
                 /**
@@ -417,7 +418,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                      = Option.<List<BaseType>>none(),
                                  WhereClause where
                                      = FortressUtil.emptyWhereClause(),
-                                 Contract contract = new Contract(),
+                                 Option<Contract> contract
+                                     = Option.<Contract>none(),
                                  String selfName = NodeUtil.defaultSelfName)
                                 implements Applicable, GenericDecl;
             /**

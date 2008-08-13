@@ -108,7 +108,7 @@ import edu.rice.cs.plt.tuple.Pair;
  * as an arrow's domain) also cause errors.</p>
  */
 public class TypeDisambiguator extends NodeUpdateVisitor {
-    
+
     private final TypeNameEnv _env;
     private final Set<IdOrOpOrAnonymousName> _onDemandImports;
     private final List<StaticError> _errors;
@@ -185,7 +185,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (WhereClause) that.getWhere().accept(v),
                 v.recurOnOptionOfListOfParam(that.getParams()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                (Contract) that.getContract().accept(v),
+                v.recurOnOptionOfContract(that.getContract()),
                 v.recurOnListOfAbsDecl(that.getDecls()));
     }
 
@@ -204,7 +204,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (WhereClause) that.getWhere().accept(v),
                 v.recurOnOptionOfListOfParam(that.getParams()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                (Contract) that.getContract().accept(v),
+                v.recurOnOptionOfContract(that.getContract()),
                 v.recurOnListOfDecl(that.getDecls()));
     }
 
@@ -224,7 +224,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfType(that.getReturnType()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (WhereClause) that.getWhere().accept(v),
-                (Contract) that.getContract().accept(v));
+                v.recurOnOptionOfContract(that.getContract()));
     }
 
     /**
@@ -242,10 +242,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfType(that.getReturnType()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 (WhereClause) that.getWhere().accept(v),
-                (Contract) that.getContract().accept(v),
+                v.recurOnOptionOfContract(that.getContract()),
                 (Expr) that.getBody().accept(v));
     }
-    
+
     @Override public Node forArrowType(final ArrowType that) {
         // make sure this.forDomain is *not* called
         Domain domainResult = (Domain) super.forDomain(that.getDomain());
@@ -498,7 +498,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         });
         return (StaticArg) fixed.accept(this);
-        
+
     }
 
     private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
@@ -506,10 +506,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
         for (Id name: that.getExtends()) {
             Id nname = handleGrammarName(name);
-            ls.add(nname);   
+            ls.add(nname);
             Option<GrammarIndex> gi = this._env.grammarIndex(nname);
             if (gi.isSome()) {
-                gs.add(gi.unwrap());   
+                gs.add(gi.unwrap());
             }
             else {
                 error("Undefined grammar: " + NodeUtil.nameString(nname), name);
@@ -525,7 +525,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forGrammarDefOnly(GrammarDef that, Id name_result,
-            List<Id> extends_result, 
+            List<Id> extends_result,
             List<GrammarMemberDecl> members_result,
             List<TransformerDecl> transformers) {
 
@@ -594,16 +594,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
         }
     }
-    
+
     @Override
     public Node forNonterminalHeader(NonterminalHeader that) {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
 //        System.err.println("T: "+that.getType());
-        
+
         Option<Type> t = v.recurOnOptionOfType(that.getType());
 //        System.err.println("t: "+t);
-        return forNonterminalHeaderOnly(that, 
+        return forNonterminalHeaderOnly(that,
             that.getModifier(),
             (Id) that.getName().accept(v),
             v.recurOnListOfNonterminalParameter(that.getParams()),
@@ -611,7 +611,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             t ,
             (WhereClause) that.getWhereClause().accept(v));
     }
-    
+
     /**
      * All Args are parsed as TypeArgs
      */
@@ -659,10 +659,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 					}
 
 				};
-				return param.unwrap().accept(v); 
-			}	
+				return param.unwrap().accept(v);
+			}
 		}
 		return new TypeArg(arg.getSpan(),t);
 	}
-    
+
 }

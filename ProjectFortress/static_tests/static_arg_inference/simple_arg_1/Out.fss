@@ -1,15 +1,15 @@
 component In
 export { Executable }
-object Blank [\ T \] (t: T) extends { FortressBuiltin.Object }  
+object Blank [\ T \] (t: T) extends { FortressBuiltin.Object } 
     
 end
 
-topLevelFn[\ T \](b: In.Blank[\ T \]) : T  
-callSiteFn() : FortressBuiltin.String   =
+topLevelFn[\ T \](b: In.Blank[\ T \]) : T 
+callSiteFn() : FortressBuiltin.String  =
 do
     a: In.Blank[\ FortressBuiltin.String \] = Blank[\ FortressBuiltin.String \]("Some string")
     topLevelFn[\ FortressBuiltin.String \](a)
 end
-run(args: FortressBuiltin.String...) : ()   =
+run(args: FortressBuiltin.String...) : ()  =
 ()
 end

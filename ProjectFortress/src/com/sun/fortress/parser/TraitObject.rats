@@ -172,7 +172,7 @@ ObjectDecl ObjectDecl =
        if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
+       Option<Contract> contract = fhc.getContractClause();
        yyValue = new ObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
@@ -463,7 +463,7 @@ AbsObjectDecl AbsObjectDecl =
        if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Contract contract = fhc.getContractClause().unwrap(FortressUtil.emptyContract());
+       Option<Contract> contract = fhc.getContractClause();
        yyValue = new AbsObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),

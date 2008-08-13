@@ -38,11 +38,11 @@ public class TypeInferenceJUTest extends TestCase {
     public static void main(String... args) {
         junit.textui.TestRunner.run(TypeAnalyzerJUTest.class);
     }
-    
+
     public void testConstraints(){
     	debug.logStart();
     	try {
-    	/*	
+    	/*
     	TypeAnalyzer t = makeAnalyzer(trait("Int"));
     	_InferenceVarType i1=NodeFactory.make_InferenceVarType(new Span());
     	_InferenceVarType i2=NodeFactory.make_InferenceVarType(new Span());
@@ -53,8 +53,8 @@ public class TypeInferenceJUTest extends TestCase {
     					upperBound(i2,type("Int"),t.new SubtypeHistory()), t.new SubtypeHistory()).and(
     							upperBound(i2,i1,t.new SubtypeHistory()),t.new SubtypeHistory());
     	assertTrue(t1.isSatisfiable());
-    	
-    	
+
+
     	t = makeAnalyzer(trait("A"),trait("B"),trait("C"),trait("D","C"));
     	ConstraintFormula t2 =  upperBound(i1,type("A"),t.new SubtypeHistory()).and(lowerBound(i1,type("A"),t.new SubtypeHistory()),t.new SubtypeHistory());
     	ConstraintFormula t3 =  t2.and(upperBound(i2,type("B"),t.new SubtypeHistory()).and(lowerBound(i2,type("B"),t.new SubtypeHistory()),t.new SubtypeHistory()),t.new SubtypeHistory());
@@ -64,18 +64,18 @@ public class TypeInferenceJUTest extends TestCase {
     	assertTrue(t6.isSatisfiable());*/
     	} finally { debug.logEnd(); }
     }
-    
+
     public static Test suite() throws IOException, Throwable {
         TestSuite suite = new TestSuite("Tests type inference." );
 
         // Add every inference test that we'd like to have
-        
+
         // Test static param inference
         suite.addTest(StaticArgInferenceTest.suite());
-        
+
         return suite;
     }
-    
+
     /**
      * Test the inference of static arguments at a call site.
      */
@@ -86,9 +86,9 @@ public class TypeInferenceJUTest extends TestCase {
         private static final String CACHED_TFS_NAME = "In.tfs";
         private static final String OUT_FILE_NAME = "Out.fss";
         private static final String EXPECTED_FILE_NAME = "Expected.fss";
-        
+
         private File testDirectory;
-        
+
         public StaticArgInferenceTest(File test_dir) {
             super(test_dir.getAbsolutePath());
             this.testDirectory = test_dir;
@@ -96,17 +96,17 @@ public class TypeInferenceJUTest extends TestCase {
 
         public static Test suite() throws IOException, Throwable {
             TestSuite suite = new TestSuite("Tests inference of static arguments at call sites.");
-            
+
             File top_level_dir = new File(STATIC_ARG_INF_TEST_DIR);
-            
+
             File[] test_dirs =
                 top_level_dir.listFiles(new FileFilter(){
                     public boolean accept(File arg0) { return arg0.isDirectory() && !arg0.isHidden(); }});
-            
+
             for( File test_dir : test_dirs ) {
                 suite.addTest(new StaticArgInferenceTest(test_dir));
             }
-            
+
             return suite;
         }
 
@@ -116,34 +116,34 @@ public class TypeInferenceJUTest extends TestCase {
             String fq_output_fname = testDirectory.getAbsolutePath() + SEP + OUT_FILE_NAME;
             String fq_exp_fname = testDirectory.getAbsolutePath() + SEP + EXPECTED_FILE_NAME;
             String fq_cached_fname = testDirectory.getAbsolutePath() + SEP + CACHED_TFS_NAME;
-            
+
             String[] command = new String[] {"typecheck", "-out", fq_cached_fname, fq_input_fname};
             Shell.main(command);
-            
+
             command = new String[]{"unparse", "-out", fq_output_fname, fq_cached_fname};
             Shell.main(command);
-            
+
             ASTIO.deleteJavaAst(fq_cached_fname);
-            
+
             assertSameFile(fq_output_fname, fq_exp_fname);
         }
-        
+
         private void assertSameFile(String f_1, String f_2) throws FileNotFoundException, IOException {
             int line_number = 1;
-            
+
             BufferedReader f_1_reader = new BufferedReader(new FileReader(f_1));
             BufferedReader f_2_reader = new BufferedReader(new FileReader(f_2));
-            
+
             String f_1_line = f_1_reader.readLine();
             String f_2_line = f_2_reader.readLine();
             while( f_1_line != null && f_2_line != null ) {
                 assertEquals("File " +f_1+" and file " + f_2 + " were not the same, line " + line_number, f_1_line, f_2_line);
-                
+
                 f_1_line = f_1_reader.readLine();
                 f_2_line = f_2_reader.readLine();
                 line_number ++;
             }
-            
+
             if(f_1_line != null) {
                 assertTrue("File " + f_1 + " is longer than " + f_2 + ", starting at line " + line_number, false);
             }

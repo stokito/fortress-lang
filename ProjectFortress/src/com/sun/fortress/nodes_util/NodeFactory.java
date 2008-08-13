@@ -38,13 +38,14 @@ import com.sun.fortress.parser_util.FortressUtil;
 public class NodeFactory {
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
-            Option<Id> optSelfName, IdOrOpOrAnonymousName name,
-            List<StaticParam> staticParams,
-            List<Param> params,
-            Option<Type> returnType,
-            Option<List<BaseType>> throwss,
-            WhereClause where,
-            Contract contract) {
+                                          Option<Id> optSelfName,
+                                          IdOrOpOrAnonymousName name,
+                                          List<StaticParam> staticParams,
+                                          List<Param> params,
+                                          Option<Type> returnType,
+                                          Option<List<BaseType>> throwss,
+                                          WhereClause where,
+                                          Option<Contract> contract) {
         String selfName;
         if (optSelfName.isSome()) {
             selfName = optSelfName.unwrap().getText();
@@ -52,7 +53,7 @@ public class NodeFactory {
             selfName = WellKnownNames.defaultSelfName;
         }
         return new AbsFnDecl(s, mods, name, staticParams, params, returnType,
-                throwss, where, contract, selfName);
+                             throwss, where, contract, selfName);
     }
 
     public static Id makeTemporaryId() {
@@ -397,13 +398,6 @@ public class NodeFactory {
         return new ConstructorFnName(def.getSpan(), def);
     }
 
-    /** Alternatively, you can invoke the Contract constructor without any parameters */
-    public static Contract makeContract() {
-        return new Contract(new Span(), Option.<List<Expr>>none(),
-                Option.<List<EnsuresClause>>none(),
-                Option.<List<Expr>>none());
-    }
-
     public static APIName makeAPIName(Span span, String s) {
         return new APIName(span, Useful.list(new Id(span, s)));
     }
@@ -548,13 +542,15 @@ public class NodeFactory {
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
     public static FnDef makeFnDecl(Span s, List<Modifier> mods,
-            Option<Id> optSelfName, IdOrOpOrAnonymousName name,
-            List<StaticParam> staticParams,
-            List<Param> params,
-            Option<Type> returnType,
-            Option<List<BaseType>> throwss,
-            WhereClause where, Contract contract,
-            Expr body) {
+                                   Option<Id> optSelfName,
+                                   IdOrOpOrAnonymousName name,
+                                   List<StaticParam> staticParams,
+                                   List<Param> params,
+                                   Option<Type> returnType,
+                                   Option<List<BaseType>> throwss,
+                                   WhereClause where,
+                                   Option<Contract> contract,
+                                   Expr body) {
         String selfName;
         if (optSelfName.isSome()) {
             selfName = optSelfName.unwrap().getText();
@@ -562,7 +558,7 @@ public class NodeFactory {
             selfName = WellKnownNames.defaultSelfName;
         }
         return new FnDef(s, mods, name, staticParams, params, returnType,
-                throwss, where, contract, selfName, body);
+                         throwss, where, contract, selfName, body);
     }
 
     public static Id makeId(String string) {
@@ -691,16 +687,16 @@ public class NodeFactory {
 
     /** Alternatively, you can invoke the ObjectDecl constructor without a span */
     public static ObjectDecl makeObjectDecl(List<Decl> defs2,
-            List<Modifier> mods,
-            Id name,
-            List<StaticParam> stParams,
-            Option<List<Param>> params,
-            List<TraitTypeWhere> traits,
-            Option<List<BaseType>> throws_,
-            WhereClause where,
-            Contract contract) {
+                                            List<Modifier> mods,
+                                            Id name,
+                                            List<StaticParam> stParams,
+                                            Option<List<Param>> params,
+                                            List<TraitTypeWhere> traits,
+                                            Option<List<BaseType>> throws_,
+                                            WhereClause where,
+                                            Option<Contract> contract) {
         return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
-                params, throws_, contract, defs2);
+                              params, throws_, contract, defs2);
     }
 
     public static Enclosing makeEnclosing(Span in_span, Op in_open, Op in_close) {
@@ -1107,7 +1103,7 @@ public class NodeFactory {
     public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformerDecl transformation) {
         return new SyntaxDef(s, syntaxSymbols, transformation);
     }
-    
+
     public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier, Id nonterminal, Id grammar) {
         return new SuperSyntaxDef(s, modifier, nonterminal, grammar);
     }
