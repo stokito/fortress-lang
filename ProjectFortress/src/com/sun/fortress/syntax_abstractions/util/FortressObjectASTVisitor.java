@@ -201,7 +201,8 @@ public class FortressObjectASTVisitor<T> {
         FValue v10 = getField(value, "in_body");
         Expr body = new FortressObjectASTVisitor<Expr>(this.span).dispatch((FObject)v10);
         return (T) new FnDef(this.span, mods, name, staticParams, params, returnType,
-                             throwsClause, whereClause, Option.wrap(acontract), selfName, body);
+                             throwsClause, Option.wrap(whereClause), Option.wrap(acontract),
+                             selfName, body);
     }
 
     private Id mkQFortressASTName(String name) {
@@ -285,7 +286,7 @@ public class FortressObjectASTVisitor<T> {
     }
 
     private T dispatchWhereClause(FObject value) {
-        return (T) FortressUtil.emptyWhereClause();
+        return (T) new WhereClause();
     }
 
     private T dispatchContract(FObject value) {

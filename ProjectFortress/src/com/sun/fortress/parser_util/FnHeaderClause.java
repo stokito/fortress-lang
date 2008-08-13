@@ -33,12 +33,12 @@ import com.sun.fortress.useful.MagicNumbers;
 public class FnHeaderClause {
 
     private Option<List<BaseType>> throwsClause;
-    private WhereClause whereClause;
+    private Option<WhereClause> whereClause;
     private Option<Contract> contractClause;
     private Option<Type> returnType;
 
     public FnHeaderClause(Option<List<BaseType>> throwsClause,
-                          WhereClause whereClause,
+                          Option<WhereClause> whereClause,
                           Option<Contract> contractClause,
                           Option<Type> returnType) {
         this.throwsClause = throwsClause;
@@ -51,7 +51,7 @@ public class FnHeaderClause {
         return throwsClause;
     }
 
-    public WhereClause getWhereClause() {
+    public Option<WhereClause> getWhereClause() {
         return whereClause;
     }
 

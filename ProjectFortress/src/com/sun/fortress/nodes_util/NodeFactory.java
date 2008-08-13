@@ -44,7 +44,7 @@ public class NodeFactory {
                                           List<Param> params,
                                           Option<Type> returnType,
                                           Option<List<BaseType>> throwss,
-                                          WhereClause where,
+                                          Option<WhereClause> where,
                                           Option<Contract> contract) {
         String selfName;
         if (optSelfName.isSome()) {
@@ -178,11 +178,14 @@ public class NodeFactory {
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
         Span sp = in_type.getSpan();
         return new TraitTypeWhere(sp, in_type,
-                                  new WhereClause(sp));
+                                  Option.<WhereClause>none());
     }
 
-    public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type, WhereClause in_where) {
-        return new TraitTypeWhere(new Span(in_type.getSpan(), in_where.getSpan()), in_type, in_where);
+    public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type, Option<WhereClause> in_where) {
+        if ( in_where.isSome() )
+            return new TraitTypeWhere(new Span(in_type.getSpan(), in_where.unwrap().getSpan()), in_type, in_where);
+        else
+            return new TraitTypeWhere(in_type.getSpan(), in_type, in_where);
     }
 
     public static _InferenceVarType make_InferenceVarType(Span s) {
@@ -548,7 +551,7 @@ public class NodeFactory {
                                    List<Param> params,
                                    Option<Type> returnType,
                                    Option<List<BaseType>> throwss,
-                                   WhereClause where,
+                                   Option<WhereClause> where,
                                    Option<Contract> contract,
                                    Expr body) {
         String selfName;

@@ -180,7 +180,11 @@ AbsDecl AbsCoercion =
 /* CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)? */
 private FnHeaderClause CoercionClauses =
      a1:(w CoercionWhere)? a2:(w Ensures)? a3:(w Invariant)?
-     { if (a1 == null) a1 = FortressUtil.emptyWhereClause();
+     { Option<WhereClause> where;
+       if (a1 == null)
+           where = Option.<WhereClause>none();
+       else
+           where = Option.some(a1);
        Option<Contract> contractClause;
        if (a2 == null && a3 == null) contractClause = Option.<Contract>none();
        else contractClause = Option.<Contract>some(
@@ -188,7 +192,7 @@ private FnHeaderClause CoercionClauses =
                                                  Option.<List<Expr>>none(),
                                                  Option.wrap(a2),
                                                  Option.wrap(a3)));
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(), a1,
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(), where,
                                     contractClause, Option.<Type>none());
      };
 

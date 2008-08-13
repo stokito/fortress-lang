@@ -47,9 +47,13 @@ private List<TraitTypeWhere> TraitTypeWhereList =
 /* TraitTypeWhere ::= TraitType (w Where)? */
 private TraitTypeWhere TraitTypeWhere =
      a1:TraitType a2:(w Where)?
-     { if (a2 == null) a2 = FortressUtil.emptyWhereClause();
+     { Option<WhereClause> where;
+       if (a2 == null)
+           where = Option.<WhereClause>none();
+       else
+           where = Option.some(a2);
        yyValue = new TraitTypeWhere(createSpan(yyStart,yyCount),
-                                    a1, a2);
+                                    a1, where);
      };
 
 /* Extends ::= extends w TraitTypes */
@@ -213,9 +217,13 @@ FnHeaderClause FnClauses =
      }
    / a1:(w Throws)? a2:(w Where)? a3:Contract
      { Option<List<BaseType>> throwsClause = Option.wrap(a1);
-       if (a2 == null)  a2 = FortressUtil.emptyWhereClause();
+       Option<WhereClause> where;
+       if (a2 == null)
+           where = Option.<WhereClause>none();
+       else
+           where = Option.some(a2);
        Option<Contract> contractClause = Option.wrap(a3);
-       yyValue = new FnHeaderClause(throwsClause, a2, contractClause,
+       yyValue = new FnHeaderClause(throwsClause, where, contractClause,
                                     Option.<Type>none());
      };
 

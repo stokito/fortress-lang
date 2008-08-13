@@ -71,7 +71,7 @@ public class TypeAnalyzer {
         validateEnvironment();
     }
 
-    public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, WhereClause whereClause) {
+    public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
         this(enclosing._table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
     }
 
@@ -112,7 +112,7 @@ public class TypeAnalyzer {
     /**
      * Extend this type analyzer with the given static parameters and WhereClause constraints.
      */
-    public TypeAnalyzer extend(List<StaticParam> params, WhereClause whereClause) {
+    public TypeAnalyzer extend(List<StaticParam> params, Option<WhereClause> whereClause) {
      return new TypeAnalyzer(this, params, whereClause);
     }
 
@@ -552,7 +552,7 @@ public class TypeAnalyzer {
                         }
                         else { return FALSE; }
                     }
-                    
+
                     @Override public ConstraintFormula forVarType(VarType s) {
                         return varSub(s, t, h);
                     }
@@ -864,7 +864,7 @@ public class TypeAnalyzer {
         }
         return result;
     }
-    
+
     /**
      * <pre>
      * {T'1..T'p} = expand_or(\or{T1..Tn})
@@ -1103,7 +1103,7 @@ public class TypeAnalyzer {
         public Type normalize(Type t) {
             return TypeAnalyzer.this.normalize(t);
         }
-        
+
         public ConstraintFormula subtypeNormal(Type s, Type t) {
             return TypeAnalyzer.this.sub(s, t, this);
         }

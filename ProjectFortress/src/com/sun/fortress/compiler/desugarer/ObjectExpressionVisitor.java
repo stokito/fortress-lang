@@ -27,41 +27,7 @@ import java.util.Stack;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Catch;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Export;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.GeneratedExpr;
-import com.sun.fortress.nodes.GenericDecl;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.Label;
-import com.sun.fortress.nodes.LetFn;
-import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NormalParam;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Typecase;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.nodes.While;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -97,8 +63,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     /* The following two things are results returned by FreeNameCollector */
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
-    /* Map key: node which the captured mutable varRef is declared under 
-                (which should be either ObjectDecl or LocalVarDecl), 
+    /* Map key: node which the captured mutable varRef is declared under
+                (which should be either ObjectDecl or LocalVarDecl),
        value: list of pairs for which the VarRefs that needs to be boxed
               pair.first is the span of the decl node for the varRef
               pair.second is the varRef */
@@ -110,14 +76,14 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         enclosingComponent = null;
         uniqueId = 0;
         typeEnvAtNode = _typeEnvAtNode;
- 
+
         this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>();
         // FIXME: Temp hack to use Map<Span,TypeEnv>
         // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
         for(Pair<Node, Span> n : typeEnvAtNode.keySet()) {
             this.tmpTypeEnvAtNode.put(n.second(), typeEnvAtNode.get(n));
         }
-        
+
         scopeStack = new Stack<Node>();
         this.traitTable = traitTable;
         enclosingTraitDecl = null;
@@ -127,18 +93,18 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     @Override
 	public Node forComponent(Component that) {
-        FreeNameCollector freeNameCollector = 
+        FreeNameCollector freeNameCollector =
             new FreeNameCollector(traitTable, tmpTypeEnvAtNode);
         that.accept(freeNameCollector);
-        
+
         objExprToFreeNames = freeNameCollector.getObjExprToFreeNames();
         declSiteToVarRefs  = freeNameCollector.getDeclSiteToVarRefs();
 
         // No object expression found in this component. We are done.
         if(objExprToFreeNames.isEmpty()) {
             return that;
-        } 
-        
+        }
+
         enclosingComponent = that;
         // Only traverse the tree if we find any object expression
         Node returnValue = super.forComponent(that);
@@ -262,9 +228,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 		scopeStack.push(that);
 		Node returnValue = super.forWhile(that);
 		scopeStack.pop();
-		return returnValue;		
+		return returnValue;
 	}
-	
+
 	@Override
     public Node forObjectExpr(ObjectExpr that) {
 	    objExprNestingLevel++;
@@ -377,7 +343,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         /* Use default value for modifiers, where clauses,
            throw clauses, contract */
         ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams,
-                                           extendsClauses, params, decls);
+                                           extendsClauses,
+                                           Option.<WhereClause>none(),
+                                           params, decls);
 
         if(enclosingSelf != null) {
             VarRef receiver = makeVarRefFromNormalParam(enclosingSelf);
@@ -453,11 +421,11 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             }
 
             // Use the span for the obj expr that we are lifting
-            // FIXME: Is this the right span to use?? 
+            // FIXME: Is this the right span to use??
             Span paramSpan = objExpr.getSpan();
 
-            // use the "self" id to get the right type of the 
-            // enclosing object / trait decl 
+            // use the "self" id to get the right type of the
+            // enclosing object / trait decl
             type = typeEnv.type( new Id("self") );
 
             // id of the newly created param for implicit self

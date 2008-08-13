@@ -33,5 +33,5 @@ public interface Applicable extends HasAt {
     public List<StaticParam> getStaticParams();
     public List<Param> getParams();
     public Option<Type> getReturnType();
-    public WhereClause getWhere();
+    public Option<WhereClause> getWhere();
 }

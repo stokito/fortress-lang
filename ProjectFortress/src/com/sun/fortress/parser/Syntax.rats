@@ -61,10 +61,10 @@ public GrammarDecl GrammarDef =
                                 a3s.list(),
                                 new LinkedList<TransformerDecl>(),
                                 /*native*/ true); }
-   / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end 
+   / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
-       else { ids.addAll(a2); } 
+       else { ids.addAll(a2); }
        yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
@@ -93,7 +93,7 @@ private GrammarMemberDecl NonterminalDef =
       { Option<BaseType> astType1 = Option.none();
         if (astType != null) astType1 = Option.some(astType);
         List<SyntaxDecl> syntaxDefs = a4s.list();
-        syntaxDefs.add(0, a4); 
+        syntaxDefs.add(0, a4);
         yyValue = new NonterminalDef(createSpan(yyStart,yyCount), header, astType1, syntaxDefs); }
     /  yyValue:NonterminalDecl;
     /*
@@ -119,8 +119,12 @@ private NonterminalHeader NonterminalHeader =
           if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();
           Option<Type> type1 = Option.<Type>none();
           if (type != null) type1 = Option.some(type);
-          if (whereClauses == null) whereClauses = FortressUtil.emptyWhereClause();
-          yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name, params, staticParams, type1, whereClauses);
+          Option<WhereClause> where;
+          if (whereClauses == null)
+              where = Option.<WhereClause>none();
+          else
+              where = Option.some(whereClauses);
+          yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name, params, staticParams, type1, where);
         };
 
 private Option<ModifierPrivate> NonTermMod =

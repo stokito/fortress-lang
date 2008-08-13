@@ -26,98 +26,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Accumulator;
-import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
-import com.sun.fortress.nodes.AnonymousFnName;
-import com.sun.fortress.nodes.ArgExpr;
-import com.sun.fortress.nodes.ArrayComprehension;
-import com.sun.fortress.nodes.ArrayElement;
-import com.sun.fortress.nodes.ArrayElements;
-import com.sun.fortress.nodes.AsExpr;
-import com.sun.fortress.nodes.AsIfExpr;
-import com.sun.fortress.nodes.Assignment;
-import com.sun.fortress.nodes.AtomicExpr;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.CaseClause;
-import com.sun.fortress.nodes.CaseExpr;
-import com.sun.fortress.nodes.ChainExpr;
-import com.sun.fortress.nodes.CharLiteralExpr;
-import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.Exit;
-import com.sun.fortress.nodes.ExponentiationMI;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.ExprMI;
-import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.FloatLiteralExpr;
-import com.sun.fortress.nodes.FnExpr;
-import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.GeneratedExpr;
-import com.sun.fortress.nodes.GeneratorClause;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.If;
-import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.IntLiteralExpr;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.Label;
-import com.sun.fortress.nodes.LetExpr;
-import com.sun.fortress.nodes.LetFn;
-import com.sun.fortress.nodes.Link;
-import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.LooseJuxt;
-import com.sun.fortress.nodes.MathItem;
-import com.sun.fortress.nodes.MathPrimary;
-import com.sun.fortress.nodes.MethodInvocation;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.NumberLiteralExpr;
-import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpName;
-import com.sun.fortress.nodes.OpRef;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.Spawn;
-import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.StringLiteralExpr;
-import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.SubscriptingMI;
-import com.sun.fortress.nodes._SyntaxTransformationExpr;
-import com.sun.fortress.nodes.TemplateGapCharLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapDelimitedExpr;
-import com.sun.fortress.nodes.TemplateGapExpr;
-import com.sun.fortress.nodes.TemplateGapFloatLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapFnExpr;
-import com.sun.fortress.nodes.TemplateGapId;
-import com.sun.fortress.nodes.TemplateGapIntLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapLooseJuxt;
-import com.sun.fortress.nodes.TemplateGapName;
-import com.sun.fortress.nodes.TemplateGapNumberLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapPrimary;
-import com.sun.fortress.nodes.TemplateGapSimpleExpr;
-import com.sun.fortress.nodes.TemplateGapStringLiteralExpr;
-import com.sun.fortress.nodes.TemplateGapVoidLiteralExpr;
-import com.sun.fortress.nodes.Throw;
-import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.Try;
-import com.sun.fortress.nodes.TryAtomicExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Typecase;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._EllipsesExpr;
-import com.sun.fortress.nodes._RewriteFnApp;
-import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.nodes._RewriteObjectRef;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Useful;
@@ -242,9 +151,9 @@ public class ExprFactory {
             Option<List<BaseType>> throwsClause,
             Expr body) {
         return new FnExpr(span, false, new AnonymousFnName(span),
-                Collections.<StaticParam>emptyList(), params,
-                returnType, FortressUtil.emptyWhereClause(),
-                throwsClause, body);
+                          Collections.<StaticParam>emptyList(), params,
+                          returnType, Option.<WhereClause>none(),
+                          throwsClause, body);
     }
 
     /** Alternatively, you can invoke the IntLiteralExpr constructor without parenthesized or text */
@@ -764,9 +673,9 @@ public class ExprFactory {
         }
         public Expr forFnExpr(FnExpr e) {
             return new FnExpr(e.getSpan(), true, e.getName(),
-                    e.getStaticParams(), e.getParams(),
-                    e.getReturnType(), e.getWhere(),
-                    e.getThrowsClause(), e.getBody());
+                              e.getStaticParams(), e.getParams(),
+                              e.getReturnType(), e.getWhere(),
+                              e.getThrowsClause(), e.getBody());
         }
         public Expr forGeneratedExpr(GeneratedExpr e) {
             return new GeneratedExpr(e.getSpan(), true,

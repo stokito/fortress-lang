@@ -14,10 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-/*
- * Created on May 1, 2007
- *
- */
+
 package com.sun.fortress.interpreter.evaluator.values;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -25,6 +22,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.ArrayList;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -148,7 +146,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      */
     static public List<FType> createSymbolicInstantiation(Environment bte, Applicable ap, HasAt location) throws Error {
         List<StaticParam> tpl = ap.getStaticParams();
-        WhereClause wcl = ap.getWhere();
+        Option<WhereClause> wcl = ap.getWhere();
 
         // The (possibly multiple and interrelated) symbolic
         // types must be created in an environment, but we don't
@@ -169,7 +167,10 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         return instantiationTypes;
     }
 
-    static public List<FType> createSymbolicInstantiation(Environment bte, List<StaticParam> tpl, WhereClause wcl, HasAt location) throws Error {
+    static public List<FType> createSymbolicInstantiation(Environment bte,
+                                                          List<StaticParam> tpl,
+                                                          Option<WhereClause> wcl,
+                                                          HasAt location) throws Error {
         return createSymbolicInstantiation(tpl, wcl, bte.extendAt(location));
     }
     /**
@@ -178,7 +179,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      * @param ge The generic environment that is being populated by this instantiation.
      * @throws Error
      */
-    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, WhereClause wcl, Environment ge) throws Error {
+    static private List<FType> createSymbolicInstantiation(List<StaticParam> tpl, Option<WhereClause> wcl, Environment ge) throws Error {
         ArrayList<FType> a = new ArrayList<FType>();
         for (StaticParam tp: tpl) {
             String name = NodeUtil.getName(tp);
@@ -199,19 +200,21 @@ public abstract class SingleFcn extends Fcn implements HasAt {
             a.add(t);
         }
 
-        // Expect that where clauses will add names and constraints.9
-        for (WhereConstraint wc : wcl.getConstraints()) {
-            if (wc instanceof TypeAlias) {
-                TypeAlias ta = (TypeAlias) wc;
-                NI.nyi("Where clauses - type alias");
-            } else if (wc instanceof WhereExtends) {
-                WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getText();
-                // List<Type> we_supers = we.getSupers();
-                if (ge.getTypeNull(we_name) == null) {
-                    // Add name
-                    SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge, we);
-                    ge.putType(we_name, st);
+        // Expect that where clauses will add names and constraints.
+        if ( wcl.isSome() ) {
+            for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
+                if (wc instanceof TypeAlias) {
+                    TypeAlias ta = (TypeAlias) wc;
+                    NI.nyi("Where clauses - type alias");
+                } else if (wc instanceof WhereExtends) {
+                    WhereExtends we = (WhereExtends) wc;
+                    String we_name = we.getName().getText();
+                    // List<Type> we_supers = we.getSupers();
+                    if (ge.getTypeNull(we_name) == null) {
+                        // Add name
+                        SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge, we);
+                        ge.putType(we_name, st);
+                    }
                 }
             }
         }
@@ -239,16 +242,18 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         }
 
         // Expect that where clauses will add names and constraints.
-        for (WhereConstraint wc : wcl.getConstraints()) {
-            if (wc instanceof TypeAlias) {
-                NI.nyi("Where clauses - type alias");
-                TypeAlias ta = (TypeAlias) wc;
-            } else if (wc instanceof WhereExtends) {
-                WhereExtends we = (WhereExtends) wc;
-                String we_name = we.getName().getText();
-                List<BaseType> we_supers = we.getSupers();
-                SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
-                st.addExtends(eval_type.getFTypeListFromList(we_supers));
+        if ( wcl.isSome() ) {
+            for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
+                if (wc instanceof TypeAlias) {
+                    NI.nyi("Where clauses - type alias");
+                    TypeAlias ta = (TypeAlias) wc;
+                } else if (wc instanceof WhereExtends) {
+                    WhereExtends we = (WhereExtends) wc;
+                    String we_name = we.getName().getText();
+                    List<BaseType> we_supers = we.getSupers();
+                    SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name);
+                    st.addExtends(eval_type.getFTypeListFromList(we_supers));
+                }
             }
         }
 

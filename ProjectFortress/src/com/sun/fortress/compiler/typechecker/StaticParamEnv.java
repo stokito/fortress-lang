@@ -52,11 +52,16 @@ public abstract class StaticParamEnv {
         else { return new NonEmptyStaticParamEnv(params, this); }
     }
 
-    public StaticParamEnv extend(List<StaticParam> params, WhereClause whereClause) {
-        // For now, only bindings of hidden type variables are supported (not constraints).
-        List<WhereBinding> whereBindings = whereClause.getBindings();
-        if (params.size() == 0 && whereBindings.size() == 0) { return this; }
-        else { return new WhereClauseEnv(params, whereClause, this); }
+    public StaticParamEnv extend(List<StaticParam> params, Option<WhereClause> whereClause) {
+        if ( whereClause.isSome() ) {
+            // For now, only bindings of hidden type variables are supported (not constraints).
+            List<WhereBinding> whereBindings = whereClause.unwrap().getBindings();
+            if (params.size() == 0 && whereBindings.size() == 0) { return this; }
+            else { return new WhereClauseEnv(params, whereClause.unwrap(), this); }
+        } else {
+            if (params.size() == 0) { return this; }
+            else { return new NonEmptyStaticParamEnv(params, this); }
+        }
     }
 
 
