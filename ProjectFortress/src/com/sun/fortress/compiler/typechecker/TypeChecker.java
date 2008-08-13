@@ -66,6 +66,7 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
@@ -2106,7 +2107,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 		 }
 
-		 ArrowType arr = NodeFactory.makeArrowType(new Span(), domain, return_type);
+		 ArrowType arr = NodeFactory.makeArrowType(FortressUtil.spanTwo(domain, return_type),
+                                                           domain, return_type);
 		 FnExpr new_node = new FnExpr(that.getSpan(),
 				                      that.isParenthesized(),
 				                      that.getName(),

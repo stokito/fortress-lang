@@ -195,7 +195,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                          new ArrayList<StaticParam>(),
                          new ArrayList<Param>(),
                          binding.getType(),
-                         new WhereClause(new Span()),
+                         new WhereClause(binding.getSpan()),
                          Option.<Contract>none(),
                          new VarRef(binding.getSpan(), false,
                                     mangleName(binding.getName())));

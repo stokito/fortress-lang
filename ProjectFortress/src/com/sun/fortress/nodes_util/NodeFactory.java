@@ -685,20 +685,6 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
-    /** Alternatively, you can invoke the ObjectDecl constructor without a span */
-    public static ObjectDecl makeObjectDecl(List<Decl> defs2,
-                                            List<Modifier> mods,
-                                            Id name,
-                                            List<StaticParam> stParams,
-                                            Option<List<Param>> params,
-                                            List<TraitTypeWhere> traits,
-                                            Option<List<BaseType>> throws_,
-                                            WhereClause where,
-                                            Option<Contract> contract) {
-        return new ObjectDecl(new Span(), mods, name, stParams, traits, where,
-                              params, throws_, contract, defs2);
-    }
-
     public static Enclosing makeEnclosing(Span in_span, Op in_open, Op in_close) {
         return new Enclosing(in_span, in_open, in_close);
     }
