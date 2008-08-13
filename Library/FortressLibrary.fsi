@@ -628,7 +628,7 @@ trait Generator[\E\]
     (** The MATCH operator is used (as a temporary hack) by CASE when the
         match clause is a Generator[\E\].  We must choose either =, SEQV, or
         IN as appropriate, depending on the type of the LHS. **)
-    opr MATCH(x:Any, self): Boolean 
+    opr MATCH(x:Any, self): Boolean
 end
 
 (** The following stubs exist as a temporary workaround to shortcomings

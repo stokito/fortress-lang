@@ -91,18 +91,24 @@ public class FTypeOverloadedArrow extends FType {
         // type checking is in place.
 
         BoundingMap<String, FType, TypeLatticeOps> savedAbm = abm.copy();
+        BoundingMap<String, FType, TypeLatticeOps> unifiedAbm = null;
         if (FType.DUMP_UNIFY)
             System.out.println("\tAttempting to unify overloadings.");
         for (FType t : l) {
             try {
                 t.unify(env,tp_set,abm,val);
-                return true;
+                if (unifiedAbm != null) return true;
+                unifiedAbm = abm.copy();
             } catch (UnificationError e) {
                 if (FType.DUMP_UNIFY)
                     System.out.println("\tOverloading "+t+" != "+val+", abm ="+abm);
             } finally {
                 abm.assign(savedAbm);
             }
+        }
+        if (unifiedAbm != null) {
+            abm.assign(unifiedAbm);
+            return true;
         }
         return false;
     }
