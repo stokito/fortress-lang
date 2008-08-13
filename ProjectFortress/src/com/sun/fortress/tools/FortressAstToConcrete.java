@@ -1865,10 +1865,34 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String for_RewriteInstantiatedFnRefsOnly(_RewriteInstantiatedFnRefs that,
-                                                              Option<String> exprType_result,
-                                                              List<String> fns_result) {
+    
+
+    @Override
+    public String for_RewriteFnRefOverloadingOnly(
+            _RewriteFnRefOverloading that, String fn_result, String ty_result) {
+        return "(* _RewriteFnRefOverloading *)";
+    }
+
+    @Override
+    public String for_RewriteInstantiatedFnRefsOnly(
+            _RewriteInstantiatedFnRefs that, Option<String> exprType_result,
+            String originalName_result, List<String> fns_result,
+            List<String> staticArgs_result, List<String> overloadings_result) {
         return "(* _RewriteInstantiatedFnRefs *)";
+    }
+
+    @Override
+    public String for_RewriteInstantiatedOpRefsOnly(
+            _RewriteInstantiatedOpRefs that, Option<String> exprType_result,
+            String originalName_result, List<String> ops_result,
+            List<String> staticArgs_result, List<String> overloadings_result) {
+        return "(* _RewriteInstantiatedOpRefs *)";
+    }
+
+    @Override
+    public String for_RewriteOpRefOverloadingOnly(
+            _RewriteOpRefOverloading that, String op_result, String ty_result) {
+        return "(* _RewriteOpRefOverloading *)";
     }
 
     @Override public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result,

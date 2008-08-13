@@ -431,7 +431,7 @@ public class NodeUtil {
     public static <T> T NYI(String s) {
         return (T)bug("AST." + s + " NYI");
     }
-
+    
     /* function ************************************************************/
     public static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
             public String apply(Id x) {

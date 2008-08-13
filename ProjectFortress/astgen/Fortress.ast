@@ -1174,6 +1174,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                               List<Id> fns = Collections.<Id>singletonList(in_originalName),
                               List<StaticArg> staticArgs
                                   = Collections.<StaticArg>emptyList());
+                            /**
+                             * A list of FnRefs used for infering static arguments. Used only between the two
+                             * passes of the typechecker. Indicates that one of these FnRefs, which each have
+                             * different instantiations of static arguments, should be the correct instantiation.
+                             */
+                            _RewriteInstantiatedFnRefs(List<_RewriteFnRefOverloading> overloadings = Collections.<_RewriteFnRefOverloading>emptyList());
                         /**
                          * The rewriting to explicitly name self and parent
                          * pre-interpretation may generalize the dotted
@@ -1192,11 +1198,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                               List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
                               List<StaticArg> staticArgs
                                   = Collections.<StaticArg>emptyList());
-                    /**
-                     * A list of FnRefs used for infering static arguments
-                     */
-                    _RewriteInstantiatedFnRefs(List<FnRef> fns = Collections.<FnRef>emptyList());
-
+                            /**
+                             * Similar to _RewriteInstantiatedFnRefs, this node is used for inferring static
+                             * arguments to an Op call. This node only exists between the first and second
+                             * passes of the typechecker. Holds several different instantiations of static args,
+                             * one of which may be the correct insantiation.
+                             */
+                            _RewriteInstantiatedOpRefs(List<_RewriteOpRefOverloading> overloadings = Collections.<_RewriteOpRefOverloading>emptyList());
                     /**
                      * functional applicaiton
                      */
@@ -2257,5 +2265,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * e.g.) < 5
          */
         Link(OpRef op, Expr expr);
+        /*
+         * An overloading, and the type of that particular overloading.
+         */
+        _RewriteFnRefOverloading(FnRef fn, Type ty);
+        /**
+         * An operator overloading, and the tpye of that overloading.
+         */
+        _RewriteOpRefOverloading(OpRef op, Type ty); 
 
     end;

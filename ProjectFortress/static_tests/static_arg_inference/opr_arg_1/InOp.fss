@@ -1,13 +1,15 @@
-component In
+component InOp
   export Executable
- 
-  object Blank[\T\](t:T) end
 
-  topLevelFn[\T\](b:Blank[\T\]):T
+  object Blank[\T\](t:T) 
+    getT():T = t
+  end
+
+  opr +[\T\](b_1:Blank[\T\], b_2:Blank[\T\]):T = b_1.getT()
 
   callSiteFn():String = do
     a:Blank[\String\] = Blank[\String\]("Some string")
-    topLevelFn(a)
+    a + a
   end
 
   run(args:String...):() = ()
