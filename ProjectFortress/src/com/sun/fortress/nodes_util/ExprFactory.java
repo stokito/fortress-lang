@@ -312,7 +312,7 @@ public class ExprFactory {
     }
 
     public static TupleExpr makeTuple(List<Expr> exprs) {
-        return new TupleExpr(new Span(), false, exprs);
+        return new TupleExpr(FortressUtil.spanAll(exprs), false, exprs);
     }
 
     public static TupleExpr makeTuple(Span span, List<Expr> exprs) {
@@ -752,7 +752,7 @@ public class ExprFactory {
         public Expr forExit(Exit e) {
             return new Exit(e.getSpan(), true, e.getExprType() ,e.getTarget(), e.getReturnExpr());
         }
-        
+
         public Expr forSpawn(Spawn e) {
             return new Spawn(e.getSpan(), true, e.getBody());
         }
