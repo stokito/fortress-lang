@@ -135,11 +135,11 @@ public class TypeAnalyzerJUTest extends TestCase {
         } finally { debug.logEnd(); }
     }
 
-    public void testUnionAndIntersection() { 
-    	TypeAnalyzer t=makeAnalyzer(trait("A")); 
+    public void testUnionAndIntersection() {
+    	TypeAnalyzer t=makeAnalyzer(trait("A"));
      	assertEquals(FALSE, sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
     }
-    
+
     public void testBasicTraitSubtyping() {
         debug.logStart(); try {
 
@@ -459,7 +459,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
+            extendsClause.add(new TraitTypeWhere(supT, Option.<WhereClause>none()));
         }
         TraitAbsDeclOrDecl ast;
         if (absDecl) {

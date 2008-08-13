@@ -43,13 +43,13 @@ public class Constructor extends Function {
     private final List<StaticParam> _staticParams;
     private final Option<List<Param>> _params;
     private final Option<List<BaseType>> _throwsClause;
-    private final WhereClause _where;
+    private final Option<WhereClause> _where;
 
     public Constructor(Id declaringTrait,
                        List<StaticParam> staticParams,
                        Option<List<Param>> params,
                        Option<List<BaseType>> throwsClause,
-                       WhereClause where)
+                       Option<WhereClause> where)
     {
         _declaringTrait = declaringTrait;
         _staticParams = staticParams;
@@ -62,13 +62,13 @@ public class Constructor extends Function {
 //    public List<StaticParam> staticParams() { return _staticParams; }
 //    public Option<List<Param>> params() { return _params; }
 //    public Option<List<BaseType>> throwsClause() { return _throwsClause; }
-    public WhereClause where() { return _where; }
+    public Option<WhereClause> where() { return _where; }
 
 	@Override
 	public Option<Expr> body() {
 		return Option.none();
 	}
-	
+
 	@Override
 	public List<Param> parameters() {
 		if( _params.isNone() )
@@ -104,7 +104,7 @@ public class Constructor extends Function {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
-		
+
 		Option<List<Param>> new_params;
 		if( _params.isSome() ) {
 			List<Param> new_params_ = new ArrayList<Param>(_params.unwrap().size());
@@ -116,7 +116,7 @@ public class Constructor extends Function {
 		else {
 			new_params = Option.none();
 		}
-		
+
 		Option<List<BaseType>> new_throws;
 		if( _throwsClause.isSome() ) {
 			List<BaseType> new_throws_ = new ArrayList<BaseType>(_throwsClause.unwrap().size());
@@ -128,20 +128,27 @@ public class Constructor extends Function {
 		else {
 			new_throws = Option.none();
 		}
-		
-		List<StaticParam> new_static_params = 
+
+		List<StaticParam> new_static_params =
 			CollectUtil.makeList(IterUtil.map(_staticParams, new Lambda<StaticParam,StaticParam>(){
 				public StaticParam value(StaticParam arg0) {
 					return (StaticParam)arg0.accept(v);
 				}}));
-		
-		return 
+
+                Option<WhereClause> new_where;
+                if ( _where.isSome() ) {
+                    new_where = Option.some((WhereClause)_where.unwrap().accept(v));
+                } else {
+                    new_where = Option.<WhereClause>none();
+                }
+
+		return
 		  new Constructor(_declaringTrait,
-				          new_static_params,
-				  	      new_params,
-			              new_throws,
-			              (WhereClause)_where.accept(v));
+                                  new_static_params,
+                                  new_params,
+                                  new_throws,
+                                  new_where);
 	}
-	
-	
+
+
 }

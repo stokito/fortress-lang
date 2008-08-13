@@ -86,7 +86,10 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
 private TraitClause TraitClause =
      a1:Excludes  { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
    / a1:Comprises { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
-   / a1:Where     { yyValue = new Where(createSpan(yyStart,yyCount), a1); }
+   / a1:Where
+     { yyValue = new Where(createSpan(yyStart,yyCount),
+                           Option.some(a1));
+     }
    / <ErrorProduction>
      ExtendsWhere
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -376,7 +379,7 @@ private TraitClause AbsTraitClause =
    / a1:AbsComprises
      { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
    / a1:Where
-     { yyValue = new Where(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new Where(createSpan(yyStart,yyCount), Option.some(a1)); }
    / <ErrorProduction>
      ExtendsWhere
      { yyValue = syntaxError(createSpan(yyStart,yyCount),

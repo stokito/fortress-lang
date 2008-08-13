@@ -180,7 +180,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                          new ArrayList<StaticParam>(),
                          new ArrayList<Param>(),
                          returnType,
-                         new WhereClause(param.getSpan()),
+                         Option.<List<BaseType>>none(),
+                         Option.<WhereClause>none(),
                          Option.<Contract>none(),
                          new VarRef(param.getSpan(), false,
                                     mangleName(param.getName())));
@@ -195,7 +196,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                          new ArrayList<StaticParam>(),
                          new ArrayList<Param>(),
                          binding.getType(),
-                         new WhereClause(binding.getSpan()),
+                         Option.<List<BaseType>>none(),
+                         Option.<WhereClause>none(),
                          Option.<Contract>none(),
                          new VarRef(binding.getSpan(), false,
                                     mangleName(binding.getName())));
@@ -317,7 +319,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Id name_result = (Id) that.getName().accept(newVisitor);
         List<StaticParam> staticParams_result = newVisitor.recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        WhereClause where_result = (WhereClause) that.getWhere().accept(newVisitor);
+        Option<WhereClause> where_result = newVisitor.recurOnOptionOfWhereClause(that.getWhere());
         Option<List<Param>> params_result = mangleParams(newVisitor.recurOnOptionOfListOfParam(that.getParams()));
         Option<List<BaseType>> throwsClause_result = newVisitor.recurOnOptionOfListOfBaseType(that.getThrowsClause());
         Option<Contract> contract_result = newVisitor.recurOnOptionOfContract(that.getContract());
@@ -341,7 +343,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Id name_result = (Id) that.getName().accept(newVisitor);
         List<StaticParam> staticParams_result = newVisitor.recurOnListOfStaticParam(that.getStaticParams());
         List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        WhereClause where_result = (WhereClause) that.getWhere().accept(newVisitor);
+        Option<WhereClause> where_result = newVisitor.recurOnOptionOfWhereClause(that.getWhere());
         List<BaseType> excludes_result = newVisitor.recurOnListOfBaseType(that.getExcludes());
         Option<List<BaseType>> comprises_result = newVisitor.recurOnOptionOfListOfBaseType(that.getComprises());
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));

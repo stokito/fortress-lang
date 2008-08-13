@@ -35,7 +35,7 @@ public class TraitClauses {
 
     private List<BaseType>         excludes  = FortressUtil.emptyTraitTypes();
     private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
-    private WhereClause             where = FortressUtil.emptyWhereClause();
+    private Option<WhereClause>    where     = Option.<WhereClause>none();
     private boolean setExcludes  = false;
     private boolean setComprises = false;
     private boolean setWhere     = false;
@@ -50,7 +50,7 @@ public class TraitClauses {
         return comprises;
     }
 
-    public WhereClause getWhere() {
+    public Option<WhereClause> getWhere() {
         return where;
     }
 

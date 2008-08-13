@@ -55,55 +55,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Generic;
-import com.sun.fortress.nodes.GenericDeclWithParams;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.GrammarDecl;
-import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.DimUnitDecl;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes.ImportNames;
-import com.sun.fortress.nodes.ImportStar;
-import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierTest;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
-import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.ArgExpr;
-import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes.WhereConstraint;
-import com.sun.fortress.nodes.WhereExtends;
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -159,7 +111,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  */
 public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
 
-    
+
      private int pass = 1;
 
     public void resetPass() {
@@ -233,7 +185,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         return null;
     }
 
- 
+
 
 
      protected static void doDefs(BuildEnvironments inner, List<? extends AbsDeclOrDecl> defs) {
@@ -1019,7 +971,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         interior = interior.extendAt(x);
 
-        EvalType et = processWhereClauses(x.getWhere(), interior);
+        EvalType et;
+        if ( x.getWhere().isSome() )
+            et = processWhereClauses(x.getWhere().unwrap(), interior);
+        else
+            et = new EvalType(interior);
 
         List<FType> extl = et.getFTypeListFromList(extends_);
         List<FType> excl = et.getFTypeListFromList(x.getExcludes());
@@ -1046,7 +1002,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @return
      */
     private static EvalType processWhereClauses(WhereClause wheres,
-            Environment interior) {
+                                                Environment interior) {
 
         if (wheres != null) {
             for (WhereConstraint w : wheres.getConstraints()) {
@@ -1131,10 +1087,17 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     static public void finishObjectTrait(List<BaseType> extends_,
-            List<? extends Type> excludes, WhereClause wheres, FTypeObject ftt,
-            Environment interior, HasAt x) {
+                                         List<? extends Type> excludes,
+                                         Option<WhereClause> wheres,
+                                         FTypeObject ftt,
+                                         Environment interior,
+                                         HasAt x) {
         interior = interior.extendAt(x);
-        EvalType et = processWhereClauses(wheres, interior);
+        EvalType et;
+        if ( wheres != null && wheres.isSome() )
+            et = processWhereClauses(wheres.unwrap(), interior);
+        else
+            et = new EvalType(interior);
         ftt.setExtendsAndExcludes(et.getFTypeListFromList(extends_), et
                 .getFTypeListFromList(excludes), interior);
 

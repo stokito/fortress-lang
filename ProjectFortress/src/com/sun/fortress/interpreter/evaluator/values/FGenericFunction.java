@@ -50,7 +50,7 @@ public class FGenericFunction extends SingleFcn
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
- 
+
     FnAbsDeclOrDecl fndef;
 
     volatile Simple_fcn symbolicInstantiation;
@@ -62,7 +62,7 @@ public class FGenericFunction extends SingleFcn
          return getSymbolic().getDomain();
 
      }
-     
+
      @Override
      public FType getRange() {
          return getSymbolic().getRange();
@@ -203,7 +203,7 @@ public class FGenericFunction extends SingleFcn
     }
 
 
-    protected WhereClause getWhere() {
+    protected Option<WhereClause> getWhere() {
         return fndef.getWhere();
     }
 

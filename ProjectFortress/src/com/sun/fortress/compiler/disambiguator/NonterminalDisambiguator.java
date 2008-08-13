@@ -105,7 +105,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
             Option<ModifierPrivate> modifier_result, Id name_result,
             List<NonterminalParameter> params_result,
             List<StaticParam> staticParams_result, Option<Type> type_result,
-            WhereClause whereClause_result) {
+            Option<WhereClause> whereClause_result) {
         NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
 
         // Disambiguate the name
@@ -114,7 +114,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         if (oname.isSome()) {
             name = oname.unwrap();
         }
-        
+
         this._errors.addAll(pnd.errors());
         return new NonterminalHeader(that.getSpan(), modifier_result, name, params_result, staticParams_result, type_result, whereClause_result);
     }

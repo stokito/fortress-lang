@@ -68,7 +68,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
             List<StaticParam> staticParams_result, List<Param> params_result,
             Option<Type> returnType_result,
             Option<List<BaseType>> throwsClause_result,
-            WhereClause where_result, Option<Contract> contract_result) {
+            Option<WhereClause> where_result, Option<Contract> contract_result) {
         // Is return type given?
         // This could be an abstract method in a trait
 
@@ -92,7 +92,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 			List<StaticParam> staticParams_result, List<Param> params_result,
 			Option<Type> returnType_result,
 			Option<List<BaseType>> throwsClause_result,
-			WhereClause where_result, Option<Contract> contract_result, Expr body_result) {
+			Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) {
 		// Is the return type given?
 		Option<Type> new_ret_type =
 			returnType_result.isNone() ?

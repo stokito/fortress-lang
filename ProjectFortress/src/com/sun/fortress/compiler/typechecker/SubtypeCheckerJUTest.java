@@ -388,7 +388,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, new WhereClause()));
+            extendsClause.add(new TraitTypeWhere(supT, Option.<WhereClause>none()));
         }
         TraitAbsDeclOrDecl ast;
         List<StaticParam> sparams = Collections.<StaticParam>emptyList();
@@ -417,7 +417,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         List<StaticParam> sparams = new ArrayList<StaticParam>();
         sparams.add(NodeFactory.makeTypeParam("ALPHA", "Number"));
         sparams.add(NodeFactory.makeTypeParam("BETA",  "A"));
-        return sc.extend(sparams, FortressUtil.emptyWhereClause());
+        return sc.extend(sparams, Option.<WhereClause>none());
     }
 
     /** Test the application type checking. */

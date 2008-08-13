@@ -461,7 +461,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    (Id) that.getName().accept(v),
                                    v.recurOnListOfStaticParam(that.getStaticParams()),
                                    extends_clause,
-                                   (WhereClause) that.getWhere().accept(v),
+                                   v.recurOnOptionOfWhereClause(that.getWhere()),
                                    v.recurOnListOfBaseType(that.getExcludes()),
                                    v.recurOnOptionOfListOfBaseType(that.getComprises()),
                                    v.recurOnListOfAbsDecl(that.getDecls()));
@@ -595,7 +595,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				extends_clause,
-				(WhereClause) that.getWhere().accept(v),
+                                v.recurOnOptionOfWhereClause(that.getWhere()),
 				v.recurOnListOfBaseType(that.getExcludes()),
 				v.recurOnOptionOfListOfBaseType(that.getComprises()),
 				v.recurOnListOfDecl(that.getDecls()));
@@ -629,7 +629,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                     (Id) that.getName().accept(v),
                                     v.recurOnListOfStaticParam(that.getStaticParams()),
                                     extends_clause,
-                                    (WhereClause) that.getWhere().accept(v),
+                                    v.recurOnOptionOfWhereClause(that.getWhere()),
                                     v.recurOnOptionOfListOfParam(that.getParams()),
                                     v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                     v.recurOnOptionOfContract(that.getContract()),
@@ -708,7 +708,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  (Id) that.getName().accept(v),
                                  v.recurOnListOfStaticParam(that.getStaticParams()),
                                  extends_clause,
-                                 (WhereClause) that.getWhere().accept(v),
+                                 v.recurOnOptionOfWhereClause(that.getWhere()),
                                  v.recurOnOptionOfListOfParam(that.getParams()),
                                  v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                  v.recurOnOptionOfContract(that.getContract()),
@@ -739,7 +739,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				v.recurOnListOfParam(that.getParams()),
 				v.recurOnOptionOfType(that.getReturnType()),
 				v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-				(WhereClause) that.getWhere().accept(v),
+                                v.recurOnOptionOfWhereClause(that.getWhere()),
 				v.recurOnOptionOfContract(that.getContract()));
     }
 
@@ -767,7 +767,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
                             v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                            (WhereClause) that.getWhere().accept(v),
+                            v.recurOnOptionOfWhereClause(that.getWhere()),
                             v.recurOnOptionOfContract(that.getContract()),
                             (Expr) that.getBody().accept(v));
     }
@@ -819,7 +819,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnListOfStaticParam(that.getStaticParams()),
                              v.recurOnListOfParam(that.getParams()),
                              v.recurOnOptionOfType(that.getReturnType()),
-                             (WhereClause) that.getWhere().accept(v),
+                             v.recurOnOptionOfWhereClause(that.getWhere()),
                              v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                              (Expr) that.getBody().accept(v));
     }

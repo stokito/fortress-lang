@@ -64,7 +64,7 @@ public abstract class SubtypeChecker {
     }
 
     public SubtypeChecker extend(List<StaticParam> params,
-                                 WhereClause whereClause) {
+                                 Option<WhereClause> whereClause) {
         return new ConsSubtypeChecker(_table, this,
                                       _staticParamEnv.extend(params, whereClause));
     }

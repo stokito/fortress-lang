@@ -108,7 +108,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * with a where clause
      * implemented by trait and object declarations in components or APIs
      */
-    interface HasWhere(WhereClause where);
+    interface HasWhere(Option<WhereClause> where);
     /**
      * templates
      */
@@ -117,7 +117,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * A syntax transformation
      */
-    interface _SyntaxTransformation(String syntaxTransformer, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters);
+    interface _SyntaxTransformation(String syntaxTransformer,
+                                    java.util.Map<String,Object> variables,
+                                    java.util.List<String> syntaxParameters);
 
     /**
      * Repeated expression inside a syntax transformation template
@@ -228,8 +230,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                               = Collections.<StaticParam>emptyList(),
                                           List<TraitTypeWhere> extendsClause
                                               = Collections.<TraitTypeWhere>emptyList(),
-                                          WhereClause where
-                                              = FortressUtil.emptyWhereClause(),
+                                          Option<WhereClause> where
+                                              = Option.<WhereClause>none(),
                                           List<? extends AbsDeclOrDecl> decls)
                                          implements HasWhere, GenericAbsDeclOrDecl;
             /**
@@ -416,8 +418,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                      = Option.<Type>none(),
                                  Option<List<BaseType>> throwsClause
                                      = Option.<List<BaseType>>none(),
-                                 WhereClause where
-                                     = FortressUtil.emptyWhereClause(),
+                                 Option<WhereClause> where
+                                     = Option.<WhereClause>none(),
                                  Option<Contract> contract
                                      = Option.<Contract>none(),
                                  String selfName = NodeUtil.defaultSelfName)
@@ -589,8 +591,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                           List<StaticParam> staticParams
                             = Collections.<StaticParam>emptyList(),
                           Option<Type> type,
-                          WhereClause whereClause
-                            = FortressUtil.emptyWhereClause());
+                          Option<WhereClause> whereClause
+                            = Option.<WhereClause>none());
 
         /**
          * nonterminal parameter
@@ -1013,8 +1015,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                    List<StaticParam> staticParams
                        = Collections.<StaticParam>emptyList(),
                    List<Param> params,
-                   Option<Type> returnType = Option.<Type>none(),
-                   WhereClause where = FortressUtil.emptyWhereClause(),
+                   Option<Type> returnType
+                       = Option.<Type>none(),
+                   Option<WhereClause> where
+                       = Option.<WhereClause>none(),
                    Option<List<BaseType>> throwsClause
                        = Option.<List<BaseType>>none(),
                    Expr body)
@@ -1473,8 +1477,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                           = Collections.<StaticParam>emptyList(),
                                          Domain domain,
                                          Type range,
-                                         Effect effect = FortressUtil.emptyEffect(),
-                                         WhereClause where = FortressUtil.emptyWhereClause());
+                                         Effect effect
+                                          = FortressUtil.emptyEffect(),
+                                         Option<WhereClause> where
+                                          = Option.<WhereClause>none());
             /**
              * inferred type
              * Used internally for type analysis
@@ -2164,7 +2170,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * TraitTypeWhere ::= TraitType Where?
          * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
          */
-        TraitTypeWhere(BaseType type, WhereClause where);
+        TraitTypeWhere(BaseType type,
+                       Option<WhereClause> where
+                           = Option.<WhereClause>none());
         /**
          * array dimensionality
          * ArraySize ::= ExtentRange(, ExtentRange)*

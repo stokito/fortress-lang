@@ -327,7 +327,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                 String name_result,
                                                 List<String> staticParams_result,
                                                 List<String> extendsClause_result,
-                                                String where_result,
+                                                Option<String> where_result,
                                                 List<String> excludes_result,
                                                 Option<List<String>> comprises_result,
                                                 List<String> decls_result) {
@@ -347,7 +347,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
             s.append( " " );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+            s.append( where_result.unwrap() );
         if ( ! excludes_result.isEmpty() ) {
             s.append( inCurlyBraces("excludes ", excludes_result) );
             s.append( " " );
@@ -372,7 +373,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              String name_result,
                                              List<String> staticParams_result,
                                              List<String> extendsClause_result,
-                                             String where_result,
+                                             Option<String> where_result,
                                              List<String> excludes_result,
                                              Option<List<String>> comprises_result,
                                              List<String> decls_result) {
@@ -393,7 +394,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( inCurlyBraces("extends ", extendsClause_result) );
             s.append( " " );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+            s.append( where_result.unwrap() );
         if ( ! excludes_result.isEmpty() ) {
             s.append( inCurlyBraces("excludes ", excludes_result) );
             s.append( " " );
@@ -417,7 +419,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                  String name_result,
                                                  List<String> staticParams_result,
                                                  List<String> extendsClause_result,
-                                                 String where_result,
+                                                 Option<String> where_result,
                                                  Option<List<String>> params_result,
                                                  Option<List<String>> throwsClause_result,
                                                  Option<String> contract_result,
@@ -450,7 +452,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( inCurlyBraces("throws ", throws_) );
             s.append( " " );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+             s.append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -469,7 +472,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               String name_result,
                                               List<String> staticParams_result,
                                               List<String> extendsClause_result,
-                                              String where_result,
+                                              Option<String> where_result,
                                               Option<List<String>> params_result,
                                               Option<List<String>> throwsClause_result,
                                               Option<String> contract_result,
@@ -502,7 +505,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( inCurlyBraces("throws ", throws_) );
             s.append( " " );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+            s.append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -618,7 +622,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> params_result,
                                              Option<String> returnType_result,
                                              Option<List<String>> throwsClause_result,
-                                             String where_result,
+                                             Option<String> where_result,
                                              Option<String> contract_result) {
         StringBuilder s = new StringBuilder();
 
@@ -686,7 +690,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+            s.append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -703,7 +708,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          List<String> params_result,
                                          Option<String> returnType_result,
                                          Option<List<String>> throwsClause_result,
-                                         String where_result,
+                                         Option<String> where_result,
                                          Option<String> contract_result,
                                          String body_result) {
         StringBuilder s = new StringBuilder();
@@ -771,7 +776,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( ! throws_.isEmpty() )
                 s.append( inCurlyBraces("throws ", throws_) );
         }
-        s.append( where_result );
+        if ( where_result.isSome() )
+            s.append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -969,7 +975,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                      List<String> params_result,
                                                      List<String> staticParams_result,
                                                      Option<String> type_result,
-                                                     String whereClause_result) {
+                                                     Option<String> whereClause_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result );
@@ -1633,7 +1639,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                           List<String> staticParams_result,
                                           List<String> params_result,
                                           Option<String> returnType_result,
-                                          String where_result,
+                                          Option<String> where_result,
                                           Option<List<String>> throwsClause_result,
                                           String body_result) {
         StringBuilder s = new StringBuilder();
@@ -2360,7 +2366,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                             String domain_result,
                                                             String range_result,
                                                             String effect_result,
-                                                            String where_result) {
+                                                            Option<String> where_result) {
         StringBuilder s = new StringBuilder();
 
         if ( ! staticParams_result.isEmpty() ) {
@@ -3104,13 +3110,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forTraitTypeWhereOnly(TraitTypeWhere that,
                                                   String type_result,
-                                                  String where_result) {
+                                                  Option<String> where_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( type_result );
-        if ( ! where_result.equals("") ) {
-            s.append( " " );
-            s.append( where_result );
+        if ( where_result.isSome() ) {
+            if ( ! where_result.unwrap().equals("") ) {
+                s.append( " " );
+                s.append( where_result.unwrap() );
+            }
         }
         return s.toString();
     }

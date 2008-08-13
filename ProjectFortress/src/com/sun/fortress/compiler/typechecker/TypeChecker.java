@@ -453,7 +453,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				postInference);
 	}
 
-	 private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, WhereClause whereClause) {
+	 private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, Option<WhereClause> whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
 				typeEnv.extendWithParams(newParams).extendWithStaticParams(newStaticParams),
@@ -463,7 +463,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 postInference);
 	}
 
-	 private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, WhereClause whereClause) {
+	 private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, Option<WhereClause> whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
 				typeEnv.extend(newParams).extendWithStaticParams(newStaticParams),
@@ -473,7 +473,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 postInference);
 	}
 
-	 private TypeChecker extend(List<StaticParam> newStaticParams, WhereClause whereClause) {
+	 private TypeChecker extend(List<StaticParam> newStaticParams, Option<WhereClause> whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(newStaticParams, whereClause),
 				typeEnv.extendWithStaticParams(newStaticParams),
@@ -501,7 +501,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 postInference);
 	}
 
-	 private TypeChecker extend(WhereClause whereClause) {
+	 private TypeChecker extend(Option<WhereClause> whereClause) {
 		return new TypeChecker(table,
 				staticParamEnv.extend(Collections.<StaticParam>emptyList(), whereClause),
 				typeEnv,
@@ -2990,7 +2990,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
 		 TypeCheckerResult nameResult = that.getName().accept(this);
 		 List<TypeCheckerResult> extendsClauseResult = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		 TypeCheckerResult whereResult = that.getWhere().accept(this);
+		 TypeCheckerResult whereResult;
+                 Option<WhereClause> where;
+                 if ( that.getWhere().isSome() ) {
+                     whereResult = that.getWhere().unwrap().accept(this);
+                     where = Option.some((WhereClause)whereResult.ast());
+                 } else {
+                     whereResult = new TypeCheckerResult(that);
+                     where = Option.<WhereClause>none();
+                 }
 		 Option<List<TypeCheckerResult>> paramsResult = recurOnOptionOfListOfParam(that.getParams());
 		 Option<List<TypeCheckerResult>> throwsClauseResult = recurOnOptionOfListOfBaseType(that.getThrowsClause());
 
@@ -3061,7 +3069,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				                             that.getName(),
 				                             that.getStaticParams(),
 				                             (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
-				                             (WhereClause)whereResult.ast(),
+				                             where,
 				                             (Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
 				                             (Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
                                                              contract,
@@ -3371,7 +3379,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 public TypeCheckerResult forTraitDecl(final TraitDecl that) {
 		 List<TypeCheckerResult> modsResult = recurOnListOfModifier(that.getMods());
 		 List<TypeCheckerResult> extendsClauseResult = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-		 TypeCheckerResult whereResult = that.getWhere().accept(this);
+		 TypeCheckerResult whereResult;
+                 Option<WhereClause> where;
+                 if ( that.getWhere().isSome() ) {
+                     whereResult = that.getWhere().unwrap().accept(this);
+                     where = Option.some((WhereClause)whereResult.ast());
+                 } else {
+                     whereResult = new TypeCheckerResult(that);
+                     where = Option.<WhereClause>none();
+                 }
 		 List<TypeCheckerResult> excludesResult = recurOnListOfBaseType(that.getExcludes());
 
 		 // Verify that this trait only extends other traits
@@ -3434,7 +3450,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		                   that.getName(),
 		                   that.getStaticParams(),
 		                   (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
-		                   (WhereClause)whereResult.ast(),
+		                   where,
 		                   (List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
 		                   (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult),
 		                   (List<Decl>)TypeCheckerResult.astFromResults(decls_result));

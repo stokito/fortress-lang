@@ -315,7 +315,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     @Override
     public String forFnExprOnly(FnExpr that, Option<String> exprType_result, String name_result,
             List<String> staticParams_result, List<String> params_result,
-            Option<String> returnType_result, String where_result,
+            Option<String> returnType_result, Option<String> where_result,
             Option<List<String>> throwsClause_result, String body_result) {
         if (that instanceof TemplateGap) {
             return handleTemplateGap( (TemplateGap) that);
@@ -327,8 +327,9 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         String lsName2 = FreshName.getFreshName("ls");
         this.code.addAll(mkList(params_result, lsName2, "Param"));
         String opt1 = this.handleOption(returnType_result, "Type");
-        String opt2 = this.handleOptionList(throwsClause_result, "BaseType");
-        this.code.add(String.format("FnExpr %s = new FnExpr(%s, %b, %s, %s, %s, %s, %s, %s, %s);", varName, sVarName, that.isParenthesized(), name_result, lsName1, lsName2, opt1, where_result, opt2, body_result) );
+        String opt2 = this.handleOption(where_result, "WhereClause");
+        String opt3 = this.handleOptionList(throwsClause_result, "BaseType");
+        this.code.add(String.format("FnExpr %s = new FnExpr(%s, %b, %s, %s, %s, %s, %s, %s, %s);", varName, sVarName, that.isParenthesized(), name_result, lsName1, lsName2, opt1, opt2, opt3, body_result) );
         return varName;
     }
 
@@ -761,7 +762,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         this.code.add(String.format("%s %s = new %s(%s,\"%s\",%s);", type, rVarName, type, sVarName, that.getSyntaxTransformer(), variables));
         return rVarName;
     }
-    
+
     @Override
 	public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, Option<String> exprType_result,
 			String infix_op_result, String multifix_op_result,
@@ -847,7 +848,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
     public String defaultTemplateGapCase(TemplateGap t) {
         return handleTemplateGap(t);
     }
-    
+
     private String handleTemplateGap(TemplateGap t) {
         // Is the template t an instance of a template application
         // or a template variable?
@@ -864,7 +865,7 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         String params = FreshName.getFreshName("params");
         this.code.add("List<Id> "+params+" = new LinkedList<Id>();");
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) t, this.code);
-        String typeName = syntaxDeclEnv.getMemberEnv().getParameterType(id).accept(new BaseTypeCollector()); 
+        String typeName = syntaxDeclEnv.getMemberEnv().getParameterType(id).accept(new BaseTypeCollector());
         return SyntaxAbstractionUtil.makeTemplateGap(code, new LinkedList<Integer>(), typeName, idVarName, params, sVarName);
 
     }
