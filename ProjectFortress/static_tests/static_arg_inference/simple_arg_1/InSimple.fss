@@ -1,0 +1,16 @@
+component InSimple
+  export Executable
+ 
+  object Blank[\T\](t:T) 
+    getT():T = t
+  end
+
+  topLevelFn[\T\](b:Blank[\T\]):T = b.getT()
+
+  callSiteFn():String = do
+    a:Blank[\String\] = Blank[\String\]("Some string")
+    topLevelFn(a)
+  end
+
+  run(args:String...):() = ()
+end

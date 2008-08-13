@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import junit.framework.Test;
@@ -82,7 +83,6 @@ public class TypeInferenceJUTest extends TestCase {
     static class StaticArgInferenceTest extends TestCase {
         private static final char SEP = File.separatorChar;
         private static final String STATIC_ARG_INF_TEST_DIR = ProjectProperties.FORTRESS_AUTOHOME + SEP + "ProjectFortress" + SEP + "static_tests" + SEP + "static_arg_inference" + SEP;
-        private static final String IN_FILE_NAME = "In.fss";
         private static final String CACHED_TFS_NAME = "In.tfs";
         private static final String OUT_FILE_NAME = "Out.fss";
         private static final String EXPECTED_FILE_NAME = "Expected.fss";
@@ -112,7 +112,13 @@ public class TypeInferenceJUTest extends TestCase {
 
         @Override
         protected void runTest() throws Throwable {
-            String fq_input_fname = testDirectory.getAbsolutePath() + SEP + IN_FILE_NAME;
+            String[] infiles =testDirectory.list(new FilenameFilter(){
+                public boolean accept(File arg0, String arg1) {
+                    return arg1.startsWith("In")&&arg1.endsWith(".fss");
+                }
+                
+            });
+            String fq_input_fname = testDirectory.getAbsolutePath() + SEP + infiles[0];
             String fq_output_fname = testDirectory.getAbsolutePath() + SEP + OUT_FILE_NAME;
             String fq_exp_fname = testDirectory.getAbsolutePath() + SEP + EXPECTED_FILE_NAME;
             String fq_cached_fname = testDirectory.getAbsolutePath() + SEP + CACHED_TFS_NAME;

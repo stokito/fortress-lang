@@ -1,0 +1,17 @@
+component InOp
+export { Executable }
+object Blank [\ T \] (t: T) extends { FortressBuiltin.Object } 
+    getT() : T  =
+    t
+end
+
+opr +[\ T \](b_1: InOp.Blank[\ T \], b_2: InOp.Blank[\ T \]) : T  =
+b_1.getT()
+callSiteFn() : FortressLibrary.String  =
+do
+    a: InOp.Blank[\ FortressLibrary.String \] = Blank[\ FortressLibrary.String \]("Some string")
+    a + a
+end
+run(args: FortressLibrary.String...) : ()  =
+()
+end
