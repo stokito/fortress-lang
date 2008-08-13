@@ -3911,4 +3911,7 @@ opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
     (a1 CMP a2) LEXICO: (b1 CMP b2) LEXICO: (c1 CMP c2)
   end
 
+object Box[\T\](var val : T)
+end
+
 end

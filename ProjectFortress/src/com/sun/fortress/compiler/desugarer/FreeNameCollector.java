@@ -57,10 +57,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
     private Map<Span, FreeNameCollection> objExprToFreeNames;
     /* Map key: node which the captured mutable varRef is declared under 
                 (which should be either ObjectDecl or LocalVarDecl), 
-       value: list of pairs for which the VarRefs that needs to be boxed
-              pair.first is the span of the decl node for the varRef
+       value: list of pairs 
+              pair.first is the object expr node where the varRef occur
               pair.second is the varRef */
-    private Map<Span, List<Pair<Span, VarRef>>> declSiteToVarRefs;
+    private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
 
 	
 	private static final int DEBUG_LEVEL = 2;
@@ -78,7 +78,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
-        this.declSiteToVarRefs = new HashMap<Span, List<Pair<Span,VarRef>>>();
+        this.declSiteToVarRefs = 
+                        new HashMap<Span, List<Pair<ObjectExpr,VarRef>>>();
         
 		this.enclosingTraitDecl = null; 
 		this.enclosingObjectDecl = null; 
@@ -89,7 +90,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         return objExprToFreeNames;
     }
 
-    public Map<Span, List<Pair<Span,VarRef>>> getDeclSiteToVarRefs() {
+    public Map<Span, List<Pair<ObjectExpr,VarRef>>> getDeclSiteToVarRefs() {
         return declSiteToVarRefs;
     }
 
@@ -240,11 +241,11 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                             "; Decl node is: " + declNode );
                 }
 
-                List<Pair<Span,VarRef>> refs = declSiteToVarRefs.get(declSite);
+                List<Pair<ObjectExpr,VarRef>> refs = declSiteToVarRefs.get(declSite);
                 if(refs == null) {
-                    refs = new LinkedList<Pair<Span,VarRef>>();
+                    refs = new LinkedList<Pair<ObjectExpr,VarRef>>();
                 }
-                refs.add( new Pair<Span,VarRef>(declNode.getSpan(), var) );
+                refs.add( new Pair<ObjectExpr,VarRef>(that, var) );
                 declSiteToVarRefs.put(declSite.getSpan(), refs); 
     		}
         }
