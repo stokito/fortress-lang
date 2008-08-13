@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component PureList
-import List.{SomeList,covariantComprehension}
+import List.{AnyList,covariantComprehension}
 export PureList
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
@@ -45,7 +45,7 @@ export PureList
     return a List in cases (such as map and filter) where it will.
 *)
 trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
-        excludes { Number, HasRank }
+        excludes { Number, HasRank, String }
     (** %left% and %extractLeft% return the leftmost element in the list
         (and in the latter case, the remainder of the list without its
         leftmost element).  They return %Nothing% if the list is empty.
@@ -101,7 +101,7 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\] =
     covariantComprehension[\T,List[\T\]\](fn x => list(x))
 
 (** Convert generator into list; can be used to desugar list

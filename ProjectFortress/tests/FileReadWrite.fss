@@ -18,9 +18,10 @@
 component FileReadWrite
 import File.{...}
 import FileSupport.{...}
+import JavaString.{...}
 export Executable
 
-same(a:String, b:String, diag:String,f:String):() =
+shouldBeTheSame(a:String, b:String, diag:String,f:String):() =
    if a =/= b then
        println("FAIL: " diag f)
        println("--------expected--------------------------------------------")
@@ -38,7 +39,7 @@ streamTest(s:String, inter:String, op: ReadStream -> String, desc:String) = do
         res := res inter op(rs)
     end
     rs.close()
-    same(s,res,"ReadStream using ",desc)
+    shouldBeTheSame(s,res,"ReadStream using ",desc)
   end
 
 genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: String) = do
@@ -46,7 +47,7 @@ genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: St
     rs = FileReadStream("testFile.txt")
     res = BIG ||[l<-gen(rs)] l inter
     rs.close()
-    same(s,res,"Generated using ",desc)
+    shouldBeTheSame(s,res,"Generated using ",desc)
     println("************************* seq " desc)
     rss = FileReadStream("testFile.txt")
     ress : String := ""
@@ -54,7 +55,7 @@ genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: St
         ress := ress l inter
     end
     rss.close()
-    same(s,ress,"Generated sequentially using ",desc)
+    shouldBeTheSame(s,ress,"Generated sequentially using ",desc)
   end
 
 run(args:String...) = do

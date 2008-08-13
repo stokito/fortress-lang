@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Set
-import List.{SomeList,covariantComprehension}
+import List.{AnyList,covariantComprehension}
 export Set
 
 (** Thrown when taking big intersection of no sets. **)

@@ -58,11 +58,11 @@ api List
     into a list whose element type is as specific as possible.  This
     should not be necessary in the presence of true type
     inference. **)
-trait SomeList excludes { Number, HasRank }
+trait AnyList excludes { Number, HasRank }
         (** \vspace{-4ex} Not yet: ``%comprises List[\E\] where [\E\]%'' *)
-    append(f:SomeList): SomeList
-    addLeft(e:Any): SomeList
-    addRight(e:Any): SomeList
+    append(f:AnyList): AnyList
+    addLeft(e:Any): AnyList
+    addRight(e:Any): AnyList
 end
 
 (** %List%.  We return a %Generator% for non-list-specific operations
@@ -70,8 +70,8 @@ end
     complexity, but return a %List% in cases (such as %map% and
     %filter%) where it will.  Indexing on lists operates from the
     left, and ordering is lexicographic reading from the left. *)
-trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
-        excludes { Number, HasRank }
+trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
+        excludes { Number, HasRank, String }
   (** %left% and %extractLeft% return the leftmost element in the list
       (and in the latter case, the remainder of the list without its
       leftmost element).  They return %Nothing% if the list is empty.

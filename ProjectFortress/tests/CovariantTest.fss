@@ -30,7 +30,7 @@ run(args:String...):() = do
         assert(i,j,"Not the same in ", list1, " and ", samples)
     end
 
-    cv2(x): SomeList = <| body(y) | y <- <|x|> |>
+    cv2(x): AnyList = <| body(y) | y <- <|x|> |>
     samples2 : List[\RR64\] = <| y | x <- samples, y <- cv2(x) |>
     list2 : List[\RR64\] = list(samples2)
     for (i,j) <- list1.zip[\RR64\](list2) do

@@ -17,14 +17,15 @@
 
 component MapTest
 import Map.{...}
+import JavaString.{...}
 export Executable
 
-database:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
+database:Map[\JavaString,ZZ32\] := mapping[\JavaString,ZZ32\]()
 
-init(name:String, ranking: ZZ32) = database := database.add(name, ranking)
+init(name:JavaString, ranking: ZZ32) = database := database.add(name, ranking)
 
-check(db: Map[\String,ZZ32\]): () = do
-    expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
+check(db: Map[\JavaString,ZZ32\]): () = do
+    expect : JavaString[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
     seen : Boolean[5] := array1[\Boolean,5\](false)
     n : ZZ32 := 0
     for (k,v) <- db do
@@ -38,23 +39,23 @@ check(db: Map[\String,ZZ32\]): () = do
 
 
 run(args:String...):() = do
-    db00 : Map[\String,ZZ32\] = { "Nathi" |-> 3 asif ZZ32 }
+    db00 : Map[\JavaString,ZZ32\] = { "Nathi" |-> 3 asif ZZ32 }
     perm : ZZ32[5] = [ 3 4 1 0 2 ]
-    expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
+    expect : JavaString[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
     for (v,k) <- seq(expect.indexValuePairs()) do
         init(k,v)
     end
     check(database)
-    database := mapping[\String,ZZ32\]()
+    database := mapping[\JavaString,ZZ32\]()
     for i <- seq(perm) do
         init(expect[i],i)
     end
     check(database)
     db''={("" "David")|->3 asif ZZ32, "Elias"|->4, "Peter"|->1, "Nathi"|->0, "Emily"|->2}
     check(db'')
-    db' = {[\String,ZZ32\] k|->v | (v,k) <- expect.indexValuePairs() }
+    db' = {[\JavaString,ZZ32\] k|->v | (v,k) <- expect.indexValuePairs() }
     check(db')
-    db : Map[\String,ZZ32\] = {[\String,ZZ32\] expect[i]|->i  |  i <- perm }
+    db : Map[\JavaString,ZZ32\] = {[\JavaString,ZZ32\] expect[i]|->i  |  i <- perm }
     check(db)
     db0 = db UNION db'
     check(db0)
@@ -80,13 +81,13 @@ run(args:String...):() = do
         dbf = db UPLUS db0
         fail("Overlapped UPLUS => " dbf)
     catch x
-        KeyOverlap[\String,ZZ32\] => ()
+        KeyOverlap[\JavaString,ZZ32\] => ()
     end
     try
         dbf = { ("" "Mary") |-> 5 asif ZZ32, "Mary" |-> 5 }
         fail("Overlapped aggregate => " dbf)
     catch x
-        KeyOverlap[\String,ZZ32\] => ()
+        KeyOverlap[\JavaString,ZZ32\] => ()
     end
 end
 

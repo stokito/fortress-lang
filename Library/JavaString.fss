@@ -1,0 +1,45 @@
+native component JavaString
+export JavaString
+
+    
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
+  
+  object JavaString
+        extends { String }
+    getter size() : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+    getter toString() : String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
+    opr |self| : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+    opr =(self, other:String): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")
+    opr <(self, other:String): Boolean = self.cmp(other) < 0
+    opr <=(self, other:String): Boolean = self.cmp(other) <= 0
+    opr >(self, other:String): Boolean = self.cmp(other) > 0
+    opr >=(self, other:String): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:String): TotalComparison = self.cmp(other) CMP 0
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
+      self.cicmp(other) CMP 0
+
+    (** get skips bounds checking. **)
+    get(i:ZZ32): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Index")
+    cmp(other:String): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Cmp")
+    cicmp(other:String): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$CICmp")
+    substr(lo:ZZ32,hi:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Substr")
+
+    (** The operator %||% with at least one String argument converts to string and
+        appends **)
+    opr ||(self, b:String):String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+    opr ||(self, b:Char): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+
+  end
+
+end
