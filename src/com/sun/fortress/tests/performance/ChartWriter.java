@@ -32,6 +32,13 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.StandardEntityCollection;
 import org.jfree.data.xy.XYSeries;
 
+/**
+ * Creating charts has been delegated to a thread because (1) this operation
+ * is embarrassingly parallel, (2) the shared data structure 
+ * {@link #testSuiteData} is accessed in a read-only fashion by all threads,
+ * and (3) the runtime of {@link PerformanceLogMonitor} on the Niagara boxes
+ * improves dramatically as a result of creating each chart independently.
+ */
 public class ChartWriter extends Thread {
 
     final private File chartDirectory;
