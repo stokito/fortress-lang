@@ -154,28 +154,28 @@ static void twoVectorAlphaVoidFunction( JNIEnv * env, jint length, jdouble alpha
 JNIEXPORT jdouble JNICALL Java_com_sun_fortress_numerics_Blas_dotProduct
   (JNIEnv * env, jclass class_, jint length, jdoubleArray vector1, jint stride1, jint offset1, jdoubleArray vector2, jint stride2, jint offset2 ){
 
-      return twoVectorFunction( env, length, vector1, stride1, offset1, vector2, stride2, offset2, cblas_ddot );
+      return twoVectorFunction( env, length, vector1, stride1, offset1, vector2, stride2, offset2, ddot );
 
 }
 
 JNIEXPORT jdouble JNICALL Java_com_sun_fortress_numerics_Blas_norm
   (JNIEnv * env, jclass class_, jint length, jdoubleArray vector1, jint stride1, jint offset1 ){
-      return oneVectorFunction( env, length, vector1, stride1, offset1, cblas_dnrm2 );
+      return oneVectorFunction( env, length, vector1, stride1, offset1, dnrm2 );
 }
 
 JNIEXPORT void JNICALL Java_com_sun_fortress_numerics_Blas_internal_1add
   (JNIEnv * env, jclass class_, jint length, jdouble alpha, jdoubleArray vector1, jint stride1, jint offset1, jdoubleArray vector2, jint stride2, jint offset2 ){
-      twoVectorAlphaVoidFunction( env, length, alpha, vector1, stride1, offset1, vector2, stride2, offset2, cblas_daxpy );
+      twoVectorAlphaVoidFunction( env, length, alpha, vector1, stride1, offset1, vector2, stride2, offset2, daxpy );
 }
 
 JNIEXPORT void JNICALL Java_com_sun_fortress_numerics_Blas_internal_1dcopy
   (JNIEnv * env, jclass class_, jint length, jdoubleArray vector1, jint stride1, jint offset1, jdoubleArray vector2, jint stride2, jint offset2){
-      twoVectorVoidFunction( env, length, vector1, stride1, offset1, vector2, stride2, offset2, cblas_dcopy );
+      twoVectorVoidFunction( env, length, vector1, stride1, offset1, vector2, stride2, offset2, dcopy );
 }
 
 JNIEXPORT void JNICALL Java_com_sun_fortress_numerics_Blas_internal_1scale
   (JNIEnv * env, jclass class_, jint length, jdouble alpha, jdoubleArray vector, jint stride, jint offset){
-      oneVectorAlphaVoidFunction( env, length, alpha, vector, stride, offset, cblas_dscal );
+      oneVectorAlphaVoidFunction( env, length, alpha, vector, stride, offset, dscal );
 }
 
 
@@ -191,7 +191,7 @@ JNIEXPORT void JNICALL Java_com_sun_fortress_numerics_Blas_internal_1vectorMatri
       jdouble * convertedVector = (*env)->GetPrimitiveArrayCritical(env, vector, 0);
       jdouble * convertedResult = (*env)->GetPrimitiveArrayCritical(env, result, 0);
 
-      cblas_dgemv( order, transpose, m, n, alpha,
+      dgemv( transpose, m, n, alpha,
                    convertedMatrix + matrixOffset, matrixStride,
                    convertedVector + offset, stride, beta,
                    convertedResult + resultOffset, resultStride );
@@ -212,7 +212,7 @@ JNIEXPORT void JNICALL Java_com_sun_fortress_numerics_Blas_internal_1matrixMatri
       jdouble * convertedMatrix2 = (*env)->GetPrimitiveArrayCritical(env, matrix2, 0);
       jdouble * convertedResult = (*env)->GetPrimitiveArrayCritical(env, resultMatrix, 0);
 
-      cblas_dgemm( order, transpose1, transpose2, m, n, k, alpha, convertedMatrix1 + matrix1Offset, matrix1Stride, convertedMatrix2 + matrix2Offset, matrix2Stride, beta, convertedResult + resultOffset, resultStride );
+      dgemm( transpose1, transpose2, m, n, k, alpha, convertedMatrix1 + matrix1Offset, matrix1Stride, convertedMatrix2 + matrix2Offset, matrix2Stride, beta, convertedResult + resultOffset, resultStride );
       
       (*env)->ReleasePrimitiveArrayCritical(env, matrix1, convertedMatrix1, 0 );
       (*env)->ReleasePrimitiveArrayCritical(env, matrix2, convertedMatrix2, 0 );
