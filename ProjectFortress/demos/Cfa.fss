@@ -344,9 +344,9 @@ collectVars(name: String, e: If) =
    if a new equation is generated, set the new_eqn flag.
  *)
 addEquation(id: ZZ32) =
-  if fids <- cfa_eqns.member(id)
-  then if NOT(id IN fids)
-       then atomic update(id, fids UNION {[\ZZ32\]id})
+  if fids' <- cfa_eqns.member(id)
+  then if NOT(id IN fids')
+       then atomic update(id, fids' UNION {[\ZZ32\]id})
             atomic new_eqn  := true
        end
   else atomic add(id, {[\ZZ32\]id})

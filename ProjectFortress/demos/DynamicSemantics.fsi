@@ -26,7 +26,7 @@ trait RuntimeValue comprises { Val, FnValue }
   toSource(): String
 end
 
-object Val(val: Value) extends RuntimeValue end
+object Val(v: Value) extends RuntimeValue end
 
 object FnValue(fun: FnExpr, sigma: Map[\String, RuntimeValue\]) extends RuntimeValue end
 
