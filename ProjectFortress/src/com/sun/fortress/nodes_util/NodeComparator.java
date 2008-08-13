@@ -440,7 +440,7 @@ public class NodeComparator {
         } else if (left instanceof MatrixType) {
             return compare((MatrixType) left, (MatrixType) right);
         } else if (left instanceof AnyType) {
-            return compare((AnyType) left, (AnyType) right);
+            return 0;
         } else {
 
         }

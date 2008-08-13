@@ -57,7 +57,7 @@ public final class Types {
     public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
     public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin, "Boolean");
     public static final TraitType CHAR = makeTraitType(fortressBuiltin, "Char");
-    public static final TraitType STRING = makeTraitType(fortressBuiltin, "String");
+    public static final TraitType STRING = makeTraitType(fortressLibrary, "String");
     public static final TraitType REGION = makeTraitType(fortressLibrary, "Region");
     public static final TraitType EXCEPTION = makeTraitType(fortressLibrary, "Exception");
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");

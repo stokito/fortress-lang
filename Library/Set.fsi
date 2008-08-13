@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api Set
-import List.{SomeList}
+import List.{AnyList}
 
 (** Thrown when taking big intersection of no sets. **)
 object EmptyIntersection extends UncheckedException end

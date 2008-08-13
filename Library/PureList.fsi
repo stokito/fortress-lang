@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api PureList
-import List.{SomeList}
+import List.{AnyList}
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article,
     Journal of Funtional Programming 16:2 2006 \cite{fingerTree}.
@@ -45,7 +45,7 @@ import List.{SomeList}
     %filter%) where it will.  Indexing on lists operates from the
     left, and ordering is lexicographic reading from the left. *)
 trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
-        excludes { Number, HasRank }
+        excludes { Number, HasRank, String }
   (** %left% and %extractLeft% return the leftmost element in the list
       (and in the latter case, the remainder of the list without its
       leftmost element).  They return %Nothing% if the list is empty.
@@ -90,7 +90,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\]
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]

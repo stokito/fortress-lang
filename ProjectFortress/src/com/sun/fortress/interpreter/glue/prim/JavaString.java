@@ -34,9 +34,9 @@ import com.sun.fortress.interpreter.glue.NativeMeth2;
 import com.sun.fortress.nodes.GenericWithParams;
 
 
-public class String extends NativeConstructor {
+public class JavaString extends NativeConstructor {
 
-    public String(Environment env,
+    public JavaString(Environment env,
                   FTypeObject selfType,
                   GenericWithParams def) {
         super(env,selfType,def);

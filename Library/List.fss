@@ -85,11 +85,11 @@ private expansion(curr: ZZ32, new: ZZ32) =
 
 (** Lists of some item type.  Used to collect elements of unknown type
     into a list whose element type is as specific as possible. **)
-trait SomeList excludes { Number, HasRank }
+trait AnyList excludes { Number, HasRank, String }
         (* comprises List[\E\] where [\E\] *)
-    opr ||(self, f:SomeList): SomeList = app(self,f)
-    addLeft(e:Any): SomeList = addL(e,self)
-    addRight(e:Any): SomeList = addR(self,e)
+    opr ||(self, f:AnyList): AnyList = app(self,f)
+    addLeft(e:Any): AnyList = addL(e,self)
+    addRight(e:Any): AnyList = addR(self,e)
 end
 
 private app[\T,E extends T,F extends T\](a:List[\E\], b:List[\F\]): List[\T\] =
@@ -111,7 +111,7 @@ private addR[\T,E extends T,F extends T\](xs:List[\F\],x:E): List[\T\] =
     for which reuse of the %Generator% will not increase asymptotic
     complexity, but return a %List% in cases (such as %map% and
     %filter%) where it will.  *)
-trait List[\E\] extends { SomeList, LexicographicOrder[\List[\E\],E\] }
+trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
         excludes { Number, HasRank }
     (** %left% and %extractLeft% return the leftmost element in the list
         (and in the latter case, the remainder of the list without its
@@ -175,11 +175,11 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],SomeList,SomeList\] =
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\] =
     covariantComprehension[\T,List[\T\]\](fn (x) => x)
 
-covariantComprehension[\T,R\](unwrap:SomeList->R): Comprehension[\T,R,SomeList,SomeList\] =
-    Comprehension[\T,R,SomeList,SomeList\](
+covariantComprehension[\T,R\](unwrap:AnyList->R): Comprehension[\T,R,AnyList,AnyList\] =
+    Comprehension[\T,R,AnyList,AnyList\](
         fn xs => unwrap(xs || emptyList[\T\]()), CVConcat[\T\], cvSingleton)
 
 (** Convert generator into list; can be used to desugar list
@@ -233,10 +233,10 @@ private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
 end
 
 (** A reduction object for concatenating lists covariantly. *)
-private object CVConcat[\T\] extends MonoidReduction[\SomeList\]
+private object CVConcat[\T\] extends MonoidReduction[\AnyList\]
   getter toString():String = "Covariant list concatenation"
-  empty(): SomeList = emptyList[\T\]()
-  join(a:SomeList, b:SomeList): SomeList = a || b
+  empty(): AnyList = emptyList[\T\]()
+  join(a:AnyList, b:AnyList): AnyList = a || b
 end
 
 (** The same for reverse concatenation *)
@@ -485,7 +485,7 @@ emptyList[\E\](): List[\E\] =
 emptyList[\E\](n:ZZ32): List[\E\] =
     ArrayList(primitiveImmutableArray[\E\](n),0,noShot,0,oneShot())
 
-private cvSingleton(e:Any): SomeList = singleton(e)
+private cvSingleton(e:Any): AnyList = singleton(e)
 
 singleton[\E\](e:E): List[\E\] = do
     u = PrimImmutableArray[\E,1\]()
