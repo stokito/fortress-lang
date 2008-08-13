@@ -5,11 +5,11 @@ object Blank [\ T \] (t: T) extends { FortressBuiltin.Object }
 end
 
 topLevelFn[\ T \](b: In.Blank[\ T \]) : T 
-callSiteFn() : FortressBuiltin.String  =
+callSiteFn() : FortressLibrary.String  =
 do
-    a: In.Blank[\ FortressBuiltin.String \] = Blank[\ FortressBuiltin.String \]("Some string")
-    topLevelFn[\ FortressBuiltin.String \](a)
+    a: In.Blank[\ FortressLibrary.String \] = Blank[\ FortressLibrary.String \]("Some string")
+    topLevelFn[\ FortressLibrary.String \](a)
 end
-run(args: FortressBuiltin.String...) : ()  =
+run(args: FortressLibrary.String...) : ()  =
 ()
 end
