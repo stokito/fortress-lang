@@ -387,6 +387,10 @@ public class ExprFactory {
         return new VarRef(sp, false, id);
     }
 
+    public static VarRef makeVarRef(Span sp, Id id, Option<Type> type) {
+        return new VarRef(sp, false, type, id);
+    }
+
     public static VarRef makeVarRef(Id id) {
         return new VarRef(id.getSpan(), false, id);
     }
