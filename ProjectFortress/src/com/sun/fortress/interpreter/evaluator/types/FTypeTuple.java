@@ -314,33 +314,53 @@ public class FTypeTuple extends FType {
         }
     }
 
+    private boolean unifyElement(Environment env, Set<String> tp_set,
+                                 BoundingMap<String, FType, TypeLatticeOps> abm,
+                                 boolean unifyOverloads,
+                                 FType ft, Type tr) {
+        if (ft instanceof FTypeOverloadedArrow) {
+            if (!unifyOverloads) return true;
+        } else {
+            if (unifyOverloads) return false;
+        }
+        ft.unify(env,tp_set,abm,tr);
+        return false;
+    }
+
     /**
      * Unify a tuple type with a list of Type.
-     *  This gets used here and in FTypeArrow.
+     *  Used to be used in FTypeArrow, but an FTypeTuple is used there instead.
      */
-    public boolean unifyTuple(Environment env, Set<String> tp_set,
-                              BoundingMap<String, FType, TypeLatticeOps> abm,
-                              List<Type> vals, Option<Type> varargs) {
-        Iterator<FType> ftIterator = l.iterator();
-        Iterator<Type> trIterator = vals.iterator();
-        FType ft = null;
-        Type tr = null;
-        try {
-            while (ftIterator.hasNext() && trIterator.hasNext()) {
-                ft = ftIterator.next();
-                tr = trIterator.next();
-                ft.unify(env,tp_set,abm,tr);
+    private boolean unifyTuple(Environment env, Set<String> tp_set,
+                               BoundingMap<String, FType, TypeLatticeOps> abm,
+                               List<Type> vals, Option<Type> varargs) {
+        boolean unifyOverloads = false;
+        boolean anyOverloads = true;
+        while (anyOverloads) {
+            anyOverloads = false;
+            Iterator<FType> ftIterator = l.iterator();
+            Iterator<Type> trIterator = vals.iterator();
+            FType ft = null;
+            Type tr = null;
+            try {
+                while (ftIterator.hasNext() && trIterator.hasNext()) {
+                    ft = ftIterator.next();
+                    tr = trIterator.next();
+                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                }
+                while (varargs.isSome() && ftIterator.hasNext()) {
+                    ft = ftIterator.next();
+                    tr = varargs.unwrap();
+                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                }
+                while (ft instanceof FTypeRest && trIterator.hasNext()) {
+                    tr = trIterator.next();
+                    anyOverloads = unifyElement(env,tp_set,abm,unifyOverloads,ft,tr) || anyOverloads;
+                }
+            } catch (UnificationError p) {
+                return false;
             }
-            while (varargs.isSome() && ftIterator.hasNext()) {
-                ft = ftIterator.next();
-                ft.unify(env, tp_set, abm, varargs.unwrap());
-            }
-            while (ft instanceof FTypeRest && trIterator.hasNext()) {
-                tr = trIterator.next();
-                ft.unify(env,tp_set,abm,tr);
-            }
-        } catch (UnificationError p) {
-            return false;
+            unifyOverloads = true;
         }
         return true;
     }

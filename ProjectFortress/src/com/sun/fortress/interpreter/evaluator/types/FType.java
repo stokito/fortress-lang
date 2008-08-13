@@ -577,7 +577,7 @@ abstract public class FType implements Comparable<FType> {
                 if (DUMP_UNIFY) System.out.println(" result abm= " + abm);
                 return;
             }
-        } 
+        }
         /* We want to unify with the most specific subtype possible, so */
         BoundingMap<String,FType,TypeLatticeOps> savedAbm = abm.copy();
         for (FType t : getTransitiveExtends()) {
@@ -619,7 +619,7 @@ abstract public class FType implements Comparable<FType> {
                        ));
     }
 
-        
+
     public void mustExtend(FType st, HasAt constraint_loc) {
         List<FType> curr_extends = getExtendsNull();
         if (curr_extends == null) {
