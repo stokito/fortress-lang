@@ -842,10 +842,19 @@ public class Desugarer extends Rewrite {
                     paramsToLocals(params);
                     immediateDef = tparamsToLocals(tparams, immediateDef);
 
-                    Contract _contract = fndef.getContract();
-                    Option<List<Expr>> _requires = _contract.getRequires();
-                    Option<List<EnsuresClause>> _ensures = _contract.getEnsures();
-                    Option<List<Expr>> _invariants = _contract.getInvariants();
+                    Option<Contract> _contract = fndef.getContract();
+                    Option<List<Expr>> _requires;
+                    Option<List<EnsuresClause>> _ensures;
+                    Option<List<Expr>> _invariants;
+                    if ( _contract.isSome() ) {
+                        _requires = _contract.unwrap().getRequires();
+                        _ensures = _contract.unwrap().getEnsures();
+                        _invariants = _contract.unwrap().getInvariants();
+                    } else {
+                        _requires = Option.<List<Expr>>none();
+                        _ensures = Option.<List<EnsuresClause>>none();
+                        _invariants = Option.<List<Expr>>none();
+                    }
                     List<Expr> _exprs = new ArrayList<Expr>();
                     AbstractNode n = visitNode(node);
 
@@ -1380,7 +1389,7 @@ public class Desugarer extends Rewrite {
                     arrows.add(sdd);
                     if (aof == FUNCTIONAL) {
                         functionals.add(sdd);
-                        
+
                         continue; // NOT a regular member, do not add.
                     }
                 } else {

@@ -39,7 +39,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/** 
+/**
  * Inserts inference type variables into the AST where explicit types were not
  * given. This change will be performed before typechecking, so that the
  * typechecker will always expect types to exist.
@@ -68,15 +68,15 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
             List<StaticParam> staticParams_result, List<Param> params_result,
             Option<Type> returnType_result,
             Option<List<BaseType>> throwsClause_result,
-            WhereClause where_result, Contract contract_result) {
-        // Is return type given? 
+            WhereClause where_result, Option<Contract> contract_result) {
+        // Is return type given?
         // This could be an abstract method in a trait
-        
-        Option<Type> new_ret_type = 
+
+        Option<Type> new_ret_type =
             returnType_result.isNone() ?
                     Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
                     returnType_result;
-        
+
         return super.forAbsFnDeclOnly(that, mods_result, name_result,
                 staticParams_result, params_result, new_ret_type,
                 throwsClause_result, where_result, contract_result);
@@ -92,13 +92,13 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 			List<StaticParam> staticParams_result, List<Param> params_result,
 			Option<Type> returnType_result,
 			Option<List<BaseType>> throwsClause_result,
-			WhereClause where_result, Contract contract_result, Expr body_result) {
+			WhereClause where_result, Option<Contract> contract_result, Expr body_result) {
 		// Is the return type given?
-		Option<Type> new_ret_type = 
-			returnType_result.isNone() ? 
+		Option<Type> new_ret_type =
+			returnType_result.isNone() ?
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
-					returnType_result;	
-		
+					returnType_result;
+
 		return super.forFnDefOnly(that, mods_result, name_result, staticParams_result,
 				params_result, new_ret_type, throwsClause_result, where_result,
 				contract_result, body_result);
@@ -109,11 +109,11 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 			List<Modifier> mods_result, Id name_result,
 			Option<Type> type_result, Option<Expr> defaultExpr_result) {
 		// Is the type given?
-		Option<Type> new_type = 
-			type_result.isNone() ? 
+		Option<Type> new_type =
+			type_result.isNone() ?
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 						type_result;
-		
+
 		return super.forNormalParamOnly(that, mods_result, name_result, new_type,
 				defaultExpr_result);
 	}

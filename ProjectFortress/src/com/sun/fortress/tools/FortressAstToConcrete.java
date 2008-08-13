@@ -420,7 +420,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                  String where_result,
                                                  Option<List<String>> params_result,
                                                  Option<List<String>> throwsClause_result,
-                                                 String contract_result,
+                                                 Option<String> contract_result,
                                                  List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
@@ -451,8 +451,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( where_result );
-        s.append( " " );
-        s.append( contract_result );
+        if ( contract_result.isSome() ) {
+            s.append( " " );
+            s.append( contract_result.unwrap() );
+        }
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
@@ -470,7 +472,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               String where_result,
                                               Option<List<String>> params_result,
                                               Option<List<String>> throwsClause_result,
-                                              String contract_result,
+                                              Option<String> contract_result,
                                               List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
@@ -501,8 +503,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( where_result );
-        s.append( " " );
-        s.append( contract_result );
+        if ( contract_result.isSome() ) {
+            s.append( " " );
+            s.append( contract_result.unwrap() );
+        }
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
@@ -615,7 +619,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              Option<String> returnType_result,
                                              Option<List<String>> throwsClause_result,
                                              String where_result,
-                                             String contract_result) {
+                                             Option<String> contract_result) {
         StringBuilder s = new StringBuilder();
 
         for ( String mod : mods_result ){
@@ -683,8 +687,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( inCurlyBraces("throws ", throws_) );
         }
         s.append( where_result );
-        s.append( " " );
-        s.append( contract_result );
+        if ( contract_result.isSome() ) {
+            s.append( " " );
+            s.append( contract_result.unwrap() );
+        }
 
         return s.toString();
     }
@@ -698,7 +704,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          Option<String> returnType_result,
                                          Option<List<String>> throwsClause_result,
                                          String where_result,
-                                         String contract_result,
+                                         Option<String> contract_result,
                                          String body_result) {
         StringBuilder s = new StringBuilder();
         for ( String mod : mods_result ){
@@ -766,8 +772,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( inCurlyBraces("throws ", throws_) );
         }
         s.append( where_result );
-        s.append( " " );
-        s.append( contract_result );
+        if ( contract_result.isSome() ) {
+            s.append( " " );
+            s.append( contract_result.unwrap() );
+        }
         s.append( " =\n" );
         increaseIndent();
         s.append( body_result );

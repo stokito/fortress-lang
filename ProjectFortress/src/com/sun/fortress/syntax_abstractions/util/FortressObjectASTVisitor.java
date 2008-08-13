@@ -82,7 +82,7 @@ public class FortressObjectASTVisitor<T> {
         if (value instanceof FObject) {
             return dispatch((FObject) value);
         }
-        
+
         throw new RuntimeException("Unexpected type of value: "+value.getClass());
     }
 
@@ -201,7 +201,7 @@ public class FortressObjectASTVisitor<T> {
         FValue v10 = getField(value, "in_body");
         Expr body = new FortressObjectASTVisitor<Expr>(this.span).dispatch((FObject)v10);
         return (T) new FnDef(this.span, mods, name, staticParams, params, returnType,
-                              throwsClause, whereClause, acontract, selfName, body);
+                             throwsClause, whereClause, Option.wrap(acontract), selfName, body);
     }
 
     private Id mkQFortressASTName(String name) {
