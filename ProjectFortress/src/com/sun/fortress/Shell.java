@@ -296,13 +296,17 @@ public final class Shell {
      */
     public static FValue eval( String file )
         throws Throwable {
+        return eval( file, new ArrayList<String>() );
+    }
+
+    public static FValue eval( String file, List<String> args )
+        throws Throwable {
         if ( ! isComponent(file) )
             throw new UserError("A component file is expected to evaluate.");
         APIName name = trueApiName( file );
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
         CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-        List<String> args = new ArrayList<String>();
         return Driver.runProgram(bcr, cu, test, args);
     }
 
@@ -627,7 +631,7 @@ public final class Shell {
         try {
             Iterable<? extends StaticError> errors = IterUtil.empty();
             try {
-                eval( fileName );
+                eval( fileName, args );
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                 if (th instanceof FortressException) {
