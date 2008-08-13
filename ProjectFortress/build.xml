@@ -458,7 +458,7 @@ testOnly, testCruiseControl"/>
 		    />
 	    <echo message="Now compiling C stubs for blas on arch OS X."/>
 	    <exec executable="gcc" failonerror="true">
-		    <arg line="-D _OSX" />
+		    <arg line="-D OSX" />
 		    <arg value="-fPIC" />
 		    <arg value="-Ic" />
 		    <arg line="-framework Accelerate" />
@@ -472,8 +472,34 @@ testOnly, testCruiseControl"/>
 	    </exec>
     </target>
 
+    <target name="check.sunos">
+        <condition property="blas.is.sunos">
+             <equals arg1="${os.name}" arg2="SunOS" />
+        </condition>
+    </target>
 
-    <target name="blas" depends="check.blas,blas.linux,blas.osx"></target>
+    <target name="blas.sunos" depends="check.sunos" if="blas.is.sunos">
+            <echo message="Generating C header and stub files." />
+            <javah class="com.sun.fortress.numerics.Blas"
+                   destdir="c"
+                   classpath="build"
+                    />
+            <echo message="Now compiling C stubs for blas on arch SunOS."/>
+            <exec executable="cc" failonerror="true">
+		    <arg line="-D SUNOS" />
+                    <arg value="-fPIC" />
+                    <arg value="-Ic" />
+                    <arg value="-I${env.JAVA_HOME}/include" />
+                    <arg value="-I${env.JAVA_HOME}/include/solaris" />
+                    <arg value="c/sunperf_blas.c" />
+                    <arg value="-shared" />
+		    <arg value="-dalign" />
+                    <arg value="-xlic_lib=sunperf" />
+                    <arg value="-olibblas.so" />
+            </exec>
+    </target>
+
+    <target name="blas" depends="check.blas,blas.linux,blas.osx,blas.sunos"></target>
 
     <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
      description="Compile all interpreter code.">
@@ -579,7 +605,10 @@ testOnly, testCruiseControl"/>
                 <fileset dir="${build}">
                     <and>
                       <filename name="**/*${testPattern}*/**" />
-                      <filename name="**/*JUTest.class" />
+			<or>
+                          <filename name="**/*JUTest.class" />
+			  <filename name="**/*JxTest.class" />
+			</or>
                     </and>
                     <exclude name="**/*$*.class"/>
                 </fileset>

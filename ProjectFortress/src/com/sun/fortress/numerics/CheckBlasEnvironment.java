@@ -49,13 +49,22 @@ public class CheckBlasEnvironment {
         }        
         if (problem) System.exit(-1);        
     }
+
+    public static void checkSunOS() {
+        boolean problem = false;
+	
+
+	if (problem) System.exit(-1);
+    }
     
     public static void main(String[] args) {
         String osName = System.getProperty("os.name");
         if (osName.equals("Linux")) {
             checkLinux();
         } else if (osName.equals("Mac OS X")) {
-	    checkOSX();            
+	    checkOSX();
+	} else if (osName.equals("SunOS")) {
+	    checkSunOS();            
         } else {
             System.err.println("The Fortress build system currently does not support");
             System.err.println("blas bindings for the the " + osName + " platform.");
