@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -138,8 +140,17 @@ public class Element {
             String translated,
             boolean becauseISaySo) {
         Element o = (Element) m.get(translated);
+        String[] synonyms = new String[]{"MINUS SIGN",
+                                         "ASTERISK OPERATOR",
+                                         "DOT OPERATOR",
+                                         "VECTOR OR CROSS PRODUCT"};
+        List<String> synonymOperators =
+            new LinkedList<String>(java.util.Arrays.asList(synonyms));
 
         if (o == null) {
+           m.put(translated, this);
+           this.addName(translated);
+        } else if ( synonymOperators.contains(o.name()) ) {
            m.put(translated, this);
            this.addName(translated);
         } else if (o == this) {
@@ -152,7 +163,7 @@ public class Element {
             } else if (this.name().equals(translated)) {
             // Unusual, but just in case.
             this.addName(translated);
-        } else if (o.otherName().equals(translated) && ! this.otherName().equals(translated)) {
+        } else if (o.otherName().equals(translated)) {
             // Existing entry owns it.
             Systemerrprintln("Name collision of " + this + " and owner (other) " + o + " on name " + translated);
             collision.addName(translated);

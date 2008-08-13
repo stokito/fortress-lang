@@ -957,7 +957,7 @@ other_operators
   spherical angle opening up, \u29a1
   turned angle, \u29a2
   reversed angle, \u29a3
-  angle with underbary, \u29a4
+  angle with underbar, \u29a4
   reversed angle with underbar, \u29a5
   oblique angle opening up, \u29a6
   oblique angle opening down, \u29a7
