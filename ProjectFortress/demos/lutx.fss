@@ -38,8 +38,8 @@ end
 object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
     extends Matrix[\N,n,n\]
   replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
-  put(t:(ZZ32,ZZ32),n:N) : () = fail("Lower triangular matrices are immutable.")
-  init0(t:(ZZ32,ZZ32),n:N) : () = fail("Lower triangular matrices are immutable.")
+  put(t:(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
+  init0(t:(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
   get(t:(ZZ32,ZZ32)):N = do
       (i,j) = t
       e = mem.get(t)
