@@ -188,8 +188,10 @@ public final class Shell {
             String what = tokens[0];
             List<String> args = Arrays.asList(tokens).subList(1, tokens.length);
             if (what.equals("compile")) {
+                setPhase( PhaseOrder.CODEGEN );
                 compile(args, Option.<String>none());
             } else if (what.equals("run")) {
+                setPhase( PhaseOrder.CODEGEN );
                 run(args);
             } else if ( what.equals("api" ) ){
                 api(args, Option.<String>none());
@@ -218,6 +220,7 @@ public final class Shell {
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
+                setPhase( PhaseOrder.CODEGEN );
                 run(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 printHelpMessage();
@@ -301,6 +304,7 @@ public final class Shell {
 
     public static FValue eval( String file, List<String> args )
         throws Throwable {
+        setPhase( PhaseOrder.CODEGEN );
         if ( ! isComponent(file) )
             throw new UserError("A component file is expected to evaluate.");
         APIName name = trueApiName( file );
@@ -570,8 +574,10 @@ public final class Shell {
                     ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
             } else if (isComponent(file)) {
                 Component c = (Component) bcr.getComponent(name).ast();
-                if ( out.isSome() )
+                if ( out.isSome() ) {
                     ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
+                    bcr.deleteComponent( name );
+                }
             } else {
                 System.out.println( "Don't know what kind of file " + file +
                                     " is. Append .fsi or .fss." );

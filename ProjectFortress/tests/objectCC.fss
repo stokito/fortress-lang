@@ -25,7 +25,7 @@ end
 
 topFunc(top:ZZ32):T = object extends T
     x():ZZ32 = top
-    y():ZZ32 = x()
+    y():ZZ32 = x() + 1
     end
 
 object O(v:ZZ32)
@@ -34,8 +34,8 @@ object O(v:ZZ32)
     bar():T = do
                 enclosing:O = self
                 object extends T
-                    x():ZZ32 = quack(enclosing, tmp)
-                    y():ZZ32 = local() 
+                    x():ZZ32 = quack(enclosing, 3)
+                    y():ZZ32 = local() + tmp
                 end
             end
     quack(self, t:ZZ32):ZZ32 = self.v
@@ -44,15 +44,15 @@ end
 
 run(args:String...):() = do
     var top:ZZ32 = 7
-    obj:T = topFunc(top)  
+    obj:T = topFunc(top)
     assert(top, obj.x(), "obj.x() failed.")
-    assert(top, obj.y(), "obj.y() failed.")
+    assert(top + 1, obj.y(), "obj.y() failed.")
 
     o1:O = O(3);
     o2:T = o1.bar()
-    
+
     assert( quack(o1, o1.tmp), o2.x(), "o2.x() failed" )
-    assert( o1.v, o2.y(), "o2.y() failed" )
+    assert( o1.v, o2.y() - 2, "o2.y() failed" )
 
     println ("Testing object closure conversion for immutable " ||
             "varRefs and fnRefs: passed.")
