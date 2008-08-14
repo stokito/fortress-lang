@@ -44,6 +44,9 @@ public enum PhaseOrder {
      * More details in com.sun.fortress.syntax_abstractions.phases.GrammarRewriter
      */
     GRAMMAR("Grammar Rewriting"),
+    /* Performs all remaining desugarings that can be run before type checking.
+     */
+    PRETYPECHECKDESUGAR("Pre-Type-Checking Desugaring"),
     /* Checks types of expressions.
      * More details in com.sun.fortress.compiler.typechecker.TypeChecker
      */
@@ -93,8 +96,10 @@ public enum PhaseOrder {
             return new DisambiguatePhase(PREDISAMBIGUATEDESUGAR.makePhaseHelper(phase));
         case GRAMMAR:
             return new GrammarPhase(DISAMBIGUATE.makePhaseHelper(phase));
+        case PRETYPECHECKDESUGAR:
+        	return new PreTypeCheckDesugarPhase(GRAMMAR.makePhaseHelper(phase));
         case TYPECHECK:
-            return new TypeCheckPhase(GRAMMAR.makePhaseHelper(phase));
+            return new TypeCheckPhase(PRETYPECHECKDESUGAR.makePhaseHelper(phase));
         case DESUGAR:
             return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
         case OVERLOADREWRITE:

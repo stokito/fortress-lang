@@ -34,18 +34,26 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Pair;
 
 /**
- * Performs desugaring of Fortress programs after type checking. 
- * Specifically, the following desugarings are performed:
- *  - Object expressions are desugared into top-level object declarations.
+ * Performs desugarings of Fortress programs that can be done before type checking. 
+ * Specifically, the following transformations are performed:
+ * <ul>
+ * <li>All field declarations in traits are transformed to abstract getter declarations</li>
+ * <li>All field references are transformed into getter invocations</li>
+ * <li>All field names in objects are rewritten so as not to clash with their getter names</li>
+ * <li>Getters and setters are added for all fields declared in an object definition (as appropriate)</li>
+ * </ul>
+ * Assumes all names referring to APIs are fully-qualified,
+ * and that the other transformations handled by the {@link com.sun.fortress.compiler.Disambiguator} have
+ * been performed.
  */
-public class Desugarer {
+public class PreTypeCheckDesugarer {
 
     /**
-     * When the objExpr_desugar is true,
-     * the closure conversion pass for object expressions is called.
-     * The closure conversion comes after the desugaring pass for getter / setter.
+     * These two fields are temporary switches used for testing.
+     * When getter_setter_desugar is true, the desugaring for getter and setter
+     * is called during static checking.  
      */
-    public static boolean objExpr_desugar = false;
+    public static boolean getter_setter_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -90,17 +98,16 @@ public class Desugarer {
         public Map<APIName, ComponentIndex> components() { return _components; }
     }
 
-    /** Statically check the given components. */
+    /** Desugar the given components. */
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
-                          GlobalEnvironment env,
-                          Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode)
+                          GlobalEnvironment env)
     {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (APIName componentName : components.keySet()) {
-            Component desugared = desugarComponent(components.get(componentName), env, typeEnvAtNode);
+            Component desugared = desugarComponent(components.get(componentName), env);
             desugaredComponents.add(desugared);
         }
         return new ComponentResult
@@ -110,17 +117,13 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                             GlobalEnvironment env,
-                                             Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
+                                             GlobalEnvironment env) {
      	Component comp = (Component) component.ast();
-
-        if(objExpr_desugar) {
-        	TraitTable traitTable = new TraitTable(component, env);
-        	ObjectExpressionVisitor objExprVisitor =
-        		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
-        	comp = (Component) comp.accept(objExprVisitor);
+        if(getter_setter_desugar) {
+            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+            comp = (Component) comp.accept(desugaringVisitor);
         }
         return comp;
     }
-
 }
+
