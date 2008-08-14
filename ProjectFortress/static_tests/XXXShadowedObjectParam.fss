@@ -1,0 +1,13 @@
+export Executable 
+
+v = 1
+
+f(z) = 2
+
+object P(v) end
+
+object O(x)
+  f(x) = x
+end
+
+run(args) = ()

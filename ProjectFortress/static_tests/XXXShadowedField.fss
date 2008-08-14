@@ -1,0 +1,10 @@
+export Executable 
+
+v = 1
+
+object O
+  v = 2
+end
+
+run(args) = ()
+

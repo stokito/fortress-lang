@@ -1,0 +1,7 @@
+export Executable 
+
+v = 1
+
+f(v: ZZ32) = v
+
+run(args) = ()
