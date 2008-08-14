@@ -19,7 +19,6 @@ component Format
 
 import Set.{...}
 import List.{...}
-import JavaString.{...}
 export Format
 
 (* Formatted strings.
