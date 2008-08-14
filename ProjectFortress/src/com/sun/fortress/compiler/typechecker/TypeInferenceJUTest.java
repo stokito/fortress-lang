@@ -116,7 +116,7 @@ public class TypeInferenceJUTest extends TestCase {
                 public boolean accept(File arg0, String arg1) {
                     return arg1.startsWith("In")&&arg1.endsWith(".fss");
                 }
-                
+
             });
             String fq_input_fname = testDirectory.getAbsolutePath() + SEP + infiles[0];
             String fq_output_fname = testDirectory.getAbsolutePath() + SEP + OUT_FILE_NAME;
@@ -132,6 +132,8 @@ public class TypeInferenceJUTest extends TestCase {
             ASTIO.deleteJavaAst(fq_cached_fname);
 
             assertSameFile(fq_output_fname, fq_exp_fname);
+
+            ASTIO.deleteJavaAst(fq_output_fname);
         }
 
         private void assertSameFile(String f_1, String f_2) throws FileNotFoundException, IOException {
