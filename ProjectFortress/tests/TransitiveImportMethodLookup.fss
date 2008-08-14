@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component TransitiveImportMethodLookup
+export Executable
+
+  (* Bug #160 *)
+
+  run(args:String...):() = do
+    for ch <- "H" do
+        println ch
+    end
+    typecase ch="Hell" of
+        Generator[\Char\] => println "Generator[[Char]]"
+        else => println "Something else"
+    end
+
+    c : Char = 'd'
+
+    if c MATCH "Hold" then println "It matches!"
+    end
+
+    case c of
+        "Hold" => println "d is in \"Hold\""
+        else => println "d is not in \"Hold\""
+    end
+  end
+
+end
