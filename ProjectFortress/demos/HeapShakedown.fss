@@ -125,7 +125,7 @@ spread(n:ZZ32):(ZZ32,ZZ32) = do
 
 timeHdr(desc:String): List[\String\] = do
     print(".")
-    res : List[\String\] = <| desc, desc "/n", desc "/nlgn" |>
+    res : List[\String\] = <|[\String\] desc, desc "/n", desc "/nlgn" |>
     res
   end
 
@@ -155,7 +155,7 @@ testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
 run(args:String...):() = do
     samples: List[\ZZ32\] = <|0 asif ZZ32,1,2,4,16,64,256,1024,4096|>
     headers: List[\String\] = appending[\String\](
-            <|"" "n","n lg n"|>,
+            <|[\String\]"" "n","n lg n"|>,
             timeHdr("lbuild"),
             timeHdr("lconsume"),
             timeHdr("lgen"),
