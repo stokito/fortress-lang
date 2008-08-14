@@ -178,7 +178,7 @@ There exists a .project file in the directory ${FORTRESS_HOME}.
 Import this project into Eclipse.
 
 There exists a file called ${FORTRESS_HOME}/DOTCLASSPATH in
-the repository. Copy this file to either ${FORTRESS_HOME}/.classpath.
+the repository. Copy this file to ${FORTRESS_HOME}/.classpath.
 If you are using the Java 5.0 jdk under Windows or Linux, you will need
 to add an entry to ${JAVA_HOME}/lib/tools.jar to the classpath.
 

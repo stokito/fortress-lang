@@ -112,6 +112,15 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
+    private List<Modifier> removeGetterMod(List<Modifier> mods) {
+        List<Modifier> result = new LinkedList<Modifier>();
+        
+        for (Modifier mod : mods) {
+            if (! (mod instanceof ModifierGetter)) { result.add(mod); }
+        }
+        return result;
+    }
+    
     private static final Id mangleName(Id fieldName) {
         return new Id(fieldName.getSpan(), fieldName.getApi(), "$" + fieldName.getText());
     }
@@ -203,8 +212,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                     mangleName(binding.getName())));
     }
 
-    private List<Decl> makeGetters(Option<List<Param>> params, final List<Decl> decls) {
-        final List<Decl> result = new ArrayList<Decl>();
+    private LinkedList<Decl> makeGetters(Option<List<Param>> params, final List<Decl> decls) {
+        final LinkedList<Decl> result = new LinkedList<Decl>();
         if (params.isSome()) {
             for (Param param : params.unwrap()) {
                 if (! hidden(param) && ! trans(param) && ! hasExplicitGetter(param.getName(), decls)) {
@@ -326,9 +335,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
-        List<Decl> gettersAndDecls = makeGetters(that.getParams(), that.getDecls());
-        for (Decl decl : decls_result) {
-            gettersAndDecls.add(decl);
+        LinkedList<Decl> gettersAndDecls = makeGetters(that.getParams(), that.getDecls());
+        for (int i = decls_result.size() - 1; i >= 0; i--) {
+            gettersAndDecls.addFirst(decls_result.get(i));
         }
 
         return forObjectDeclOnly(that, mods_result, name_result, staticParams_result, extendsClause_result,
@@ -349,11 +358,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         // System.err.println("decls_result size = " + decls_result.size());
-        List<Decl> gettersAndDecls = makeGetters(Option.<List<Param>>none(), that.getDecls());
+        LinkedList<Decl> gettersAndDecls = makeGetters(Option.<List<Param>>none(), that.getDecls());
 
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
-        	gettersAndDecls.add(decls_result.get(i));
+        	gettersAndDecls.addFirst(decls_result.get(i));
         }
         // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
 
@@ -361,6 +370,22 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                 where_result, excludes_result, comprises_result, gettersAndDecls);
     }
 
+    @Override
+    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, 
+            List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, 
+            Option<Contract> contract_result) 
+    {
+        return new AbsFnDecl(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result, 
+                             where_result, contract_result, that.getSelfName());
+    }
+
+    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, 
+                             List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, 
+                             Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) 
+    {
+        return new FnDef(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result, 
+                         where_result, contract_result, that.getSelfName(), body_result);
+    }
 
 
 // Inherited methods copied from superclass as comments to help implement overrides.
