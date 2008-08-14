@@ -40,6 +40,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.Catch;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimDecl;
@@ -200,9 +201,24 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     }
 
-
     private void checkForShadowingVars(Set<Id> vars) {
+        // First check that vars do not shadow other declarations in scope
         for (Id var : vars) { checkForShadowingVar(var); }
+
+        // Now check that these vars do not conflict. We could speed up asymptotic complexity by sorting first. 
+        // But vars is expected to be relatively small, so the overhead of sorting probably isn't worth it.
+        
+        // A single var has nothing to conflict with.
+        if (vars.size() > 1) {
+            Object[] _vars = vars.toArray();
+            for (int i = 0; i < _vars.length - 1; i++) {
+                for (int j = i + 1; j < _vars.length; j++) {
+                    if (_vars[i].equals(_vars[j])) {
+                        error("Variable " + _vars[i] + " is already declared at " + ((Id)_vars[j]).getSpan(), (Id)_vars[i]);
+                    }
+                }
+            }
+        }
     }
 
     private void checkForShadowingFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames) {
