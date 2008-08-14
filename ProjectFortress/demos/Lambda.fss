@@ -18,7 +18,6 @@ component Lambda
 import OneShotFlag.{...}
 import Map.{...}
 import List.{...}
-import Set.{...}
 import File.{...}
 export Executable
 
@@ -188,11 +187,9 @@ forms(t:Term): () = do
 
 _ = noShot (* cheap hack to break a dependence *)
 
-digits : Set[\Char\] = { '0','1','2','3','4','5','6','7','8','9' }
-
-spaces : Set[\Char\] = { ' ', '\t', '\n' }
-terminators : Set[\Char\] = spaces UNION { char(0), '(', ')', '.', '=' }
-separators : Set[\Char\] = { char(0), ')', '\n', '.' }
+spaces : String = " \t\n"
+terminators : String = spaces || char(0) || "().="
+separators : String = char(0) || ")\n."
 object Parser(f:FileReadStream)
     curr : Char := ' '
     next(): Char = do
@@ -211,20 +208,8 @@ object Parser(f:FileReadStream)
       end
     parseNum(): ZZ32 = do
         res : ZZ32 := 0
-        while curr IN digits do
-            res := 10 res
-            case curr of
-                '1' => res += 1
-                '2' => res += 2
-                '3' => res += 3
-                '4' => res += 4
-                '5' => res += 5
-                '6' => res += 6
-                '7' => res += 7
-                '8' => res += 8
-                '9' => res += 9
-                else => ()
-            end
+        while d <- digit(curr) do
+            res := 10 res + d
             next()
         end
         res
@@ -257,7 +242,7 @@ object Parser(f:FileReadStream)
             '.'  => mkLambda(id, parseReqTerm(newlineOK))
             char(0) => fail ("unexpected eof in arg list, last arg " id)
             ')'  => fail ("unexpected ')' in arg list, last arg " id)
-            else => if curr IN digits then
+            else => if isDigit(curr) then
                         fail ("unexpected digit " curr.toString() " in arg list")
                     else
                         mkLambda(id,parseLambdaF(newlineOK))
@@ -283,7 +268,7 @@ object Parser(f:FileReadStream)
         elif curr='(' then
             r = parseParens(newlineOK)
             parseOrApp(app(t,r), newlineOK)
-        elif curr IN digits then
+        elif isDigit(curr) then
             r = parseConst(newlineOK)
             parseOrApp(app(t,r), newlineOK)
         elif curr IN separators then
@@ -317,7 +302,7 @@ object Parser(f:FileReadStream)
             parseLambda(newlineOK)
         elif curr='(' then
             parseParensOrApp(newlineOK)
-        elif curr IN digits then
+        elif isDigit(curr) then
             parseNumberOrApp(newlineOK)
         else
             parseVarOrApp(newlineOK)
@@ -342,7 +327,7 @@ object Parser(f:FileReadStream)
             '.' => fail("Error: misplaced '.' at top level.")
             ')' => fail("Error: misplaced ')' at top level.")
             else =>
-                if curr IN digits then
+                if isDigit(curr) then
                     forms(parseNumberOrApp(false))
                 else
                     parseIdOrBindingOrApp()

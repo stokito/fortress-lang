@@ -104,27 +104,6 @@ readWord(line: String) =
 
 twoToStr(rank) = if rank < 10 then " " rank else rank end
 
-(* String juxtaposition avoids Set[\StringLiteral\] *)
-digits = {"" "0","1","2","3","4","5","6","7","8","9"}
-
-isDigit(s: String) = s IN digits
-
-oneStr2int(s: String) = do
-    r = digits.indexOf(s)
-    if r IN digits.bounds() then
-        r
-    elif s = " " then
-        0
-    else
-        fail("Invalid digit: " s)
-    end
-  end
-
-str2int(s: String) = do
-    ls = |s|
-    SUM [i<-1#ls] 10^(ls-i) oneStr2int(s[(i-1)#1])
-  end
-
 (* Tennis players *************************************************************)
 object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
               initPoints:ZZ32)
@@ -233,14 +212,14 @@ initialize(fin: FileReadStream) =
     while (line =/= "") do
       var s: String
       (s, line) := readWord line
-      if isDigit(s[0#1])
-      then order := str2int s; (s, line) := readWord line end
+      if isDigit(s[0])
+      then order := strToInt s; (s, line) := readWord line end
       (ranking, name) = (order, s) (* if there's a tie, get the previous rank *)
-      (s, line) := readWord line; wonGames  = str2int s
+      (s, line) := readWord line; wonGames  = strToInt s
       (s, line) := readWord line
-      (s, line) := readWord line; lostGames = str2int s
+      (s, line) := readWord line; lostGames = strToInt s
       line := readWord(line, 5)
-      (s, line) := readWord line; points    = str2int s
+      (s, line) := readWord line; points    = strToInt s
       toSortInit[indexInit] := (name, ranking, wonGames, lostGames, points)
       indexInit += 1
       line := fin.readLine()

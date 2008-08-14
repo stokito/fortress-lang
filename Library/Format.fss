@@ -130,7 +130,7 @@ digitSeparatorRight(num:String,nth:ZZ32,separator:String):String = do
     (BIG || [index <- 0#total] (num[(index nth)#nth] separator)) num[(total nth):]
 end
 
-indexOf(string:String,find:Char):Maybe[\ZZ32\] = do
+minIndexOf(string:String,find:Char):Maybe[\ZZ32\] = do
     label out
         for g<-seq(0#|string|) do
             if string[g] = find then
@@ -145,7 +145,7 @@ digitSeparator(num:String,nth:ZZ32,separator:String,middle:Char):String = do
     if num[0] = '-' then
         "-" digitSeparator(num[1:((|num|)-1)],nth,separator,middle)
     else
-        place = indexOf(num,middle)
+        place = minIndexOf(num,middle)
         if n <- place then
             left = num[0:n-1]
             right = num[(n+1):]
@@ -171,27 +171,6 @@ end
  *)
 
  (* %w=1&d='&d *)
-
-digits = {"" "0","1","2","3","4","5","6","7","8","9"}
-
-isDigit(s: String) = s IN digits
-
-oneStr2int(s: String) = do
-    r = digits.indexOf(s)
-    if r IN digits.bounds() then
-        r
-    elif s = " " then
-        0
-    else
-        fail("Invalid digit: " s)
-    end
-end
-
-str2int(s: String) = do
-    ls = |s|
-    SUM [i<-1#ls] 10^(ls-i) oneStr2int(s[(i-1)#1])
-end
-
 
 object FormatException(reason:String) extends Exception
     toString():String = "Format exception: " reason
@@ -219,11 +198,11 @@ parseParameters(string:String):Parameters = do
     var radix_:ZZ32 := 10
     var pad:Char := ' '
     while |current| > 0 do
-        equals = indexOf(current,'=')
+        equals = minIndexOf(current,'=')
         if place <- equals then
             front = current[0:(place-1)]
             readString() = do
-                if last <- indexOf(current,'&') then
+                if last <- minIndexOf(current,'&') then
                     s = current
                     current := current[(last+1):]
                     s[(place+1):(last-1)]
@@ -234,7 +213,7 @@ parseParameters(string:String):Parameters = do
                 end
             end
             readInt() = do
-                str2int(readString())
+                strToInt(readString())
             end
 
             case front of
@@ -434,7 +413,7 @@ compile(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     if |string| = 0 then
         emptyList[\Any\]()
     else
-        percent = indexOf(string,'%')
+        percent = minIndexOf(string,'%')
         if index <- percent then
             if index = 0 then
                 compilePercent(string[1:],allArgs,args)

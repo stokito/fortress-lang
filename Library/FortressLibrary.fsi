@@ -1009,6 +1009,11 @@ trait Indexed[\E, I\] extends Generator[\E\]
         generator is used more than once. **)
     ivmap[\R\](f:(I,E)->R): Indexed[\R, I\]
     map[\R\](f:E->R): Indexed[\R, I\]
+
+
+    (** indexOf(e) returns an index at which e can be found,
+        or Nothing if no such index exists. **)
+    indexOf(e:E): Maybe[\I\]
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
@@ -2031,6 +2036,22 @@ println():()
 
 forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\]
 forDigit(x:ZZ32, radixString:String): Maybe[\Char\]
+
+(** Convert string to arbitrary integral type.  String may contain
+    leading - or +.  Valid radixes are 2,8,10,12, and 16.  No spaces
+    may occur in the string, and it must have at least one digit.
+
+    Right now we're oblivious to overflow!  This ought to be fixed.
+
+    This ought to support arbitrary integer types, but right now
+    there's no clean way to convert all the arithmetic to use a
+    provided type without having an instance of that type in hand.
+    Unsigned types in particular are a bit sticky.
+ **)
+strToInt(s: String, radix: ZZ32): ZZ32
+
+(** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
+strToInt(s: String): ZZ32
 
 (** opr // appends a single newline separator. **)
 opr (x:Any)// : String

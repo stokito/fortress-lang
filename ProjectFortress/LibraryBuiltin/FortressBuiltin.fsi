@@ -169,12 +169,13 @@ object Char extends { StandardTotalOrder[\Char\] }
     opr GTRSIM(self, other:Char): Boolean
 
     (* The following methods have the same behavior as the methods in Java
-       Character class, except for methods digit and forDigit.  These two 
-       particular methods deviate from Java Character class when it gets 
-       argument radix = 12.  For radix 12, the digits are "0123456789xe" 
+       Character class, except for methods digit and forDigit.  These two
+       particular methods deviate from Java Character class when it gets
+       argument radix = 12.  For radix 12, the digits are "0123456789xe"
        instead of "0123456789ab". *)
     (* javaDigit(self, radix:ZZ32): ZZ32 *)
-    digit(self, radix:ZZ32): Maybe[\ZZ32\] 
+    digit(self): Maybe[\ZZ32\] (* radix 10 *)
+    digit(self, radix:ZZ32): Maybe[\ZZ32\]
     getDirectionality(self): ZZ32
     getNumericValue(self): ZZ32
     getType(self): ZZ32
