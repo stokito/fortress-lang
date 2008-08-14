@@ -34,7 +34,7 @@ run(args:String...):() = do
     assert(3 IN list'', false, "3 IN ", list'')
     assert(BIG AND [e <- list''] e IN l, true,
            l, " doesn't contain all of ", list'')
-    assert(l.indexOf(8),3,l,".indexOf(8)")
+    assert(l.indexOf(8).get(),3,l,".indexOf(8)")
     assert(list'.isEmpty(), false, list', ".isEmpty()")
     assert(l.filter(fiveOrMore).map[\ZZ32\](fn x => 10 x),
            <|50 asif ZZ32,70,80,60|>,"filter . map")

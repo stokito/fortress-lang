@@ -1485,21 +1485,22 @@ trait Indexed[\E, I\] extends Generator[\E\]
         generator is used more than once. **)
     ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
     map[\R\](f:E->R): Indexed[\R, I\] = SimpleMappedIndexed[\E,R,I\](self,f)
+
+    (** indexOf(e) returns an index at which e can be found,
+        or Nothing if no such index exists. **)
+    indexOf(e:E): Maybe[\I\] =
+        label found
+            for (i,v) <- indexValuePairs(), v=e do
+                exit found with Just[\I\](i)
+            end
+            Nothing[\I\]
+        end found
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
     bounds(): FullRange[\ZZ32,true\] = 0 # |self|
     zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](self,g)
-    (** indexOf(e) returns an index at which e can be found,
-        or an index NOTIN bounds() if no such index exists. **)
-    indexOf(e:E): ZZ32 =
-        label found
-            for (i,v) <- indexValuePairs() do
-                if v = e then exit found with i end
-            end
-            -1
-        end found
 end
 
 object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
@@ -3633,18 +3634,18 @@ opr :[\I\](x:I) : UpperRange[\I\] = UpperRange[\I\](x)
 opr #() : OpenRange[\Any\] = OpenRange[\Any\]
 opr :() : OpenRange[\Any\] = OpenRange[\Any\]
 
-trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] } 
+trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
              excludes {Number, Char, AnyMultiplicativeRing, AnyList}
     getter size() : ZZ32
     getter toString() : String
     getter indices() : FullRange[\ZZ32,true\] = self.bounds()
-    (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for 
+    (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits can override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
         indices().map[\Char\](fn (i:ZZ32):Char => self[i])
     opr |self| : ZZ32 = self.size()
     opr =(self, other:String): Boolean
-    opr <(self, other:String): Boolean = (self CMP other) = LessThan   
+    opr <(self, other:String): Boolean = (self CMP other) = LessThan
     opr <=(self, other:String): Boolean
     opr >(self, other:String): Boolean
     opr >=(self, other:String): Boolean
@@ -3695,7 +3696,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr |||(a:Any, self): String = (""||a) ||| self
 
     (** Right now for backward compatibility juxtaposition works like %||% **)
-    opr juxtaposition(a:Any, self):String = (""||a) || self  
+    opr juxtaposition(a:Any, self):String = (""||a) || self
     opr juxtaposition(self, b:String):String = self || b
     opr juxtaposition(self, b:Any):String = self || b
 
@@ -3718,7 +3719,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr ///(self, a:String): String = self||"\n\n"||a
     opr ///(self, a:Any): String    = self||"\n\n"||a
     opr ///(a:Any, self): String    = a||"\n\n"||self
-    
+
   end
 
 (***********************************************************
@@ -3761,13 +3762,41 @@ forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
         forDigit(x, "0123456789abcdef")
     end
 
-forDigit(x:ZZ32, radixString:String): Maybe[\Char\] = do
+forDigit(x:ZZ32, radixString:String): Maybe[\Char\] =
     if( 0 <= x < |radixString| ) then
         Just[\Char\](radixString[x])
     else
         Nothing[\Char\]
     end
-end
+
+
+(** Convert string to arbitrary integral type.  String may contain
+    leading - or +.  Valid radixes are 2,8,10,12, and 16.  No spaces
+    may occur in the string, and it must have at least one digit.
+
+    Right now we're oblivious to overflow!  This ought to be fixed.
+
+    This ought to support arbitrary integer types, but right now
+    there's no clean way to convert all the arithmetic to use a
+    provided type without having an instance of that type in hand.
+    Unsigned types in particular are a bit sticky.
+ **)
+strToInt(s: String, radix: ZZ32): ZZ32 = do
+    (i0, neg) =
+        if s[0] = '-' then (1, true)
+        elif s[0] = '+' then (1, false)
+        else (0,false) end
+    n = |s| - 1
+    r = SUM[ i <- i0:n] if d <- digit(s[i], radix) then
+                          d radix^(n-i)
+                      else
+                          fail("strToInt(" s.toString() "," radix "): non-digit " s[i].toString())
+                      end
+    if neg then -r else r end
+  end
+
+(** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
+strToInt(s: String): ZZ32 = strToInt(s,10)
 
 match(regex:String,some:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 

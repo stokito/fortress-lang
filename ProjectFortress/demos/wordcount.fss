@@ -62,7 +62,7 @@ end
 
 makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
     var database:Map[\ZZ32,List[\String\]\] := mapping[\ZZ32,List[\String\]\]()
-    database := database.add(y, <| x |>)
+    database := database.add(y, <|[\String\] x |>)
     database
 end
 
