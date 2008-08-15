@@ -85,7 +85,7 @@ public class TypeInferenceJUTest extends TestCase {
         private static final String STATIC_ARG_INF_TEST_DIR = ProjectProperties.FORTRESS_AUTOHOME + SEP + "ProjectFortress" + SEP + "static_tests" + SEP + "static_arg_inference" + SEP;
         private static final String CACHED_TFS_NAME = "In.tfs";
         private static final String OUT_FILE_NAME = "Out.fss";
-        private static final String EXPECTED_FILE_NAME = "Expected.fss";
+        private static final String EXPECTED_FILE_NAME = "Expected.fsg";
 
         private File testDirectory;
 
