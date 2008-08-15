@@ -1,0 +1,85 @@
+component CordedString
+export CordedString
+
+(* these should eventually go in with the range code, I maintain! *)
+
+    opr ∩ (r0: Range[\ZZ32\], r1: Range[\ZZ32\]) = (r0.lower() MAX r1.lower()) : (r0.upper() MIN r1.upper()) 
+    opr SHIFTLEFT(r: Range[\ZZ32\], newOrigin: ZZ32) = (r.lower - newOrigin)#r.extent()
+    isEmpty(r: Range[\ZZ32\]) = r.extent() ≤ 0
+
+  object CatString(left: String, right:String)  extends String
+    sizeField = left.size() + right.size()
+    getter size() = sizeField
+    getter bounds() = 0#sizeField
+    getter generator() = ConcatGenerator(left.generator(), right.generator())
+    opr CMP(self, other: String) =  
+        if |left| ≥ |other| 
+        then 
+            left CMP other 
+        else 
+            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):]) 
+        end
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = EqualTo
+    
+    get(i): Char = 'x'
+    
+    opr[r0:Range[\ZZ32\]] : String =  do
+        r1 = (self.bounds())[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
+        uncheckedSubstr(self, r1)
+      end 
+      
+    uncheckedSubstr(r0: Range[\ZZ32\]) = do
+        r1 = (r0 SHIFTLEFT left.size())
+        uncheckedSubstr(left, r0 ∩ left.bounds()) || uncheckedSubstr(right, r1 ∩ right.bounds())            
+      end
+    
+    opr || (self, other:String): String = CatString(self, other)
+    opr || (self, _:EmptyString) = self
+    opr || (self, other:Char) = CatString(self, other.toString())
+        
+  end
+  
+  object ConcatGenerator[\T\](first:Generator[\T\], second:Generator[\T\])
+        extends Generator[\T\]
+    generate[\R\](r: Reduction[\R\], body:T->R):R =
+        r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
+  end
+   
+  
+  value object EmptyString extends String
+    getter size() = 0
+    getter bounds() = 0#0
+    getter generator() = Nothing[\Char\]
+    opr CMP(self, other: String) =
+        |self| CMP |other|
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
+    
+    get(i): Char = fail("Can't get characters from an empty string")
+    
+    opr[r: Range[\ZZ32\]] : String = do
+        rr = (self.indices())[r]     (* to raise a bounds error *)
+        EmptyString
+    end
+            
+    opr || (self, other:String): String = other
+(*    opr || (other: String, self): String = other   *)    (* this optimizes the case with EmptyString on the right*)
+    opr || (self, _: EmptyString): String = self
+    opr || (self, other:Char) = other.toString()
+  end
+  
+  run(args: String...): () = do println "Finished" end 
+  
+  test rangeIntersect() = do
+        println "Test method running…"
+        assert((0:5) ∩ (0:3), 0:3)
+        assert((0:5) ∩ (3:7), 3:5)
+        assert((0:5) ∩ (7:10), 7:5)
+        deny(5:3, 9:8)                  (* I hoped that these would be equal *)
+        deny((5:3).extent(), 0, "The size of 5:3 is not zero!")   (* I had hoped for zero *)
+        assert((9:8).extent(), 0, "The size of 9:8 is not zero!")
+        assert(isEmpty(5:3), "5:3 is not empty!")
+        assert(isEmpty(9:8), "9:8 is not empty!")
+        assert(isEmpty((0:5) ∩ (7:10)), "0:5 has a non-empty intersection with 7:10 !")
+  end
+  
+end
