@@ -160,6 +160,7 @@ public class BATreeEC<Key, KeyEC, Value> {
         root = null;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BATreeEC) {
             BATreeEC bat = (BATreeEC) o;

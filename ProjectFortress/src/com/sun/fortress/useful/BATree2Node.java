@@ -107,7 +107,7 @@ public final class BATree2Node<T, U, V> implements Map.Entry<T, Pair<U, V>> {
         return weight(right);
     }
 
-    public static int weight(BATree2Node n) {
+    public static <T,U,V> int weight(BATree2Node<T,U,V> n) {
         return n == null ? 0 : n.weight;
     }
 

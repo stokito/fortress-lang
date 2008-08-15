@@ -106,7 +106,7 @@ public final class BATreeNode<T, U> implements Map.Entry<T, U> {
             return weight(right);
         }
 
-        public static int weight(BATreeNode n) {
+        public static <T,U> int weight(BATreeNode<T,U> n) {
             return n == null ? 0 : n.weight;
         }
 

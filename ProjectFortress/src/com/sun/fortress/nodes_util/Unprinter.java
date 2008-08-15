@@ -198,6 +198,7 @@ public class Unprinter extends NodeReflection {
         return next;
     }
 
+    @SuppressWarnings("unchecked")
     static Class[] oneSpanArg = { Span.class };
 
     @Override
@@ -312,7 +313,7 @@ public class Unprinter extends NodeReflection {
 
             // Check for unassigned fields, pick sensible defaults.
             for (Field f : fieldArrayFor(class_name)) {
-                Class fcl = f.getType();
+                Class<? extends Object> fcl = f.getType();
                 // Happily, primitives all wake up with good default values.
                 if (!fcl.isPrimitive() && f.get(node) == null) {
                     if (fcl == List.class) {
@@ -545,8 +546,8 @@ public class Unprinter extends NodeReflection {
         return new Pair<Object, Object>(x, y);
     }
 
-    public Map readMap() throws IOException {
-        Map map = new HashMap();
+    public Map<String,Object> readMap() throws IOException {
+        Map<String,Object> map = new HashMap<String,Object>();
         String s = l.name();
         while (true) {
             if ("!".equals(s)) {

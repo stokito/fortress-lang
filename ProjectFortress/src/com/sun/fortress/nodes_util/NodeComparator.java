@@ -90,8 +90,8 @@ public class NodeComparator {
 
     static class StaticParamComparer implements Comparator<StaticParam> {
         public int compare(StaticParam left, StaticParam right) {
-            Class tclass = left.getClass();
-            Class oclass = right.getClass();
+            Class<? extends StaticParam> tclass = left.getClass();
+            Class<? extends StaticParam> oclass = right.getClass();
             if (oclass != tclass) {
                 return tclass.getName().compareTo(oclass.getName());
             }
@@ -190,8 +190,8 @@ public class NodeComparator {
     public final static FnAbsDeclOrDeclComparer fnAbsDeclOrDeclComparer = new FnAbsDeclOrDeclComparer();
 
      public static int compare(IdOrOpOrAnonymousName left, IdOrOpOrAnonymousName right) {
-        Class leftClass = left.getClass();
-        Class rightClass = right.getClass();
+        Class<? extends IdOrOpOrAnonymousName> leftClass = left.getClass();
+        Class<? extends IdOrOpOrAnonymousName> rightClass = right.getClass();
 
         if (leftClass != rightClass) {
             return leftClass.getName().compareTo(rightClass.getName());
@@ -222,8 +222,8 @@ public class NodeComparator {
     }
 
     public static int compare(StaticArg left, StaticArg right) {
-        Class leftClass = left.getClass();
-        Class rightClass = right.getClass();
+        Class<? extends StaticArg> leftClass = left.getClass();
+        Class<? extends StaticArg> rightClass = right.getClass();
 
         if (leftClass != rightClass) {
             return leftClass.getName().compareTo(rightClass.getName());
@@ -234,8 +234,8 @@ public class NodeComparator {
     }
 
     public static int compare(Type left, Type right) {
-        Class leftClass = left.getClass();
-        Class rightClass = right.getClass();
+        Class<? extends Type> leftClass = left.getClass();
+        Class<? extends Type> rightClass = right.getClass();
 
         if (leftClass != rightClass) {
             return leftClass.getName().compareTo(rightClass.getName());

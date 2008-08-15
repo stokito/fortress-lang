@@ -80,18 +80,18 @@ public class UnicodeCollisions {
         abstract String translate(String x);
     }
 
-    static void forAll(ArrayList l, XForm x, Map<String, UnicodeCollisions> m) {
+    static void forAll(ArrayList<UnicodeCollisions> l, XForm x, Map<String, UnicodeCollisions> m) {
         for (int i = 0; i < l.size(); i++)
-            ((UnicodeCollisions) l.get(i)).addUnderXForm(m, x);
+            l.get(i).addUnderXForm(m, x);
     }
 
-    static void forAllRemoving(ArrayList l, final String s, Map<String, UnicodeCollisions> m) {
+    static void forAllRemoving(ArrayList<UnicodeCollisions> l, final String s, Map<String, UnicodeCollisions> m) {
         XForm x = new XForm() {
             String translate(String str) {
                 return str.replace(s, "");
            }};
         for (int i = 0; i < l.size(); i++)
-            ((UnicodeCollisions) l.get(i)).addUnderXForm(m, x);
+            l.get(i).addUnderXForm(m, x);
     }
 
     public static void main(String[] args) throws IOException {
@@ -161,11 +161,11 @@ public class UnicodeCollisions {
 //            }
 
         }
-        Set keys = h.keySet();
+        Set<String> keys = h.keySet();
 
-        Iterator ki = keys.iterator();
+        Iterator<String> ki = keys.iterator();
         while (ki.hasNext()) {
-            String s = (String) (ki.next());
+            String s = ki.next();
             checkNonHex(s);
         }
     }
