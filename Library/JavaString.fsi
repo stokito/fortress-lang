@@ -26,13 +26,15 @@ api JavaString
     opr <=(self, other:String): Boolean
     opr >(self, other:String): Boolean
     opr >=(self, other:String): Boolean
-    opr CMP(self, other:String): TotalComparison
+    opr CMP(self, other:JavaString): TotalComparison
+    opr CMP(self, other:String):TotalComparison
+    opr CASE_INSENSITIVE_CMP(self, other:JavaString): TotalComparison
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
 
     (** get skips bounds checking. **)
     get(i:ZZ32): Char
-    cmp(other:String): ZZ32
-    cicmp(other:String): ZZ32
+    cmp(other:JavaString): ZZ32
+    cicmp(other:JavaString): ZZ32
     substr(lo:ZZ32,hi:ZZ32): String
 
     (** The operator %||% with at least one String argument converts to string and

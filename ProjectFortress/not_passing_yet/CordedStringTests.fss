@@ -1,0 +1,16 @@
+component CordedStringTests
+import CordedString.{...}
+export Executable
+
+  run(args:String...):() = do
+    e = EmptyString
+    stuff = "Hello "
+    more = "World"
+    hw = CatString(stuff, more)
+    assert(|hw|, |stuff| + |more|)
+    assert(hw, "Hello World")
+    assert(hw, CatString("Hell", "o World")) 
+
+  end
+
+end

@@ -3637,19 +3637,13 @@ opr :() : OpenRange[\Any\] = OpenRange[\Any\]
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
              excludes {Number, Char, AnyMultiplicativeRing, AnyList}
     getter size() : ZZ32
-    getter toString() : String
+    getter toString() : String = self
     getter indices() : FullRange[\ZZ32,true\] = self.bounds()
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
-       CatString trees.  Sub-traits can override it with equivalent but more efficeint code. *)
+       CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
         indices().map[\Char\](fn (i:ZZ32):Char => self[i])
     opr |self| : ZZ32 = self.size()
-    opr =(self, other:String): Boolean
-    opr <(self, other:String): Boolean = (self CMP other) = LessThan
-    opr <=(self, other:String): Boolean
-    opr >(self, other:String): Boolean
-    opr >=(self, other:String): Boolean
-    opr CMP(self, other:String): TotalComparison
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the String, returning the empty String, in order to permit some convenient
