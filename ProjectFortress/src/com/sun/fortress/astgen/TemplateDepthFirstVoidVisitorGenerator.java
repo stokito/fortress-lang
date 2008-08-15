@@ -45,7 +45,7 @@ public class TemplateDepthFirstVoidVisitorGenerator extends
         writer.startLine(" ** defaultDoFirst() and defaultCase(), respectively, which (unless");
         writer.startLine(" ** overridden) are no-ops.");
         writer.startLine(" **/");
-        
+        writer.startLine("@SuppressWarnings(value={\"all\"})");        
         writer.startLine("public class " + visitorName);
         if (options.usePLT) { writer.print(" extends " + root.name() + "VisitorRunnable1"); }
         else { writer.print(" implements " + root.name() + "Visitor_void"); }

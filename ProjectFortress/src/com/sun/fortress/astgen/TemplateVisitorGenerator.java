@@ -63,6 +63,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine(" * There is no automatic delegation to more general cases, because each concrete");
         writer.startLine(" * case has a default implementation.");
         writer.startLine(" */");
+        writer.startLine("@SuppressWarnings(value={\"all\"})");        
         writer.startLine("public abstract class " + visitorName);
 
         if (options.usePLT) {
