@@ -17,20 +17,15 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
-import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.useful.HasAt;
-
-import jsr166y.forkjoin.*;
 
 public class SpawnTask extends BaseTask {
 

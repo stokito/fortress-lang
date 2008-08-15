@@ -19,12 +19,10 @@ package com.sun.fortress.interpreter.evaluator;
 
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 

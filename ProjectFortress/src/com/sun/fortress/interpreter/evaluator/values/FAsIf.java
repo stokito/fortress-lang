@@ -19,8 +19,6 @@ package com.sun.fortress.interpreter.evaluator.values;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
-import java.io.BufferedWriter;
-
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public class FAsIf extends FConstructedValue {

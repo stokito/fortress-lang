@@ -21,7 +21,6 @@ import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 
 import java.util.ArrayList;
@@ -30,8 +29,6 @@ import java.util.List;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
-import com.sun.fortress.nodes_util.NodeFactory;
 
 public class RewriteInPresenceOfTypeInfo extends Rewrite {
 

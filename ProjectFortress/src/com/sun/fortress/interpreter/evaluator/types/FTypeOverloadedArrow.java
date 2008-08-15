@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.types;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import com.sun.fortress.useful.Useful;
 
 import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 
 public class FTypeOverloadedArrow extends FType {

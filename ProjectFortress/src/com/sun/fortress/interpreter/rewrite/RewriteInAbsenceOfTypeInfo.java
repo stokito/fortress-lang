@@ -22,7 +22,6 @@ import java.util.List;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
-import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Juxt;
@@ -35,8 +34,6 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.nodes_util.NodeFactory;
-
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInAbsenceOfTypeInfo extends Rewrite {

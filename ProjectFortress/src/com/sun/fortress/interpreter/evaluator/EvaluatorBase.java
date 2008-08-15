@@ -26,14 +26,11 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.ProgramError;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.GenericTypeInstance;
 import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -45,7 +42,6 @@ import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.ABoundingMap;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.LatticeIntervalMap;

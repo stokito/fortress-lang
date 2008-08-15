@@ -17,22 +17,14 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
-import com.sun.fortress.interpreter.evaluator.scopes.SComponent;
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -48,21 +40,14 @@ import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
-import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;

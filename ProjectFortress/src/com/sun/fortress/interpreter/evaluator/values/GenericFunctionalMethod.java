@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -29,7 +28,6 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.Useful;
 
 public class GenericFunctionalMethod extends FGenericFunction implements HasSelfParameter {

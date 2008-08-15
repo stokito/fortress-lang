@@ -17,18 +17,12 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
-import com.sun.fortress.interpreter.rewrite.Desugarer.ArrowOrFunctional;
-import com.sun.fortress.interpreter.rewrite.Desugarer.FunctionalMethod;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
@@ -38,7 +32,6 @@ import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
 

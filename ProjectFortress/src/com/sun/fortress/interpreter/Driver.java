@@ -21,8 +21,6 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
-import com.sun.fortress.repository.ProjectProperties;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +46,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -102,8 +99,6 @@ import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Visitor1;
 import com.sun.fortress.useful.Visitor2;
-import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.tuple.Option;
 
 import static com.sun.fortress.interpreter.glue.WellKnownNames.*;

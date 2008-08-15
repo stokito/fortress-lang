@@ -41,8 +41,6 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.useful.Pair;
-import com.sun.fortress.useful.Useful;
-
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 

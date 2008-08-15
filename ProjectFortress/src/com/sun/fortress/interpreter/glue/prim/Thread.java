@@ -17,10 +17,6 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-/* import java.lang.String; /* SPARE COPY  */
-import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
-
-
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 

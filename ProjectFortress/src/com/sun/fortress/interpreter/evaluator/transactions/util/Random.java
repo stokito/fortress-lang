@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.evaluator.transactions.util;
 
 import java.io.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Lightweight random number generator.  <I>Not thread-safe.</I> Synchronization in the

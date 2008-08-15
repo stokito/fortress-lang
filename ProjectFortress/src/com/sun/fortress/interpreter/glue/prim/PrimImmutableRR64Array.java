@@ -17,9 +17,6 @@
 
 package com.sun.fortress.interpreter.glue.prim;
 
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;

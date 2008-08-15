@@ -20,9 +20,7 @@ package com.sun.fortress.interpreter.glue;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.interpreter.evaluator.Primitives;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;

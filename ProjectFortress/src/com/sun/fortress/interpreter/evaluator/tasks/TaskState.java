@@ -17,14 +17,9 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-
-import java.util.concurrent.Callable;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TaskState {
 

@@ -22,11 +22,8 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 /* import java.lang.String; /* SPARE COPY  */
 import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
-import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
-import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
-import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.glue.NativeFn0;

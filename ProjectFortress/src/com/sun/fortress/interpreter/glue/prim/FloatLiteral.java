@@ -19,7 +19,6 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;

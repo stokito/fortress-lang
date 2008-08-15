@@ -19,8 +19,6 @@ package com.sun.fortress.interpreter.evaluator;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-
 public class InstantiationLock {
     static public final ReentrantLock L = new ReentrantLock();
     //static public String lastOverloadThrowable;
