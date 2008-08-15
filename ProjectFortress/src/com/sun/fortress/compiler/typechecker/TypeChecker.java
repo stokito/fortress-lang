@@ -1208,198 +1208,298 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						 " from non-subtype ", exprType));
 	 }
 
-	 @Override
-	 public TypeCheckerResult forAssignment(Assignment that) {
-		 // The procedures for assignment differ greatly depending on the type of the LHS
-		 final Option<TypeCheckerResult> opr_result_ = recurOnOptionOfOpRef(that.getOpr());
-		 final TypeCheckerResult rhs_result = that.getRhs().accept(this);
-
-		 // Check subexprs
-		 if( rhs_result.type().isNone() || (opr_result_.isSome() && opr_result_.unwrap().type().isNone()) ) {
-			 if( opr_result_.isSome() )
-				 return TypeCheckerResult.compose(that, subtypeChecker, rhs_result, opr_result_.unwrap());
-			 else
-				 return TypeCheckerResult.compose(that, subtypeChecker, rhs_result);
-		 }
-
-		 // create a tuple of inference vars the same size as the LHS list
-		 // then we will contstraint it to be a subtype of the rhs and each
-		 // element a super type of each lhs element.
-		 List<Type> inf_types = NodeFactory.make_InferenceVarTypes(that.getSpan(),that.getLhs().size());
-		 Type inf_tuple = NodeFactory.makeTupleType(inf_types);
-		 TypeCheckerResult tuple_result = this.checkSubtype(rhs_result.type().unwrap(), inf_tuple, that);
-
-		 TypeCheckerResult opr_result = opr_result_.isNone() ? new TypeCheckerResult(that) : opr_result_.unwrap();
-		 List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
-		 List<TypeCheckerResult> app_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
-
-		 // Go through each lhs, and typecheck it with our visitor, which handles each subtype
-		 // of LHS differently.
-		 final Iterator<Type> inf_type_iter = inf_types.iterator();
-		 for( final Lhs lhs : that.getLhs() ) {
-			 final Type rhs_type = inf_type_iter.next();
-
-			 NodeDepthFirstVisitor<TypeCheckerResult> visitor =
-				 new NodeDepthFirstVisitor<TypeCheckerResult>() {
-				 @Override
-				 public TypeCheckerResult forFieldRef(FieldRef that) {
-					 // If there is an op, we must typecheck that as a normal read reference
-					 TypeCheckerResult read_result;
-					 if( opr_result_.isSome() )
-						 read_result = that.accept(TypeChecker.this);
-					 else
-						 read_result = new TypeCheckerResult(that);
-
-					 TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
-					 if(obj_result.type().isSome()){
-						 Type obj_type = obj_result.type().unwrap();
-						 List<TraitType> traits = traitTypesCallable(obj_type);
-
-						 TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(),traits,rhs_type, that);
-
-						 FieldRef new_node = new FieldRef(that.getSpan(),
-						                                  that.isParenthesized(),
-						                                  r.type(),
-						                                  (Expr)obj_result.ast(),
-						                                  that.getField());
-
-						 return TypeCheckerResult.compose(new_node, read_result.type(), subtypeChecker, r, read_result);
-					 }
-					 else{
-						 return obj_result;
-					 }
-				 }
-				 @Override
-				 public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
-					 // If there is an op, we must typechecker that as a normal read reference
-					 TypeCheckerResult read_result;
-					 if( opr_result_.isSome() )
-						 read_result = that.accept(TypeChecker.this);
-					 else
-						 read_result = new TypeCheckerResult(that);
-
-					 // make sure there is a subscript setter for type
-					 // This method is very similar to forSubscriptExprOnly in Typechecker
-					 // except that we must graft the new RHS type onto the end of subs_types
-					 // to see if there is an appropriate setter method.
-					 TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
-					 List<TypeCheckerResult> subs_result = TypeChecker.this.recurOnListOfExpr(that.getSubs());
-					 // ignore op_result...
-					 List<TypeCheckerResult> staticArgs_result = TypeChecker.this.recurOnListOfStaticArg(that.getStaticArgs());
-
-					 TypeCheckerResult all_result =
-						 TypeCheckerResult.compose(that, subtypeChecker, obj_result, read_result,
-								 TypeCheckerResult.compose(that, subtypeChecker, subs_result),
-								 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-
-					 if( obj_result.type().isNone() ) return all_result;
-					 for( TypeCheckerResult r : subs_result )
-						 if( r.type().isNone() ) return all_result;
-
-					 // get types
-					 Type obj_type = obj_result.type().unwrap();
-					 List<Type> subs_types = CollectUtil.makeList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult,Type>(){
-						 public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
-					 // put rhs type on the end
-					 subs_types = Useful.concat(subs_types, Collections.singletonList(rhs_type));
-
-					 TypeCheckerResult final_result =
-						 TypeChecker.this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
-
-					 SubscriptExpr new_node = new SubscriptExpr(that.getSpan(),
-					                                            that.isParenthesized(),
-					                                            read_result.type(),
-					                                            (Expr)obj_result.ast(),
-					                                            (List<Expr>)TypeCheckerResult.astFromResults(subs_result),
-					                                            that.getOp(),
-					                                            that.getStaticArgs());
-
-					 return TypeCheckerResult.compose(new_node, read_result.type(), subtypeChecker, final_result, all_result);
-				 }
-	                // The two cases for variables are pretty similar
-                 @Override
-                 public TypeCheckerResult forLValueBind(LValueBind that) {
-                     TypeCheckerResult r = that.accept(TypeChecker.this);
-                     if( r.type().isNone() ) return r;
-                     Type lhs_type = r.type().unwrap();
-                     TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
-                     // make sure it's immutable
-                     if( !that.isMutable() ) {
-                         String err = "Variable " + that + " is immutable.";
-                         TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
-                         return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
-                     }
-                     else {
-                         // Happy path, we don't rebuild b/c there is nothing new
-                         return TypeCheckerResult.compose(r.ast(), lhs_type, subtypeChecker, r, r_sub);
-                     }
-                 }
-				 @Override
-				 public TypeCheckerResult forVarRef(VarRef that) {
-					 TypeCheckerResult r = that.accept(TypeChecker.this);
-					 if( r.type().isNone() ) return r;
-					 Type lhs_type = r.type().unwrap();
-					 TypeCheckerResult r_sub = checkSubtype(rhs_type,lhs_type,that);
-					 TypeEnv env = that.getVar().getApi().isSome() ?
-							 returnTypeEnvForApi(that.getVar().getApi().unwrap()) :
-								 typeEnv;
-							 Option<BindingLookup> bl = env.binding(that.getVar());
-					 if( bl.isNone() ) return r;
-					 // make sure it's immutable
-					 if( !(bl.unwrap().isMutable()) ) {
-					     String err = "Variable " + that + " is immutable.";
-					     TypeCheckerResult e_r = new TypeCheckerResult(that, TypeError.make(err, that));
-					     return TypeCheckerResult.compose(that, subtypeChecker, r, e_r);
-					 }
-					 else {
-					     // Happy path
-					     return TypeCheckerResult.compose(r.ast(), lhs_type, subtypeChecker, r, r_sub);
-					 }
-				 }
-			 };
-			 TypeCheckerResult lhs_result = lhs.accept(visitor);
-			 lhs_results.add(lhs_result);
-
-			 // if we need to check the operator, just try to apply it like a normal method.
-			 if( lhs_result.type().isSome() && that.getOpr().isSome() && opr_result_.unwrap().type().isSome() ) {
-				 Type lhs_type = lhs_result.type().unwrap();
-				 Type opr_type = opr_result_.unwrap().type().unwrap();
-				 Option<Pair<Type,ConstraintFormula>> application_result =
-					 TypesUtil.applicationType(subtypeChecker, opr_type, new ArgList(lhs_type, rhs_type));
-
-				 if( application_result.isSome() ) {
-					 ConstraintFormula constr = application_result.unwrap().second();
-					 app_results.add(new TypeCheckerResult(that, constr));
-
-				 }
-				 else {
-					 String err = "Compound operator, " + that.getOpr().unwrap().getOriginalName() + " not defined on types (" + lhs_type + "," +rhs_type + ").";
-					 app_results.add(new TypeCheckerResult(that, TypeError.make(err, that)));
-				 }
-			 }
-		 }
-
-		 Assignment new_node = new Assignment(that.getSpan(),
-		                                      that.isParenthesized(),
-		                                      Option.<Type>some(Types.VOID),
-		                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-		                                      (Option<OpRef>)TypeCheckerResult.astFromResult(opr_result_),
-		                                      (Expr)rhs_result.ast());
-
-		 TypeCheckerResult result = TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, opr_result, tuple_result, rhs_result,
-		         TypeCheckerResult.compose(new_node, subtypeChecker, app_results),
-		         TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
-
-        // Application of operator (e.g., +=) could result in open constraints
-        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-             // close constraints
-             new_node = (Assignment)TypesUtil.closeConstraints(new_node, result);
+    @Override
+    public TypeCheckerResult forAssignment(Assignment that) {
+        Pair<List<Type>, TypeCheckerResult> tuple_types_ = requireTupleType(that.getRhs(), that.getLhs().size());
+        
+        // Get the types for the RHS, which must be a tuple if the LHS is
+        TypeCheckerResult rhs_result = tuple_types_.second();
+        List<Type> rhs_types = tuple_types_.first();
+        
+        if( !rhs_result.isSuccessful() )
+            return TypeCheckerResult.compose(that, subtypeChecker, rhs_result);
+        if( rhs_types.size() != that.getLhs().size() )
+            return bug("requireTupleType should always return a list of types equal to the size it is passed.");
+        
+        List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
+        List<OpRef> op_refs = that.getOpr().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
+        
+        // Go through LHS, checking each one
+        Iterator<Type> rhs_type_iter = rhs_types.iterator();
+        for( Lhs lhs : that.getLhs() ) {
+            Type rhs_type = rhs_type_iter.next();
+            Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getOpr());
+            lhs_results.add(p.second());
+            
+            if( p.first().isSome() )
+                op_refs.add(p.first().unwrap());
         }
+        
+        Assignment new_node;
+        if( that.getOpr().isSome() ) {
+            // Create a _RewriteAssignment, with an OpRef for each LHS
+            new_node = new _RewriteAssignment(that.getSpan(),
+                                              that.isParenthesized(),
+                                              Option.<Type>some(Types.VOID),
+                                              (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+                                              that.getOpr(),
+                                              (Expr)rhs_result.ast(),
+                                              op_refs);
+        }
+        else {
+            // Create a new Assignment
+            new_node = new Assignment(that.getSpan(),
+                                      that.isParenthesized(),
+                                      Option.<Type>some(Types.VOID),
+                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+                                      that.getOpr(),
+                                      (Expr)rhs_result.ast());
+        }
+        // This case could not result in open constraints: If there is an OpRef, this must not be
+        // the postInference pass, because _RewriteAssignmentNodes should exist instead. If there is
+        // no OpRef, then no open constraints can be created.
+        return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, rhs_result,
+                TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
+    }
+    
+    
+    @Override
+    public TypeCheckerResult for_RewriteAssignment(_RewriteAssignment that) {
+        Pair<List<Type>, TypeCheckerResult> tuple_types_ = requireTupleType(that.getRhs(), that.getLhs().size());
+        
+        // Get the types for the RHS, which must be a tuple if the LHS is
+        TypeCheckerResult rhs_result = tuple_types_.second();
+        List<Type> rhs_types = tuple_types_.first();
+        
+        if( !rhs_result.isSuccessful() )
+            return TypeCheckerResult.compose(that, subtypeChecker, rhs_result);
+        if( rhs_types.size() != that.getLhs().size() )
+            return bug("requireTupleType should always return a list of types equal to the size it is passed.");
+        
+        List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
+        List<OpRef> op_refs = that.getOpr().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
+        
+        // Go through LHS, checking each one
+        Iterator<Type> rhs_type_iter = rhs_types.iterator();
+        for( Lhs lhs : that.getLhs() ) {
+            Type rhs_type = rhs_type_iter.next();
+            Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getOpr());
+            lhs_results.add(p.second());
+            
+            if( p.first().isSome() )
+                op_refs.add(p.first().unwrap());
+        };
+        
+        // Create a _RewriteAssignment, with an OpRef for each LHS
+        Assignment new_node = new _RewriteAssignment(that.getSpan(),
+                                              that.isParenthesized(),
+                                              Option.<Type>some(Types.VOID),
+                                              (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+                                              that.getOpr(),
+                                              (Expr)rhs_result.ast(),
+                                              op_refs);
 
+        TypeCheckerResult result = TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, rhs_result,
+                TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
+        
+        // The application of operators could cause Inference Vars to be introduced
+        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+            new_node = (_RewriteAssignment)TypesUtil.closeConstraints(new_node, result);
+        }
         return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
-     }
+    }
+    /**
+     * Checks that something of type rhs_type can be assigned to the given lhs. If opr is some, we have to
+     * take that in to account as well. This method is still pretty complicated...
+     */
+    private Pair<Option<OpRef>, TypeCheckerResult> checkLhsAssignment(final Lhs lhs, final Type rhs_type, final Option<OpRef> opr) {
+        
+        // Different assignment rules for each type of LHS...
+        Pair<TypeCheckerResult, Type> result_and_arg_type = lhs.accept(new NodeAbstractVisitor<Pair<TypeCheckerResult, Type>>(){
+            @Override public Pair<TypeCheckerResult, Type> forFieldRef(FieldRef that) {
+                TypeCheckerResult obj_result = recur(that.getObj());
+                TypeCheckerResult field_result = recur(that); // only used for ast, and type if opr is SOME
+                if( !obj_result.isSuccessful() )
+                    return Pair.<TypeCheckerResult,Type>make(TypeCheckerResult.compose(that, subtypeChecker, obj_result), Types.BOTTOM);
+                
+                Type obj_type = obj_result.type().unwrap();
+                List<TraitType> traits = traitTypesCallable(obj_type);
+                TypeCheckerResult r = findSetterInTraitHierarchy(that.getField(), traits, rhs_type, that);
+                
+                if( opr.isSome() && field_result.isSuccessful() ) {
+                    // Return the type of the field for opr application
+                    return Pair.<TypeCheckerResult,Type>make(TypeCheckerResult.compose(field_result.ast(), subtypeChecker, r, field_result, obj_result), field_result.type().unwrap());
+                }
+                else if( opr.isSome() && !field_result.isSuccessful() ) {
+                    return Pair.<TypeCheckerResult,Type>make(TypeCheckerResult.compose(that, subtypeChecker, r, field_result, obj_result), Types.BOTTOM);
+                }
+                else {
+                    return Pair.<TypeCheckerResult, Type>make(TypeCheckerResult.compose(field_result.ast(), subtypeChecker, r, obj_result), Types.BOTTOM);
+                }
+            }
 
-	 private TypeCheckerResult forAtomic(Expr body, final String errorMsg) {
+            @Override public Pair<TypeCheckerResult, Type> forLValueBind(LValueBind that) {
+                if( !that.isMutable() ) {
+                    String err = "Left-hand side of assignment must be mutable.";
+                    return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
+                }
+                else {
+                    Type lhs_type = that.getType().unwrap();
+                    return Pair.make(checkSubtype(rhs_type, lhs_type, that, "Left-hand side of assignment must be a sub-type of right-hand side."), lhs_type);
+                }
+            }
+            
+            @Override
+            public Pair<TypeCheckerResult, Type> forNormalParam(NormalParam that) {
+                if( !NodeUtil.isMutable(that) ) {
+                    String err = "Left-hand side of assignment must be mutable.";
+                    return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
+                }
+                else {
+                    Type lhs_type = that.getType().unwrap();
+                    return Pair.make(checkSubtype(rhs_type, lhs_type, that, "Left-hand side of assignment must be a sub-type of right-hand side."), lhs_type);
+                }
+            }
+
+            @Override
+            public Pair<TypeCheckerResult, Type> forSubscriptExpr(SubscriptExpr that) {
+                // If there is an op, we must typechecker that as a normal read reference
+                TypeCheckerResult read_result = recur(that); // only used if opr is SOME
+
+                // make sure there is a subscript setter for type
+                // This method is very similar to forSubscriptExprOnly in Typechecker
+                // except that we must graft the new RHS type onto the end of subs_types
+                // to see if there is an appropriate setter method.
+                TypeCheckerResult obj_result = that.getObj().accept(TypeChecker.this);
+                List<TypeCheckerResult> subs_result = TypeChecker.this.recurOnListOfExpr(that.getSubs());
+                // ignore op_result...
+                List<TypeCheckerResult> staticArgs_result = TypeChecker.this.recurOnListOfStaticArg(that.getStaticArgs());
+
+                TypeCheckerResult all_result =
+                    TypeCheckerResult.compose(that, subtypeChecker, obj_result, 
+                            TypeCheckerResult.compose(that, subtypeChecker, subs_result),
+                            TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+
+                if( obj_result.type().isNone() ) return Pair.<TypeCheckerResult,Type>make(all_result,Types.BOTTOM);
+                for( TypeCheckerResult r : subs_result )
+                    if( r.type().isNone() ) return Pair.<TypeCheckerResult,Type>make(all_result,Types.BOTTOM);
+
+                // get types
+                Type obj_type = obj_result.type().unwrap();
+                List<Type> subs_types = CollectUtil.makeList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult,Type>(){
+                    public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
+                // put rhs type on the end
+                subs_types = Useful.concat(subs_types, Collections.singletonList(rhs_type));
+
+                TypeCheckerResult final_result =
+                    TypeChecker.this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
+
+                SubscriptExpr new_node = (SubscriptExpr)read_result.ast();
+
+                if(opr.isSome() && read_result.isSuccessful() ) {
+                    return Pair.<TypeCheckerResult,Type>make(TypeCheckerResult.compose(new_node,
+                            read_result.type(), subtypeChecker, read_result, final_result, all_result), Types.BOTTOM);
+                }
+                else if( opr.isSome()) {
+                    return Pair.make(TypeCheckerResult.compose(new_node,
+                            read_result.type(), subtypeChecker, read_result, final_result, all_result), read_result.type().unwrap());
+                }
+                else {
+                    return Pair.<TypeCheckerResult,Type>make(TypeCheckerResult.compose(new_node, 
+                            read_result.type(), subtypeChecker, final_result, all_result), Types.BOTTOM);
+                }
+            }
+
+            @Override
+            public Pair<TypeCheckerResult, Type> forVarRef(VarRef that) {
+                TypeCheckerResult var_result = recur(that);
+                if( !var_result.isSuccessful() ) return Pair.<TypeCheckerResult, Type>make(var_result, Types.BOTTOM);
+                
+                TypeCheckerResult sub_result = checkSubtype(rhs_type, var_result.type().unwrap(), lhs, 
+                        "Left-hand side of assignment must be subtype of right-hand side");
+                
+                TypeEnv env = that.getVar().getApi().isSome() ? returnTypeEnvForApi(that.getVar().getApi().unwrap()) : typeEnv;
+                Option<BindingLookup> bl = env.binding(that.getVar());
+                if( bl.isNone() ) return bug("Inconsistent results from TypeEnv and typechecking VarRef");
+                
+                // make sure it's immutable
+                if( !(bl.unwrap().isMutable()) ) {
+                    String err = "Left-hand side of assignment must be mutable.";
+                    return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
+                }
+                else {
+                    return Pair.make(TypeCheckerResult.compose(var_result.ast(), subtypeChecker, sub_result, var_result), var_result.type().unwrap());
+                }
+            }
+            
+        });
+        
+        final Type arg_type = result_and_arg_type.second();
+        // Find the arrow type of the opr, if it is some
+        Option<TypeCheckerResult> opr_type = (new NodeDepthFirstVisitor<TypeCheckerResult>() {
+            @Override public TypeCheckerResult for_RewriteInstantiatedOpRefs(_RewriteInstantiatedOpRefs that) {
+                Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
+                return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings()), args_type, that, that.getOriginalName());
+            }
+            @Override public TypeCheckerResult forOpRef(OpRef that) {
+                TypeCheckerResult op_result = TypeChecker.this.recur(that);
+                if( !op_result.isSuccessful() ) return op_result;
+                
+                Option<Pair<Type, ConstraintFormula>> app_result =
+                    TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(arg_type, rhs_type));
+                
+                if( app_result.isNone() ) {
+                    String err = "No overloading of " + that.getOriginalName() + " can be found that applies to types " + arg_type + " and " + rhs_type + ".";
+                    return new TypeCheckerResult(that, TypeError.make(err, that));
+                }
+                else {
+                    TypeCheckerResult app_result_ = new TypeCheckerResult(that, app_result.unwrap().second());
+                    return TypeCheckerResult.compose(op_result.ast(), subtypeChecker, app_result_, op_result);
+                }
+            }
+        }).recurOnOptionOfOpRef(opr);
+        
+        TypeCheckerResult result = TypeCheckerResult.compose(result_and_arg_type.first().ast(), subtypeChecker, result_and_arg_type.first(),
+                TypeCheckerResult.compose(result_and_arg_type.first().ast(), subtypeChecker, opr_type));
+        
+        return Pair.<Option<OpRef>,TypeCheckerResult>make((Option<OpRef>)TypeCheckerResult.astFromResult(opr_type), result);
+    }
+    
+    /**
+     * An assertion that the type of the given expression should be a tuple type of the given size.
+     * If it is of a different size, an error will be reported. If is not an instance of TupleType,
+     * a tuple of inference variables will be created instead, with the restriction that it must have the
+     * same type as e's type.
+     */
+    private Pair<List<Type>, TypeCheckerResult> requireTupleType(final Expr e, int size) {
+        final List<Type> inference_var_types = NodeFactory.make_InferenceVarTypes(e.getSpan(), size); // may not be used
+        final TypeCheckerResult e_result = recur(e);
+        
+        if( !e_result.isSuccessful() ) 
+            return Pair.make(inference_var_types, e_result);
+        
+        if( size == 1 ) {
+            return Pair.make(Collections.singletonList(e_result.type().unwrap()), e_result);
+        }
+        
+        return e_result.type().unwrap().accept(new TypeAbstractVisitor<Pair<List<Type>, TypeCheckerResult>>() {
+            @Override
+            public Pair<List<Type>, TypeCheckerResult> forTupleType(TupleType that) {  
+                return Pair.make(that.getElements(), e_result);
+            }
+            @Override
+            public Pair<List<Type>, TypeCheckerResult> forType(Type that) {
+                Type tuple_type = NodeFactory.makeTupleType(inference_var_types);
+                TypeCheckerResult sub_1 = checkSubtype(tuple_type, that, e);
+                TypeCheckerResult sub_2 = checkSubtype(that, tuple_type, e);
+                TypeCheckerResult tcr = TypeCheckerResult.compose(e, subtypeChecker, sub_1, sub_2, e_result);
+                return Pair.make(inference_var_types, tcr);
+            }
+        });
+    }
+	 
+
+    private TypeCheckerResult forAtomic(Expr body, final String errorMsg) {
 		 TypeChecker newChecker = new TypeChecker(table,
 				 staticParamEnv,
 				 typeEnv,
@@ -1457,169 +1557,285 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 	 }
 
-	 @Override
-	 public TypeCheckerResult forCaseExpr(CaseExpr that) {
-		 Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(that.getParam());
-		 Option<TypeCheckerResult> compare_result = this.recurOnOptionOfOpRef(that.getCompare());
-		 TypeCheckerResult equalsOp_result = that.getEqualsOp().accept(this);
-		 TypeCheckerResult inOp_result = that.getInOp().accept(this);
-		 NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> temp = new NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>>() {
-		     @Override
-		     public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> forCaseClause(
-		             CaseClause that) {
-		         TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
-		         TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
-		         CaseClause new_node = new CaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast());
-		         return Triple.make(new_node, match_result, body_result);
-		     }
-		 };
-		 List<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> clauses_result = temp.recurOnListOfCaseClause(that.getClauses());
-		 Option<TypeCheckerResult> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+    @Override
+    public TypeCheckerResult forCaseExpr(CaseExpr that) {
+        Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(that.getParam());
+        Option<TypeCheckerResult> compare_result = this.recurOnOptionOfOpRef(that.getCompare());
+        TypeCheckerResult equalsOp_result = that.getEqualsOp().accept(this);
+        TypeCheckerResult inOp_result = that.getInOp().accept(this);
+        NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> temp = new NodeDepthFirstVisitor<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>>() {
+            @Override
+            public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> forCaseClause(
+                    CaseClause that) {
+                TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
+                TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
+                CaseClause new_node = new CaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast());
+                return Triple.make(new_node, match_result, body_result);
+            }
 
-		 // Checker that clauses all typechecked properly
-		 for(Triple<CaseClause, TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
-			 if(clause_result.second().type().isNone() || clause_result.third().type().isNone()) {
-				 return TypeCheckerResult.compose(that, subtypeChecker,
-				         TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleSeconds(clauses_result))),
-				         TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleThirds(clauses_result))));
-			 }
-		 }
+            @Override
+            public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> for_RewriteCaseClause(_RewriteCaseClause that) {
+                TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
+                TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
+                _RewriteCaseClause new_node = new _RewriteCaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast(), that.getOp());
+                return Triple.<CaseClause,TypeCheckerResult,TypeCheckerResult>make(new_node, match_result, body_result);
+            }
+        };
+        List<Triple<CaseClause, TypeCheckerResult,TypeCheckerResult>> clauses_result = temp.recurOnListOfCaseClause(that.getClauses());
+        Option<TypeCheckerResult> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
 
-		 // Check that compare typechecked, if it exists
-		 if( compare_result.isSome()) {
-			 if(compare_result.unwrap().type().isNone()){
-			     return TypeCheckerResult.compose(that, subtypeChecker, compare_result.unwrap());
-			 }
-		 }
-		 // Check elseClause
-		 if(elseClause_result.isSome()){
-			 if(elseClause_result.unwrap().type().isNone()){
-				 return TypeCheckerResult.compose(that, subtypeChecker, elseClause_result.unwrap());
-			 }
-		 }
-		 // Check if we are dealing with a normal case (i.e. not an extremum)
-		 if (that.getParam().isSome()) {
-			 if(param_result.unwrap().type().isNone()){
-			     return TypeCheckerResult.compose(that, subtypeChecker, param_result.unwrap());
-			 }
+        // Checker that clauses all typechecked properly
+        for(Triple<CaseClause, TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
+            if(clause_result.second().type().isNone() || clause_result.third().type().isNone()) {
+                return TypeCheckerResult.compose(that, subtypeChecker,
+                        TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleSeconds(clauses_result))),
+                        TypeCheckerResult.compose(that, subtypeChecker, CollectUtil.makeList(IterUtil.tripleThirds(clauses_result))));
+            }
+        }
 
-			 if(equalsOp_result.type().isNone() || inOp_result.type().isNone()){
-				 return bug("Equals or In does not have a type");
-			 }
+        // Check that compare typechecked, if it exists
+        if( compare_result.isSome()) {
+            if(compare_result.unwrap().type().isNone()){
+                return TypeCheckerResult.compose(that, subtypeChecker, compare_result.unwrap());
+            }
+        }
+        // Check elseClause
+        if(elseClause_result.isSome()){
+            if(elseClause_result.unwrap().type().isNone()){
+                return TypeCheckerResult.compose(that, subtypeChecker, elseClause_result.unwrap());
+            }
+        }
+        // Check if we are dealing with a normal case (i.e. not an extremum)
+        if (that.getParam().isSome()) {
+            if(param_result.unwrap().type().isNone()){
+                return TypeCheckerResult.compose(that, subtypeChecker, param_result.unwrap());
+            }
 
-			 return forCaseExprNormalOnly(that, param_result.unwrap(), compare_result, equalsOp_result, inOp_result, clauses_result, elseClause_result);
-		 } else {
-			 return forExtremumOnly(that, compare_result.unwrap(), clauses_result);
-		 }
-	 }
+            if(equalsOp_result.type().isNone() || inOp_result.type().isNone()){
+                return bug("Equals or In does not have a type");
+            }
 
-	 // Handle regular case expressions
-	 private TypeCheckerResult forCaseExprNormalOnly(CaseExpr that,
-			 TypeCheckerResult param_result,
-			 Option<TypeCheckerResult> compare_result_,
-			 TypeCheckerResult equalsOp_result, TypeCheckerResult inOp_result,
-			 List<Triple<CaseClause,TypeCheckerResult,TypeCheckerResult>> clauses_result,
-			 Option<TypeCheckerResult> else_result_) {
+            return forCaseExprNormal(that);
+        } else {
+            return forExtremumOnly(that, compare_result.unwrap(), clauses_result);
+        }
+    }
 
-		 Type param_type = param_result.type().unwrap();
-		 TypeCheckerResult compare_result = compare_result_.isNone() ? new TypeCheckerResult(that) : compare_result_.unwrap();
-		 TypeCheckerResult else_result = else_result_.isNone() ? new TypeCheckerResult(that) : else_result_.unwrap();
+    // Handle regular (non-extremum) case expressions
+    private TypeCheckerResult forCaseExprNormal(CaseExpr that) {
+        Option<TypeCheckerResult> else_result_ = recurOnOptionOfBlock(that.getElseClause());
+        Option<TypeCheckerResult> param_result_ = recurOnOptionOfExpr(that.getParam());
+        Option<TypeCheckerResult> compare_result_ = recurOnOptionOfOpRef(that.getCompare());
+        TypeCheckerResult equals_result = recur(that.getEqualsOp());
+        TypeCheckerResult in_result = recur(that.getInOp());
+        
+        // Check all of these subexpressions
+        if( (else_result_.isSome() && !else_result_.unwrap().isSuccessful()) || (param_result_.isSome() && !param_result_.unwrap().isSuccessful()) || 
+            (compare_result_.isSome() && !compare_result_.unwrap().isSuccessful()) || !equals_result.isSuccessful() || !in_result.isSuccessful() ) {
+            TypeCheckerResult.compose(that, subtypeChecker, equals_result, in_result,
+                    TypeCheckerResult.compose(that, subtypeChecker, else_result_, param_result_, compare_result_));
+        }
+        
+        List<TypeCheckerResult> clause_results = new ArrayList<TypeCheckerResult>(that.getClauses().size());
+        List<Type> clause_types = new ArrayList<Type>(that.getClauses().size());
+        
+        for( CaseClause clause : that.getClauses() ) {
+            Type param_type = param_result_.unwrap().type().unwrap(); // assured by the fact that we are caseExprNormal
+            
+            if( postInference ) {
+                // after inference, the case clause had better be a _RewriteCaseClause.
+                if( !(clause instanceof _RewriteCaseClause) ) return bug("All case clauses should be rewritten to reflect the chosen compare op.");
+                
+                _RewriteCaseClause rclause = (_RewriteCaseClause)clause;
+                Pair<Type, TypeCheckerResult> p = for_RewriteCaseClauseGetType(rclause, param_result_);
+                clause_results.add(p.second());
+                clause_types.add(p.first());
+            }
+            else {
+                // during inference, we'll try to apply the given compare op (if there is one) and otherwise try 
+                // equals and in. We will remake the CaseClasue as a _RewriteCaseClause, with a chosen opr.
+                Pair<Type, TypeCheckerResult> p = forCaseClauseRewriteAndGetType(clause, param_result_, compare_result_, equals_result, in_result);
+                clause_results.add(p.second());
+                clause_types.add(p.first());
+            }
+        }
+        
+        // Also, do else block if necessary
+        if( else_result_.isSome() ) {
+            clause_types.add(else_result_.unwrap().type().unwrap());
+        }
+        
+        Type result_type = NodeFactory.makeIntersectionType(CollectUtil.asSet(clause_types));
+        CaseExpr new_node = new CaseExpr(that.getSpan(),
+                                         that.isParenthesized(),
+                                         some(result_type),
+                                         (Option<Expr>)TypeCheckerResult.astFromResult(param_result_),
+                                         (Option<OpRef>)TypeCheckerResult.astFromResult(compare_result_),
+                                         (OpRef)equals_result.ast(),
+                                         (OpRef)in_result.ast(),
+                                         (List<CaseClause>)TypeCheckerResult.astFromResults(clause_results),
+                                         (Option<Block>)TypeCheckerResult.astFromResult(else_result_));
+        TypeCheckerResult result = TypeCheckerResult.compose(new_node, subtypeChecker, equals_result, in_result,
+                TypeCheckerResult.compose(new_node, subtypeChecker, clause_results),
+                TypeCheckerResult.compose(new_node, subtypeChecker, param_result_, compare_result_, else_result_));
 
-		 List<Type> clause_types = new ArrayList<Type>(that.getClauses().size()+1);
-		 TypeCheckerResult application_result = new TypeCheckerResult(that);
-		 TypeCheckerResult bool_result = new TypeCheckerResult(that);
-		 for(Triple<CaseClause, TypeCheckerResult,TypeCheckerResult> clause_result: clauses_result){
-			 Type clause_type = clause_result.second().type().unwrap();
+        // The application of operators (IN, EQUALS) could cause Inference Vars to be introduced
+        if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+            new_node = (CaseExpr)TypesUtil.closeConstraints(new_node, result);
+            result_type = (Type)TypesUtil.closeConstraints(result_type, result);
+        }
 
-			 clause_types.add(clause_result.third().type().unwrap());
+        return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, result);
+    }
+    
+    /**
+     * Typecheck the clause, using one of the ops (compare, equals, or in), return the type of the right-hand side block, and
+     * rewrite the CaseClause as a _RewriteCaseClause. All TypeCheckerResults must contain types, and must contain the AST type
+     * that is reflected by their name.
+     */
+    private Pair<Type, TypeCheckerResult> forCaseClauseRewriteAndGetType(CaseClause clause, Option<TypeCheckerResult> param_result_,
+            Option<TypeCheckerResult> compare_result_, TypeCheckerResult equals_result, TypeCheckerResult in_result) {
+        TypeCheckerResult match_result = recur(clause.getMatch());
+        TypeCheckerResult block_result = recur(clause.getBody());
+        
+        // make sure subexpressions were well-typed
+        if( !match_result.isSuccessful() || !block_result.isSuccessful() ) 
+            return Pair.<Type,TypeCheckerResult>make(Types.BOTTOM, TypeCheckerResult.compose(clause, subtypeChecker, match_result, block_result));
+        
+        Type match_type = match_result.type().unwrap();
+        Type block_type = block_result.type().unwrap();
+        OpRef chosen_op;
+        Option<Pair<Type, ConstraintFormula>> application_result;
+        Type param_type = param_result_.unwrap().type().unwrap();
+        ArgList args = new ArgList(param_type, match_type);
+        
+        // If compare is some, we use that operator
+        if( compare_result_.isSome() ) {
+            chosen_op = (OpRef)compare_result_.unwrap().ast();
+            Type compare_type = compare_result_.unwrap().type().unwrap();
+            application_result = TypesUtil.applicationType(subtypeChecker, compare_type, args);
+        }
+        else {
+            // Check both = and IN operators
+            // we first want to do <: generator test.
+            // If both are sat, we use =, if only gen_subtype_c is sat, we use IN
+            ConstraintFormula gen_subtype_c =
+                subtypeChecker.subtype(match_type, Types.makeGeneratorType(NodeFactory.make_InferenceVarType(clause.getSpan())));
+            ConstraintFormula gen_subtype_p =
+                subtypeChecker.subtype(param_type, Types.makeGeneratorType(NodeFactory.make_InferenceVarType(clause.getSpan())));
 
+            if( gen_subtype_c.isSatisfiable() && !gen_subtype_p.isSatisfiable() ) {
+                // Implicit IN
+                chosen_op = (OpRef)in_result.ast();
+                Type in_type = in_result.type().unwrap();
+                application_result = TypesUtil.applicationType(subtypeChecker, in_type, args);
+            }
+            else {
+                // Implicit =
+                chosen_op = (OpRef)equals_result.ast();
+                Type equals_type = equals_result.type().unwrap();
+                application_result = TypesUtil.applicationType(subtypeChecker, equals_type, args);
+            }
+        }
+        
+        if( application_result.isNone() ) {
+            // error
+            String err = "No overloading of the operator " + chosen_op + " could be found for arguments of type " + 
+                         param_type + " (Param Type)  and " + match_type + " (Match Type).";
+            TypeCheckerResult e_r = new TypeCheckerResult(clause, TypeError.make(err, clause));
+            return Pair.<Type,TypeCheckerResult>make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, e_r, match_result, block_result));
+        }
+        else {
+            _RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
+                                                                 (Expr)match_result.ast(),
+                                                                 (Block)block_result.ast(),
+                                                                 chosen_op);
+            TypeCheckerResult app_result = new TypeCheckerResult(new_node, application_result.unwrap().second());
+            Type app_type = application_result.unwrap().first();
+            // We still must ensure the type of the application is a Boolean
+            TypeCheckerResult bool_result = checkSubtype(app_type, Types.BOOLEAN, new_node, 
+                    "Result of application of " + chosen_op + " to param and match expression must have type boolean, but had type " + app_type + ".");
+            return Pair.make(block_type, TypeCheckerResult.compose(new_node, subtypeChecker, bool_result, app_result, match_result, block_result));
+        }
+    }
+    /**
+     * Typecheck the clause AND return the type of the right-hand side.
+     */
+    private Pair<Type, TypeCheckerResult> for_RewriteCaseClauseGetType(_RewriteCaseClause clause, Option<TypeCheckerResult> param_result_) {
+        TypeCheckerResult match_result = recur(clause.getMatch());
+        TypeCheckerResult block_result = recur(clause.getBody());
+        
+        // make sure subexpressions were well-typed
+        if( !match_result.isSuccessful() || !block_result.isSuccessful() ) 
+            return Pair.<Type,TypeCheckerResult>make(Types.BOTTOM, TypeCheckerResult.compose(clause, subtypeChecker, match_result, block_result));
+        
+        Type match_type = match_result.type().unwrap();
+        Type block_type = block_result.type().unwrap();
+        Type param_type = param_result_.unwrap().type().unwrap();
+        
+        if( clause.getOp() instanceof _RewriteInstantiatedOpRefs ) {
+            // Our operator is an overloading, so we should find the statically most applicable one and rewrite
+            _RewriteInstantiatedOpRefs overloadings = (_RewriteInstantiatedOpRefs)clause.getOp();
+            Type arg_type = NodeFactory.makeTupleType(Useful.list(param_type, match_type));
+            TypeCheckerResult app_result_1 = 
+                findStaticallyMostApplicableFn(destructOpOverLoading(overloadings.getOverloadings()), arg_type, overloadings, overloadings.getOriginalName());
+            
+            if( app_result_1.isSuccessful() ) {
+                Type arrow_type = app_result_1.type().unwrap();
+                Option<Pair<Type, ConstraintFormula>> app_result_2 =
+                    TypesUtil.applicationType(subtypeChecker, arrow_type, new ArgList(param_type, match_type));
+                
+                if( app_result_2.isSome() ) {
+                    _RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
+                                                                         (Expr)match_result.ast(),
+                                                                         (Block)block_result.ast(),
+                                                                         (OpRef)app_result_1.ast());
+                    TypeCheckerResult app_result_3 = new TypeCheckerResult(new_node, app_result_2.unwrap().second());
+                    Type app_type = app_result_2.unwrap().first();
+                    // We still must ensure the type of the application is a Boolean
+                    TypeCheckerResult bool_result = checkSubtype(app_type, Types.BOOLEAN, new_node, 
+                            "Result of application of " + clause.getOp() + " to param and match expression must have type boolean, but had type " + app_type + ".");
+                    return Pair.make(block_type, TypeCheckerResult.compose(new_node, subtypeChecker, bool_result, app_result_3, match_result, block_result));
+                }
+                else {
+                    // should be impossible, unless applicationType and findStaticallyMostApplicable don't agree...
+                    return bug("applicationType and findStaticallyMostApplicable do not agree to function applicability. " + clause);
+                }
+            }
+            else {
+                return Pair.make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, app_result_1, match_result, block_result, param_result_.unwrap()));
+            }
+        }
+        else {
+            // no overloading, so just do the normal thing
+            TypeCheckerResult op_result = recur(clause.getOp());
+            if( !op_result.isSuccessful() ) return Pair.make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, op_result));
+            Option<Pair<Type, ConstraintFormula>> app_result_1 =
+                TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(param_type, match_type));
+            if( app_result_1.isSome() ) {
+                _RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
+                                                                     (Expr)match_result.ast(),
+                                                                     (Block)block_result.ast(),
+                                                                     (OpRef)op_result.ast());
+                TypeCheckerResult app_result_2 = new TypeCheckerResult(new_node, app_result_1.unwrap().second());
+                Type app_type = app_result_1.unwrap().first();
+                // We still must ensure the type of the application is a Boolean
+                TypeCheckerResult bool_result = checkSubtype(app_type, Types.BOOLEAN, new_node, 
+                        "Result of application of " + clause.getOp() + " to param and match expression must have type boolean, but had type " + app_type + ".");
+                return Pair.make(block_type, TypeCheckerResult.compose(new_node, subtypeChecker, bool_result, app_result_2, match_result, block_result));
+            }
+            else {
+                // error
+                String err = "No overloading of the operator " + clause.getOp() + " could be found for arguments of type " + 
+                             param_type + " (Param Type)  and " + match_type + " (Match Type).";
+                TypeCheckerResult e_r = new TypeCheckerResult(clause, TypeError.make(err, clause));
+                return Pair.<Type,TypeCheckerResult>make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, e_r, match_result, block_result));
+            }
+        }
+    }
+    
 
-			 Option<Pair<Type,ConstraintFormula>> application;
-			 ArgList args = new ArgList(param_type, clause_type);
-			 String err;
-
-			 if( that.getCompare().isSome() ) {
-				 application = TypesUtil.applicationType(subtypeChecker,
-						 compare_result_.unwrap().type().unwrap(), args);
-
-				 err = "Could not find overloading of " + that.getCompare().unwrap().getOriginalName() +
-				 " applicable for arguments of type " + param_type + " and " + clause_type + ".";
-			 }
-			 else {
-				 // Check both = and IN operators
-				 // we first want to do <: generator test.
-				 // If both are sat, we use =, if only gen_subtype_c is sat, we use IN
-				 ConstraintFormula gen_subtype_c =
-					 subtypeChecker.subtype(clause_type, Types.makeGeneratorType(NodeFactory.make_InferenceVarType(clause_result.second().ast().getSpan())));
-				 ConstraintFormula gen_subtype_p =
-					 subtypeChecker.subtype(param_type, Types.makeGeneratorType(NodeFactory.make_InferenceVarType(clause_result.second().ast().getSpan())));
-
-				 if( gen_subtype_c.isSatisfiable() && !gen_subtype_p.isSatisfiable() ) {
-					 // Implicit IN
-					 application = TypesUtil.applicationType(subtypeChecker, inOp_result.type().unwrap(), args);
-					 err = "Could not find overloading of " + that.getInOp().getOriginalName() +
-					 " applicable for arguments of type " + param_type + " and " + clause_type + ".";
-				 }
-				 else {
-					 // Implicit =
-					 application = TypesUtil.applicationType(subtypeChecker, equalsOp_result.type().unwrap(), args);
-					 err = "Could not find overloading of " + that.getEqualsOp().getOriginalName() +
-					 " applicable for arguments of type " + param_type + " and " + clause_type + ".";
-				 }
-			 }
-
-			 Node lhs_node = clause_result.second().ast();
-			 if( application.isNone() || application.unwrap().second().isFalse() ) {
-				 // NOTHIN
-				 TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, lhs_node));
-				 return TypeCheckerResult.compose(that, subtypeChecker, e_result, param_result, compare_result, equalsOp_result,
-				         inOp_result, else_result,
-				         TypeCheckerResult.compose(that, subtypeChecker, makeList(tripleSeconds(clauses_result))),
-				         TypeCheckerResult.compose(that, subtypeChecker, makeList(tripleThirds(clauses_result))));
-			 }
-			 else {
-				 // Result of application must be a boolean
-				 Type app_type = application.unwrap().first();
-				 bool_result = TypeCheckerResult.compose(that, subtypeChecker, bool_result,
-				         this.checkSubtype(app_type, Types.BOOLEAN, lhs_node,
-				         "Result of applying = op to param and clause must have Boolean type."));
-
-				 application_result = TypeCheckerResult.compose(that, subtypeChecker, application_result,
-				         new TypeCheckerResult(that, application.unwrap().second()));
-			 }
-		 }
-
-		 if( that.getElseClause().isSome() ) {
-			 clause_types.add(else_result_.unwrap().type().unwrap());
-		 }
-		 // The join of all clause rhs types is the type of the CaseExpr
-		 Type result_type = this.subtypeChecker.join(clause_types);
-
-		 CaseExpr new_node = new CaseExpr(that.getSpan(),
-		                                  that.isParenthesized(),
-		                                  some(result_type),
-		                                  some((Expr)param_result.ast()),
-		                                  (Option<OpRef>)TypeCheckerResult.astFromResult(compare_result_),
-		                                  (OpRef)equalsOp_result.ast(),
-		                                  (OpRef)inOp_result.ast(),
-		                                  makeList(tripleFirsts(clauses_result)),
-		                                  (Option<Block>)TypeCheckerResult.astFromResult(else_result_));
-
-		 TypeCheckerResult result = TypeCheckerResult.compose(new_node, result_type, subtypeChecker, application_result, bool_result,
-                 param_result, compare_result, equalsOp_result, inOp_result, else_result,
-                 TypeCheckerResult.compose(new_node, subtypeChecker, makeList(tripleSeconds(clauses_result))),
-                 TypeCheckerResult.compose(new_node, subtypeChecker, makeList(tripleThirds(clauses_result))));
-
-		 // The application of operators (IN, EQUALS) could cause Inference Vars to be introduced
-		 if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-		     new_node = (CaseExpr)TypesUtil.closeConstraints(new_node, result);
-		     result_type = (Type)TypesUtil.closeConstraints(result_type, result);
-		 }
-
-		 return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, result);
-	 }
-
-	 @Override
+    @Override
 	 public TypeCheckerResult forCatch(Catch that) {
 	     // We have to pass the name down so it can be bound to each exn type in turn
 	     Id bound_name = that.getName();
@@ -2920,83 +3136,92 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return juxtaposeMathPrimary(that);
 	 }
 
-	 @Override
-	 public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result,
-			 TypeCheckerResult obj_result, TypeCheckerResult DONTUSE,
-			 List<TypeCheckerResult> staticArgs_result,
-			 TypeCheckerResult arg_result) {
+    @Override
+    public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result,
+            TypeCheckerResult obj_result, TypeCheckerResult DONTUSE,
+            List<TypeCheckerResult> staticArgs_result,
+            TypeCheckerResult arg_result) {
 
-		 // Did the arguments typecheck?
-		 if( arg_result.type().isNone() ) {
-			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result,
-			         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		 }
-		 // We need the type of the receiver
-		 if( obj_result.type().isNone() ) {
-		     return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result,
-                     TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		 }
-		 // Check whether receiver can have methods
-		 Type recvr_type=obj_result.type().unwrap();
-		 List<TraitType> traits = traitTypesCallable(recvr_type);
-		 if( traits.isEmpty() ) {
-			 //error receiver not a trait
-			 String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
-			 TypeCheckerResult trait_result = new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj()));
-			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, trait_result,
-                     TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		 }
-		 else {
-			 Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
-				 findMethodsInTraitHierarchy(that.getMethod(), traits, arg_result.type().unwrap(),that.getStaticArgs(),that);
+        // Did the arguments typecheck?
+        if( arg_result.type().isNone() ) {
+            return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result,
+                    TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+        }
+        // We need the type of the receiver
+        if( obj_result.type().isNone() ) {
+            return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result,
+                    TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+        }
+        // Check whether receiver can have methods
+        Type recvr_type=obj_result.type().unwrap();
+        List<TraitType> traits = traitTypesCallable(recvr_type);
+        if( traits.isEmpty() ) {
+            //error receiver not a trait
+            String trait_err = "Target of a method invocation must have trait type, while this receiver has type " + recvr_type + ".";
+            TypeCheckerResult trait_result = new TypeCheckerResult(that.getObj(), TypeError.make(trait_err, that.getObj()));
+            return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, trait_result,
+                    TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+        }
+        else {
+            Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
+                findMethodsInTraitHierarchy(that.getMethod(), traits, arg_result.type().unwrap(),that.getStaticArgs(),that);
 
-			 // Now we join together the results, or return an error if there are no candidates.
-			 List<Method> candidates = candidate_pair.first();
-			 if(candidates.isEmpty()) {
-				 String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
-				 TypeCheckerResult no_methods = new TypeCheckerResult(that,TypeError.make(err,that));
+            // Now we join together the results, or return an error if there are no candidates.
+            List<Method> candidates = candidate_pair.first();
+            if(candidates.isEmpty()) {
+                String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
+                TypeCheckerResult no_methods = new TypeCheckerResult(that,TypeError.make(err,that));
 
-				 return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, no_methods,
-				         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-			 }
+                return TypeCheckerResult.compose(that, subtypeChecker, obj_result, arg_result, no_methods,
+                        TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+            }
 
-			 List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-				 public Type value(Method arg0) {
-					 return arg0.getReturnType();
-				 }}));
+            List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
+                public Type value(Method arg0) {
+                    return arg0.getReturnType();
+                }}));
 
-			 Type range = subtypeChecker.join(ranges);
-			 MethodInvocation new_node = new MethodInvocation(that.getSpan(),
-			                                                  that.isParenthesized(),
-			                                                  Option.<Type>some(range),
-			                                                  (Expr)obj_result.ast(),
-			                                                  that.getMethod(),
-			                                                  (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
-			                                                  (Expr)arg_result.ast());
+            Type range = subtypeChecker.join(ranges);
+            MethodInvocation new_node = new MethodInvocation(that.getSpan(),
+                                                             that.isParenthesized(),
+                                                             Option.<Type>some(range),
+                                                             (Expr)obj_result.ast(),
+                                                             that.getMethod(),
+                                                             (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
+                                                             (Expr)arg_result.ast());
 
-			 return TypeCheckerResult.compose(new_node, range, subtypeChecker, obj_result, arg_result,
-			         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
-			         TypeCheckerResult.compose(new_node, subtypeChecker, candidate_pair.second()));
-		 }
-	 }
+            TypeCheckerResult result = TypeCheckerResult.compose(new_node, range, subtypeChecker, obj_result, arg_result,
+                    TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
+                    TypeCheckerResult.compose(new_node, subtypeChecker, candidate_pair.second()));
 
-	 @Override
-	 public TypeCheckerResult forMultiFixity(MultiFixity that) {
-		 // No checks needed to be performed on a MultiFixity.
-		 return new TypeCheckerResult(that);
-	 }
+            // On the post-inference pass, an application could produce Inference vars
+            if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+                // close constraints
+                new_node = (MethodInvocation)TypesUtil.closeConstraints(new_node, subtypeChecker, result);
+                range = (Type)TypesUtil.closeConstraints(range, subtypeChecker, result);
+            }
 
-	 @Override
-	 public TypeCheckerResult forNoFixity(NoFixity that) {
-		 // No checks needed to be performed on a NoFixity.
-		 return new TypeCheckerResult(that);
-	 }
+            return TypeCheckerResult.compose(new_node, range, subtypeChecker, result);
+        }
+    }
 
-	 @Override
-	 public TypeCheckerResult forNormalParam(NormalParam that) {
-		 // No checks needed to be performed on a NormalParam.
-		 return new TypeCheckerResult(that);
-	 }
+    @Override
+    public TypeCheckerResult forMultiFixity(MultiFixity that) {
+        // No checks needed to be performed on a MultiFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    @Override
+    public TypeCheckerResult forNoFixity(NoFixity that) {
+        // No checks needed to be performed on a NoFixity.
+        return new TypeCheckerResult(that);
+    }
+
+    @Override
+    public TypeCheckerResult forNormalParam(NormalParam that) {
+        // No checks needed to be performed on a NormalParam.
+        return new TypeCheckerResult(that);
+    }
 
 	 @Override
 	 public TypeCheckerResult forNumberConstraintOnly(NumberConstraint that,

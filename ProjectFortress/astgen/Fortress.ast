@@ -785,6 +785,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * e.g.) x += 1
              */
             Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs);
+                /**
+                 * An assignment that has passed typechecking, and uses an operator.
+                 * Because different static args can be inferred for each Lhs assignment 
+                 * opr, this node gives a separate OpRef for each Lhs.
+                 */
+                _RewriteAssignment(List<OpRef> opsForLhs);
             /**
              * expressions beginning and ending with reserved words
              * Expr ::= DelimitedExpr
@@ -2105,6 +2111,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * e.g.) { Jupiter, Saturn, Uranus, Neptune } => "outer"
          */
         CaseClause(Expr match, Block body);
+            /**
+             * A rewritten case clause that includes the operator that is used for this
+             * particular case. Created in typechecking, because different ops can be
+             * chosen for different clauses.
+             */
+            _RewriteCaseClause(OpRef op);
         /**
          * catch clause used in try expressions
          * Names must be unqualified.
