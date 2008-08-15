@@ -46,6 +46,7 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
         /* (non-Javadoc)
          * @see java.util.AbstractCollection#contains(java.lang.Object)
          */
+        @SuppressWarnings("unchecked")
         @Override
         public boolean contains(Object o) {
             if (root == null)
@@ -198,6 +199,7 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
          return new BATree<T,U>(root, comp);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public U remove(Object arg0) {
         T k = (T) arg0;
@@ -282,6 +284,7 @@ public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
         root = null;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BATree) {
             BATree bat = (BATree) o;

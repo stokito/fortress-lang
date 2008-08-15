@@ -101,7 +101,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             return weight(right);
         }
 
-        public static int weight(BASnode n) {
+        public static <T> int weight(BASnode<T> n) {
             return n == null ? 0 : n.weight;
         }
 
@@ -292,6 +292,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             }
         }
 
+        @SuppressWarnings("unchecked")
         BASnode<T> delete(T k, Comparator<T> comp) {
             int c = comp.compare(k,key);
             BASnode<T> l = left;
@@ -308,7 +309,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
                    else
                        return null;
                }
-               return new BASnode(newthis[0], l, r);
+               return new BASnode<T>(newthis[0], l, r);
             } else if (c < 0) {
                 if (l == null)
                     return this;
@@ -476,6 +477,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object k) {
         if (root == null)
@@ -490,6 +492,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean contains(Object k) {
         BASnode<T> r = root;
@@ -503,6 +506,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         root = null;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BASet) {
             BASet bat = (BASet) o;

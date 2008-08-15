@@ -124,7 +124,7 @@ public abstract class NonPrimitive extends Simple_fcn {
     }
 
     public static List<FValue> stripAsIf(List<FValue> args) {
-        List<FValue> res = new ArrayList(args.size());
+        List<FValue> res = new ArrayList<FValue>(args.size());
         for (FValue v : args) {
             if (v instanceof FAsIf) {
                 res.add(((FAsIf)v).getValue());

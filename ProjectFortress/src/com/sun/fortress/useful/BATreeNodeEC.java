@@ -100,7 +100,7 @@ public class BATreeNodeEC<LookupKey, TrueKey, Value> {
         return weight(right);
     }
 
-    public static int weight(BATreeNodeEC n) {
+    public static <L, T, V> int weight(BATreeNodeEC<L, T, V> n) {
         return n == null ? 0 : n.weight;
     }
 

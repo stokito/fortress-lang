@@ -104,7 +104,7 @@ public class BA2Tree<T1, T2, U> {
             return weight(right);
         }
 
-        public static int weight(Node n) {
+        public static <T1,T2,U> int weight(Node<T1,T2,U> n) {
             return n == null ? 0 : n.weight;
         }
 
@@ -428,6 +428,7 @@ public class BA2Tree<T1, T2, U> {
         root = null;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
         if (o instanceof BA2Tree) {
             BA2Tree bat = (BA2Tree) o;
