@@ -259,6 +259,11 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     private String traitFields( List<Field> fields ){
+        /* RMC: Temporary hack to eliminate shadowing. After all, we don't actually
+         * use the AST types at all any longer.
+         */
+        return "";
+        /*
         StringBuffer buffer = new StringBuffer();
         boolean first = true;
         for ( Field field : filterFields(fields) ){
@@ -269,7 +274,7 @@ public class FortressAstGenerator extends CodeGenerator {
             buffer.append(sub("in_@name:@type\n", "@name", field.name(), "@type", fieldType(field.type()) ));
         }
         return buffer.toString();
-
+        */
     }
 
     private String fields( NodeInterface box ){
@@ -277,6 +282,11 @@ public class FortressAstGenerator extends CodeGenerator {
     }
 
     private String fields( NodeClass box ){
+        /* RMC: Temporary hack to eliminate shadowing. After all, we don't actually
+         * use the AST types at all any longer.
+         */
+        return "";
+        /*
         if ( box.isAbstract() ){
             return traitFields(box.fields());
         } else {
@@ -297,6 +307,7 @@ public class FortressAstGenerator extends CodeGenerator {
                 return buffer.toString();
             }
         }
+        */
     }
 
     /* a nice function for string replacement.
