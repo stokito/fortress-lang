@@ -1966,9 +1966,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     private String unMangle( String name ) {
-        if ( name.startsWith("$") )
-            return "fortress_" + name.substring(1);
-        else return name;
+        // There can be multiple $ signs in a generated name. 
+        // Multiple desugarings prepend $ signs to names. 
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < name.length(); i++) {
+            char next = name.charAt(i);
+            if (next == '$') {
+                result.append("fortress_");
+            } else {
+                result.append(next); 
+            }
+        }
+        return result.toString();
     }
 
     @Override public String forOpExprOnly(final OpExpr that, Option<String> exprType_result,

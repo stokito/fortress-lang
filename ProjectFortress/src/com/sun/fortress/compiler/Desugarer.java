@@ -36,15 +36,30 @@ import edu.rice.cs.plt.tuple.Pair;
 /**
  * Performs desugaring of Fortress programs after type checking. 
  * Specifically, the following desugarings are performed:
- *  - Object expressions are desugared into top-level object declarations.
+ * <ul>
+ * <li>Object expressions are desugared into top-level object declarations.
+ * <li>All field declarations in traits are transformed to abstract getter declarations</li>
+ * <li>All field references are transformed into getter invocations</li>
+ * <li>All field names in objects are rewritten so as not to clash with their getter names</li>
+ * <li>Getters and setters are added for all fields declared in an object definition (as appropriate)</li>
+ * </ul>
+ * Assumes all names referring to APIs are fully-qualified,
+ * and that the other transformations handled by the {@link com.sun.fortress.compiler.Disambiguator} have
+ * been performed.
  */
 public class Desugarer {
-
+    
     /**
+     * These two fields are temporary switches used for testing.
+     * 
+     * When getter_setter_desugar is true, the desugaring for getter and setter
+     * is called during static checking.  
+     * 
      * When the objExpr_desugar is true,
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
+     public static boolean getter_setter_desugar = true;    
     public static boolean objExpr_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {
@@ -119,6 +134,10 @@ public class Desugarer {
         	ObjectExpressionVisitor objExprVisitor =
         		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
         	comp = (Component) comp.accept(objExprVisitor);
+        }
+        if(getter_setter_desugar) {
+            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+            comp = (Component) comp.accept(desugaringVisitor);
         }
         return comp;
     }

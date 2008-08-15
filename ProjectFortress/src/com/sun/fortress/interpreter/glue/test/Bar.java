@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.glue.NativeMeth1;
 public class Bar extends NativeMeth1 {
 
     protected FValue act(FObject selfValue, FValue s) {
-        FValue x = selfValue.getSelfEnv().getValue("x");
+        FValue x = selfValue.selectField("x");
         return FString.make(s.getString() + x.getString());
     }
 

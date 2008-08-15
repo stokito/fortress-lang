@@ -31,6 +31,10 @@ public abstract class FObject extends FValue implements Selectable {
     public FValue select(String s) {
         return getSelfEnv().getValue(s);
     }
+    
+    public FValue selectField(String s) {
+        return getSelfEnv().getValue("$" + s);
+    }
 
     public String getString() { return type().toString(); }
 
