@@ -154,7 +154,22 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 }
             }
         }
+        newScope.addAll(fieldsInScope);
         return new DesugaringVisitor(newScope);
+    }
+    
+    private DesugaringVisitor extend(List<Decl> decls) {
+        List<Id> newScope = new ArrayList<Id>();
+
+        for (Decl decl: decls) {
+            if (decl instanceof VarDecl) {
+                for (LValueBind binding : (((VarDecl)decl).getLhs())) {
+                    newScope.add(binding.getName());
+                }
+            }
+        }
+        newScope.addAll(fieldsInScope);
+        return new DesugaringVisitor(newScope);        
     }
 
     private List<Decl> removeVarDecls(List<Decl> decls) {
@@ -235,13 +250,30 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
+    private LinkedList<Decl> makeGetters(final List<Decl> decls) {
+        final LinkedList<Decl> result = new LinkedList<Decl>();
+
+        for (Decl decl : decls) {
+            decl.accept(new NodeAbstractVisitor_void() {
+                public void forVarDecl(VarDecl decl) {
+                    for (LValueBind binding : decl.getLhs()) {
+                        if (! hidden(binding) && ! trans(binding) && ! hasExplicitGetter(binding.getName(), decls)) {
+                            result.add(makeGetter(binding));
+                        }
+                    }
+                }
+            });
+        }
+        return result;
+    }
+    
     private List<Decl> mangleDecls(List<Decl> decls) {
         return new NodeUpdateVisitor() {
             public Node forVarDecl(VarDecl that) {
                 List<LValueBind> newLVals = new ArrayList<LValueBind>();
 
                 for (LValueBind lval : that.getLhs()) {
-                    System.err.println(mangleName(lval.getName()));
+                    // System.err.println(mangleName(lval.getName()));
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
                 return new VarDecl(that.getSpan(), newLVals, that.getInit());
@@ -253,6 +285,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
                 return new AbsVarDecl(that.getSpan(), newLVals);
+            }
+            /* Do not descend into object expressions. Instead, we mangle their
+             * declarations when they're visited by DesugaringVisitor.
+             */
+            public Node forObjectExpr(ObjectExpr that) {
+                return that;
             }
         }.recurOnListOfDecl(decls);
     }
@@ -320,6 +358,21 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj_result, field_result,
                                     new ArrayList<StaticArg>(), NodeFactory.makeVoidLiteralExpr());
     }
+    
+    @Override
+    public Node forObjectExpr(ObjectExpr that) {
+        DesugaringVisitor newVisitor = extend(that.getDecls());
+
+        List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+        
+        LinkedList<Decl> gettersAndDecls = makeGetters(that.getDecls());
+        for (int i = decls_result.size() - 1; i >= 0; i--) {
+            gettersAndDecls.addFirst(decls_result.get(i));
+        }       
+        return forObjectExprOnly(that, that.getExprType(), extendsClause_result, gettersAndDecls);
+    }
+    
     @Override
     public Node forObjectDecl(ObjectDecl that) {
         DesugaringVisitor newVisitor = extend(that.getParams(), that.getDecls());

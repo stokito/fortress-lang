@@ -54,6 +54,7 @@ public final class FreeNameCollection {
         freeFnRefs      = new LinkedList<FnRef>();
         freeMethodRefs  = new LinkedList<FnRef>();
         freeOpRefs      = new LinkedList<OpRef>();
+        freeDimRefs     = new LinkedList<DimRef>();
         freeUnitRefs    = new LinkedList<UnitRef>();
         freeIntRefs     = new LinkedList<IntRef>();
         freeBoolRefs    = new LinkedList<BoolRef>();

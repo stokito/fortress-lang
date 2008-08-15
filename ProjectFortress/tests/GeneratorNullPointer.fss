@@ -26,7 +26,7 @@ f[\A,B\](x: A -> B): ZZ32 = 1
 f(x: Any): ZZ32 = 1000
 
 run(args:String...) = do
-    println(f(("The").seq))
+    (* println(f(("The").seq)) There is no .seq getter! *)
     println(f(seq("The")))
 end
 

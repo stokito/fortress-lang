@@ -35,25 +35,18 @@ import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * Performs desugarings of Fortress programs that can be done before type checking. 
- * Specifically, the following transformations are performed:
- * <ul>
- * <li>All field declarations in traits are transformed to abstract getter declarations</li>
- * <li>All field references are transformed into getter invocations</li>
- * <li>All field names in objects are rewritten so as not to clash with their getter names</li>
- * <li>Getters and setters are added for all fields declared in an object definition (as appropriate)</li>
- * </ul>
+ * At present, no desugarings are done in this phase, but we keep it as a placeholder
+ * for later use. To add a desugaring over a component, go to method desugarComponent
+ * and assign to variable comp the result of running your desugaring over comp. If you have
+ * written your desugaring as a visitor, simply write:
+ * 
+ * comp = comp.accept(<your visitor>);
+ * 
  * Assumes all names referring to APIs are fully-qualified,
  * and that the other transformations handled by the {@link com.sun.fortress.compiler.Disambiguator} have
  * been performed.
  */
 public class PreTypeCheckDesugarer {
-
-    /**
-     * These two fields are temporary switches used for testing.
-     * When getter_setter_desugar is true, the desugaring for getter and setter
-     * is called during static checking.  
-     */
-    public static boolean getter_setter_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -119,10 +112,13 @@ public class PreTypeCheckDesugarer {
     public static Component desugarComponent(ComponentIndex component,
                                              GlobalEnvironment env) {
      	Component comp = (Component) component.ast();
-        if(getter_setter_desugar) {
-            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
-            comp = (Component) comp.accept(desugaringVisitor);
-        }
+     	
+     	/* To add a desugaring over a component, go to method desugarComponent
+     	 * and assign to variable comp the result of running your desugaring over comp. If you have
+     	 * written your desugaring as a visitor, simply write:
+     	 * 
+     	 * comp = comp.accept(<your visitor>);
+     	 */
         return comp;
     }
 }
