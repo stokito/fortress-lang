@@ -1272,6 +1272,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
+    @Override public String for_RewriteAssignmentOnly(_RewriteAssignment that,
+                                                      Option<String> exprType_result,
+                                                      List<String> lhs_result,
+                                                      Option<String> opr_result,
+                                                      String rhs_result,
+                                                      List<String> opsForLhs_result) {
+        return forAssignmentOnly(that, exprType_result, lhs_result,
+                                  opr_result, rhs_result);
+    }
+
     @Override public String forBlockOnly(Block that, Option<String> exprType_result,
                                          List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
@@ -1865,7 +1875,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    
+
 
     @Override
     public String for_RewriteFnRefOverloadingOnly(
@@ -3017,6 +3027,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               String match_result,
                                               String body_result) {
         return match_result + " => " + body_result;
+    }
+
+    @Override public String for_RewriteCaseClauseOnly(_RewriteCaseClause that,
+                                                      String match_result,
+                                                      String body_result,
+                                                      String op_result) {
+        return forCaseClauseOnly(that, match_result, body_result);
     }
 
     @Override public String forCatchOnly(Catch that,
