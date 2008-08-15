@@ -69,13 +69,13 @@ transient private void NNCommentContent =
 
 transient private void NewlineComment = Comment;
 
-transient void w  = void:Whitespace*; // whitespace optional
-transient void wr = void:Whitespace+; // whitespace required
+transient void w  = Whitespace*; // whitespace optional
+transient void wr = Whitespace+; // whitespace required
 
-transient void s  = void:Space*;      // space optional
-transient void sr = void:Space+;      // space required
+transient void s  = Space*;      // space optional
+transient void sr = Space+;      // space required
 
-transient void nl = s void:Newline w ; // required newline in whitespace
+transient void nl = s Newline w ; // required newline in whitespace
 transient void br = nl / s semicolon w;      // line break
 
 /* RectSeparator ::= (w ;)+ w / nl / sr */
