@@ -1943,12 +1943,6 @@ trait String extends { StandardTotalOrder[\String\],
     getter indices() : FullRange[\ZZ32,true\]
     getter generator() : Generator[\Char\]
     opr |self| : ZZ32
-    opr =(self, other:String): Boolean
-    opr <(self, other:String): Boolean
-    opr <=(self, other:String): Boolean
-    opr >(self, other:String): Boolean
-    opr >=(self, other:String): Boolean
-    opr CMP(self, other:String): TotalComparison
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     opr [i:ZZ32]: Char
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
@@ -1983,10 +1977,8 @@ trait String extends { StandardTotalOrder[\String\],
     (** opr // appends with a single newline separator. **)
     opr //(self) : String
     opr //(self, a:String): String
-    (* trouble ?
     opr //(self, a:Any): String
     opr //(a:Any, self): String
-    *)
 
     (** opr /// appends with a double newline separator **)
     opr ///(self) : String

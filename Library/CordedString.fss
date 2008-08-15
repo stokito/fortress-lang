@@ -1,0 +1,63 @@
+component CordedString
+export CordedString
+
+  object CatString(left: String, right:String)  extends String
+    sizeField = left.size() + right.size()
+    getter size() = sizeField
+    getter bounds() = 0#sizeField
+    getter generator() = ConcatGenerator(left.generator(), right.generator())
+    opr CMP(self, other: String) =  
+        if |left| ≥ |other| 
+        then 
+            left CMP other 
+        else 
+            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):]) 
+        end
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = EqualTo
+    
+    get(i): Char = 'x'
+    
+    opr[r0:Range[\ZZ32\]] : String =  do
+        if r0 ≤ left.bounds() then
+            left[r0]
+        else
+            EmptyString (* unfinished *)
+        end
+    end
+    
+    opr || (self, other:String): String = CatString(self, other)
+    opr || (_:EmptyString, other:String) = other
+    opr || (self, _:EmptyString) = self
+    opr || (self, other:Char) = CatString(self, other.toString())
+        
+  end
+  
+  object ConcatGenerator[\T\](first:Generator[\T\], second:Generator[\T\])
+        extends Generator[\T\]
+    generate[\R\](r: Reduction[\R\], body:T->R):R =
+        r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
+  end
+   
+  
+  value object EmptyString extends String
+    getter size() = 0
+    getter bounds() = 0#0
+    getter generator() = Nothing[\Char\]
+    opr CMP(self, other: String) =
+        |self| CMP |other|
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
+    
+    get(i): Char = fail("Can't get characters from an empty string")
+    
+    opr[r: Range[\ZZ32\]] : String = do
+        rr = (self.indices())[r]     (* to raise a bounds error *)
+        EmptyString
+    end
+            
+    opr || (self, other:String): String = other
+    opr || (other: String, self): String = other
+    opr || (self, _: EmptyString): String = self
+    opr || (self, other:Char) = other.toString()
+  end
+
+end
