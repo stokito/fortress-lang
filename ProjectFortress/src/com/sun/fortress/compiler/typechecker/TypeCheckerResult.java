@@ -37,6 +37,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
+import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
@@ -159,6 +160,15 @@ public class TypeCheckerResult extends StaticPhaseResult {
 				collectEnvMaps(Arrays.asList(results)));
 	}
 
+    public static TypeCheckerResult compose(Node _ast, TypeAnalyzer type_analyzer, Option<TypeCheckerResult>... results) {
+        List<TypeCheckerResult> real_results = 
+            CollectUtil.makeList(IterUtil.map(IterUtil.filter(Arrays.asList(results), new Predicate<Option<TypeCheckerResult>>(){
+                public boolean contains(Option<TypeCheckerResult> arg0) { return arg0.isSome(); }}),
+                new Lambda<Option<TypeCheckerResult>,TypeCheckerResult>(){
+                    public TypeCheckerResult value(Option<TypeCheckerResult> arg0) {return arg0.unwrap(); }}));
+        return compose(_ast, type_analyzer, real_results);
+    }
+	
 	public static TypeCheckerResult compose(Node _ast, 
 			TypeAnalyzer type_analyzer, 
 			List<TypeCheckerResult> results) {

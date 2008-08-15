@@ -290,50 +290,50 @@ public abstract class ConstraintFormula {
 			}
 		}
 		
-		private ConstraintFormula replaceAndRemove(final _InferenceVarType new_ivar, final List<_InferenceVarType> to_remove) {
-			final Lambda<_InferenceVarType,_InferenceVarType> sigma = new Lambda<_InferenceVarType,_InferenceVarType>(){
-				public _InferenceVarType value(_InferenceVarType arg0) {
-					if( to_remove.contains(arg0) )
-						return new_ivar;
-					else
-						return arg0;
-				}};
-			
-			final NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
-				@Override
-				public Node for_InferenceVarType(_InferenceVarType that) {
-					return sigma.value(that);
-				}
-			};
-			
-			Lambda<Type,Type> lambda = new Lambda<Type,Type>(){
-				public Type value(Type arg0) { return (Type)arg0.accept(replacer); }};
-			
-			MultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
-			MultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
-			for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarUpperBounds.entrySet() ) {
-				_InferenceVarType ivar = entry.getKey();
-				Set<Type> u_bounds = entry.getValue();
-				new_uppers.putItems((_InferenceVarType)sigma.value(ivar),
-						CollectUtil.asSet(IterUtil.map(u_bounds, lambda)));
-			}
-			for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarLowerBounds.entrySet() ) {
-				_InferenceVarType ivar = entry.getKey();
-				Set<Type> l_bounds = entry.getValue();
-				new_lowers.putItems((_InferenceVarType)sigma.value(ivar), CollectUtil.asSet(IterUtil.map(l_bounds, lambda)));
-			}
-			
-			// "Remove redundant constraints"
-			// For now we will just remove #1 <: #1
-			new_uppers.removeItem(new_ivar, new_ivar);
-			new_lowers.removeItem(new_ivar, new_ivar);
-			
-			// No remaining constraints means that the entire constraint was vaccuously true.
-			return 
-				(new_uppers.isEmpty() && new_lowers.isEmpty()) ?
-						TRUE :
-						new ConjunctiveFormula(new_uppers, new_lowers, this.history);
-		}
+        private ConstraintFormula replaceAndRemove(final _InferenceVarType new_ivar, final List<_InferenceVarType> to_remove) {
+            final Lambda<_InferenceVarType,_InferenceVarType> sigma = new Lambda<_InferenceVarType,_InferenceVarType>(){
+                public _InferenceVarType value(_InferenceVarType arg0) {
+                    if( to_remove.contains(arg0) )
+                        return new_ivar;
+                    else
+                        return arg0;
+                }};
+
+            final NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
+                @Override
+                public Node for_InferenceVarType(_InferenceVarType that) {
+                    return sigma.value(that);
+                }
+            };
+
+            Lambda<Type,Type> lambda = new Lambda<Type,Type>(){
+                public Type value(Type arg0) { return (Type)arg0.accept(replacer); }};
+
+            MultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
+            MultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
+            for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarUpperBounds.entrySet() ) {
+                _InferenceVarType ivar = entry.getKey();
+                Set<Type> u_bounds = entry.getValue();
+                new_uppers.putItems((_InferenceVarType)sigma.value(ivar),
+                        CollectUtil.asSet(IterUtil.map(u_bounds, lambda)));
+            }
+            for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarLowerBounds.entrySet() ) {
+                _InferenceVarType ivar = entry.getKey();
+                Set<Type> l_bounds = entry.getValue();
+                new_lowers.putItems((_InferenceVarType)sigma.value(ivar), CollectUtil.asSet(IterUtil.map(l_bounds, lambda)));
+            }
+
+            // "Remove redundant constraints"
+            // For now we will just remove #1 <: #1
+            new_uppers.removeItem(new_ivar, new_ivar);
+            new_lowers.removeItem(new_ivar, new_ivar);
+
+            // No remaining constraints means that the entire constraint was vaccuously true.
+            return 
+            (new_uppers.isEmpty() && new_lowers.isEmpty()) ?
+                    TRUE :
+                    new ReplacedConstraintFormula(new ConjunctiveFormula(new_uppers, new_lowers, this.history), new_ivar, to_remove);
+        }
 		
 		// Returns a solved constraint formula, solved by doing the steps in 20.2 of spec1 beta
 		@Override
@@ -744,6 +744,47 @@ public abstract class ConstraintFormula {
         public String toString() { return "(true)"; }
     };
 
+    /**
+     * When inference variables have been removed because of cycles, we still need to preserve the
+     * inference variables that were removed, so that later when getMap is called, we will still know
+     * what those removed inference variables were discovered to be.
+     */
+    private static final class ReplacedConstraintFormula extends ConstraintFormula {
+        private final ConstraintFormula delegate;
+        private final _InferenceVarType newIVar;
+        private  final List<_InferenceVarType> removedIVars;
+        
+        public ReplacedConstraintFormula(ConstraintFormula delegate, _InferenceVarType newIVar, List<_InferenceVarType> removedIVars) {
+            this.delegate = delegate;
+            this.newIVar = newIVar;
+            this.removedIVars = removedIVars;
+        }
+        
+        @Override
+        public Map<_InferenceVarType, Type> getMap() {
+            Map<_InferenceVarType, Type> old_map = delegate.getMap();
+            if( !old_map.containsKey(newIVar) )
+                return old_map;
+            
+            Map<_InferenceVarType, Type> new_map = new HashMap<_InferenceVarType, Type>();
+            for( _InferenceVarType removedIVar : removedIVars ) {
+                new_map.put(removedIVar, old_map.get(newIVar));
+            }
+            return CollectUtil.union(old_map, new_map);
+        }
+        
+        @Override
+        protected ConstraintFormula solve() {
+            return new ReplacedConstraintFormula(delegate.solve(), newIVar, removedIVars);
+        }
+        
+        @Override public ConstraintFormula and(ConstraintFormula c, SubtypeHistory history) { return delegate.and(c, history); }
+        @Override public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return delegate.applySubstitution(sigma); }
+        @Override public boolean isFalse() { return delegate.isFalse(); }
+        @Override public boolean isTrue() { return delegate.isTrue(); }
+        @Override public ConstraintFormula or(ConstraintFormula c, SubtypeHistory history) { return delegate.or(c, history); }
+    }
+    
     /**
      * AND together all of the given constraints.
      */
