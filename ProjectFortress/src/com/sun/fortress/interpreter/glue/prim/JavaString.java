@@ -102,6 +102,14 @@ public class JavaString extends NativeConstructor {
         }
     }
 
+    protected static abstract class sC2I extends NativeMeth1 {
+        protected abstract int f(java.lang.String s, int c);
+        protected final FInt act(FObject self, FValue c) {
+            return FInt.make(f(((FString)self).getString(),
+                               ((FChar)c).getChar()));
+        }
+    }
+
     public static final class Size extends s2I {
         protected int f(java.lang.String s) {
             return s.length();
@@ -147,6 +155,12 @@ public class JavaString extends NativeConstructor {
     public static final class App extends ss2S {
         protected java.lang.String f(java.lang.String x, java.lang.String y) {
             return x + y;
+        }
+    }
+
+    public static final class IndexOf extends sC2I {
+        protected int f(java.lang.String s, int c) {
+            return s.indexOf((char)c);
         }
     }
 
