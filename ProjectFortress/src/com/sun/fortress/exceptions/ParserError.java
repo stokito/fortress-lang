@@ -22,7 +22,13 @@ import xtc.parser.ParserBase;
 
 
 public class ParserError extends StaticError {
-	private final ParseError _parseError;
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 2055048497086874145L;
+    
+    private final ParseError _parseError;
 	private final String _location;
 
 	public ParserError(ParseError parseError, ParserBase parser) {

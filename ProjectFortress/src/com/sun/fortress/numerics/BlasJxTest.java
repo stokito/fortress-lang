@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 public class BlasJxTest extends TestCase {
 
     public BlasJxTest(){
-        Blas b = new Blas();
+        new Blas();
     }
 
     public void testDot1(){

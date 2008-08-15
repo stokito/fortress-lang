@@ -21,6 +21,12 @@ import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
 
 public abstract class StaticError extends RuntimeException implements HasAt {
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -4401235748242748034L;
+
     public static String errorMsg(Object... messages) {
         return ErrorMsgMaker.errorMsg(messages);
     }
@@ -50,6 +56,11 @@ public abstract class StaticError extends RuntimeException implements HasAt {
      */
     public static StaticError make(final String description, final String location) {
         return new StaticError() {
+            /**
+             * Make Eclipse happy
+             */
+            private static final long serialVersionUID = -7329719676960380409L;
+
             public String description() { return description; }
             public String at() { return location; }
         };

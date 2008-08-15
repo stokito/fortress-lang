@@ -32,6 +32,7 @@ import java.util.List;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+@SuppressWarnings(value={"unchecked"})
 abstract public class NodeReflection {
     // For minor efficiency, cache the fields, classes, and constructors.
     // Note that reflection is filtered to exclude certain fields, and to

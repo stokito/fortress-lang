@@ -24,6 +24,11 @@ package com.sun.fortress.exceptions.transactions;
 public class PanicException extends java.lang.RuntimeException {
 
     /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -6766422517645303415L;
+
+    /**
      * Creates new <code>PanicException</code> with no detail message.
      */
     public PanicException() {

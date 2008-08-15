@@ -24,7 +24,13 @@ package com.sun.fortress.exceptions.shell;
  * enable the inconsistency to be debugged and/or worked around. 
  */
 public class ShellException extends RuntimeException {
-   public ShellException(Exception e) {
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 75009923473500186L;
+
+    public ShellException(Exception e) {
       super(e.getMessage());
    }
 }

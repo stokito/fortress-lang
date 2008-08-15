@@ -23,6 +23,11 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
  **/
 public class AbortedException extends java.lang.RuntimeException {
 
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 8609386577886973499L;
+
     Transaction t;
     String threadName;
 

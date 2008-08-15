@@ -25,6 +25,11 @@ import com.sun.fortress.useful.HasAt;
 public abstract class TypeError extends StaticError {
 
     /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -3586975274806304888L;
+
+    /**
      * Make a simple static error with the given location.
      */
     public static StaticError make(String description, HasAt location) {
@@ -37,6 +42,11 @@ public abstract class TypeError extends StaticError {
      */
     public static StaticError make(final String description, final String location) {
         return new TypeError() {
+            /**
+             * Make Eclipse happy
+             */
+            private static final long serialVersionUID = -1707250144805470592L;
+            
             public String description() { return description; }
             public String at() { return location; }
         };

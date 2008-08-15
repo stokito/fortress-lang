@@ -25,6 +25,12 @@ import com.sun.fortress.useful.HasAt;
 import edu.rice.cs.plt.iter.IterUtil;
 
 public class MultipleStaticError extends StaticError implements Iterable<StaticError> {
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -4970962399662866759L;
+
     List<StaticError> errors;
 
     public MultipleStaticError(Iterable<? extends StaticError> errors){

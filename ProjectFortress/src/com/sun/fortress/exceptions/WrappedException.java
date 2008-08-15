@@ -22,7 +22,12 @@ import java.io.StringWriter;
 
 public class WrappedException extends StaticError {
 
-	private final Throwable throwable;
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 4517154293769839846L;
+
+    private final Throwable throwable;
 	private boolean debug;
 
 	@Override

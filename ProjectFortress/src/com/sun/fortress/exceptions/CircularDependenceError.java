@@ -27,6 +27,11 @@ import com.sun.fortress.useful.Useful;
 
 public class CircularDependenceError extends ProgramError {
 
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -7752758982073878879L;
+
     public CircularDependenceError() {
         // TODO Auto-generated constructor stub
     }

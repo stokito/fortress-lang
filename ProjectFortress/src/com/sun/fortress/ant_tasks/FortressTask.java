@@ -24,14 +24,6 @@ import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
 
 public class FortressTask extends BatchTask {
-    private boolean ast = false;
-    private boolean keep = false;
-    private boolean pause = false;
-    private boolean parseOnly = false;
-    private boolean nolib = false;
-    private boolean verbose = false;
-    private boolean test = false;
-    private boolean compile = false;
 
     public FortressTask() { super("fortress"); }
 

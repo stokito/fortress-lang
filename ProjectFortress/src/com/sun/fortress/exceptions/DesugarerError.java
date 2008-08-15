@@ -21,7 +21,12 @@ import com.sun.fortress.nodes_util.Span;
 
 public class DesugarerError extends CompilerError {
 
-	public DesugarerError(String msg) {
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 9175573225013299496L;
+
+    public DesugarerError(String msg) {
 		super(msg);
 	}
 
