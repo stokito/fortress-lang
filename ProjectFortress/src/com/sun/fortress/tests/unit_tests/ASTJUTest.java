@@ -306,7 +306,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         Lex lex = new Lex(bs(s));
         Unprinter up = new Unprinter(lex);
         up.expectPrefix("[");
-        List l2 = up.readList();
+        List<Object> l2 = up.readList();
         assertEquals(2, l2.size());
         assertEquals(l.get(0), l2.get(0));
         assertEquals(l.get(1), l2.get(1));
@@ -331,7 +331,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         Lex lex = new Lex(bs(s));
         Unprinter up = new Unprinter(lex);
         up.expectPrefix("[");
-        List l2 = up.readList();
+        List<Object> l2 = up.readList();
         assertEquals(3, l2.size());
         assertEquals(l.get(0), l2.get(0));
         assertEquals(l.get(1), l2.get(1));
@@ -360,7 +360,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         Lex lex = new Lex(bs(s));
         Unprinter up = new Unprinter(lex);
         up.expectPrefix("[");
-        List l2 = up.readList();
+        List<Object> l2 = up.readList();
         assertEquals(3, l2.size());
         assertEquals(l.get(0), l2.get(0));
         assertEquals(l.get(1), l2.get(1));
@@ -389,7 +389,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         Lex lex = new Lex(bs(s));
         Unprinter up = new Unprinter(lex);
         up.expectPrefix("[");
-        List l2 = up.readList();
+        List<Object> l2 = up.readList();
         assertEquals(3, l2.size());
         assertEquals(l.get(0), l2.get(0));
         assertEquals(l.get(1), l2.get(1));

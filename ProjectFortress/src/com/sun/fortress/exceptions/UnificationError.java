@@ -28,6 +28,11 @@ import com.sun.fortress.useful.HasAt;
 
 public class UnificationError extends ProgramError {
 
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -7366357826493314427L;
+
     public UnificationError() {
         super();
     }

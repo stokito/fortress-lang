@@ -21,6 +21,12 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class LabelException extends RuntimeException {
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -8845405020352925483L;
+    
     final FValue res;
     final HasAt loc;
 

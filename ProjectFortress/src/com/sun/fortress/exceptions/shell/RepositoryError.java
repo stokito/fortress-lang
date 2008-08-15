@@ -24,6 +24,12 @@ package com.sun.fortress.exceptions.shell;
  *  Specification). 
  */
 public class RepositoryError extends RuntimeException {
+
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 3012759991453588461L;
+
     public RepositoryError(String _message) {
         super(_message);
     }

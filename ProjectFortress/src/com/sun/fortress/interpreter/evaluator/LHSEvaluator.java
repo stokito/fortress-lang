@@ -150,8 +150,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     @Override
     public Voidoid forUnpastingBind(UnpastingBind x) {
-        Id name = x.getName();
-        List<ExtentRange> dim = x.getDim();
         return super.forUnpastingBind(x);
     }
 
@@ -160,8 +158,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     @Override
     public Voidoid forUnpastingSplit(UnpastingSplit x) {
-        int dim = x.getDim();
-        List<Unpasting> elems = x.getElems();
         return super.forUnpastingSplit(x);
     }
 

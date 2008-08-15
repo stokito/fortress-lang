@@ -146,7 +146,6 @@ public class StringEncodedAggregate {
     }
 
     public static StringBuffer mapPairToString(String from1, String to1, String from2, String to2, char d, StringBuffer sb) {
-        boolean first = true;
 
 
             if (from1.indexOf(d) != -1)

@@ -208,7 +208,7 @@ public final class MagicNumbers {
      * the one that is built in to the standard library.
      */
 
-    public static int hashList(List list, int seed) {
+    public static int hashList(List<? extends Object> list, int seed) {
         int ls = list.size();
         int xx = seed | 1;
         int ff = array[ls & 1023]; // Depends on array being large enough
@@ -220,7 +220,7 @@ public final class MagicNumbers {
         return xx;
     }
 
-    public static int hashList(List list) {
+    public static int hashList(List<? extends Object> list) {
         int ls = list.size();
         return hashList(list, ls * array[ (ls + 512) & 1023]);
     }

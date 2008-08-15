@@ -24,6 +24,11 @@ import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
  **/
 public class OrphanedException extends java.lang.RuntimeException {
 
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 8015908377885056915L;
+
     Transaction t;
     String threadName;
 

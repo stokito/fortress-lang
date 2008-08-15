@@ -21,7 +21,12 @@ import com.sun.fortress.nodes_util.Span;
 
 public class MacroError extends CompilerError {
 
-	public MacroError(String msg) {
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = 4547207829531871269L;
+
+    public MacroError(String msg) {
 		super(msg);
 	}
 	

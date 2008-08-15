@@ -96,15 +96,15 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     public void testAPIName() {
         Span span11 = newSpan("cat", 1, 2, 3);
         Span span12 = newSpan("cat", 1, 2, 3);
-        Span span13 = newSpan("cat", 2, 4, 5);
+        newSpan("cat", 2, 4, 5);
         APIName di1 = NodeFactory.makeAPIName(span11, newId("snert"));
         APIName di2 = NodeFactory.makeAPIName(span11, newId("snert"));
         APIName di3 = NodeFactory.makeAPIName(span11, newId("snort"));
         Assert.assertEquals(di1, di2);
         Assert.assertEquals(di1.hashCode(), di2.hashCode());
         Assert.assertFalse(di1.equals(di3));
-        int h1 = di1.hashCode();
-        int h2 = di3.hashCode();
+        di1.hashCode();
+        di3.hashCode();
         Assert.assertFalse(di1.hashCode() == di3.hashCode());
 
         APIName di4 = NodeFactory.makeAPIName(span12, Useful.list(newId("foo"), newId("bar"), newId("baz")));
@@ -226,7 +226,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
         een(t1, t2, t3);
 
         try {
-            TupleExpr t4 = new TupleExpr(span1, false, Collections.<Expr>emptyList());
+            new TupleExpr(span1, false, Collections.<Expr>emptyList());
             Assert.fail("Should have thrown exception, empty list not allowed");
         } catch (Error e) {
 

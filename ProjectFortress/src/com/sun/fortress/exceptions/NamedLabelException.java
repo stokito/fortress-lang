@@ -21,6 +21,11 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class NamedLabelException extends LabelException {
+    /**
+     * Make Eclipse happy
+     */
+    private static final long serialVersionUID = -3703662379352447236L;
+
     final String name;
 
     public String toString() {
