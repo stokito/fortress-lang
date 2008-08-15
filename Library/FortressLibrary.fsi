@@ -389,6 +389,7 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr MOD(self,b:I):I
     opr GCD(self,b:I):I
     opr LCM(self,b:I):I
+    opr DIVIDES(self,b:I):Boolean
     opr CHOOSE(self,b:I):I
     opr BITAND(self,b:I):I
     opr BITOR(self,b:I):I
