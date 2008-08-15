@@ -33,6 +33,8 @@ run(args:String...) = do
     tstEq("Div2", widen(-65536) DIV 35, widen(-1872))
     tstEq("Rem2", widen(-65536) REM 35, widen(-16))
     tstEq("Mod2", widen(-65536) MOD 35, widen(19))
+    tst("Divides1", 256 DIVIDES widen(65536))
+    tst("Divides2", NOT(17 DIVIDES widen(65536)))
     tstEq("Gcd", widen(65535) GCD 32769, widen(3))
     tstEq("Lcm", widen(65535) LCM 32769, widen(715838805))
     tstEq("Choose", widen(23) CHOOSE 14, widen(817190) )
