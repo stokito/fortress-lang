@@ -28,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.useful.BATreeNode;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.StringComparer;
 import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.Visitor2;
 

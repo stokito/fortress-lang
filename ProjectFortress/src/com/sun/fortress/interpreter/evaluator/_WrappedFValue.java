@@ -18,15 +18,8 @@
 package com.sun.fortress.interpreter.evaluator;
 
 import com.sun.fortress.nodes.*;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.*;
-import com.sun.fortress.useful.*;
 import com.sun.fortress.exceptions.InterpreterBug;
 
 /**

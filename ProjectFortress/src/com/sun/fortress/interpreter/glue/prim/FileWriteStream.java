@@ -27,7 +27,6 @@ import java.util.List;
 /* import java.lang.String; /* SPARE COPY  */
 import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FObject;

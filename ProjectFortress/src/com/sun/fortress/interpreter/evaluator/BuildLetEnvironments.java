@@ -23,7 +23,6 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;

@@ -21,7 +21,6 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.List;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FType;

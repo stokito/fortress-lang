@@ -19,10 +19,7 @@ package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.HashMap;
-import java.util.List;
-
 import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
-import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -31,7 +28,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
-import com.sun.fortress.interpreter.rewrite.RewriteInAbsenceOfTypeInfo;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;

@@ -18,7 +18,6 @@
 package com.sun.fortress.interpreter.evaluator.transactions.manager;
 
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
-import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
 import com.sun.fortress.interpreter.evaluator.transactions.util.Random;
 import java.util.TreeSet;
 

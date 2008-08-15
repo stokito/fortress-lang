@@ -17,17 +17,13 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import java.io.IOException;
-
 import jsr166y.forkjoin.ForkJoinWorkerThread;
-import sun.misc.Unsafe; // Only to provide the rethrow capability
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.Expr;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class TupleTask extends BaseTask {
     Evaluator eval;

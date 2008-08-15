@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.interpreter.Driver;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 

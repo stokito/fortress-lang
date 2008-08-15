@@ -16,9 +16,6 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import java.io.BufferedWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;

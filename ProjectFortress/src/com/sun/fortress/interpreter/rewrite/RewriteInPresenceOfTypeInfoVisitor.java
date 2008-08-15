@@ -17,11 +17,8 @@
 
 package com.sun.fortress.interpreter.rewrite;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
 import java.util.List;
 
-import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;

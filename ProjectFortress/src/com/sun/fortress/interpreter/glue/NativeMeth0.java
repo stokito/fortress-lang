@@ -19,14 +19,8 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.List;
 
-import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.Method;
-import com.sun.fortress.useful.HasAt;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A NativeMeth indicates that a method is implemented natively; the

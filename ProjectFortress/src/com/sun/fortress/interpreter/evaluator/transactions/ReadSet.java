@@ -16,8 +16,6 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.transactions;
-import com.sun.fortress.exceptions.transactions.PanicException;
-
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import java.util.AbstractSet;
 import java.util.concurrent.CopyOnWriteArrayList;

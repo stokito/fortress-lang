@@ -17,8 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator.values;
 
-import com.sun.fortress.interpreter.glue.prim.RR32;
-
 public class FRR32 extends NativeConstructor.FNativeObject {
     private final float val;
     private static volatile NativeConstructor con;

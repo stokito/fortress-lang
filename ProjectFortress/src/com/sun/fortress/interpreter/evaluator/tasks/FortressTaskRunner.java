@@ -18,22 +18,13 @@
 package com.sun.fortress.interpreter.evaluator.tasks;
 
 import jsr166y.forkjoin.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.sun.fortress.exceptions.FortressError;
-import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
-import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
-import com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager2;
 import com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager3;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.concurrent.Callable;
-
-import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.evaluator.values.FVoid;
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {
 
