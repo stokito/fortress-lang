@@ -2153,8 +2153,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       __builtinFactory2[\U,b0,s0,b1,s1\]()
   copy():Array2[\T,b0,s0,b1,s1\] =
       self.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i-b0,j-b1))
-  put(t:(ZZ32, ZZ32), v:T) : ()
-  get(t:(ZZ32, ZZ32)):T
+  put(t1:(ZZ32, ZZ32), v:T) : ()
+  get(t1:(ZZ32, ZZ32)):T
   t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
   (* Copied here for better return type information. *)
   map[\R\](f:T->R): Array2[\R,b0,s0,b1,s1\] =

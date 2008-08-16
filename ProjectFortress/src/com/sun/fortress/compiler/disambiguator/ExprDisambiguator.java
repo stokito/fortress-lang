@@ -29,7 +29,6 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
@@ -40,9 +39,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.Catch;
-import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
-import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
@@ -94,7 +91,6 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
-import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -169,19 +165,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (CHECK_FOR_SHADOWING) {
             if (! var.getText().equals("self") && ! var.getText().equals("_") &&
                 ! _uninitializedNames.contains(var)) {
-                for(Id shadowed : _env.explicitVariableNames(var)) {
-                    // Check Spans to ensure shadowed declaration is distinct.
-                    // This is necessary because Fortress supports recursive definitions.
-                    if (! var.getSpan().equals(shadowed.getSpan())) {
-                        error("Variable " + var + " is already declared at " + shadowed.getSpan(), var);
-                    }
-                }
-                for (Id shadowed : _env.explicitFunctionNames(var)) {
-                    // Check Spans to ensure shadowed declaration is distinct.
-                    // This is necessary because Fortress supports recursive definitions.
-                    if (! var.getSpan().equals(shadowed.getSpan())) {
-                        error("Variable " + var + " is already declared at " + shadowed.getSpan(), var);
-                    }
+                if( !_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty()) {
+                    error("Variable " + var + " is already declared.", var);
                 }
             }
         }
@@ -192,12 +177,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * scope.
      */
     private void checkForShadowingFunction(Id var, Set<Id> allowedShadowings) {
-        for(Id shadowed : _env.explicitVariableNames(var)) {
-            // Check Spans to ensure shadowed declaration is distinct.
-            // This is necessary because Fortress supports recursive definitions.
-            if (! allowedShadowings.contains(var) && ! var.getSpan().equals(shadowed.getSpan())) {
-                error("Variable " + var + " is already declared at " + shadowed.getSpan(), var);
-            }
+        if ( !_env.explicitVariableNames(var).isEmpty() && !allowedShadowings.contains(var)) {
+            error("Variable " + var + " is already declared.", var);
         }
     }
 
@@ -314,7 +295,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        NameEnv newEnv = new LocalVarEnv(_env, definedNames);
+        //NameEnv newEnv = new LocalVarEnv(_env, definedNames);
         ExprDisambiguator v = extendWithVars(definedNames, uninitializedNames);
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         return forLocalVarDeclOnly(that, type_result , bodyResult, lhsResult, rhsResult);

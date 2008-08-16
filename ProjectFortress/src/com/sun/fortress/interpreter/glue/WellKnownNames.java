@@ -30,8 +30,9 @@ public class WellKnownNames {
         return "__builtinFactory"+rank;
     }
 
-    public static String fortressLibrary = "FortressLibrary";
-    public static String fortressBuiltin = "FortressBuiltin";
+    public final static String fortressLibrary = "FortressLibrary";
+    public final static String fortressBuiltin = "FortressBuiltin";
+    public final static String anyTypeLibrary = "AnyType";
 
     public static final String[] defaultLibrary =
         { fortressLibrary,
@@ -41,30 +42,30 @@ public class WellKnownNames {
         //  "NativeArray"
         };
 
-    public static String varargsFactoryName = "__immutableFactory1";
-    public static String arrayElementTypeName = "T";
-    public static String arrayGetter = "get";
-    public static String arrayPutter = "init";
+    public final static String varargsFactoryName = "__immutableFactory1";
+    public final static String arrayElementTypeName = "T";
+    public final static String arrayGetter = "get";
+    public final static String arrayPutter = "init";
     
-    public static String matrix = "Matrix";
+    public final static String matrix = "Matrix";
 
-    public static String loop = "loop";
-    public static String generate = "__generate";
-    public static String nest = "__nest";
-    public static String map = "__map";
-    public static String singleton = "__singleton";
-    public static String cond = "__cond";
-    public static String whileCond = "__whileCond";
-    public static String bigOperator = "__bigOperator";
-    public static String bigOperator2 = "__bigOperator2";
-    public static String filter = "__filter";
+    public final static String loop = "loop";
+    public final static String generate = "__generate";
+    public final static String nest = "__nest";
+    public final static String map = "__map";
+    public final static String singleton = "__singleton";
+    public final static String cond = "__cond";
+    public final static String whileCond = "__whileCond";
+    public final static String bigOperator = "__bigOperator";
+    public final static String bigOperator2 = "__bigOperator2";
+    public final static String filter = "__filter";
 
-    public static String generatorTypeName = "Generator";
-    public static String generatorMatchName = "MATCH";
+    public final static String generatorTypeName = "Generator";
+    public final static String generatorMatchName = "MATCH";
 
-    public static String forbiddenException = "ForbiddenException";
-    public static String tryatomicFailureException = "TryAtomicFailure";
-    public static String matchFailureException = "MatchFailure";
-    public static String callerViolationException = "CallerViolation";
-    public static String calleeViolationException = "CalleeViolation";
+    public final static String forbiddenException = "ForbiddenException";
+    public final static String tryatomicFailureException = "TryAtomicFailure";
+    public final static String matchFailureException = "MatchFailure";
+    public final static String callerViolationException = "CallerViolation";
+    public final static String calleeViolationException = "CalleeViolation";
 }

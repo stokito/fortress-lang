@@ -127,9 +127,9 @@ end
 object Csr[\N extends Number, nat n, nat m\]
                  (rows:Array1[\SparseVector[\N,m\],0,n\])
         extends Matrix[\N,n,m\]
-    get(t:(ZZ32,ZZ32)):N = do (i,j)=t; (rows[i])[j] end
-    put(t:(ZZ32,ZZ32), v:N) = fail("put: Csr is immutable")
-    init0(t:(ZZ32,ZZ32), v:N) = fail("init: Csr is immutable")
+    get(t1:(ZZ32,ZZ32)):N = do (i,j)=t1; (rows[i])[j] end
+    put(t1:(ZZ32,ZZ32), v:N) = fail("put: Csr is immutable")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("init: Csr is immutable")
     replica[\U\]() = fail("Csr replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](rows,
@@ -171,9 +171,9 @@ end
 object Csc[\N extends Number, nat n, nat m\]
                  (cols:Array1[\SparseVector[\N,n\],0,m\])
         extends Matrix[\N,n,m\]
-    get(t:(ZZ32,ZZ32)) = do (i,j)=t;  (cols[j])[i] end
-    put(t:(ZZ32,ZZ32), v:N) = fail("put: Csc is immutable")
-    init0(t:(ZZ32,ZZ32), v:N) = fail("init: Csc is immutable")
+    get(t1:(ZZ32,ZZ32)) = do (i,j)=t;  (cols[j])[i] end
+    put(t1:(ZZ32,ZZ32), v:N) = fail("put: Csc is immutable")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("init: Csc is immutable")
     replica[\U\]() = fail("Csc replica undefined")
     indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
         SparseGen[\N,((ZZ32,ZZ32),N)\](cols,

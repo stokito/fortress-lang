@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -60,6 +61,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.FilteredRelation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Predicate2;
 import edu.rice.cs.plt.tuple.Option;
@@ -91,7 +93,9 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class Disambiguator {
 
-	/**
+	private static final Set<String> WELL_KNOWN_APIS = Useful.set(WellKnownNames.fortressLibrary, WellKnownNames.fortressBuiltin, WellKnownNames.anyTypeName);
+
+    /**
      * Disambiguate the names of nonterminals.
      */
     private static List<Api> disambiguateGrammarMembers(Collection<ApiIndex> apis,
@@ -126,18 +130,36 @@ public class Disambiguator {
         public Iterable<Api> apis() { return _apis; }
     }
 
+    /**
+     * Returns API names in the given list of exports that can be imported implicitly.
+     * This helps, for example, when compiling FortressLibrary, since that is one API that
+     * is normally imported implicitly. 
+     */
+    private static Set<APIName> findWellKnownExports(List<Export> exports) {
+        return IterUtil.fold(exports, new HashSet<APIName>(),new Lambda2<HashSet<APIName>,Export, HashSet<APIName>>(){
+            public HashSet<APIName> value(HashSet<APIName> arg0, Export arg1) {
+                for( APIName api : arg1.getApis() ) {
+                    if( WELL_KNOWN_APIS.contains(api.getText()) ) {
+                        arg0.add(api);
+                    }
+                }
+                return arg0;
+            }});
+    }
+    
     private static  Map<APIName, ApiIndex> filterApis(Map<APIName,ApiIndex> apis, Component comp) {
-    	return filterApis(Collections.unmodifiableMap(apis), comp.getImports());
+        Set<APIName> dont_import = findWellKnownExports(comp.getExports());
+        return filterApis(Collections.unmodifiableMap(apis), comp.getImports(), dont_import);
     }
-    
+
     private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
-    	// Insert 'this' api as an implicit import. This kind of strange, but the grammars
-    	// need them at a minimum.
-    	Import this_api_import = new ImportStar(api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
-    	return filterApis(Collections.unmodifiableMap(apis), 
-    			Useful.concat(Collections.singletonList(this_api_import), api.getImports()));
+        // Insert 'this' api as an implicit import. This kind of strange, but the grammars
+        // need them at a minimum.
+        Import this_api_import = new ImportStar(api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
+        return filterApis(Collections.unmodifiableMap(apis), 
+                Useful.concat(Collections.singletonList(this_api_import), api.getImports()), Collections.<APIName>emptySet());
     }
-    
+
     private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set, 
     		Predicate<K> pred) {
     	
@@ -213,91 +235,100 @@ public class Disambiguator {
     /**
      * Filter out whole apis or parts of apis based on the imports of a component or
      * api. FortressBuiltin and AnyType are always imported, and FortressLibrary is only 
-     * imported implicitly if it is not imported explicitly.
+     * imported implicitly if it is not imported explicitly. If {@code do_not_import} contains
+     * api names, those apis will not beimported no matter what.
      */
-    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports) { 
-    	final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
-    	final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
-    	
-    	NodeDepthFirstVisitor<Boolean> import_visitor = new NodeDepthFirstVisitor<Boolean>(){
-    		// Do nothing for template-related imports
-			@Override public Boolean defaultCase(Node that) {return false;}
+    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) { 
+        final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
+        final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
 
-			@Override
-			public Boolean forImportApi(ImportApi that) {
-				Boolean implib = true;
-				for( AliasedAPIName api : that.getApis() ) {
-					APIName name = api.getApi();
-					if(name.getText().equals(WellKnownNames.fortressLibrary))
-						implib=false;
-					if( !exceptions.containsKey(name) )
-						exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>());
-				}
-				return implib;
-			}
+        NodeDepthFirstVisitor<Boolean> import_visitor = new NodeDepthFirstVisitor<Boolean>(){
+            // Do nothing for template-related imports
+            @Override public Boolean defaultCase(Node that) {return false;}
 
-			@Override
-			public Boolean forImportNames(ImportNames that) {
-				APIName name = that.getApi();
-				
-				// TODO Handle these aliased names more thoroughly
-				List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), 
-				new Lambda<AliasedSimpleName,IdOrOpOrAnonymousName>(){
-					public IdOrOpOrAnonymousName value(
-							AliasedSimpleName arg0) {
-						return arg0.getName();
-					}}));
-				
-				if( allowed.containsKey(name) )
-					allowed.get(name).addAll(names);
-				else
-					allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
-				return !name.getText().equals(WellKnownNames.fortressLibrary);
-			}
+            @Override
+            public Boolean forImportApi(ImportApi that) {
+                Boolean implib = true;
+                for( AliasedAPIName api : that.getApis() ) {
+                    APIName name = api.getApi();
+                    if(name.getText().equals(WellKnownNames.fortressLibrary))
+                        implib=false;
+                    if( !exceptions.containsKey(name) )
+                        exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>());
+                }
+                return implib;
+            }
 
-			@Override
-			public Boolean forImportStar(ImportStar that) {
-				APIName name = that.getApi();
-				if( exceptions.containsKey(name) )
-					exceptions.get(name).addAll(that.getExcept());
-				else
-					exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExcept()));
-				return !name.getText().equals(WellKnownNames.fortressLibrary);
-			}
-    	};
-    	
-    	// Visit each import, populating the exceptions and allowed maps
-    	Iterable<Boolean> temp=IterUtil.map(imports, import_visitor);
-    	boolean importlibrary = true;
-    	for(Boolean t : temp){
-    		importlibrary&=t;
-    	}
-    	
-    	// Created filters for ApiIndex in apis
-    	Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>();
-    	for( Map.Entry<APIName, ApiIndex> api : apis.entrySet() ) {
-    		// TODO: Report an error on conflicting import statements
-    		APIName name = api.getKey();
-    		ApiIndex index = api.getValue();
-    		
-    		
-    		if( exceptions.containsKey(name) ) {
-    			Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
-    			result.put(name, remove(index, exceptions_));
-    		}
-    		else if( allowed.containsKey(name) ) {
-    			Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
-    			result.put(name, keep(index, allowed_));
-    		} else {
-    		    for(String builtin : WellKnownNames.defaultLibrary) {    		        
-    		        if (builtin.equals(name.getText())) {
-    		              result.put(name, index);
-    		              break;
-    		        }
-    		    }
-    		}
-    	}
-    	return result;
+            @Override
+            public Boolean forImportNames(ImportNames that) {
+                APIName name = that.getApi();
+
+                // TODO Handle these aliased names more thoroughly
+                List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), 
+                        new Lambda<AliasedSimpleName,IdOrOpOrAnonymousName>(){
+                    public IdOrOpOrAnonymousName value(
+                            AliasedSimpleName arg0) {
+                        return arg0.getName();
+                    }}));
+
+                if( allowed.containsKey(name) )
+                    allowed.get(name).addAll(names);
+                else
+                    allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
+                return !name.getText().equals(WellKnownNames.fortressLibrary);
+            }
+
+            @Override
+            public Boolean forImportStar(ImportStar that) {
+                APIName name = that.getApi();
+                if( exceptions.containsKey(name) )
+                    exceptions.get(name).addAll(that.getExcept());
+                else
+                    exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExcept()));
+                return !name.getText().equals(WellKnownNames.fortressLibrary);
+            }
+        };
+
+        // Visit each import, populating the exceptions and allowed maps
+        Iterable<Boolean> temp=IterUtil.map(imports, import_visitor);
+        boolean import_library = true;
+        for(Boolean t : temp){
+            import_library&=t;
+        }
+
+        // Created filters for ApiIndex in apis
+        Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>();
+        for( Map.Entry<APIName, ApiIndex> api : apis.entrySet() ) {
+            // TODO: Report an error on conflicting import statements
+            APIName name = api.getKey();
+            ApiIndex index = api.getValue();
+
+
+            if( do_not_import.contains(name) ) {
+                // Do nothing! this is a set of things we must not import no matter what.
+            }
+            else if( exceptions.containsKey(name) ) {
+                Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
+                result.put(name, remove(index, exceptions_));
+            }
+            else if( allowed.containsKey(name) ) {
+                Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
+                result.put(name, keep(index, allowed_));
+            } 
+            else if( name.getText().equals(WellKnownNames.fortressBuiltin) ) {
+                // Fortress builtin is always implicitly imported
+                result.put(name, index);
+            }
+            else if( name.getText().equals(WellKnownNames.anyTypeLibrary) ) {
+                // For now AnyType needs to be implicitly imported
+                result.put(name, index);
+            }
+            else if( name.getText().equals(WellKnownNames.fortressLibrary) && import_library ) {
+                // FortressLibrary is only imported implicitly if nothing from it is imported explicitly
+                result.put(name, index);
+            }
+        }
+        return result;
     }
     
     /**
