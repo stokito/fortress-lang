@@ -620,7 +620,7 @@ public class NodeFactory {
 
     public static LValueBind makeLValue(LValueBind lvb, Id name) {
         return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
-                lvb.isMutable());
+                              lvb.isMutable());
     }
 
     public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
