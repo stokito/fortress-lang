@@ -17,51 +17,54 @@
 
 package com.sun.fortress.compiler.disambiguator;
 
-import java.util.*;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.tuple.Option;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
-import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Enclosing;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.parser_util.FortressUtil;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class TopLevelEnv extends NameEnv {
     private GlobalEnvironment _globalEnv;
     private CompilationUnitIndex _current;
     private List<StaticError> _errors;
 
+    // As far as I can tell, these 'On Demand' data structures really hold all imported APIs.
+    // Why are they so-named, or when did their behavior change? NEB
     private Map<APIName, ApiIndex> _onDemandImportedApis = new HashMap<APIName, ApiIndex>();
     private Map<Id, Set<Id>> _onDemandTypeConsNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandVariableNames = new HashMap<Id, Set<Id>>();
     private Map<Id, Set<Id>> _onDemandFunctionIdNames = new HashMap<Id, Set<Id>>();
     private Map<OpName, Set<OpName>> _onDemandFunctionOpNames = new HashMap<OpName, Set<OpName>>();
     private Map<String, Set<Id>> _onDemandGrammarNames = new HashMap<String, Set<Id>>();
-
-    private static class TypeIndex {
-        private APIName _api;
-        private TypeConsIndex _typeCons;
-
-        TypeIndex(APIName api, TypeConsIndex typeCons) {
-            _api = api;
-            typeCons = _typeCons;
-        }
-        public APIName api() { return _api; }
-        public TypeConsIndex typeCons() { return _typeCons; }
-    }
 
     public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
         _globalEnv = globalEnv;
@@ -75,7 +78,9 @@ public class TopLevelEnv extends NameEnv {
     }
 
     /**
-     * Initializes the map of imported API names to ApiIndices.
+     * Initializes the map of imported API names to ApiIndices. 
+     * Adds all imported and implicitly imported
+     * Apis to the {@code _onDemandImportedApis} data structure.
      * For now, all imports are assumed to be on-demand imports.
      */
     private void initializeOnDemandImportedApis() {
@@ -93,6 +98,11 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
+    /**
+     * Adds an API to {@code _onDemandImportedApis}, giving an error if
+     * {@code errorIfUnavailable} is true and the given API cannot be
+     * found in the {@code _globalEnv}'s list of apis.
+     */
     private void addIfAvailableApi(APIName name, boolean errorIfUnavailable) {
         Map<APIName, ApiIndex> availableApis = _globalEnv.apis();
 
@@ -126,7 +136,7 @@ public class TopLevelEnv extends NameEnv {
 
     private void initializeOnDemandTypeConsNames() {
         // For now, we support only on demand imports.
-        // TODO: Fix to support explicit imports and api imports.
+        // TODO: Fix to support explicit imports and api imports. I don't think this is still a 'to-do'
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: _onDemandImportedApis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
@@ -250,28 +260,43 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Id> explicitTypeConsNames(Id name) {
-    	Set<Id> result = Collections.emptySet();
-    	if (_current.typeConses().containsKey(name) ||
-    			_current.dimensions().containsKey(name) ||
-    			_current.units().containsKey(name)) {
+        Set<Id> result = Collections.emptySet();
+        if (_current.typeConses().containsKey(name) ||
+                _current.dimensions().containsKey(name) ||
+                _current.units().containsKey(name)) {
 
-    		result  = Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
-    	}
+            // A name defined in this CU should only be qualified if this is an API 
+            Id result_id;
+            if( _current instanceof ApiIndex )
+                result_id = NodeFactory.makeId(_current.ast().getName(), name);
+            else 
+                result_id = name;
 
-    	result = CollectUtil.union(result, this.onDemandTypeConsNames(name));
-    	return result;
+
+            result  = Collections.singleton(result_id);
+        }
+
+        result = CollectUtil.union(result, this.onDemandTypeConsNames(name));
+        return result;
     }
 
     public Set<Id> explicitVariableNames(Id name) {  	
-    	Set<Id> result = Collections.emptySet();
-    	if (_current.variables().containsKey(name) ||
-    			_current.units().containsKey(name)) {
+        Set<Id> result = Collections.emptySet();
+        if (_current.variables().containsKey(name) ||
+                _current.units().containsKey(name)) {
+            
+            // A name defined in this CU should only be qualified if this is an API
+            Id result_id;
+            if( _current instanceof ApiIndex )
+                result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
+            else
+                result_id = name;
 
-    		result = Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name));
-    	}
+            result = Collections.singleton(result_id);
+        }
 
-    	result = CollectUtil.union(result, this.onDemandVariableNames(name));
-    	return result;
+        result = CollectUtil.union(result, this.onDemandVariableNames(name));
+        return result;
     }
 
     public List<Id> explicitVariableNames() {
@@ -285,7 +310,14 @@ public class TopLevelEnv extends NameEnv {
     	
     	// Add fns from this component
         if (_current.functions().containsFirst(name)) {
-            result = CollectUtil.union(result, Collections.singleton(NodeFactory.makeId(_current.ast().getName(), name)));
+            // Only qualify name with an API if we are indeed inside of an API
+            Id result_id;
+            if( _current instanceof ApiIndex )
+                result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
+            else
+                result_id = name;
+            
+            result = CollectUtil.union(result, Collections.singleton(result_id));
         }
         
         // Also add imports
@@ -295,16 +327,23 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<OpName> explicitFunctionNames(OpName name) {
-    	Set<OpName> result = Collections.emptySet();
-    	
-    	// Add ops in this component
+        Set<OpName> result = Collections.emptySet();
+
+        // Add ops in this component
         if( _current.functions().containsFirst(name)) {
-          result = CollectUtil.union(result, Collections.singleton(name));
+            // Only qualify name with an API if we are inside of an API
+            OpName result_id;
+            if( _current instanceof ApiIndex )
+                result_id = NodeFactory.makeOpName(_current.ast().getName(), name);
+            else
+                result_id = name;
+                
+            result = CollectUtil.union(result, Collections.singleton(result_id));
         }
-        
+
         // Also add imports
         result = CollectUtil.union(result, this.onDemandFunctionNames(name));
-        
+
         return result;
     }
 

@@ -22,9 +22,9 @@ export Executable
 
 trait Sparse[\N extends Number, nat n, nat m\]
   extends Array2[\N,0,n,0,m\]
-    get(t:(ZZ32,ZZ32)) = fail("Sparse get")
-    put(t:(ZZ32,ZZ32), v:N) = fail("Sparse put")
-    init0(t:(ZZ32,ZZ32), v:N) = fail("Sparse init")
+    get(t1:(ZZ32,ZZ32)) = fail("Sparse get")
+    put(t1:(ZZ32,ZZ32), v:N) = fail("Sparse put")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("Sparse init")
     replica[\U\]() = fail("Sparse replica")
     mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
           fail("Sparse mapReduce")

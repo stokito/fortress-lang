@@ -24,9 +24,9 @@ export Executable
 
 trait Sparse[\N extends Number, nat n, nat m\]
   extends Matrix[\N,n,m\]
-    get(t:(ZZ32,ZZ32)) = do println("OK: sparse get"); 0 end
-    put(t:(ZZ32,ZZ32), v:N) = fail("Sparse put")
-    init0(t:(ZZ32,ZZ32), v:N) = fail("Sparse init")
+    get(t1:(ZZ32,ZZ32)) = do println("OK: sparse get"); 0 end
+    put(t1:(ZZ32,ZZ32), v:N) = fail("Sparse put")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("Sparse init")
     replica[\U\]() = fail("Sparse replica")
     mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
           fail("Sparse mapReduce")

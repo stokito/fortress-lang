@@ -533,6 +533,10 @@ public class NodeFactory {
                 name.getText());
     }
 
+    public static Id makeId(APIName api, Id name, Span span) {
+        return new Id(span, Option.some(api), name.getText());
+    }
+    
     public static Id makeId(Option<APIName> api, Id name) {
         return new Id(name.getSpan(), api, name.getText());
     }
@@ -742,6 +746,22 @@ public class NodeFactory {
         return new Op(op.getSpan(), op.getText(), postfix);
     }
 
+    /**
+     * Rewrites the given OpName with the given api. Dispatches on the
+     * type of op, so that the same subtype of OpName is created.
+     */
+    public static OpName makeOpName(final APIName api, OpName op) {
+        return op.accept(new NodeAbstractVisitor<OpName>(){
+            @Override
+            public OpName forEnclosing(Enclosing that) { return new Enclosing(that.getSpan(), Option.some(api), that.getOpen(), that.getClose()); }
+            @Override
+            public OpName forOp(Op that) { return new Op(that.getSpan(), Option.some(api), that.getText(), that.getFixity() ); }
+            @Override
+            public OpName forOpName(OpName that) { return bug("A case was missed in the implementation of makeOpName."); }
+            
+        });
+    }
+    
     public static Op makeOpNofix(Op op) {
         return new Op(op.getSpan(), op.getText(), nofix);
     }

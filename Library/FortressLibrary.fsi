@@ -1383,13 +1383,13 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter toString()
   opr |self| : ZZ32
   (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
-  offset(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
-  toIndex(t:(ZZ32,ZZ32)):(ZZ32,ZZ32)
+  offset(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32)
+  toIndex(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32)
   opr[x:ZZ32,y:ZZ32]:=(v:T):()
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\]
   opr[_:OpenRange[\ZZ32\]] : Array2[\T,0,s0,0,s1\]
   opr[_:OpenRange[\Any\]] : Array2[\T,0,s0,0,s1\]
-  shift(t:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\]
+  shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\]
 
   (** 2-D subarray given static subarray parameters.
       %(bo1,bo2)#(so1,so2)% are output bounds.
@@ -1402,8 +1402,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
 
   replica[\U\]():Array2[\U,b0,s0,b1,s1\]
   copy():Array2[\T,b0,s0,b1,s1\]
-  put(t:(ZZ32, ZZ32), v:T) : ()
-  get(t:(ZZ32, ZZ32)):T
+  put(t1:(ZZ32, ZZ32), v:T) : ()
+  get(t1:(ZZ32, ZZ32)):T
   t():Array2[\T,b1,s1,b0,s0\]
   (* Copied here for better return type information. *)
   map[\R\](f:T->R): Array2[\R,b0,s0,b1,s1\]
@@ -1420,7 +1420,7 @@ trait Matrix[\T extends Number, nat s0, nat s1\]
     opr +(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
     opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\]
     opr -(self): Matrix[\T,s0,s1\]
-    scale(t: T): Matrix[\T,s0,s1\]
+    scale(t1: T): Matrix[\T,s0,s1\]
     mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\]
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\]
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\]
