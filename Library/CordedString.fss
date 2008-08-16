@@ -1,3 +1,20 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 component CordedString
 export CordedString
 
@@ -6,17 +23,17 @@ export CordedString
     getter size() = sizeField
     getter bounds() = 0#sizeField
     getter generator() = ConcatGenerator(left.generator(), right.generator())
-    opr CMP(self, other: String) =  
-        if |left| ≥ |other| 
-        then 
-            left CMP other 
-        else 
-            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):]) 
+    opr CMP(self, other: String) =
+        if |left| ≥ |other|
+        then
+            left CMP other
+        else
+            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
         end
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = EqualTo
-    
+
     get(i): Char = 'x'
-    
+
     opr[r0:Range[\ZZ32\]] : String =  do
         if r0 ≤ left.bounds() then
             left[r0]
@@ -24,21 +41,21 @@ export CordedString
             EmptyString (* unfinished *)
         end
     end
-    
+
     opr || (self, other:String): String = CatString(self, other)
     opr || (_:EmptyString, other:String) = other
     opr || (self, _:EmptyString) = self
     opr || (self, other:Char) = CatString(self, other.toString())
-        
+
   end
-  
+
   object ConcatGenerator[\T\](first:Generator[\T\], second:Generator[\T\])
         extends Generator[\T\]
     generate[\R\](r: Reduction[\R\], body:T->R):R =
         r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
   end
-   
-  
+
+
   value object EmptyString extends String
     getter size() = 0
     getter bounds() = 0#0
@@ -46,14 +63,14 @@ export CordedString
     opr CMP(self, other: String) =
         |self| CMP |other|
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
-    
+
     get(i): Char = fail("Can't get characters from an empty string")
-    
+
     opr[r: Range[\ZZ32\]] : String = do
         rr = (self.indices())[r]     (* to raise a bounds error *)
         EmptyString
     end
-            
+
     opr || (self, other:String): String = other
     opr || (other: String, self): String = other
     opr || (self, _: EmptyString): String = self

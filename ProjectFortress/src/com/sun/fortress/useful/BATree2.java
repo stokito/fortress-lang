@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -278,7 +278,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
             return null;
         return old.getObject(k, comp).asPair();
     }
-    
+
      /**
      * Because the underlying tree is applicative, synchronization
      * is only necessary for additions to the tree.
@@ -331,7 +331,7 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
     }
 
     /* Slightly more efficient (fewer allocations) versions of get/put */
-    
+
     public BATree2Node<T, U, V> getNode(T k) {
         if (root == null) return null;
         BATree2Node<T, U, V> f = root.getObject(k, comp);
@@ -347,5 +347,5 @@ public class BATree2<T, U, V> extends AbstractMap<T,Pair<U,V>> implements Map<T,
     }
 
 
-    
+
 }
