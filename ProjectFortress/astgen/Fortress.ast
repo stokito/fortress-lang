@@ -90,7 +90,9 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
     /**
      * getter or setter declarations
      */
-    interface ImplicitGetterSetter(Option<Type> type = Option.<Type>none());
+    interface ImplicitGetterSetter(Id name,
+                                   List<Modifier> mods = Collections.<Modifier>emptyList(),
+                                   Option<Type> type = Option.<Type>none());
     /**
      * with static parameters
      * implemented by trait, object, and function declarations and
@@ -787,7 +789,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs);
                 /**
                  * An assignment that has passed typechecking, and uses an operator.
-                 * Because different static args can be inferred for each Lhs assignment 
+                 * Because different static args can be inferred for each Lhs assignment
                  * opr, this node gives a separate OpRef for each Lhs.
                  */
                 _RewriteAssignment(List<OpRef> opsForLhs);
@@ -2284,6 +2286,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * An operator overloading, and the tpye of that overloading.
          */
-        _RewriteOpRefOverloading(OpRef op, Type ty); 
+        _RewriteOpRefOverloading(OpRef op, Type ty);
 
     end;
