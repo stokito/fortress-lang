@@ -114,13 +114,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     private List<Modifier> removeGetterMod(List<Modifier> mods) {
         List<Modifier> result = new LinkedList<Modifier>();
-        
+
         for (Modifier mod : mods) {
             if (! (mod instanceof ModifierGetter)) { result.add(mod); }
         }
         return result;
     }
-    
+
     private static final Id mangleName(Id fieldName) {
         return new Id(fieldName.getSpan(), fieldName.getApi(), "$" + fieldName.getText());
     }
@@ -157,7 +157,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         newScope.addAll(fieldsInScope);
         return new DesugaringVisitor(newScope);
     }
-    
+
     private DesugaringVisitor extend(List<Decl> decls) {
         List<Id> newScope = new ArrayList<Id>();
 
@@ -169,7 +169,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             }
         }
         newScope.addAll(fieldsInScope);
-        return new DesugaringVisitor(newScope);        
+        return new DesugaringVisitor(newScope);
     }
 
     private List<Decl> removeVarDecls(List<Decl> decls) {
@@ -266,7 +266,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
         return result;
     }
-    
+
     private List<Decl> mangleDecls(List<Decl> decls) {
         return new NodeUpdateVisitor() {
             public Node forVarDecl(VarDecl that) {
@@ -309,7 +309,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         result.add((Lhs)that.accept(DesugaringVisitor.this));
                     }
                     public void forFieldRef(FieldRef that) {
-                        result.add((Lhs)new FieldRef(that.getSpan(), (Expr)that.getObj().accept(DesugaringVisitor.this), that.getField()));
+                        result.add((Lhs)new FieldRef(that.getSpan(), (Expr)that.getObj().accept(DesugaringVisitor.this),
+                                                     mangleName(that.getField())));
                     }
                     public void for_RewriteFieldRef(_RewriteFieldRef that) {
                         result.add((Lhs)new _RewriteFieldRef(that.getSpan(), (Expr)that.getObj().accept(DesugaringVisitor.this), that.getField()));
@@ -358,21 +359,21 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj_result, field_result,
                                     new ArrayList<StaticArg>(), NodeFactory.makeVoidLiteralExpr());
     }
-    
+
     @Override
     public Node forObjectExpr(ObjectExpr that) {
         DesugaringVisitor newVisitor = extend(that.getDecls());
 
         List<TraitTypeWhere> extendsClause_result = newVisitor.recurOnListOfTraitTypeWhere(that.getExtendsClause());
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
-        
+
         LinkedList<Decl> gettersAndDecls = makeGetters(that.getDecls());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
-        }       
+        }
         return forObjectExprOnly(that, that.getExprType(), extendsClause_result, gettersAndDecls);
     }
-    
+
     @Override
     public Node forObjectDecl(ObjectDecl that) {
         DesugaringVisitor newVisitor = extend(that.getParams(), that.getDecls());
@@ -424,19 +425,19 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, 
-            List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, 
-            Option<Contract> contract_result) 
+    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result,
+            List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result,
+            Option<Contract> contract_result)
     {
-        return new AbsFnDecl(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result, 
+        return new AbsFnDecl(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result,
                              where_result, contract_result, that.getSelfName());
     }
 
-    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, 
-                             List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, 
-                             Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) 
+    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result,
+                             List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result,
+                             Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result)
     {
-        return new FnDef(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result, 
+        return new FnDef(that.getSpan(), removeGetterMod(mods_result), name_result, staticParams_result, params_result, returnType_result, throwsClause_result,
                          where_result, contract_result, that.getSelfName(), body_result);
     }
 
