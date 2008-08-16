@@ -43,17 +43,17 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
-    private boolean _noQualified;
-    private boolean _unMangle;
+    private boolean _unqualified;
+    private boolean _unmangle;
 
     public FortressAstToConcrete() {
-        _noQualified = false;
+        _unqualified = false;
     }
 
-    public FortressAstToConcrete( boolean noQualified,
-                                  boolean unMangle ) {
-        _noQualified = noQualified;
-        _unMangle = unMangle;
+    public FortressAstToConcrete( boolean unqualified,
+                                  boolean unmangle ) {
+        _unqualified = unqualified;
+        _unmangle = unmangle;
     }
 
     /* indentation utilities *************************************************/
@@ -1965,16 +1965,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return " " + oper + " ";
     }
 
-    private String unMangle( String name ) {
-        // There can be multiple $ signs in a generated name. 
-        // Multiple desugarings prepend $ signs to names. 
+    private String unmangle( String name ) {
+        // There can be multiple $ signs in a generated name.
+        // Multiple desugarings prepend $ signs to names.
         StringBuffer result = new StringBuffer();
         for (int i = 0; i < name.length(); i++) {
             char next = name.charAt(i);
             if (next == '$') {
                 result.append("fortress_");
             } else {
-                result.append(next); 
+                result.append(next);
             }
         }
         return result.toString();
@@ -2974,10 +2974,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forIdOnly(Id that, Option<String> api_result) {
         StringBuilder s = new StringBuilder();
-        if ( api_result.isSome() && !_noQualified )
+        if ( api_result.isSome() && !_unqualified )
             s.append( api_result.unwrap() ).append( "." );
-        if ( _unMangle )
-            s.append( unMangle(that.getText()) );
+        if ( _unmangle )
+            s.append( unmangle(that.getText()) );
         else
             s.append( that.getText() );
         return s.toString();

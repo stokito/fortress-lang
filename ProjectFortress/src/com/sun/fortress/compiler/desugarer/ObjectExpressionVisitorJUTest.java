@@ -60,7 +60,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         String[] command = new String[]{ "desugar", "-out", tfs, file};
         Shell.main( command );
         String generated = RatsUtil.getTempDir() + fileName;
-        command = new String[]{ "unparse", "-noQualified", "-unMangle", "-out", generated, tfs};
+        command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
         com.sun.fortress.compiler.StaticChecker.typecheck = false;

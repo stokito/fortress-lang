@@ -99,7 +99,7 @@ public final class Shell {
         System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" unparse [-noQualified] [-unMangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
+        System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -130,10 +130,10 @@ public final class Shell {
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
-         "fortress unparse [-noQualified] [-unMangle] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "fortress unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
          "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
-         "  If -noQualified is given, identifiers are dumped without their API prefixes.\n"+
-         "  If -unMangle is given, internally mangled identifiers are unmangled.\n"+
+         "  If -unqualified is given, identifiers are dumped without their API prefixes.\n"+
+         "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
@@ -429,23 +429,23 @@ public final class Shell {
      */
     private static void unparse(List<String> args,
                                 Option<String> out,
-                                boolean _noQualified,
-                                boolean _unMangle)
+                                boolean _unqualified,
+                                boolean _unmangle)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to unparse");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
-        boolean noQualified = _noQualified;
-        boolean unMangle = _unMangle;
+        boolean unqualified = _unqualified;
+        boolean unmangle = _unmangle;
 
         if (s.startsWith("-")) {
-            if (s.equals("-noQualified")){
-                noQualified = true;
+            if (s.equals("-unqualified")){
+                unqualified = true;
             }
-            if (s.equals("-unMangle")){
-                unMangle = true;
+            if (s.equals("-unmangle")){
+                unmangle = true;
             }
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
@@ -456,18 +456,18 @@ public final class Shell {
             }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
 
-            unparse( rest, out, noQualified, unMangle );
+            unparse( rest, out, unqualified, unmangle );
         } else {
-            unparse( s, out, noQualified, unMangle );
+            unparse( s, out, unqualified, unmangle );
         }
     }
 
     private static void unparse( String file,
                                  Option<String> out,
-                                 boolean noQualified,
-                                 boolean unMangle ){
+                                 boolean unqualified,
+                                 boolean unmangle ){
         try{
-            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(noQualified,unMangle) );
+            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(unqualified,unmangle) );
             if ( out.isSome() ){
                 try{
                     BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
