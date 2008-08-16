@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -103,9 +103,9 @@ public class Cons<T> extends PureList<T> {
    public Iterator<T> iterator() {
        return new Iterator<T>() {
            private PureList<T> current = Cons.this;
-           
+
            public boolean hasNext() { return ! current.isEmpty(); }
-           public T next() { 
+           public T next() {
                if (current.isEmpty()) { throw new NoSuchElementException("Attempt to take next at end of iterator"); }
                else {
                    Cons<T> _current = (Cons<T>) current;

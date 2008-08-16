@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,7 +26,7 @@ package com.sun.fortress.useful;
 public class BATreeEC<Key, KeyEC, Value> {
 
     volatile BATreeNodeEC<Key, KeyEC, Value> root;
-    
+
     EquivalenceClass<Key, KeyEC> equivalenceClass;
 
     public BATreeEC(EquivalenceClass<Key, KeyEC> e) {
