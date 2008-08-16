@@ -285,7 +285,7 @@ trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
     getter zero(): Self = self - self
     opr +(self, other: Self): Self
     opr -(self, other: Self): Self = self + (-other)
-    opr -(self) : Self = self.zero() - self
+    opr -(self) : Self = self.zero - self
 end
 
 (** Place holder for exclusions of MultiplicativeRing **)
@@ -435,15 +435,15 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
     getter isInfinite(): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isInfinite")
     (** returns true if the value is a valid number (not NaN) **)
-    getter isNumber(): Boolean = NOT self.isNaN()
+    getter isNumber(): Boolean = NOT self.isNaN
     (** returns true if the value is finite **)
-    getter isFinite(): Boolean = NOT (self.isInfinite() OR self.isNaN())
+    getter isFinite(): Boolean = NOT (self.isInfinite OR self.isNaN)
     (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
     getter check(): Maybe[\RR64\] =
-        if self.isFinite() then Just[\RR64\](self) else Nothing[\RR64\] end
+        if self.isFinite then Just[\RR64\](self) else Nothing[\RR64\] end
     (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
     getter check_star(): Maybe[\RR64\] =
-        if self.isNaN() then Nothing[\RR64\] else Just[\RR64\](self) end
+        if self.isNaN then Nothing[\RR64\] else Just[\RR64\](self) end
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$RawBits")
@@ -459,9 +459,9 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
         that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
     opr MINNUM(self, b:RR64):RR64 = do
         r = self MIN b
-        if r.isNaN() then
-            if self.isNumber() then self
-            elif b.isNumber() then b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
             else r end
         else
             r
@@ -469,9 +469,9 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
       end
     opr MAXNUM(self, b:RR64):RR64 = do
         r = self MAX b
-        if r.isNaN() then
-            if self.isNumber() then self
-            elif b.isNumber() then b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
             else r end
         else
             r
@@ -487,7 +487,7 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
     getter one(): QQ = 1
     getter isNaN(): Boolean
     getter isInfinite(): Boolean
-    getter isNumber(): Boolean = NOT self.isNaN()
+    getter isNumber(): Boolean = NOT self.isNaN
     getter isFinite(): Boolean = (denominator(self) =/= 0)
     numerator(self): ZZ
     denominator(self): ZZ  (* Ideally would be NN *)
@@ -553,7 +553,7 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
 end
 
 object Ratio(num: ZZ, den: ZZ) extends { QQ }
-    getter toString(): String = num.toString() || "/" || den.toString()
+    getter toString(): String = num.toString || "/" || den.toString
     getter isNaN(): Boolean = (numerator(self) = 0 AND denominator(self) = 0)
     getter isInfinite(): Boolean = (numerator(self) =/= 0 AND denominator(self) = 0)
     numerator(self):ZZ = num
@@ -1086,7 +1086,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
         cond[\E\](fn (e:E): Condition[\E\] => do
                     r1 = (0#1)[r]
-                    if r1.isEmpty() then Nothing[\E\] else self end
+                    if r1.isEmpty then Nothing[\E\] else self end
                   end,
                 fn (): Condition[\E\] => do r1 = (0#0)[r]; self end)
     getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
@@ -1113,11 +1113,11 @@ end
 
 (** Conjunction and disjunction of condition functions **)
 opr ANDCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
-    fn (i:I):Boolean => p1(i).holds() AND: p2(i).holds()
+    fn (i:I):Boolean => p1(i).holds AND: p2(i).holds
 
 (** Conjunction and disjunction of condition functions **)
 opr ORCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
-    fn (i:I):Boolean => p1(i).holds() OR: p2(i).holds()
+    fn (i:I):Boolean => p1(i).holds OR: p2(i).holds
 
 (** Operations which use generation internally.  Should be functional
     methods of Generator, but that didn't work when last tested. **)
@@ -1137,9 +1137,9 @@ sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
 
 (** The problem: Your code is sprinkled with the same generator code,
     over and over again.  Maybe it looks something like this:
-    % for (i,v) <- a.indexValuePairs(), v =/= 0, j <- 0:i do (code using i and j) %
+    % for (i,v) <- a.indexValuePairs, v =/= 0, j <- 0:i do (code using i and j) %
     You goal: abstract this into a single generator.  You can do this as follows:
-    % usefulGen = BIG GENERATOR[(i,v) <- a.indexValuePairs(), v =/= 0, j <- 0:i] (i,j) %
+    % usefulGen = BIG GENERATOR[(i,v) <- a.indexValuePairs, v =/= 0, j <- 0:i] (i,j) %
     Not much savings there, but the important part is that you can just
     cut and paste the generators from the original code.  And all occurrences
     can be cleaned up:
@@ -1211,7 +1211,7 @@ value object Just[\T\](x:T) extends Maybe[\T\]
     reduce(_: Reduction[\T\]):T = x
     loop(f:T->()): () = f(x)
     opr IN(y:T, self): Boolean = x=y
-    opr =(self,o:Just[\T\]): Boolean = x=o.get()
+    opr =(self,o:Just[\T\]): Boolean = x=o.get
 end
 
 (* Obviously ought to be a non-parametric singleton when we get where
@@ -1508,7 +1508,7 @@ object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
         extends { ZeroIndexed[\(E,F)\], DelegatedIndexed[\(E,F),ZZ32\] }
     getter size(): ZZ32 = |self|
     getter indices(): Generator[\ZZ32\] =
-        if |e| <= |f| then e.indices() else f.indices() end
+        if |e| <= |f| then e.indices else f.indices end
     opr |self| : ZZ32 = |e| MIN |f|
     opr[i:ZZ32]:(E,F) = (e[i],f[i])
     opr[r:Range[\ZZ32\]] : ZeroIndexed[\(E,F)\] =
@@ -1530,9 +1530,9 @@ trait LexicographicOrder[\T extends LexicographicOrder[\T,E\],E\]
 end
 
 toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
-    bnds = g.bounds()
+    bnds = g.bounds
     r = array[\E\](|bnds|).shift(bnds.lower())
-    for (i,v) <- g.indexValuePairs() do
+    for (i,v) <- g.indexValuePairs do
         r.init(i,v)
     end
     r
@@ -1574,7 +1574,7 @@ trait MutableIndexed[\E, I\]
         extends { Indexed[\E,I\] }
     opr[i:I]:=(v:E) : ()
 
-    (** For Ranged assignment, the extents of r and v.bounds() must
+    (** For Ranged assignment, the extents of r and v.bounds must
         match, but the lower bounds need not. **)
     opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
     opr[_:OpenRange[\Any\]]:=(v:Indexed[\E,I\]) : () =
@@ -1675,15 +1675,15 @@ trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
     opr[i:I]:=(v:E):() = put(offset(i),v)
 
     opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):() = do
-        a0 = a[a.bounds()]      (* Make a have 0 origin *)
+        a0 = a[a.bounds]        (* Make a have 0 origin *)
         s0 = self[r]            (* Make self have 0 origin *)
-        if a0.bounds() = s0.bounds() then
-            for (i,v) <- a0.indexValuePairs() do
+        if a0.bounds = s0.bounds then
+            for (i,v) <- a0.indexValuePairs do
                 s0.put(i,v)
             end
         else
-            fail("Can't assign indexed with bounds " a.bounds() //
-                 " to differently-sized subarray " self.bounds())
+            fail("Can't assign indexed with bounds " a.bounds //
+                 " to differently-sized subarray " self.bounds)
         end
       end
 
@@ -2274,12 +2274,12 @@ trait Matrix[\T extends Number, nat s0, nat s1\]
       end
     rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
         row(i:ZZ32):T =
-            SUM[(j,v_j)<-v.indexValuePairs()] get(i,j) v_j
+            SUM[(j,v_j)<-v.indexValuePairs] get(i,j) v_j
         vector[\T,s0\]().fill(row)
       end
     lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
         col(i:ZZ32):T =
-            SUM[(j,v_j)<-v.indexValuePairs()] v_j get(j,i)
+            SUM[(j,v_j)<-v.indexValuePairs] v_j get(j,i)
         vector[\T,s1\]().fill(col)
       end
     t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
@@ -2619,7 +2619,7 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
         end
     simpleJoin(a:Any, b:Any): Any
     lift(r:Any): AnyMaybe = Just(r)
-    unlift(r:AnyMaybe): R = r.get()
+    unlift(r:AnyMaybe): R = r.get
 end
 
 trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
@@ -2834,10 +2834,10 @@ object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
     getter size(): ZZ32 = |g()|
     getter g() = g0
     getter f() = f0
-    getter bounds(): Range[\I\] = g().bounds()
+    getter bounds(): Range[\I\] = g().bounds
     getter indexValuePairs(): Indexed[\(I,F),I\] =
-        g().indexValuePairs().map[\(I,F)\](fn (i:I, e:E): F => (i,(f())(e)))
-    getter indices(): Indexed[\I,I\] = g().indices()
+        g().indexValuePairs.map[\(I,F)\](fn (i:I, e:E): F => (i,(f())(e)))
+    getter indices(): Indexed[\I,I\] = g().indices
     opr |self| : ZZ32 = |g()|
     opr[i:I] : F = (f())(g()[i])
     opr[r:Range[\I\]] : Indexed[\F,I\] =
@@ -2862,9 +2862,9 @@ trait FilterGenerator[\E\] extends Generator[\E\]
     getter p(): E -> Condition[\()\]
     getter toString(): String = g() ".filter(p)"
     generate[\R\](r:Reduction[\R\], m: E->R): R =
-        g().generate[\R\](r, fn(e:E):R => if (p())(e).holds() then m(e) else r.empty() end)
+        g().generate[\R\](r, fn(e:E):R => if (p())(e).holds then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
-        g().generate[\E\](r, fn(e:E):E => if (p())(e).holds() then e else r.empty() end)
+        g().generate[\E\](r, fn(e:E):E => if (p())(e).holds then e else r.empty() end)
     filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
         SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
     seq(self) = SimpleSeqFilterGenerator[\E\](seq(g()),p())
@@ -2974,7 +2974,7 @@ end
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     getter size() = |g|
-    getter toString():String = "naive seq(" g.toString() ")"
+    getter toString():String = "naive seq(" g.toString ")"
     opr |self| : ZZ32 = |g|
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, f':R->R): R->R = fn (x:R):R => f'(f(x))
@@ -3082,7 +3082,7 @@ opr SUBTR[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): (A,B,C) = do
     (a1 SUBTR a2, b1 SUBTR b2, c1 SUBTR c2)
   end
 
-opr SUBTR[\T extends MultiplicativeRing[\T\]\](a:T, b:T):T = a.one() + a - b
+opr SUBTR[\T extends MultiplicativeRing[\T\]\](a:T, b:T):T = a.one + a - b
 
 (** join upper and lower bounds comparisons (total or partial) to
     yield partial containment. **)
@@ -3639,12 +3639,12 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
              excludes {Number, Char, AnyMultiplicativeRing, AnyList}
     getter size() : ZZ32
     getter toString() : String = self
-    getter indices() : FullRange[\ZZ32,true\] = self.bounds()
+    getter indices() : FullRange[\ZZ32,true\] = self.bounds
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
         indices().map[\Char\](fn (i:ZZ32):Char => self[i])
-    opr |self| : ZZ32 = self.size()
+    opr |self| : ZZ32 = self.size
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the String, returning the empty String, in order to permit some convenient
@@ -3655,7 +3655,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         else throw IndexOutOfBounds(0,(|self|)-1,i)
         end
     opr[r0:Range[\ZZ32\]] : String = do
-        r1 = (self.bounds())[r0]
+        r1 = self.bounds[r0]
         l = r1.lower()
         self.substr(l, l + |r1|)
       end
@@ -3664,7 +3664,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     (** The operator %||% with at least one String argument converts to String and
         appends **)
     opr ||(self, b:String):String
-    opr ||(self, b:Number):String = self || b.toString()
+    opr ||(self, b:Number):String = self || b.toString
     opr ||(self, c:Char):String
     opr ||(self, b:()):String = self || "()"
     opr ||(self, b:(Any,Any)):String = do (i,j) = b; self || "(" || i || "," j || ")" end
@@ -3676,8 +3676,8 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         do (i,j,k,l,m) = b; self || "(" || i || "," j || "," k || "," l || "," m || ")" end
     opr ||(self, b:(Any,Any,Any,Any,Any,Any)):String =
         do (i,j,k,l,m,n) = b; self || "(" || i || "," j || "," k || "," l || "," m || "," n || ")" end
-    opr ||(a:Any, self):String = a.toString() || self
-    opr ||(self, b:Any):String = self || b.toString()
+    opr ||(a:Any, self):String = a.toString || self
+    opr ||(self, b:Any):String = self || b.toString
 
     (** The operator %|||% with at least one String argument converts to string,
         then appends with a whitespace separator unless one of the two arguments is
@@ -3785,7 +3785,7 @@ strToInt(s: String, radix: ZZ32): ZZ32 = do
     r = SUM[ i <- i0:n] if d <- digit(s[i], radix) then
                           d radix^(n-i)
                       else
-                          fail("strToInt(" s.toString() "," radix "): non-digit " s[i].toString())
+                          fail("strToInt(" s.toString "," radix "): non-digit " s[i].toString)
                       end
     if neg then -r else r end
   end
