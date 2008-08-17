@@ -27,8 +27,9 @@ run(args:String...):()=do
   (b:RR64,c:ZZ32) := a
   a MAXMIN= d
   (* Right now this is prohibited by spec sec 13.10, which does this pointwise
-     instead: *)
+     instead:
   (b,c) MAXMIN= d
+   *)
 end
 
 end

@@ -467,6 +467,10 @@ public class NodeFactory {
         return new APIName(span, ids);
     }
 
+    public static Id makeId(Id id, String newName) {
+        return new Id(id.getSpan(), id.getApi(), newName);
+    }
+
     public static Id makeId(Span span, String s) {
         return new Id(span, Option.<APIName>none(), s);
     }
@@ -536,7 +540,7 @@ public class NodeFactory {
     public static Id makeId(APIName api, Id name, Span span) {
         return new Id(span, Option.some(api), name.getText());
     }
-    
+
     public static Id makeId(Option<APIName> api, Id name) {
         return new Id(name.getSpan(), api, name.getText());
     }
@@ -568,6 +572,21 @@ public class NodeFactory {
                          throwss, where, contract, selfName, body);
     }
 
+    public static FnDef makeFnDef(Span span, List<Modifier> mods,
+                                  Id name, Option<Type> type, Expr body) {
+        return makeFnDef(span, mods, name, Collections.<Param>emptyList(), type,
+                         body);
+    }
+
+    public static FnDef makeFnDef(Span span, List<Modifier> mods,
+                                  Id name, List<Param> params,
+                                  Option<Type> type, Expr body) {
+        return new FnDef(span, mods, name, Collections.<StaticParam>emptyList(),
+                         params, type, Option.<List<BaseType>>none(),
+                         Option.<WhereClause>none(), Option.<Contract>none(),
+                         body);
+    }
+
     public static Id makeId(String string) {
         return new Id(new Span(), string);
     }
@@ -582,6 +601,10 @@ public class NodeFactory {
 
     public static VarType makeVarType(Span span, Id id) {
         return new VarType(span, id);
+    }
+
+    public static LValueBind makeLValue(Id id) {
+        return new LValueBind(id.getSpan(), id);
     }
 
     public static LValueBind makeLValue(String name, String type) {
@@ -758,10 +781,10 @@ public class NodeFactory {
             public OpName forOp(Op that) { return new Op(that.getSpan(), Option.some(api), that.getText(), that.getFixity() ); }
             @Override
             public OpName forOpName(OpName that) { return bug("A case was missed in the implementation of makeOpName."); }
-            
+
         });
     }
-    
+
     public static Op makeOpNofix(Op op) {
         return new Op(op.getSpan(), op.getText(), nofix);
     }
@@ -806,12 +829,17 @@ public class NodeFactory {
     public static NormalParam makeAbsParam(Type type) {
         Id id = new Id(type.getSpan(), "_");
         return new NormalParam(type.getSpan(), Collections.<Modifier>emptyList(),
-                id, Option.some(type), Option.<Expr>none());
+                               id, Option.some(type), Option.<Expr>none());
     }
 
     public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
-            Type type) {
+                                        Type type) {
         return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
+    }
+
+    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
+                                        Option<Type> type) {
+        return new NormalParam(span, mods, name, type, Option.<Expr>none());
     }
 
     public static NormalParam makeParam(Id id, Type type) {
@@ -832,6 +860,11 @@ public class NodeFactory {
     public static NormalParam makeParam(NormalParam param, List<Modifier> mods) {
         return new NormalParam(param.getSpan(), mods, param.getName(),
                 param.getType(), param.getDefaultExpr());
+    }
+
+    public static NormalParam makeParam(NormalParam param, Id newId) {
+        return new NormalParam(param.getSpan(), param.getMods(), newId,
+                               param.getType(), param.getDefaultExpr());
     }
 
     public static TypeParam makeTypeParam(String name) {
@@ -884,6 +917,10 @@ public class NodeFactory {
         return new TupleType(span, elements);
     }
 
+    public static VoidType makeVoidType(Span span) {
+        return new VoidType(span, false);
+    }
+
     public static TypeArg makeTypeArg(Type ty) {
         return new TypeArg(ty.getSpan(), ty);
     }
@@ -926,6 +963,14 @@ public class NodeFactory {
 
     public static OpArg makeOpArg(String string) {
         return new OpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
+    }
+
+    public static AbsVarDecl makeAbsVarDecl(Span span, List<LValueBind> lvals) {
+        return new AbsVarDecl(span, lvals);
+    }
+
+    public static VarDecl makeVarDecl(Span span, List<LValueBind> lvals, Expr init) {
+        return new VarDecl(span, lvals, init);
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
@@ -1236,12 +1281,17 @@ public class NodeFactory {
     }
 
     public static Decl makeFnDecl(String functionName, Id typeName, Expr expression) {
-        Id fnName = new Id(functionName);
+        Span span = FortressUtil.spanTwo(typeName.getSpan(), expression.getSpan());
+        Id fnName = new Id(span, functionName);
         List<Param> params = new LinkedList<Param>();
         List<StaticArg> staticArgs = new LinkedList<StaticArg>();
         Type type = new TraitType(typeName, staticArgs);
         params.add(new VarargsParam(new Id("args"), type));
         Type returnType = new TraitType(typeName , staticArgs);
-        return new FnDef(fnName, params, Option.some(returnType), expression);
+        return new FnDef(span, Collections.<Modifier>emptyList(), fnName,
+                         Collections.<StaticParam>emptyList(), params,
+                         Option.some(returnType), Option.<List<BaseType>>none(),
+                         Option.<WhereClause>none(), Option.<Contract>none(),
+                         expression);
     }
 }

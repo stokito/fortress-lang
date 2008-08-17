@@ -379,7 +379,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             LValueBind(Id name, Option<Type> type = Option.<Type>none(),
                        List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       boolean mutable) implements Lhs, ImplicitGetterSetter;
+                       boolean mutable = false) implements Lhs, ImplicitGetterSetter;
             /**
              * left-hand side of matrix unpasting
              * Unpasting ::= [ UnpastingElems ]
@@ -415,7 +415,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                  IdOrOpOrAnonymousName name,
                                  List<StaticParam> staticParams
                                      = Collections.<StaticParam>emptyList(),
-                                 List<Param> params,
+                                 List<Param> params
+                                     = Collections.<Param>emptyList(),
                                  Option<Type> returnType
                                      = Option.<Type>none(),
                                  Option<List<BaseType>> throwsClause

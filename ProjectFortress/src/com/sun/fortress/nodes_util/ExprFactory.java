@@ -256,6 +256,11 @@ public class ExprFactory {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
     }
 
+    public static OpExpr makeOpExpr(Span span, Option<Type> ty, OpRef op,
+                                    Expr first, Expr second) {
+        return new OpExpr(span, false, ty, op, Arrays.asList(first, second));
+    }
+
     public static OpExpr makeOpExpr(Span span, OpName op) {
         return new OpExpr(span, false, makeOpRef(op));
     }
@@ -266,9 +271,9 @@ public class ExprFactory {
     }
 
     public static OpExpr makeOpExpr(Span span, OpName op, Expr first,
-            Expr second) {
+                                    Expr second) {
         return new OpExpr(span, false, makeOpRef(op),
-                Arrays.asList(first, second));
+                          Arrays.asList(first, second));
     }
 
     public static OpExpr makeOpExpr(Span span, OpName op, List<StaticArg> staticArgs) {
@@ -368,7 +373,34 @@ public class ExprFactory {
      * with new exprs.
      */
     public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
-     return new TightJuxt(that.getSpan(), that.isParenthesized(), that.getMultiJuxt(), that.getInfixJuxt(), exprs);
+     return new TightJuxt(that.getSpan(), that.isParenthesized(),
+                          that.getMultiJuxt(), that.getInfixJuxt(), exprs);
+    }
+
+    public static MethodInvocation makeMethodInvocation(Span span,
+                                                        boolean isParenthesized,
+                                                        Option<Type> type,
+                                                        Expr obj,
+                                                        Id field, Expr expr) {
+        return new MethodInvocation(span, isParenthesized, type, obj,
+                                    field, expr);
+    }
+
+    public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
+                                                        Id field, Expr expr) {
+        return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj,
+                                    field, expr);
+    }
+
+    public static MethodInvocation makeMethodInvocation(_RewriteFieldRef that,
+                                                        Expr obj, Id field,
+                                                        Expr expr) {
+        return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj,
+                                    field, expr);
+    }
+
+    public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
+        return new VarRef(var.getSpan(), var.isParenthesized(), type, name);
     }
 
     public static VarRef makeVarRef(Span span, String s) {
@@ -414,6 +446,17 @@ public class ExprFactory {
     public static VarRef makeVarRef(APIName api, Id name) {
         Id qName = NodeFactory.makeId(api, name);
         return new VarRef(qName.getSpan(), false, qName);
+    }
+
+    public static FieldRef makeFieldRef(FieldRef expr, Expr receiver, Id field) {
+        return new FieldRef(expr.getSpan(), expr.isParenthesized(),
+                            expr.getExprType(), receiver, field);
+    }
+
+    public static _RewriteFieldRef make_RewriteFieldRef(_RewriteFieldRef expr,
+                                                        Expr receiver, Name field) {
+        return new _RewriteFieldRef(expr.getSpan(), expr.isParenthesized(),
+                                    expr.getExprType(), receiver, field);
     }
 
     public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
@@ -493,13 +536,21 @@ public class ExprFactory {
     public static Block makeBlock(Expr e) {
         List<Expr> b = new ArrayList<Expr>(1);
         b.add(e);
-        return new Block(e.getSpan(),b);
+        return new Block(e.getSpan(), e.getExprType(), b);
     }
 
     public static Block makeBlock(Span sp, Expr e) {
         List<Expr> b = new ArrayList<Expr>(1);
         b.add(e);
-        return new Block(sp, b);
+        return new Block(sp, e.getExprType(), b);
+    }
+
+    public static Do makeDo(Span sp, Option<Type> t, Expr e) {
+        List<Expr> b = new ArrayList<Expr>(1);
+        b.add(e);
+        List<DoFront> body = new ArrayList<DoFront>();
+        body.add(new DoFront(sp, new Block(sp, t, b)));
+        return new Do(sp, t, body);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
@@ -508,7 +559,7 @@ public class ExprFactory {
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
         _lhs.add(new LValueBind(p,false));
-        return new LocalVarDecl(_body, _lhs, _rhs);
+        return new LocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
@@ -518,6 +569,13 @@ public class ExprFactory {
         _body.add(_body_expr);
         _lhs.add(new LValueBind(sp, p,false));
         return new LocalVarDecl(sp, _body, _lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs, Expr _r, Expr _body_expr) {
+        List<Expr> _body = new ArrayList<Expr>();
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        return new LocalVarDecl(sp, _body, lhs, _rhs);
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
@@ -564,6 +622,17 @@ public class ExprFactory {
                 Option.some(Collections.<Param>emptyList()));
     }
 
+    public static Assignment makeAssignment(Span span, Option<Type> type,
+                                            List<Lhs> lhs, Option<OpRef> op,
+                                            Expr rhs) {
+        return new Assignment(span, false, type, lhs, op, rhs);
+    }
+
+    public static Assignment makeAssignment(Span span, Option<Type> type,
+                                            List<Lhs> lhs, Expr rhs) {
+        return new Assignment(span, false, type, lhs, Option.<OpRef>none(), rhs);
+    }
+
     /**
      * Uses the Spans from e_1 and e_2.
      */
@@ -588,16 +657,9 @@ public class ExprFactory {
             return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
         }
 
-        /*
-        @Override
-        public Expr defaultEllipsesNode(_Ellipses e){
-            return e;
-        }
-        */
-
         public Expr forAssignment(Assignment e) {
             return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
-                e.getRhs());
+                                  e.getRhs());
         }
         public Expr forBlock(Block e) {
             return new Block(e.getSpan(), true, e.getExprs());

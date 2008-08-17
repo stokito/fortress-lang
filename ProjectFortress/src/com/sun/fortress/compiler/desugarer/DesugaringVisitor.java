@@ -139,15 +139,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private static final Id mangleName(Id fieldName) {
-        return new Id(fieldName.getSpan(), fieldName.getApi(), "$" + fieldName.getText());
+        return NodeFactory.makeId(fieldName, "$" + fieldName.getText());
     }
 
     private static Option<List<Param>> mangleParams(Option<List<Param>> params) {
         return new NodeUpdateVisitor() {
             public Node forNormalParam(NormalParam that) {
-                return new NormalParam(that.getSpan(), that.getMods(),
-                                       mangleName(that.getName()), that.getType(),
-                                       that.getDefaultExpr());
+                return NodeFactory.makeParam(that, mangleName(that.getName()));
             }
         }.recurOnOptionOfListOfParam(params);
     }
@@ -203,39 +201,42 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     private FnDef makeGetter(ImplicitGetterSetter field) {
         List<Modifier> mods = new LinkedList<Modifier>();
-        for (Modifier mod : field.getMods()) { mods.add(mod); }
+        for (Modifier mod : field.getMods()) {
+            if (!(mod instanceof ModifierSettable))
+                mods.add(mod);
+        }
         mods.add(new ModifierAtomic(field.getSpan()));
 
-        return new FnDef(field.getSpan(), mods, field.getName(),
-                         new ArrayList<StaticParam>(),
-                         new ArrayList<Param>(),
-                         field.getType(),
-                         Option.<List<BaseType>>none(),
-                         Option.<WhereClause>none(),
-                         Option.<Contract>none(),
-                         new VarRef(field.getSpan(), false,
-                                    mangleName(field.getName())));
+        return NodeFactory.makeFnDef(field.getSpan(), mods, field.getName(),
+                                     field.getType(),
+                                     new VarRef(field.getSpan(), false,
+                                                mangleName(field.getName())));
     }
 
-    /*
     private FnDef makeSetter(ImplicitGetterSetter field) {
+        Span span = field.getSpan();
+        Type voidType = NodeFactory.makeVoidType(span);
+        Option<Type> ty = field.getType();
         List<Modifier> mods = new LinkedList<Modifier>();
-        for (Modifier mod : field.getMods()) { mods.add(mod); }
-        mods.add(new ModifierAtomic(field.getSpan()));
-
-        return new FnDef(field.getSpan(), mods, field.getName(),
-                         new ArrayList<StaticParam>(),
-                         new ArrayList<Param>(),
-                         field.getType(),
-                         Option.<List<BaseType>>none(),
-                         Option.<WhereClause>none(),
-                         Option.<Contract>none(),
-                         new VarRef(field.getSpan(), false,
-                                    mangleName(field.getName())));
+        for (Modifier mod : field.getMods()) {
+            if (!(mod instanceof ModifierSettable))
+                mods.add(mod);
+        }
+        mods.add(new ModifierAtomic(span));
+        List<Param> params = new ArrayList<Param>();
+        Id param = NodeFactory.makeId(span, "v");
+        params.add((Param)NodeFactory.makeParam(span, new LinkedList<Modifier>(),
+                                                param, ty));
+        List<Lhs> lhs = new ArrayList<Lhs>();
+        lhs.add(ExprFactory.makeVarRef(span, mangleName(field.getName()), ty));
+        Expr rhs = ExprFactory.makeVarRef(span, param, ty);
+        Expr assign = ExprFactory.makeAssignment(span, Option.some(voidType),
+                                                 lhs, rhs);
+        return NodeFactory.makeFnDef(span, mods, field.getName(), params,
+                                     Option.some(voidType), assign);
     }
-    */
 
-    private LinkedList<Decl> makeGetters(Option<List<Param>> params,
+    private LinkedList<Decl> makeGetterSetters(Option<List<Param>> params,
                                          final List<Decl> decls) {
         final LinkedList<Decl> result = new LinkedList<Decl>();
         if (params.isSome()) {
@@ -245,6 +246,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     if (! hidden(_param) && ! trans(_param) &&
                         ! hasExplicitGetter(_param.getName(), decls))
                         result.add(makeGetter(_param));
+                    if (settable(_param) && ! trans(_param) &&
+                        ! hasExplicitSetter(_param.getName(), decls)) {
+                        result.add(makeSetter(_param));
+                    }
                 }
             }
         }
@@ -256,6 +261,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(binding));
                         }
+                        if (settable(binding) && ! trans(binding) &&
+                            ! hasExplicitSetter(binding.getName(), decls)) {
+                            result.add(makeSetter(binding));
+                        }
                     }
                 }
             });
@@ -263,7 +272,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    private LinkedList<Decl> makeGetters(final List<Decl> decls) {
+    private LinkedList<Decl> makeGetterSetters(final List<Decl> decls) {
         final LinkedList<Decl> result = new LinkedList<Decl>();
 
         for (Decl decl : decls) {
@@ -273,6 +282,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         if (! hidden(binding) && ! trans(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(binding));
+                        }
+                        if (settable(binding) && ! trans(binding) &&
+                            ! hasExplicitSetter(binding.getName(), decls)) {
+                            result.add(makeSetter(binding));
                         }
                     }
                 }
@@ -290,7 +303,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     // System.err.println(mangleName(lval.getName()));
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
-                return new VarDecl(that.getSpan(), newLVals, that.getInit());
+                return NodeFactory.makeVarDecl(that.getSpan(), newLVals, that.getInit());
             }
             public Node forAbsVarDecl(AbsVarDecl that) {
                 List<LValueBind> newLVals = new ArrayList<LValueBind>();
@@ -298,7 +311,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 for (LValueBind lval : that.getLhs()) {
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
-                return new AbsVarDecl(that.getSpan(), newLVals);
+                return NodeFactory.makeAbsVarDecl(that.getSpan(), newLVals);
             }
             /* Do not descend into object expressions. Instead, we mangle their
              * declarations when they're visited by DesugaringVisitor.
@@ -309,55 +322,103 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }.recurOnListOfDecl(decls);
     }
 
-    /**
-     * Walk over a list of Lhs and recur on everything but FieldRefs.
-     * For FieldRefs, recur only on their receivers.
-     * In this way, we avoid turning them into MethodRefs.
-     */
-    private List<Lhs> mangleLhs(List<Lhs> elts) {
-        final List<Lhs> result = new ArrayList<Lhs>();
-
-        for (Lhs lhs : elts) {
-            lhs.accept(new NodeAbstractVisitor_void() {
-                    public void defaultCase(Node that) {
-                        result.add((Lhs)that.accept(DesugaringVisitor.this));
+    private Expr mangleLhs(final Assignment that, final Span span,
+                           final Expr rhs_result, final Option<Type> voidType,
+                           final Lhs lhs) {
+        assert(that.getLhs().size() == 1);
+        return (Expr)lhs.accept(new NodeUpdateVisitor() {
+                    public Node forVarRef(VarRef lhs_that) {
+                        List<Lhs> left = new ArrayList<Lhs>();
+                        left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
+                        return ExprFactory.makeAssignment(span, voidType, left,
+                                                          that.getOpr(), rhs_result);
                     }
-                    public void forFieldRef(FieldRef that) {
-                        result.add((Lhs)new FieldRef(that.getSpan(),
-                                                     that.isParenthesized(),
-                                                     that.getExprType(),
-                                                     (Expr)that.getObj().accept(DesugaringVisitor.this),
-                                                     mangleName(that.getField())));
+                    public Node forSubscriptExpr(SubscriptExpr lhs_that) {
+                        List<Lhs> left = new ArrayList<Lhs>();
+                        left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
+                        return ExprFactory.makeAssignment(span, voidType, left,
+                                                          that.getOpr(), rhs_result);
                     }
-                    public void for_RewriteFieldRef(_RewriteFieldRef that) {
-                        Name name = that.getField();
-                        if ( name instanceof Id )
-                            name = mangleName((Id)name);
-                        result.add((Lhs)new _RewriteFieldRef(that.getSpan(),
-                                                             that.isParenthesized(),
-                                                             that.getExprType(),
-                                                             (Expr)that.getObj().accept(DesugaringVisitor.this),
-                                                             name));
+                    public Node forFieldRef(FieldRef lhs_that) {
+                        Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
+                        Expr rhs = rhs_result;
+                        if ( that.getOpr().isSome() ) {
+                            Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
+                            rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
+                                                         that.getOpr().unwrap(),
+                                                         _lhs, rhs);
+                        }
+                        return ExprFactory.makeMethodInvocation(span, that.isParenthesized(),
+                                                                voidType, obj,
+                                                                lhs_that.getField(),
+                                                                rhs);
+                    }
+                    public Node for_RewriteFieldRef(_RewriteFieldRef lhs_that) {
+                        if ( lhs_that.getField() instanceof Id) {
+                            Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
+                            Expr rhs = rhs_result;
+                            if ( that.getOpr().isSome() ) {
+                                Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
+                                rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
+                                                             that.getOpr().unwrap(),
+                                                             _lhs, rhs);
+                            }
+                            return ExprFactory.makeMethodInvocation(span,
+                                                                    that.isParenthesized(),
+                                                                    voidType, obj,
+                                                                    (Id)lhs_that.getField(),
+                                                                    rhs);
+                        } else
+                            return ExprFactory.makeAssignment(span, voidType,
+                                                              that.getLhs(),
+                                                              that.getOpr(),
+                                                              rhs_result);
                     }
                 });
-        }
-        return result;
     }
 
-    /**
-     * Be sure not to recur on FieldRefs that might occur in that.getLhs().
-     * TODO: Rewrite assignments to single fields as setters.
-     */
     @Override
-    public Node forAssignment(Assignment that) {
-        // To handle setters, we must process the lhs. For now, do not recur on lhs.
-        // Instead, walk over the Lhs and recur on everything but FieldRefs.
-        // For FieldRefs, recur only on their receivers.
-        // In this way, we avoid turning them into MethodRefs.
-        List<Lhs> lhs_result = mangleLhs(that.getLhs());
-        Expr rhs_result = (Expr) that.getRhs().accept(this);
-        return forAssignmentOnly(that, that.getExprType(), lhs_result,
-                                 that.getOpr(), rhs_result);
+    public Node forAssignment(final Assignment that) {
+        final Span span = that.getSpan();
+        List<Lhs> lhs = that.getLhs();
+        int size = lhs.size();
+        final Expr rhs_result = (Expr) that.getRhs().accept(this);
+        final Option<Type> voidType = Option.<Type>some(NodeFactory.makeVoidType(span));
+        if ( size == 1 ) {
+            return mangleLhs(that, span, rhs_result, voidType, lhs.get(0));
+        } else {
+            /* Desugars
+                 (x, y.f, z) := e
+               to
+                 tuple_3 = e
+                 (tuple_0, tuple_1, tuple_2) = tuple_3
+                 (x := tuple0, y.f(tuple1), z := tuple2)
+            */
+            boolean paren = that.isParenthesized();
+            Option<OpRef> opr = that.getOpr();
+            List<Expr>   assigns   = new ArrayList<Expr>();
+            List<LValue> secondLhs = new ArrayList<LValue>();
+            // Possible shadowing!
+            for (int i = size-1; i >= 0; i--) {
+                Id id = NodeFactory.makeId(span, "tuple_"+i);
+                List<Lhs> left = new ArrayList<Lhs>();
+                Lhs _lhs = lhs.get(i);
+                left.add(_lhs);
+                Expr right = ExprFactory.makeVarRef(span, id);
+                Assignment assign = ExprFactory.makeAssignment(span, voidType,
+                                                               left, opr,
+                                                               right);
+                assigns.add(0, mangleLhs(assign, span, right, voidType, _lhs));
+                secondLhs.add(0, NodeFactory.makeLValue(id));
+            }
+            Id id = NodeFactory.makeId(span, "tuple_"+size);
+            Expr third = ExprFactory.makeTuple(assigns);
+            LocalVarDecl second = ExprFactory.makeLocalVarDecl(span, secondLhs,
+                                                               ExprFactory.makeVarRef(span, id),
+                                                               third);
+            Expr first = ExprFactory.makeLocalVarDecl(span, id, rhs_result, second);
+            return ExprFactory.makeDo(span, voidType, first);
+        }
     }
 
     /*
@@ -370,21 +431,29 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         assert(varResult.getApi().isNone());
 
         if (fieldsInScope.contains(varResult)) {
-            return new VarRef(that.getSpan(), that.isParenthesized(),
-                              exprType_result, mangleName(varResult),
-                              that.getLexicalDepth());
+            return ExprFactory.makeVarRef(that, exprType_result,
+                                          mangleName(varResult));
         } else {
-        	return that;
+            return that;
         }
     }
 
     @Override
     public Node forFieldRefOnly(FieldRef that, Option<Type> exprType_result,
                                 Expr obj_result, Id field_result) {
-        return new MethodInvocation(that.getSpan(), that.isParenthesized(),
-                                    that.getExprType(), obj_result, field_result,
-                                    new ArrayList<StaticArg>(),
-                                    NodeFactory.makeVoidLiteralExpr());
+        return ExprFactory.makeMethodInvocation(that, obj_result, field_result,
+                                                NodeFactory.makeVoidLiteralExpr());
+    }
+
+    @Override
+    public Node for_RewriteFieldRefOnly(_RewriteFieldRef that, Option<Type> exprType_result,
+                                        Expr obj_result, Name field_result) {
+        if ( field_result instanceof Id)
+            return ExprFactory.makeMethodInvocation(that, obj_result, (Id)field_result,
+                                                    NodeFactory.makeVoidLiteralExpr());
+        else
+            return ExprFactory.make_RewriteFieldRef(that, obj_result,
+                                                    field_result);
     }
 
     @Override
@@ -392,7 +461,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         DesugaringVisitor newVisitor = extend(that.getDecls());
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
-        LinkedList<Decl> gettersAndDecls = makeGetters(that.getDecls());
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(that.getDecls());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
@@ -408,7 +477,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Option<Contract> contract_result = newVisitor.recurOnOptionOfContract(that.getContract());
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
-        LinkedList<Decl> gettersAndDecls = makeGetters(that.getParams(), that.getDecls());
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(that.getParams(), that.getDecls());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
@@ -426,7 +495,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         // System.err.println("decls_result size = " + decls_result.size());
-        LinkedList<Decl> gettersAndDecls = makeGetters(that.getDecls());
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(that.getDecls());
 
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
