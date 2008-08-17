@@ -38,11 +38,11 @@ end
 object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
     extends Matrix[\N,n,n\]
   replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
-  put(t:(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
-  init0(t:(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
-  get(t:(ZZ32,ZZ32)):N = do
-      (i,j) = t
-      e = mem.get(t)
+  put(t':(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
+  init0(t':(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
+  get(t':(ZZ32,ZZ32)):N = do
+      (i,j) = t'
+      e = mem.get(t')
       if i=j then 1 elif i>=j then e else 0 e end
     end
 end
@@ -52,11 +52,11 @@ lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\]) = Lower[\N,n\](mem)
 object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
     extends Matrix[\N,n,n\]
   replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
-  put(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
-  init0(t:(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
-  get(t:(ZZ32,ZZ32)):N = do
-      (i,j) = t
-      e = mem.get(t)
+  put(t':(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
+  init0(t':(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
+  get(t':(ZZ32,ZZ32)):N = do
+      (i,j) = t'
+      e = mem.get(t')
       if i<=j then e else 0 e end
     end
 end
