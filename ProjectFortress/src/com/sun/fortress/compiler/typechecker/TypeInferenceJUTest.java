@@ -118,6 +118,11 @@ public class TypeInferenceJUTest extends TestCase {
                 }
 
             });
+            
+            // Need this check, at a minimum, for .svn directories on windows, which are
+            // not considered 'hidden.'
+            if( infiles.length == 0 ) return;
+            
             String fq_input_fname = testDirectory.getAbsolutePath() + SEP + infiles[0];
             String fq_output_fname = testDirectory.getAbsolutePath() + SEP + OUT_FILE_NAME;
             String fq_exp_fname = testDirectory.getAbsolutePath() + SEP + EXPECTED_FILE_NAME;
