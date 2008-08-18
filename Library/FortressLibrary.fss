@@ -275,6 +275,16 @@ assert(x:Any, y:Any, failMsg: Any...): () =
         msg = x " =/= " y "; " (BIG || failMsg)
         fail(msg)
     end
+    
+deny(flag:Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
+
+deny(x:Any, y:Any, failMsg: Any...): () =
+    if x = y then
+        msg = x " = " y "; " (BIG || failMsg)
+        fail(msg)
+    end
 
 (************************************************************
 * Numeric hierarchy
@@ -3654,11 +3664,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         then self.get(i)
         else throw IndexOutOfBounds(0,(|self|)-1,i)
         end
-    opr[r0:Range[\ZZ32\]] : String = do
-        r1 = self.bounds[r0]
-        l = r1.lower()
-        self.substr(l, l + |r1|)
-      end
+
+    opr[r0:Range[\ZZ32\]] : String =  do
+        r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
+        self.uncheckedSubstring(r1)
+      end 
 
 
     (** The operator %||% with at least one String argument converts to String and
