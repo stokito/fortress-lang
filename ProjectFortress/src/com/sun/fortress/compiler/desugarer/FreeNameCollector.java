@@ -50,7 +50,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	private TraitDecl enclosingTraitDecl;
 	// The ObjectDecl enclosing the object expression
 	private ObjectDecl enclosingObjectDecl;
-    private boolean inAssignmentLhs;
 
     private FreeNameCollection freeNames;
     /* Map key: object expr, value: free names captured by object expr */
@@ -58,9 +57,12 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
     /* Map key: node which the captured mutable varRef is declared under 
                 (which should be either ObjectDecl or LocalVarDecl), 
        value: list of pairs 
-              pair.first is the object expr node where the varRef occur
-              pair.second is the varRef */
-    private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
+              pair.first is the varRef 
+              pair.second is the decl node where the varRef is declared 
+                    (which is either a Param, LValueBind, or LocalVarDecl)
+    */
+    // private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
+    private Map<Span, List<Pair<VarRef,Node>>> declSiteToVarRefs;
 
 	
 	private static final int DEBUG_LEVEL = 2;
@@ -78,19 +80,17 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
-        this.declSiteToVarRefs = 
-                        new HashMap<Span, List<Pair<ObjectExpr,VarRef>>>();
+        this.declSiteToVarRefs = new HashMap<Span, List<Pair<VarRef,Node>>>();
         
 		this.enclosingTraitDecl = null; 
 		this.enclosingObjectDecl = null; 
-		this.inAssignmentLhs = false;
 	}
 
     public Map<Span, FreeNameCollection> getObjExprToFreeNames() {
         return objExprToFreeNames;
     }
 
-    public Map<Span, List<Pair<ObjectExpr,VarRef>>> getDeclSiteToVarRefs() {
+    public Map<Span, List<Pair<VarRef,Node>>> getDeclSiteToVarRefs() {
         return declSiteToVarRefs;
     }
 
@@ -200,7 +200,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         scopeStack.pop();
 
         objExprToFreeNames.put( that.getSpan(), freeNames.makeCopy() );
-        List<VarRef> mutableVars = freeNames.getFreeMutableVarRefs();    
+
+        List<VarRef> mutableVars = filterFreeMutableVarRefs(that, freeNames);
 
         // Update the declsToVarRefs list 
         if(mutableVars != null) {
@@ -241,11 +242,15 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                             "; Decl node is: " + declNode );
                 }
 
-                List<Pair<ObjectExpr,VarRef>> refs = declSiteToVarRefs.get(declSite);
+                List<Pair<VarRef, Node>> refs = 
+                    declSiteToVarRefs.get( declSite.getSpan() );
+                Pair<VarRef,Node> varPair = new Pair<VarRef,Node>(var, declNode);
                 if(refs == null) {
-                    refs = new LinkedList<Pair<ObjectExpr,VarRef>>();
+                    refs = new LinkedList<Pair<VarRef,Node>>();
+                    refs.add(varPair);
+                } else if( refs.contains(varPair) == false ) {
+                    refs.add(varPair);
                 }
-                refs.add( new Pair<ObjectExpr,VarRef>(that, var) );
                 declSiteToVarRefs.put(declSite.getSpan(), refs); 
     		}
         }
@@ -255,21 +260,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
             freeNames = new FreeNameCollection();
         }
     }
-
-	@Override
-	public void forAssignment(Assignment that) {
-        forAssignmentDoFirst(that);
-        recurOnOptionOfType(that.getExprType());
-
-        inAssignmentLhs = true;
-        recurOnListOfLhs(that.getLhs());
-        inAssignmentLhs = false;
-
-        recurOnOptionOfOpRef(that.getOpr());
-        recur(that.getRhs());
-
-        forAssignmentOnly(that);
-	} 
 
 	@Override
 	public void forVarRef(VarRef that) {
@@ -285,12 +275,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL0, "FreeNameCollector visiting ", that);
-		Debug.debug(Debug.Type.COMPILER, 
-                    DEBUG_LEVEL0, "isAssignmentLhs is ", inAssignmentLhs);
 		
 		if( isDeclaredInObjExpr(that.getVar()) == false &&  
             isDeclaredInTopLevel(that.getVar()) == false ) {
-            freeNames.add(that, inAssignmentLhs);
+            freeNames.add(that);
         }
 
         forVarRefOnly(that);
@@ -476,7 +464,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         if(objExprTypeEnv == null) {
             throw new DesugarerError( objExprSpan, 
                 "TypeEnv corresponding to Object Expr at source " + 
-                objExprSpan + " is not found!" );
+                objExprSpan + " is not found!" + " And, typechecker is " +
+                com.sun.fortress.compiler.StaticChecker.typecheck );
         }
 		    
         // There is no sense checking for the static param binding,
@@ -556,6 +545,25 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		return true;
 	}
 	
+    private List<VarRef> filterFreeMutableVarRefs(ObjectExpr objExpr,
+                                        FreeNameCollection freeNames) {
+        List<VarRef> freeVarRefs = freeNames.getFreeVarRefs(); 
+        List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
+        TypeEnv typeEnv = typeEnvAtNode.get( objExpr.getSpan() );
+        
+        for(VarRef var : freeVarRefs) {
+            Option<Boolean> isMutable = typeEnv.mutable( var.getVar() );
+            if( isMutable.isNone() ) {
+                throw new DesugarerError("Binding for VarRef " + 
+                    var + " is not found!");
+            } else if( isMutable.unwrap().booleanValue() ) {
+                freeMutableVarRefs.add(var);
+            }
+        }
+        
+        return freeMutableVarRefs;
+    }
+
     /* Will no longer be needed once the getTypeEnv from 
        TypeCheckerResult is in place 
 	private void DebugTypeEnvAtNode(Node nodeToLookFor) {

@@ -18,35 +18,35 @@
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Span;
 
 
 public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     private Node entryNode;
-    private VarDecl containerField;
-    private Id containerFieldId;
+    private Map<VarRef, VarRefContainer> varRefsToRewrite;
 
     public MutableVarRefRewriteVisitor(Node entryNode, 
-                                       VarDecl containerField,
-                                       Id containerFieldId) {
+                Map<VarRef, VarRefContainer> varRefsToRewrite) {
         this.entryNode = entryNode;
-        this.containerField = containerField;
-        this.containerFieldId = containerFieldId;
+        this.varRefsToRewrite = varRefsToRewrite;
     }
 
     @Override
     public Node forObjectDecl(ObjectDecl that) {
-        if( this.equals(entryNode) == false || 
+        if( that.equals(entryNode) == false || 
             entryNode.getSpan().equals(that.getSpan()) == false ) {
             throw new DesugarerError("Wrong entry node for the rewriting " +
                 "pass!  Expected: " + entryNode + " (" + entryNode.getSpan() + 
@@ -54,7 +54,17 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
         }
         
         List<Decl> decls_result = recurOnListOfDecl( that.getDecls() );
-        decls_result.add(containerField);
+
+        for( VarRefContainer container : varRefsToRewrite.values() ) {
+            Node origDeclNode = container.origDeclNode();
+            if( origDeclNode instanceof Param ) {
+                decls_result.add( 0, container.containerField() );
+            } else if( origDeclNode instanceof LValueBind ) {
+                insertAfterOrigDecl(decls_result, container);
+            } else {
+                throw new DesugarerError("Unexpected type of origDeclNode!");
+            }
+        }
 
         return super.forObjectDeclOnly(that, that.getMods(), that.getName(),
                                        that.getStaticParams(),
@@ -85,54 +95,38 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
 
     @Override 
     public Node forVarRef(VarRef that) {
-        FieldRef newRef = null;
-        VarRef containerFieldRef = ExprFactory.makeVarRef(containerFieldId);
-        newRef = ExprFactory.makeFieldRef( that.getSpan(), 
-                                           containerFieldRef, that.getVar() );
-        
-        return newRef;
+        Span origVarSpan = that.getSpan();
+        VarRefContainer container = varRefsToRewrite.get(that);
+        if( container != null ) {
+            FieldRef newRef = ExprFactory.makeFieldRef( origVarSpan, 
+                                    container.containerVarRef(origVarSpan), 
+                                    that.getVar() );
+            return newRef;
+        } else {
+            return super.forVarRef(that);
+        }
     }
     
-/*
-    private VarDecl makeContainerField() {
-        // FIXME: is this the right span to use?
-        Span span = containerObjDecl.getSpan();
-        Id fieldName = NodeFactory.makeId(span, containerFieldName);
-        List<LValueBind> lhs = new LinkedList<LValueBind>(); 
-        Option<Type> containerType = Option.<Type>some(
-                NodeFactory.makeTraitType(containerObjDecl.getName()) );
-
-        // set the field to be immutable 
-        lhs.add( new LValueBind(span, fieldName, containerType, false) );
-        VarDecl field = new VarDecl( span, lhs, makeCallToContainerObj() );
-
-        return field;
+    private void insertAfterOrigDecl(List<Decl> decl_result, 
+                                     VarRefContainer container) {
+        int indexToInsert = 0;
+        for( Decl decl : decl_result ) {
+            indexToInsert = indexToInsert + 1;
+            if(decl instanceof VarDecl) {
+                VarDecl cast = (VarDecl) decl; 
+                List<LValueBind> lhs = cast.getLhs();
+                if( lhs.contains(container.origDeclNode()) ) {
+                    decl_result.add(indexToInsert, container.containerField());
+                    break;
+                }
+            } else {
+                // The decls should be in order, i.e. fields come before
+                // method / function decls, so we never get to this point.
+                throw new DesugarerError( "Can't find place to insert " +
+                    " container decl for " + container.origDeclNode() );
+            }
+        }
     }
-
-    private TightJuxt makeCallToContainerObj() {
-        // FIXME: is this the right span to use?
-        Span span = containerObjDecl.getSpan();
-        Id containerName = containerObjDecl.getName();
-        List<Id> fns = new LinkedList<Id>();
-        fns.add(containerName);
-
-        List<StaticArg> staticArgs = Collections.<StaticArg>emptyList();
-        FnRef fnRefToConstructor = ExprFactory.makeFnRef(span, false,
-                                        containerName, fns, staticArgs);
-        
-        List<Expr> exprs = new LinkedList<Expr>();
-        // argsToContainerObj has size greater or equal to 1; never 0
-        if( argsToContainerObj.size() == 1 ) {
-            exprs.add( argsToContainerObj.get(0) );
-        }
-        else {
-            TupleExpr tuple = ExprFactory.makeTuple(span, argsToContainerObj);
-            exprs.add(tuple);
-        }
-        exprs.add(0, fnRefToConstructor);
-        
-        return( ExprFactory.makeTightJuxt(span, false, exprs) );
-    } */
 
 
 }

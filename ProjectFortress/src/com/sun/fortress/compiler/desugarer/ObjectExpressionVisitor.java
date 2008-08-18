@@ -17,6 +17,7 @@
 
 package com.sun.fortress.compiler.desugarer;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -45,16 +46,19 @@ import edu.rice.cs.plt.tuple.Pair;
 //       when it's turned off, it does not create typeEnvAtNode
 
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
+    // A list of newly created ObjectDecls (i.e. lifted obj expressions and
+    // objectDecls for boxed mutable var refs they capture) 
     private List<ObjectDecl> newObjectDecls;
-    // A map mapping from an object expr to a pair of params that are 
-    // containers of mutable varRefs captured by the object expr; 
-    // this pair gets updated when entering and leaving ObjectDecl (first
-    // element in pair) and LocalVarDecl (second element), which are the only
-    // places that can introduce new mutable vars captured by object expr 
-    private Map<Span, Pair<Param,Param>> mutableParamsToLiftedObj;
-    // Similar map as the mutableParamsToLiftedObj, except that they are 
-    // args to invoking the constructor of lifted object exrp
-    private Map<Span, Pair<VarRef,VarRef>> mutableArgsToLiftedObj;
+    // A map mapping from mutable VarRef to its coresponding container 
+    // info (i.e. its boxed ObjectDecl, the new VarDecl to create the
+    // boxed ObjectDecl instance, the VarRef to the new VarDecl ... etc.)
+    // this map gets updated/reset when entering/leaving ObjectDecl and 
+    // LocalVarDecl, which are the only places that can introduce new 
+    // mutable vars captured by object expr.  When leaving ObjectDecl, it
+    // gets reset entirely.  When leaving LocalVarDecl, simply the VarRef 
+    // corresponding to the LocalVarRef gets removed. 
+    private Map<VarRef, VarRefContainer> mutableVarRefContainerMap;
+
     private Component enclosingComponent;
     private int uniqueId;
     private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
@@ -66,10 +70,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private TraitDecl enclosingTraitDecl;
     private ObjectDecl enclosingObjectDecl;
     private int objExprNestingLevel;
+
+    public static final String MANGLE_CHAR = "$";
     private static final String ENCLOSING_PREFIX = "enclosing";
-    private static final String MUTABLE_CONTAINER_PREFIX = "mutable";
-    private static final String CONTAINER_FIELD_SUFFIX = "_container";
-    private static final String MANGLE_CHAR = "$";
+
 
     /* The following two things are results returned by FreeNameCollector */
     /* Map key: object expr, value: free names captured by object expr */
@@ -79,15 +83,23 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
        value: list of pairs for which the VarRefs that needs to be boxed
               pair.first is the span of the decl node for the varRef
               pair.second is the varRef */
-    private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
+    private Map<Span, List<Pair<VarRef,Node>>> declSiteToVarRefs;
 
     public ObjectExpressionVisitor(TraitTable traitTable,
                     Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
         newObjectDecls = new LinkedList<ObjectDecl>();
+        mutableVarRefContainerMap = new HashMap<VarRef, VarRefContainer>();
+
         enclosingComponent = null;
         uniqueId = 0;
-        typeEnvAtNode = _typeEnvAtNode;
 
+        typeEnvAtNode = _typeEnvAtNode;
+        if( _typeEnvAtNode.isEmpty() ) {
+            throw new DesugarerError("typeEnvAtNode from type checker " +
+                "is empty!  Type checker must be on in order to perform " +
+                "closure conversion; is type check on? " + 
+                com.sun.fortress.compiler.StaticChecker.typecheck);
+        }
         this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>();
         // FIXME: Temp hack to use Map<Span,TypeEnv>
         // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
@@ -100,9 +112,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         enclosingTraitDecl = null;
         enclosingObjectDecl = null;
         objExprNestingLevel = 0;
-
-        mutableParamsToLiftedObj = new HashMap<Span, Pair<Param,Param>>();
-        mutableArgsToLiftedObj = new HashMap<Span, Pair<VarRef,VarRef>>();
     }
 
     @Override
@@ -148,111 +157,60 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-        public Node forObjectDecl(ObjectDecl that) {
+    public Node forObjectDecl(ObjectDecl that) {
         scopeStack.push(that);
         enclosingObjectDecl = that;
 
         ObjectDecl returnValue = that;
-        List<Pair<ObjectExpr,VarRef>> rewriteList = 
+        List<Pair<VarRef,Node>> rewriteList = 
                 declSiteToVarRefs.get( that.getSpan() ); 
 
         // Some rewriting required for this ObjectDecl (i.e. it has var
         // params being captured and mutated by some object expression(s) 
         if( rewriteList != null ) {
-            String containerName = MANGLE_CHAR + MUTABLE_CONTAINER_PREFIX + 
-                                   "_" + that.getName(); 
-            List<Expr> argsToContainerObj = new LinkedList<Expr>();
-            ObjectDecl container = 
-                createContainerForMutableVars(that, containerName, 
-                                          rewriteList, argsToContainerObj);
-            newObjectDecls.add(container);
-
-            // TODO: Change this to append a unique ID
-            String containerFieldName = MANGLE_CHAR + 
-                    MUTABLE_CONTAINER_PREFIX + CONTAINER_FIELD_SUFFIX;
-            Id containerFieldId = 
-                    NodeFactory.makeId(container.getSpan(), containerFieldName);
-            Option<Type> containerType = Option.<Type>some(
-                             NodeFactory.makeTraitType(container.getName()) );
-
-            VarDecl containerField = makeContainerField(container, 
-                          containerFieldId, containerType, argsToContainerObj);
-            MutableVarRefRewriteVisitor rewriter = 
-                new MutableVarRefRewriteVisitor(that, containerField, containerFieldId);
-            returnValue = (ObjectDecl) that.accept(rewriter);
-
-            for(Pair<ObjectExpr,VarRef> varPair : rewriteList) {
-                Span objExprSpan = varPair.first().getSpan();
-                // if the obj expr span is found in mutableParamsToLiftedObj 
-                // no need to do anything else; the same object expr in
-                // rewriteList can be included multiple times if it captures
-                // multiple varRefs   
-                if(mutableParamsToLiftedObj.containsKey(objExprSpan) == false) {
-                    NormalParam mutParam = new NormalParam(objExprSpan,
-                                            containerFieldId, containerType);
-                    mutableParamsToLiftedObj.put( objExprSpan, 
-                                new Pair<Param,Param>(mutParam, null) ); 
-                    VarRef mutArg = makeVarRefFromNormalParam(mutParam); 
-                    mutableArgsToLiftedObj.put( objExprSpan, 
-                                new Pair<VarRef,VarRef>(mutArg, null) ); 
-                }
+            updateMutableVarRefContainerMap( that.getName(), rewriteList );
+            
+            Collection<VarRefContainer> 
+                containers = mutableVarRefContainerMap.values();
+            for(VarRefContainer container : containers) {
+                newObjectDecls.add( container.containerDecl() );   
             }
+
+            // The rewriter also inserts newly declared container VarDecls
+            // into this ObjectDecl.
+            MutableVarRefRewriteVisitor rewriter = 
+                new MutableVarRefRewriteVisitor(that, mutableVarRefContainerMap);
+            returnValue = (ObjectDecl) that.accept(rewriter);
         }
 
-        // Traverse the subtree regardless rewriting is needed or not
-        // returnValue = that if no rewriting required for this node
-        // Note that we must update objExprToMutableDecls first before
-        // before recursing on its subtree, because the info stored in that
-        // data structure is relevant to lifting object expressions within
-        // this ObjectDecl 
+        // if rewriteList == null, returnValue = that; otherwise,
+        // returnValue is updated by the MutableVarRefRewriteVisitor.
+        // Note that we must update mutableVarRefContainerMap first 
+        // before recursing on its subtree, because the info in the 
+        // map is relevant to lifting object expr within this ObjectDecl 
+        // In addition, we do the rewrite first before we recur on subtree,
+        // although I believe the order of these two visitors should not
+        // conflict.
         returnValue = (ObjectDecl) super.forObjectDecl(returnValue);
+
+        // reset the mutableVarRefContainerMap
+        mutableVarRefContainerMap = new HashMap<VarRef, VarRefContainer>();
 
         enclosingObjectDecl = null;
      	scopeStack.pop();
     	return returnValue;
     }
 
-    private VarDecl makeContainerField(ObjectDecl containerObjDecl,
-                                       Id containerFieldId, 
-                                       Option<Type> containerType, 
-                                       List<Expr> argsToContainerObj) {
-        // FIXME: is this the right span to use?
-        Span span = containerObjDecl.getSpan();
-        List<LValueBind> lhs = new LinkedList<LValueBind>(); 
-
-        // set the field to be immutable 
-        lhs.add( new LValueBind(span, containerFieldId, containerType, false) );
-        VarDecl field = new VarDecl( span, lhs, 
-                                     makeCallToContainerObj(containerObjDecl, 
-                                                       argsToContainerObj) );
-
-        return field;
-    }
-
-    private TightJuxt makeCallToContainerObj(ObjectDecl containerObjDecl,
-                                             List<Expr> argsToContainerObj) {
-        // FIXME: is this the right span to use?
-        Span span = containerObjDecl.getSpan();
-        Id containerName = containerObjDecl.getName();
-        List<Id> fns = new LinkedList<Id>();
-        fns.add(containerName);
-
-        List<StaticArg> staticArgs = Collections.<StaticArg>emptyList();
-        FnRef fnRefToConstructor = ExprFactory.makeFnRef(span, false,
-                                        containerName, fns, staticArgs);
-        
-        List<Expr> exprs = new LinkedList<Expr>();
-        // argsToContainerObj has size greater or equal to 1; never 0
-        if( argsToContainerObj.size() == 1 ) {
-            exprs.add( argsToContainerObj.get(0) );
+    private void 
+    updateMutableVarRefContainerMap(Id enclosingId,
+                                    List<Pair<VarRef,Node>> rewriteList) {
+        for( Pair<VarRef,Node> varPair : rewriteList ) {
+            VarRef var = varPair.first();
+            Node declNode = varPair.second();
+            VarRefContainer container = 
+                new VarRefContainer( var, declNode, enclosingId );
+            mutableVarRefContainerMap.put(var, container);
         }
-        else {
-            TupleExpr tuple = ExprFactory.makeTuple(span, argsToContainerObj);
-            exprs.add(tuple);
-        }
-        exprs.add(0, fnRefToConstructor);
-        
-        return( ExprFactory.makeTightJuxt(span, false, exprs) );
     }
 
     @Override
@@ -388,58 +346,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return callToLifted;
     }
 
-    private ObjectDecl 
-    createContainerForMutableVars(Node originalContainer, 
-                                  String name,
-                                  List<Pair<ObjectExpr,VarRef>> rewriteList,
-                                  List<Expr> argsToContainerObj) {
-        // FIXME: Is this the right span to use?
-        Span containerSpan = originalContainer.getSpan(); 
-        Id containerId = NodeFactory.makeId(containerSpan, name);
-        List<StaticParam> staticParams = Collections.<StaticParam>emptyList();
-        List<TraitTypeWhere> extendClauses = 
-            Collections.<TraitTypeWhere>emptyList();
-        List<Decl> decls = Collections.emptyList(); 
 
-        List<Param> params = new LinkedList<Param>();
-
-        // TODO: We can do something fancier later to group varRefs
-        // differently depending on which obj exprs captures them so that the 
-        // grouping reflects the "correct" life span each var should have. 
-        for(Pair<ObjectExpr,VarRef> var : rewriteList) {
-            ObjectExpr objExpr = var.first();
-            VarRef varRef = var.second();
-            // If multiple obj exprs refer to the same varRef, there will 
-            // be duplicates in the rewriteList; don't generate params for 
-            // duplicates
-            if( argsToContainerObj.contains(varRef) == false ) {
-                argsToContainerObj.add(varRef);
-                TypeEnv typeEnv = typeEnvAtNode.get( objExpr.getSpan() );
-                Option<Node> declNodeOp = 
-                    typeEnv.declarationSite( varRef.getVar() );
-                NormalParam param = null;
-                if( declNodeOp.isSome() ) {                    
-                    param = makeVarParamFromVarRef( varRef, 
-                                declNodeOp.unwrap().getSpan(), 
-                                varRef.getExprType() ); 
-                } else {
-                    param = makeVarParamFromVarRef( varRef, varRef.getSpan(),
-                                        varRef.getExprType() );   
-                }
-                params.add(param);
-            }
-        }
-        
-        ObjectDecl container = new ObjectDecl(containerSpan, 
-                                        containerId, staticParams, 
-                                        extendClauses, 
-                                        Option.<WhereClause>none(),
-                                        Option.<List<Param>>some(params), 
-                                        decls);
-                                    
-        return container;
-    }
-    
     private TightJuxt makeCallToLiftedObj(ObjectDecl lifted,
                                           ObjectExpr objExpr,
                                           FreeNameCollection freeNames) {
@@ -484,10 +391,30 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
-                // FIXME: is it ok to get rid of parenthesis around it?
-                VarRef newVar = 
-                    ExprFactory.makeVarRef(var.getSpan(), var.getVar());
-                exprs.add(newVar);
+                TypeEnv typeEnv = tmpTypeEnvAtNode.get( objExpr.getSpan() );
+                Option<Boolean> mutableOp = typeEnv.mutable( var.getVar() ); 
+                if( mutableOp.isNone() ) {
+                    throw new DesugarerError(objExpr.getSpan(), 
+                        "Can't find " + var.getVar() + " in typeEnv for " 
+                        + objExpr);
+                }
+
+                boolean isMutable = mutableOp.unwrap().booleanValue(); 
+                if(isMutable) {
+                    VarRefContainer container =
+                        mutableVarRefContainerMap.get(var);
+                    if(container != null) {
+                        exprs.add( container.containerVarRef(var.getSpan()) );
+                    } else {
+                        throw new DesugarerError(objExpr.getSpan(), 
+                            var.getVar() + " is mutable but not found in " 
+                            + "the mutableVarRefContainerMap!");
+                    }
+                }  else {
+                    VarRef newVar = 
+                        ExprFactory.makeVarRef( var.getSpan(), var.getVar() );
+                    exprs.add(newVar);
+                }
             }
         }
 
@@ -501,14 +428,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             exprs.add(enclosingSelf);
         }
 
-        Pair<VarRef,VarRef> mutables = mutableArgsToLiftedObj.get(span); 
-        if(mutables != null) {
-            if( mutables.first() != null ) 
-                exprs.add( mutables.first() );
-            if( mutables.second() != null ) 
-                exprs.add( mutables.second() );
-        }
-        
         if( exprs.size() == 0 ) {
             VoidLiteralExpr voidLit = ExprFactory.makeVoidLiteralExpr(span);
             exprs.add(voidLit);
@@ -535,6 +454,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         NormalParam enclosingSelf = null;
         Option<List<Param>> params = null;
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
+        // FIXME: Temp hack to use Map<Span,TypeEnv>
+        // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
         TypeEnv typeEnv = tmpTypeEnvAtNode.get(scopeStack.peek().getSpan());
         enclosingSelf = makeEnclosingSelfParam(typeEnv, target, freeMethodRefs);
 
@@ -572,13 +493,33 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
-                // Default value for modifier and default expression
-                // FIXME: What if it has a type that's not visible at top level?
-                // FIXME: what span should I use?
-                type = typeEnv.type(var.getVar());
-                param = new NormalParam(var.getSpan(), var.getVar(), type);
+                Option<Boolean> mutableOp = typeEnv.mutable( var.getVar() ); 
+                if( mutableOp.isNone() ) {
+                    throw new DesugarerError(target.getSpan(), 
+                        "Can't find " + var.getVar() + " in typeEnv for " 
+                        + target);
+                }
 
-                params.add(param);
+                boolean isMutable = mutableOp.unwrap().booleanValue(); 
+
+                if(isMutable) {
+                    VarRefContainer container =
+                        mutableVarRefContainerMap.get(var);
+                    if(container != null) {
+                        params.add( container.containerTypeParam() );
+                    } else {
+                        throw new DesugarerError(target.getSpan(), 
+                            var.getVar() + " is mutable but not found in " 
+                            + "the mutableVarRefContainerMap!");
+                    }
+                }  else {
+                    // Default value for modifier and default expression
+                    // FIXME: What if it has a type that's not visible at top level?
+                    // FIXME: what span should I use?
+                    type = typeEnv.type(var.getVar());
+                    param = new NormalParam(var.getSpan(), var.getVar(), type);
+                    params.add(param);
+                }
             }
         }
 
@@ -597,35 +538,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         if(enclosingSelfParam != null) {
             params.add(enclosingSelfParam);
         }
-
-        Pair<Param,Param> mutables = 
-            mutableParamsToLiftedObj.get(target.getSpan()); 
-        if(mutables != null) {
-            if( mutables.first() != null ) 
-                params.add( mutables.first() );
-            if( mutables.second() != null ) 
-                params.add( mutables.second() );
-        }
         
         return Option.<List<Param>>some(params);
     }
 
-    private NormalParam makeVarParamFromVarRef(VarRef var, 
-                                          Span paramSpan,
-                                          Option<Type> typeOp) {
-        List<Modifier> mods = new LinkedList<Modifier>();
-        mods.add( new ModifierSettable(paramSpan) );
-        NormalParam param = new NormalParam(paramSpan, mods,
-                                            var.getVar(), typeOp);
-        return param;
-    }
-
-    private VarRef makeVarRefFromNormalParam(NormalParam param) {
-        VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
-                                                param.getName(),
-                                                param.getType() );
-        return varRef;
-    }
 
     private NormalParam makeEnclosingSelfParam(TypeEnv typeEnv,
                                                ObjectExpr objExpr,
@@ -658,10 +574,19 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     private List<StaticParam>
-        makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
+    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
         // TODO: Fill this in - get the VarTypes(?) that's free and
         // generate static param using it
         return Collections.<StaticParam>emptyList();
+    }
+
+
+    // small helper methods
+    private VarRef makeVarRefFromNormalParam(NormalParam param) {
+        VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
+                                                param.getName(),
+                                                param.getType() );
+        return varRef;
     }
 
     private String getMangledName(ObjectExpr target) {
@@ -674,6 +599,60 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return uniqueId++;
     }
 
+
+//     private ObjectDecl 
+//     createContainerForMutableVars(Node originalContainer, 
+//                                   String name,
+//                                   List<Pair<ObjectExpr,VarRef>> rewriteList,
+//                                   List<Expr> argsToContainerObj) {
+//         // FIXME: Is this the right span to use?
+//         Span containerSpan = originalContainer.getSpan(); 
+//         Id containerId = NodeFactory.makeId(containerSpan, name);
+//         List<StaticParam> staticParams = Collections.<StaticParam>emptyList();
+//         List<TraitTypeWhere> extendClauses = 
+//             Collections.<TraitTypeWhere>emptyList();
+//         List<Decl> decls = Collections.emptyList(); 
+// 
+//         List<Param> params = new LinkedList<Param>();
+// 
+//         // TODO: We can do something fancier later to group varRefs
+//         // differently depending on which obj exprs captures them so that the 
+//         // grouping reflects the "correct" life span each var should have. 
+//         for(Pair<ObjectExpr,VarRef> var : rewriteList) {
+//             ObjectExpr objExpr = var.first();
+//             VarRef varRef = var.second();
+//             // If multiple obj exprs refer to the same varRef, there will 
+//             // be duplicates in the rewriteList; don't generate params for 
+//             // duplicates
+//             if( argsToContainerObj.contains(varRef) == false ) {
+//                 argsToContainerObj.add(varRef);
+//                 // FIXME: Temp hack to use Map<Span,TypeEnv>
+//                 // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
+//                 TypeEnv typeEnv = tmpTypeEnvAtNode.get( objExpr.getSpan() );
+//                 Option<Node> declNodeOp = 
+//                     typeEnv.declarationSite( varRef.getVar() );
+//                 NormalParam param = null;
+//                 if( declNodeOp.isSome() ) {                    
+//                     param = makeVarParamFromVarRef( varRef, 
+//                                 declNodeOp.unwrap().getSpan(), 
+//                                 varRef.getExprType() ); 
+//                 } else {
+//                     param = makeVarParamFromVarRef( varRef, varRef.getSpan(),
+//                                         varRef.getExprType() );   
+//                 }
+//                 params.add(param);
+//             }
+//         }
+//         
+//         ObjectDecl container = new ObjectDecl(containerSpan, 
+//                                         containerId, staticParams, 
+//                                         extendClauses, 
+//                                         Option.<WhereClause>none(),
+//                                         Option.<List<Param>>some(params), 
+//                                         decls);
+//                                     
+//         return container;
+//     }
 }
 
 

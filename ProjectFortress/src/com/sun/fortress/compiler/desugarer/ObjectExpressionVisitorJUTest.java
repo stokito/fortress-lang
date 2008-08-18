@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.desugarer;
 
 import junit.framework.TestCase;
+import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import junit.framework.Test;
 
@@ -34,16 +35,32 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
 public class ObjectExpressionVisitorJUTest extends TestCase {
+    
+    private static final String testsDir = 
+        ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
     private static final char SEP = File.separatorChar;
-    private String file;
-
-    public ObjectExpressionVisitorJUTest( String file ){
-        super(file);
-        this.file = file;
+    
+    public void testObjectCC() 
+    throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC.fss");
     }
 
-    @Override public void runTest()
-        throws FileNotFoundException, IOException, Throwable {
+    public void testObjectCC_Mutables() 
+    throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC_mutVar1.fss");
+        runFile("objectCC_mutVar2.fss");
+    }
+    
+    public void testObjectCC_Mutli_ObjExpr_Mutables() 
+    throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC_multi_objExpr_mutVar1.fss");
+        runFile("objectCC_multi_objExpr_mutVar2.fss");
+    }
+    
+    private void runFile(String fileName)     
+    throws FileNotFoundException, IOException, Throwable {
+        String file = testsDir + SEP + fileName;
+        
         PrintStream oldOut = System.out;
         PrintStream oldErr = System.err;
         WireTappedPrintStream wt_err =
@@ -55,30 +72,24 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         FValue original = Shell.eval(file);
 
         String name = file.substring( 0, file.lastIndexOf(".") );
-        String fileName = file.substring( file.lastIndexOf(SEP)+1 );
         String tfs = name + ".tfs";
+
         String[] command = new String[]{ "desugar", "-out", tfs, file};
         Shell.main( command );
         String generated = RatsUtil.getTempDir() + fileName;
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
+        
+        // must turn these passes off
         com.sun.fortress.compiler.StaticChecker.typecheck = false;
-
+        com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
+        
         assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }
-
-    public static Test suite()
-        throws IOException, Throwable {
-       TestSuite suite = new TestSuite("Tests closure conversion of object expressions." );
-       String tests = ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
-       String[] files = new String[]{
-           "objectCC.fss" };
-       for ( String file : files ){
-           suite.addTest( new ObjectExpressionVisitorJUTest( tests + SEP + file ) );
-       }
-       return suite;
-    }
+    
 }
+
+

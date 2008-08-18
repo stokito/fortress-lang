@@ -32,48 +32,35 @@ import com.sun.fortress.useful.Debug;
 
 public final class FreeNameCollection {
 
-    private List<VarRef> freeVarRefs; // variable references
-    // Don't need to worry about FieldRef actually; in the case of x.y, we will
-    // get x as VarRef, and .y as FieldRef, but we just need to pass in x
-    // private List<FieldRef> freeFieldRefs; // field references (i.e. x.y)
-    private List<FnRef> freeFnRefs; // function references
-    private List<FnRef> freeMethodRefs; // dotted method references
-    private List<OpRef> freeOpRefs; // operator references
-    private List<DimRef> freeDimRefs;
-    private List<UnitRef> freeUnitRefs;
-    private List<IntRef> freeIntRefs;
-    private List<BoolRef> freeBoolRefs;
-    private List<VarType> freeVarTypes; // type param
-    private List<VarRef> freeMutableVarRefs;
+    // variable references
+    private List<VarRef> freeVarRefs = new LinkedList<VarRef>(); 
+    // function references
+    private List<FnRef> freeFnRefs = new LinkedList<FnRef>(); 
+    // dotted method references
+    private List<FnRef> freeMethodRefs = new LinkedList<FnRef>(); 
+    // operator references
+    private List<OpRef> freeOpRefs = new LinkedList<OpRef>(); 
+    private List<DimRef> freeDimRefs = new LinkedList<DimRef>();
+    private List<UnitRef> freeUnitRefs = new LinkedList<UnitRef>();
+    private List<IntRef> freeIntRefs = new LinkedList<IntRef>();
+    private List<BoolRef> freeBoolRefs = new LinkedList<BoolRef>();
+    // type param
+    private List<VarType> freeVarTypes = new LinkedList<VarType>(); 
 
     public final static FreeNameCollection EMPTY = new FreeNameCollection();
     private static final int DEBUG_LEVEL = 1;
 
-    public FreeNameCollection() {
-        freeVarRefs     = new LinkedList<VarRef>();
-        freeFnRefs      = new LinkedList<FnRef>();
-        freeMethodRefs  = new LinkedList<FnRef>();
-        freeOpRefs      = new LinkedList<OpRef>();
-        freeDimRefs     = new LinkedList<DimRef>();
-        freeUnitRefs    = new LinkedList<UnitRef>();
-        freeIntRefs     = new LinkedList<IntRef>();
-        freeBoolRefs    = new LinkedList<BoolRef>();
-        freeVarTypes    = new LinkedList<VarType>();
-        freeMutableVarRefs = new LinkedList<VarRef>();
-    }
-
     /* side effect on _this_ list but not the other list */
-    public FreeNameCollection composeResult(FreeNameCollection other) {
-        this.freeVarRefs.addAll(other.freeVarRefs);
-        this.freeFnRefs.addAll(other.freeFnRefs);
-        this.freeMethodRefs.addAll(other.freeMethodRefs);
-        this.freeOpRefs.addAll(other.freeOpRefs);
-        this.freeDimRefs.addAll(other.freeDimRefs);
-        this.freeUnitRefs.addAll(other.freeUnitRefs);
-        this.freeIntRefs.addAll(other.freeIntRefs);
-        this.freeBoolRefs.addAll(other.freeBoolRefs);
-        this.freeVarTypes.addAll(other.freeVarTypes);
-        this.freeMutableVarRefs.addAll(other.freeMutableVarRefs);
+	public FreeNameCollection composeResult(FreeNameCollection other) {
+		this.freeVarRefs.addAll(other.freeVarRefs);
+		this.freeFnRefs.addAll(other.freeFnRefs);
+		this.freeMethodRefs.addAll(other.freeMethodRefs);
+		this.freeOpRefs.addAll(other.freeOpRefs);
+		this.freeDimRefs.addAll(other.freeDimRefs);
+		this.freeUnitRefs.addAll(other.freeUnitRefs);
+		this.freeIntRefs.addAll(other.freeIntRefs);
+		this.freeBoolRefs.addAll(other.freeBoolRefs);
+		this.freeVarTypes.addAll(other.freeVarTypes);
 
         return this;
     }
@@ -89,10 +76,6 @@ public final class FreeNameCollection {
 
     public List<VarRef> getFreeVarRefs() {
         return freeVarRefs;
-    }
-
-    public List<VarRef> getFreeMutableVarRefs() {
-        return freeMutableVarRefs;
     }
 
     public List<FnRef> getFreeFnRefs() {
@@ -127,33 +110,22 @@ public final class FreeNameCollection {
         return freeVarTypes;
     }
 
-    public boolean equals(FreeNameCollection other) {
-        return( this.freeVarRefs.equals( other.freeVarRefs ) &&
-                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) &&
-                this.freeFnRefs.equals( other.freeFnRefs ) &&
-                this.freeMethodRefs.equals( other.freeMethodRefs ) &&
-                this.freeOpRefs.equals( other.freeOpRefs ) &&
-                this.freeDimRefs.equals( other.freeDimRefs ) &&
-                this.freeUnitRefs.equals( other.freeUnitRefs ) &&
-                this.freeIntRefs.equals( other.freeIntRefs ) &&
-                this.freeBoolRefs.equals( other.freeBoolRefs ) &&
-                this.freeVarTypes.equals( other.freeVarTypes ) );
-    }
+	public boolean equals(FreeNameCollection other) {
+		return( this.freeVarRefs.equals( other.freeVarRefs ) &&
+				this.freeFnRefs.equals( other.freeFnRefs ) &&
+				this.freeMethodRefs.equals( other.freeMethodRefs ) &&
+				this.freeOpRefs.equals( other.freeOpRefs ) &&
+				this.freeDimRefs.equals( other.freeDimRefs ) &&
+				this.freeUnitRefs.equals( other.freeUnitRefs ) &&
+				this.freeIntRefs.equals( other.freeIntRefs ) &&
+				this.freeBoolRefs.equals( other.freeBoolRefs ) &&
+				this.freeVarTypes.equals( other.freeVarTypes ) );
+	}
 
-    public FreeNameCollection add(VarRef n, boolean inAssignmentLhs) {
-        if(inAssignmentLhs) {
-            if( freeMutableVarRefs.contains(n) == false ) {
-                freeMutableVarRefs.add(n);
-    	        if( freeVarRefs.contains(n) ) {
-    	            freeVarRefs.remove(n);
-    	        }
-            }
-        } else {
-            if( freeVarRefs.contains(n) == false &&
-                freeMutableVarRefs.contains(n) == false ) {
-                freeVarRefs.add(n);
-            }
-        }
+	public FreeNameCollection add(VarRef n) {
+	   if( freeVarRefs.contains(n) == false ) { 
+	       freeVarRefs.add(n);
+	    }
 
         return this;
     }
@@ -216,7 +188,6 @@ public final class FreeNameCollection {
 
     public static void printDebug(FreeNameCollection target) {
         debugList(target.freeVarRefs);
-        debugList(target.freeMutableVarRefs);
         debugList(target.freeFnRefs);
         debugList(target.freeMethodRefs);
         debugList(target.freeOpRefs);
@@ -231,9 +202,6 @@ public final class FreeNameCollection {
         String retS = "";
         if( freeVarRefs.isEmpty() == false )
             retS += "freeVarRefs: " + freeVarRefs.toString() + "\n";
-        if( freeMutableVarRefs.isEmpty() == false )
-            retS += "freeMutableVarRefs: " +
-                    freeMutableVarRefs.toString() + "\n";
         if( freeFnRefs.isEmpty() == false )
             retS += "freeFnRefs: " + freeFnRefs.toString() + "\n";
         if( freeMethodRefs.isEmpty() == false )
@@ -263,3 +231,5 @@ public final class FreeNameCollection {
     }
 
 }
+
+

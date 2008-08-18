@@ -59,7 +59,7 @@ public class Desugarer {
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
-     public static boolean getter_setter_desugar = true;    
+    public static boolean getter_setter_desugar = true;    
     public static boolean objExpr_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {
