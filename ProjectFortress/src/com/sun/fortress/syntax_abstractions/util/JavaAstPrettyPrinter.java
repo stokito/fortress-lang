@@ -757,7 +757,8 @@ public class JavaAstPrettyPrinter extends TemplateNodeDepthFirstVisitor<String> 
         String sVarName = JavaAstPrettyPrinter.getSpan((AbstractNode) that, this.code);
         String type = that.getClass().getName();
 
-        String variables = handleVariables(that.getVariables());
+        // String variables = handleVariables(that.getVariables());
+        String variables = "";
 
         this.code.add(String.format("%s %s = new %s(%s,\"%s\",%s);", type, rVarName, type, sVarName, that.getSyntaxTransformer(), variables));
         return rVarName;

@@ -525,7 +525,7 @@ public class ComposingSyntaxDefTranslator {
                                              final ComposingSyntaxDeclEnv syntaxDeclEnv, 
                                              Map<PrefixedSymbol,VariableCollector.Depth> variables) {
         indents.add(3);
-        code.add("Map<String, Object> "+BOUND_VARIABLES+" = new HashMap<String, Object>();");
+        code.add("Map<String, Level> "+BOUND_VARIABLES+" = new HashMap<String, Level>();");
 
         final List<String> listCode = new LinkedList<String>();
         final List<Integer> listIndents = new LinkedList<Integer>();
@@ -599,9 +599,20 @@ public class ComposingSyntaxDefTranslator {
                 }
             };
             String resultVar = depth.accept(new DepthConvertVisitor(var, 3));
+            int levelDepth = depth.accept( new VariableCollector.DepthVisitor<Integer>(){
+                public Integer forOptionDepth(VariableCollector.Depth d) {
+                    return 1 + d.getParent().accept( this );
+                }
+                public Integer forListDepth(VariableCollector.Depth d) {
+                    return 1 + d.getParent().accept( this );
+                }
+                public Integer forBaseDepth(VariableCollector.Depth d) {
+                    return 0;
+                }
+            });
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\",%s);", BOUND_VARIABLES, var, prefixJavaVariable(resultVar)));
+            code.add(String.format("%s.put(\"%s\", new Level(%d, %s));", BOUND_VARIABLES, var, levelDepth, prefixJavaVariable(resultVar)));
         }
     }
 
