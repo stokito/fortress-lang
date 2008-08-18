@@ -564,8 +564,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 private Option<Type> findFieldInTraitHierarchy(List<TraitType> supers, FieldRef that) {
 
 		 List<TraitType> new_supers = new ArrayList<TraitType>();
-		 Option<Type> result = Option.none();
-
 		 for( TraitType my_super : supers ) {
 			 TraitIndex index = expectTraitIndex(my_super);
 
@@ -620,7 +618,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 		 }
 
-		 if( result.isNone() && !new_supers.isEmpty() ) {
+		 if(!new_supers.isEmpty() ) {
 			 // recur
 			 return this.findFieldInTraitHierarchy(new_supers, that);
 		 }
@@ -695,8 +693,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 }
 		 }
 
-		 if(candidates.isEmpty() && !new_supers.isEmpty()){
-			 return findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
+		 if(!new_supers.isEmpty()){
+			 
+		     Pair<List<Method>, List<TypeCheckerResult>> temp = findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
+		     candidates.addAll(temp.first());
+		     all_results.addAll(all_results);
 		 }
 		 return Pair.make(candidates,all_results);
 	 }
@@ -704,8 +705,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 private TypeCheckerResult findSetterInTraitHierarchy(IdOrOpOrAnonymousName field_name, List<TraitType> supers,
 			 Type arg_type, Node ast){
 		 List<TraitType> new_supers = new ArrayList<TraitType>();
-		 Option<Type> result = Option.none();
-
 		 for( TraitType my_super : supers ) {
 			 TraitIndex trait_index = expectTraitIndex(my_super);
 
@@ -747,7 +746,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 //error receiver not a trait
 		 }
 
-		 if( result.isNone() && !new_supers.isEmpty() ) {
+		 if(!new_supers.isEmpty() ) {
 			 // recur
 			 return this.findSetterInTraitHierarchy(field_name, new_supers, arg_type, ast );
 		 }
@@ -3169,7 +3168,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
                 findMethodsInTraitHierarchy(that.getMethod(), traits, arg_result.type().unwrap(),that.getStaticArgs(),that);
 
-            // Now we join together the results, or return an error if there are no candidates.
+            // Now we meet together the results, or return an error if there are no candidates.
             List<Method> candidates = candidate_pair.first();
             if(candidates.isEmpty()) {
                 String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
@@ -3184,7 +3183,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     return arg0.getReturnType();
                 }}));
 
-            Type range = subtypeChecker.join(ranges);
+            Type range = subtypeChecker.meet(ranges);
             MethodInvocation new_node = new MethodInvocation(that.getSpan(),
                                                              that.isParenthesized(),
                                                              Option.<Type>some(range),
@@ -4441,7 +4440,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
 		 List<Method> candidates = candidate_pair.first();
 
-		 // Now we join together the results, or return an error if there are no candidates.
+		 // Now we meet together the results, or return an error if there are no candidates.
 		 if(candidates.isEmpty()){
 			 String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
 			 TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
@@ -4451,7 +4450,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
 			 public Type value(Method arg0) { return arg0.getReturnType(); }}));
 
-		 Type range = this.subtypeChecker.join(ranges);
+		 Type range = this.subtypeChecker.meet(ranges);
 		 return TypeCheckerResult.compose(that, range, subtypeChecker, result);
 	 }
 
