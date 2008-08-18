@@ -77,23 +77,19 @@ public class OverloadRewriter {
         }
         List<Decl> decls = comp.getDecls();
 
+        // Add rewritten overloaded functions
         Map<String, List<Id>> overloadedFunctions = visitor.getOverloadedFunctions();
         for (Map.Entry<String, List<Id>> overload : overloadedFunctions.entrySet()) {
-            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue().size());
-            for (Id overloadId : overload.getValue()) {
-                overloadings.add(overloadId);
-            }
+            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
             Id overloadingId = NodeFactory.makeId(overload.getKey());
             _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(overloadingId, overloadings);
             decls.add(newDecl);
         }
 
+        // Add rewritten overloaded operators
         Map<String, List<OpName>> overloadedOperators = visitor.getOverloadedOperators();
         for (Map.Entry<String, List<OpName>> overload : overloadedOperators.entrySet()) {
-            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue().size());
-            for (OpName overloadId : overload.getValue()) {
-                overloadings.add(overloadId);
-            }
+            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
             OpName overloadingOpName = NodeFactory.makeOp(overload.getKey());
             _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(overloadingOpName, overloadings);
             decls.add(newDecl);
