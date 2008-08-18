@@ -168,7 +168,7 @@ public class Char extends NativeConstructor {
 
     public static final class ToString extends NativeMeth0 {
         protected FValue act(FObject self) {
-            return FString.make(((FChar)self).toString());
+            return FString.make(((FChar)self).getString());
         }
     }
 
