@@ -77,7 +77,6 @@ import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
-import com.sun.fortress.syntax_abstractions.util.InterpreterWrapper;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 
 import com.sun.fortress.useful.Pair;

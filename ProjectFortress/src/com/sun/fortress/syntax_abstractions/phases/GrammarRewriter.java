@@ -72,7 +72,6 @@ import com.sun.fortress.nodes.NodeTransformer;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.useful.Debug;
