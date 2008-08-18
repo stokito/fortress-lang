@@ -109,15 +109,15 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
             depth = new BaseDepth();
         }
         return depth.accept(new Depth.Visitor<BaseType>() {
-                @Override public BaseType forBaseDepth(BaseDepth depth) {
+                public BaseType forBaseDepth(BaseDepth depth) {
                     return baseType;
                 }
-                @Override public BaseType forListDepth(ListDepth depth) {
+                public BaseType forListDepth(ListDepth depth) {
                     return NodeFactory.makeTraitType
                         (NodeFactory.makeId(baseType.getSpan(), "List"),
                          NodeFactory.makeTypeArg(depth.getParent().accept(this)));
                 }
-                @Override public BaseType forOptionDepth(OptionDepth depth) {
+                public BaseType forOptionDepth(OptionDepth depth) {
                     return NodeFactory.makeTraitType
                         (NodeFactory.makeId(baseType.getSpan(), "Maybe"),
                          NodeFactory.makeTypeArg(depth.getParent().accept(this)));
