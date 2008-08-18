@@ -859,11 +859,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         // check sub expressions
         if( function_result.type().isNone() || argument_result.type().isNone() )
             return TypeCheckerResult.compose(that, subtypeChecker, function_result, argument_result);
-
         Option<Pair<Type,ConstraintFormula>> app_result =
             TypesUtil.applicationType(subtypeChecker, function_result.type().unwrap(),
                     new ArgList(argument_result.type().unwrap()));
-
         Option<Type> result_type;
         TypeCheckerResult result;
 
@@ -2264,7 +2262,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 public TypeCheckerResult forFnExpr(FnExpr that) {
 		 // Fn expressions have arrow type. They cannot have static arguments.
 		 // They cannot have where clauses.
-
+	     
 		 Option<TypeCheckerResult> returnType_result = recurOnOptionOfType(that.getReturnType());
 
 		 List<TypeCheckerResult> all_results = new ArrayList<TypeCheckerResult>();
@@ -4466,7 +4464,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			@Override
 			public List<TraitType> forIntersectionType(IntersectionType that) {
-				return NI.nyi("You should be able to call methods on this type, but this is nyi." + that);
+				List<TraitType> result = new ArrayList<TraitType>();
+			    List<Type> types = that.getElements();
+				for(Type t: types){
+				    result.addAll(t.accept(this));
+				}
+			    return result;
 			}
 
 			@Override
