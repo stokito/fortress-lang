@@ -46,6 +46,9 @@ public final class Types {
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
     public static final Id ARRAY_NAME = makeId(fortressLibrary,"Array");
+    // TODO: Replace ImmutableArray with ImmutableHeapSequence when
+    //       ImmutableHeapSequence is put into the libraries.
+    public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary, "ImmutableArray");
     public static final AnyType ANY = new AnyType();
     public static final BottomType BOTTOM = new BottomType();
     public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
@@ -55,6 +58,7 @@ public final class Types {
     public static final VoidType VOID = new VoidType();
     public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
     public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
+    public static final TraitType ZZ32 = makeTraitType(fortressLibrary, "ZZ32");
     public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin, "Boolean");
     public static final TraitType CHAR = makeTraitType(fortressBuiltin, "Char");
     public static final TraitType STRING = makeTraitType(fortressLibrary, "String");
@@ -62,11 +66,11 @@ public final class Types {
     public static final TraitType EXCEPTION = makeTraitType(fortressLibrary, "Exception");
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");
 
+
     public static final LabelType LABEL = new LabelType();
 
     public static final TraitType makeVarargsParamType(Type varargsType) {
-        // TODO: parameterize?
-        return makeTraitType(fortressBuiltin, "ImmutableHeapSequence");
+        return makeTraitType(IMMUTABLE_HEAP_SEQ_NAME, makeTypeArg(varargsType), makeTypeArg(ZZ32));
     }
 
     public static TraitType makeThreadType(Type typeArg) {
