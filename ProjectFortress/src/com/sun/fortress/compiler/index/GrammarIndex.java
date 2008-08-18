@@ -28,11 +28,10 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.syntax_abstractions.phases.Analyzable;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class GrammarIndex implements Analyzable<GrammarIndex> {
+public class GrammarIndex {
 
     private Option<GrammarDef> ast;
 
@@ -42,7 +41,8 @@ public class GrammarIndex implements Analyzable<GrammarIndex> {
 
     private boolean isToplevel;
 
-    public GrammarIndex(Option<GrammarDef> ast, Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+    public GrammarIndex(Option<GrammarDef> ast, 
+                        Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
         this.ast = ast;
         this.extendedGrammars = new LinkedList<GrammarIndex>();
         this.members = members;

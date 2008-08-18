@@ -151,8 +151,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
     private SyntaxSymbol nameResolution(ItemSymbol item) {
         if (IdentifierUtil.validId(item.getItem())) {
-            // GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-            // NonterminalEnv env = new NonterminalEnv(this._currentGrammarIndex);
             Id name = makeId(item.getSpan(), item.getItem());
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
             Option<Id> oname = 
