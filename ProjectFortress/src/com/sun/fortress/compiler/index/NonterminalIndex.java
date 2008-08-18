@@ -21,7 +21,6 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;

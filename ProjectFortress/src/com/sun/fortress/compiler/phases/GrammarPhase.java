@@ -17,6 +17,10 @@
 
 package com.sun.fortress.compiler.phases;
 
+import java.util.Collection;
+
+import com.sun.fortress.nodes.Api;
+
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
@@ -39,23 +43,19 @@ public class GrammarPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase GrammarPhase");
         AnalyzeResult previous = parentPhase.getResult();
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(repository.apis(), previous.apis()));
+        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap
+            (CollectUtil.union(repository.apis(), previous.apis()));
 
-        GrammarRewriter.ApiResult apiID = GrammarRewriter.rewriteApis(previous
-                .apis(), apiEnv);
-        if (!apiID.isSuccessful()) {
-            throw new MultipleStaticError(apiID.errors());
-        }
+        Collection<Api> apis = GrammarRewriter.rewriteApis(previous.apis(), apiEnv);
 
-        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apiID.apis(),
-                lastModified);
+        IndexBuilder.ApiResult apiDone = IndexBuilder.buildApis(apis, lastModified);
         if (!apiDone.isSuccessful()) {
             throw new MultipleStaticError(apiDone.errors());
         }
 
-        return new AnalyzeResult(apiDone.apis(), previous.components(),
-                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+        return new AnalyzeResult(apiDone.apis(), 
+                                 previous.components(),
+                                 IterUtil.<StaticError> empty(), 
+                                 previous.typeEnvAtNode());
     }
-
 }

@@ -19,7 +19,7 @@ api Relation
 import Map.{...} except { opr BIG UNION }
 import Set.{...}
 
-trait Relation[\T\] extends Equality[\Relation[\T\]\]
+trait Relation[\T\] extends Equality[\Relation[\T\]\] comprises {...}
   dom(self): Set[\T\]
   range(self): Set[\T\]
   pairs(): Generator[\(T,T)\]

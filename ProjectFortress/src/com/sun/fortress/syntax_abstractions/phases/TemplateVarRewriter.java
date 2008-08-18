@@ -18,10 +18,14 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.CaseTransformer;
@@ -30,15 +34,17 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Transformer;
-import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.parser_util.IdentifierUtil;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
+import com.sun.fortress.syntax_abstractions.environments.GapEnv;
+import com.sun.fortress.syntax_abstractions.environments.Depth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
 import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
-import com.sun.fortress.syntax_abstractions.util.JavaAstPrettyPrinter;
-import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Debug;
 
@@ -50,70 +56,148 @@ import edu.rice.cs.plt.tuple.Option;
  * Rewrite all occurrences of variables in a given template to 
  * occurrences of gaps 
  */
-public class TemplateVarRewriter extends NodeUpdateVisitor {
+class TemplateVarRewriter extends NodeUpdateVisitor {
 
     public static final String GAPSYNTAXPREFIX = " <!@#$%^&*<";
     public static final String GAPSYNTAXSUFFIX = ">*&^%$#@!> ";
 
-    private Map<Id, BaseType> vars;
-    private Option<BaseType> caseBaseType;
+    private GapEnv gapEnv;
 
-    public TemplateVarRewriter( Map<Id, BaseType> vs ){
-        vars = vs;
-        caseBaseType = Option.none();
+    // FIXME: temp hack, for vars without nonterminals
+    private Map<Id, BaseType> varsToTypes;
+
+    TemplateVarRewriter(GapEnv gapEnv) {
+        this(gapEnv, new HashMap<Id, BaseType>());
     }
-    
+
+    TemplateVarRewriter(GapEnv gapEnv, Map<Id, BaseType> varsToTypes) {
+        this.gapEnv = gapEnv;
+        this.varsToTypes = varsToTypes;
+    }
+
     @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that, Id id_result) {
         return new UnparsedTransformer( rewriteVars( that.getTransformer() ), id_result);
     }
 
-    @Override public Node forCaseTransformer(CaseTransformer that) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Case type for " + that.getGapName() + " is " + vars.get(that.getGapName()) );
-        caseBaseType = Option.wrap(vars.get(that.getGapName()));
-        return super.forCaseTransformer(that);
-    }
-    
-    /* extend the environment and transform the body */
-    @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
-        Map<Id, BaseType> myvars = new HashMap<Id, BaseType>( vars );
-        for ( Id param : that.getParameters() ){
-            myvars.put( param, caseBaseType.unwrap() );
-        }
-        return new CaseTransformerClause( that.getConstructor(), that.getParameters(), (Transformer) that.getBody().accept( new TemplateVarRewriter( myvars ) ) );
+    @Override public Node forCaseTransformer(CaseTransformer thatTransformer) {
+        final Id gapName = thatTransformer.getGapName();
+        final BaseType caseType = lookupType(gapName);
+        Debug.debug(Debug.Type.SYNTAX, 3,
+                    "Case var " + gapName + " has type " + caseType);
+        return thatTransformer.accept(new NodeUpdateVisitor() {
+
+                /* extend the environment and transform the body */
+                @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
+                    TemplateVarRewriter tvr = extendWithCaseBindings(gapName, caseType, that);
+                    return new CaseTransformerClause(that.getConstructor(), 
+                                                     that.getParameters(),
+                                                     (Transformer) that.getBody().accept(tvr));
+                }
+            });
     }
 
-    public String rewriteVars(String t) {
-        Map<String, String> varToGapName = new HashMap<String, String>();
+    private BaseType lookupType(Id id) {
+        final BaseType baseType;
+        if (varsToTypes.containsKey(id)) {
+            baseType = varsToTypes.get(id);
+        } else {
+            baseType = gapEnv.getAstType(id);
+        }
+        Depth depth = gapEnv.getDepth(id);
+        if (depth == null) {
+            // FIXME
+            depth = new BaseDepth();
+        }
+        return depth.accept(new Depth.Visitor<BaseType>() {
+                @Override public BaseType forBaseDepth(BaseDepth depth) {
+                    return baseType;
+                }
+                @Override public BaseType forListDepth(ListDepth depth) {
+                    return NodeFactory.makeTraitType
+                        (NodeFactory.makeId(baseType.getSpan(), "List"),
+                         NodeFactory.makeTypeArg(depth.getParent().accept(this)));
+                }
+                @Override public BaseType forOptionDepth(OptionDepth depth) {
+                    return NodeFactory.makeTraitType
+                        (NodeFactory.makeId(baseType.getSpan(), "Maybe"),
+                         NodeFactory.makeTypeArg(depth.getParent().accept(this)));
+                }
+            });
+    }
+
+    private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType, 
+                                                       CaseTransformerClause that) {
+        List<Id> parameters = that.getParameters();
+
+        Debug.debug(Debug.Type.SYNTAX, 2, "Case type for " + gapName + " is " + caseType);
+
+        // FIXME!!!
+        if (that.getConstructor().getText().equals("Cons")) {
+            if (parameters.size() == 2) {
+                Map<Id, BaseType> extendedVars = new HashMap<Id, BaseType>(varsToTypes);
+                extendedVars.put(parameters.get(0), unwrapListType(caseType));
+                extendedVars.put(parameters.get(1), caseType);
+                return new TemplateVarRewriter(gapEnv, extendedVars);
+            } else {
+                throw new RuntimeException("Cons case expects 2 parameters");
+            }
+        } else if (that.getConstructor().getText().equals("Empty")) {
+            if (parameters.isEmpty()) {
+                // nothing to add
+                return this;
+            } else {
+                throw new RuntimeException("Empty case expects 0 parameters");
+            }
+        } else {
+            throw new RuntimeException("Unrecognized constructor name: " + that.getConstructor());
+        }
+    }
+
+    private BaseType unwrapListType(BaseType type) {
+        if (type instanceof TraitType && ((TraitType)type).getName().getText().equals("List")) {
+            List<StaticArg> params = ((TraitType)type).getArgs();
+            if (params.size() == 1 && params.get(0) instanceof TypeArg) {
+                // FIXME: Check cast to BaseType
+                return (BaseType)((TypeArg)params.get(0)).getType();
+            }
+        }
+        throw new RuntimeException("expected a List type, got: " + type);
+    }
+
+    String rewriteVars(String t) {
         String result = "";
         boolean inSideString = false;
-        
+
+        Set<Id> allGaps = new HashSet<Id>();
+        allGaps.addAll(varsToTypes.keySet());
+        allGaps.addAll(gapEnv.gaps());
+
         L:for (int inx=0; inx<t.length(); inx++) {
-            
-            if (inSideString && (t.charAt(inx) == '\\') && (inx+1<t.length()) && (t.charAt(inx+1) == '\"')) {
+            if (inSideString && (t.charAt(inx) == '\\') && (inx+1<t.length()) &&
+                    (t.charAt(inx+1) == '\"')) {
                 result+= "\\\"";
                 inx+= 2;
             }
             if (isString(inx, t)) {
                 inSideString = !inSideString;
-            }
-            else if (!inSideString) {
-                for (Id id: vars.keySet()) {
+            } else if (!inSideString) {
+                for (Id id: allGaps) {
                     String var = id.getText();
-                    //	            System.err.println("Testing: "+var);
                     int end = inx+var.length();
 
                     if (match(inx, end, var, t)) {
-                        //					System.err.println("Match... "+inx);
                         if (isVar(inx, end, t)) {
-                            //						System.err.println("isVar...");
                             inx = end-1;
                             String tmp = "";
                             if (isTemplateApplication(end, t)) {
-                                Pair<Integer,String> p = parseTemplateApplication(varToGapName, end, t, var);
+                                Pair<Integer,String> p = 
+                                    parseTemplateApplication(end, t, var);
                                 inx = p.getA();
                                 tmp = p.getB();
                             }
-                            String type = vars.get(id).accept(new BaseTypeCollector());
+                            // FIXME: What is BaseTypeCollector doing that
+                            // getJavaType wouldn't?
+                            String type = lookupType(id).accept(new BaseTypeCollector());
                             result += getVar(var+tmp, type);
                             continue L;
                         }
@@ -131,12 +215,14 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
 
     private boolean isVar(int inx, int end, String t) {
         if (startOfString(inx)) {
-            return isTemplateApplication(end, t) || toEndOfString(end, t) || notIdOrOpOrKeyword(t.charAt(end));
+            return isTemplateApplication(end, t) || toEndOfString(end, t)
+                || notIdOrOpOrKeyword(t.charAt(end));
         } else if (endOfString(end, t)) {
             return notIdOrOpOrKeyword(t.charAt(inx-1));
         } else {
             char c = t.charAt(inx-1);
-            return (notIdOrOpOrKeyword(c ) && isTemplateApplication(end, t)) || (notIdOrOpOrKeyword(c) && notIdOrOpOrKeyword(t.charAt(end)));
+            return (notIdOrOpOrKeyword(c ) && isTemplateApplication(end, t))
+                || (notIdOrOpOrKeyword(c) && notIdOrOpOrKeyword(t.charAt(end)));
         }
     }
 
@@ -155,11 +241,11 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
         return false;
     }
 
-    private Pair<Integer,String> parseTemplateApplication(Map<String, String> varToGapName, int end, String t, String v) {
+    private Pair<Integer,String> parseTemplateApplication(int end, String t, String v) {
         String result = "";
         if (isTemplateApplication(end, t)) {
             int jnx = getEndOfTemplateApplication(end,t);
-            List<String> params = parseArgs(varToGapName, t.substring(end+1, jnx));
+            List<String> params = parseArgs(t.substring(end+1, jnx));
             if (!params.isEmpty()) {
                 result = "(";
                 Iterator<String> it = params.iterator();
@@ -178,7 +264,7 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     private String getVar(String v, String nonterminal) {
-        return TemplateVarRewriter.getGapString(v, nonterminal);
+        return getGapString(v, nonterminal);
     }
 
     private int getEndOfTemplateApplication(int end, String t) {
@@ -197,7 +283,7 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
         return inx == 0;
     }
 
-    private List<String> parseArgs(Map<String, String> varToGapName , String s) {
+    private List<String> parseArgs(String s) {
         String[] tokens = s.split(",");
         List<String> ls = new LinkedList<String>();
         for (String token: tokens) {
@@ -206,15 +292,7 @@ public class TemplateVarRewriter extends NodeUpdateVisitor {
         return ls;
     }
 
-    public static String getGapString(String var, String type) {
-        return getGapSyntaxPrefix(type)+" "+var+" "+TemplateVarRewriter.GAPSYNTAXSUFFIX;
-    }
-
-    public static String getGapSyntaxPrefix(String type) {
-        /* get rid of this check? */
-        if (type.startsWith("THELLO")) {
-            return TemplateVarRewriter.GAPSYNTAXPREFIX+"StringLiteralExpr";
-        }
-        return TemplateVarRewriter.GAPSYNTAXPREFIX+type.trim();
+    static String getGapString(String var, String type) {
+        return GAPSYNTAXPREFIX+type.trim()+" "+var+" "+GAPSYNTAXSUFFIX;
     }
 }

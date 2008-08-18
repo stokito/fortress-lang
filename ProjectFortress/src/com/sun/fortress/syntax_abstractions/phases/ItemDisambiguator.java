@@ -53,8 +53,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.IdentifierUtil;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Debug;
 
@@ -124,11 +122,12 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         }
         return super.forGrammarDef(that);
     }
-    
+
     @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
         NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-        Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), that.getNonterminal());
-
+        Option<Id> oname = 
+            nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), 
+                                      that.getNonterminal());
         if (oname.isSome()) {
             return new UnparsedTransformer( that.getTransformer(), oname.unwrap() ); 
         } else {
@@ -156,28 +155,12 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             // NonterminalEnv env = new NonterminalEnv(this._currentGrammarIndex);
             Id name = makeId(item.getSpan(), item.getItem());
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-            Option<Id> oname = nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
+            Option<Id> oname = 
+                nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
 
             if (oname.isSome()) {
                 name = oname.unwrap();
-                // Set<Id> setOfNonterminals = ga.getContained(name.getText(), this._currentGrammarIndex);
-                // Set<Id> setOfNonterminals = env.declaredNonterminalNames(name.getText());
-
                 return makeNonterminal(item, name);
-
-                /*
-                  if (setOfNonterminals.size() == 1) {
-                  this._errors.addAll(nnd.errors());
-                  Debug.debug( Debug.Type.SYNTAX, 4, "Disambiguate " + name + " to " + IterUtil.first(setOfNonterminals));
-                  return makeNonterminal(item, IterUtil.first(setOfNonterminals));
-                  }
-
-                  if (setOfNonterminals.size() > 1) {
-                  this._errors.addAll(nnd.errors());
-                  error("Production name may refer to: " + NodeUtil.namesString(setOfNonterminals), name);
-                  return makeNonterminal(item, name);
-                  }
-                */
             }
             return makeKeywordSymbol(item);
         }
@@ -209,16 +192,18 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forPrefixedSymbolOnly(final PrefixedSymbol prefix,
-                                      Option<Id> id_result, Option<Type> type_result, SyntaxSymbol symbol_result) {
+                                      Option<Id> id_result, 
+                                      Option<Type> type_result, 
+                                      SyntaxSymbol symbol_result) {
         String varName = symbol_result.accept(new PrefixHandler());
         if (id_result.isNone()) {
             if (!IdentifierUtil.validId(varName)) {
                 return symbol_result;
             }
-            Debug.debug( Debug.Type.SYNTAX, 3, "Create new prefixed symbol with id '" + varName + "'" );
+            Debug.debug( Debug.Type.SYNTAX, 3,
+                         "Create new prefixed symbol with id '" + varName + "'" );
             return handle(prefix, symbol_result, varName);
-        }
-        else {
+        } else {
             return new PrefixedSymbol(prefix.getSpan(), id_result, type_result, symbol_result);
         }
     }

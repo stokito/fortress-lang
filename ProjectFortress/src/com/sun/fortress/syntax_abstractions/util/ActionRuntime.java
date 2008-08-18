@@ -42,7 +42,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.NI;
 

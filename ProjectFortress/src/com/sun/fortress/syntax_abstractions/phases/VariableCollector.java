@@ -23,7 +23,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
@@ -35,142 +37,58 @@ import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
 
+import com.sun.fortress.syntax_abstractions.environments.Depth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
+import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
+
 import com.sun.fortress.useful.Debug;
 
-public class VariableCollector extends NodeDepthFirstVisitor<Map<PrefixedSymbol, VariableCollector.Depth>> {
-    
+public class VariableCollector extends NodeDepthFirstVisitor_void {
+
+    private Map<Id,Depth> depthMap;
     private Depth depth;
 
-    public interface Depth {
-        public Depth getParent();
-        public String getType(String baseType);
-        public <T> T accept(DepthVisitor<T> visitor);
-        // public String createCode(String id, List<String> code, List<Integer> indents);
+    public VariableCollector(Map<Id,Depth> depthMap) {
+        this(depthMap, new BaseDepth());
     }
 
-    public interface DepthVisitor<T> {
-        T forBaseDepth(Depth d);
-        T forListDepth(Depth d);
-        T forOptionDepth(Depth d);
-    }
-
-    static class BaseDepth implements Depth {
-        public Depth getParent() {
-            throw new UnsupportedOperationException("cannot get parent of BaseDepth");
-        }
-        public String getType(String baseType) {
-            return baseType;
-        }
-        public <T> T accept(DepthVisitor<T> visitor) {
-            return visitor.forBaseDepth(this);
-        }
-    }
-
-    static class ListDepth implements Depth {
-        private Depth d;
-        ListDepth(Depth d) { this.d = d; }
-        public Depth getParent(){
-            return d;
-        }
-        public String getType(String baseType){
-            return "List<" + d.getType(baseType) + ">";
-        }
-        public <T> T accept(DepthVisitor<T> visitor) {
-            return visitor.forListDepth(this);
-        }
-    }
-
-    static class OptionDepth implements Depth {
-        private Depth d;
-        OptionDepth(Depth d) { this.d = d; }
-        public Depth getParent(){
-            return d;
-        }
-        public String getType(String baseType) {
-            return "Option<" + d.getType(baseType) + ">";
-        }
-        public <T> T accept(DepthVisitor<T> visitor) {
-            return visitor.forOptionDepth(this);
-        }
-    }
-
-    public VariableCollector() {
-        this.depth = new BaseDepth();
-    }
-
-    private VariableCollector(Depth depth) {
+    private VariableCollector(Map<Id,Depth> depthMap, Depth depth) {
+        this.depthMap = depthMap;
         this.depth = depth;
     }
 
-    @Override
-    public Map<PrefixedSymbol,Depth> defaultCase(com.sun.fortress.nodes.Node that) {
-        return new HashMap<PrefixedSymbol,Depth>();
+    @Override public void defaultCase(com.sun.fortress.nodes.Node that) {
+        return;
     }	
 
-    @Override
-    public Map<PrefixedSymbol,Depth> forPrefixedSymbol(PrefixedSymbol that) {
-        Map<PrefixedSymbol,Depth> c = super.forPrefixedSymbol(that);
+    @Override public void forPrefixedSymbol(PrefixedSymbol that) {
         if (that.getId().isSome()) {
-            c.put(that, depth);
+            this.depthMap.put(that.getId().unwrap(), this.depth);
         }
-        return c;
-    }
-    
-    @Override
-    public Map<PrefixedSymbol,Depth> forSyntaxDef(SyntaxDef that) {
-        Map<PrefixedSymbol,Depth> all = new HashMap<PrefixedSymbol,Depth>();
-        for ( SyntaxSymbol s : that.getSyntaxSymbols() ){
-            all.putAll( s.accept(this) );
-        }
-        return all;
+        super.forPrefixedSymbol(that);
     }
 
-    public Map<PrefixedSymbol,Depth> forNotPredicateSymbol(NotPredicateSymbol that) {
-        return new HashMap<PrefixedSymbol,Depth>();
+    @Override public void forNotPredicateSymbol(NotPredicateSymbol that) {
+        return; // FIXME: ???
     }
 
-    /*
-    public Map<PrefixedSymbol,Depth> forAndPredicateSymbol(AndPredicateSymbol that) {
-        return new HashMap<PrefixedSymbol,Depth>();
-    }
-    */
-
-    @Override
-    public Map<PrefixedSymbol,Depth> forGroupSymbol(GroupSymbol that) {
-        Map<PrefixedSymbol,Depth> c = super.forGroupSymbol(that);
-        for ( SyntaxSymbol symbol : that.getSymbols() ){
-            c.putAll( symbol.accept(this) );
-        }
-        // Debug.debug( Debug.Type.SYNTAX, 3, "Bound symbols for group: ", c );
-        return c;
+    @Override public void forAndPredicateSymbol(AndPredicateSymbol that) {
+        return; // FIXME: ???
     }
 
-    @Override
-    public Map<PrefixedSymbol,Depth> forRepeatSymbol(RepeatSymbol that) {
-        Debug.debug( Debug.Type.SYNTAX, 3, "Repeat symbol ", that.getSymbol() );
-        return that.getSymbol().accept(new VariableCollector(addStar(depth)));
+    @Override public void forRepeatSymbol(RepeatSymbol that) {
+        Debug.debug(Debug.Type.SYNTAX, 3, "Repeat symbol ", that.getSymbol());
+        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addStar()));
     }
 
-    @Override
-    public Map<PrefixedSymbol,Depth> forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-        Debug.debug( Debug.Type.SYNTAX, 3, "Repeat One or more symbol ", that.getSymbol() );
-        return that.getSymbol().accept(new VariableCollector(addPlus(depth)));
+    @Override public void forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
+        Debug.debug(Debug.Type.SYNTAX, 3, "Repeat One or more symbol ", that.getSymbol());
+        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addPlus()));
     }
 
-    @Override
-    public Map<PrefixedSymbol,Depth> forOptionalSymbol(OptionalSymbol that) {
+    @Override public void forOptionalSymbol(OptionalSymbol that) {
         Debug.debug( Debug.Type.SYNTAX, 3, "Optional ", that.getSymbol() );
-        return that.getSymbol().accept(new VariableCollector(addOptional(depth)));
+        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addOptional()));
     }
-
-    private Depth addStar(Depth d) {
-        return new ListDepth(d);
-    }
-    private Depth addPlus(Depth d) {
-        return new ListDepth(d);
-    }
-    private Depth addOptional(Depth d) {
-        return new OptionDepth(d);
-    }
-
 }
