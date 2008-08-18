@@ -120,7 +120,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
      * A syntax transformation
      */
     interface _SyntaxTransformation(String syntaxTransformer,
-                                    java.util.Map<String,Object> variables,
+                                    java.util.Map<String,Level> variables,
                                     java.util.List<String> syntaxParameters);
 
     /**
@@ -2280,6 +2280,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * e.g.) < 5
          */
         Link(OpRef op, Expr expr);
+
+        /*
+	 * Keeps track of ellipses properties
+	 */
+        Level(Integer level, Object object);
         /*
          * An overloading, and the type of that particular overloading.
          */

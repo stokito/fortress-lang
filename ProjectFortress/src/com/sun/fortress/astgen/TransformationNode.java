@@ -119,7 +119,7 @@ public class TransformationNode extends NodeClass {
 
     private void writeGetters(TabPrintWriter writer, String name) {
         writer.startLine(String.format("final public String %s(){ return _%s; }", getter(fieldTransformer), fieldTransformer ) );
-        writer.startLine("final public java.util.Map<String,Object> getVariables(){ return _variables; }" );
+        writer.startLine("final public java.util.Map<String,Level> getVariables(){ return _variables; }" );
         writer.startLine("final public java.util.List<String> getSyntaxParameters(){ return _syntaxParameters; }" );
         writer.println();
     }
@@ -151,12 +151,12 @@ public class TransformationNode extends NodeClass {
     private void writeFields(TabPrintWriter writer) {
         // writer.startLine("private final Span _span;");
         writer.startLine(String.format("private final String _%s;", fieldTransformer));
-        writer.startLine("private final java.util.Map<String,Object> _variables;");
+        writer.startLine("private final java.util.Map<String,Level> _variables;");
         writer.startLine("private final java.util.List<String> _syntaxParameters;");
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
-        writer.startLine(String.format("public %s(Span span, String %s, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters ) {", className, fieldTransformer));
+        writer.startLine(String.format("public %s(Span span, String %s, java.util.Map<String,Level> variables, java.util.List<String> syntaxParameters ) {", className, fieldTransformer));
         writer.indent();
         writer.startLine("super(span);");
         writer.startLine(String.format("this._%s = %s;", fieldTransformer, fieldTransformer));

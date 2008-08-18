@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Level;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NodeTransformer;
@@ -60,23 +61,27 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class Transform extends TemplateUpdateVisitor {
     private Map<String,Transformer> transformers;
-    private Map<String,Object> variables;
-    private EllipsesEnvironment env;
+    private Map<String,Level> variables;
+    // private EllipsesEnvironment env;
 
-    private Transform( Map<String,Transformer> transformers, Map<String,Object> variables ){
-        this( transformers, variables, new EllipsesEnvironment() );
+    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables ){
+        // this( transformers, variables, new EllipsesEnvironment() );
+        this.transformers = transformers;
+        this.variables = variables;
     }
 
-    private Transform( Map<String,Transformer> transformers, Map<String,Object> variables, EllipsesEnvironment env ){
+    /*
+    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables, EllipsesEnvironment env ){
         this.transformers = transformers;
         this.variables = variables;
         this.env = env;
     }
+    */
 
     /* entry point to this class */
     public static Node transform( GlobalEnvironment env, Node node ){
         return node.accept( new Transform( populateTransformers(env), 
-					   new HashMap<String,Object>() ) );
+					   new HashMap<String,Level>() ) );
     }
 
     private static Map<String,Transformer> populateTransformers( GlobalEnvironment env ){
@@ -101,14 +106,27 @@ public class Transform extends TemplateUpdateVisitor {
         return transformers.get( name );
     }
 
-    private Node curry( String original, Map<String,Object> vars, 
+    private Node curry( String original, Map<String,Level> vars, 
 			List<String> parameters ){
         return new CurriedTransformer(original, vars, parameters);
     }
 
-    private Node lookupVariable(Id id, List<Id> params){
+    private boolean hasVariable( Id id ){
+        return this.variables.get(id.getText()) != null;
+    }
+
+    private int lookupLevel(Id id){
         String variable = id.getText();
-        Object binding = this.variables.get(variable);
+        Level binding = this.variables.get(variable);
+        if ( binding == null ){
+            throw new MacroError( "Can't find a binding for gap " + id );
+        }
+        return binding.getLevel();
+    }
+
+    private Level lookupVariable(Id id, List<Id> params){
+        String variable = id.getText();
+        Level binding = this.variables.get(variable);
         if ( binding == null ){
                 throw new MacroError( "Can't find a binding for gap " + id );
         } else {
@@ -118,17 +136,17 @@ public class Transform extends TemplateUpdateVisitor {
                     return new _RepeatedExpr((List) binding);
                 }
                 */
-                return (Node)binding;
+                return binding;
             } else {
 
-                if ( ! (binding instanceof CurriedTransformer) ){
+                if ( ! (binding.getObject() instanceof CurriedTransformer) ){
                     throw new MacroError("Parameterized template gap is not bound " +
 					 "to a CurriedTransformer, instead bound to " + 
 					 binding.getClass().getName());
                 }
 
-                CurriedTransformer curried = (CurriedTransformer) binding;
-                Map<String,Object> vars = new HashMap<String,Object>( curried.getVariables() );
+                CurriedTransformer curried = (CurriedTransformer) binding.getObject();
+                Map<String,Level> vars = new HashMap<String,Level>( curried.getVariables() );
                 if ( curried.getSyntaxParameters().size() != params.size() ){
                     throw new MacroError( "Passing " + params.size() +
 					  " arguments to a nonterminal that accepts " + 
@@ -149,14 +167,15 @@ public class Transform extends TemplateUpdateVisitor {
 		Node newNode = 
 		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(), 
 						  vars, new LinkedList<String>());
-                return newNode.accept( this );
+                return new Level( binding.getLevel(), newNode.accept( this ) );
             }
         }
     }
 
     @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result, 
 					     List<Id> templateParams_result) {
-        return lookupVariable(gapId_result, templateParams_result);
+        /* another annoying cast */
+        return (Node) lookupVariable(gapId_result, templateParams_result).getObject();
     }
 
     /*
@@ -180,29 +199,27 @@ public class Transform extends TemplateUpdateVisitor {
 
     class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
 	private Map<String,Transformer> transformers;
-	private Map<String,Object> variables;
-        private EllipsesEnvironment ellipsesEnv;
+	private Map<String,Level> variables;
+        // private EllipsesEnvironment ellipsesEnv;
 
 	private TransformerEvaluator(Map<String,Transformer> transformers, 
-				     Map<String,Object> variables,
-                                     EllipsesEnvironment ellipsesEnv){
+				     Map<String,Level> variables ){
 	    this.transformers = transformers;
 	    this.variables = variables;
-            this.ellipsesEnv = ellipsesEnv;
 	}
 
-        private Object lookupVariable( Id name ){
-            Object obj = variables.get( name.getText() );
+        private Level lookupVariable( Id name ){
+            Level obj = variables.get( name.getText() );
             if ( obj == null ){
                 throw new MacroError( "Can't find a binding for gap " + name );
-            } else if ( obj instanceof CurriedTransformer ){
+            } else if ( obj.getObject() instanceof CurriedTransformer ){
                 throw new MacroError( name + " cannot accept parameters in a case expression" );
             }
             return obj;
         }
 
 	@Override public Node forNodeTransformer(NodeTransformer that) {
-	    return that.getNode().accept(new Transform(transformers, variables, ellipsesEnv));
+	    return that.getNode().accept(new Transform(transformers, variables));
 	}
 
 	@Override public Node forCaseTransformer(CaseTransformer that) {
@@ -210,7 +227,7 @@ public class Transform extends TemplateUpdateVisitor {
 	    List<CaseTransformerClause> clauses = that.getClauses();
 
 	    // Object toMatch = lookupVariable(gapName, new LinkedList<Id>());
-	    Object toMatch = lookupVariable(gapName);
+	    Level toMatch = lookupVariable(gapName);
 	    for (CaseTransformerClause clause : clauses) {
 		Option<Node> result = matchClause(clause, toMatch);
 		if (result.isSome()) {
@@ -222,7 +239,7 @@ public class Transform extends TemplateUpdateVisitor {
 	    throw new RuntimeException("match failed");
 	}
 
-	private Option<Node> matchClause(CaseTransformerClause clause, Object toMatch) {
+	private Option<Node> matchClause(CaseTransformerClause clause, Level toMatch) {
 	    String constructor = clause.getConstructor().getText();
 	    List<Id> parameters = clause.getParameters();
 	    int parameterCount = parameters.size();
@@ -234,8 +251,8 @@ public class Transform extends TemplateUpdateVisitor {
 		throw new RuntimeException("bad case transformer constructor: " + constructor);
 	    }
 
-	    if (toMatch instanceof List) {
-		List<?> list = (List<?>)toMatch;
+	    if (toMatch.getObject() instanceof List) {
+		List<?> list = (List<?>)toMatch.getObject();
                 Debug.debug( Debug.Type.SYNTAX, 2, "Matching Cons constructor to list " + list );
 		if (constructor.equals("Cons")) {
 		    if (!list.isEmpty()) {
@@ -243,13 +260,13 @@ public class Transform extends TemplateUpdateVisitor {
 			Object rest = list.subList(1, list.size());
 			String firstParam = parameters.get(0).getText();
 			String restParam = parameters.get(1).getText();
-			Map<String, Object> newEnv = new HashMap<String,Object>(variables);
-			newEnv.put(firstParam, first);
-			newEnv.put(restParam, rest);
-                        EllipsesEnvironment env2 = new EllipsesEnvironment( ellipsesEnv );
-                        env2.add( NodeFactory.makeId( restParam ), 1, rest );
+			Map<String, Level> newEnv = new HashMap<String,Level>(variables);
+			newEnv.put(firstParam, new Level( toMatch.getLevel() - 1, first) );
+			newEnv.put(restParam, new Level( toMatch.getLevel(), rest) );
+                        // EllipsesEnvironment env2 = new EllipsesEnvironment( ellipsesEnv );
+                        // env2.add( NodeFactory.makeId( restParam ), 1, rest );
                         Debug.debug( Debug.Type.SYNTAX, 2, "Adding ellipses case variable " + restParam + " = " + rest );
-			return Option.wrap(body.accept(new TransformerEvaluator(transformers, newEnv, env2)));
+			return Option.wrap(body.accept(new TransformerEvaluator(transformers, newEnv)));
 		    }
 		} else if (constructor.equals("Empty")) {
 		    if (list.isEmpty()) {
@@ -263,7 +280,10 @@ public class Transform extends TemplateUpdateVisitor {
 
     private Object traverse( Object partial ){
         Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
-        if ( partial instanceof List ){
+        if ( partial instanceof Level ){
+            Level l = (Level) partial;
+            return new Level( l.getLevel(), traverse( l.getObject() ) );
+        } else if ( partial instanceof List ){
             List<Object> all = new LinkedList<Object>();
             for ( Object o : (List<?>) partial ){
                 if ( o instanceof _Ellipses ){
@@ -300,10 +320,10 @@ public class Transform extends TemplateUpdateVisitor {
         Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
         //Debug.debug( Debug.Type.SYNTAX, 1, 
         //             "Transformation is " + FortressAstToConcrete.astToString(transformer));
-        EllipsesEnvironment env = new EllipsesEnvironment();
-        Map<String,Object> arguments = that.getVariables();
-        Map<String,Object> evaluated = new HashMap<String,Object>();
-        for ( Map.Entry<String,Object> var : arguments.entrySet() ){
+        // EllipsesEnvironment env = new EllipsesEnvironment();
+        Map<String,Level> arguments = that.getVariables();
+        Map<String,Level> evaluated = new HashMap<String,Level>();
+        for ( Map.Entry<String,Level> var : arguments.entrySet() ){
             String varName = var.getKey();
             // Node argument = ((Node)var.getValue()).accept(this);
             /*
@@ -312,15 +332,22 @@ public class Transform extends TemplateUpdateVisitor {
                 env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
             }
             */
-            Object argument = traverse( var.getValue() );
+            // Level level = var.getValue();
+            // Object argument = traverse( level.getObject() );
+            
+            /* argh, this cast shouldn't be needed */
+            Level argument = (Level) traverse( var.getValue() );
 
             /* this is almost definately in the wrong place */
+            /*
             if ( argument instanceof List ){
                 Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
                 env.add( NodeFactory.makeId( varName ), 1, argument );
             }
+            */
             
             // checkFullyTransformed(argument);
+            // evaluated.put(varName, new Level( level.getLevel(), argument ) );
             evaluated.put(varName, argument);
             Debug.debug( Debug.Type.SYNTAX, 3,
 			 "Argument " + varName + " is " + argument);
@@ -329,7 +356,7 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " + 
 		     that.getSyntaxTransformer() );
         Node transformed = 
-	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated, env) );
+	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated) );
         checkFullyTransformed(transformed);
         return transformed;
     }
@@ -362,11 +389,11 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     /* find the first length of some repeated pattern variable */
-    private int findRepeatedVar( EllipsesEnvironment env, List<Id> freeVariables ){
+    private int findRepeatedVar( List<Id> freeVariables ){
         // for ( Id var : env.getVars() ){
         for ( Id var : freeVariables ){
-            if ( env.getLevel( var ) > 0 ){
-                int size = ((List) env.getValue( var )).size();
+            if ( lookupLevel( var ) > 0 ){
+                int size = ((List) lookupVariable( var, new LinkedList<Id>() ).getObject()).size();
                 Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
                 return size;
             }
@@ -377,27 +404,26 @@ public class Transform extends TemplateUpdateVisitor {
     /* convert an environment into a list of environments, one for each value in the list
      * of values
      */
-    private List<EllipsesEnvironment> decompose( EllipsesEnvironment env, List<Id> freeVariables ){
-        List<EllipsesEnvironment> all = new ArrayList<EllipsesEnvironment>();
+    private List<Transform> decompose( List<Id> freeVariables ){
+        List<Transform> all = new ArrayList<Transform>();
         
         Debug.debug( Debug.Type.SYNTAX, 2, "Free variables in the decomposed list: " + freeVariables );
 
-        int repeats = findRepeatedVar( env, freeVariables );
+        int repeats = findRepeatedVar( freeVariables );
         for ( int i = 0; i < repeats; i++){
-            EllipsesEnvironment newEnv = new EllipsesEnvironment();
+            Map<String,Level> newVars = new HashMap<String,Level>();
 
             for ( Id var : freeVariables ){
-                int level = env.getLevel( var );
-                Object value = env.getValue( var );
-                if ( level == 0 ){
-                    newEnv.add( var, level, value );
+                Level value = lookupVariable( var, new LinkedList<Id>() );
+                if ( value.getLevel() == 0 ){
+                    newVars.put( var.getText(), new Level( value.getLevel(), value ) );
                 } else {
-                    List l = (List) value;
-                    newEnv.add( var, level - 1, l.get( i ) );
+                    List l = (List) value.getObject();
+                    newVars.put( var.getText(), new Level( value.getLevel() - 1, l.get( i ) ) );
                 }
             }
 
-            all.add( newEnv );
+            all.add( new Transform( transformers, newVars ) );
         }
 
         return all;
@@ -416,9 +442,9 @@ public class Transform extends TemplateUpdateVisitor {
         return vars;
     }
 
-    private boolean controllable( EllipsesEnvironment env, _Ellipses that ){
+    private boolean controllable( _Ellipses that ){
         for ( Id var : freeVariables( that.getRepeatedNode() ) ){
-            if ( env.contains( var ) && env.getLevel( var ) > 0 ){
+            if ( hasVariable( var ) && lookupLevel( var ) > 0 ){
                 return true;
             }
         }
@@ -426,22 +452,24 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     private List<Node> handleEllipses( _Ellipses that ){
-        if ( controllable( env, that ) ){
+        if ( controllable( that ) ){
             List<Node> nodes = new ArrayList<Node>();
-            Debug.debug( Debug.Type.SYNTAX, 2, "Original env " + env );
-            for ( EllipsesEnvironment newEnv : decompose( env, freeVariables( that.getRepeatedNode() ) ) ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
+            // Debug.debug( Debug.Type.SYNTAX, 2, "Original env " + env );
+            for ( Transform newEnv : decompose( freeVariables( that.getRepeatedNode() ) ) ){
+                // Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
                 // nodes.add( that.getRepeatedNode().accept( new EllipsesVisitor( newEnv ) ) );
                 /*
                 if ( that.getRepeatedNode() instanceof _RepeatedExpr ){
                     nodes.addAll( ((_RepeatedExpr) that.getRepeatedNode()).getNodes() );
                 } else {
                 */
+                /*
                 Map<String, Object> variableEnv = new HashMap< String, Object >( variables );
                 for ( Id var : newEnv.getVars() ){
                     variableEnv.put( var.getText(), newEnv.getValue( var ) );
                 }
-                nodes.add( that.getRepeatedNode().accept( new Transform( transformers, variableEnv, newEnv ) ) );
+                */
+                nodes.add( that.getRepeatedNode().accept( newEnv ) );
                 // }
             }
             return nodes;
@@ -453,10 +481,10 @@ public class Transform extends TemplateUpdateVisitor {
 
     private class CurriedTransformer implements Node {
         private String original;
-        private Map<String,Object> vars;
+        private Map<String,Level> vars;
         private List<String> parameters;
 
-        public CurriedTransformer( String original, Map<String,Object> vars, 
+        public CurriedTransformer( String original, Map<String,Level> vars, 
 				   List<String> parameters ){
             this.original = original;
             this.vars = vars;
@@ -467,7 +495,7 @@ public class Transform extends TemplateUpdateVisitor {
             return original;
         }
 
-        public Map<String,Object> getVariables(){
+        public Map<String,Level> getVariables(){
             return vars;
         }
 
