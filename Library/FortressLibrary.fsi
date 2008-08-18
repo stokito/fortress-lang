@@ -219,6 +219,14 @@ assert(flag: Boolean, failMsg: String): ()
     if unequal it includes the remaining arguments in its error indication. *)
 assert(x:Any, y:Any, failMsg: Any...): ()
 
+deny(flag:Boolean): ()
+
+deny(flag: Boolean, failMsg: String): ()
+
+(** This version of %deny% checks the inequality of its first two arguments;
+    if equal it includes the remaining arguments in its error indication. *)
+deny(x:Any, y:Any, failMsg: Any...): ()
+
 (************************************************************
 * \subsection*{Numeric hierarchy}
 ************************************************************)
@@ -1950,7 +1958,10 @@ trait String extends { StandardTotalOrder[\String\],
         of the string, returning the empty string, in order to permit some convenient
         string-trimming idioms. **)
     opr[r0:Range[\ZZ32\]] : String
-
+    
+    (** This version is like [ ] above, but does not do the bounds checking.  Really, this
+         should be in a "friends" interface *)
+    uncheckedSubstring(r0: Range[\ZZ32\]) : String
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)

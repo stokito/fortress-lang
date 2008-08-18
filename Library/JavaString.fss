@@ -16,11 +16,14 @@
  ******************************************************************************)
 
 native component JavaString
+import CordedString.{CatString, EmptyString}
 export JavaString
 
 
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
+
+  isEmptyRange(r: Range[\ZZ32\]) = r.extent() ≤ 0    (* should be a method on ranges *)
 
   object JavaString
         extends { String }
@@ -29,7 +32,11 @@ package="com.sun.fortress.interpreter.glue.prim"
     getter toString() : String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
     opr |self| : ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")    
+    uncheckedSubstring(r1: Range[\ZZ32\]) : String = 
+        if isEmptyRange(r1) then ""
+        else self.javaSubstr(r1.lower(), r1.upper() + 1)    (* Java substring's endIndex is one past the last character *)
+        end
     opr =(self, other:String): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")
     opr <(self, other:String): Boolean = self.cmp(other) < 0
@@ -49,7 +56,7 @@ package="com.sun.fortress.interpreter.glue.prim"
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Cmp")
     cicmp(other:JavaString): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$CICmp")
-    substr(lo:ZZ32,hi:ZZ32): String =
+    javaSubstr(lo:ZZ32,hi:ZZ32): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Substr")
     javaIndexOf(c:Char): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$IndexOf")
@@ -63,8 +70,13 @@ package="com.sun.fortress.interpreter.glue.prim"
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)
-    opr ||(self, b:String):String =
+    opr ||(self, b:JavaString):String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+    opr ||(self, b:String):String =
+        CatString(self, b)
+(*    opr ||(self, b:EmptyString):String =
+        self
+        *)
     opr ||(self, b:Char): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
 

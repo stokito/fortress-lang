@@ -18,6 +18,12 @@
 component CordedString
 export CordedString
 
+(* these should eventually go in with the range code, I maintain! *)
+
+    opr ∩ (r0: Range[\ZZ32\], r1: Range[\ZZ32\]) = (r0.lower() MAX r1.lower()) : (r0.upper() MIN r1.upper()) 
+    opr SHIFTLEFT(r: Range[\ZZ32\], newOrigin: ZZ32) = (r.lower() - newOrigin)#r.extent()
+    isEmpty(r: Range[\ZZ32\]) = r.extent() ≤ 0
+
   object CatString(left: String, right:String)  extends String
     sizeField = left.size() + right.size()
     getter size() = sizeField
@@ -35,15 +41,30 @@ export CordedString
     get(i): Char = 'x'
 
     opr[r0:Range[\ZZ32\]] : String =  do
-        if r0 ≤ left.bounds() then
-            left[r0]
-        else
-            EmptyString (* unfinished *)
-        end
-    end
+        r1 = (self.bounds())[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
+        self.uncheckedSubstring(r1)
+      end 
+      
+    uncheckedSubstring(r0: Range[\ZZ32\]) = do
+        r1 = (r0 SHIFTLEFT left.size())
+        left.uncheckedSubstring(r0 ∩ left.bounds()) || right.uncheckedSubstring(r1 ∩ right.bounds())            
+      end
+      
+(* Here is the three-way version: this framework is better once we have subString nodes
+ 
+    uncheckedSubstring(r0: Range[\ZZ32\]) = do
+        leftBounds' = r0 ∩ left.bounds()
+        r1 = (r0 SHIFTLEFT left.size())
+        rightBounds' = r1 ∩ right.bounds()
+        if isEmpty(leftBounds) then right.uncheckedSubstring(rightBounds')
+        else if isEmpty(rightBounds) then left.uncheckedSubstring(leftBounds')
+        else left.uncheckedSubstring(leftBounds') || right.uncheckedSubstring(rightBounds')            
+      end  
+ *)
+      
 
-    opr || (self, other:String): String = CatString(self, other)
-    opr || (_:EmptyString, other:String) = other
+    opr || (self, other:String): String = 
+        if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString) = self
     opr || (self, other:Char) = CatString(self, other.toString())
 
@@ -72,9 +93,24 @@ export CordedString
     end
 
     opr || (self, other:String): String = other
-    opr || (other: String, self): String = other
+(*    opr || (other: String, self): String = other   *)    (* this optimizes the case with EmptyString on the right*)
     opr || (self, _: EmptyString): String = self
     opr || (self, other:Char) = other.toString()
   end
-
+  
+  run(args: String...): () = do println "Finished" end 
+  
+  test rangeIntersect() = do
+        println "Test method running…"
+        assert((0:5) ∩ (0:3), 0:3)
+        assert((0:5) ∩ (3:7), 3:5)
+        assert((0:5) ∩ (7:10), 7:5)
+        deny(5:3, 9:8)                  (* I hoped that these would be equal *)
+        deny((5:3).extent(), 0, "The size of 5:3 is not zero!")   (* I had hoped for zero *)
+        assert((9:8).extent(), 0, "The size of 9:8 is not zero!")
+        assert(isEmpty(5:3), "5:3 is not empty!")
+        assert(isEmpty(9:8), "9:8 is not empty!")
+        assert(isEmpty((0:5) ∩ (7:10)), "0:5 has a non-empty intersection with 7:10 !")
+  end
+  
 end
