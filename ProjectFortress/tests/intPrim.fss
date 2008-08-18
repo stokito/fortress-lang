@@ -23,6 +23,9 @@ tst(s:String,a:Boolean):() = assert(a,s)
 tstEq(s:String, a:ZZ32, b:ZZ32):() = assert(a,b,s)
 
 run(args:String...) = do
+    a:ZZ32 = 0
+    tstEq("Minimum", a.minimum() - 1, a.maximum())
+    tstEq("Maximum", a.maximum() + 1, a.minimum())    
     tstEq("Add",  124867 + -(234597), -109730 )
     tstEq("Sub",  124867 -  234597, -109730 )
     tstEq("Mul1", 5872  8124,  47704128 )

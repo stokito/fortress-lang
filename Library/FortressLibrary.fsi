@@ -439,6 +439,10 @@ end
 trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
     getter zero(): ZZ32
     getter one(): ZZ32
+    getter minimum(): ZZ32
+    getter maximum(): ZZ32    
+    
+    
 
     opr |self| : ZZ32
     opr =(self, b:ZZ32):Boolean
@@ -469,6 +473,9 @@ end
 trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     getter zero(): ZZ64
     getter one(): ZZ64
+    getter minimum(): ZZ64
+    getter maximum(): ZZ64    
+    
 
     opr |x:ZZ64| : ZZ64
 

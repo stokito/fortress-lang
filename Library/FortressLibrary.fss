@@ -603,7 +603,9 @@ end
 trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
     getter zero(): ZZ32 = 0
     getter one(): ZZ32 = 1
-
+    getter minimum(): ZZ32 = -2147483647 - 1
+    getter maximum(): ZZ32 = 2147483647
+        
     opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b:ZZ32):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
@@ -659,6 +661,8 @@ end
 trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     getter zero(): ZZ64 = widen(0)
     getter one(): ZZ64 = widen(1)
+    getter minimum(): ZZ64 = -9223372036854775807 - 1
+    getter maximum(): ZZ64 = 9223372036854775807
 
     opr |x:ZZ64| : ZZ64 = if x>=0 then x else -x end
 
