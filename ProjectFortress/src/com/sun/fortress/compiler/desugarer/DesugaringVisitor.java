@@ -237,7 +237,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 mods.add(mod);
         }
         List<Param> params = new ArrayList<Param>();
-        Id param = NodeFactory.makeId(span, "v");
+        Id param = NodeFactory.makeId(span, "param_"+field.getName());
         params.add((Param)NodeFactory.makeParam(span, new LinkedList<Modifier>(),
                                                 param, ty));
         List<Lhs> lhs = new ArrayList<Lhs>();
