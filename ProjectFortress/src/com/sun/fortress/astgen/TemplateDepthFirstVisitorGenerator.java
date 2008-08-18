@@ -116,7 +116,7 @@ public class TemplateDepthFirstVisitorGenerator extends DepthFirstVisitorGenerat
 
         // output array seeds, if necessary
         for (TypeName t : this.arraySeeds()) { writer.println(); generateArraySeed(t, writer); }
-//      this._arraySeeds.clear(); // TODO why did Dan clear this
+        clearArraySeeds();
 
         writer.unindent();
         writer.startLine("}");
