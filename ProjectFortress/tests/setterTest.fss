@@ -20,6 +20,7 @@ export Executable
 
 object Player
   thisWon : ZZ32 := 0
+  var thisLost : ZZ32 := 0
   settable indices: ZZ32 = 3
   settable fld: ZZ32 = 0
   setter fld(x:ZZ32):() = fld := x
@@ -37,6 +38,7 @@ run(args):() = do
   z: ZZ32 := 7
   z += 10
   player.thisWon += 18
+  player.thisLost += 81
   player.indices += 100
   assert(player.indices, 109)
   assert(player.arr[1], 8)

@@ -215,10 +215,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private FnDef makeGetter(ImplicitGetterSetter field) {
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
-            if (!(mod instanceof ModifierSettable))
+            if (!(mod instanceof ModifierSettable) &&
+                !(mod instanceof ModifierVar))
                 mods.add(mod);
         }
-        mods.add(new ModifierAtomic(field.getSpan()));
 
         return NodeFactory.makeFnDef(field.getSpan(), mods, field.getName(),
                                      field.getType(),
@@ -232,10 +232,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Option<Type> ty = field.getType();
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
-            if (!(mod instanceof ModifierSettable))
+            if (!(mod instanceof ModifierSettable) &&
+                !(mod instanceof ModifierVar))
                 mods.add(mod);
         }
-        mods.add(new ModifierAtomic(span));
         List<Param> params = new ArrayList<Param>();
         Id param = NodeFactory.makeId(span, "v");
         params.add((Param)NodeFactory.makeParam(span, new LinkedList<Modifier>(),
