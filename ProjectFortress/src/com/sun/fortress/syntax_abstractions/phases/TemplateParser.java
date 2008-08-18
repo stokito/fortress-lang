@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.phases;
 
@@ -31,11 +31,14 @@ import java.util.Map.Entry;
 
 import java.lang.reflect.Method;
 
+import xtc.parser.ParserBase;
 import xtc.parser.ParseError;
 import xtc.parser.SemanticValue;
 
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticPhaseResult;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
@@ -48,11 +51,13 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.NodeTransformer;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
@@ -63,128 +68,138 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
-import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
-import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv.PrefixSymbolSymbolGetter;
+import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
+import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
+import com.sun.fortress.syntax_abstractions.environments.GapEnv;
+import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.util.InterpreterWrapper;
+import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
-
 /*
  * Parse pretemplates and replace with real templates
  */
-public class TemplateParser extends NodeUpdateVisitor {
+public class TemplateParser {
 
-    public static class Result extends StaticPhaseResult {
-        private Api api;
-
-        public Result(Api api, 
-                Collection<StaticError> errors) {
-            super(errors);
-            this.api = api;
-        }
-public Result(Api api,
-                Iterable<? extends StaticError> errors) {
-            super(errors);
-            this.api = api;
-        }
-
-        public Api api() { return api; }
-    }
-
-    private Collection<ParserError> errors;
-    private Map<Id, BaseType> vars;
-    private Map<Id, BaseType> varsToNonterminalType;
-
-
-    public TemplateParser() {
-        this.errors = new LinkedList<ParserError>();
-    }
-
-    private Collection<? extends StaticError> getErrors() {
-        return this.errors;
-    }
-
-    private boolean isSuccessfull() {
-        return this.errors.isEmpty();
-    }
-
-    public static Result parseTemplates(Api api) {
-        TemplateParser templateParser = new TemplateParser();
-        Api a = (Api) api.accept(templateParser);
-        if (!templateParser.isSuccessfull()) {
-            return new Result(a, templateParser.getErrors());
-        }
-        return new Result(a, Collections.<StaticError>emptyList());
-    } 
-
-    @Override public Node forNonterminalHeader(NonterminalHeader that) {
-                this.vars = new HashMap<Id, BaseType>();
-                for (NonterminalParameter p: that.getParams()) {           
-                        this.vars.put(p.getName(), p.getType());
+    public static Api parseTemplates(final ApiIndex api, final NTEnv ntEnv) {
+        final Api raw = TemplateParser.rewriteTemplateVars((Api) api.ast(), ntEnv);
+        return (Api) raw.accept(new NodeUpdateVisitor() {
+                @Override public Node forGrammarDef(GrammarDef that) {
+                    if (!that.isNative()){
+                        final Class<?> parser = createParser(findGrammar(that));
+                        return that.accept(new NodeUpdateVisitor() {
+                                @Override 
+                                    public Node forUnparsedTransformer(UnparsedTransformer that) {
+                                    AbstractNode templateNode = 
+                                        parseTemplate(raw.getName(), 
+                                                      that.getTransformer(), 
+                                                      that.getNonterminal(), 
+                                                      parser);
+                                    return new NodeTransformer(templateNode);
+                                }
+                            });
+                    } else {
+                        return that;
+                    }
                 }
-                return super.forNonterminalHeader(that);
-        }
-
-    private BaseType getType(Id id) {
-        MemberEnv mEnv = GrammarEnv.getMemberEnv(id);
-                return mEnv.getAstType();
-        }
-
-    @Override public Node forSyntaxDef(SyntaxDef that) {
-        this.varsToNonterminalType = new HashMap<Id, BaseType>();
-        return super.forSyntaxDef(that);
+                private GrammarIndex findGrammar( GrammarDef grammar ){
+                    for (GrammarIndex index : api.grammars().values()) {
+                        if (index.getName().equals(grammar.getName())) {
+                            return index;
+                        }
+                    }
+                    throw new MacroError("Could not find grammar for " + 
+                                         grammar.getName());
+                }
+            });
     }
 
-    @Override public Node forPrefixedSymbol(PrefixedSymbol that) {
-        // We assume that all prefixed symbols have an identifier.
-        // If that is not the case then it is an error in the disambiguation and not here.
-        Id id = that.getId().unwrap();
-        PrefixSymbolSymbolGetter psg = new SyntaxDeclEnv.PrefixSymbolSymbolGetter(id);
-	that.getSymbol().accept(psg);
-	for (Entry<Id, Id> e: psg.getVarToNonterminalName().entrySet()) {
-	    this.varsToNonterminalType.put(e.getKey(), getType(e.getValue()));
-	}
-	for (Id i: psg.getAnyChars()) {
-	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
-	}
-	for (Id i: psg.getCharacterClasses()) {
-	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
-	}
-	for (Id i: psg.getSpecialSymbols()) {
-	    this.varsToNonterminalType.put(i, new VarType(i.getSpan(), new Id("CharLiteralExpr")));
+    private static Api rewriteTemplateVars(Api api, final NTEnv ntEnv) {
+        return (Api) api.accept(new NodeUpdateVisitor() {
+                @Override public Node forSyntaxDef(SyntaxDef that) {
+                    final GapEnv gapEnv = EnvFactory.makeGapEnv(that, ntEnv);
+                    Debug.debug(Debug.Type.SYNTAX, 3, "Gap env: " + gapEnv);
+                    return that.accept(new NodeUpdateVisitor() {
+                            @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
+                                TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);
+                                Transformer transformer = 
+                                    (Transformer) that.getTransformer().accept(tvs);
+                                return new NamedTransformerDef(that.getName(), 
+                                                               that.getParameters(), 
+                                                               transformer);
+                            }
+                        });
+                }
+            });
+    }
+
+    private static Class<?> createParser(GrammarIndex grammar){
+        return ComposingMacroCompiler.compile(grammar);
+    }
+
+    private static AbstractNode parseTemplate(APIName apiName, String stuff, 
+                                              Id nonterminal, Class<?> parserClass){
+        try {
+            BufferedReader in = Useful.bufferedStringReader(stuff.trim());
+            Debug.debug(Debug.Type.SYNTAX, 3,
+                        "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
+            ParserBase parser = 
+                ParserMediator.getParser(apiName, parserClass, in, apiName.toString());
+            xtc.parser.Result result =
+                (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
+            if (result.hasValue()){
+                Object node = ((SemanticValue) result).value;
+                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff + "' as node " + node );
+                return (AbstractNode) node;
+            } else {
+                throw new ParserError((ParseError) result, parser);
+            }
+        } catch (Exception e) {
+            throw new MacroError( "Could not parse '" + stuff + "'", e );
         }
-        return super.forPrefixedSymbol(that);
     }
 
-    @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
-        Map<Id, BaseType> vs = new HashMap<Id, BaseType>();
-        vs.putAll(this.vars);
-        vs.putAll(this.varsToNonterminalType);
-        TemplateVarRewriter tvs = new TemplateVarRewriter( vs );
-        Transformer transformer = (Transformer) that.getTransformer().accept( tvs );
-        // tvs.rewriteVars(vs, that.getTransformer());
-        return new NamedTransformerDef(that.getName(), that.getParameters(), transformer);
+    private static Object invokeMethod( Object obj, String name ){
+        Option<Method> method = lookupExpression(obj.getClass(), name);
+        if ( ! method.isSome() ){
+            throw new MacroError("Could not find method " + name + 
+                                 " in " + obj.getClass().getName());
+        } else {
+            try{
+                return (xtc.parser.Result) method.unwrap().invoke(obj, 0);
+            } catch (IllegalAccessException e){
+                throw new MacroError(e);
+            } catch (java.lang.reflect.InvocationTargetException e){
+                throw new MacroError(e);
+            }
+        }
     }
 
-    /** 
-     * Find the method that would parse a given production, such as
-     * pExpression$Expr when given "Expr".
-     */ 
-    private Option<Method> lookupExpression(Class parser, String production){
-        try{
+    private static String ratsParseMethod( Id nonterminal ){
+        String str = nonterminal.toString();
+        if ( str.startsWith( "FortressSyntax" ) ){
+            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
+        } else {
+            return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
+        }
+    }
+
+    private static Option<Method> lookupExpression(Class parser, String production){
+        try {
             /* This is a Rats! specific naming convention. Move it
              * elsewhere?
              */
-            String fullName = "pExpression$" + production;
+            String fullName = production;
             // String fullName = "pExprOnly";
             Method found = parser.getDeclaredMethod(fullName, int.class);
 
@@ -194,8 +209,9 @@ public Result(Api api,
             if ( found != null ){
                 found.setAccessible(true);
                 return Option.wrap(found);
+            } else {
+                return Option.none();
             }
-            return Option.none();
         } catch (NoSuchMethodException e){
             throw new MacroError(e);
         } catch (SecurityException e){
@@ -203,42 +219,5 @@ public Result(Api api,
         }
     }
 
-    /**
-     * Wraps the invoked method to return a xtc.parser.Result and also throws
-     * IOException.
-     */
-    private xtc.parser.Result invokeParseMethod(com.sun.fortress.parser.templateparser.TemplateParser parser, Method method, int num) throws IOException {
-        try{
-            return (xtc.parser.Result) method.invoke(parser, num);
-        } catch (IllegalAccessException e){
-            throw new MacroError(e);
-        } catch (java.lang.reflect.InvocationTargetException e){
-            throw new MacroError(e);
-        }
-    }
 
-        private Component makeComponent(Expr expression) {
-                APIName name = NodeFactory.makeAPIName("TransformationComponent");
-                Span span = new Span();
-
-                // Decls:
-                List<Decl> decls = new LinkedList<Decl>();
-                // entry point
-                decls.add(NodeFactory.makeFnDecl(InterpreterWrapper.FUNCTIONNAME, new Id("Type"), expression));
-                return new Component(span, name, new LinkedList<Import>(), new LinkedList<Export>(), decls);
-        }
-
-        public String writeJavaAST(Component component) {
-                try {
-                        StringWriter sw = new StringWriter();
-                        BufferedWriter bw = new BufferedWriter(sw);
-                        ASTIO.writeJavaAst(component, bw);
-                        bw.flush();
-                        bw.close();
-                        //   System.err.println(sw.getBuffer().toString());
-                        return sw.getBuffer().toString();
-                } catch (IOException e) {
-                        throw new MacroError("Unexpected error: "+e.getMessage());
-                }
-        }
 }

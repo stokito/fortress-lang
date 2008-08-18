@@ -59,9 +59,7 @@ import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
-import com.sun.fortress.syntax_abstractions.environments.SyntaxDeclEnv;
+import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
 
@@ -249,40 +247,6 @@ public class SyntaxAbstractionUtil {
         }
         return null;
     }
-
-    /**
-     * Given a pattern variable, look up the type of the variable and
-     * return a Java representation of the type as a type
-     * @param id
-     * @return
-     */
-    public static String getJavaType(SyntaxDeclEnv syntaxDeclEnv, Id id){
-        BaseType type = GrammarEnv.getType(syntaxDeclEnv, id);
-        String stype = new FortressTypeToJavaType().analyze(type);
-        String s = SyntaxAbstractionUtil.cutPackage(stype);
-        Debug.debug( Debug.Type.SYNTAX, 4, "Found ", s );
-        return s;
-    }
-
-    /**
-     * TODO: remove this completely, use SyntaxAbstractionUtil.getJavaType instead
-     * @param name
-     * @return
-     */
-    /*
-    @Deprecated
-    public static String getJavaTypeOld(Id name){      
-        Debug.debug( 4, "Looking up " + name + " in grammar env" );
-        if ( name == null  || GrammarEnv.getMemberEnv(name) == null ){
-            Debug.debug( 4, "Didn't find it.." );
-            return "StringLiteralExpr";
-        }
-        String stype = new FortressTypeToJavaType().analyze(GrammarEnv.getMemberEnv(name).getAstType());
-        String s = SyntaxAbstractionUtil.cutPackage(stype);
-        Debug.debug( 4, "Found " + s );
-        return s;
-    }
-    */
 
     private static String cutPackage(String name){
         int last = name.lastIndexOf('.');

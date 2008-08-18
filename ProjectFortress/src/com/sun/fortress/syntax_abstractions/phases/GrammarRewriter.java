@@ -37,10 +37,6 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.MacroError;
 
-import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
-
-import com.sun.fortress.syntax_abstractions.parser.ImportedApiCollector;
-
 import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
@@ -76,21 +72,21 @@ import com.sun.fortress.nodes.NodeTransformer;
 import com.sun.fortress.nodes.TerminalDecl;
 import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.syntax_abstractions.GrammarIndexInitializer;
-import com.sun.fortress.syntax_abstractions.MacroCompiler.Result;
-import com.sun.fortress.syntax_abstractions.environments.GrammarEnv;
-import com.sun.fortress.syntax_abstractions.environments.MemberEnv;
 import com.sun.fortress.syntax_abstractions.util.SyntaxAbstractionUtil;
+import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
+import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
-
 // import com.sun.fortress.tools.FortressAstToConcrete;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
-/*
+/**
+ * Syntax abstraction entry point:
+ * Part of front-end processing of APIs.
+ *
  * 1) Disambiguate item symbols and rewrite to either nonterminal,
  *    keyword or token symbol
  * 2) Disambiguate nonterminal parameters
@@ -106,35 +102,31 @@ import edu.rice.cs.plt.tuple.OptionUnwrapException;
  */
 public class GrammarRewriter {
 
-    /** Result of {@link #disambiguateApis}. */
-    public static class ApiResult extends StaticPhaseResult {
-        private final Iterable<Api> _apis;
+    public static Collection<Api> rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
+//         Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
+//         apis.addAll(map.values());
+//         /* why is adding all the env apis necessary? it does redudant work */
+//         // apis.addAll(env.apis().values());
+        initializeGrammarIndexExtensions(map.values(), env.apis().values());
 
-        public ApiResult(Iterable<Api> apis,
-                Iterable<? extends StaticError> errors) {
-            super(errors);
-            _apis = apis;
-        }
+        List<Api> apis = new ArrayList<Api>();
+        for (ApiIndex apii : map.values()) { apis.add((Api)apii.ast()); }
+        // for (ApiIndex apii : env.apis().values()) { apis.add((Api)apii.ast(); }
 
-        public Iterable<Api> apis() { return _apis; }
+        List<Api> results = rewritePatterns(apis, env);
+        List<Api> i2 = rewriteTransformerNames(results, env);
+        List<Api> rs = parseTemplates(i2, env);
+        return rs;
     }
 
-    public static ApiResult rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
-        List<StaticError> errors = new LinkedList<StaticError>();
-        Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
-        apis.addAll(map.values());
-        /* why is adding all the env apis necessary? it does redudant work */
-        // apis.addAll(env.apis().values());
-        errors.addAll(initializeGrammarIndexExtensions(apis, env.apis().values()));
-
-        List<Api> results = new ArrayList<Api>();
+    private static List<Api> rewritePatterns(List<Api> apis, GlobalEnvironment env) {
         ItemDisambiguator id = new ItemDisambiguator(env);
-        errors.addAll(id.errors());
+        List<Api> results = new ArrayList<Api>();
 
-        for (ApiIndex api: apis) {
+        for (Api api: apis) {
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
-            Api idResult = (Api) api.ast().accept(id);
+            Api idResult = (Api) api.accept(id);
             if (id.errors().isEmpty()) {
                 // 2) Disambiguate nonterminal parameters
                 // No longer done.
@@ -155,176 +147,66 @@ public class GrammarRewriter {
                 results.add(erResult);
             }
         }
+        return results;
+    }
+
+    private static List<Api> rewriteTransformerNames(List<Api> apis, GlobalEnvironment env) {
         // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(results, System.currentTimeMillis());
-        if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
-        initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
+        // IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apis, System.currentTimeMillis());
+        // if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
+        // initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
+        // for (ApiIndex api: apiIR.apis().values()) { 
+        //     initGrammarEnv(api.grammars().values());
+        // }
+        // apis = apiIR.apis().values().MAP(lambda(x) {x.ast()});
 
-        for (ApiIndex api: apiIR.apis().values()) { 
-            initGrammarEnv(api.grammars().values());
+        List<Api> results = new ArrayList<Api>();
+        for (Api api: apis) {
+            Debug.debug(Debug.Type.SYNTAX, 1, "Name transformers in " + api.getName());
+            RewriteTransformerNames collector = new RewriteTransformerNames();
+            final Api transformed = (Api) api.accept(collector);
+            results.add(transformed);
         }
+        return results;
+    }
 
-        List<Api> i2 = new ArrayList<Api>();
-        for (ApiIndex api: apiIR.apis().values()){
-            if ( containsGrammar( env, (Api)api.ast()) ){
-                Debug.debug( Debug.Type.SYNTAX, 1, "Create parser for " + api.ast().getName() );
-                RewriteTransformerNames collector = new RewriteTransformerNames();
-                final Api transformed = (Api) api.ast().accept( collector );
-                i2.add( transformed );
-            } else {
-                Debug.debug( Debug.Type.SYNTAX, 1, api.ast().getName() + " doesn't contains grammars" );
-                i2.add( (Api) api.ast() );
-            }
+    private static List<Api> parseTemplates(List<Api> apis, GlobalEnvironment env) {
+        Collection<ApiIndex> apiIndexes = buildApiIndexesOnly(apis, env);
+        NTEnv ntEnv = buildNTEnv(apiIndexes, env);
+
+        List<Api> results = new ArrayList<Api>();
+
+        for (final ApiIndex api : apiIndexes){
+            results.add(TemplateParser.parseTemplates(api, ntEnv));
         }
+        return results;
+    }
 
-        List<Api> rs = new ArrayList<Api>();
-        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(i2, System.currentTimeMillis() );
+
+    private static Collection<ApiIndex> buildApiIndexes(Collection<Api> apis, GlobalEnvironment env) {
+        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
         initializeGrammarIndexExtensions(apiN.apis().values(), env.apis().values());
-        for ( final ApiIndex api : apiN.apis().values() ){
-                // List<String> names = collector.getNames();
-                // Debug.debug( Debug.Type.SYNTAX, 1, "Syntax transformers for " + api.ast().getName() + ": " + names );
-
-            final Api raw = (Api) api.ast().accept( new TemplateParser() );
-
-            class TemplateParser extends NodeUpdateVisitor {
-                Class<?> parser;
-
-                TemplateParser(Class<?> parser) {
-                    this.parser = parser;
-                }
-
-                @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
-                    try {
-                        AbstractNode templateNode = 
-                            parseTemplate(raw.getName(), that.getTransformer(), that.getNonterminal(), parser);
-                        return new NodeTransformer(templateNode);
-                    } catch ( OptionUnwrapException e ){
-                        throw StaticError.make("No parser created while rewriting api " + raw, "");
-                    }
-                }
-            }
-
-            class GrammarParser extends NodeUpdateVisitor {
-                @Override public Node forGrammarDef(GrammarDef that) {
-                    if (!that.isNative()){
-                        Class<?> parser = createParser(findGrammar(that));
-                        return (new TemplateParser(parser)).forGrammarDef(that);
-                    } else {
-                        return that;
-                    }
-                }
-                private GrammarIndex findGrammar( GrammarDef grammar ){
-                    for ( GrammarIndex index : api.grammars().values() ){
-                        if ( index.getName().equals( grammar.getName() ) ){
-                            return index;
-                        }
-                    }
-                    throw new MacroError("Could not find grammar for " + 
-                                         grammar.getName());
-                }
-            }
-
-            rs.add((Api)raw.accept(new GrammarParser()));
-        }
-
-        return new ApiResult(rs, errors);
+        return apiN.apis().values();
     }
 
-    /* TODO: implement this */
-    private static boolean containsGrammar( GlobalEnvironment env, Api api ){
-        ImportedApiCollector collector = new ImportedApiCollector(env);
-        collector.collectApis(api);
-        return (! collector.getGrammars().isEmpty()) ||
-               api.accept( new NodeDepthFirstVisitor<Boolean>(){
-                   private boolean answer = false;
-                   @Override public Boolean defaultCase(Node that) {
-                       return answer;
-                   }
-                   @Override public Boolean forGrammarDef(GrammarDef that){
-                       answer = true;
-                       return answer;
-                   }
-               });
+    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, GlobalEnvironment env) {
+        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
+        return apiN.apis().values();
     }
 
-    private static Option<Method> lookupExpression(Class parser, String production){
-        try{
-            /* This is a Rats! specific naming convention. Move it
-             * elsewhere?
-             */
-            String fullName = production;
-            // String fullName = "pExprOnly";
-            Method found = parser.getDeclaredMethod(fullName, int.class);
-
-            /* method is private by default so we have to make
-             * it accessible
-             */
-            if ( found != null ){
-                found.setAccessible(true);
-                return Option.wrap(found);
-            }
-            return Option.none();
-        } catch (NoSuchMethodException e){
-            throw new MacroError(e);
-        } catch (SecurityException e){
-            throw new MacroError(e);
-        }
+    private static NTEnv buildNTEnv(Collection<ApiIndex> apis, GlobalEnvironment env) {
+        Map<String, GrammarIndex> grammars = 
+            initializeGrammarIndexes(apis, env.apis().values());
+        return EnvFactory.makeNTEnv(grammars.values());
     }
 
-    private static Object invokeMethod( Object obj, String name ){
-        Option<Method> method = lookupExpression( obj.getClass(), name );
-        if ( ! method.isSome() ){
-            throw new MacroError( "Could not find method " + name + " in " + obj.getClass().getName() );
-        } else {
-            try{
-                return (xtc.parser.Result) method.unwrap().invoke(obj, 0);
-            } catch (IllegalAccessException e){
-                throw new MacroError(e);
-            } catch (java.lang.reflect.InvocationTargetException e){
-                throw new MacroError(e);
-            }
-        }
+    private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
+                                                        Collection<ApiIndex> moreApis ) {
+        initializeGrammarIndexes(apis, moreApis);
     }
 
-    private static String ratsParseMethod( Id nonterminal ){
-        String str = nonterminal.toString();
-        if ( str.startsWith( "FortressSyntax" ) ){
-            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
-        }
-        return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
-    }
-
-    private static AbstractNode parseTemplate( APIName apiName, String stuff, Id nonterminal, Class<?> parserClass ){
-        try{
-            BufferedReader in = Useful.bufferedStringReader(stuff.trim());
-            Debug.debug( Debug.Type.SYNTAX, 3, "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
-            ParserBase parser = ParserMediator.getParser( apiName, parserClass, in, apiName.toString() );
-            xtc.parser.Result result = (xtc.parser.Result) invokeMethod( parser, ratsParseMethod( nonterminal ) );
-            // "pExpression$Expr" );
-            // xtc.parser.Result result = ParserMediator.parse( parser, "Expression$Expr" );
-            if ( result.hasValue() ){
-                Object node = ((SemanticValue) result).value;
-                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff + "' as node " + node );
-//                 Debug.debug( Debug.Type.SYNTAX, 3,
-//                              "Template body is: " + 
-//                              FortressAstToConcrete.astToString((Node)node));
-                return (AbstractNode) node;
-            } else {
-                throw new ParserError((ParseError) result, parser);
-            }
-        } catch ( Exception e ){
-            throw new MacroError( "Could not parse '" + stuff + "'", e );
-        }
-    }
-
-    private static Class<?> createParser( GrammarIndex grammar ){
-        // Compile the syntax abstractions and create a temporary parser
-        Class<?> temporaryParserClass = ComposingMacroCompiler.compile( grammar );
-        return temporaryParserClass;
-    }
-
-    public static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
-        List<StaticError> errors = new LinkedList<StaticError>();
+    private static Map<String, GrammarIndex> initializeGrammarIndexes(Collection<ApiIndex> apis,
+                                                                      Collection<ApiIndex> moreApis) {
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
 
         for (ApiIndex a2: moreApis) {
@@ -337,7 +219,6 @@ public class GrammarRewriter {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-
         for (ApiIndex a1: apis) {
             for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
                 Option<GrammarDef> og = e.getValue().ast();
@@ -353,37 +234,14 @@ public class GrammarRewriter {
                 }
             }
         }
-        return errors;
+        return grammars;
     }
 
     private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
+        /*
         for (GrammarIndex g: grammarIndexs) {
             GrammarEnv.add(g);
-        }        
+        }
+        */
     }
-    /*
-    private static void rebuildGrammarEnv(Api api) {
-        api.accept(new NodeDepthFirstVisitor_void() {
-            
-            @Override
-            public void forNonterminalDef(NonterminalDef that) {
-                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
-            }
-
-            @Override
-            public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                mEnv.rebuildSyntaxDeclEnvs(that.getSyntaxDefs());
-            }
-
-            @Override
-            public void for_TerminalDef(_TerminalDef that) {
-                MemberEnv mEnv = GrammarEnv.getMemberEnv(that.getHeader().getName());
-                mEnv.rebuildSyntaxDeclEnvs(FortressUtil.mkList((SyntaxDecl)that.getSyntaxDef()));
-            }
-            
-        });
-    }
-    */
 }

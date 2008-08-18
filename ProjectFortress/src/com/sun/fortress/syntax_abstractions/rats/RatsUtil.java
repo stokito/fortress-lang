@@ -133,24 +133,6 @@ public abstract class RatsUtil {
         }
     }
 
-    public static Module makeExtendingRatsModule(com.sun.fortress.syntax_abstractions.intermediate.Module module) {
-        Module m = new Module();
-        m.name = new ModuleName(RatsUtil.getModuleNamePrefix()+module.getName());
-        m.productions = new LinkedList<Production>();
-
-        List<ModuleName> parameters = new LinkedList<ModuleName>();
-        parameters.addAll(module.getParameters());
-        m.parameters = new ModuleList(parameters);
-
-        List<ModuleDependency> dependencies = new LinkedList<ModuleDependency>();
-        dependencies.addAll(module.getDependencies());
-        m.dependencies = dependencies;
-
-        m.documentation = getComment();
-        m.header = createHeader();
-        return m;
-    }
-
     /** 
      * In the generated module we use maps to associate variable names to their values
      * @return

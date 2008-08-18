@@ -17,7 +17,6 @@
 
 /*
  * Class for collecting names and imports for a given component.
- * Used in the Fortress com.sun.fortress.compiler.Fortress.
  */
 
 package com.sun.fortress.syntax_abstractions.parser;
@@ -46,7 +45,7 @@ import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 /**
  *
  */
-public class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
+class ImportedApiCollector extends TemplateNodeDepthFirstVisitor_void {
 
     private boolean isTopLevel;
     private GlobalEnvironment env;

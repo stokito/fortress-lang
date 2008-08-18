@@ -27,17 +27,22 @@ import java.util.LinkedList;
 
 import com.sun.fortress.exceptions.MacroError;
 
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
+
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.CarriageReturnSymbol;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
+import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalSymbol;
+import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.OptionalSymbol;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
@@ -49,21 +54,40 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhitespaceSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.syntax_abstractions.intermediate.SyntaxSymbolPrinter;
-import com.sun.fortress.syntax_abstractions.util.TypeCollector;
+
+import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.tuple.Option;
 
-public class ComposingSyntaxDeclEnv {
+public class EnvFactory {
 
-    private final Map<Id, Id> varToNT;
-    private final Set<Id> varHasJavaStringType;
+    public static NTEnv makeNTEnv(Collection<GrammarIndex> grammarIndexes) {
+        Map<Id, BaseType> typemap = new HashMap<Id, BaseType>();
+        for (GrammarIndex gi : grammarIndexes) {
+            for (NonterminalIndex<? extends GrammarMemberDecl> ni : gi.getDeclaredNonterminals()) {
+                if (!ni.ast().isSome()) continue;
+                if (ni.ast().unwrap() instanceof NonterminalDef) {
+                    NonterminalDef nd = (NonterminalDef) ni.ast().unwrap();
+                    Id name = ni.getName();
+                    Option<BaseType> type = nd.getAstType();
+                    if (type.isSome()) {
+                        typemap.put(name, type.unwrap());
+                    } else {
+                        throw new RuntimeException("No type for nonterminal " + ni);
+                    }
+                }
+            }
+        }
+        return new NTEnv(typemap);
+    }
 
-    public ComposingSyntaxDeclEnv(SyntaxDef def) {
-        varToNT = new HashMap<Id,Id>();
-        varHasJavaStringType = new HashSet<Id>();
+    public static GapEnv makeGapEnv(SyntaxDef def, NTEnv ntEnv) {
+        final Map<Id, Id> varToNT = new HashMap<Id,Id>();
+        final Set<Id> varHasJavaStringType = new HashSet<Id>();
 
+        final Map<Id, Depth> varToDepth = new HashMap<Id, Depth>();
         for (SyntaxSymbol sym : def.getSyntaxSymbols()) {
+            sym.accept(new VariableCollector(varToDepth));
             sym.accept(new NodeDepthFirstVisitor_void() {
                     @Override public void forPrefixedSymbolOnly(PrefixedSymbol that) {
                         Option<Id> optName = that.getId();
@@ -79,8 +103,6 @@ public class ComposingSyntaxDeclEnv {
                                 }
                                 @Override
                                 public void forAnyCharacterSymbol(AnyCharacterSymbol that) {
-                                    //Debug.debug(Debug.Type.SYNTAX, 3,
-                                    //            "CharClass in " + name + "; " + that);
                                     varHasJavaStringType.add(name);
                                 }
                                 @Override
@@ -99,18 +121,15 @@ public class ComposingSyntaxDeclEnv {
                     }
                 });
         }
+        return new GapEnv(ntEnv, varToDepth, varToNT, varHasJavaStringType);
     }
 
-    public Id getNonterminalOfVar(Id var) {
-        Id nt = varToNT.get(var);
-        if (nt == null) {
-            throw new RuntimeException("Not bound to a nonterminal: " + var);
-        } else {
-            return nt;
-        }
+    public static NTEnv makeTestingNTEnv(Map<Id, BaseType> ntToType) {
+        return new NTEnv(ntToType);
     }
 
-    public boolean hasJavaStringType(Id id) {
-        return varHasJavaStringType.contains(id);
+    public static GapEnv makeTestingGapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth, 
+                                           Map<Id, Id> varToNT, Set<Id> stringVars) {
+        return new GapEnv(ntEnv, varToDepth, varToNT, stringVars);
     }
 }

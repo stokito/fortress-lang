@@ -37,7 +37,6 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.phases.GrammarAnalyzer;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -220,10 +219,6 @@ public class NonterminalEnv {
      */
     public Set<Id> inheritedNonterminalNames(String name) {
         Debug.debug( Debug.Type.SYNTAX, 3, "Is " + name + " inherited?" );
-        /*
-        GrammarAnalyzer<GrammarIndex> ga = new GrammarAnalyzer<GrammarIndex>();
-        Set<Id> results = ga.getInherited(name, this.current);
-        */
         Set<Id> results = new HashSet<Id>();
         for ( GrammarIndex extend : this.getGrammarIndex().getExtended() ){
             results.addAll( new NonterminalEnv( extend ).declaredNonterminalNames( name ) );

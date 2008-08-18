@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.syntax_abstractions.parser;
 
@@ -58,159 +58,157 @@ import edu.rice.cs.plt.iter.IterUtil;
  */
 public class PreParser {
 
-	   public static class Result extends StaticPhaseResult {
-	        private Collection<GrammarIndex> grammars;
+    public static class Result extends StaticPhaseResult {
+        private Collection<GrammarIndex> grammars;
 
-	        public Result(Collection<GrammarIndex> grammars) {
-	        	this.grammars = grammars;
-	        }
+        public Result(Collection<GrammarIndex> grammars) {
+            this.grammars = grammars;
+        }
 
-	        public Result(StaticError error) {
-	            super(IterUtil.singleton(error));
-	            this.grammars = new LinkedList<GrammarIndex>();
-	        }
+        public Result(StaticError error) {
+            super(IterUtil.singleton(error));
+            this.grammars = new LinkedList<GrammarIndex>();
+        }
 
-	        public Result(Iterable<? extends StaticError> errors) {
-	            super(errors);
-	            grammars = new LinkedList<GrammarIndex>();
-	        }
+        public Result(Iterable<? extends StaticError> errors) {
+            super(errors);
+            grammars = new LinkedList<GrammarIndex>();
+        }
 
-	        public Result(Result r1, Result r2) {
-	            super(r1, r2);
-	            this.grammars = new LinkedList<GrammarIndex>();
-	            grammars.addAll(r1.grammars);
-	            grammars.addAll(r2.grammars);
-	        }
+        public Result(Result r1, Result r2) {
+            super(r1, r2);
+            this.grammars = new LinkedList<GrammarIndex>();
+            grammars.addAll(r1.grammars);
+            grammars.addAll(r2.grammars);
+        }
 
-	        public Collection<GrammarIndex> getGrammars() {
-	        	return this.grammars;
-	        }
-	    }
+        public Collection<GrammarIndex> getGrammars() {
+            return this.grammars;
+        }
+    }
 
-           private static List<APIName> removeExecutableApi(List<APIName> all){
-               APIName executable = NodeFactory.makeAPIName("Executable");
-               List<APIName> fixed = new ArrayList<APIName>();
-               for ( APIName name : all ){
-                   if ( ! name.equals( executable ) ){
-                       fixed.add( name );
-                   }
-               }
-               return fixed;
-           }
+    private static List<APIName> removeExecutableApi(List<APIName> all){
+        APIName executable = NodeFactory.makeAPIName("Executable");
+        List<APIName> fixed = new ArrayList<APIName>();
+        for ( APIName name : all ){
+            if ( ! name.equals( executable ) ){
+                fixed.add( name );
+            }
+        }
+        return fixed;
+    }
 
-           public static List<APIName> collectComponentImports(Component comp){
-               final List<APIName> all = new ArrayList<APIName>();
+    public static List<APIName> collectComponentImports(Component comp){
+        final List<APIName> all = new ArrayList<APIName>();
 
-               comp.accept( new NodeDepthFirstVisitor_void(){
-                   @Override
-                   public void forImportedNamesDoFirst(ImportedNames that) {
-                       Debug.debug( Debug.Type.SYNTAX, 2, "Add import api ", that.getApi() );
-                       all.add( that.getApi() );
-                   }
+        comp.accept( new NodeDepthFirstVisitor_void(){
+                @Override
+                public void forImportedNamesDoFirst(ImportedNames that) {
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Add import api ", that.getApi() );
+                    all.add( that.getApi() );
+                }
 
-                   @Override
-                   public void forExport(Export that){
-                       Debug.debug( Debug.Type.SYNTAX, 2, "Add export api ", that.getApis() );
-                       all.addAll( that.getApis() );
-                   }
+                @Override
+                public void forExport(Export that){
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Add export api ", that.getApis() );
+                    all.addAll( that.getApis() );
+                }
 
-                   @Override
-                   public void forImportApi(ImportApi that){
-                       for ( AliasedAPIName api : that.getApis() ){
-                           Debug.debug( Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi() );
-                           all.add( api.getApi() );
-                       }
-                   }
-               });
-
-               /*
-               for ( Import i : comp.getImports() ){
-                   ImportedNames names = (ImportedNames) i;
-                   all.add( names.getApi() );
-               }
-               for ( Export export : comp.getExports() ){
-                   all.addAll( export.getApis() );
-               }
-               */
-
-               return removeExecutableApi(all);
-           }
-
-           public static List<APIName> collectApiImports(Api api){
-               List<APIName> all = new ArrayList<APIName>();
-               for ( Import i : api.getImports() ){
-                   if (i instanceof ImportedNames) {
-                       ImportedNames names = (ImportedNames) i;
-                       all.add( names.getApi() );
-                   } else { // i instanceof ImportApi
-                       ImportApi apis = (ImportApi) i;
-                       for ( AliasedAPIName a : apis.getApis() ) {
-                           all.add( a.getApi() );
-                       }
-                   }
-               }
-
-               return removeExecutableApi(all);
-           }
-
-           public static APIName apiName( APIName name, File f ) throws StaticError {
-               Parser.Result pr = parseFile(name, f);
-               if ( ! pr.isSuccessful() ){
-                   for ( StaticError e : pr.errors() ){
-                       throw e;
-                   }
-               }
-               List<APIName> all = new ArrayList<APIName>();
-               for ( Component comp : pr.components() ){
-                   return comp.getName();
-               }
-               for ( Api api : pr.apis() ){
-                   return api.getName();
-               }
-               throw StaticError.make( "No components or apis found?", "" );
-           }
-
-           /* get a list of imported apis from a component/api */
-	public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
-		Parser.Result pr = parseFile(name, f);
-		if ( ! pr.isSuccessful() ){
-                    for ( StaticError e : pr.errors() ){
-                        throw e;
+                @Override
+                public void forImportApi(ImportApi that){
+                    for ( AliasedAPIName api : that.getApis() ){
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi() );
+                        all.add( api.getApi() );
                     }
-		}
-		List<APIName> all = new ArrayList<APIName>();
-                for ( Component comp : pr.components() ){
-                    all.addAll( collectComponentImports(comp) );
                 }
-                for ( Api api : pr.apis() ){
-                    all.addAll( collectApiImports(api) );
+            });
+
+        /*
+          for ( Import i : comp.getImports() ){
+          ImportedNames names = (ImportedNames) i;
+          all.add( names.getApi() );
+          }
+          for ( Export export : comp.getExports() ){
+          all.addAll( export.getApis() );
+          }
+        */
+
+        return removeExecutableApi(all);
+    }
+
+    public static List<APIName> collectApiImports(Api api){
+        List<APIName> all = new ArrayList<APIName>();
+        for ( Import i : api.getImports() ){
+            if (i instanceof ImportedNames) {
+                ImportedNames names = (ImportedNames) i;
+                all.add( names.getApi() );
+            } else { // i instanceof ImportApi
+                ImportApi apis = (ImportApi) i;
+                for ( AliasedAPIName a : apis.getApis() ) {
+                    all.add( a.getApi() );
                 }
-                return all;
-	}
+            }
+        }
 
-	/** Parses a single file. */
-	public static Result parse(APIName api_name, File f, GlobalEnvironment env) {
+        return removeExecutableApi(all);
+    }
 
-		Parser.Result pr = parseFile(api_name, f);
-		if (!pr.isSuccessful()) { return new Result(pr.errors()); }
+    public static APIName apiName( APIName name, File f ) throws StaticError {
+        Parser.Result pr = parseFile(name, f);
+        if ( ! pr.isSuccessful() ){
+            for ( StaticError e : pr.errors() ){
+                throw e;
+            }
+        }
+        List<APIName> all = new ArrayList<APIName>();
+        for ( Component comp : pr.components() ){
+            return comp.getName();
+        }
+        for ( Api api : pr.apis() ){
+            return api.getName();
+        }
+        throw StaticError.make( "No components or apis found?", "" );
+    }
 
-		// TODO: Check that result only contains at most one component
+    /* get a list of imported apis from a component/api */
+    public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
+        Parser.Result pr = parseFile(name, f);
+        if ( ! pr.isSuccessful() ){
+            for ( StaticError e : pr.errors() ){
+                throw e;
+            }
+        }
+        List<APIName> all = new ArrayList<APIName>();
+        for ( Component comp : pr.components() ){
+            all.addAll( collectComponentImports(comp) );
+        }
+        for ( Api api : pr.apis() ){
+            all.addAll( collectApiImports(api) );
+        }
+        return all;
+    }
+
+    /** Parses a single file. */
+    public static Result parse(APIName api_name, File f, GlobalEnvironment env) {
+
+        Parser.Result pr = parseFile(api_name, f);
+        if (!pr.isSuccessful()) { return new Result(pr.errors()); }
+
+        // TODO: Check that result only contains at most one component
 
         Collection<GrammarIndex> result = new LinkedList<GrammarIndex>();
-		for (Component c: pr.components()) {
-		    ImportedApiCollector collector = new ImportedApiCollector(env);
-		    collector.collectApis(c);
-		    if (collector.importsTopLevelGrammars()) {
-		        result.addAll(collector.getGrammars());
-		    }
-		    
-			if (!result.isEmpty()) {
-			    Debug.debug(Debug.Type.SYNTAX, "Component: ", c.getName(), " imports grammars...");
-			}
-		}
-
-		return new Result(result);
-	}
+        for (Component c: pr.components()) {
+            ImportedApiCollector collector = new ImportedApiCollector(env);
+            collector.collectApis(c);
+            if (collector.importsTopLevelGrammars()) {
+                result.addAll(collector.getGrammars());
+            }
+            if (!result.isEmpty()) {
+                Debug.debug(Debug.Type.SYNTAX, "Component: ", c.getName(), " imports grammars...");
+            }
+        }
+        return new Result(result);
+    }
 
     private static Parser.Result parseFile(APIName api_name, File f) {
         try {
