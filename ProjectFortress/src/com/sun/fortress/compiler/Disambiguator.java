@@ -157,7 +157,10 @@ public class Disambiguator {
         // need them at a minimum.
         Import this_api_import = new ImportStar(api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
         return filterApis(Collections.unmodifiableMap(apis), 
-                Useful.concat(Collections.singletonList(this_api_import), api.getImports()), Collections.<APIName>emptySet());
+                Useful.concat(Collections.singletonList(this_api_import), 
+                        api.getImports()
+                        )
+                        , Collections.<APIName>emptySet());
     }
 
     private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set, 
