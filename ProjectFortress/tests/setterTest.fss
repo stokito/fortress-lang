@@ -19,6 +19,7 @@ component setterTest
 export Executable
 
 object Player
+  thisWon : ZZ32 := 0
   settable indices: ZZ32 = 3
   settable fld: ZZ32 = 0
   setter fld(x:ZZ32):() = fld := x
@@ -35,6 +36,7 @@ run(args):() = do
   (x, player.indices, player.arr[1]) := tuple'
   z: ZZ32 := 7
   z += 10
+  player.thisWon += 18
   player.indices += 100
   assert(player.indices, 109)
   assert(player.arr[1], 8)
