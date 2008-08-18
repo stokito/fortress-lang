@@ -76,6 +76,19 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
+    private boolean mutable(ImplicitGetterSetter field) {
+        if ( field instanceof LValueBind )
+            return ((LValueBind)field).isMutable();
+
+        for (Modifier mod : field.getMods()) {
+            if (mod instanceof ModifierSettable ||
+                mod instanceof ModifierVar) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isGetter(FnAbsDeclOrDecl decl) {
         for (Modifier mod : decl.getMods()) {
             if (mod instanceof ModifierGetter) {
@@ -246,7 +259,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     if (! hidden(_param) && ! trans(_param) &&
                         ! hasExplicitGetter(_param.getName(), decls))
                         result.add(makeGetter(_param));
-                    if (settable(_param) && ! trans(_param) &&
+                    if ((settable(_param) || mutable(_param)) &&
+                        ! trans(_param) &&
                         ! hasExplicitSetter(_param.getName(), decls)) {
                         result.add(makeSetter(_param));
                     }
@@ -261,7 +275,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(binding));
                         }
-                        if (settable(binding) && ! trans(binding) &&
+                        if ((settable(binding) || mutable(binding)) &&
+                            ! trans(binding) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
                             result.add(makeSetter(binding));
                         }
@@ -283,7 +298,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(binding));
                         }
-                        if (settable(binding) && ! trans(binding) &&
+                        if ((settable(binding) || mutable(binding)) &&
+                            ! trans(binding) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
                             result.add(makeSetter(binding));
                         }
