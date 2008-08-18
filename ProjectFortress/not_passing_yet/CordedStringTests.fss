@@ -16,10 +16,11 @@
  ******************************************************************************)
 
 component CordedStringTests
-import CordedString.{...}
-export Executable
+  import CordedString.{...}
+  import Set.{...}
+  export Executable
 
-  run(args:String...):() = do
+  test testNonEmptyConcat(): () =  do
     e = EmptyString
     stuff = "Hello "
     more = "World"
@@ -30,6 +31,39 @@ export Executable
     assert(hw[2:7], "llo Wo")
     assert(hw[0:3], "Hell")
     assert(hw[5:2], "")
+  end
+  
+  test testEmptyConcat(): () = do   
+    e = EmptyString
+    assert(|e|, 0)
+    assert(e.isEmpty)
+    stuff = "Hello "
+    more = "World"
+    h = CatString(stuff, e)
+    assert(|h|, |stuff|)
+    assert(stuff || e, stuff)
+  end 
+
+  test testCharConcat(): () =  do
+    var result: String = EmptyString
+    hw = "Hello World"
+    for c <- seq(hw) do
+        result := result || c
+    end
+    assert(result, hw)
+  end
+  
+  test testParallelGenerator(): () = do
+    chars = "abcdefghijklmnopqrstuvwxyz"
+    (* result = BIG UNION chars *)       (* CordedStringTests.fss:57:13-23: Operator BIG CUP cannot be disambiguated. *)
+    result = set[\Char\](chars as Generator[\Char\])
+    (* for c <- chars do result.add(c) end   *)
+    assert(|result|, |chars|)
+    for c <- result do assert(c ∈ chars) end
+  end  
+
+  run(args:String...):() = do
+    println "Tests complete"
   end
 
 end

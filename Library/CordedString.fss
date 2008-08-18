@@ -46,16 +46,16 @@ export CordedString
       end 
       
     uncheckedSubstring(r0: Range[\ZZ32\]) = do
-        r1 = (r0 SHIFTLEFT left.size())
-        left.uncheckedSubstring(r0 ∩ left.bounds()) || right.uncheckedSubstring(r1 ∩ right.bounds())            
+        r1 = (r0 SHIFTLEFT left.size)
+        left.uncheckedSubstring(r0 ∩ left.bounds) || right.uncheckedSubstring(r1 ∩ right.bounds)            
       end
       
 (* Here is the three-way version: this framework is better once we have subString nodes
  
     uncheckedSubstring(r0: Range[\ZZ32\]) = do
-        leftBounds' = r0 ∩ left.bounds()
-        r1 = (r0 SHIFTLEFT left.size())
-        rightBounds' = r1 ∩ right.bounds()
+        leftBounds' = r0 ∩ left.bounds
+        r1 = (r0 SHIFTLEFT left.size)
+        rightBounds' = r1 ∩ right.bounds
         if isEmpty(leftBounds) then right.uncheckedSubstring(rightBounds')
         else if isEmpty(rightBounds) then left.uncheckedSubstring(leftBounds')
         else left.uncheckedSubstring(leftBounds') || right.uncheckedSubstring(rightBounds')            
@@ -80,6 +80,7 @@ export CordedString
   value object EmptyString extends String
     getter size() = 0
     getter bounds() = 0#0
+    getter isEmpty() = true
     getter generator() = Nothing[\Char\]
     opr CMP(self, other: String) =
         |self| CMP |other|
@@ -101,7 +102,6 @@ export CordedString
   run(args: String...): () = do println "Finished" end 
   
   test rangeIntersect() = do
-        println "Test method running…"
         assert((0:5) ∩ (0:3), 0:3)
         assert((0:5) ∩ (3:7), 3:5)
         assert((0:5) ∩ (7:10), 7:5)
