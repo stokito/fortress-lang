@@ -8,7 +8,9 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierSettable;
 import com.sun.fortress.nodes.Node;
@@ -99,6 +101,17 @@ public class VarRefContainer {
                                      lhs, makeCallToContainerObj() );
 
         return field;
+    }
+
+    public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
+        List<LValue> lhs = new LinkedList<LValue>(); 
+        // set the field to be immutable
+        lhs.add( new LValueBind(origDeclNode.getSpan(), containerVarId(), 
+                                containerType(), false) );
+        LocalVarDecl ret = ExprFactory.makeLocalVarDecl( origDeclNode.getSpan(),
+                            lhs, makeCallToContainerObj(), bodyExprs );
+
+        return ret;
     }
 
     public VarRef containerVarRef(Span varRefSpan) {

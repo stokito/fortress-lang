@@ -49,14 +49,14 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // A list of newly created ObjectDecls (i.e. lifted obj expressions and
     // objectDecls for boxed mutable var refs they capture) 
     private List<ObjectDecl> newObjectDecls;
-    // A map mapping from mutable VarRef to its coresponding container 
+    // A map mapping from mutable VarRef to its coresponding container
     // info (i.e. its boxed ObjectDecl, the new VarDecl to create the
-    // boxed ObjectDecl instance, the VarRef to the new VarDecl ... etc.)
-    // this map gets updated/reset when entering/leaving ObjectDecl and 
-    // LocalVarDecl, which are the only places that can introduce new 
+    // boxed ObjectDecl instance, the VarRef to the new VarDecl ...  etc.)
+    // this map gets updated/reset when entering/leaving ObjectDecl and
+    // LocalVarDecl, which are the only places that can introduce new
     // mutable vars captured by object expr.  When leaving ObjectDecl, it
-    // gets reset entirely.  When leaving LocalVarDecl, simply the VarRef 
-    // corresponding to the LocalVarRef gets removed. 
+    // gets reset entirely.  When leaving LocalVarDecl, simply the VarRef
+    // corresponding to the LocalVarRef gets removed.
     private Map<VarRef, VarRefContainer> mutableVarRefContainerMap;
 
     private Component enclosingComponent;
@@ -76,15 +76,31 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
 
     /* The following two things are results returned by FreeNameCollector */
+
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
-    /* Map key: node which the captured mutable varRef is declared under
-                (which should be either ObjectDecl or LocalVarDecl),
-       value: list of pairs for which the VarRefs that needs to be boxed
-              pair.first is the span of the decl node for the varRef
-              pair.second is the varRef */
-    private Map<Span, List<Pair<VarRef,Node>>> declSiteToVarRefs;
 
+    /* 
+     * Map key: created with node (using pair of its name and Span - see
+     *          FreeNameCollector.genKeyForDeclSite for more details)
+     *          which the captured mutable varRef is declared under 
+     *          (which should be either ObjectDecl or LocalVarDecl), 
+     * value: list of pairs 
+     *        pair.first is the varRef 
+     *        pair.second is the decl node where the varRef is declared 
+     *              (which is either a Param, LValueBind, or LocalVarDecl)
+     *
+     * IMPORTANT: Need to use Pair of String & Span as key! 
+     * Span alone does not work, because the newly created nodes have the 
+     * same span as the original decl node that we are rewriting
+     * Node + Span is too strong, because sometimes decl nodes can nest each
+     * other (i.e. LocalVarDecl), and once we rewrite the subtree, the decl
+     * node corresponding to the key in this Map will change.
+     */
+    private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
+
+
+    // Constructor
     public ObjectExpressionVisitor(TraitTable traitTable,
                     Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
         newObjectDecls = new LinkedList<ObjectDecl>();
@@ -162,24 +178,26 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         enclosingObjectDecl = that;
 
         ObjectDecl returnValue = that;
-        List<Pair<VarRef,Node>> rewriteList = 
-                declSiteToVarRefs.get( that.getSpan() ); 
+        Pair<String,Span> key = FreeNameCollector.genKeyForDeclSite(that);
+        List<Pair<VarRef,Node>> rewriteList = declSiteToVarRefs.get(key); 
 
         // Some rewriting required for this ObjectDecl (i.e. it has var
         // params being captured and mutated by some object expression(s) 
         if( rewriteList != null ) {
-            updateMutableVarRefContainerMap( that.getName(), rewriteList );
-            
-            Collection<VarRefContainer> 
-                containers = mutableVarRefContainerMap.values();
-            for(VarRefContainer container : containers) {
+            List<VarRef> mutableVarRefsForThisNode 
+                = updateMutableVarRefContainerMap(that.getName(), rewriteList);
+
+            for(VarRef var : mutableVarRefsForThisNode) {
+                VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );   
             }
 
             // The rewriter also inserts newly declared container VarDecls
             // into this ObjectDecl.
             MutableVarRefRewriteVisitor rewriter = 
-                new MutableVarRefRewriteVisitor(that, mutableVarRefContainerMap);
+                new MutableVarRefRewriteVisitor(that,
+                                                mutableVarRefContainerMap,
+                                                mutableVarRefsForThisNode);
             returnValue = (ObjectDecl) that.accept(rewriter);
         }
 
@@ -199,18 +217,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         enclosingObjectDecl = null;
      	scopeStack.pop();
     	return returnValue;
-    }
-
-    private void 
-    updateMutableVarRefContainerMap(Id enclosingId,
-                                    List<Pair<VarRef,Node>> rewriteList) {
-        for( Pair<VarRef,Node> varPair : rewriteList ) {
-            VarRef var = varPair.first();
-            Node declNode = varPair.second();
-            VarRefContainer container = 
-                new VarRefContainer( var, declNode, enclosingId );
-            mutableVarRefContainerMap.put(var, container);
-        }
     }
 
     @Override
@@ -253,39 +259,54 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return returnValue;
     }
 
-//    @Override
-//	public Node forLocalVarDecl(LocalVarDecl that) {
-//        scopeStack.push(that);
-//
-//        LocalVarDecl returnValue = that;
-//        List<Pair<ObjectExpr,VarRef>> rewriteList = 
-//                declSiteToVarRefs.get( that.getSpan() ); 
-//
-//        // Some rewriting required for this ObjectDecl (i.e. it has var
-//        // params being captured and mutated by some object expression(s) 
-//        if( rewriteList != null ) {
-//            String containerName = MANGLE_CHAR + MUTABLE_CONTAINER_PREFIX + 
-//                                   "_" + that.getName(); 
-//            List<Expr> argsToContainerObj = new LinkedList<Expr>();
-//            ObjectDecl container = 
-//                createContainerForMutableVars(that, containerName, 
-//                                              rewriteList, argsToContainerObj);
-//            newObjectDecls.add(container);
-//            String containerFieldName = MANGLE_CHAR +
-//                                        MUTABLE_CONTAINER_PREFIX + 
-//                                        CONTAINER_FIELD_SUFFIX;
-//            MutableVarRefRewriteVisitor rewriter = 
-//                new MutableVarRefRewriteVisitor(that, container, 
-//                        containerFieldName, rewriteList, argsToContainerObj); 
-//            returnValue = (LocalVarDecl) returnValue.accept(rewriter);
-//        }
-//        // Traverse the subtree regardless rewriting is needed or not
-//        // returnValue = that if no rewriting required for this node
-//        returnValue = (LocalVarDecl) super.forLocalVarDecl(returnValue);
-//
-//        scopeStack.pop();
-//        return returnValue;
-//    }
+    @Override
+    public Node forLocalVarDecl(LocalVarDecl that) {
+        scopeStack.push(that);
+
+        LocalVarDecl returnValue = that;
+        Pair<String,Span> key = FreeNameCollector.genKeyForDeclSite(that);
+        List<Pair<VarRef,Node>> rewriteList = declSiteToVarRefs.get(key); 
+
+        List<VarRef> mutableVarRefsForThisNode = null;
+        
+        // Some rewriting required for this ObjectDecl (i.e. it has var
+        // params being captured and mutated by some object expression(s) 
+        if( rewriteList != null ) {
+            Id enclosingId;
+            if( enclosingObjectDecl != null ) {
+                enclosingId = enclosingObjectDecl.getName();
+            } else {
+                enclosingId = new Id("");
+            }
+
+            mutableVarRefsForThisNode = 
+                updateMutableVarRefContainerMap( enclosingId, rewriteList );
+            for(VarRef var : mutableVarRefsForThisNode) {
+                VarRefContainer container = mutableVarRefContainerMap.get(var);
+                newObjectDecls.add( container.containerDecl() );   
+            }
+
+            MutableVarRefRewriteVisitor rewriter = 
+               new MutableVarRefRewriteVisitor(that,
+                                               mutableVarRefContainerMap,
+                                               mutableVarRefsForThisNode); 
+            returnValue = (LocalVarDecl) returnValue.accept(rewriter);
+        }
+
+        // Traverse the subtree regardless rewriting is needed or not
+        // returnValue = that if no rewriting required for this node
+        returnValue = (LocalVarDecl) super.forLocalVarDecl(returnValue);
+
+        if(mutableVarRefsForThisNode != null) {
+            // reset the mutableVarRefContainerMap
+            for(VarRef varRef : mutableVarRefsForThisNode) {
+                mutableVarRefContainerMap.remove(varRef);
+            }
+        }
+
+        scopeStack.pop();
+        return returnValue;
+    }
 
     @Override
 	public Node forLabel(Label that) {
@@ -580,6 +601,24 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return Collections.<StaticParam>emptyList();
     }
 
+    // Generate a map mapping from mutable VarRef to its coresponding 
+    // container info (i.e. its boxed ObjectDecl, the new VarDecl to create 
+    // the boxed ObjectDecl instance, the VarRef to the new VarDecl, etc.)
+    // based on the info stored in the rewriteList
+    private List<VarRef> updateMutableVarRefContainerMap(Id enclosingId,
+                                       List<Pair<VarRef,Node>> rewriteList) {
+        List<VarRef> addedVarRefs = new LinkedList<VarRef>(); 
+        for( Pair<VarRef,Node> varPair : rewriteList ) {
+            VarRef var = varPair.first();
+            Node declNode = varPair.second();
+            VarRefContainer container = 
+                new VarRefContainer( var, declNode, enclosingId );
+            mutableVarRefContainerMap.put(var, container);
+            addedVarRefs.add(var);
+        }
+    
+        return addedVarRefs;
+    }
 
     // small helper methods
     private VarRef makeVarRefFromNormalParam(NormalParam param) {

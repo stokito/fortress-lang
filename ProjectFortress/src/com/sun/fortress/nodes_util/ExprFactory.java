@@ -550,6 +550,12 @@ public class ExprFactory {
         return new Do(sp, t, body);
     }
 
+    public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
+        List<DoFront> body = new ArrayList<DoFront>();
+        body.add(new DoFront(sp, new Block(sp, t, exprs)));
+        return new Do(sp, t, body);
+    }
+
     public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
         List<Expr> _body = new ArrayList<Expr>();
         List<LValue> _lhs = new ArrayList<LValue>();
@@ -572,6 +578,12 @@ public class ExprFactory {
         List<Expr> _body = new ArrayList<Expr>();
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
+        return new LocalVarDecl(sp, _body, lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs,
+                                                Expr _r, List<Expr> _body) {
+        Option<Expr> _rhs = Option.some(_r);
         return new LocalVarDecl(sp, _body, lhs, _rhs);
     }
 

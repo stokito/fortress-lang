@@ -54,15 +54,27 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
     private FreeNameCollection freeNames;
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
-    /* Map key: node which the captured mutable varRef is declared under 
-                (which should be either ObjectDecl or LocalVarDecl), 
-       value: list of pairs 
-              pair.first is the varRef 
-              pair.second is the decl node where the varRef is declared 
-                    (which is either a Param, LValueBind, or LocalVarDecl)
-    */
+
+    /* 
+     * Map key: created with node (using pair of its name and Span - see
+     *          FreeNameCollector.genKeyForDeclSiteToVarRefs for details)
+     *          which the captured mutable varRef is declared under 
+     *          (which should be either ObjectDecl or LocalVarDecl), 
+     * value: list of pairs 
+     *        pair.first is the varRef 
+     *        pair.second is the decl node where the varRef is declared 
+     *              (which is either a Param, LValueBind, or LocalVarDecl)
+     *
+     * IMPORTANT: Need to use Pair of String & Span as key! 
+     * Span alone does not work, because the newly created nodes have the 
+     * same span as the original decl node that we are rewriting
+     * Node + Span is too strong, because sometimes decl nodes can nest each
+     * other (i.e. LocalVarDecl), and once we rewrite the subtree, the decl
+     * node corresponding to the key in this Map will change.
+     */
     // private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
-    private Map<Span, List<Pair<VarRef,Node>>> declSiteToVarRefs;
+
+    private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
 
 	
 	private static final int DEBUG_LEVEL = 2;
@@ -80,7 +92,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
-        this.declSiteToVarRefs = new HashMap<Span, List<Pair<VarRef,Node>>>();
+        this.declSiteToVarRefs = 
+            new HashMap<Pair<String,Span>, List<Pair<VarRef,Node>>>();
         
 		this.enclosingTraitDecl = null; 
 		this.enclosingObjectDecl = null; 
@@ -90,7 +103,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         return objExprToFreeNames;
     }
 
-    public Map<Span, List<Pair<VarRef,Node>>> getDeclSiteToVarRefs() {
+    public Map<Pair<String,Span>, List<Pair<VarRef,Node>>> 
+    getDeclSiteToVarRefs() {
         return declSiteToVarRefs;
     }
 
@@ -242,8 +256,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                             "; Decl node is: " + declNode );
                 }
 
-                List<Pair<VarRef, Node>> refs = 
-                    declSiteToVarRefs.get( declSite.getSpan() );
+                Pair<String,Span> key = genKeyForDeclSite(declSite); 
+                List<Pair<VarRef, Node>> refs = declSiteToVarRefs.get(key);
                 Pair<VarRef,Node> varPair = new Pair<VarRef,Node>(var, declNode);
                 if(refs == null) {
                     refs = new LinkedList<Pair<VarRef,Node>>();
@@ -251,7 +265,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                 } else if( refs.contains(varPair) == false ) {
                     refs.add(varPair);
                 }
-                declSiteToVarRefs.put(declSite.getSpan(), refs); 
+                declSiteToVarRefs.put(key, refs); 
     		}
         }
 
@@ -421,6 +435,28 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         forVarTypeDoFirst(that);
 	}
+
+    // Given a node, generate its corresponding key for the Map
+    // declSiteToVarRefs.  Note that the declSite can only be either
+    // ObjectDecl type or LocalVarDecl type. 
+    public static Pair<String,Span> genKeyForDeclSite(Node declSite) {
+        if(declSite instanceof ObjectDecl) {
+            ObjectDecl cast = (ObjectDecl) declSite;
+            String name = "ObjectDecl_" + cast.getName().getText();
+            return new Pair<String,Span>( name, cast.getSpan() ); 
+        } else if(declSite instanceof LocalVarDecl) {
+            LocalVarDecl cast = (LocalVarDecl) declSite;
+            String name = "LocalVarDecl";
+            List<LValue> lhs = cast.getLhs();
+            for(LValue lvalue : lhs) {
+                name += ( "_" + ((LValueBind) lvalue).getName().getText() );
+            }
+            return new Pair<String,Span>( name, cast.getSpan() );
+        } else {
+            throw new DesugarerError("Unexpected node type to " + 
+                                     "genKeyForDeclSite: " + declSite);
+        }
+    }
 
 	private boolean isDottedMethod(FnRef fnRef) {
 		
