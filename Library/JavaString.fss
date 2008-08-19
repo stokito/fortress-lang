@@ -33,8 +33,8 @@ package="com.sun.fortress.interpreter.glue.prim"
     getter toString() : String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
     opr |self| : ZZ32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")    
-    uncheckedSubstring(r1: Range[\ZZ32\]) : String = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+    uncheckedSubstring(r1: Range[\ZZ32\]) : String =
         if isEmptyRange(r1) then ""
         else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
         end
@@ -48,7 +48,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr CMP(self, other:String):TotalComparison = INVERSE (other CMP self)
     opr CASE_INSENSITIVE_CMP(self, other:JavaString): TotalComparison =
       self.cicmp(other) CMP 0
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = INVERSE (other CASE_INSENSITIVE_CMP self) 
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = INVERSE (other CASE_INSENSITIVE_CMP self)
 
     (** get skips bounds checking. **)
     get(i:ZZ32): Char =
@@ -78,21 +78,21 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr ||(self, b:JavaString): String = do
         bSize = |b|
         if bSize = 0 then self
-        elif self.size + bSize > flatStringInfo.maxSize then 
-            CatString(self, b) 
+        elif self.size + bSize > flatStringInfo.maxSize then
+            CatString(self, b)
         else
             javaAppend(self, b)
         end
       end
- 
+
     opr ||(self, b:String):String =
         CatString(self, b)
     (*  This makes the overloading resolution go beserk ...
     opr ||(self, b:EmptyString):String = self
     *)
     opr ||(self, b:Char): String =
-        if |self| ≥ flatStringInfo.maxSize then 
-            CatString(self, b.toString) 
+        if |self| ≥ flatStringInfo.maxSize then
+            CatString(self, b.toString)
         else
             javaAppend(self, b)
         end
