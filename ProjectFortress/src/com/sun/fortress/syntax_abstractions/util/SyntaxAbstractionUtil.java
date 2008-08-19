@@ -26,20 +26,14 @@ import java.util.List;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AsIfExpr;
-import com.sun.fortress.nodes.Assignment;
-import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TemplateGap;
-import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -53,16 +47,10 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.useful.Debug;
-
 import edu.rice.cs.plt.tuple.Option;
 
 public class SyntaxAbstractionUtil {

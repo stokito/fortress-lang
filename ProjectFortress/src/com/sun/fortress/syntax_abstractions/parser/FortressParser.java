@@ -18,10 +18,8 @@ package com.sun.fortress.syntax_abstractions.parser;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.Reader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -31,22 +29,16 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Collection;
 
-import xtc.parser.ParseError;
 import xtc.parser.ParserBase;
-import xtc.parser.SemanticValue;
-
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.Parser.Result;
-import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;

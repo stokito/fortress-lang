@@ -17,25 +17,17 @@
 
 package com.sun.fortress.syntax_abstractions.parser;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.List;
 
-import xtc.parser.ParseError;
-import xtc.parser.SemanticValue;
-
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
@@ -44,10 +36,8 @@ import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;

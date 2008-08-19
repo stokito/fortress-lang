@@ -17,31 +17,12 @@
 
 package com.sun.fortress.syntax_abstractions.environments;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.index.NonterminalIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NonterminalDecl;
-import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.TerminalDecl;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.parser_util.FortressUtil;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
-
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Option;
 
 public class NTEnv {
 

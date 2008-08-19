@@ -17,36 +17,21 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.compiler.index.NonterminalDefIndex;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalHeader;
-import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxDecl;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
-
-import com.sun.fortress.useful.Pair;
-
-import edu.rice.cs.plt.tuple.Option;
 
 import junit.framework.TestCase;
 

@@ -32,7 +32,6 @@ import com.sun.fortress.nodes.CaseTransformer;
 import com.sun.fortress.nodes.CaseTransformerClause;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TypeArg;
@@ -49,8 +48,6 @@ import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
-
-import edu.rice.cs.plt.tuple.Option;
 
 /*
  * Rewrite all occurrences of variables in a given template to 

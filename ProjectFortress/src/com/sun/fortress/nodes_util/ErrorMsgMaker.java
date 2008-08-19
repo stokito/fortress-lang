@@ -17,7 +17,6 @@
 
 package com.sun.fortress.nodes_util;
 
-import java.io.IOException;
 import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;

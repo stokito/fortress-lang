@@ -18,18 +18,9 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.List;
-import java.util.LinkedList;
-
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.GroupSymbol;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.NotPredicateSymbol;
 
@@ -39,9 +30,6 @@ import com.sun.fortress.nodes.OptionalSymbol;
 
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
-import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
-import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
-
 import com.sun.fortress.useful.Debug;
 
 public class VariableCollector extends NodeDepthFirstVisitor_void {

@@ -18,7 +18,6 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.AbstractNode;
 
 public interface SyntaxTransformer<T extends Node> {
     public T invoke( java.util.Map<String,Object> variables );

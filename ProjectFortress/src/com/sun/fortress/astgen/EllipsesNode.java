@@ -69,7 +69,7 @@ public class EllipsesNode extends NodeClass {
         writer.startLine(" * @version  Generated automatically by ASTGen at ");
         writer.print(new Date());
         writer.startLine(" */");
-        writer.startLine("@SuppressWarnings(value={\"all\"})");
+        writer.startLine("@SuppressWarnings(value={\"unused\"})");
         // Class header
         writer.startLine("public class " + this.name());
         writer.print(" extends " + this.superClass().name());

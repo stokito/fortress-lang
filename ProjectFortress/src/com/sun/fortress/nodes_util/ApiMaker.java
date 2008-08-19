@@ -16,15 +16,8 @@
  ******************************************************************************/
 package com.sun.fortress.nodes_util;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.useful.*;
-import edu.rice.cs.plt.tuple.Option;
 
 /**
  * A visitor that makes an api from a component.

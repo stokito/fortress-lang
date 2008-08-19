@@ -36,14 +36,11 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Iterator;
-
 import xtc.tree.Attribute;
 import xtc.tree.Comment;
 import xtc.parser.Action;
 import xtc.parser.Element;
 import xtc.parser.FullProduction;
-import xtc.parser.AlternativeAddition;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleImport;
@@ -56,12 +53,10 @@ import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.Sequence;
 
-import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 import com.sun.fortress.useful.Debug;

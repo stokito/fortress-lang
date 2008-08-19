@@ -28,7 +28,6 @@ import com.sun.fortress.compiler.index.ApiIndex;
 
 import com.sun.fortress.exceptions.MacroError;
 
-import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Node;
@@ -50,7 +49,6 @@ import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.TabPrintWriter;
-import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Debug;
 // import com.sun.fortress.tools.FortressAstToConcrete;
 

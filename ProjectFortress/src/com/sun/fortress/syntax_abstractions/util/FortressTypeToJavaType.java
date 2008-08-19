@@ -21,7 +21,6 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 
 /**
