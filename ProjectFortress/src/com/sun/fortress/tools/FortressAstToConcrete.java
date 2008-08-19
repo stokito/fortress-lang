@@ -212,6 +212,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return original.replaceAll( pattern, "" );
     }
 
+    private String handleType(String type) {
+        if ( type.startsWith("(*") ) return "";
+        else return ": " + type;
+    }
+
     /* visit nodes ************************************************************/
     @Override public String forComponentOnly(Component that, String name_result,
                                              List<String> imports_result,
@@ -580,8 +585,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( name_result );
         if ( type_result.isSome() ){
-            s.append( ": " );
-            s.append( type_result.unwrap() );
+            s.append( handleType(type_result.unwrap()) );
         }
 
         return s.toString();
@@ -682,7 +686,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         if ( returnType_result.isSome() ) {
-            s.append( " : " ).append( returnType_result.unwrap() );
+            s.append( handleType(returnType_result.unwrap()) );
             s.append( " " );
         }
         if ( throwsClause_result.isSome() ) {
@@ -768,7 +772,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         if ( returnType_result.isSome() ) {
-            s.append( " : " ).append( returnType_result.unwrap() );
+            s.append( handleType(returnType_result.unwrap()) );
             s.append( " " );
         }
         if ( throwsClause_result.isSome() ) {
@@ -802,7 +806,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( name_result );
         if (type_result.isSome() &&
             !name_result.equals("self"))
-            s.append( ": " ).append( type_result.unwrap() );
+            s.append( handleType(type_result.unwrap()) );
         if (defaultExpr_result.isSome())
             s.append( "=").append( defaultExpr_result );
 
@@ -819,8 +823,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( mod ).append( " " );
         }
         s.append( name_result );
-        s.append( ": " );
-        s.append( type_result );
+        s.append( handleType(type_result) );
         s.append( "..." );
 
         return s.toString();
@@ -855,7 +858,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "unit " );
         s.append( join(units_result, " ") );
         if ( dim_result.isSome() ) {
-            s.append( ": " ).append( dim_result.unwrap() );
+            s.append( handleType(dim_result.unwrap()) );
         }
         if ( def_result.isSome() ) {
             s.append( "= " ).append( def_result.unwrap() );
@@ -936,8 +939,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append( header_result );
         if ( astType_result.isSome() ){
-            s.append( " :" );
-            s.append( astType_result.unwrap() );
+            s.append( handleType(astType_result.unwrap()) );
         }
         s.append( ":=\n");
         s.append( "  " + join(syntaxDefs_result, "\n| ") );
@@ -983,8 +985,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( inOxfordBrackets( staticParams_result ) );
         }
         if ( type_result.isSome() ){
-            s.append( ":" );
-            s.append( type_result.unwrap() );
+            s.append( handleType(type_result.unwrap()) );
         }
         if ( ! params_result.isEmpty() ){
             s.append( "(" );
@@ -1000,7 +1001,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                         String type_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( name_result ).append( ":" ).append( type_result );
+        s.append( name_result ).append( handleType(type_result) );
 
         return s.toString();
     }
@@ -1017,42 +1018,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    /*
-    @Override public String forTransformerDefOnly(TransformerDef that,
-                                                  List<String> parameters_result) {
-        return "(* TransformerDef *)";
-    }
-    */
-
-    /* sad but true, it's hard to convert a macro template back to its original form.
-     */
-    /*
-    @Override public String forTransformerNode(TransformerNode that) {
-        StringBuilder s = new StringBuilder();
-        s.append( "(* ..macro.. *)" );
-        return s.toString();
-    }
-    */
-
-    /*
-    @Override public String forSimpleTransformerDefOnly(SimpleTransformerDef that,
-                                                        String node_result) {
-        return "(* SimpleTransformerDef *)";
-    }
-    */
-
-    /*
-    @Override public String forPreTransformerDefOnly(PreTransformerDef that) {
-        return that.getTransformer();
-    }
-    */
-
-    @Override public String forPreTransformerDefOnly(PreTransformerDef that, String transformer_result) {
+    @Override public String forPreTransformerDefOnly(PreTransformerDef that,
+                                                     String transformer_result) {
         return transformer_result;
     }
 
     /* TODO: handle nonterminal_result */
-    @Override public String forUnparsedTransformerOnly(UnparsedTransformer that, String nonterminal_result) {
+    @Override public String forUnparsedTransformerOnly(UnparsedTransformer that,
+                                                       String nonterminal_result) {
         StringBuilder s = new StringBuilder();
 
         /* should be nonterminal_result + " <[" ... */
@@ -1061,7 +1034,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forCaseTransformerOnly(CaseTransformer that, String gapName_result, List<String> clauses_result) {
+    @Override public String forCaseTransformerOnly(CaseTransformer that,
+                                                   String gapName_result,
+                                                   List<String> clauses_result) {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
@@ -1078,7 +1053,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "(* ..macro.. *)";
     }
 
-    @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that, String constructor_result, List<String> parameters_result, String body_result) {
+    @Override public String forCaseTransformerClauseOnly(CaseTransformerClause that,
+                                                         String constructor_result,
+                                                         List<String> parameters_result,
+                                                         String body_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( constructor_result );
@@ -1093,7 +1071,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forSuperSyntaxDefOnly(SuperSyntaxDef that, String nonterminal_result, String grammar_result) {
+    @Override public String forSuperSyntaxDefOnly(SuperSyntaxDef that,
+                                                  String nonterminal_result,
+                                                  String grammar_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( nonterminal_result ).append( " from " ).append( grammar_result );
@@ -1657,7 +1637,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "fn " );
         s.append( inParentheses(inParentheses(params_result)) );
         if ( returnType_result.isSome() ) {
-            s.append( ": " ).append( returnType_result.unwrap() );
+            s.append( handleType(returnType_result.unwrap()) );
         }
         if ( throwsClause_result.isSome() ) {
             List<String> throws_ = throwsClause_result.unwrap();
@@ -2951,7 +2931,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
         s.append( "unit " ).append( name_result );
         if ( dim_result.isSome() ) {
-            s.append( ": " ).append( dim_result.unwrap() );
+            s.append( handleType(dim_result.unwrap()) );
         }
         if ( that.isAbsorbs() ) {
             s.append( " absorbs unit" );
