@@ -48,7 +48,6 @@ public class SpawnTask extends BaseTask {
         fcn = sf;
         eval = e;
         resultIsReady = false;
-        taskState = new TaskState();
     }
 
     public void print() {

@@ -39,14 +39,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         return runner.task();
     }
 
-    public static TaskState getTaskState() {
-        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        TaskState result = runner.task().taskState();
-        return result;
-    }
-
     public static Transaction transaction() {
-    return getTaskState().transaction();
+        return getTask().transaction();
     }
 
     public static boolean inATransaction() {
@@ -73,7 +67,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      * @return whether the current transaction may commit successfully.
      */
     public static boolean validate() {
-        return getTaskState().validate();
+        return transaction().validate();
     }
 
     /**
@@ -83,7 +77,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      *         there is no current transaction.
      */
     static public Transaction getTransaction() {
-        return getTaskState().transaction();
+        return transaction();
     }
 
     /**
@@ -100,21 +94,19 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     }
 
     public static <T> T doItOnce(Callable<T> xaction) throws AbortedException, Exception {
-        getTaskState().beginTransaction();
+        getTask().beginTransaction();
         try {
             T result = xaction.call();
-            if (getTaskState().commitTransaction()) {
+            if (getTask().commitTransaction()) {
                 return result;
             } else {
-                getTransaction().abort();
-                throw new AbortedException(getTransaction(), " commit failed");
+                getTask().abortTransaction();
+                throw new AbortedException(transaction(), " commit failed");
             }
         } catch (FortressError fe) {
             throw fe;
         } finally {
-            TaskState ts = getTaskState();
-            if (ts != null)
-                ts.giveUpTransaction();
+            getTask().giveUpTransaction();
         }
     }
 

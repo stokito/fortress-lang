@@ -50,7 +50,6 @@ public class TupleTask extends BaseTask {
             /* Null out fields so they are not retained by GC after termination. */
             eval = null;
             expr = null;
-            taskState = null;
         }
     }
 
@@ -62,7 +61,7 @@ public class TupleTask extends BaseTask {
     }
 
     public String toString() {
-        return "[TupleTask" + name() +  ":" + taskState() + "]" ;
+        return "[TupleTask" + name() +  ":" + transaction() + "]" ;
     }
 
     public FValue getRes() { return res;}
