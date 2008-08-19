@@ -552,12 +552,18 @@ public final class Shell {
                 APIName name = trueApiName( s );
                 Path path = sourcePath( s, name );
 
-                Iterable<? extends StaticError> errors = compile(path, name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi"), out );
-                if ( errors.iterator().hasNext() ){
+                String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
+                Iterable<? extends StaticError> errors = compile(path, file_name, out );
+                int num_errors = IterUtil.sizeOf(errors);
+                if ( num_errors > 0 ) {
                     for (StaticError error: errors) {
                         System.err.println(error);
                     }
+                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
+                        (num_errors == 1 ? "." : "s.");
+                    System.err.println(err_string);
                 }
+
             } catch (RepositoryError error) {
                 System.err.println(error);
             }
