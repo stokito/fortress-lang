@@ -15,22 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component GeneratorOverload
-  export Executable
+api AsIfInterface
 
-  foo(g:Generator[\ZZ32\]):() = 
-    for i <- g do ignore( (i+i) as ZZ32 ) end
+  trait MyOwnZZ32 end
 
-  cleveland(c:Condition[\ZZ32\]):() =
-    while i <- c do ignore( (i+i) as ZZ32 ) end
-
-  seattle(c:Condition[\ZZ32\]):() =
-    if i <- c then ignore( (i+i) as ZZ32 ) end
-    
-  
-  newyork(g:Generator[\ZZ32\]):() = do
-    (ignore( (i+i) as ZZ32 )), i <- g
-  end
-
-  run(args:String...):() = ()
 end

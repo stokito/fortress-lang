@@ -30,7 +30,7 @@ public class StaticJUTest extends TestCaseWrapper {
     private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/";
     private final static List<String> FAILING_DISAMBIGUATOR = Arrays.asList();
     private final static List<String> FAILING_TYPE_CHECKER = Arrays.asList(
-            "GeneratorOverload.fss"
+            "AsIf.fss"
     );
     public static TestSuite suite() {
         return new StaticTestSuite("StaticJUTest",
