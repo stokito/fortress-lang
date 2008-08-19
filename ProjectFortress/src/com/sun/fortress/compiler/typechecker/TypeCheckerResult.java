@@ -26,7 +26,6 @@ import java.util.Map;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
@@ -43,46 +42,26 @@ import edu.rice.cs.plt.tuple.Pair;
 
 
 public class TypeCheckerResult extends StaticPhaseResult {
-	private final Node ast;
-	private final Option<Type> type;
-	private final ConstraintFormula nodeConstraints;
-	private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs; 
-	
-	private static Pair<ConstraintFormula, Option<StaticError>> 
-	collectConstraints(Iterable<? extends TypeCheckerResult> results,
-			TypeAnalyzer checker, Node ast) {
-		SubtypeHistory empty_history = checker.new SubtypeHistory();
+    private final Node ast;
+    private final Option<Type> type;
+    private final ConstraintFormula nodeConstraints;
+    private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs; 
 
-		Iterable<ConstraintFormula> constraints =
-			IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){
-				public ConstraintFormula value(TypeCheckerResult arg0) {
-					return arg0.nodeConstraints;
-				}});     
+    private static Pair<ConstraintFormula, Option<StaticError>> 
+    collectConstraints(Iterable<? extends TypeCheckerResult> results,
+            TypeAnalyzer checker, Node ast) {
+        SubtypeHistory empty_history = checker.new SubtypeHistory();
 
-		Boolean was_sat =
-			IterUtil.fold(constraints, true, new Lambda2<Boolean,ConstraintFormula,Boolean>(){
-				public Boolean value(Boolean arg0, ConstraintFormula arg1) {
-					return arg0 & (arg1.isSatisfiable());
-				}});
+        Iterable<ConstraintFormula> constraints =
+            IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){
+                public ConstraintFormula value(TypeCheckerResult arg0) {
+                    return arg0.nodeConstraints;
+                }});
 
-		ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
+        ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
 
-		// NEB: Pretty soon we ought to get rid of this. It makes almost no sense to anyone
-		// other than us.
-		// we want to report if this particular addition of constraints made the
-		// whole thing unsatisfiable.
-		boolean became_unsat = was_sat & !(and.isSatisfiable());
-		Option<StaticError> error;
-		if( became_unsat ) {
-			String err_str = "Type inference constraints became unsatisfiable " +
-			"with the following set of constraints: " + constraints;
-			error = Option.<StaticError>some(TypeError.make(err_str,ast));
-			return Pair.make(ConstraintFormula.TRUE, error);
-		}
-		else {
-			return Pair.make(and, Option.<StaticError>none());
-		}
-	}
+        return Pair.make(and, Option.<StaticError>none());
+    }
 
 	private static Map<Pair<Node,Span>, TypeEnv> collectEnvMaps(Iterable<? extends TypeCheckerResult> results) {
 		// Take the union of each map from every TypeCheckerResult
