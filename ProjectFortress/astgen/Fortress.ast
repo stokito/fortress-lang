@@ -2287,7 +2287,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         Link(OpRef op, Expr expr);
 
         /*
-	 * Keeps track of ellipses properties
+	 * Keeps track of ellipses properties. This is special cased
+	 * in the Printer and UnPrinter so be careful if Level is changed.
 	 */
         Level(Integer level, Object object);
         /*
