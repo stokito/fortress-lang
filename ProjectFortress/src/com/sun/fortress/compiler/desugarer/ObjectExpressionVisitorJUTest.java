@@ -35,32 +35,33 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
 public class ObjectExpressionVisitorJUTest extends TestCase {
-    
-    private static final String testsDir = 
+
+    private static final String testsDir =
         ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
     private static final char SEP = File.separatorChar;
-    
-    public void testObjectCC() 
-    throws FileNotFoundException, IOException, Throwable {
+
+    public void testObjectCC()
+        throws FileNotFoundException, IOException, Throwable {
         runFile("objectCC.fss");
     }
 
-    public void testObjectCC_Mutables() 
-    throws FileNotFoundException, IOException, Throwable {
+    public void testObjectCC_Mutables()
+        throws FileNotFoundException, IOException, Throwable {
         runFile("objectCC_mutVar1.fss");
         runFile("objectCC_mutVar2.fss");
     }
-    
-    public void testObjectCC_Mutli_ObjExpr_Mutables() 
-    throws FileNotFoundException, IOException, Throwable {
+
+    public void testObjectCC_Mutli_ObjExpr_Mutables()
+        throws FileNotFoundException, IOException, Throwable {
         runFile("objectCC_multi_objExpr_mutVar1.fss");
         runFile("objectCC_multi_objExpr_mutVar2.fss");
     }
-    
-    private void runFile(String fileName)     
-    throws FileNotFoundException, IOException, Throwable {
+
+    private void runFile(String fileName)
+        throws FileNotFoundException, IOException, Throwable {
         String file = testsDir + SEP + fileName;
-        
+
+        // do not print stuff to stdout for JUTests
         PrintStream oldOut = System.out;
         PrintStream oldErr = System.err;
         WireTappedPrintStream wt_err =
@@ -80,16 +81,14 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
-        
+
         // must turn these passes off
         com.sun.fortress.compiler.StaticChecker.typecheck = false;
         com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
-        
+
         assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }
-    
+
 }
-
-

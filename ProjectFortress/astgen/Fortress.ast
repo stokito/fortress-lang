@@ -1224,6 +1224,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                          * based on the types, the op field is a reference to
                          * the operator that should be used.
                          *
+                         * In order to know whether a juxtaposition is an infix or
+                         * multifix juxtaposition, we need type information.
+                         *
+                         * After type checking, this node should disappear.
+                         *
                          * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
                          *           | Primary TupleExpr
                          *           | Primary Primary

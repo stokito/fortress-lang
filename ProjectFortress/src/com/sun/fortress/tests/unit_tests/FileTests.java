@@ -113,15 +113,18 @@ public class FileTests {
                             args.add(dir + "/tennis051707");
                             args.add(dir + "/tennisGames");
                             Driver.runProgram(fr, p, false, args);
+                            fr.clear();
                         }
                         // Test files requiring "-test" flag
                         else if (name.equals("XXXTestTest") ||
                                  name.equals("natInference0") ||
                                  name.equals("testTest2")) {
                             Driver.runProgram(fr, p, true, new ArrayList<String>());
+                            fr.clear();
                         }
                         else {
                             Driver.runProgram(fr, p, false, new ArrayList<String>());
+                            fr.clear();
                         }
                     }
                 }
