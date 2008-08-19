@@ -54,8 +54,6 @@ public class EvaluatorTask extends BaseTask {
     }
 
     public void compute() {
-        // The FortressTaskRunner isn't created yet when we first make our EvaluatorTask, so we need to initialize the thread state here.
-        taskState = new TaskState();
         FortressTaskRunner.setCurrentTask(this);
 
         try {
@@ -66,7 +64,6 @@ public class EvaluatorTask extends BaseTask {
             //            e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
-            taskState = null;
         }
     }
 
