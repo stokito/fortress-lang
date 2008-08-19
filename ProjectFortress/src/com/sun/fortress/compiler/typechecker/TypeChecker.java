@@ -2900,45 +2900,50 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return result.addNodeTypeEnvEntry(new_node, typeEnv);
 	 }
 
-	 @Override
-	 public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
-		 TypeCheckerResult result = new TypeCheckerResult(that);
+    @Override
+    public TypeCheckerResult forLocalVarDecl(LocalVarDecl that) {
+        TypeCheckerResult result = new TypeCheckerResult(that);
 
-		 // Create type for LHS
-		 Type lhs_type =
-			 Types.MAKE_TUPLE.value(IterUtil.map(that.getLhs(), new Lambda<LValue,Type>(){
-				 public Type value(LValue arg0) { return getTypeOfLValue(arg0); }}));
+        // Create type for LHS
+        Type lhs_type =
+            Types.MAKE_TUPLE.value(IterUtil.map(that.getLhs(), new Lambda<LValue,Type>(){
+                public Type value(LValue arg0) { return getTypeOfLValue(arg0); }}));
 
-		 Option<TypeCheckerResult> _rhs_result = this.recurOnOptionOfExpr(that.getRhs());
-		 if ( _rhs_result.isSome() ) {
-			 TypeCheckerResult rhs_result = _rhs_result.unwrap();
-			 result = TypeCheckerResult.compose(that, subtypeChecker, result, rhs_result);
+        Option<TypeCheckerResult> _rhs_result = this.recurOnOptionOfExpr(that.getRhs());
+        if ( _rhs_result.isSome() ) {
+            TypeCheckerResult rhs_result = _rhs_result.unwrap();
+            result = TypeCheckerResult.compose(that, subtypeChecker, result, rhs_result);
 
-			 if( rhs_result.type().isSome() ) {
-				 result = TypeCheckerResult.compose(that, subtypeChecker, result,
-						 checkSubtype(rhs_result.type().unwrap(), lhs_type, that, "RHS must be a subtype of LHS."));
-			 }
-		 }
+            if( rhs_result.type().isSome() ) {
+                result = TypeCheckerResult.compose(that, subtypeChecker, result,
+                        checkSubtype(rhs_result.type().unwrap(), lhs_type, that, "RHS must be a subtype of LHS."));
+            }
+        }
 
-		 TypeChecker newChecker = this.extend(that);
-		 // A LocalVarDecl is like a let. It has a body, and it's type is the type of the body
-		 List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
-		 List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody());
-		 Option<Type> body_type = that.getBody().size() == 0 ?
-				 Option.<Type>some(Types.VOID) :
-					 body_results.get(body_results.size()-1).type();
+        // Extend typechecker with new bindings and with constraints from the RHS types
+        TypeChecker newChecker = this.extend(that);
+        Iterable<ConstraintFormula> rhs_constraint = IterUtil.make(result.getNodeConstraints());
+        newChecker = newChecker.extendWithConstraints(rhs_constraint);
+        
+        // A LocalVarDecl is like a let. It has a body, and it's type is the type of the body
+        List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
+        List<TypeCheckerResult> body_void = newChecker.allVoidButLast(body_results, that.getBody());
+        Option<Type> body_type = that.getBody().size() == 0 ?
+                Option.<Type>some(Types.VOID) :
+                    body_results.get(body_results.size()-1).type();
 
-		LocalVarDecl new_node = new LocalVarDecl(that.getSpan(),
-		                                         that.isParenthesized(),
-		                                         body_type,
-		                                         (List<Expr>)TypeCheckerResult.astFromResults(body_results),
-		                                         that.getLhs(),
-		                                         (Option<Expr>)TypeCheckerResult.astFromResult(_rhs_result));
-		return TypeCheckerResult.compose(new_node,
-				body_type, subtypeChecker, result,
-				TypeCheckerResult.compose(new_node, subtypeChecker, body_results),
-				TypeCheckerResult.compose(new_node, subtypeChecker, body_void)).addNodeTypeEnvEntry(new_node, typeEnv);
-	 }
+        LocalVarDecl new_node = new LocalVarDecl(that.getSpan(),
+                                                 that.isParenthesized(),
+                                                 body_type,
+                                                 (List<Expr>)TypeCheckerResult.astFromResults(body_results),
+                                                 that.getLhs(),
+                                                 (Option<Expr>)TypeCheckerResult.astFromResult(_rhs_result));
+        return TypeCheckerResult.compose(new_node,
+                body_type, subtypeChecker, result,
+                TypeCheckerResult.compose(new_node, subtypeChecker, _rhs_result),
+                TypeCheckerResult.compose(new_node, subtypeChecker, body_results),
+                TypeCheckerResult.compose(new_node, subtypeChecker, body_void)).addNodeTypeEnvEntry(new_node, typeEnv);
+    }
 
 	 @Override
 	 public TypeCheckerResult forLooseJuxtOnly(LooseJuxt that, Option<TypeCheckerResult> exprType_result,
@@ -4439,37 +4444,37 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 return TypeEnv.make(table.compilationUnit(api));
 	 }
 
-	 private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op,
-			 Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
-		 List<TraitType> traits = traitTypesCallable(obj_type);
-		 // we need to have a trait otherwise we can't see its methods.
-		 if( traits.isEmpty() ) {
-			 String err = "Only traits can have subscripting methods and " + obj_type + " is not one.";
-			 TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
-			 return TypeCheckerResult.compose(that, subtypeChecker, err_result);
-		 }
+    private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op,
+            Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
+        List<TraitType> traits = traitTypesCallable(obj_type);
+        // we need to have a trait otherwise we can't see its methods.
+        if( traits.isEmpty() ) {
+            String err = "Only traits can have subscripting methods and " + obj_type + " is not one.";
+            TypeCheckerResult err_result = new TypeCheckerResult(that, TypeError.make(err, that));
+            return TypeCheckerResult.compose(that, subtypeChecker, err_result);
+        }
 
-		 // Make a tuple type out of given arguments
-		 Type arg_type = Types.MAKE_TUPLE.value(subs_types);
+        // Make a tuple type out of given arguments
+        Type arg_type = Types.MAKE_TUPLE.value(subs_types);
 
-		 Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
-			 findMethodsInTraitHierarchy(op.unwrap(), traits, arg_type, static_args,that);
-		 TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
-		 List<Method> candidates = candidate_pair.first();
+        Pair<List<Method>,List<TypeCheckerResult>> candidate_pair =
+            findMethodsInTraitHierarchy(op.unwrap(), traits, arg_type, static_args,that);
+        TypeCheckerResult result = TypeCheckerResult.compose(that, subtypeChecker, candidate_pair.second());
+        List<Method> candidates = candidate_pair.first();
 
-		 // Now we meet together the results, or return an error if there are no candidates.
-		 if(candidates.isEmpty()){
-			 String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
-			 TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
-			 return TypeCheckerResult.compose(that, subtypeChecker, result, err_result);
-		 }
+        // Now we meet together the results, or return an error if there are no candidates.
+        if(candidates.isEmpty()){
+            String err = "No candidate methods found for '" + op + "'  on type " + obj_type + " with argument types (" + arg_type + ").";
+            TypeCheckerResult err_result = new TypeCheckerResult(that,TypeError.make(err,that));
+            return TypeCheckerResult.compose(that, subtypeChecker, result, err_result);
+        }
 
-		 List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
-			 public Type value(Method arg0) { return arg0.getReturnType(); }}));
+        List<Type> ranges = CollectUtil.makeList(IterUtil.map(candidates, new Lambda<Method,Type>(){
+            public Type value(Method arg0) { return arg0.getReturnType(); }}));
 
-		 Type range = this.subtypeChecker.meet(ranges);
-		 return TypeCheckerResult.compose(that, range, subtypeChecker, result);
-	 }
+        Type range = this.subtypeChecker.meet(ranges);
+        return TypeCheckerResult.compose(that, range, subtypeChecker, result);
+    }
 
 	 /**
 	  * Given a type, which could be a VarType, Intersection or Union, return the TraitTypes
