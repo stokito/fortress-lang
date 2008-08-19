@@ -20,16 +20,12 @@ package com.sun.fortress.nodes_util;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
 import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
-import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.interpreter.evaluator.values.Overload;
-import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;

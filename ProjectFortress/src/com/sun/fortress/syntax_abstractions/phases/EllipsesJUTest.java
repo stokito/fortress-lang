@@ -17,18 +17,11 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.io.File;
 import junit.framework.TestCase;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-
-import com.sun.fortress.nodes_util.Printer;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.BufferedWriter;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -29,9 +29,6 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes._EllipsesExpr;
 import com.sun.fortress.nodes._Ellipses;
-import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.OpRef;
-
 import com.sun.fortress.useful.Debug;
 
 /* implementation of macros-by-example

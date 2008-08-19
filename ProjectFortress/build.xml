@@ -245,6 +245,7 @@ testOnly, testCruiseControl"/>
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>
+	<delete dir="${basedir}/test-tmp" />
         <delete>
             <fileset dir="src" includes="**/*.class" />
         </delete>

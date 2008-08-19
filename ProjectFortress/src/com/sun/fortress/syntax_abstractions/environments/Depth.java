@@ -17,26 +17,6 @@
 
 package com.sun.fortress.syntax_abstractions.environments;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.List;
-import java.util.LinkedList;
-
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.GroupSymbol;
-import com.sun.fortress.nodes.SyntaxSymbol;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.AndPredicateSymbol;
-import com.sun.fortress.nodes.NotPredicateSymbol;
-
-import com.sun.fortress.nodes.RepeatSymbol;
-import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
-import com.sun.fortress.nodes.OptionalSymbol;
-
-import com.sun.fortress.useful.Debug;
-
 public abstract class Depth {
 
     public abstract Depth getParent();

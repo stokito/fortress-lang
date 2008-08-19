@@ -23,7 +23,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.fortress.nodes.*;
@@ -35,8 +34,6 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
-
-import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */

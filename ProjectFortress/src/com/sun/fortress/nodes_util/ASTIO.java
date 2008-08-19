@@ -21,16 +21,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 
-import xtc.parser.ParseError;
-import xtc.parser.Result;
-import xtc.parser.SemanticValue;
-
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.useful.StringEncodedAggregate;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;

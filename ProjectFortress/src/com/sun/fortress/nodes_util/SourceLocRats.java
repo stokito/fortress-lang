@@ -17,8 +17,6 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.*;
-
 public class SourceLocRats extends SourceLoc {
 
     int col;

@@ -17,36 +17,23 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import xtc.tree.Comment;
 import xtc.parser.Action;
 import xtc.parser.Binding;
 import xtc.parser.CharClass;
 import xtc.parser.CharRange;
 import xtc.parser.Element;
 import xtc.parser.FollowedBy;
-import xtc.parser.Module;
 import xtc.parser.NonTerminal;
 import xtc.parser.NotFollowedBy;
 import xtc.parser.Sequence;
-import xtc.parser.SequenceName;
-import xtc.parser.SequenceName;
-import xtc.parser.ParserAction;
-
-import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.index.NonterminalIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BackspaceSymbol;
@@ -57,18 +44,14 @@ import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.CharacterInterval;
 import com.sun.fortress.nodes.CharacterSymbol;
 import com.sun.fortress.nodes.FormfeedSymbol;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.GroupSymbol;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NewlineSymbol;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalSymbol;
 import com.sun.fortress.nodes.NotPredicateSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
@@ -80,16 +63,9 @@ import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TabSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TransformerDecl;
-import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.NamedTransformerDef;
-import com.sun.fortress.nodes.Transformer;
-import com.sun.fortress.nodes.NodeTransformer;
-import com.sun.fortress.nodes.CaseTransformer;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.WhitespaceSymbol;
-import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
@@ -101,8 +77,6 @@ import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.syntax_abstractions.ComposingMacroCompiler.Mangler;
-
-import edu.rice.cs.plt.tuple.Option;
 
 public class ComposingSyntaxDefTranslator {
 

@@ -17,20 +17,14 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.Fixity;
-import com.sun.fortress.nodes.MultiFixity;
-import com.sun.fortress.nodes.NoFixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
-import com.sun.fortress.nodes.InFixity;
 import edu.rice.cs.plt.tuple.Option;
 
 public final class OprUtil {

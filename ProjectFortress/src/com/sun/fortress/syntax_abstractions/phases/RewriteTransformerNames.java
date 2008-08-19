@@ -17,64 +17,18 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import java.lang.reflect.Method;
-
-import xtc.parser.ParseError;
-import xtc.parser.SemanticValue;
-
-import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.exceptions.ParserError;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
-import com.sun.fortress.nodes_util.ASTIO;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Export;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
-import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.TemplateGap;
-import com.sun.fortress.nodes.TemplateGapExpr;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.PreTransformerDef;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
-import com.sun.fortress.useful.Pair;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;

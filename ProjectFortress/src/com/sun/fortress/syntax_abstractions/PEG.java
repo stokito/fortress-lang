@@ -25,24 +25,19 @@
 
 package com.sun.fortress.syntax_abstractions;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Iterator;
-
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
 
-import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Debug;
-import edu.rice.cs.plt.tuple.Option;
 
 /* Contains a mapping from a nonterminal name to its production
  * Also contains a mapping from nonterminal name to its type

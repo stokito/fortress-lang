@@ -17,7 +17,6 @@
 package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.useful.NI;

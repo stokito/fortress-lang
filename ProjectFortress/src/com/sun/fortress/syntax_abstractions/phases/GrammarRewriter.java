@@ -25,62 +25,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import java.lang.reflect.Method;
-
-import java.io.BufferedReader;
-
-import xtc.parser.ParserBase;
-import xtc.parser.SemanticValue;
-import xtc.parser.ParseError;
-
-import com.sun.fortress.exceptions.ParserError;
-import com.sun.fortress.exceptions.MultipleStaticError;
-import com.sun.fortress.exceptions.MacroError;
-
-import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
-
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
-import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.NonterminalIndex;
-import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.NonterminalDef;
-import com.sun.fortress.nodes.NonterminalExtensionDef;
-import com.sun.fortress.nodes.SyntaxDef;
-import com.sun.fortress.nodes.SyntaxDecl;
-
-import com.sun.fortress.nodes.TransformerDecl;
-import com.sun.fortress.nodes.NamedTransformerDef;
-import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.nodes.NodeTransformer;
-
-import com.sun.fortress.nodes.TerminalDecl;
-import com.sun.fortress.nodes._TerminalDef;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.Useful;
-// import com.sun.fortress.tools.FortressAstToConcrete;
-
-import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 /**
  * Syntax abstraction entry point:
