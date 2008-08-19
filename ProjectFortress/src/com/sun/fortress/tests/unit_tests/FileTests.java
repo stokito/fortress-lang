@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
@@ -92,11 +92,11 @@ public class FileTests {
 
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             long start = System.nanoTime();
+            GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
                     APIName apiname = NodeFactory.makeAPIName(s);
-                    FortressRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
                     ComponentIndex ci = fr.getLinkedComponent(apiname);
 
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
@@ -113,23 +113,19 @@ public class FileTests {
                             args.add(dir + "/tennis051707");
                             args.add(dir + "/tennisGames");
                             Driver.runProgram(fr, p, false, args);
-                            fr.clear();
                         }
                         // Test files requiring "-test" flag
                         else if (name.equals("XXXTestTest") ||
                                  name.equals("natInference0") ||
                                  name.equals("testTest2")) {
                             Driver.runProgram(fr, p, true, new ArrayList<String>());
-                            fr.clear();
                         }
                         else {
                             Driver.runProgram(fr, p, false, new ArrayList<String>());
-                            fr.clear();
                         }
                     }
                 }
                 finally {
-                    // fr = null;
                     System.setErr(oldErr);
                     System.setOut(oldOut);
                     in.close();
@@ -162,6 +158,8 @@ public class FileTests {
                         fail(ex.getMessage());
                     }
                 }
+            } finally {
+                            fr.clear();
             }
 
             /* Come here IFF NO EXCEPTIONS, to analyze output */

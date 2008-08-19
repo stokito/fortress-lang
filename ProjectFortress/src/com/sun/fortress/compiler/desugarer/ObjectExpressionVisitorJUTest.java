@@ -70,7 +70,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             WireTappedPrintStream.make(System.out, true);
         System.setErr(wt_err);
         System.setOut(wt_out);
-        FValue original = Shell.eval(file);
+        FValue original = Shell.eval(file, true);
 
         String name = file.substring( 0, file.lastIndexOf(".") );
         String tfs = name + ".tfs";
@@ -86,7 +86,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         com.sun.fortress.compiler.StaticChecker.typecheck = false;
         com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
 
-        assertEquals(original, Shell.eval(generated));
+        assertEquals(original, Shell.eval(generated, true));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }

@@ -38,8 +38,9 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.repository.CacheBasedRepository;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Path;
 
 public final class StaticTestSuite extends TestSuite {
 
@@ -305,7 +306,8 @@ public final class StaticTestSuite extends TestSuite {
         }
 
         private Iterable<? extends StaticError> compile(File f) throws IOException {
-            return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()), f.getName());
+            return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
+                                 f.getName(), true);
         }
     }
 }
