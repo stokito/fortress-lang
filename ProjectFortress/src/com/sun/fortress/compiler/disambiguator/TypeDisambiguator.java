@@ -369,17 +369,15 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     typeConses = _env.onDemandTypeConsNames(n);
                     _onDemandImports.add(n);
                 }
-
                 if (typeConses.isEmpty()) {
                     error(NodeUtil.nameString(n)+" is undefined.", n);
                     return that;
                 }
-// FIXME: We want this line to be inserted.
-//                if (typeConses.size() > 1) {
-//                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
-//                            n);
-//                    return that;
-//                }
+                if (typeConses.size() > 1) {
+                    error("Type name may refer to: " + NodeUtil.namesString(typeConses),
+                            n);
+                    return that;
+                }
                 Id qname = IterUtil.first(typeConses);
                 Type result = typeConsHandler.value(qname);
 

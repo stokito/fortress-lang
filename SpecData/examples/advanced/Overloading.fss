@@ -18,8 +18,8 @@
 (** END COPYRIGHT **)
 
 component Overloading
-
-export Executable
+  import FortressLibrary.{println,String} (* Don't import ZZ & RR *)
+  export Executable
 
 (** EXAMPLE **)
 trait ZZ
