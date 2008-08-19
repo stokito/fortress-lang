@@ -32,6 +32,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Lhs;
+import com.sun.fortress.nodes.Level;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 
@@ -283,6 +284,9 @@ public class Unprinter extends NodeReflection {
                 } else if (f.getType() == Map.class ){
                     expectPrefix("(Map");
                     f.set(node, readMap());
+                } else if (f.getType() == Level.class ){
+                    expectPrefix("(Level");
+                    f.set(node, readLevel());
                 } else if (f.getType() == Pair.class) {
                     expectPrefix("(Pair");
                     // This is an actual hole. Might want to add a
@@ -546,6 +550,22 @@ public class Unprinter extends NodeReflection {
         return new Pair<Object, Object>(x, y);
     }
 
+    public Level readLevel() throws IOException {
+        int level = 0;
+        Option<Object> obj = Option.none();
+
+        expectPrefix("_level=");
+        String i = l.name();
+        // level = readInt(l.name());
+        level = readInt(i);
+        expectPrefix("_object=");
+        obj = Option.wrap(readElement());
+
+        expectPrefix(")");
+
+        return new Level( level, obj.unwrap() );
+    }
+
     public Map<String,Object> readMap() throws IOException {
         Map<String,Object> map = new HashMap<String,Object>();
         String s = l.name();
@@ -625,6 +645,8 @@ public class Unprinter extends NodeReflection {
             x = readPair();
         } else if ("Some".equals(s2)) {
             x = readOptionTail();
+        } else if ( "Level".equals(s2) ){
+            x = readLevel();
         } else {
             x = readNode(s2);
         }
