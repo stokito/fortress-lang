@@ -302,7 +302,18 @@ public final class Shell {
         return eval( file, new ArrayList<String>() );
     }
 
+    public static FValue eval( String file, boolean deleteCache )
+        throws Throwable {
+        return eval( file, new ArrayList<String>(), deleteCache );
+    }
+
     public static FValue eval( String file, List<String> args )
+        throws Throwable {
+        return eval( file, args, false );
+    }
+
+    public static FValue eval( String file, List<String> args,
+                               boolean deleteCache )
         throws Throwable {
         setPhase( PhaseOrder.CODEGEN );
         if ( ! isComponent(file) )
@@ -311,7 +322,9 @@ public final class Shell {
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
         CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-        return Driver.runProgram(bcr, cu, test, args);
+        FValue result = Driver.runProgram(bcr, cu, test, args);
+        if ( deleteCache ) bcr.clear();
+        return result;
     }
 
     /**
@@ -562,7 +575,19 @@ public final class Shell {
         return compile(path, file, Option.<String>none());
     }
 
-    private static Iterable<? extends StaticError> compile(Path path, String file, Option<String> out) {
+    public static Iterable<? extends StaticError> compile(Path path, String file,
+                                                          boolean deleteCache) {
+        return compile(path, file, Option.<String>none(), deleteCache);
+    }
+
+    private static Iterable<? extends StaticError> compile(Path path, String file,
+                                                           Option<String> out) {
+        return compile(path, file, out, false);
+    }
+
+    private static Iterable<? extends StaticError> compile(Path path, String file,
+                                                           Option<String> out,
+                                                           boolean deleteCache) {
         GraphRepository bcr = specificRepository( path, defaultRepository );
 
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
@@ -598,6 +623,8 @@ public final class Shell {
             throw new WrappedException(e);
         } catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
+        } finally {
+            if (deleteCache) bcr.clear();
         }
 
         if (bcr.verbose())
