@@ -17,7 +17,7 @@ a
 
 
 component SingleImport
-  import List.{SimpleList}
+  import List.{Concat}
   export Executable
 
   object List end

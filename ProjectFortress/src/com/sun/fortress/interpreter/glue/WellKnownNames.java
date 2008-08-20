@@ -33,11 +33,13 @@ public class WellKnownNames {
     public final static String fortressLibrary = "FortressLibrary";
     public final static String fortressBuiltin = "FortressBuiltin";
     public final static String anyTypeLibrary = "AnyType";
-
+    public final static String executableApi = "Executable";
+    
     public static final String[] defaultLibrary =
         { fortressLibrary,
           "AnyType",
           fortressBuiltin,
+          //executableApi
         //  "NatReflect",
         //  "NativeArray"
         };

@@ -17,15 +17,20 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import edu.rice.cs.plt.collect.Relation;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Id;
 
-import com.sun.fortress.useful.NI;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Export;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.VarDecl;
+
+import edu.rice.cs.plt.collect.Relation;
 
 public class ComponentIndex extends CompilationUnitIndex {
 
@@ -45,7 +50,18 @@ public class ComponentIndex extends CompilationUnitIndex {
     }
 
     public Set<VarDecl> initializers() {
-        return NI.nyi();
+        return Collections.unmodifiableSet(_initializers);
+    }
+
+    @Override
+    public Set<APIName> exports() { 
+        List<Export> exports = ((Component)ast()).getExports();
+        Set<APIName> result = new HashSet<APIName>();
+
+        for( Export export : exports ) {
+            result.addAll(export.getApis());
+        }
+        return result;
     }
 
 }

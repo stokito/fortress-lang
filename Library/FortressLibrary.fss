@@ -3845,6 +3845,8 @@ false : Boolean = true SEQV ()
 
 opr +[\T extends Number\](x:T):T = x
 
+(* Shouldn't these operators have to extend something? A,B,C? *)
+
 opr =[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
     (a1,b1) = t1
     (a2,b2) = t2
