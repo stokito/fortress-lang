@@ -1707,7 +1707,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
         Id name = that.getObj();
         FValue g = forIdOfRef(name);
-        return applyToActualStaticArgs(g,that.getStaticArgs(),that);
+        
+        if( that.getStaticArgs().isEmpty() )
+            return g;
+        else 
+            return applyToActualStaticArgs(g,that.getStaticArgs(),that);
     }
 
     private FValue forIdOfRef(Id x) {
