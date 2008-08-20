@@ -658,80 +658,83 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 }
 	 }
 
-	 // This method does a lot: Basically all of the hard work of finding an appropriate overloading, including looking
-	 // in parent traits.
-	 private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(final IdOrOpOrAnonymousName method_name, List<TraitType> supers,
-			 Type arg_type, List<StaticArg> in_static_args,
-			 Node that) {
-		 List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
-		 List<Method> candidates=new ArrayList<Method>();
-		 List<TraitType> new_supers=new ArrayList<TraitType>();
+    // This method does a lot: Basically all of the hard work of finding an appropriate overloading, including looking
+    // in parent traits.
+    // TODO: This method is in need of a serious overhaul. It is way too simialr to
+    // TypesUtil.applicationType...
+    private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(final IdOrOpOrAnonymousName method_name, List<TraitType> supers,
+            Type arg_type, List<StaticArg> in_static_args,
+            Node that) {
+        List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
+        List<Method> candidates=new ArrayList<Method>();
+        List<TraitType> new_supers=new ArrayList<TraitType>();
+        SubtypeHistory history = subtypeChecker.new SubtypeHistory();
+        
+        for(TraitType type: supers) {
+            TraitIndex trait_index = expectTraitIndex(type);
 
-		 for(TraitType type: supers) {
-			 TraitIndex trait_index = expectTraitIndex(type);
+            final List<StaticArg> extended_type_args = type.getArgs();
+            final List<StaticParam> extended_type_params = trait_index.staticParameters();
+            // get all of the types this type extends. Note that because we can extend types with our own static args,
+            // we must visit the extended type with a static type replacer.
+            for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
+                Type t = (Type)ttw.getType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
+                new_supers.addAll(traitTypesCallable(t));
+            }
 
-			 final List<StaticArg> extended_type_args = type.getArgs();
-			 final List<StaticParam> extended_type_params = trait_index.staticParameters();
-			 // get all of the types this type extends. Note that because we can extend types with our own static args,
-			 // we must visit the extended type with a static type replacer.
-			 for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
-				Type t = (Type)ttw.getType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
-				new_supers.addAll(traitTypesCallable(t));
-			 }
+            // Get methods with the right name:
+            // Add all dotted methods,
+            Set<Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
 
-			 // Get methods with the right name:
-			 // Add all dotted methods,
-			 Set<Method> methods_with_name = trait_index.dottedMethods().matchFirst(method_name);
+            for( Method m : methods_with_name ) {
+                List<StaticArg> static_args = new ArrayList<StaticArg>(in_static_args);
+                // same number of static args
+                if( m.staticParameters().size() > 0 && in_static_args.size() == 0 ) {
+                    // we need to infer static arguments
 
-			 for( Method m : methods_with_name ) {
-				 List<StaticArg> static_args = new ArrayList<StaticArg>(in_static_args);
-				 // same number of static args
-				 if( m.staticParameters().size() > 0 && in_static_args.size() == 0 ) {
-					 // we need to infer static arguments
+                    // TODO if parameters are anything but TypeParam, we don't know
+                    // how to infer it yet.
+                    for( StaticParam p : m.staticParameters() )
+                        if( !(p instanceof TypeParam) ) continue;
+                    // Otherwise, we've got all static parameters
+                    List<StaticArg> static_inference_params =
+                        CollectUtil.makeList(
+                                IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
+                                    public StaticArg value(StaticParam arg0) {
+                                        Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
+                                        return new TypeArg(ivt);
+                                    }}));
+                    static_args = static_inference_params;
+                }
+                else if(m.staticParameters().size()!=static_args.size()) {
+                    // we don't need to infer, and they have different numbers of args
+                    continue;
+                }
+                // instantiate method params with method and type args
+                Functional im_maybe = m.instantiate(Useful.concat(m.staticParameters(), extended_type_params),
+                        Useful.concat(static_args, extended_type_args));
+                // we know this cast works, instantiate contract
+                Method im = (Method)im_maybe;
+                // Do they have the same number of parameters, or at least can they be matched.
+                ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_type);
+                // constraint & any relevent downward constraints satisfiable?
+                if(mc.and(downwardConstraint, history) .isSatisfiable()) {
+                    //add method to candidates
+                    candidates.add(im);
+                    all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
+                }
 
-					 // TODO if parameters are anything but TypeParam, we don't know
-					 // how to infer it yet.
-					 for( StaticParam p : m.staticParameters() )
-						 if( !(p instanceof TypeParam) ) continue;
-					 // Otherwise, we've got all static parameters
-					 List<StaticArg> static_inference_params =
-						 CollectUtil.makeList(
-								 IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
-									 public StaticArg value(StaticParam arg0) {
-										 Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
-										 return new TypeArg(ivt);
-									 }}));
-					 static_args = static_inference_params;
-				 }
-				 else if(m.staticParameters().size()!=static_args.size()) {
-					 // we don't need to infer, and they have different numbers of args
-					 continue;
-				 }
-				 // instantiate method params with method and type args
-				 Functional im_maybe = m.instantiate(Useful.concat(m.staticParameters(), extended_type_params),
-						 Useful.concat(static_args, extended_type_args));
-				 // we know this cast works, instantiate contract
-				 Method im = (Method)im_maybe;
-				 // Do they have the same number of parameters, or at least can they be matched.
-				 ConstraintFormula mc = this.argsMatchParams(im.parameters(), arg_type);
-				 // constraint satisfiable?
-				 if(mc.isSatisfiable()) {
-					 //add method to candidates
-					 candidates.add(im);
-					 all_results.add(new TypeCheckerResult(that,Option.<Type>none(),mc));
-				 }
+            }
+        }
 
-			 }
-		 }
+        if(!new_supers.isEmpty()){
 
-		 if(!new_supers.isEmpty()){
-			 
-		     Pair<List<Method>, List<TypeCheckerResult>> temp = findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
-		     candidates.addAll(temp.first());
-		     all_results.addAll(all_results);
-		 }
-		 return Pair.make(candidates,all_results);
-	 }
+            Pair<List<Method>, List<TypeCheckerResult>> temp = findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
+            candidates.addAll(temp.first());
+            all_results.addAll(all_results);
+        }
+        return Pair.make(candidates,all_results);
+    }
 
 	 private TypeCheckerResult findSetterInTraitHierarchy(IdOrOpOrAnonymousName field_name, List<TraitType> supers,
 			 Type arg_type, Node ast){
@@ -863,10 +866,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     
     @Override
     public TypeCheckerResult for_RewriteFnApp(_RewriteFnApp that) {
+        TypeCheckerResult arg_result = recur(that.getArgument());
+        
         if( postInference && that.getFunction() instanceof _RewriteInstantiatedFnRefs ) {
             // if we have finished typechecking, and we have encountered a reference to an overloaded function
             _RewriteInstantiatedFnRefs fns = (_RewriteInstantiatedFnRefs)that.getFunction();
-            TypeCheckerResult arg_result = recur(that.getArgument());
 
             if( !arg_result.isSuccessful() ) {
                 return TypeCheckerResult.compose(that, subtypeChecker, arg_result);
@@ -878,8 +882,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return for_RewriteFnAppOnly(that,Option.<TypeCheckerResult>none(), fn_result, arg_result);
         }
         else {
-            // delegate to super, which will call for_RewriteFnAppOnly
-            return super.for_RewriteFnApp(that);
+            // Add constraints from the arguments, since they may affect overloading choice
+            TypeCheckerResult fn_result = recur(that.getFunction());
+            Iterable<ConstraintFormula> arg_constraint = Collections.singletonList(arg_result.getNodeConstraints());
+            return this.extendWithConstraints(arg_constraint).for_RewriteFnAppOnly(that, 
+                    Option.<TypeCheckerResult>none(), fn_result, arg_result);
         }
     }
 
@@ -3168,6 +3175,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return juxtaposeMathPrimary(that);
 	 }
 
+
+
+
+
+    @Override
+    public TypeCheckerResult forMethodInvocation(MethodInvocation that) {
+        Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(that.getExprType());
+        TypeCheckerResult obj_result = recur(that.getObj());
+        TypeCheckerResult method_result = recur(that.getMethod());
+        List<TypeCheckerResult> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+        TypeCheckerResult arg_result = recur(that.getArg());
+        
+        // Use constraints from arguments to extend typechecker. This will allow for
+        // better choices of overloadings during the first typechecking phase.
+        Iterable<ConstraintFormula> arg_constraint = IterUtil.make(arg_result.getNodeConstraints());
+        TypeChecker new_checker = this.extendWithConstraints(arg_constraint);
+        return new_checker.forMethodInvocationOnly(that, exprType_result, obj_result, method_result, staticArgs_result, arg_result);
+    }
+    
     @Override
     public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result,
             TypeCheckerResult obj_result, TypeCheckerResult DONTUSE,
@@ -3460,10 +3486,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forOpExpr(OpExpr that) {
+        List<TypeCheckerResult> args_result = recurOnListOfExpr(that.getArgs());
+        
         if( postInference && that.getOp() instanceof _RewriteInstantiatedOpRefs ) {
             // if we have finished typechecking, and we have encountered a reference to an overloaded op
             _RewriteInstantiatedOpRefs ops = (_RewriteInstantiatedOpRefs)that.getOp();
-            List<TypeCheckerResult> args_result = recurOnListOfExpr(that.getArgs());
+            
 
             for( TypeCheckerResult r : args_result ) {
                 if( !r.isSuccessful() )
@@ -3480,8 +3508,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             return forOpExprOnly(that, Option.<TypeCheckerResult>none(), op_result, args_result);
         }
         else {
-            // delegate to super, which will call forOpExprOnly
-            return super.forOpExpr(that);
+            // Call forOpExprOnly, but with the typechecking constraints collected from 
+            // typechecking the operator arguments.
+            TypeCheckerResult op_result = recur(that.getOp());
+            Iterable<ConstraintFormula> args_constraints = IterUtil.map(args_result, new Lambda<TypeCheckerResult, ConstraintFormula>(){
+                public ConstraintFormula value(TypeCheckerResult arg0) {
+                    return arg0.getNodeConstraints();
+                }});
+            return this.extendWithConstraints(args_constraints).forOpExprOnly(that, 
+                    Option.<TypeCheckerResult>none(), op_result, args_result);
         }
     }
     
@@ -3718,30 +3753,49 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 return new TypeCheckerResult(new_node, Types.STRING);
 	 }
 
-	 @Override
-	 public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that, Option<TypeCheckerResult> exprType_result,
-			 TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
-			 Option<TypeCheckerResult> op_result,
-			 List<TypeCheckerResult> staticArgs_result) {
+    
+    @Override
+    public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
+        Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(that.getExprType());
+        TypeCheckerResult obj_result = recur(that.getObj());
+        List<TypeCheckerResult> subs_result = recurOnListOfExpr(that.getSubs());
+        Option<TypeCheckerResult> op_result = recurOnOptionOfEnclosing(that.getOp());
+        List<TypeCheckerResult> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+        
+        // Typecheck the subscript expression with constraints from its arguments, which can
+        // help to pick a better overloading.
+        Iterable<ConstraintFormula> subs_constraints = IterUtil.map(subs_result, new Lambda<TypeCheckerResult,ConstraintFormula>(){
+            public ConstraintFormula value(TypeCheckerResult arg0) {
+                return arg0.getNodeConstraints();
+            }});
+        TypeChecker new_checker = this.extendWithConstraints(subs_constraints);
+        return new_checker.forSubscriptExprOnly(that, exprType_result, obj_result, subs_result, op_result, staticArgs_result);
+    }
+    
+    @Override
+    public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that, Option<TypeCheckerResult> exprType_result,
+            TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
+            Option<TypeCheckerResult> DONT_USE,
+            List<TypeCheckerResult> staticArgs_result) {
 
-		 TypeCheckerResult all_result = TypeCheckerResult.compose(that, subtypeChecker, obj_result,
-				 TypeCheckerResult.compose(that, subtypeChecker, subs_result),
-				 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+        TypeCheckerResult all_result = TypeCheckerResult.compose(that, subtypeChecker, obj_result,
+                TypeCheckerResult.compose(that, subtypeChecker, subs_result),
+                TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 
-		 // ignore the op_result. A subscript op behaves like a dotted method.
-		 // make sure all sub-exprs are well-typed
+        // ignore the op_result. A subscript op behaves like a dotted method.
+        // make sure all sub-exprs are well-typed
 
-		 if( obj_result.type().isNone() ) return all_result;
-		 for( TypeCheckerResult r : subs_result ) {
-			 if( r.type().isNone() ) return all_result;
-		 }
+        if( obj_result.type().isNone() ) return all_result;
+        for( TypeCheckerResult r : subs_result ) {
+            if( r.type().isNone() ) return all_result;
+        }
 
-		 Type obj_type = obj_result.type().unwrap();
-		 List<Type> subs_types = CollectUtil.makeList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult, Type>(){
-			 public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
-		 TypeCheckerResult r = this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
-		 return TypeCheckerResult.compose(that, r.type(), subtypeChecker, all_result, r);
-	 }
+        Type obj_type = obj_result.type().unwrap();
+        List<Type> subs_types = CollectUtil.makeList(IterUtil.map(subs_result, new Lambda<TypeCheckerResult, Type>(){
+            public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }}));
+        TypeCheckerResult r = this.subscriptHelper(that, that.getOp(), obj_type, subs_types, that.getStaticArgs());
+        return TypeCheckerResult.compose(that, r.type(), subtypeChecker, all_result, r);
+    }
 
 	 @Override
 	 public TypeCheckerResult forThrowOnly(Throw that, Option<TypeCheckerResult> exprType_result,
