@@ -112,7 +112,6 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
                    ((r2 CMP other.r2) LEXICO:
                     (r3 CMP other.r3)))
         end
-
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
     nonCanon():Boolean = NOT (r1 <= r2 <= r3)
@@ -136,19 +135,23 @@ t4:Radical     = Rad (methyl, methyl, methyl)
 y4:Radical     = Rad (H,      H,      y3    )
 z4:Radical     = Rad (H,      methyl, ethyl )
 
-(* Radicals are defined by strong induction over smaller radicals.
+(* Construct an array of lists of all radicals from size 0 to size n.
+ * Array position i contains a list of all radicals of size i.
+ *
+ * Radicals are defined by strong induction over smaller radicals.
  * Partition the weight (n-1) among the children in all combinations.
  * Move toward a canonical order by insisting i<=j<=k.
  * This is not sufficient, however, for canonicalization.
-*)
+ *)
+
 genRadicals (n:ZZ32) = do
     rads = array[\List[\Radical\]\](n+1)
-    rads[0] := <|[\Radical\] H|>
     genRads (m:ZZ32):List[\Radical\] =
         <|[\Radical\] Rad (ri,rj,rk) |
             i<-0:m,      j<-0:m,      k<-0:m,
             i+j+k=m-1,   i<=j<=k,
             ri<-rads[i], rj<-rads[j], rk<-rads[k] |>
+    rads[0] := <|[\Radical\] H|>
     for i <- seq(1:n) do
         rads[i] := genRads(i) end
     rads
@@ -168,34 +171,42 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
          (r4 CMP other.r4))))
     rotate (self):Paraffin = Paraffin (r2, r3, r4, r1)
     swap   (self):Paraffin = Paraffin (r2, r1, r3, r4)
-    invert (self):Paraffin = do
-        r:Radical = r1
-        typecase r of
+    invert (self):Paraffin =
+        typecase r=r1 of
             H   => self
             Rad => Paraffin (r.r1, r.r2, r.r3, Rad(r2, r3, r4))
         end
-    end
     generators (self):Set[\Paraffin\] =
         {[\Paraffin\] rotate(self), swap(self), invert(self)}
+    equivClass (self) = closure ({[\Paraffin\] self}, generators)
     opr NEQV (self, other:Paraffin):Boolean =
-        self NOTIN closure ({[\Paraffin\] other}, generators)
-
+        self NOTIN equivClass(other)
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4| 
     toString():String = "[P" ||| r1 ||| r1 ||| r3 ||| (r4 || "]")
 end
 
-(* Given a list of paraffins, keep one witness from each equivalence class.*)
+(* Given a list of paraffins containing duplicates (equivalent representations), 
+ * keep one witness from each equivalence class.
+ *)
 quotient (pars:List[\Paraffin\]):List[\Paraffin\] =
     if   (p1,p2s) <- pars.extractLeft()
     then (quotient(<|[\Paraffin\] p2 | p2 <- p2s, p1 NEQV p2|>)).addLeft(p1)
     else pars end
 
-(* Generate paraffins by adding CH3 to all radicals with one fewer carbon.*)
-genParaffins (n:ZZ32) =
-    <|[\Paraffin\] quotient <|[\Paraffin\] Paraffin (H, H, H, r) | r <- rads |>
-        | rads <- genRadicals(n-1) |>
 
+(* Construct a list of lists of all Paraffins from size 1 to size n.
+ * Outer list position i is a list of all Paraffins of size i.
+ *
+ * Generate paraffins by adding CH3 to all radicals with one fewer carbon.
+ * Then call quotient to eliminate duplicates (equivalent molecules).
+ *)
+
+genParaffins (n:ZZ32) =
+                <| quotient
+            <| Paraffin (H, H, H, r) 
+        | r <- radList |>
+    | radList <- genRadicals(n-1) |>
 
 run(args:String...) = do
   if |args| > 0 AND: ((args[0]="?")OR(args[0]="help")) then printUsage() else
