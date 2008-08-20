@@ -19,7 +19,11 @@ package com.sun.fortress.compiler.index;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+
 import edu.rice.cs.plt.collect.Relation;
+
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -51,5 +55,7 @@ public class ApiIndex extends CompilationUnitIndex {
             "\nUnits: " + units() +
             "\nGrammars: " + grammars();
     }
+
+    @Override public Set<APIName> exports() { return Collections.emptySet(); }
 
 }

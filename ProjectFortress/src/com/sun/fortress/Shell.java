@@ -554,14 +554,15 @@ public final class Shell {
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
                 Iterable<? extends StaticError> errors = compile(path, file_name, out );
-                int num_errors = IterUtil.sizeOf(errors);
-                if ( num_errors > 0 ) {
+                int num_errors = 0;//IterUtil.sizeOf(errors);
+                if ( !IterUtil.isEmpty(errors) ) {
                     for (StaticError error: errors) {
                         System.err.println(error);
+                        //num_errors++;
                     }
-                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
-                        (num_errors == 1 ? "." : "s.");
-                    System.err.println(err_string);
+//                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
+//                        (num_errors == 1 ? "." : "s.");
+//                    System.err.println(err_string);
                 }
 
             } catch (RepositoryError error) {

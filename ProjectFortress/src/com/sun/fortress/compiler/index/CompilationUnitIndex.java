@@ -17,12 +17,20 @@
 
 package com.sun.fortress.compiler.index;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
-import com.sun.fortress.nodes.*;
-
-import com.sun.fortress.useful.NI;
 
 /** Comprises {@link ApiIndex} and {@link CompilationUnit}. */
 public abstract class CompilationUnitIndex {
@@ -55,9 +63,7 @@ public abstract class CompilationUnitIndex {
 
     public CompilationUnit ast() { return _ast; }
 
-    public Set<APIName> exports() {
-        return NI.nyi();
-    }
+    public abstract Set<APIName> exports();
 
     public Set<APIName> imports() {
         final Set<APIName> result = new HashSet<APIName>();

@@ -2915,8 +2915,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             result = TypeCheckerResult.compose(that, subtypeChecker, result, rhs_result);
 
             if( rhs_result.type().isSome() ) {
+                Type rhs_type = rhs_result.type().unwrap();
                 result = TypeCheckerResult.compose(that, subtypeChecker, result,
-                        checkSubtype(rhs_result.type().unwrap(), lhs_type, that, "RHS must be a subtype of LHS."));
+                        checkSubtype(rhs_type, lhs_type, that, 
+                                "Right-hand side, " + rhs_type + ", must be a subtype of left-hand side, " + lhs_type + "."));
             }
         }
 
