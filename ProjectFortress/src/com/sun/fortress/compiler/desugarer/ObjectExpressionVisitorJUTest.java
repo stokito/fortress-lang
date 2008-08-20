@@ -42,7 +42,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
 
     public void testObjectCC()
         throws FileNotFoundException, IOException, Throwable {
-        runFile("objectCC.fss");
+        runFile("objectCC_immutable.fss");
     }
 
     public void testObjectCC_Mutables()

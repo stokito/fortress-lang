@@ -184,8 +184,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // Some rewriting required for this ObjectDecl (i.e. it has var
         // params being captured and mutated by some object expression(s) 
         if( rewriteList != null ) {
+            String uniqueSuffix = that.getName().getText() + nextUniqueId(); 
+
             List<VarRef> mutableVarRefsForThisNode 
-                = updateMutableVarRefContainerMap(that.getName(), rewriteList);
+                = updateMutableVarRefContainerMap(uniqueSuffix, rewriteList);
 
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
@@ -272,15 +274,14 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // Some rewriting required for this ObjectDecl (i.e. it has var
         // params being captured and mutated by some object expression(s) 
         if( rewriteList != null ) {
-            Id enclosingId;
+            String uniqueSuffix = "";
             if( enclosingObjectDecl != null ) {
-                enclosingId = enclosingObjectDecl.getName();
-            } else {
-                enclosingId = new Id("");
+                uniqueSuffix += enclosingObjectDecl.getName().getText();
             }
+            uniqueSuffix += nextUniqueId(); 
 
             mutableVarRefsForThisNode = 
-                updateMutableVarRefContainerMap( enclosingId, rewriteList );
+                updateMutableVarRefContainerMap( uniqueSuffix, rewriteList );
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );   
@@ -605,14 +606,15 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // container info (i.e. its boxed ObjectDecl, the new VarDecl to create 
     // the boxed ObjectDecl instance, the VarRef to the new VarDecl, etc.)
     // based on the info stored in the rewriteList
-    private List<VarRef> updateMutableVarRefContainerMap(Id enclosingId,
-                                       List<Pair<VarRef,Node>> rewriteList) {
+    private List<VarRef> 
+    updateMutableVarRefContainerMap(String uniqueSuffix,
+                                    List<Pair<VarRef,Node>> rewriteList) {
         List<VarRef> addedVarRefs = new LinkedList<VarRef>(); 
         for( Pair<VarRef,Node> varPair : rewriteList ) {
             VarRef var = varPair.first();
             Node declNode = varPair.second();
             VarRefContainer container = 
-                new VarRefContainer( var, declNode, enclosingId );
+                new VarRefContainer( var, declNode, uniqueSuffix );
             mutableVarRefContainerMap.put(var, container);
             addedVarRefs.add(var);
         }
