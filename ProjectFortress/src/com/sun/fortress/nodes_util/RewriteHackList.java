@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -54,15 +54,15 @@ public class RewriteHackList extends AbstractNode {
     public void output(java.io.Writer writer) {}
     public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }
-    
+
     /** Generate a human-readable representation that can be deserialized. */
-    public String serialize() { 
+    public String serialize() {
         return NI.<String>na("Instances of this helper class should never be serialized");
     }
     /** Generate a human-readable representation that can be deserialized. */
     public void serialize(java.io.Writer writer) {
         NI.<Voidoid>na("Instances of this helper class should never be serialized");
     }
-    
-    
+
+
 }
