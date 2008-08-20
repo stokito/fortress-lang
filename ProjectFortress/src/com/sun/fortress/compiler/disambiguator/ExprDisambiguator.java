@@ -186,9 +186,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // First check that vars do not shadow other declarations in scope
         for (Id var : vars) { checkForShadowingVar(var); }
 
-        // Now check that these vars do not conflict. We could speed up asymptotic complexity by sorting first. 
+        // Now check that these vars do not conflict. We could speed up asymptotic complexity by sorting first.
         // But vars is expected to be relatively small, so the overhead of sorting probably isn't worth it.
-        
+
         // A single var has nothing to conflict with.
         if (vars.size() > 1) {
             Object[] _vars = vars.toArray();
@@ -210,7 +210,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
     }
 
-    private void checkForShadowingFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames, 
+    private void checkForShadowingFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames,
                                             Set<Id> allowedShadowings) {
         for (IdOrOpOrAnonymousName name : definedNames) {
             if (name instanceof Id) {
@@ -254,8 +254,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return extendWithFnsNoCheck(definedNames);
     }
 
-    private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames, 
-                                            Set<Id> allowedShadowings) 
+    private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames,
+                                            Set<Id> allowedShadowings)
     {
         checkForShadowingFunctions(definedNames, allowedShadowings);
         return extendWithFnsNoCheck(definedNames);
@@ -379,7 +379,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     public Boolean value(Boolean arg0, Boolean arg1) { return arg0 | arg1; }});
     }
 
-    private Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> 
+    private Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>>
         extractDeclNames(List<? extends AbsDeclOrDecl> decls) {
         final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
 
@@ -406,7 +406,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
 
         };
-        NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder = 
+        NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder =
             new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>() {
 
             @Override
@@ -551,7 +551,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = 
+        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames =
             extractDeclNames(that.getDecls());
         Set<Id> vars = declNames.first();
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
@@ -562,20 +562,20 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
 
         // Do not extend the environment with "fields", getters, or setters in a trait.
-        // References to all three must have an explicit receiver. 
+        // References to all three must have an explicit receiver.
         v = this.
             extendWithVars(extractStaticExprVars(that.getStaticParams())).
             extendWithFns(inheritedMethods).
             extendWithSelf(that.getSpan()).
             extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should 
-            // not be referred to without explicit receivers in most (all?) cases. But the 
-            // libraries break horribly if we leave them off. 
+            // TODO The following two extensions are problematic; getters and setters should
+            // not be referred to without explicit receivers in most (all?) cases. But the
+            // libraries break horribly if we leave them off.
             extendWithFns(inheritedGettersAndSetters).
             extendWithFns(gettersAndSetters);
 
         v.checkForShadowingVars(vars);
-        
+
         return forAbsTraitDeclOnly(that,
                                    v.recurOnListOfModifier(that.getMods()),
                                    (Id) that.getName().accept(v),
@@ -614,9 +614,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedMethods).
             extendWithSelf(that.getSpan()).
             extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should 
-            // not be referred to without explicit receivers in most (all?) cases. But the 
-            // libraries break horribly if we leave them off. 
+            // TODO The following two extensions are problematic; getters and setters should
+            // not be referred to without explicit receivers in most (all?) cases. But the
+            // libraries break horribly if we leave them off.
             extendWithFns(inheritedGettersAndSetters, vars).
             extendWithFns(gettersAndSetters, vars);
 
@@ -643,7 +643,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /**
      * Given a list of TraitTypeWhere that some trait or object extends,
-     * this method returns a pair of lists of getters/setter ids and method ids that 
+     * this method returns a pair of lists of getters/setter ids and method ids that
      * the trait receives through inheritance. The implementation of this method is somewhat
      * involved, since at this stage of compilation, not all types are
      * fully formed. (In particular, types in extends clauses of types that
@@ -677,7 +677,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
             else {
                 // Probably ANY
-                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(), 
+                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(),
                                                                      Collections.<IdOrOpOrAnonymousName>emptySet());
              }
 
@@ -699,7 +699,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
             else {
                 // Probably ANY
-                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(), 
+                return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(Collections.<Id>emptySet(),
                                                                      Collections.<IdOrOpOrAnonymousName>emptySet());
             }
 
@@ -720,10 +720,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = 
+        Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames =
             extractDeclNames(that.getDecls());
         Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();        
+        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
         Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
@@ -737,9 +737,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithSelf(that.getSpan()).
             extendWithVars(vars).
             extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should 
-            // not be referred to without explicit receivers in most (all?) cases. But the 
-            // libraries break horribly if we leave them off. 
+            // TODO The following two extensions are problematic; getters and setters should
+            // not be referred to without explicit receivers in most (all?) cases. But the
+            // libraries break horribly if we leave them off.
             extendWithFns(inheritedGettersAndSetters).
             extendWithFns(gettersAndSetters);
 
@@ -773,7 +773,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // fns does not contain getters and setters
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
-        Set<Id> params = extractParamNames(that.getParams()); 
+        Set<Id> params = extractParamNames(that.getParams());
         Set<Id> fields = CollectUtil.union(params, vars);
 
         Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
@@ -787,9 +787,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithVars(vars).
             extendWithFns(inheritedMethods).
             extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should 
-            // not be referred to without explicit receivers in most (all?) cases. But the 
-            // libraries break horribly if we leave them off. 
+            // TODO The following two extensions are problematic; getters and setters should
+            // not be referred to without explicit receivers in most (all?) cases. But the
+            // libraries break horribly if we leave them off.
             extendWithFns(inheritedGettersAndSetters, fields).
             extendWithFns(gettersAndSetters, fields);
 
@@ -824,7 +824,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
-        Set<Id> params = extractParamNames(that.getParams()); 
+        Set<Id> params = extractParamNames(that.getParams());
         Set<Id> fields = CollectUtil.union(params, vars);
 
         Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
@@ -837,9 +837,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithVars(extractParamNames(that.getParams())).
             extendWithVars(vars).extendWithFns(fns).
             extendWithFns(inheritedMethods).
-            // TODO The following two extensions are problematic; getters and setters should 
-            // not be referred to without explicit receivers in most (all?) cases. But the 
-            // libraries break horribly if we leave them off. 
+            // TODO The following two extensions are problematic; getters and setters should
+            // not be referred to without explicit receivers in most (all?) cases. But the
+            // libraries break horribly if we leave them off.
             extendWithFns(inheritedGettersAndSetters, fields).
             extendWithFns(gettersAndSetters, fields);
 
@@ -1048,7 +1048,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forTypecase(Typecase that) {
         Set<Id> bound_ids = Useful.set(that.getBindIds());
-        ExprDisambiguator e_d = this.extendWithVarsNoCheck(bound_ids);
+        ExprDisambiguator e_d;
+        if ( that.getBindExpr().isSome() )
+            e_d = this.extendWithVars(bound_ids);
+        else
+            e_d = this.extendWithVarsNoCheck(bound_ids);
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forTypecaseOnly(that, type_result,

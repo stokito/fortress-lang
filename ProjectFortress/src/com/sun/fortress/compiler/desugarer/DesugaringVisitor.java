@@ -462,6 +462,27 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
+    public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
+                             Id fnResult, List<Id> fns_result,
+                             List<StaticArg> staticArgs_result) {
+        // After disambiguation, the Id in a FnRef should have an empty API.
+        assert(fnResult.getApi().isNone());
+
+        if (fieldsInScope.contains(fnResult)) {
+            List<Id> newFns = new ArrayList<Id>();
+            for (Id id : fns_result) {
+                newFns.add(mangleName(id));
+            }
+
+            return ExprFactory.makeFnRef(that, exprType_result,
+                                         mangleName(fnResult), newFns,
+                                         staticArgs_result);
+        } else {
+            return that;
+        }
+    }
+
+    @Override
     public Node for_RewriteFieldRefOnly(_RewriteFieldRef that, Option<Type> exprType_result,
                                         Expr obj_result, Name field_result) {
         if ( field_result instanceof Id)
