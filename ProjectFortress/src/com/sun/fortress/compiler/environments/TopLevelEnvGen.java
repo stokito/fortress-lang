@@ -44,12 +44,15 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Pair;
@@ -279,7 +282,28 @@ public class TopLevelEnvGen {
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FTYPE.descriptor(), null, null).visitEnd();
         }
         
+        handleRewriteFnOverloadDecl(cw, compUnitIndex, symbolNames);
+        
         writeImportFields(cw, compUnitIndex, symbolNames);
+    }
+
+    private static void handleRewriteFnOverloadDecl(ClassWriter cw,
+            CompilationUnitIndex compUnitIndex, EnvSymbolNames symbolNames) {
+        CompilationUnit compUnit = compUnitIndex.ast();
+        if (compUnit instanceof Component) {
+            Component component = (Component) compUnit;
+            List<Decl> decls = component.getDecls();
+            for (Decl decl : decls) {
+                if (decl instanceof _RewriteFnOverloadDecl) {
+                    _RewriteFnOverloadDecl rewrite = (_RewriteFnOverloadDecl) decl;
+                    String idString = NodeUtil.nameString(rewrite.getName());
+                    symbolNames.add(EnvironmentClass.FVALUE, idString);
+                    idString = idString + EnvironmentClass.FVALUE.namespace();
+                    cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), 
+                            EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();                    
+                }
+            }
+        }
     }
 
     /**
