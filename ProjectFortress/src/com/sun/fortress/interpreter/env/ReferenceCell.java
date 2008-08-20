@@ -86,12 +86,14 @@ public class ReferenceCell extends IndirectionCell {
         else return false;
     }
 
+
     private synchronized void cleanup() {
         Transaction w = node.getWriter();
         while (w != null && transactionIsNotActive(w)) {
-            if (transactionIsAbortedOrOrphaned(w))  
+            if (transactionIsAbortedOrOrphaned(w)) {
                 node = node.getOld();
-            else if (transactionIsCommitted(w)) {
+            } else {
+                assert(transactionIsCommitted(w));
                 Transaction p = w.getParent();
                 if (p == null) {
                     node = new ValueNode(node.getValue(), node.getOld().getReaders());
@@ -99,13 +101,12 @@ public class ReferenceCell extends IndirectionCell {
                     node = new ValueNode(node.getValue(), p, node.getOld());
                 }
             }
-            else throw new PanicException("Shouldn't get here");
-			if (node != null) 
-				w = node.getWriter();
-			else {
-				node = new ValueNode();
-				w = null;
-			}
+            if (node != null) {
+                w = node.getWriter();
+            } else {
+                node = new ValueNode();
+                return;
+            }
         }
     }
 
