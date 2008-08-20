@@ -1166,12 +1166,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             Set<Id> vars = _env.explicitVariableNames(name);
             Set<Id> fns = _env.explicitFunctionNames(name);
             Set<Id> objs = _env.explicitTypeConsNames(name);
-            /* if (vars.isEmpty() && fns.isEmpty()) {
-               vars = _env.onDemandVariableNames(name);
-               fns = _env.onDemandFunctionNames(name);
-               } */
 
-            if (vars.size() == 1 && fns.isEmpty()) {
+            if ( vars.size() == 1 && fns.isEmpty() && objs.isEmpty() ) {
                 Id newName = IterUtil.first(vars);
 
                 if (newName.getApi().isNone() && newName == name && fields.isEmpty()) {
@@ -1184,7 +1180,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
                 // TODO: insert correct number of to-infer arguments?
             }
-            else if( vars.isEmpty() && fns.isEmpty() && objs.size() == 1 ) {
+            else if( vars.size() == 1&& fns.isEmpty() && objs.size() == 1 ) {
                 result = ExprFactory.make_RewriteObjectRef(that.isParenthesized(), IterUtil.first(objs));
             }
             else if (!vars.isEmpty() || !fns.isEmpty() || !objs.isEmpty()) {
@@ -1251,16 +1247,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         Id fn_name = IterUtil.first(that.getFns());
         Set<Id> fns = _env.explicitFunctionNames(fn_name);
-        if( fns.isEmpty() ) {
-            fns = _env.onDemandFunctionNames(fn_name);
-        }
 
         if( fns.isEmpty() ) {
             // Could be a singleton object with static arguments.
             Set<Id> types = _env.explicitTypeConsNames(fn_name);
-            if( types.isEmpty() ) {
-                types = _env.onDemandTypeConsNames(fn_name);
-            }
             if( !types.isEmpty() ) {
                 // create _RewriteObjectRef
                 _RewriteObjectRef obj = new _RewriteObjectRef(that.getSpan(), fn_name, that.getStaticArgs());
