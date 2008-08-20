@@ -30,6 +30,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.ProgramError;
@@ -554,15 +555,14 @@ public final class Shell {
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
                 Iterable<? extends StaticError> errors = compile(path, file_name, out );
-                int num_errors = 0;//IterUtil.sizeOf(errors);
+                int num_errors = IterUtil.sizeOf(errors);
                 if ( !IterUtil.isEmpty(errors) ) {
                     for (StaticError error: errors) {
                         System.err.println(error);
-                        //num_errors++;
                     }
-//                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
-//                        (num_errors == 1 ? "." : "s.");
-//                    System.err.println(err_string);
+                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
+                        (num_errors == 1 ? "." : "s.");
+                    System.err.println(err_string);
                 }
 
             } catch (RepositoryError error) {
@@ -628,7 +628,15 @@ public final class Shell {
             throw new WrappedException(ex);
         } catch ( IOException e ){
             throw new WrappedException(e);
-        } catch (StaticError ex) {
+        } 
+        catch ( MultipleStaticError ex) {
+            List<StaticError> result = new LinkedList<StaticError>();
+            for( StaticError err : ex ) {
+                result.add(new WrappedException(err, Debug.isOnMax()));
+            }
+            return result;
+        } 
+        catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
         } finally {
             if (deleteCache) bcr.clear();
