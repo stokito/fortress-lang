@@ -34,7 +34,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Pair;
 
 /**
- * Performs desugaring of Fortress programs after type checking. 
+ * Performs desugaring of Fortress programs after type checking.
  * Specifically, the following desugarings are performed:
  * <ul>
  * <li>Object expressions are desugared into top-level object declarations.
@@ -48,18 +48,18 @@ import edu.rice.cs.plt.tuple.Pair;
  * been performed.
  */
 public class Desugarer {
-    
+
     /**
      * These two fields are temporary switches used for testing.
-     * 
+     *
      * When getter_setter_desugar is true, the desugaring for getter and setter
-     * is called during static checking.  
-     * 
+     * is called during static checking.
+     *
      * When the objExpr_desugar is true,
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
-    public static boolean getter_setter_desugar = true;    
+    public static boolean getter_setter_desugar = true;
     public static boolean objExpr_desugar = false;
 
     public static class ApiResult extends StaticPhaseResult {

@@ -1188,7 +1188,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                              * passes of the typechecker. Indicates that one of these FnRefs, which each have
                              * different instantiations of static arguments, should be the correct instantiation.
                              */
-                            _RewriteInstantiatedFnRefs(List<_RewriteFnRefOverloading> overloadings = Collections.<_RewriteFnRefOverloading>emptyList());
+                            _RewriteInstantiatedFnRefs(List<_RewriteFnRefOverloading> overloadings
+                                                           = Collections.<_RewriteFnRefOverloading>emptyList());
                         /**
                          * The rewriting to explicitly name self and parent
                          * pre-interpretation may generalize the dotted

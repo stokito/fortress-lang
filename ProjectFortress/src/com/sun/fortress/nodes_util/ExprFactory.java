@@ -294,6 +294,12 @@ public class ExprFactory {
      return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
 
+    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
+                                  List<Id> ids, List<StaticArg> sargs) {
+        return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids,
+                         sargs);
+    }
+
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
         return new FnRef(span, false, name, names, sargs);
