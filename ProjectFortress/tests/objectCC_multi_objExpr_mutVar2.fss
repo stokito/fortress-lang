@@ -1,4 +1,21 @@
-component objectCC_multi_objExpr_mutVar2 
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component objectCC_multi_objExpr_mutVar2
 export Executable
 
 trait T
@@ -6,14 +23,14 @@ trait T
     dec():ZZ32
 end
 
-object O(var v:ZZ32) 
+object O(var v:ZZ32)
     var x:ZZ32 = 1
 
     getV():ZZ32 = v
     getX():ZZ32 = x
     incV():() = v := v+1;
     incX():() = x := x+1;
-    
+
     bar():T = object extends T
                   inc():ZZ32 = do v := v + x; v end
                   dec():ZZ32 = do v := v - x; v end
@@ -48,11 +65,11 @@ run(args:String...):() = do
     assert(6, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 6.")
 
     o.incV();
-    assert(7, o.getV(), "o.incV() or o.getV() failed: getV returns ", 
+    assert(7, o.getV(), "o.incV() or o.getV() failed: getV returns ",
            o.getV(), " instead of 7.")
 
     o.incX();
-    assert(3, o.getX(), "o.incX() or o.getX() failed: getX returns ", 
+    assert(3, o.getX(), "o.incX() or o.getX() failed: getX returns ",
            o.getX(), " instead of 3.")
 
     println "Passed."
