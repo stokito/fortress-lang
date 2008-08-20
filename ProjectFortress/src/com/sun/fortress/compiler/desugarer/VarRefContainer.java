@@ -51,28 +51,29 @@ import edu.rice.cs.plt.tuple.Option;
 public class VarRefContainer {
     private VarRef origVar;
     private Node origDeclNode;
-    private Id enclosingObjId;
+    private String uniqueSuffix;
 
     private static final String CONTAINER_DECL_PREFIX = "Box";
     private static final String CONTAINER_FIELD_PREFIX = "box";
 
     public VarRefContainer(VarRef origVar,
-                           Node origDeclNode, Id enclosingObjId) {
+                           Node origDeclNode, 
+                           String uniqueSuffix) {
         this.origVar = origVar;
         this.origDeclNode = origDeclNode;
-        this.enclosingObjId = enclosingObjId;
+        this.uniqueSuffix = uniqueSuffix;
     }
 
     public Id containerDeclId() {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
-            CONTAINER_DECL_PREFIX + "_" + enclosingObjId.getText() +
+            CONTAINER_DECL_PREFIX + "_" + uniqueSuffix +
             "_" + origVar.getVar().getText();
         return NodeFactory.makeId( origDeclNode.getSpan(), name );
     }
 
     public Id containerVarId() {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
-            CONTAINER_FIELD_PREFIX + "_" + enclosingObjId.getText() +
+            CONTAINER_FIELD_PREFIX + "_" + uniqueSuffix +
             "_" + origVar.getVar().getText();
         return NodeFactory.makeId( origDeclNode.getSpan(), name );
     }
