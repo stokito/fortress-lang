@@ -60,6 +60,7 @@ import com.sun.fortress.nodes.KeywordType;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
+import com.sun.fortress.nodes.ModifierSettable;
 import com.sun.fortress.nodes.ModifierVar;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
@@ -506,18 +507,20 @@ public abstract class TypeEnv {
         public IdOrOpOrAnonymousName getVar() { return var; }
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
-        
+
         public boolean isMutable() { 
-        	if( mutable ) 
-        		return true;
-        	
-        	// Check mods for ModifierVar
-        	for( Modifier mod : mods ) {
-        		if( mod instanceof ModifierVar )
-        			return true;
-        	}
-        	
-        	return false;
+            if( mutable ) 
+                return true;
+
+            // Check mods for ModifierVar
+            for( Modifier mod : mods ) {
+                if( mod instanceof ModifierVar )
+                    return true;
+                else if( mod instanceof ModifierSettable )
+                    return true;
+            }
+
+            return false;
         }
 
         @Override

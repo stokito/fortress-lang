@@ -62,22 +62,25 @@ public class TypeAnalyzer {
     private static final int MAX_SUBTYPE_EXPANSIONS = 4;
 
     private final TraitTable _table;
-    private final StaticParamEnv _staticParamEnv;
+    //private final StaticParamEnv _staticParamEnv;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
 
     public TypeAnalyzer(TraitTable table) {
-        this(table, StaticParamEnv.make(), RootSubtypeCache.INSTANCE);
+        this(table, //StaticParamEnv.make(), 
+                RootSubtypeCache.INSTANCE);
         validateEnvironment();
     }
 
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table, enclosing._staticParamEnv.extend(params, whereClause), enclosing._cache);
+        this(enclosing._table, //enclosing._staticParamEnv.extend(params, whereClause), 
+                enclosing._cache);
     }
 
-    private TypeAnalyzer(TraitTable table, StaticParamEnv staticParamEnv, SubtypeCache parentCache) {
+    private TypeAnalyzer(TraitTable table, //StaticParamEnv staticParamEnv, 
+            SubtypeCache parentCache) {
         _table = table;
-        _staticParamEnv = staticParamEnv;
+        //_staticParamEnv = staticParamEnv;
         _cache = new ChildSubtypeCache(parentCache);
         _emptyHistory = new SubtypeHistory();
     }
