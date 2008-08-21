@@ -113,7 +113,11 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
                         " is not found in map while rewriting " + that);
             }
 
-// FIXME: Why does this sanity check fail?  
+// Why does this sanity check fail?  
+// It fails because this LocalVarDecl may have been rewritten if it refers
+// to any var declared in ObjectDecl which is also captured by the object
+// Expr it encloses - such references have been rewritten into FieldRef of
+// its container type.
 //            Node origDeclNode = container.origDeclNode();
 //            if( origDeclNode.equals(that) == false ) {
 //                throw new DesugarerError(that.getSpan(), 
@@ -140,13 +144,9 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
 
     @Override 
     public Node forVarRef(VarRef that) {
-        Span origVarSpan = that.getSpan();
         if( varRefsToRewrite.contains(that) ) {
             VarRefContainer container = mutableVarRefContainerMap.get(that);
-            FieldRef newRef = ExprFactory.makeFieldRef( origVarSpan, 
-                                    container.containerVarRef(origVarSpan), 
-                                    that.getVar() );
-            return newRef;
+            return container.containerFieldRef( that.getSpan() );
         } else {
             return super.forVarRef(that);
         }

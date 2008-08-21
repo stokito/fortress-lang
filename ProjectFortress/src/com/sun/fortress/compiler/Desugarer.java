@@ -25,12 +25,15 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.FieldRef;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 /**
@@ -125,8 +128,11 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                             GlobalEnvironment env,
-                                             Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
+                                 GlobalEnvironment env,
+                                 Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
+
+        Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap = 
+                                    Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
 
         if(objExpr_desugar) {
@@ -134,6 +140,7 @@ public class Desugarer {
         	ObjectExpressionVisitor objExprVisitor =
         		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
         	comp = (Component) comp.accept(objExprVisitor);
+        	boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
         if(getter_setter_desugar) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
