@@ -561,8 +561,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( LValueBind lv : that.getLhs() ) {
             lhs.add( (LValue)lv );
         }
-        List<Boolean> mutables = isMutables(lhs);
-        s.append( inParentheses(lhs_result) );
+        List<Boolean> mutables = isMutables( lhs );
+        if ( mutables.contains( true ) &&
+             lhs_result.size() > 1 ) {
+            s.append( filterString(inParentheses(lhs_result), "var") );
+        } else
+            s.append( inParentheses(lhs_result) );
         if ( mutables.contains( true ) ){
             s.append( " := " );
         } else {
