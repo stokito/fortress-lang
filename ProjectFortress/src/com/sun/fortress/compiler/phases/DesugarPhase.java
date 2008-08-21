@@ -22,6 +22,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.Desugarer;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.exceptions.MultipleStaticError;
@@ -56,9 +57,9 @@ public class DesugarPhase extends Phase {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        Option<Map<Pair<Node,Span>, TypeEnv>> typeEnvs = previous.typeEnvAtNode();
+        Option<TypeCheckerOutput> typeEnvs = previous.typeCheckerOutput();
         if(typeEnvs.isNone()) {
-        	throw new DesugarerError("Expected typeEnvAtNode map from type checking phase is not found.");
+        	throw new DesugarerError("Expected TypeCheckerOutput from type checking phase is not found.");
         }
         Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(
                 previous.components(), apiEnv, typeEnvs.unwrap());
@@ -68,7 +69,7 @@ public class DesugarPhase extends Phase {
         }
 
         return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
-                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
     }
 
 }

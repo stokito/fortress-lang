@@ -59,7 +59,7 @@ public class PreDisambiguationDesugarPhase extends Phase {
         }
 
         return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
-                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
 	}
 
 }

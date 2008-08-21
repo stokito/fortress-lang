@@ -44,7 +44,7 @@ public class OverloadRewritingPhase extends Phase {
         }
 
         return new AnalyzeResult(previous.apis(), results.components(),
-                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
     }
 
 }

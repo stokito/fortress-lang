@@ -22,6 +22,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Api;
@@ -60,7 +61,7 @@ public class EmptyPhase extends Phase {
                 .buildComponents(components, lastModified);
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(),
                 IterUtil.<StaticError> empty(), Option
-                        .<Map<Pair<Node, Span>, TypeEnv>> none());
+                        .<TypeCheckerOutput> none());
     }
 
 }

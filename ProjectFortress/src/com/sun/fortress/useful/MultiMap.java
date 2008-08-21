@@ -27,7 +27,7 @@ import java.util.Set;
  * values, and in fact the regular Map methods act on sets,
  * not items.
  */
-public class MultiMap<K, V> extends HashMap<K, Set<V>> implements Map<K, Set<V>> {
+public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V> {
 
     /**
      *
@@ -40,12 +40,10 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements Map<K, Set<V>>
 
 
     public MultiMap(Map<? extends K, ? extends Set<V>> m) {
-		super(m);
-	}
+        super(m);
+    }
 
-
-
-	// TODO can we get the Java generics right on this?
+    // TODO can we get the Java generics right on this?
     public void addInverse(Map<V, K> m) {
         for (Map.Entry<V, K> e : m.entrySet()) {
             putItem((K)e.getValue(), (V)e.getKey());

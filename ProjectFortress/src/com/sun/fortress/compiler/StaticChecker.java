@@ -20,8 +20,6 @@ package com.sun.fortress.compiler;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,22 +31,17 @@ import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
 import com.sun.fortress.compiler.typechecker.StaticParamEnv;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeChecker;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 
-import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * Verifies all static properties of a valid Fortress program that require
@@ -98,23 +91,23 @@ public class StaticChecker {
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
         private final List<APIName> _failedComponents;
-        private final Map<Pair<Node,Span>, TypeEnv> _typeEnvAtNode;
+        private final TypeCheckerOutput _typeCheckerOutput;
         
         public ComponentResult(Map<APIName, ComponentIndex> components,
                                List<APIName> failedComponents,
                                Iterable<? extends StaticError> errors,
-                               Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode) {
+                               TypeCheckerOutput typeCheckerOutput) {
             super(errors);
             _components = components;
             _failedComponents = failedComponents;
-            _typeEnvAtNode = typeEnvAtNode;
+            _typeCheckerOutput = typeCheckerOutput;
         }
         public Map<APIName, ComponentIndex> components() { return _components; }
         public List<APIName> failed() { return _failedComponents; }
         
-		public Map<Pair<Node, Span>, TypeEnv> typeEnvAtNode() {
-			return _typeEnvAtNode;
-		}
+        public TypeCheckerOutput typeCheckerOutput() {
+            return this._typeCheckerOutput;
+        }
     }
 
     /** Statically check the given components. */
@@ -126,7 +119,7 @@ public class StaticChecker {
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         List<APIName> failedComponents = new ArrayList<APIName>();
 
-        Map<Pair<Node,Span>, TypeEnv> type_env_at_node = Collections.emptyMap();
+        TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
         
         for (APIName componentName : components.keySet()) {
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
@@ -135,7 +128,7 @@ public class StaticChecker {
                 failedComponents.add(componentName);
             
             errors = IterUtil.compose(checked.errors(), errors);
-            type_env_at_node = CollectUtil.union( type_env_at_node, checked.getNodeTypeEnvs() );
+            type_checker_output = new TypeCheckerOutput( type_checker_output, checked.getTypeCheckerOutput() );
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(checkedComponents,
@@ -143,7 +136,7 @@ public class StaticChecker {
              components(),
              failedComponents,
              errors,
-             type_env_at_node);
+             type_checker_output);
     }
 
     public static TypeCheckerResult checkComponent(ComponentIndex component,
@@ -210,28 +203,4 @@ public class StaticChecker {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
         }
     }
-
-    /**
-     * Keep a nodeTypeEnvMap consistent with the newly replaced inference variables.
-     */
-	private static Map<Pair<Node, Span>, TypeEnv> replaceIVarsInNodeTypeEnv(
-			Map<_InferenceVarType, Type> varResults,
-			Map<Pair<Node, Span>, TypeEnv> node_type_envs) {
-		Map<Pair<Node, Span>, TypeEnv> result = new HashMap<Pair<Node, Span>, TypeEnv>();
-		
-		InferenceVarReplacer rep = new InferenceVarReplacer(varResults);
-		
-		for( Map.Entry<Pair<Node,Span>, TypeEnv> entry : node_type_envs.entrySet() ) {
-			Pair<Node,Span> key = entry.getKey();
-			TypeEnv type_env = entry.getValue();
-			
-			Pair<Node, Span> new_key = Pair.make(key.first().accept(rep), key.second());
-			TypeEnv new_type_env = type_env.replaceAllIVars(varResults);
-			
-			result.put(new_key, new_type_env);
-		}
-		
-		return result;
-	}
-
 }

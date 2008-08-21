@@ -3126,31 +3126,31 @@ object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
     toString():String = lower() "#"
     opr[_:OpenRange[\T\]] : LowerRange[\T\] = self
     opr[other:LowerRange[\T\]] : LowerRange[\T\] =
-        if other.lower() >= lower() then
+        if other.lower >= self.lower then
             other
         else
             rangeBoundError[\T\](self,other)
         end
-    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] = lower() # other.extent()
+    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] = self.lower # other.extent()
     opr[other:UpperRange[\T\]] : FullRange[\T,true\] =
-        if other.upper() >= lower() then
-            lower() : other.upper()
+        if other.upper >= self.lower then
+            self.lower : other.upper
         else
             rangeBoundError[\T\](self,other)
         end
     opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if other.lower() >= lower() then
+        if other.lower >= self.lower then
             other
         else
             rangeBoundError[\T\](self,other)
         end
-    opr =(self, x:LowerRange[\T\]): Boolean = lower() = x.lower()
+    opr =(self, x:LowerRange[\T\]): Boolean = self.lower = x.lower
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             OpenRange[\T\] => LessThan
-            LowerRange[\T\] => other.lower() PCMP lower()
+            LowerRange[\T\] => other.lower PCMP self.lower
             CompleteRange[\T\] =>
-                typecase c = other.lower() PCMP lower() of
+                typecase c = other.lower PCMP self.lower of
                     EqualTo => GreaterThan
                     LessThan => Unordered
                     else => c
@@ -3168,17 +3168,17 @@ object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     getter upper():T = up
     toString():String = ":" upper()
     opr[_:OpenRange[\T\]] : UpperRange[\T\] = self
-    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower():upper()
+    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower:self:upper
     opr[other:UpperRange[\T\]] : UpperRange[\T\] =
-        if other.upper() <= upper() then
+        if other.upper <= self.upper then
             other
         else
             rangeBoundError[\T\](self,other)
         end
     opr[other:ExtentRange[\T\]] : FullRange[\T,true\] =
-        (upper() SUBTR other.extent()) # other.extent()
+        (self.upper SUBTR other.extent) # other.extent
     opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if other.upper() <= upper() then
+        if other.upper <= self.upper then
             other
         else
             rangeBoundError[\T\](self,other)
@@ -3187,9 +3187,9 @@ object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             OpenRange[\T\]  => LessThan
-            UpperRange[\T\] => upper() PCMP other.upper()
+            UpperRange[\T\] => self.upper PCMP other.upper
             CompleteRange[\T\]  =>
-                typecase c = upper() PCMP other.upper() of
+                typecase c = self.upper PCMP other.upper of
                     EqualTo => GreaterThan
                     LessThan => Unordered
                     else => c
@@ -3201,32 +3201,32 @@ end
 trait RangeWithExtent[\T\] extends Range[\T\]
         comprises { ExtentRange[\T\], CompleteRange[\T\] }
     getter extent():T
-    toString():String = "#" extent()
+    toString():String = "#" self.extent
 end
 
 object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
     getter extent():T = ex
     opr[_:OpenRange[\T\]] : ExtentRange[\T\] = self
-    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower() # extent()
+    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower # self.extent
     opr[other:UpperRange[\T\]] : FullRange[\T,true\] =
-        (other.upper() SUBTR extent()) # extent()
+        (other.upper SUBTR self.extent) # self.extent
     opr[other:ExtentRange[\T\]] : ExtentRange[\T\] =
-        if other.extent() <= extent() then
+        if other.extent <= self.extent then
             other
         else
             rangeBoundError[\T\](self,other)
         end
     opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if other.extent() <= extent() then
+        if other.extent <= self.extent then
             other
         else
             rangeBoundError[\T\](self,other)
         end
-    opr =(self,x:ExtentRange[\T\]): Boolean = extent() = x.extent()
+    opr =(self,x:ExtentRange[\T\]): Boolean = self.extent = x.extent
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             OpenRange[\T\]   => LessThan
-            ExtentRange[\T\] => extent() PCMP other.extent()
+            ExtentRange[\T\] => self.extent PCMP other.extent
             else => Unordered
         end
 end
@@ -3262,60 +3262,60 @@ trait CompleteRange[\T\]
         Note that this makes it compatible with the square-bracket
         indexing of the Indexed trait. **)
     opr[r:LowerRange[\T\]]: CompleteRange[\T\] =
-        if r.lower() = lower() then
+        if r.lower = self.lower then
             (* Important, also handles empty range case. *)
             self
-        elif r.lower() IN widenUpper() then
-            r.lower():upper()
+        elif r.lower IN widenUpper() then
+            r.lower:self.upper
         else
             rangeBoundError[\T\](self,r)
         end
     opr[r:UpperRange[\T\]]: CompleteRange[\T\] =
-        if r.upper() = upper() then
+        if r.upper = self.upper then
             (* Important, also handles empty range case. *)
             self
-        elif r.upper() IN widenLower() then
-            lower():r.upper()
+        elif r.upper IN widenLower() then
+            self.lower:r.upper
         else
             rangeBoundError[\T\](self,r)
         end
     opr[r:ExtentRange[\T\]]: CompleteRange[\T\] =
-        if r.extent() <= extent() then
-            lower()#r.extent()
+        if r.extent <= self.extent then
+            self.lower#r.extent
         else
             fail(self "[" r "] is not sufficiently large in some dimension")
         end
     opr[r:CompleteRange[\T\]]: CompleteRange[\T\] =
-        if r.lower() < lower() then
+        if r.lower < self.lower then
             rangeBoundError[\T\](self,r)
-        elif r.upper() > upper() then
+        elif r.upper > self.upper then
             rangeBoundError[\T\](self,r)
         else
             r
         end
 
     toString():String =
-        if isBounded() then
-            lower() ":" upper()
+        if self.isBounded then
+            self.lower ":" self.upper
         else
-            lower() "#" extent()
+            self.lower "#" self.extent
         end
 
     opr =(self, other:CompleteRange[\T\]): Boolean =
-        isBounded()=other.isBounded() AND lower()=other.lower() AND
-        extent() = other.extent()
+        self.isBounded=other.isBounded AND self.lower=other.lower AND
+        self.extent = other.extent
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             CompleteRange[\T\] =>
-                a = lower() PCMP other.lower()
-                b = upper() PCMP other.upper()
+                a = self.lower PCMP other.lower
+                b = self.upper PCMP other.upper
                 typecase _ = (a,b) of
                     (Unordered,Comparison) => Unordered
                     (Comparison,Unordered) => Unordered
                     (LessThan,LessThan) => Unordered
                     (GreaterThan,GreaterThan) => Unordered
                     (EqualTo,EqualTo) =>
-                        if isBounded() = other.isBounded() then
+                        if self.isBounded = other.isBounded then
                             EqualTo
                         else
                             Unordered

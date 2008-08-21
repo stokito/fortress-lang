@@ -23,6 +23,7 @@ import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticChecker;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
@@ -69,8 +70,8 @@ public class TypeCheckPhase extends Phase {
 
         return new AnalyzeResult(apiSR.apis(), componentSR.components(),
                 IterUtil.<StaticError> empty(), Option
-                        .<Map<Pair<Node, Span>, TypeEnv>> some(componentSR
-                                .typeEnvAtNode()));
+                        .<TypeCheckerOutput> some(componentSR
+                                .typeCheckerOutput()));
     }
 
 }

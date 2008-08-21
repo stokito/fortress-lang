@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.typechecker.TraitTable;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -112,13 +113,13 @@ public class Desugarer {
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
                           GlobalEnvironment env,
-                          Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode)
+                          TypeCheckerOutput typeCheckerOutput)
     {
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (APIName componentName : components.keySet()) {
-            Component desugared = desugarComponent(components.get(componentName), env, typeEnvAtNode);
+            Component desugared = desugarComponent(components.get(componentName), env, typeCheckerOutput);
             desugaredComponents.add(desugared);
         }
         return new ComponentResult
@@ -128,8 +129,8 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                 GlobalEnvironment env,
-                                 Map<Pair<Node,Span>,TypeEnv> typeEnvAtNode) {
+                                             GlobalEnvironment env,
+                                             TypeCheckerOutput typeCheckerOutput) {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap = 
                                     Option.<Map<Pair<Id,Id>,FieldRef>>none();
@@ -138,7 +139,7 @@ public class Desugarer {
         if(objExpr_desugar) {
         	TraitTable traitTable = new TraitTable(component, env);
         	ObjectExpressionVisitor objExprVisitor =
-        		new ObjectExpressionVisitor(traitTable, typeEnvAtNode);
+        		new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
         	comp = (Component) comp.accept(objExprVisitor);
         	boxedRefMap = objExprVisitor.getBoxedRefMap();
         }

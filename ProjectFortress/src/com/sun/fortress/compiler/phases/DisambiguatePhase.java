@@ -85,7 +85,7 @@ public class DisambiguatePhase extends Phase {
         }
 
         return new AnalyzeResult(apiIR.apis(), componentsDone.components(),
-                IterUtil.<StaticError> empty(), previous.typeEnvAtNode());
+                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
 
     }
 

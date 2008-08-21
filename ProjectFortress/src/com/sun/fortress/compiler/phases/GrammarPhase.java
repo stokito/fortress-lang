@@ -56,6 +56,6 @@ public class GrammarPhase extends Phase {
         return new AnalyzeResult(apiDone.apis(), 
                                  previous.components(),
                                  IterUtil.<StaticError> empty(), 
-                                 previous.typeEnvAtNode());
+                                 previous.typeCheckerOutput());
     }
 }
