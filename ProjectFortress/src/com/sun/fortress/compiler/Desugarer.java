@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
@@ -65,7 +66,7 @@ public class Desugarer {
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
     public static boolean getter_setter_desugar = true;
-    public static boolean objExpr_desugar = false;
+    public static boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.test.desugar.objexpr", false);
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
