@@ -71,12 +71,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private ObjectDecl enclosingObjectDecl;
     private int objExprNestingLevel;
 
-    public static final String MANGLE_CHAR = "$";
-    private static final String ENCLOSING_PREFIX = "enclosing";
-
-
     /* The following two things are results returned by FreeNameCollector */
-
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
 
@@ -98,6 +93,13 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
      * node corresponding to the key in this Map will change.
      */
     private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
+
+    // data structure to pass to getter setter desugarer pass so that it 
+    // knows what references to rewrite into corresponding boxed FieldRefs
+    private Map<Pair<Id,Id>,FieldRef> boxedRefMap;
+
+    public static final String MANGLE_CHAR = "$";
+    private static final String ENCLOSING_PREFIX = "enclosing";
 
 
     // Constructor
@@ -128,8 +130,17 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         enclosingTraitDecl = null;
         enclosingObjectDecl = null;
         objExprNestingLevel = 0;
+
+        boxedRefMap = new HashMap<Pair<Id,Id>,FieldRef>();
     }
 
+    public Option<Map<Pair<Id,Id>,FieldRef>> getBoxedRefMap() {
+        if( boxedRefMap.isEmpty() ) {
+            return Option.<Map<Pair<Id,Id>,FieldRef>>none();
+        }
+        return Option.<Map<Pair<Id,Id>,FieldRef>>some( boxedRefMap );
+    }
+ 
     @Override
 	public Node forComponent(Component that) {
         FreeNameCollector freeNameCollector =
@@ -192,6 +203,11 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );   
+                Pair<Id,Id> keyPair = new Pair( that.getName(), var.getVar() );
+                // Use an empty span; the correct span will be filled in
+                // later at the use site
+                boxedRefMap.put( keyPair, 
+                                 container.containerFieldRef(new Span()) );
             }
 
             // The rewriter also inserts newly declared container VarDecls
@@ -368,7 +384,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return callToLifted;
     }
 
-
+   
     private TightJuxt makeCallToLiftedObj(ObjectDecl lifted,
                                           ObjectExpr objExpr,
                                           FreeNameCollection freeNames) {

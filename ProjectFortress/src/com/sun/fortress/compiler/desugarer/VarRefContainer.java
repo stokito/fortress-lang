@@ -41,6 +41,7 @@ import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -121,6 +122,18 @@ public class VarRefContainer {
         return field;
     }
 
+    public VarRef containerVarRef(Span varRefSpan) {
+        return ExprFactory.makeVarRef( varRefSpan,
+                                       containerVarId(),
+                                       containerType() );
+    }
+
+    public FieldRef containerFieldRef(Span varRefSpan) {
+        return ExprFactory.makeFieldRef( varRefSpan,
+                                         this.containerVarRef(varRefSpan), 
+                                         origVar.getVar() );
+    }
+
     public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
@@ -130,12 +143,6 @@ public class VarRefContainer {
                             lhs, makeCallToContainerObj(), bodyExprs );
 
         return ret;
-    }
-
-    public VarRef containerVarRef(Span varRefSpan) {
-        return ExprFactory.makeVarRef( varRefSpan,
-                                       containerVarId(),
-                                       containerType() );
     }
 
     private NormalParam makeVarParamFromVarRef(VarRef var,
