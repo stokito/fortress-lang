@@ -39,9 +39,10 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFnRef(FnRef fr) {
+        
         List<Id> fns = fr.getFns(); // ignore this for now.
         List<StaticArg> sargs = fr.getStaticArgs();
-        Id idn = fr.getOriginalName();
+        Id idn = fns.get(0);
 
         if (sargs.size() > 0)
             return (new _RewriteFnRef(fr.getSpan(),
@@ -54,15 +55,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
             //throw new Error("Unexpected FnRef " + fr);
             return (new VarRef(idn.getSpan(), fr.isParenthesized(), idn)).accept(this);
         }
-    }
-
-    @Override
-    public Node forId(Id q) {
-        if (q.getApi().isSome()) {
-            q = new Id(q.getSpan(), q.getText());
-        }
-        // Recursive bits to visit?
-        return super.forId(q);
+        
     }
 
     @Override

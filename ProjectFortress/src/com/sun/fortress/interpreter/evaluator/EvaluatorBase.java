@@ -84,7 +84,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return foo.apply(args, loc, e);
+            return foo.apply(args, loc, foo.getWithin());
         } catch (FortressException ex) {
             throw ex.setContext(loc,e);
         } catch (StackOverflowError soe) {
@@ -156,7 +156,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         // FnAbsDeclOrDecl fndod = bar.getFnDefOrDecl();
         List<StaticParam> tparams = bar.getStaticParams();
         List<Param> params = bar.getParams();
-        EvalType et = new EvalType(e);
+        // Must use the right environment for unifying against the generic.
+        // It was "e", which is wrong.
+        EvalType et = new EvalType(bar.getWithin());// e);
         // The types of the actual parameters ought to unify with the
         // types of the formal parameters.
         BoundingMap<String, FType, TypeLatticeOps> abm = new

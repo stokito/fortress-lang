@@ -61,6 +61,33 @@ public class DesugarerUtil {
     public final static VarRef FILTER_NAME =
         ExprFactory.makeVarRef(WellKnownNames.filter);
 
+    public final static VarRef Q_GENERATE_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.generate);
+
+    public final static VarRef Q_MAP_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.map);
+
+    public final static VarRef Q_SINGLETON_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.singleton);
+
+    public final static VarRef Q_NEST_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.nest);
+
+    public final static VarRef Q_COND_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.cond);
+
+    public final static VarRef Q_WHILECOND_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.whileCond);
+
+    public final static VarRef Q_BIGOP_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.bigOperator);
+
+    public final static VarRef Q_BIGOP2_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.bigOperator);
+
+    public final static VarRef Q_FILTER_NAME =
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.filter);
+
     /**
      * Used to generate temporary names when rewriting (for example)
      * tuple initializations.

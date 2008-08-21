@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import java.util.Comparator;
 import java.util.List;
 
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
@@ -73,5 +74,8 @@ public interface  GenericFunctionOrMethod {
             symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
         }
     }
+
+
+    Environment getWithin();
 
 }

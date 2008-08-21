@@ -46,7 +46,6 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.Voidoid;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -83,7 +82,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     }
 
     @Override
-    public Voidoid forImportApi(ImportApi x) {
+    public Boolean forImportApi(ImportApi x) {
         List<AliasedAPIName> apis = x.getApis();
         for (AliasedAPIName aliased_api : apis) {
             APIName imported = aliased_api.getApi();
@@ -93,14 +92,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     }
 
   @Override
-    public Voidoid forImportNames(ImportNames x) {
+    public Boolean forImportNames(ImportNames x) {
         APIName imported = x.getApi();
         importAPIName(imported);
         return null;
     }
 
     @Override
-    public Voidoid forImportStar(ImportStar x) {
+    public Boolean forImportStar(ImportStar x) {
         APIName imported = x.getApi();
         importAPIName(imported);
         return null;
@@ -125,7 +124,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forApi(com.sun.fortress.interpreter.nodes.Api)
      */
     @Override
-    public Voidoid forApi(Api x) {
+    public Boolean forApi(Api x) {
         List<? extends AbsDeclOrDecl> decls = x.getDecls();
 
         switch (getPass()) {
@@ -138,7 +137,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
     }
     
-    public Voidoid for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
+    public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
         switch (getPass()) {
         case 1: {
             // Define the overloaded function.
@@ -190,7 +189,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forComponent(com.sun.fortress.interpreter.nodes.Component)
      */
     @Override
-    public Voidoid forComponent(Component x) {
+    public Boolean forComponent(Component x) {
         List<? extends AbsDeclOrDecl> defs = x.getDecls();
         switch (getPass()) {
         case 1: forComponent1(x); break;
@@ -208,13 +207,13 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         return null;
     }
 
-    public Voidoid forComponentDefs(Component x) {
+    public Boolean forComponentDefs(Component x) {
         List<? extends AbsDeclOrDecl> defs = x.getDecls();
         doDefs(this, defs);
         return null;
     }
 
-    public Voidoid forComponent1(Component x) {
+    public Boolean forComponent1(Component x) {
         APIName name = x.getName();
         List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
@@ -232,12 +231,12 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         return null;
     }
 
-    class ForceTraitFinish extends NodeAbstractVisitor<Voidoid> {
+    class ForceTraitFinish extends NodeAbstractVisitor<Boolean> {
 
         /**
          * Make the default behavior return null, no throw an exception.
          */
-        public Voidoid defaultCase(Node x) {
+        public Boolean defaultCase(Node x) {
             return null;
         }
 
@@ -245,7 +244,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
          * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
          */
         @Override
-        public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+        public Boolean forAbsTraitDecl(AbsTraitDecl x) {
             List<StaticParam> staticParams = x.getStaticParams();
             Id name = x.getName();
 
@@ -262,7 +261,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
          * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.TraitDecl)
          */
         @Override
-        public Voidoid forTraitDecl(TraitDecl x) {
+        public Boolean forTraitDecl(TraitDecl x) {
             List<StaticParam> staticParams = x.getStaticParams();
             Id name = x.getName();
 

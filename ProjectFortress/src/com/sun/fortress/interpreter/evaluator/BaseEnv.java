@@ -39,6 +39,7 @@ import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
@@ -63,6 +64,13 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 abstract public class BaseEnv implements Environment, Iterable<String> {
 
+    public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan) {
+        Option<APIName> oapi = ioooan.getApi();
+        if (oapi.isNone())
+            return this;
+        return getApi(oapi.unwrap());
+    }
+
     public Environment getApi(APIName a) {
         String s = NodeUtil.nameString(a);
         return getApi(s);
@@ -75,7 +83,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     public Environment getApi(String s) {
         Environment e = getApiNull(s);
-        if (s == null) {
+        if (e == null) {
             return error(errorMsg("Missing api name ", s));
         }
         return e;
@@ -382,7 +390,18 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     final public FType getTypeNull(Id name) {
-        return getTypeNull(NodeUtil.nameString(name));
+        String local = NodeUtil.nameSuffixString(name);
+        Option<APIName> opt_api = name.getApi();
+        
+        if (opt_api.isSome()) {
+            APIName api = opt_api.unwrap();
+            // Circular dependence etc will be signalled in API.
+            Environment api_e = getApi(api);
+            return api_e.getTypeNull(local);
+        } else {
+            FType v = getTypeNull(local);
+            return v;
+        }
     }
 
     abstract public  FType getTypeNull(String str) ;    
@@ -436,7 +455,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     final public  FValue getValueNull(OpRef vr) {
-        OpName name = vr.getOriginalName();
+        OpName name = vr.getOps().get(0);
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }

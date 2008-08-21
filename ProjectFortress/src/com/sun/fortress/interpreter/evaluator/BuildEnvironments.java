@@ -48,7 +48,6 @@ import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.Voidoid;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -94,7 +93,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  * type pass in any non-top-level environment).
  *
  */
-public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
+public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
      private int pass = 1;
@@ -322,7 +321,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDef)
      */
     @Override
-    public Voidoid forFnDef(FnDef x) {
+    public Boolean forFnDef(FnDef x) {
         switch (getPass()) {
         case 1: forFnDef1(x); break;
         case 2: forFnDef2(x); break;
@@ -452,7 +451,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forObjectDef(com.sun.fortress.interpreter.nodes.ObjectDecl)
      */
     @Override
-    public Voidoid forObjectDecl(ObjectDecl x) {
+    public Boolean forObjectDecl(ObjectDecl x) {
         switch (getPass()) {
         case 1: forObjectDecl1(x); break;
         case 2: forObjectDecl2(x); break;
@@ -661,7 +660,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDef(com.sun.fortress.interpreter.nodes.VarDecl)
      */
     @Override
-    public Voidoid forVarDecl(VarDecl x) {
+    public Boolean forVarDecl(VarDecl x) {
         switch (getPass()) {
         case 1:
             forVarDecl1(x);
@@ -811,7 +810,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
      */
     @Override
-    public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
         switch (getPass()) {
         case 1: forAbsTraitDecl1(x); break;
         case 2: forAbsTraitDecl2(x); break;
@@ -883,7 +882,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDef(com.sun.fortress.interpreter.nodes.TraitDecl)
      */
     @Override
-    public Voidoid forTraitDecl(TraitDecl x) {
+    public Boolean forTraitDecl(TraitDecl x) {
         switch (getPass()) {
         case 1: forTraitDecl1(x); break;
         case 2: forTraitDecl2(x); break;
@@ -1094,7 +1093,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTypeAlias(com.sun.fortress.interpreter.nodes.TypeAlias)
      */
     @Override
-    public Voidoid forTypeAlias(TypeAlias x) {
+    public Boolean forTypeAlias(TypeAlias x) {
         // Id name;
         // List<Id> params;
         // Type type;
@@ -1108,7 +1107,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimUnitDecl(com.sun.fortress.interpreter.nodes.DimUnitDecl)
      */
     @Override
-    public Voidoid forDimUnitDecl(DimUnitDecl x) {
+    public Boolean forDimUnitDecl(DimUnitDecl x) {
         // TODO Auto-generated method stub
 
         return null;
@@ -1120,7 +1119,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forDimArg(com.sun.fortress.interpreter.nodes.DimArg)
      */
     @Override
-    public Voidoid forDimArg(DimArg x) {
+    public Boolean forDimArg(DimArg x) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -1131,7 +1130,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportApi(com.sun.fortress.interpreter.nodes.ImportApi)
      */
     @Override
-    public Voidoid forImportApi(ImportApi x) {
+    public Boolean forImportApi(ImportApi x) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -1144,7 +1143,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportNames(com.sun.fortress.interpreter.nodes.ImportNames)
      */
     @Override
-    public Voidoid forImportNames(ImportNames x) {
+    public Boolean forImportNames(ImportNames x) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -1155,7 +1154,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forImportStar(com.sun.fortress.interpreter.nodes.ImportStar)
      */
     @Override
-    public Voidoid forImportStar(ImportStar x) {
+    public Boolean forImportStar(ImportStar x) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -1166,7 +1165,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDecl(com.sun.fortress.interpreter.nodes.AbsVarDecl)
      */
     @Override
-    public Voidoid forAbsVarDecl(AbsVarDecl x) {
+    public Boolean forAbsVarDecl(AbsVarDecl x) {
         switch (getPass()) {
         case 1: doAbsVarDecl(x); break;
         case 2:
@@ -1203,7 +1202,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
-    public Voidoid forAbsFnDecl(AbsFnDecl x) {
+    public Boolean forAbsFnDecl(AbsFnDecl x) {
         switch (getPass()) {
         case 1: forAbsFnDecl1(x); break;
         case 2: forAbsFnDecl2(x); break;
@@ -1266,7 +1265,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
      */
     @Override
-    public Voidoid forAbsObjectDecl(AbsObjectDecl x) {
+    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
         switch (getPass()) {
         case 1: forAbsObjectDecl1(x); break;
         case 2: forAbsObjectDecl2(x); break;
@@ -1387,12 +1386,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Voidoid> {
     }
 
     @Override
-    public Voidoid forGrammarDecl(GrammarDecl that) {
+    public Boolean forGrammarDecl(GrammarDecl that) {
         return null; // Do nothing
     }
 
     @Override
-    public Voidoid forGrammarDef(GrammarDef that) {
+    public Boolean forGrammarDef(GrammarDef that) {
         return null; // Do nothing
     }
 

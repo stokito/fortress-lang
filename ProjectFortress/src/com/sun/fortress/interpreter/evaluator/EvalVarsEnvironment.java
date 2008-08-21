@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.useful.Voidoid;
 
 
 /**
@@ -45,7 +44,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forApi(com.sun.fortress.interpreter.nodes.Api)
      */
     @Override
-    public Voidoid forApi(Api x) {
+    public Boolean forApi(Api x) {
         return null;
 
     }
@@ -54,7 +53,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forComponent(com.sun.fortress.interpreter.nodes.Component)
      */
     @Override
-    public Voidoid forComponent(Component x) {
+    public Boolean forComponent(Component x) {
         return null;
 
     }
@@ -63,7 +62,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forDimUnitDecl(com.sun.fortress.interpreter.nodes.DimUnitDecl)
      */
     @Override
-    public Voidoid forDimUnitDecl(DimUnitDecl x) {
+    public Boolean forDimUnitDecl(DimUnitDecl x) {
         return null;
 
     }
@@ -72,7 +71,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
-    public Voidoid forAbsFnDecl(AbsFnDecl x) {
+    public Boolean forAbsFnDecl(AbsFnDecl x) {
         return null;
 
     }
@@ -81,7 +80,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDef(com.sun.fortress.interpreter.nodes.FnDef)
      */
     @Override
-    public Voidoid forFnDef(FnDef x) {
+    public Boolean forFnDef(FnDef x) {
         return null;
 
     }
@@ -90,7 +89,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forImportApi(com.sun.fortress.interpreter.nodes.ImportApi)
      */
     @Override
-    public Voidoid forImportApi(ImportApi x) {
+    public Boolean forImportApi(ImportApi x) {
         return null;
 
     }
@@ -99,7 +98,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forImportNames(com.sun.fortress.interpreter.nodes.ImportNames)
      */
     @Override
-    public Voidoid forImportNames(ImportNames x) {
+    public Boolean forImportNames(ImportNames x) {
         return null;
 
     }
@@ -108,7 +107,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forImportStar(com.sun.fortress.interpreter.nodes.ImportStar)
      */
     @Override
-    public Voidoid forImportStar(ImportStar x) {
+    public Boolean forImportStar(ImportStar x) {
         return null;
 
     }
@@ -117,7 +116,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
      */
     @Override
-    public Voidoid forAbsObjectDecl(AbsObjectDecl x) {
+    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
         return null;
 
     }
@@ -126,7 +125,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forObjectDef(com.sun.fortress.interpreter.nodes.ObjectDecl)
      */
     @Override
-    public Voidoid forObjectDecl(ObjectDecl x) {
+    public Boolean forObjectDecl(ObjectDecl x) {
         return null;
 
     }
@@ -135,7 +134,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
      */
     @Override
-    public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
         return null;
 
     }
@@ -144,7 +143,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forTraitDef(com.sun.fortress.interpreter.nodes.TraitDecl)
      */
     @Override
-    public Voidoid forTraitDecl(TraitDecl x) {
+    public Boolean forTraitDecl(TraitDecl x) {
         return null;
 
     }
@@ -153,7 +152,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forTypeAlias(com.sun.fortress.interpreter.nodes.TypeAlias)
      */
     @Override
-    public Voidoid forTypeAlias(TypeAlias x) {
+    public Boolean forTypeAlias(TypeAlias x) {
         return null;
 
     }
@@ -162,7 +161,7 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forDimArg(com.sun.fortress.interpreter.nodes.DimArg)
      */
     @Override
-    public Voidoid forDimArg(DimArg x) {
+    public Boolean forDimArg(DimArg x) {
         return null;
 
     }

@@ -749,8 +749,14 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name), infix);
     }
 
+    public static Op makeOpInfix(Span span, String apiName, String name) {
+        Op op =  new Op(span, Option.some(NodeFactory.makeAPIName(apiName)), PrecedenceMap.ONLY.canon(name), infix);
+        return op;
+    
+    }
+
     public static Op makeOpInfix(Op op) {
-        return new Op(op.getSpan(), op.getText(), infix);
+        return new Op(op.getSpan(), op.getApi(), op.getText(), infix);
     }
 
     public static Op makeOpPrefix(Span span, String name) {
@@ -758,7 +764,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPrefix(Op op) {
-        return new Op(op.getSpan(), op.getText(), prefix);
+        return new Op(op.getSpan(), op.getApi(), op.getText(), prefix);
     }
 
     public static Op makeOpPostfix(Span span, String name) {
@@ -766,7 +772,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(op.getSpan(), op.getText(), postfix);
+        return new Op(op.getSpan(), op.getApi(), op.getText(), postfix);
     }
 
     /**
