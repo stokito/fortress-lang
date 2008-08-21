@@ -911,14 +911,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
 
         // On the post-inference pass, an application could produce Inference vars
+        TypeCheckerResult successful = new TypeCheckerResult(that);
         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-            // close constraints
-            new_node = (_RewriteFnApp)TypesUtil.closeConstraints(new_node, subtypeChecker, function_result, argument_result, result);
-            result_type = (Option<Type>)TypesUtil.closeConstraints(result_type, subtypeChecker, function_result, argument_result, result);
+            // close constraints 
+            Pair<Boolean,Node> temp1 = TypesUtil.closeConstraints(new_node, subtypeChecker, function_result, argument_result, result);
+            new_node = (_RewriteFnApp)temp1.second();
+            Boolean ok = temp1.first();
+            if(result_type.isSome()){
+                Pair<Boolean,Node> temp2 = TypesUtil.closeConstraints(result_type.unwrap(), subtypeChecker, function_result, argument_result, result);
+                result_type = Option.some((Type)temp2.second());
+                ok&=temp2.first();
+            }
+            if(!ok){
+                String err = "Applicable overloading of function " + that.getFunction() + " could not be found for argument type " + argument_result.type();
+                successful = new TypeCheckerResult(that,TypeError.make(err, that));
+            }
         }
 
         return TypeCheckerResult.compose(new_node, result_type,
-                subtypeChecker, function_result, argument_result, result);
+                subtypeChecker, function_result, argument_result, result, successful);
     }
 
 	 @Override
@@ -1339,10 +1350,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
         
         // The application of operators could cause Inference Vars to be introduced
+        TypeCheckerResult successful = new TypeCheckerResult(that);
         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-            new_node = (_RewriteAssignment)TypesUtil.closeConstraints(new_node, result);
+            Pair<Boolean,Node> temp = TypesUtil.closeConstraints(new_node, result);
+            new_node = (_RewriteAssignment)temp.second();
+            if(!temp.first()){
+                String err = "No overloading for " + that.getOpr().unwrap();
+                successful = new TypeCheckerResult(that, TypeError.make(err,that));
+            }
         }
-        return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
+        return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result, successful);
     }
     /**
      * Checks that something of type rhs_type can be assigned to the given lhs. If opr is some, we have to
@@ -1723,11 +1740,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(new_node, subtypeChecker, param_result_, compare_result_, else_result_));
 
         // The application of operators (IN, EQUALS) could cause Inference Vars to be introduced
+        TypeCheckerResult successful = new TypeCheckerResult(that);
         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-            new_node = (CaseExpr)TypesUtil.closeConstraints(new_node, result);
-            result_type = (Type)TypesUtil.closeConstraints(result_type, result);
+            Pair<Boolean,Node> temp1 = TypesUtil.closeConstraints(new_node, result);
+            new_node = (CaseExpr)temp1.second();
+            Pair<Boolean,Node> temp2 = TypesUtil.closeConstraints(result_type, result);
+            result_type = (Type)temp2.second();
+            if(!temp1.first() || !temp2.first()){
+                String err = "No overloading of " + (that.getCompare().isSome()? that.getCompare().unwrap() + "." : that.getEqualsOp() + " or " + that.getInOp() + ".");
+                successful = new TypeCheckerResult(that, TypeError.make(err,that));
+            }
         }
-
         return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, result);
     }
     
@@ -2580,12 +2603,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         final Pair<TypeCheckerResult, List<LValueBind>> p = forGeneratorClauseOnlyGetBindings(that, init_result, mustBeCondition);
         
         if( postInference ) {
-            List<LValueBind> closed_binds = 
-                CollectUtil.makeList(IterUtil.map(p.second(), new Lambda<LValueBind,LValueBind>(){
-                public LValueBind value(LValueBind arg0) {
-                    return (LValueBind)TypesUtil.closeConstraints(arg0, subtypeChecker, p.first());
-                }}));
-            return Pair.make(p.first(), closed_binds);
+            Boolean ok = true;
+            List<LValueBind> closed_binds = new ArrayList<LValueBind>();
+            for(LValueBind b : p.second()){
+                Pair<Boolean,Node> temp = TypesUtil.closeConstraints(b, subtypeChecker, p.first());
+                closed_binds.add((LValueBind)temp.second());
+                ok&=temp.first();
+            }
+            TypeCheckerResult successful = new TypeCheckerResult(that);
+            if(!ok){
+                String err = "Illegal binding.";
+                successful = new TypeCheckerResult(that,TypeError.make(err,that));
+            }
+            return Pair.make(TypeCheckerResult.compose(that, this.subtypeChecker, p.first(), successful), closed_binds);
         }
         else {
             return p;   
@@ -3255,13 +3285,21 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     TypeCheckerResult.compose(new_node, subtypeChecker, candidate_pair.second()));
 
             // On the post-inference pass, an application could produce Inference vars
+            TypeCheckerResult successful = new TypeCheckerResult(that);
             if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
                 // close constraints
-                new_node = (MethodInvocation)TypesUtil.closeConstraints(new_node, subtypeChecker, result);
-                range = (Type)TypesUtil.closeConstraints(range, subtypeChecker, result);
+                
+                Pair<Boolean,Node> temp1 = TypesUtil.closeConstraints(new_node, subtypeChecker, result);
+                new_node = (MethodInvocation)temp1.second();
+                Pair<Boolean,Node> temp2 = TypesUtil.closeConstraints(range, subtypeChecker, result);
+                range = (Type)temp2.second();
+                if(!temp1.first() || !temp2.first()){
+                    String err = "No candidate methods found for '" + that.getMethod() + "' with argument types (" + arg_result.type().unwrap() + ").";
+                    successful = new TypeCheckerResult(that, TypeError.make(err,that));
+                }
             }
 
-            return TypeCheckerResult.compose(new_node, range, subtypeChecker, result);
+            return TypeCheckerResult.compose(new_node, range, subtypeChecker, result, successful);
         }
     }
 
@@ -3571,13 +3609,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                  TypeCheckerResult.compose(new_node, subtypeChecker, args_result));
 
          // On the post-inference pass, an application could produce Inference vars
-         if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
-             // close constraints
-             new_node = (OpExpr)TypesUtil.closeConstraints(new_node, subtypeChecker, result);
-             applicationType = (Type)TypesUtil.closeConstraints(applicationType, subtypeChecker, result);
-         }
-
-		 return TypeCheckerResult.compose(new_node, applicationType, subtypeChecker, result);
+	        TypeCheckerResult successful = new TypeCheckerResult(that);
+	     if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
+	         Pair<Boolean,Node> temp1 = TypesUtil.closeConstraints(new_node,subtypeChecker, result);
+	         new_node = (OpExpr)temp1.second();
+	         Pair<Boolean,Node> temp2 = TypesUtil.closeConstraints(applicationType, subtypeChecker, result);
+	         applicationType = (Type)temp2.second();
+	         if(!temp1.first() || !temp2.first()){
+	             String err = "Call to operator " + that.getOp() + " has invalid arguments, " + argTypes;
+	             successful = new TypeCheckerResult(that, TypeError.make(err,that));
+	         }
+	     }
+		 return TypeCheckerResult.compose(new_node, applicationType, subtypeChecker, result, successful);
 	 }
 
     @Override

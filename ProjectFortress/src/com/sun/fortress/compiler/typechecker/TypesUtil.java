@@ -455,11 +455,11 @@ public class TypesUtil {
      * constraints on those inference vars, solve, and replace the inference vars
      * in the node.
      */
-    public static Node closeConstraints(Node node, TypeCheckerResult result) {
+    public static Pair<Boolean,Node> closeConstraints(Node node, TypeCheckerResult result) {
         result.getIVarResults();
         InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
         Node new_node = node.accept(rep);
-        return new_node;
+        return Pair.make(result.getNodeConstraints().isSatisfiable(), new_node);
     }
     
     /**
@@ -467,26 +467,10 @@ public class TypesUtil {
      * constraints on those inference vars, solve, and replace the inference vars
      * in the node.
      */
-    public static Node closeConstraints(Node node, 
+    public static Pair<Boolean,Node> closeConstraints(Node node, 
             TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
         TypeCheckerResult result = TypeCheckerResult.compose(node, subtypeChecker, results);
         return closeConstraints(node, result);
-    }
-
-    /**
-     * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
-     * constraints on those inference vars, solve, and replace the inference vars
-     * in the node.
-     */
-    public static Option<? extends Node> closeConstraints(Option<? extends Node> node,  
-            TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
-        if( node.isNone() ) {
-            return Option.<Node>none();
-        }
-        else {
-            Node n = node.unwrap();
-            return Option.<Node>some(closeConstraints(n, subtypeChecker, results));
-        }
     }
 
     /** Given a list of Types, produce a list of static arguments, each one a TypeArg. */
