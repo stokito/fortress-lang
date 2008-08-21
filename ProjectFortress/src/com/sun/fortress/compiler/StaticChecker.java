@@ -161,7 +161,6 @@ public class StaticChecker {
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
 
             TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
-                                                      StaticParamEnv.make(),
                                                       typeEnv,
                                                       component,
                                                       false);
@@ -187,7 +186,6 @@ public class StaticChecker {
             typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
 
             typeChecker = new TypeChecker(new TraitTable(component, env),
-                                          StaticParamEnv.make(),
                                           typeEnv,
                                           component,
                                           true);

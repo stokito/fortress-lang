@@ -173,8 +173,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private final boolean postInference; // Is this pass of the typechecker a post-inference pass?
 
-    private StaticParamEnv staticParamEnv;
-
     private final TypeAnalyzer subtypeChecker;
 
     private TraitTable table;
@@ -185,12 +183,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private final ConstraintFormula downwardConstraint; 
 
     public TypeChecker(TraitTable table,
-            StaticParamEnv staticParams,
+            //StaticParamEnv staticParams,
             TypeEnv typeEnv,
             CompilationUnitIndex compilationUnit,
             boolean postInference) {
         this.table = table;
-        this.staticParamEnv = staticParams;
         this.typeEnv = typeEnv;
         this.compilationUnit = compilationUnit;
         this.subtypeChecker = TypeAnalyzer.make(table);
@@ -200,7 +197,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeChecker(TraitTable table,
-            StaticParamEnv staticParams,
+            //StaticParamEnv staticParams,
             TypeEnv typeEnv,
             CompilationUnitIndex compilationUnit,
             TypeAnalyzer subtypeChecker,
@@ -208,7 +205,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             boolean postInference,
             ConstraintFormula downwardsConstraint) {
         this.table = table;
-        this.staticParamEnv = staticParams;
         this.typeEnv = typeEnv;
         this.compilationUnit = compilationUnit;
         this.subtypeChecker = subtypeChecker;
@@ -466,7 +462,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
     private TypeChecker extend(List<LValueBind> bindings) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table,
                 typeEnv.extendWithLValues(bindings),
                 compilationUnit,
                 subtypeChecker,
@@ -477,7 +473,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(List<StaticParam> newStaticParams, List<Param> newParams, Option<WhereClause> whereClause) {
         return new TypeChecker(table,
-                staticParamEnv.extend(newStaticParams, whereClause),
+                //staticParamEnv.extend(newStaticParams, whereClause),
                 typeEnv.extendWithParams(newParams).extendWithStaticParams(newStaticParams),
                 compilationUnit,
                 subtypeChecker.extend(newStaticParams, whereClause),
@@ -488,7 +484,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<List<Param>> newParams, Option<WhereClause> whereClause) {
         return new TypeChecker(table,
-                staticParamEnv.extend(newStaticParams, whereClause),
+                //staticParamEnv.extend(newStaticParams, whereClause),
                 typeEnv.extend(newParams).extendWithStaticParams(newStaticParams),
                 compilationUnit,
                 subtypeChecker.extend(newStaticParams, whereClause),
@@ -499,7 +495,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(List<StaticParam> newStaticParams, Option<WhereClause> whereClause) {
         return new TypeChecker(table,
-                staticParamEnv.extend(newStaticParams, whereClause),
+                //staticParamEnv.extend(newStaticParams, whereClause),
                 typeEnv.extendWithStaticParams(newStaticParams),
                 compilationUnit,
                 subtypeChecker.extend(newStaticParams, whereClause),
@@ -509,7 +505,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeChecker extend(LocalVarDecl decl) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extend(decl),
                 compilationUnit,
                 subtypeChecker,
@@ -519,7 +515,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     private TypeChecker extend(Param newParam) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extend(newParam),
                 compilationUnit,
                 subtypeChecker,
@@ -530,7 +526,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeChecker extend(Option<WhereClause> whereClause) {
         return new TypeChecker(table,
-                staticParamEnv.extend(Collections.<StaticParam>emptyList(), whereClause),
+                //staticParamEnv.extend(Collections.<StaticParam>emptyList(), whereClause),
                 typeEnv,
                 compilationUnit,
                 subtypeChecker.extend(Collections.<StaticParam>emptyList(), whereClause),
@@ -540,7 +536,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeChecker extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extendWithFnDefs(fns),
                 compilationUnit,
                 subtypeChecker,
@@ -550,7 +546,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeChecker extendWithFunctions(Relation<IdOrOpOrAnonymousName, FunctionalMethod> methods) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extendWithFunctions(methods),
                 compilationUnit,
                 subtypeChecker,
@@ -560,7 +556,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeChecker extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extendWithMethods(methods),
                 compilationUnit,
                 subtypeChecker,
@@ -570,7 +566,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     public TypeChecker extendWithout(Node declSite, Set<? extends IdOrOpOrAnonymousName> names) {
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv.extendWithout(declSite, names),
                 compilationUnit,
                 subtypeChecker,
@@ -583,7 +579,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         constraints = IterUtil.compose(downwardConstraint, constraints); 
         ConstraintFormula new_constraint = ConstraintFormula.bigAnd(constraints, 
                  subtypeChecker.new SubtypeHistory());
-        return new TypeChecker(table, staticParamEnv,
+        return new TypeChecker(table, //staticParamEnv,
                 typeEnv,
                 compilationUnit,
                 subtypeChecker,
@@ -1547,7 +1543,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     private TypeCheckerResult forAtomic(Expr body, final String errorMsg) {
         TypeChecker newChecker = new TypeChecker(table,
-                staticParamEnv,
+                //staticParamEnv,
                 typeEnv,
                 compilationUnit,
                 subtypeChecker,
