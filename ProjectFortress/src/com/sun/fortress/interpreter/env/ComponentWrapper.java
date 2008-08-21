@@ -18,11 +18,13 @@
 package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
@@ -37,10 +39,15 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Visitor2;
 
 public class ComponentWrapper {
+    
+    private final static boolean loadCompiledEnvs =
+        ProjectProperties.getBoolean("fortress.test.compiled_environments", false);
+    
     CompilationUnit p;
 
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
@@ -127,13 +134,31 @@ public class ComponentWrapper {
         else
             p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
             */
-
-        Environment e = BetterEnv.empty(comp.at());
-        e.setTopLevel();
-        if (comp instanceof Component) {
-            be = ((Component)comp).is_native() ? new BuildNativeEnvironment(e, linker) : new BuildTopLevelEnvironments(e, linker);
-        } else { // comp instanceof Api
-            be = new BuildApiEnvironment(e, linker);
+        
+         String fortressFileName = comp.getName().getText();
+        
+         try {
+            if (comp instanceof Component) {
+                Environment e = loadCompiledEnvs ? SimpleClassLoader
+                        .loadEnvironment(fortressFileName, false) : BetterEnv
+                        .empty(comp.at());
+                e.setTopLevel();
+                be = ((Component) comp).is_native() ? new BuildNativeEnvironment(
+                        e, linker)
+                        : new BuildTopLevelEnvironments(e, linker);
+            } else { // comp instanceof Api
+                Environment e = loadCompiledEnvs ? SimpleClassLoader
+                        .loadEnvironment(fortressFileName, true) : BetterEnv
+                        .empty(comp.at());
+                e.setTopLevel();
+                be = new BuildApiEnvironment(e, linker);
+            }
+        } catch (IOException ex) {
+            bug("Failed to load class (" + ex + ") for " + comp);
+        } catch (InstantiationException ex) {
+            bug("Failed to load class (" + ex + ") for " + comp);
+        } catch (IllegalAccessException ex) {
+            bug("Failed to load class (" + ex + ") for " + comp);
         }
         this.implicitLibs = implicitLibs;
     }

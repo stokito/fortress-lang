@@ -36,10 +36,6 @@ import com.sun.fortress.repository.ProjectProperties;
 
 public class OverloadRewriter {
 
-
-    /** Please remove this flag once overload rewriting is fully implemented */
-    private static final boolean do_rewrite = ProjectProperties.getBoolean("fortress.rewrite.overloads", true);
-
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
         public ComponentResult(Map<APIName, ComponentIndex> components,
@@ -72,9 +68,7 @@ public class OverloadRewriter {
                                              GlobalEnvironment env) {
         Component comp = (Component) component.ast();
         OverloadRewriteVisitor visitor = new OverloadRewriteVisitor();
-        if (do_rewrite) {
-            comp = (Component) comp.accept(visitor);
-        }
+        comp = (Component) comp.accept(visitor);
         List<Decl> decls = comp.getDecls();
 
         // Add rewritten overloaded functions

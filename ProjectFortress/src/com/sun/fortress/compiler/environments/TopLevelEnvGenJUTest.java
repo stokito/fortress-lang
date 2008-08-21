@@ -18,7 +18,6 @@
 package com.sun.fortress.compiler.environments;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 import junit.framework.TestCase;
@@ -57,9 +56,9 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	for(String fssFile : fssFiles) {
         	compileTestProgram(fssFile + ".fss");	
     	}
-    	testCompiledEnv = loadEnvironment(fssFiles[0], false);
-    	testCompiledImportEnv = loadEnvironment(fssFiles[1], false);
-    	testCompiledNestedImportEnv = loadEnvironment(fssFiles[2], false);
+    	testCompiledEnv = SimpleClassLoader.loadEnvironment(fssFiles[0], false);
+    	testCompiledImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[1], false);
+    	testCompiledNestedImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[2], false);
     	
     	fsiFiles[0] = "AsciiVal";
     	fsiFiles[1] = "a.b.NestedOne";
@@ -116,7 +115,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	String apiName = fsiFiles[0];
     	
         assertNull(testCompiledImportEnv.getApiNull(apiName)); 
-        Environment loadedEnv = loadEnvironment(fsiFiles[0], true);
+        Environment loadedEnv = SimpleClassLoader.loadEnvironment(fsiFiles[0], true);
         testCompiledImportEnv.putApi(apiName, loadedEnv);
         Environment env = testCompiledImportEnv.getApiNull(apiName);        
         assertEquals(loadedEnv, env);
@@ -134,8 +133,8 @@ public class TopLevelEnvGenJUTest extends TestCase {
        	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[2])); 
        	assertNull(testCompiledNestedImportEnv.getApiNull("NonExistentApi"));
        	
-    	Environment loadedLevel1Api = loadEnvironment(fsiFiles[1], true);
-    	Environment loadedLevel2Api = loadEnvironment(fsiFiles[2], true);
+    	Environment loadedLevel1Api = SimpleClassLoader.loadEnvironment(fsiFiles[1], true);
+    	Environment loadedLevel2Api = SimpleClassLoader.loadEnvironment(fsiFiles[2], true);
     	testCompiledNestedImportEnv.putApi(fsiFiles[1], loadedLevel1Api);
     	testCompiledNestedImportEnv.putApi(fsiFiles[2], loadedLevel2Api);
     	
@@ -214,33 +213,6 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	StringBuffer buffer = new StringBuffer();
     	testCompiledEnv.verboseDump = true;
     	testCompiledEnv.dump(buffer);
-    }
-
-    private BaseEnv loadEnvironment(String fortressFileName, boolean isApi) 
-                                    throws IOException, InstantiationException, IllegalAccessException {
-    	String className = "";
-    	if(isApi) {
-    		className = fortressFileName + TopLevelEnvGen.API_ENV_SUFFIX;
-    	}
-    	else {
-    		className = fortressFileName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
-    	}
-    	className = TopLevelEnvGen.mangleClassIdentifier(className);
-    	
-        SimpleClassLoader classLoader = new SimpleClassLoader();
-        File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +
-                                  File.separator + className + ".class");
-        byte[] bytecode = new byte[(int) classfile.length()];
-        FileInputStream classStream = new FileInputStream(classfile);
-        int read = classStream.read(bytecode);
-        if (read != classfile.length()) {
-            fail("Expected to read " + classfile.length() + " bytes but read " + read + " bytes instead.");
-        }
-
-        Class<?> generatedClass = classLoader.defineClass(className, bytecode);
-        BaseEnv envObject = (BaseEnv) generatedClass.newInstance();
-        
-        return(envObject);
     }
 
     private void compileTestProgram(String testFileName) {
