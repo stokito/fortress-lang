@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
@@ -128,7 +129,7 @@ public interface Environment  {
     public abstract FValue getValueNull(OpRef vr);
 
     public abstract FValue getValueNull(Id name, int l);
-    
+        
     public abstract FValue getValueNull(OpName name, int l);
     
     public abstract FValue getValue(Id name, int l);
@@ -265,4 +266,6 @@ public interface Environment  {
     public Environment getApi(List<Id> s);    
     public Environment getApiNull(String apiName);
     public void putApi(String apiName, Environment env);
+    
+    public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan);
 }

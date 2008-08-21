@@ -36,8 +36,8 @@ public class WellKnownNames {
     public final static String executableApi = "Executable";
     
     public static final String[] defaultLibrary =
-        { fortressLibrary,
-          "AnyType",
+        { anyTypeLibrary,
+          fortressLibrary,
           fortressBuiltin,
           //executableApi
         //  "NatReflect",
@@ -50,6 +50,8 @@ public class WellKnownNames {
     public final static String arrayPutter = "init";
     
     public final static String matrix = "Matrix";
+    
+    public static final String thread = "Thread";
 
     public final static String loop = "loop";
     public final static String generate = "__generate";

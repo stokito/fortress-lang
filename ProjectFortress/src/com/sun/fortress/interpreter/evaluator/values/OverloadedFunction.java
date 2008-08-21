@@ -774,7 +774,7 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.apply(args, loc, envForInference);
+        return best_f.apply(args, loc, best_f.getWithin()); // was envForInference
     }
 
      /**
@@ -819,7 +819,7 @@ public class  OverloadedFunction extends Fcn
             if (sfn instanceof GenericFunctionOrMethod) {
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) sfn;
                 try {
-                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, envForInference);
+                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, gsfn.getWithin()); // envForInference);
                     if (debugMatch)
                         System.err.println("Inferred from " + gsfn + " to " + sfn);
                 } catch (FortressException pe) {

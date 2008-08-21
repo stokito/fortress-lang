@@ -33,12 +33,12 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.Voidoid;
 
 public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     
     @Override
-    public Voidoid forAbsFnDecl(AbsFnDecl x) {
+    public Boolean forAbsFnDecl(AbsFnDecl x) {
+        Boolean change = Boolean.FALSE;
         // super.forAbsFnDecl(x);
         if (getPass() == 1) {
             // TODO the value obtained should be filtered.
@@ -47,19 +47,22 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
             if (fv != null) {
                 bindInto.putValueRaw(fname, fv);
+                change = Boolean.TRUE;
             } else {
-                exporter.missingExportedVars.put(fname);
+                api.unresolvedExports.add(x);
+                //exporter.missingExportedVars.put(fname);
             }
             valNames.add(fname);
             overloadNames.add(fname);
             exporter.overloadableExportedFunction.add(fname);
             api.overloadableExportedFunction.add(fname);
         }
-        return null;
+        return change;
     }
 
     @Override
-    public Voidoid forAbsObjectDecl(AbsObjectDecl x) {
+    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
+        Boolean change = Boolean.FALSE;
         // super.forAbsObjectDecl(x);
         if (getPass() == 1) {
             String fname = NodeUtil.stringName(x.getName());
@@ -77,22 +80,29 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             
             if (fv != null) {
                 bindInto.putValueRaw(fname, fv);
+                change = Boolean.TRUE;
             } else {
-                exporter.missingExportedVars.put(fname);
+                api.unresolvedExports.add(x);
+
+                //exporter.missingExportedVars.put(fname);
             }
             if (ft != null) {
                 bindInto.putType(fname, ft);
+                change = Boolean.TRUE;
             } else {
-                exporter.missingExportedTypes.put(fname);
+                api.unresolvedExports.add(x);
+
+                //exporter.missingExportedTypes.put(fname);
             }
             handlePossibleFM(x.getDecls());
             
         }
-        return null;
+        return change;
     }
 
     @Override
-    public Voidoid forAbsTraitDecl(AbsTraitDecl x) {
+    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
+        Boolean change = Boolean.FALSE;
         // super.forAbsTraitDecl(x);
         if (getPass() == 1) {
             String fname = NodeUtil.stringName(x.getName());
@@ -100,17 +110,20 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             FType ft = exporter.getEnvironment().getTypeNull(fname);
             if (ft != null) {
                 bindInto.putType(fname, ft);
+                change = Boolean.TRUE;
             } else {
-                exporter.missingExportedTypes.put(fname);
+                api.unresolvedExports.add(x);
+                //exporter.missingExportedTypes.put(fname);
             }
             handlePossibleFM(x.getDecls());
         }
-        return null;
+        return change;
     }
 
     @Override
-    public Voidoid forAbsVarDecl(AbsVarDecl x) {
+    public Boolean forAbsVarDecl(AbsVarDecl x) {
         // super.forAbsVarDecl(x);
+        Boolean change = Boolean.FALSE;
         
         if (getPass() == 1) {
             List<LValueBind> lhs = x.getLhs();
@@ -122,11 +135,13 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
 
             if (fv != null) {
                 bindInto.putValueRaw(sname, fv);
+                change = Boolean.TRUE;
             } else {
-                exporter.missingExportedVars.put(sname);
+                api.unresolvedExports.add(x);
+                //exporter.missingExportedVars.put(sname);
             }
         }
-        return null;
+        return change;
     }
 
     ComponentWrapper exporter;
@@ -160,7 +175,9 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
                 if (fv != null) {
                     bindInto.putValueRaw(s, fv);
                 } else {
-                    exporter.missingExportedVars.put(s);
+                    // TODO not handling this quite yet.
+                    
+                    //exporter.missingExportedVars.put(s);
                 }
             }
 

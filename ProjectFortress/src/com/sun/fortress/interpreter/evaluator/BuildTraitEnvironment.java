@@ -80,7 +80,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         e.putValueRaw(name, value);
     }
 
-    public Voidoid forVarDecl(VarDecl x) {
+    public Boolean forVarDecl(VarDecl x) {
         if (fields != null) {
             List<LValueBind> lhs = x.getLhs();
             for (LValueBind lvb : lhs) {

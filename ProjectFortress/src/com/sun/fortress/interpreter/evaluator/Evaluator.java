@@ -33,6 +33,7 @@ import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.NamedLabelException;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.tasks.BaseTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
@@ -103,6 +104,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.KeywordExpr;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
@@ -348,7 +350,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
                                               );
         } catch (AbortedException ae) {
-            FObject f = (FObject) e.getValue(WellKnownNames.tryatomicFailureException);
+            FObject f = (FObject) Driver.getFortressLibrary().getValue(WellKnownNames.tryatomicFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
         } catch (Exception e) {
@@ -546,7 +548,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // Evaluate the parameter
             FValue paramValue = param.unwrap().accept(this);
             // Assign a comparison function
-            Fcn fcn = (Fcn) e.getValue("=");
+            Fcn fcn = (Fcn) e.getValue(x.getEqualsOp());
             Option<OpRef> compare = x.getCompare();
             if (compare.isSome())
                 fcn = (Fcn) getOp(compare.unwrap());
@@ -561,7 +563,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 vargs.add(match);
                 if (Glue.extendsGenericTrait(match.type(),
                                              WellKnownNames.generatorTypeName)) {
-                    fcn = (Fcn) e.getValue(WellKnownNames.generatorMatchName);
+                    fcn = (Fcn) Driver.getFortressLibrary().getValue(WellKnownNames.generatorMatchName);
                 }
                 FBool success = (FBool) functionInvocation(vargs, fcn, c);
                 if (success.getBool())
@@ -572,7 +574,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO need an Else node to hang a location on
                 return forBlock(_else.unwrap());
             }
-            FObject f = (FObject) e.getValue(WellKnownNames.matchFailureException);
+            FObject f = (FObject) Driver.getFortressLibrary().getValue(WellKnownNames.matchFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
         }
@@ -920,6 +922,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forLooseJuxt(LooseJuxt x) {
+        return forJuxt(x);
+    }
+    public FValue forJuxt(Juxt x) {
         // This is correct except for one minor detail:
         // We should treat names from another scope as if they were functions.
         // Right now we evaluate them and make the function/non-function
@@ -930,7 +935,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (exprs.size() == 0)
             bug(x,"empty juxtaposition");
         try {
-            times = e.getValue("juxtaposition");
+            // times = e.getValue("juxtaposition");
+            times = e.getValueNull(x.getInfixJuxt());
         } catch (FortressException fe) {
             throw fe.setContext(x,e);
         }
@@ -1324,17 +1330,17 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return stepThree(stepTwo(vs, isPostfix), isPostfix);
     }
 
-    private FValue tightJuxt(FValue first, FValue second, MathItem loc) {
+    private FValue tightJuxt(FValue first, FValue second, MathItem loc, MathPrimary x) {
         if (isFunction(first)) return functionInvocation(second,(Fcn)first,loc);
         else return functionInvocation(Useful.list(first, second),
-                                       e.getValue("juxtaposition"), loc);
+                                       e.getValue(x.getInfixJuxt()), loc);
     }
 
-    private FValue leftAssociate(List<Pair<MathItem,FValue>> vs) {
+    private FValue leftAssociate(List<Pair<MathItem,FValue>> vs, MathPrimary x) {
         // vs.size() > 1
         FValue result = vs.get(0).getB();
         for (Pair<MathItem,FValue> i : IterUtil.skipFirst(vs)) {
-            result = tightJuxt(result, i.getB(), i.getA());
+            result = tightJuxt(result, i.getB(), i.getA(), x);
         }
         return result;
     }
@@ -1374,7 +1380,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // vs.size() > 1
                 // 4. Otherwise, left-associate the sequence, which has only
                 // expression elements, only the last of which may be a function.
-                fval = leftAssociate(reassociate(vs, isPostfix));
+                fval = leftAssociate(reassociate(vs, isPostfix), x);
         }
         return fval;
     }
@@ -1446,6 +1452,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return bug(x,"_RewriteFnRef with unexpected fn " + fn);
             }
         } else if (fcnExpr instanceof FnRef) {
+            // TODO this ought to be allowed.
             return bug(fcnExpr,"FnRefs are supposed to be gone from the AST \n" + x.toStringVerbose() );
         }
 
@@ -1466,7 +1473,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // When a tight juxtaposition is not a function application,
             // fake it as a loose juxtaposition.  It's clearly a hack.
             // Please fix it if you know how to do it.  -- Sukyoung
-            return forLooseJuxt(new LooseJuxt(x.getSpan(), x.getExprs()));
+            // Less of a hack now.  -- David
+            return forJuxt(x);
         }
     }
 
@@ -1564,10 +1572,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
             }
             for (BaseType forbidType : x.getForbid()) {
                 if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
-                  FType ftype = e.getTypeNull(WellKnownNames.forbiddenException);
+                    Environment libE = Driver.getFortressLibrary();
+                  FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException);
                   List<FValue> args = new ArrayList<FValue>();
                   args.add(exc.getException());
-                  Constructor c = (Constructor) e.getValue(WellKnownNames.forbiddenException);
+                  Constructor c = (Constructor) libE.getValue(WellKnownNames.forbiddenException);
                   // Can we get a better HasAt?
                   HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
                   FObject f = (FObject) c.apply(args, at, e);
@@ -1700,13 +1709,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFnRef(FnRef x) {
         Id name = x.getFns().get(0); //x.getOriginalName();
         FValue g = forIdOfRef(name);
+        bug("is this ever called?");
         return applyToActualStaticArgs(g,x.getStaticArgs(),x);
     }
 
     @Override
     public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
         Id name = that.getObj();
-        FValue g = forIdOfRef(name);
+        FValue g = forIdOfTLRef(name);
         
         if( that.getStaticArgs().isEmpty() )
             return g;
@@ -1717,6 +1727,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private FValue forIdOfRef(Id x) {
         String s = x.getText();
         FValue res = e.getValueNull(s);
+        if (res == null) {
+            error(x, e, errorMsg("undefined variable ", x));
+        }
+        return res;
+    }
+
+    private FValue forIdOfTLRef(Id x) {
+        FValue res = e.getValueNull(x, Environment.TOP_LEVEL);
         if (res == null) {
             error(x, e, errorMsg("undefined variable ", x));
         }

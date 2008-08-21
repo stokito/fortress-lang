@@ -128,8 +128,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
     public Voidoid forVarRef(VarRef x) {
         String s = x.getVar().getText();
-        Environment e = evaluator.e;
         
+        Environment e = evaluator.e.getHomeEnvironment(x.getVar());
         e = EvaluatorBase.toContainingObjectEnv(e, x.getLexicalDepth());
         
         FType ft = e.getVarTypeNull(s);

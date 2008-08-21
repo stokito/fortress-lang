@@ -18,7 +18,11 @@
 package com.sun.fortress.interpreter.env;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
@@ -29,6 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
+import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -59,7 +64,7 @@ public class ComponentWrapper {
      * store it here, in case it is found later (that is, imported into the 
      * component through some other API).
      */
-    public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    //public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
     /**
      * Any function that is exported, may be overloaded, and so any subsequently
      * discovered imports should also propagate.
@@ -70,7 +75,9 @@ public class ComponentWrapper {
      * case it is found later  (that is, imported into the component through
      * some other API).
      */
-    public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    //public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    
+    public Set<AbstractNode> unresolvedExports = new HashSet<AbstractNode>();
     
     // For debugging use/def annotation
     public BASet<String> topLevelUsesForDebugging;
@@ -99,8 +106,6 @@ public class ComponentWrapper {
         @Override
         public void visit(String t, Object u) {
             if (! overloadable(u)) {
-                if (t.equals(":"))
-                    System.err.println(": import of " + u);
                 ownNonFunctionNames.add(t);
             } 
             if (u instanceof FType || u instanceof FTypeGeneric) {
@@ -165,6 +170,10 @@ public class ComponentWrapper {
         return visitState == POPULATED;
     }
 
+    public Collection<ComponentWrapper> getExports() {
+        return exports.values();
+    }
+    
     public void getExports(boolean isLibrary) {
         if (visitState != UNVISITED)
             return;
@@ -214,6 +223,10 @@ public class ComponentWrapper {
         
         for (String implicitLibraryName : implicitLibs) {
             be.importAPIName(implicitLibraryName);
+        }
+        
+        for (ComponentWrapper api: exports.values()) {
+            be.importAPIName(api.name());
         }
         
         for (ComponentWrapper api: exports.values()) {

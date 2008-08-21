@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.BATree;
@@ -418,6 +419,10 @@ public class ExprFactory {
         return makeVarRef(NodeFactory.makeId(s));
     }
 
+    public static VarRef makeVarRef(String api_s, String local_s) {
+        return makeVarRef(NodeFactory.makeId(api_s, local_s));
+    }
+
     public static VarRef makeVarRef(Span sp, Id id) {
         return new VarRef(sp, false, id);
     }
@@ -611,8 +616,15 @@ public class ExprFactory {
         return new Throw(makeVarRef(st));
     }
 
+    /**
+     * Throws a standard (FortressLibrary) exception
+     * @param sp
+     * @param st
+     * @return
+     */
     public static Throw makeThrow(Span sp, String st) {
-        return new Throw(sp, makeVarRef(sp, st));
+        Id id = NodeFactory.makeId(sp, WellKnownNames.fortressLibrary, st);
+        return new Throw(sp, makeVarRef(sp, id));
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,

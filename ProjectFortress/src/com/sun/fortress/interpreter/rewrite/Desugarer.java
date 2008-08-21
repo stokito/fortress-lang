@@ -265,24 +265,6 @@ public class Desugarer extends Rewrite {
             return optionTypeIsArrow(that.getType());
         }
 
-//        /* (non-Javadoc)
-//         * @see com.sun.fortress.nodes.NodeAbstractVisitor#forAbsVarDecl(com.sun.fortress.nodes.AbsVarDecl)
-//         */
-//        @Override
-//        public Boolean forAbsVarDecl(AbsVarDecl that) {
-//            // TODO Auto-generated method stub
-//            return super.forAbsVarDecl(that);
-//        }
-//
-//        /* (non-Javadoc)
-//         * @see com.sun.fortress.nodes.NodeAbstractVisitor#forVarDecl(com.sun.fortress.nodes.VarDecl)
-//         */
-//        @Override
-//        public Boolean forVarDecl(VarDecl that) {
-//            // TODO Auto-generated method stub
-//            return super.forVarDecl(that);
-//        }
-
         /* (non-Javadoc)
          * @see com.sun.fortress.nodes.NodeAbstractVisitor#forAbsFnDecl(com.sun.fortress.nodes.AbsFnDecl)
          */
@@ -727,7 +709,7 @@ public class Desugarer extends Rewrite {
                 	// remove these nodes and they should never appear at this
                 	// phase of execution. However, now we simply create an OpExpr.
                 	AmbiguousMultifixOpExpr op = (AmbiguousMultifixOpExpr)node;
-                	node = new OpExpr(op.getSpan(), op.isParenthesized(), op.getMultifix_op(), op.getArgs());
+                	node = new OpExpr(op.getSpan(), op.isParenthesized(), op.getInfix_op(), op.getArgs());
                 } else if (node instanceof _RewriteFnRef) {
 
                     _RewriteFnRef fr = (_RewriteFnRef) node;
@@ -1048,8 +1030,8 @@ public class Desugarer extends Rewrite {
 
     private String vrToString(VarRef vre) {
         Iterable<Id> ids = NodeUtil.getIds(vre.getVar());
-
-        String s = IterUtil.first(ids).getText();
+        // TODO this omits the leading API name
+        String s = IterUtil.last(ids).getText();
         return s;
     }
 
@@ -1104,7 +1086,7 @@ public class Desugarer extends Rewrite {
             args.add(bindsAndBody(g,c.getBody()));
             if (elsePart != null) args.add(thunk(elsePart));
             return new TightJuxt(c.getSpan(), false,
-                                 Useful.list(COND_NAME,
+                                 Useful.list(Q_COND_NAME,
                                              ExprFactory.makeTuple(c.getSpan(),args)));
         }
         // if expr then body else elsePart end is preserved
@@ -1130,7 +1112,7 @@ public class Desugarer extends Rewrite {
             args.add(bindsAndBody(g,w.getBody()));
             Expr cond =
                 new TightJuxt(g.getSpan(), false,
-                              Useful.list(WHILECOND_NAME,
+                              Useful.list(Q_WHILECOND_NAME,
                                           ExprFactory.makeTuple(w.getSpan(),args)));
             w = ExprFactory.makeWhile(w.getSpan(),cond);
         }
@@ -1195,7 +1177,6 @@ public class Desugarer extends Rewrite {
                 NodeUtil.dump(System.err, n);
                 System.err.println();
             } catch (IOException ex) {
-                // TODO Auto-generated catch block
                 ex.printStackTrace();
             }
 
@@ -1292,7 +1273,6 @@ public class Desugarer extends Rewrite {
 
         @Override
         public void forExtentRange(ExtentRange that) {
-            // TODO Auto-generated method stub
             super.forExtentRange(that);
         }
 
@@ -1465,7 +1445,10 @@ public class Desugarer extends Rewrite {
                    // TODO Way too many types; deal with them as necessary.
                     bug(t, errorMsg("Object extends something exciting: ", t));
                 }
-                if (name.getApi().isNone()) {
+                boolean hasApi = name.getApi().isSome();
+                // The map is not consistent; the stored names lack API qualifiers.
+                // TODO fix this inconsistency.
+                if (true || !hasApi) {
                     // TODO we've got to generalize this to qualified names.
                     String s = name.getText();
                     Thing th;
@@ -1606,9 +1589,9 @@ public class Desugarer extends Rewrite {
 
         AbstractNode rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, new Id("Thread"));
+        Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin, WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new VarType(sp, new Id("Any"))));
+        args.add(new TypeArg(new VarType(sp, NodeFactory.makeId(WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName))));
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 
@@ -1659,7 +1642,7 @@ public class Desugarer extends Rewrite {
                                         ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
             LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
             Option<Expr> _pre = e.getPre();
-            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef("true")),
+            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, "true")),
                                                                      ExprFactory.makeBlock(sp, r));
             b = ExprFactory.makeBlock(sp, provided_lvd);
         }
@@ -1674,7 +1657,7 @@ public class Desugarer extends Rewrite {
             Id t2 = gensymId("t2");
 
             Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
-                                                          new Op("="),
+                                                          NodeFactory.makeOpInfix(sp, WellKnownNames.fortressLibrary, "="), // new Op("="),
                                                           (Expr) ExprFactory.makeVarRef(sp, t2));
             GeneratorClause gen_chain = ExprFactory.makeGeneratorClause(sp,
                                                                         Useful.<Id>list(), chain);

@@ -23,6 +23,7 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
 
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.types.Bool;
 import com.sun.fortress.interpreter.evaluator.types.BoolType;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
@@ -44,6 +45,7 @@ import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -533,7 +535,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
         TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.accept(evalIndices());
         List<TypeRange> ltr = f_indices.getRanges();
-        return Glue.instantiateGenericType(env, "Array" + ltr.size(), elt_type, ltr, x);
+        return Glue.instantiateGenericType(Driver.getFortressLibrary(), WellKnownNames.arrayTrait(ltr.size()), elt_type, ltr, x);
     }
 
     @Override
