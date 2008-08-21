@@ -20,15 +20,19 @@ package com.sun.fortress.compiler.desugarer;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.useful.Debug;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public final class FreeNameCollection {
 
@@ -49,8 +53,18 @@ public final class FreeNameCollection {
     // type param
     private List<VarType> freeVarTypes = new LinkedList<VarType>();
 
-    public final static FreeNameCollection EMPTY = new FreeNameCollection();
+    // free variable references that are mutable - subset of freeVarRefs
+    // This is set later via a call made by FreeNameCollector
+    private List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
+
+    // This is only set via a call made by FreeNameCollector;
+    // The enclosingSelfType only exists if the corresponding objectExpr is
+    // enclosed by an ObjectDecl
+    private Option<Type> enclosingSelfType = Option.<Type>none();
+
     private static final int DEBUG_LEVEL = 1;
+
+    public final static FreeNameCollection EMPTY = new FreeNameCollection();
 
     /* side effect on _this_ list but not the other list */
     public FreeNameCollection composeResult(FreeNameCollection other) {
@@ -64,7 +78,33 @@ public final class FreeNameCollection {
         this.freeBoolRefs.addAll(other.freeBoolRefs);
         this.freeVarTypes.addAll(other.freeVarTypes);
 
+        this.freeMutableVarRefs.addAll(other.freeMutableVarRefs);
+        
+        if( other.enclosingSelfType.isSome() ) {
+            this.enclosingSelfType = 
+                Option.<Type>some( other.enclosingSelfType.unwrap() );
+        }
+
         return this;
+    }
+
+    public boolean isMutable(VarRef var) {
+        if( freeMutableVarRefs == null ) {
+            throw new DesugarerError("The list freeMutableVarRefs is not set!");
+        }
+        return freeMutableVarRefs.contains(var); 
+    } 
+
+    public Option<Type> getEnclosingSelfType() {
+        return enclosingSelfType;
+    }
+
+    public void setEnclosingSelfType(Option<Type> enclosingSelfType) {
+        this.enclosingSelfType = enclosingSelfType;
+    }
+
+    public void setFreeMutableVarRefs(List<VarRef> freeMutableVarRefs) {
+        this.freeMutableVarRefs = freeMutableVarRefs;
     }
 
     /* Make copies of all the lists; only the lists themselves are
@@ -121,7 +161,8 @@ public final class FreeNameCollection {
                 this.freeUnitRefs.equals( other.freeUnitRefs ) &&
                 this.freeIntRefs.equals( other.freeIntRefs ) &&
                 this.freeBoolRefs.equals( other.freeBoolRefs ) &&
-                this.freeVarTypes.equals( other.freeVarTypes ) );
+                this.freeVarTypes.equals( other.freeVarTypes ) && 
+                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) ); 
     }
 
     public FreeNameCollection add(VarRef n) {
@@ -198,6 +239,7 @@ public final class FreeNameCollection {
         debugList(target.freeIntRefs);
         debugList(target.freeBoolRefs);
         debugList(target.freeVarTypes);
+        debugList(target.freeMutableVarRefs);
     }
 
     public String toString() {
@@ -219,17 +261,19 @@ public final class FreeNameCollection {
         if( freeBoolRefs.isEmpty() == false )
             retS += "freeBoolRefs: " + freeBoolRefs.toString() + "\n";
         if( freeVarTypes.isEmpty() == false )
-            retS += "freeVarTypes: " + freeVarTypes.toString() + "\nA";
+            retS += "freeVarTypes: " + freeVarTypes.toString() + "\n";
+        if( freeMutableVarRefs.isEmpty() == false )
+            retS += "freeMutableVarRefs: " + freeMutableVarRefs.toString();
 
         return retS;
     }
 
     private static <T> void debugList(List<T> list) {
         if( list.isEmpty() ) return;
-
         for(T elt : list) {
             Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, elt);
         }
     }
 
 }
+

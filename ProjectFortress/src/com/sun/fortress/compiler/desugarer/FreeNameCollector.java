@@ -214,9 +214,18 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         objExprStack.pop();
         scopeStack.pop();
 
-        objExprToFreeNames.put( that.getSpan(), freeNames.makeCopy() );
+        if( objExprStack.isEmpty() && enclosingObjectDecl != null ) {
+            // use the "self" id to get the right type of the
+            // enclosing object / trait decl
+            Option<Type> type = 
+                typeCheckerOutput.getTypeEnv(that).type( new Id("self") );
+            freeNames.setEnclosingSelfType(type);
+        }
 
-        List<VarRef> mutableVars = filterFreeMutableVarRefs(that, freeNames);
+        List<VarRef> mutableVars = 
+            filterFreeMutableVarRefs( that, freeNames.getFreeVarRefs() );
+        freeNames.setFreeMutableVarRefs(mutableVars);
+        objExprToFreeNames.put( that.getSpan(), freeNames.makeCopy() );
 
         // Update the declsToVarRefs list 
         if(mutableVars != null) {
@@ -583,8 +592,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	}
 	
     private List<VarRef> filterFreeMutableVarRefs(ObjectExpr objExpr,
-                                        FreeNameCollection freeNames) {
-        List<VarRef> freeVarRefs = freeNames.getFreeVarRefs(); 
+                                                  List<VarRef> freeVarRefs) {
         List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
         TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
         

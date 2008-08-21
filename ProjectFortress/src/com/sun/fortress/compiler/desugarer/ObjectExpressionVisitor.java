@@ -417,16 +417,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
-                TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
-                Option<Boolean> mutableOp = typeEnv.mutable( var.getVar() ); 
-                if( mutableOp.isNone() ) {
-                    throw new DesugarerError(objExpr.getSpan(), 
-                        "Can't find " + var.getVar() + " in typeEnv for " 
-                        + objExpr);
-                }
-
-                boolean isMutable = mutableOp.unwrap().booleanValue(); 
-                if(isMutable) {
+                if( freeNames.isMutable(var) ) { 
                     VarRefContainer container =
                         mutableVarRefContainerMap.get(var);
                     if(container != null) {
@@ -474,19 +465,19 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<StaticParam> staticParams =
             makeStaticParamsForLiftedObj(freeNames);
         List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
-        // FIXME: need to rewrite all decls w/ the freeNames.
         List<Decl> decls = target.getDecls();
-
-        NormalParam enclosingSelf = null;
-        Option<List<Param>> params = null;
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
-        // FIXME: Temp hack to use Map<Span,TypeEnv>
-        // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
-        TypeEnv typeEnv = typeCheckerOutput.getTypeEnv( scopeStack.peek() );
-        enclosingSelf = makeEnclosingSelfParam(typeEnv, target, freeMethodRefs);
 
-        params = makeParamsForLiftedObj(target, freeNames, 
-                                        typeEnv, enclosingSelf);
+        Option<List<Param>> params = null;
+        NormalParam enclosingSelf = null;
+        if( freeMethodRefs.isEmpty() == false ) {
+            // Use the span for the obj expr that we are lifting
+            // FIXME: Is this the right span to use??
+            enclosingSelf = makeEnclosingSelfParam( target.getSpan(), 
+                                        freeNames.getEnclosingSelfType() );
+        }
+
+        params = makeParamsForLiftedObj(target, freeNames, enclosingSelf);
         /* Use default value for modifiers, where clauses,
            throw clauses, contract */
         ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams,
@@ -505,8 +496,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     private Option<List<Param>>
-    makeParamsForLiftedObj(ObjectExpr target, FreeNameCollection freeNames,
-                           TypeEnv typeEnv, NormalParam enclosingSelfParam) {
+    makeParamsForLiftedObj(ObjectExpr target, 
+                           FreeNameCollection freeNames,
+                           NormalParam enclosingSelfParam) {
         // TODO: need to figure out shadowed self via FnRef
         // need to box any var that's mutabl
 
@@ -519,16 +511,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
-                Option<Boolean> mutableOp = typeEnv.mutable( var.getVar() ); 
-                if( mutableOp.isNone() ) {
-                    throw new DesugarerError(target.getSpan(), 
-                        "Can't find " + var.getVar() + " in typeEnv for " 
-                        + target);
-                }
-
-                boolean isMutable = mutableOp.unwrap().booleanValue(); 
-
-                if(isMutable) {
+                if( freeNames.isMutable(var) ) {
                     VarRefContainer container =
                         mutableVarRefContainerMap.get(var);
                     if(container != null) {
@@ -542,7 +525,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // Default value for modifier and default expression
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
-                    type = typeEnv.type(var.getVar());
+                    type = var.getExprType();
                     param = new NormalParam(var.getSpan(), var.getVar(), type);
                     params.add(param);
                 }
@@ -554,7 +537,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // Default value for modifier and default expression
                 // FIXME: What if it has a type that's not visible at top level?
                 // FIXME: what span should I use?
-                type = typeEnv.type(fn.getOriginalName());
+                type = fn.getExprType();
                 param = new NormalParam(fn.getSpan(),
                                         fn.getOriginalName(), type);
                 params.add(param);
@@ -569,32 +552,20 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
 
-    private NormalParam makeEnclosingSelfParam(TypeEnv typeEnv,
-                                               ObjectExpr objExpr,
-                                               List<FnRef> freeMethodRefs) {
-        Option<Type> type;
+    private NormalParam makeEnclosingSelfParam(Span paramSpan,
+                                        Option<Type> enclosingSelfType) {
         NormalParam param = null;
 
-        if(freeMethodRefs != null && freeMethodRefs.size() != 0) {
-            // Just sanity check
-            if(enclosingTraitDecl == null && enclosingObjectDecl == null) {
-                throw new DesugarerError("No enclosing trait or object " +
-                            "decl found when a dotted method is referenced.");
-            }
-
-            // Use the span for the obj expr that we are lifting
-            // FIXME: Is this the right span to use??
-            Span paramSpan = objExpr.getSpan();
-
-            // use the "self" id to get the right type of the
-            // enclosing object / trait decl
-            type = typeEnv.type( new Id("self") );
-
-            // id of the newly created param for implicit self
-            Id enclosingParamId = NodeFactory.makeId(paramSpan,
-                    MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
-            param = new NormalParam(paramSpan, enclosingParamId, type);
+        // Just sanity check
+        if(enclosingTraitDecl == null && enclosingObjectDecl == null) {
+            throw new DesugarerError("No enclosing trait or object " +
+                        "decl found when a dotted method is referenced.");
         }
+
+        // id of the newly created param for implicit self
+        Id enclosingParamId = NodeFactory.makeId(paramSpan,
+                MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
+        param = new NormalParam(paramSpan, enclosingParamId, enclosingSelfType);
 
         return param;
     }
