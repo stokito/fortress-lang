@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
@@ -62,25 +63,25 @@ public class TypeAnalyzer {
     private static final int MAX_SUBTYPE_EXPANSIONS = 4;
 
     private final TraitTable _table;
-    //private final StaticParamEnv _staticParamEnv;
+    private final TypeEnv _typeEnv;
     private final SubtypeCache _cache;
     private final SubtypeHistory _emptyHistory;
 
     public TypeAnalyzer(TraitTable table) {
-        this(table, //StaticParamEnv.make(), 
-                RootSubtypeCache.INSTANCE);
+        this(table, TypeEnv.make(), RootSubtypeCache.INSTANCE);
         validateEnvironment();
     }
 
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table, //enclosing._staticParamEnv.extend(params, whereClause), 
-                enclosing._cache);
+        this(enclosing._table, 
+             enclosing._typeEnv.extendWithStaticParams(params),
+             enclosing._cache);
     }
 
-    private TypeAnalyzer(TraitTable table, //StaticParamEnv staticParamEnv, 
+    private TypeAnalyzer(TraitTable table, TypeEnv typeEnv, 
             SubtypeCache parentCache) {
         _table = table;
-        //_staticParamEnv = staticParamEnv;
+        _typeEnv = typeEnv;
         _cache = new ChildSubtypeCache(parentCache);
         _emptyHistory = new SubtypeHistory();
     }
@@ -683,19 +684,68 @@ public class TypeAnalyzer {
         return f;
     }
 
-    private ConstraintFormula varSub(VarType s, Type t, SubtypeHistory h) {
-        // TODO
-        return FALSE;
+    private ConstraintFormula varSub(VarType s, final Type t, final SubtypeHistory h) {
+        Option<StaticParam> param = _typeEnv.staticParam(s.getName());
+        
+        if( param.isNone() )
+            return bug("We are being asked about some type that is not in scope.");
+        
+        return 
+        param.unwrap().accept(new NodeAbstractVisitor<ConstraintFormula>() {
+            @Override
+            public ConstraintFormula defaultCase(Node that) {
+                // TODO: Implement other type of params, BoolParams, Dim, etc.
+                return FALSE;
+            }
+
+            @Override
+            public ConstraintFormula forTypeParam(TypeParam that) {
+                ConstraintFormula result = FALSE;
+                for( BaseType ty : that.getExtendsClause() ) {
+                    result = result.or(sub(ty, t, h), h);
+                    if( result.isTrue() ) return result;
+                }
+                return result;
+            }
+            
+        });
     }
 
     private ConstraintFormula subVar(Type s, VarType t, SubtypeHistory h) {
-        // TODO
+        // Without upper bounds on a type, must always be false.
         return FALSE;
     }
 
     private ConstraintFormula varSubVar(VarType s, VarType t, SubtypeHistory h) {
-        // TODO
-        return FALSE;
+        if( s.equals(t) ) {
+            return TRUE;
+        }
+        else {
+            Option<StaticParam> t_param_ = _typeEnv.staticParam(t.getName());
+            Option<StaticParam> s_param_ = _typeEnv.staticParam(s.getName());
+            
+            if( t_param_.isNone() || s_param_.isNone() )
+                return bug("We are being asked about types that are not in scope.");
+            
+            if( t_param_.unwrap() instanceof TypeParam && s_param_.unwrap() instanceof TypeParam ) {
+                TypeParam t_p = (TypeParam)t_param_.unwrap();
+                TypeParam s_p = (TypeParam)s_param_.unwrap();
+                
+                ConstraintFormula result = FALSE;
+                
+                for( BaseType t_ty : t_p.getExtendsClause() ) {
+                    for( BaseType s_ty : s_p.getExtendsClause()) {
+                        result = result.or(sub(t_ty,s_ty,h), h);
+                    }
+                    if( result.isTrue() ) return result;
+                }
+                return result;
+            }
+            else {
+                // TODO Implement for other types of parameters
+                return FALSE;
+            }
+        }
     }
 
     private ConstraintFormula intersectionSubVar(IntersectionType s, VarType t,

@@ -18,8 +18,12 @@
 component SelfTypeTest
   export Executable
 
+  (* In this end, this test is somewhat less interesting than I'd hoped:
+     The idiom I was trying to copy from the libraries was in fact incorrectly
+     typed. In muchLessThan, the type of other needs to be APO[\Self\] rather
+     than Self. *)
   trait AwesomePartialOrder[\Self extends AwesomePartialOrder[\Self\]\]
-    muchLessThan(self, other:Self):Boolean = true
+    muchLessThan(self, other:AwesomePartialOrder[\Self\]):Boolean = true
 
     foo(self, other:Self):Boolean = muchLessThan(other, self)
   end
