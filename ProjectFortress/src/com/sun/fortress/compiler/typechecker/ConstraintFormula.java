@@ -64,6 +64,8 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class ConstraintFormula {
 
 	// Created as the result of calling 'solve()'
+    
+    
 	private static class SolvedFormula extends ConstraintFormula {
 		private final Map<_InferenceVarType, Type> inferredTypes;			
 		final private SubtypeHistory history;
@@ -112,6 +114,55 @@ public abstract class ConstraintFormula {
 			return bug("Once constraint has been solved, this should not be called");
 		}
 	}
+	
+	private static class PartiallySolvedFormula extends ConstraintFormula {
+        private final Map<_InferenceVarType, Type> inferredTypes;           
+        final private SubtypeHistory history;
+        
+        public PartiallySolvedFormula(Map<_InferenceVarType, Type> inferred_types, SubtypeHistory history) {
+            this.inferredTypes = inferred_types;
+            this.history = history;
+        }
+
+        @Override
+        public ConstraintFormula and(ConstraintFormula c,
+                SubtypeHistory history) { 
+            return bug("Once constraint has been solved, this should not be called"); 
+        }
+
+        @Override
+        public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) {
+            return bug("Once constraint has been solved, this should not be called");
+        }
+
+        // For this implementation, getMap() actually does hard work! It
+        // implements section 20.3 of the specification.
+        @Override
+        public Map<_InferenceVarType, Type> getMap() {
+            Map<_InferenceVarType, Type> result = new HashMap<_InferenceVarType, Type>();
+            // for each inferred type
+            for( Map.Entry<_InferenceVarType, Type> entry : inferredTypes.entrySet() ) {
+                result.put(entry.getKey(), closestExpressibleType(entry.getValue()));
+            }
+
+            return result;
+        }
+
+        private Type closestExpressibleType(Type value) {
+            // TODO: As of 8/12/08 discussion w/ EA, we won't actually do
+            // closest expressible types. Just normalize, then simplify.
+            return history.normalize(value);
+        }
+
+        @Override public boolean isFalse() { return true; }
+        @Override public boolean isTrue() { return false; }
+
+        @Override
+        public ConstraintFormula or(ConstraintFormula c,
+                SubtypeHistory history) {
+            return bug("Once constraint has been solved, this should not be called");
+        }
+    }
 	
     /**
      * A conjunction of a number of binding constraints on inference variables.
@@ -408,15 +459,18 @@ public abstract class ConstraintFormula {
 			
 			//5.) The inferred type is the intersection of its expanded lower and upper bounds
 			Map<_InferenceVarType,Type> inferred_types = new HashMap<_InferenceVarType,Type>();
+			boolean solvable = true;
 			for( _InferenceVarType ivar : ivars ) {
 				if( lubs.containsKey(ivar) && glbs.containsKey(ivar) ) {
 					Type lub = lubs.get(ivar);
 					Type glb = glbs.get(ivar);
-					if( this.history.subtypeNormal(glb, lub).equals(FALSE) ) {
-						return FALSE;
+					if( this.history.subtypeNormal(glb, lub).isFalse() ){
+					    solvable = false;
+					    //return FALSE;
 					}
-					
-					inferred_types.put(ivar, NodeFactory.makeIntersectionType(lubs.get(ivar), glbs.get(ivar)));
+					else{
+					    inferred_types.put(ivar, NodeFactory.makeIntersectionType(lubs.get(ivar), glbs.get(ivar)));
+					}
 				}
 				else if( lubs.containsKey(ivar) ) {
 					inferred_types.put(ivar, lubs.get(ivar));
@@ -428,8 +482,12 @@ public abstract class ConstraintFormula {
 					return bug("Is this a bug?");
 				}
 			}
-			
-			return new SolvedFormula(inferred_types, history);
+			if(solvable){
+			    return new SolvedFormula(inferred_types, history);
+			}
+			else{
+			    return new PartiallySolvedFormula(inferred_types, history);
+			}
 		}
 		
 		private Map<_InferenceVarType,Type> solveHelper(Set<_InferenceVarType> ivars, 
