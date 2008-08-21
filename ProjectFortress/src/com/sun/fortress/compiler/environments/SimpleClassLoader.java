@@ -34,12 +34,12 @@ public class SimpleClassLoader extends ClassLoader {
 
     public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi) 
                                     throws IOException, InstantiationException, IllegalAccessException {
-    	String className = "";
+    	String className = fortressFileName;
     	if(isApi) {
-    		className = fortressFileName + TopLevelEnvGen.API_ENV_SUFFIX;
+    		className += TopLevelEnvGen.API_ENV_SUFFIX;
     	}
     	else {
-    		className = fortressFileName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
+    		className += TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
     	}
     	className = TopLevelEnvGen.mangleClassIdentifier(className);
     	
