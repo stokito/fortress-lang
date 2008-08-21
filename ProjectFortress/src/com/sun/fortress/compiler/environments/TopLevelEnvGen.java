@@ -266,24 +266,36 @@ public class TopLevelEnvGen {
     								EnvSymbolNames symbolNames) {
 
         // Create all variables as fields in the environment
-        for(Id id : compUnitIndex.variables().keySet()) {
+        Set<String> idStringSet = new HashSet<String>();
+        for(Id id : compUnitIndex.variables().keySet()) {                        
             String idString = NodeUtil.nameString(id);
+            idStringSet.add(idString);            
+        }
+        for(String idString : idStringSet) {
             symbolNames.add(EnvironmentClass.FVALUE, idString);
             idString = idString + EnvironmentClass.FVALUE.namespace();
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();
         }
 
         // Create all functions as fields in the environment
+        idStringSet.clear();
         for(IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
             String idString = NodeUtil.nameString(id);
+            idStringSet.add(idString);            
+        }        
+        for(String idString : idStringSet) {
             symbolNames.add(EnvironmentClass.FVALUE, idString);
             idString = idString + EnvironmentClass.FVALUE.namespace();
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();
         }
 
         // Create all types as fields in the environment
+        idStringSet.clear();
         for(Id id : compUnitIndex.typeConses().keySet()) {
             String idString = NodeUtil.nameString(id);
+            idStringSet.add(idString);                        
+        }
+        for(String idString : idStringSet) {
             symbolNames.add(EnvironmentClass.FTYPE, idString);
             idString = idString + EnvironmentClass.FTYPE.namespace();
             cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FTYPE.descriptor(), null, null).visitEnd();
