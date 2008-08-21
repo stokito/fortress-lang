@@ -26,6 +26,7 @@ import java.util.Stack;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.typechecker.TraitTable;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.exceptions.DesugarerError;
@@ -39,7 +40,7 @@ import edu.rice.cs.plt.tuple.Pair;
 public final class 
 FreeNameCollector extends NodeDepthFirstVisitor_void {
 
-	private Map<Span,TypeEnv> typeEnvAtNode;
+	private TypeCheckerOutput typeCheckerOutput;
 	// A stack keeping track of all nodes that can create new scope 
 	private Stack<Node> scopeStack;
 	// A stack keeping track of (potentially nested) object exprs 
@@ -85,9 +86,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	// (call it O), if it is not declared within the body of O, not 
     // inherited by O, AND not declared in top level environment.
 	public FreeNameCollector(TraitTable traitTable, 
-                             Map<Span,TypeEnv> typeEnvAtNode) {
+                             TypeCheckerOutput typeCheckerOutput) {
 		this.traitTable = traitTable;
-		this.typeEnvAtNode = typeEnvAtNode;
+		this.typeCheckerOutput = typeCheckerOutput;
 		this.scopeStack = new Stack<Node>();
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
@@ -219,7 +220,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         // Update the declsToVarRefs list 
         if(mutableVars != null) {
-            TypeEnv typeEnv = typeEnvAtNode.get( that.getSpan() );
+            TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(that);
 
             for(VarRef var : mutableVars) {
             	Option<Node> declNodeOp = typeEnv.declarationSite(var.getVar());
@@ -495,7 +496,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         // FIXME: change if TypeCheckerResult.getTypeEnv(Span) is done 
         ObjectExpr innerMostObjExpr = objExprStack.peek();
         Span objExprSpan =  innerMostObjExpr.getSpan();
-		TypeEnv objExprTypeEnv = typeEnvAtNode.get(objExprSpan);
+		TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(innerMostObjExpr);
 		
         if(objExprTypeEnv == null) {
             throw new DesugarerError( objExprSpan, 
@@ -546,7 +547,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		
 		// FIXME: change if going back to Pair<Node,Span> key
         // FIXME: change when the type checking ppl are done w/ getTypeEnv
-		TypeEnv topLevelEnv = typeEnvAtNode.get(topLevelNode.getSpan());
+		TypeEnv topLevelEnv = typeCheckerOutput.getTypeEnv(topLevelNode);
 
 		if(topLevelEnv == null) {
 		    throw new DesugarerError("TypeEnv associated with " 
@@ -585,7 +586,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                                         FreeNameCollection freeNames) {
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs(); 
         List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
-        TypeEnv typeEnv = typeEnvAtNode.get( objExpr.getSpan() );
+        TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
         
         for(VarRef var : freeVarRefs) {
             Option<Boolean> isMutable = typeEnv.mutable( var.getVar() );
