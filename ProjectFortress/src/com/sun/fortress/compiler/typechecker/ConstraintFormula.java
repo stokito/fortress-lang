@@ -42,6 +42,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.SourceLoc;
+import com.sun.fortress.useful.IMultiMap;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Useful;
 
@@ -119,38 +120,38 @@ public abstract class ConstraintFormula {
     public static class ConjunctiveFormula extends ConstraintFormula {
     	final private SubtypeHistory history;
     	
-    	final private MultiMap<_InferenceVarType,Type> ivarLowerBounds;
+    	final private IMultiMap<_InferenceVarType,Type> ivarLowerBounds;
     	
-    	final private MultiMap<_InferenceVarType,Type> ivarUpperBounds;
+    	final private IMultiMap<_InferenceVarType,Type> ivarUpperBounds;
     	
-    	private ConjunctiveFormula(MultiMap<_InferenceVarType,Type> ivarUpperBounds,
-    			MultiMap<_InferenceVarType,Type> ivarLowerBounds, SubtypeHistory h) {
+        private ConjunctiveFormula(IMultiMap<_InferenceVarType,Type> ivarUpperBounds,
+                IMultiMap<_InferenceVarType,Type> ivarLowerBounds, SubtypeHistory h) {
 
-    		MultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
-    		MultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
-    		for(Map.Entry<_InferenceVarType,Set<Type>> entry: ivarUpperBounds.entrySet()){
-    			_InferenceVarType ivar = entry.getKey();
-    			Set<Type> uppers = entry.getValue();
-    			for(Type t: uppers){
-    				if(t instanceof _InferenceVarType){
-    					newlowers.putItem((_InferenceVarType)t, ivar);
-    				}
-    			}
-    		}
-    		for(Map.Entry<_InferenceVarType,Set<Type>> entry: ivarLowerBounds.entrySet()){
-    			_InferenceVarType ivar = entry.getKey();
-    			Set<Type> lowers = entry.getValue();
-    			for(Type t: lowers){
-    				if(t instanceof _InferenceVarType){
-    					newuppers.putItem((_InferenceVarType)t, ivar);
-    				}
-    			}
-    		}	
+            IMultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
+            IMultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
+            for(Map.Entry<_InferenceVarType,Set<Type>> entry: ivarUpperBounds.entrySet()){
+                _InferenceVarType ivar = entry.getKey();
+                Set<Type> uppers = entry.getValue();
+                for(Type t: uppers){
+                    if(t instanceof _InferenceVarType){
+                        newlowers.putItem((_InferenceVarType)t, ivar);
+                    }
+                }
+            }
+            for(Map.Entry<_InferenceVarType,Set<Type>> entry: ivarLowerBounds.entrySet()){
+                _InferenceVarType ivar = entry.getKey();
+                Set<Type> lowers = entry.getValue();
+                for(Type t: lowers){
+                    if(t instanceof _InferenceVarType){
+                        newuppers.putItem((_InferenceVarType)t, ivar);
+                    }
+                }
+            }	
 
-    		this.ivarLowerBounds = newlowers;
-    		this.ivarUpperBounds = newuppers;
-    		history = h;
-    	}
+            this.ivarLowerBounds = Useful.shrinkMultiMap(newlowers);
+            this.ivarUpperBounds = Useful.shrinkMultiMap(newuppers);
+            history = h;
+        }
     	
     	@Override
 		public ConstraintFormula and(ConstraintFormula c, SubtypeHistory history) {
@@ -163,8 +164,8 @@ public abstract class ConstraintFormula {
     	    	
 		@Override
 		public ConjunctiveFormula applySubstitution(final Lambda<Type, Type> sigma) {
-			MultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
-			MultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
+			IMultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
+			IMultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
 			for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarUpperBounds.entrySet() ) {
 				_InferenceVarType ivar = entry.getKey();
 				Set<Type> u_bounds = entry.getValue();
@@ -248,8 +249,8 @@ public abstract class ConstraintFormula {
 		
 		// Combine the upper and lower bounds for each inference variable
 		private ConjunctiveFormula merge(ConjunctiveFormula c, SubtypeHistory hist) {
-			MultiMap<_InferenceVarType,Type> new_upper_bounds = new MultiMap<_InferenceVarType,Type>();
-			MultiMap<_InferenceVarType,Type> new_lower_bounds = new MultiMap<_InferenceVarType,Type>();
+			IMultiMap<_InferenceVarType,Type> new_upper_bounds = new MultiMap<_InferenceVarType,Type>();
+			IMultiMap<_InferenceVarType,Type> new_lower_bounds = new MultiMap<_InferenceVarType,Type>();
 			
 			Set<_InferenceVarType> all_ivars = CollectUtil.union(ivarUpperBounds.keySet(), 
                                                                  c.ivarUpperBounds.keySet());
@@ -309,8 +310,8 @@ public abstract class ConstraintFormula {
             Lambda<Type,Type> lambda = new Lambda<Type,Type>(){
                 public Type value(Type arg0) { return (Type)arg0.accept(replacer); }};
 
-            MultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
-            MultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
+            IMultiMap<_InferenceVarType,Type> new_uppers = new MultiMap<_InferenceVarType,Type>();
+            IMultiMap<_InferenceVarType,Type> new_lowers = new MultiMap<_InferenceVarType,Type>();
             for( Map.Entry<_InferenceVarType, Set<Type>> entry : this.ivarUpperBounds.entrySet() ) {
                 _InferenceVarType ivar = entry.getKey();
                 Set<Type> u_bounds = entry.getValue();
@@ -380,8 +381,8 @@ public abstract class ConstraintFormula {
 					IterUtil.run(potentials, accepter);
 				}
 			}
-			MultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
-			MultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
+			IMultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
+			IMultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
 			for(_InferenceVarType ivar: CollectUtil.complement(temp,ivarUpperBounds.keySet())){
 				newuppers.putItem(ivar,Types.ANY);
 			}
@@ -432,7 +433,7 @@ public abstract class ConstraintFormula {
 		}
 		
 		private Map<_InferenceVarType,Type> solveHelper(Set<_InferenceVarType> ivars, 
-				                                        MultiMap<_InferenceVarType,Type> bounds,
+				                                        IMultiMap<_InferenceVarType,Type> bounds,
 				                                        Lambda<Set<Type>,Type> type_maker) {
 			// 2.) for every naked static prime variable ...
 			final Map<_InferenceVarType,Type> lubs_or_glbs = new HashMap<_InferenceVarType,Type>();
@@ -443,7 +444,7 @@ public abstract class ConstraintFormula {
 				}
 			}
 			
-			MultiMap<_InferenceVarType,Type> new_bounds = new MultiMap<_InferenceVarType,Type>();
+			IMultiMap<_InferenceVarType,Type> new_bounds = new MultiMap<_InferenceVarType,Type>();
 			
 			for(final _InferenceVarType t: ivars){
 				Set<Type> uis = bounds.get(t);
@@ -808,11 +809,11 @@ public abstract class ConstraintFormula {
             return TRUE;
         }
         else {
-        	MultiMap<_InferenceVarType,Type> lowers = new MultiMap<_InferenceVarType,Type>();
-        	lowers.putItem(var, bound);
+//            IMultiMap<_InferenceVarType,Type> lowers = new MultiMap<_InferenceVarType,Type>();
+//            lowers.putItem(var, bound);
             ConstraintFormula result =
-            	new ConjunctiveFormula(new MultiMap<_InferenceVarType,Type>(), 
-            			lowers, history);
+                new ConjunctiveFormula(Useful.<_InferenceVarType,Type>emptyMultiMap(), 
+                        Useful.singletonMultiMap(var, bound), history);
             debug.logEnd("result", result);
             return result;
         }
@@ -825,14 +826,11 @@ public abstract class ConstraintFormula {
             return TRUE;
         }
         else{
-        	MultiMap<_InferenceVarType,Type> uppers = new MultiMap<_InferenceVarType,Type>();
-        	uppers.putItem(var, bound);
-        	
-	        ConstraintFormula result =
-	        	new ConjunctiveFormula(uppers, 
-	        			new MultiMap<_InferenceVarType,Type>(), history);
-	        debug.logEnd("result", result);
-	        return result;
+            ConstraintFormula result =
+                new ConjunctiveFormula(Useful.singletonMultiMap(var, bound), 
+                        Useful.<_InferenceVarType,Type>emptyMultiMap(), history);
+            debug.logEnd("result", result);
+            return result;
         }
     }
     

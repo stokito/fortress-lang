@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import com.sun.fortress.compiler.typechecker.TraitTable;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
@@ -104,15 +105,15 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     // Constructor
     public ObjectExpressionVisitor(TraitTable traitTable,
-                    Map<Pair<Node,Span>,TypeEnv> _typeEnvAtNode) {
+                    TypeCheckerOutput typeCheckerOutput) {
         newObjectDecls = new LinkedList<ObjectDecl>();
         mutableVarRefContainerMap = new HashMap<VarRef, VarRefContainer>();
 
         enclosingComponent = null;
         uniqueId = 0;
 
-        typeEnvAtNode = _typeEnvAtNode;
-        if( _typeEnvAtNode.isEmpty() ) {
+        typeEnvAtNode = typeCheckerOutput.nodeTypeEnvs;
+        if( typeEnvAtNode.isEmpty() ) {
             throw new DesugarerError("typeEnvAtNode from type checker " +
                 "is empty!  Type checker must be on in order to perform " +
                 "closure conversion; is type check on? " + 

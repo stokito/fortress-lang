@@ -1385,7 +1385,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 }
                 else {
                     Type lhs_type = that.getType().unwrap();
-                    return Pair.make(checkSubtype(rhs_type, lhs_type, that, "Left-hand side of assignment must be a sub-type of right-hand side."), lhs_type);
+                    return Pair.make(checkSubtype(rhs_type, 
+                            lhs_type, that, 
+                            "Type of right-hand side of assignment, " + rhs_type + ", must be a sub-type of left-hand side, " + lhs_type + "."),
+                            lhs_type);
                 }
             }
             
@@ -1397,7 +1400,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 }
                 else {
                     Type lhs_type = that.getType().unwrap();
-                    return Pair.make(checkSubtype(rhs_type, lhs_type, that, "Left-hand side of assignment must be a sub-type of right-hand side."), lhs_type);
+                    return Pair.make(checkSubtype(rhs_type, 
+                            lhs_type, that, 
+                            "Type of right-hand side of assignment, " + rhs_type + ", must be a sub-type of left-hand side, " + lhs_type + "."),
+                            lhs_type);
                 }
             }
 
@@ -1456,7 +1462,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if( !var_result.isSuccessful() ) return Pair.<TypeCheckerResult, Type>make(var_result, Types.BOTTOM);
                 
                 TypeCheckerResult sub_result = checkSubtype(rhs_type, var_result.type().unwrap(), lhs, 
-                        "Left-hand side of assignment must be subtype of right-hand side");
+                        "Type of right-hand side of assignment, " +rhs_type+ ", must be subtype of left-hand side, " + var_result.type() + ".");
                 
                 TypeEnv env = that.getVar().getApi().isSome() ? returnTypeEnvForApi(that.getVar().getApi().unwrap()) : typeEnv;
                 Option<BindingLookup> bl = env.binding(that.getVar());

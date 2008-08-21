@@ -442,7 +442,11 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	 * @return The mapping from type-declaring nodes to the TypeEnv in scope at
 	 * that expression.
 	 */
-	public Map<Pair<Node, Span>, TypeEnv> getNodeTypeEnvs() {
+	private Map<Pair<Node, Span>, TypeEnv> getNodeTypeEnvs() {
 		return nodeTypeEnvs;
-	}	
+	}
+
+    public TypeCheckerOutput getTypeCheckerOutput() {
+        return new TypeCheckerOutput(this.getNodeTypeEnvs());
+    }	
 }

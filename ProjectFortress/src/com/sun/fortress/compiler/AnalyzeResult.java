@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
@@ -40,20 +41,20 @@ public final class AnalyzeResult extends StaticPhaseResult {
     private final Map<APIName, ComponentIndex> _components;
     
     // Fields that will not exist after every phase of compilation
-    private final Option<Map<Pair<Node,Span>, TypeEnv>> _typeEnvAtNode;
+    private final Option<TypeCheckerOutput> _typeCheckerOutput;
     
     public AnalyzeResult(Iterable<? extends StaticError> errors) {
         this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(), 
-        		errors, Option.<Map<Pair<Node,Span>, TypeEnv>>none());
+                errors, Option.<TypeCheckerOutput>none());
     }
     
     public AnalyzeResult(Map<APIName, ApiIndex> apis,
             Map<APIName, ComponentIndex> components,
-            Iterable<? extends StaticError> errors, Option<Map<Pair<Node,Span>, TypeEnv>> typeEnvAtNode) {
-    	super(errors);
-    	_apis = apis;
+            Iterable<? extends StaticError> errors, Option<TypeCheckerOutput> typeCheckerOutput) {
+        super(errors);
+        _apis = apis;
         _components = components;
-        _typeEnvAtNode = typeEnvAtNode;
+        _typeCheckerOutput = typeCheckerOutput;
     }
     
     /**
@@ -70,7 +71,7 @@ public final class AnalyzeResult extends StaticPhaseResult {
     	super(errors);
     	_apis = apis;
         _components = components;
-        _typeEnvAtNode = result._typeEnvAtNode;
+        _typeCheckerOutput = result.typeCheckerOutput();
     }
     
     public Iterable<Api> apiIterator() { 
@@ -85,9 +86,7 @@ public final class AnalyzeResult extends StaticPhaseResult {
     public Map<APIName, ComponentIndex> components() { return _components; }
     
     /**
-     * @return A mapping from Nodes that declare variables to the TypeEnv that was
-     * in scope at that AST node. This map is not populated until type-checking and
-     * therefore will be None until then.
+     * @return The output of the typechecking phase.
      */
-    public Option<Map<Pair<Node,Span>, TypeEnv>> typeEnvAtNode() { return this._typeEnvAtNode; }
+    public Option<TypeCheckerOutput> typeCheckerOutput() { return this._typeCheckerOutput; }
 }
