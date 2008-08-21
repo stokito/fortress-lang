@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+import java.util.Set;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -42,6 +42,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -228,7 +229,7 @@ public class TopLevelEnvGen {
     private static void writeImportFields(ClassWriter cw, CompilationUnitIndex compUnitIndex,
                                           EnvSymbolNames symbolNames) {
         CompilationUnit comp = compUnitIndex.ast();
-        final Vector<String> importedApiNames = new Vector<String>();
+        final Set<String> importedApiNames = new HashSet<String>();
 
         for(Import imports : comp.getImports()) {
             if (imports instanceof ImportApi) {
@@ -242,6 +243,12 @@ public class TopLevelEnvGen {
             } else {
                 throw StaticError.make("Unrecognized import type in bytecode generation", imports);
             }
+        }
+        
+        // XXX: SUPER DUPER HACKY
+        // Rewrite the AST to include these builtin imports!
+        for(String builtinLib : WellKnownNames.defaultLibrary) {
+            importedApiNames.add(builtinLib);            
         }
         
         for(String apiName : importedApiNames) {
