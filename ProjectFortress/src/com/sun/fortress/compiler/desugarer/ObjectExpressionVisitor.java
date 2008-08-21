@@ -41,12 +41,12 @@ import edu.rice.cs.plt.tuple.Pair;
 
 // TODO: TypeEnv does not handle OpRef and DimRef
 // TODO: Remove the turnOnTypeChecker in shell under desugar phase to false
-// TODO: Getter/Setter is turned off, because it corrupts TypeEnvAtNode
-//       data structure; Need to figure out how to get around that
 // TODO: TypeChecker by default is turned off, which is problematic, because
-//       when it's turned off, it does not create typeEnvAtNode
+//       when it's turned off, it does not create typeCheckerOutput
 
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
+    // Type info passed down from type checking phase
+    private TypeCheckerOutput typeCheckerOutput; 
     // A list of newly created ObjectDecls (i.e. lifted obj expressions and
     // objectDecls for boxed mutable var refs they capture) 
     private List<ObjectDecl> newObjectDecls;
@@ -60,17 +60,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // corresponding to the LocalVarRef gets removed.
     private Map<VarRef, VarRefContainer> mutableVarRefContainerMap;
 
-    private Component enclosingComponent;
-    private int uniqueId;
-    private Map<Pair<Node,Span>, TypeEnv> typeEnvAtNode;
-    private Map<Span,TypeEnv> tmpTypeEnvAtNode;
     // a stack keeping track of all nodes that can create a new lexical scope
     // this does not include the top level component
     private Stack<Node> scopeStack;
     private TraitTable traitTable;
+
+    private Component enclosingComponent;
     private TraitDecl enclosingTraitDecl;
     private ObjectDecl enclosingObjectDecl;
     private int objExprNestingLevel;
+    private int uniqueId;
 
     /* The following two things are results returned by FreeNameCollector */
     /* Map key: object expr, value: free names captured by object expr */
@@ -106,31 +105,19 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // Constructor
     public ObjectExpressionVisitor(TraitTable traitTable,
                     TypeCheckerOutput typeCheckerOutput) {
+        this.typeCheckerOutput = typeCheckerOutput;
+
         newObjectDecls = new LinkedList<ObjectDecl>();
         mutableVarRefContainerMap = new HashMap<VarRef, VarRefContainer>();
 
-        enclosingComponent = null;
-        uniqueId = 0;
-
-        typeEnvAtNode = typeCheckerOutput.nodeTypeEnvs;
-        if( typeEnvAtNode.isEmpty() ) {
-            throw new DesugarerError("typeEnvAtNode from type checker " +
-                "is empty!  Type checker must be on in order to perform " +
-                "closure conversion; is type check on? " + 
-                com.sun.fortress.compiler.StaticChecker.typecheck);
-        }
-        this.tmpTypeEnvAtNode = new HashMap<Span,TypeEnv>();
-        // FIXME: Temp hack to use Map<Span,TypeEnv>
-        // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
-        for(Pair<Node, Span> n : typeEnvAtNode.keySet()) {
-            this.tmpTypeEnvAtNode.put(n.second(), typeEnvAtNode.get(n));
-        }
-
         scopeStack = new Stack<Node>();
         this.traitTable = traitTable;
+
+        enclosingComponent = null;
         enclosingTraitDecl = null;
         enclosingObjectDecl = null;
         objExprNestingLevel = 0;
+        uniqueId = 0;
 
         boxedRefMap = new HashMap<Pair<Id,Id>,FieldRef>();
     }
@@ -145,7 +132,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     @Override
 	public Node forComponent(Component that) {
         FreeNameCollector freeNameCollector =
-            new FreeNameCollector(traitTable, tmpTypeEnvAtNode);
+            new FreeNameCollector(traitTable, typeCheckerOutput);
         that.accept(freeNameCollector);
 
         objExprToFreeNames = freeNameCollector.getObjExprToFreeNames();
@@ -430,7 +417,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
-                TypeEnv typeEnv = tmpTypeEnvAtNode.get( objExpr.getSpan() );
+                TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
                 Option<Boolean> mutableOp = typeEnv.mutable( var.getVar() ); 
                 if( mutableOp.isNone() ) {
                     throw new DesugarerError(objExpr.getSpan(), 
@@ -495,7 +482,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
         // FIXME: Temp hack to use Map<Span,TypeEnv>
         // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
-        TypeEnv typeEnv = tmpTypeEnvAtNode.get(scopeStack.peek().getSpan());
+        TypeEnv typeEnv = typeCheckerOutput.getTypeEnv( scopeStack.peek() );
         enclosingSelf = makeEnclosingSelfParam(typeEnv, target, freeMethodRefs);
 
         params = makeParamsForLiftedObj(target, freeNames, 
@@ -684,9 +671,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 //             // duplicates
 //             if( argsToContainerObj.contains(varRef) == false ) {
 //                 argsToContainerObj.add(varRef);
-//                 // FIXME: Temp hack to use Map<Span,TypeEnv>
-//                 // FIXME: Will change it when the TypeCheckResult.getTypeEnv is done
-//                 TypeEnv typeEnv = tmpTypeEnvAtNode.get( objExpr.getSpan() );
+//                 TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
 //                 Option<Node> declNodeOp = 
 //                     typeEnv.declarationSite( varRef.getVar() );
 //                 NormalParam param = null;

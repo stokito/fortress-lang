@@ -34,7 +34,7 @@ import edu.rice.cs.plt.tuple.Pair;
  */
 public class TypeCheckerOutput {
     // FIXME: Change visibility to private
-    public final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
+    private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
     
     // Package private: Only the typechecker should need to create these.
     TypeCheckerOutput(Map<Pair<Node,Span>, TypeEnv> node_type_envs) {

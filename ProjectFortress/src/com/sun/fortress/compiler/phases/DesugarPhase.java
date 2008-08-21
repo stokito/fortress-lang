@@ -58,11 +58,15 @@ public class DesugarPhase extends Phase {
         }
 
         Option<TypeCheckerOutput> typeEnvs = previous.typeCheckerOutput();
+        /* We only need the TypeCheckerOutput if ObjectExpressionVisitor is
+         * turned on, so signal this error later. 
         if(typeEnvs.isNone()) {
         	throw new DesugarerError("Expected TypeCheckerOutput from type checking phase is not found.");
-        }
+        } 
         Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(
-                previous.components(), apiEnv, typeEnvs.unwrap());
+                previous.components(), apiEnv, typeEnvs.unwrap()); */
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(
+                previous.components(), apiEnv, typeEnvs);
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());

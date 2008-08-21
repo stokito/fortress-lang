@@ -21,6 +21,7 @@ import java.util.*;
 import com.sun.fortress.compiler.desugarer.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Api;
@@ -113,13 +114,14 @@ public class Desugarer {
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
                           GlobalEnvironment env,
-                          TypeCheckerOutput typeCheckerOutput)
-    {
+                          Option<TypeCheckerOutput> typeCheckerOutputOp) {
+
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (APIName componentName : components.keySet()) {
-            Component desugared = desugarComponent(components.get(componentName), env, typeCheckerOutput);
+            Component desugared = desugarComponent(
+                    components.get(componentName), env, typeCheckerOutputOp);
             desugaredComponents.add(desugared);
         }
         return new ComponentResult
@@ -129,17 +131,22 @@ public class Desugarer {
     }
 
     public static Component desugarComponent(ComponentIndex component,
-                                             GlobalEnvironment env,
-                                             TypeCheckerOutput typeCheckerOutput) {
+        GlobalEnvironment env, Option<TypeCheckerOutput> typeCheckerOutputOp) {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap = 
                                     Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
 
         if(objExpr_desugar) {
+            if(typeCheckerOutputOp.isNone()) {
+                throw new DesugarerError("Expected TypeCheckerOutput from " +
+                                         "type checking phase is not found.");
+            }
+            TypeCheckerOutput typeCheckerOutput = typeCheckerOutputOp.unwrap();
+
         	TraitTable traitTable = new TraitTable(component, env);
         	ObjectExpressionVisitor objExprVisitor =
-        		new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
+            		new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
         	comp = (Component) comp.accept(objExprVisitor);
         	boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
