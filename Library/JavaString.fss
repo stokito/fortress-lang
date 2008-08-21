@@ -16,15 +16,13 @@
  ******************************************************************************)
 
 native component JavaString
-import CordedString.{CatString, EmptyString}
+import CordedString.{CatString, EmptyString, margin}
 import FlatStringInfo.{...}
 export JavaString
 
 
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
-
-  isEmptyRange(r: Range[\ZZ32\]) = r.extent() ≤ 0    (* should be a method on ranges *)
 
   object JavaString
         extends { String }
@@ -35,7 +33,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
     uncheckedSubstring(r1: Range[\ZZ32\]) : String =
-        if isEmptyRange(r1) then ""
+        if r1.isEmpty then ""
         else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
         end
     opr =(self, other:String): Boolean =
@@ -65,12 +63,28 @@ package="com.sun.fortress.interpreter.glue.prim"
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
     javaAppend(self, b:Char):String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+        
+    (* The following are curently dead code; see lines 3765 ish in FortressLibrary.fss *)    
+    javaPrint(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+    javaPrintln(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
 
     indexOf(c:Char): Maybe[\ZZ32\] = do
         i = javaIndexOf(c)
         if i = -1 then Nothing[\ZZ32\] else Just[\ZZ32\](i) end
       end
-
+      
+    verify() = do
+        assert(self.depth, 0, self)
+        assert(self.size(), size, self)
+    end
+    
+    showStructure(indent) = do
+        margin(indent)
+        println "J" |self| "/" self.depth ":" self
+    end
+         
     opr IN(c:Char): Boolean = javaIndexOf(c) =/= -1
 
     (** The operator %||% with at least one String argument converts to string and

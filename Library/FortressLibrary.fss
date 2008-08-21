@@ -285,6 +285,17 @@ deny(x:Any, y:Any, failMsg: Any...): () =
         msg = x " = " y "; " (BIG || failMsg)
         fail(msg)
     end
+    
+shouldRaise⟦Ex extends Exception⟧ (expr: ()→()): () = do
+    try
+        expr()
+        throw ForbiddenException
+    catch x
+        Ex => assert(true) (* This is what we hope for *) 
+    forbid Exception
+    end
+end
+        
 
 (************************************************************
 * Numeric hierarchy
@@ -3015,6 +3026,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
+    getter isEmpty(): Boolean = (|self| ≤ 0)
     opr[r:Range[\T\]]: Range[\T\] = fail("Unrecognized Range " r)
     opr[_:OpenRange[\Any\]] : Range[\T\] = self
     opr[other:LowerRange[\T\]] : Range[\T\]
@@ -3657,7 +3669,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
-        indices().map[\Char\](fn (i:ZZ32):Char => self[i])
+        indices().map[\Char\](fn (i:ZZ32):Char => self[i])       
+    getter depth() = 0
+    
+    showStructure() = showStructure(0)
+     
     opr |self| : ZZ32 = self.size
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
@@ -3666,14 +3682,15 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr [i:ZZ32]: Char =
         if 0 <= i < |self|
         then self.get(i)
-        else throw IndexOutOfBounds(0,(|self|)-1,i)
+        else 
+            (* println "Index " i " not in bounds " self.bounds *)
+            throw IndexOutOfBounds(0,(|self|)-1,i)
         end
 
     opr[r0:Range[\ZZ32\]] : String =  do
         r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
         self.uncheckedSubstring(r1)
       end 
-
 
     (** The operator %||% with at least one String argument converts to String and
         appends **)
@@ -3754,13 +3771,17 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
-print(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+
 print(a:Any):() = print("" a)
 println(a:Any):() = println("" a)
 (* 0-argument versions handle passing of () to single-argument versions. *)
-print():() = print("()")
+print():() = print("")
 println():() = println("")
+print(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+println(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+
 
 forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
     if (radix<2 OR radix>16 OR x<0 OR x>=radix) then

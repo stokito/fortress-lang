@@ -18,10 +18,47 @@
 component CordedStringTests
   import CordedString.{...}
   import Set.{...}
+  import List.{...}
   export Executable
+  
+  test testDepth(): () = do
+    words = ⟨"Hello ", "world, ", "it's ", "a ", "bright ", "new ", "day."⟩
+    var result: String = EmptyString
+    for w ← seq(words) do result := CatString(result, w) end
+    assert(result, "Hello world, it's a bright new day.")
+    result.verify()
+(*    result.showStructure()  *)
+    assert(result.depth, 7)
+  end  
+  
+  test indexing(): () = do
+    words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
+    var testString: String = EmptyString
+    for w ← seq(words) do testString := CatString(testString, w) end
+    referenceString = "Thequickbrownfoxjumpedoverthelazydog."
+    assert(testString, referenceString)
+    for i ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do 
+        assert(testString[i], referenceString[i]) 
+    end
+    for i ← ⟨ -1, -5, 37, 38, 109 ⟩ do
+        shouldRaise⟦IndexOutOfBounds⟧ (fn() => testString[i])
+    end
+  end
+  
+  test subString(): () = do
+    words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
+    var testString: String = EmptyString
+    for w ← seq(words) do testString := CatString(testString, w) end
+    referenceString = "Thequickbrownfoxjumpedoverthelazydog."
+    assert(testString, referenceString)
+    for i ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩, 
+            j ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do 
+        assert(testString[i:j], referenceString[i:j]) 
+    end
+
+  end
 
   test testNonEmptyConcat(): () =  do
-    e = EmptyString
     stuff = "Hello "
     more = "World"
     hw = CatString(stuff, more)
@@ -55,11 +92,18 @@ component CordedStringTests
   
   test testParallelGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"
-    (* result = BIG UNION chars *)       (* CordedStringTests.fss:57:13-23: Operator BIG CUP cannot be disambiguated. *)
-    result = set[\Char\](chars as Generator[\Char\])
-    (* for c <- chars do result.add(c) end   *)
+    var result: Set⟦Char⟧ = set⟦Char⟧()
+    for c ← chars atomic do result := result.add(c) end
     assert(|result|, |chars|)
-    for c <- result do assert(c ∈ chars) end
+    for c ← result do assert(c ∈ chars) end
+  end  
+  
+  test testSequentialGenerator(): () = do
+    chars = "abcdefghijklmnopqrstuvwxyz"
+    var result: List⟦Char⟧ = emptyList⟦Char⟧(26)
+    for c ← seq(chars) do result := result.addRight(c) end
+    assert(|result|, |chars|)
+    for i ← result.bounds do assert(result[i] , chars[i]) end
   end  
 
   run(args:String...):() = do

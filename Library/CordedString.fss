@@ -18,17 +18,23 @@
 component CordedString
 export CordedString
 
-(* these should eventually go in with the range code, I maintain! *)
+(* I believe that these should eventually go with the range code. *)
 
-    opr ∩ (r0: Range[\ZZ32\], r1: Range[\ZZ32\]) = (r0.lower() MAX r1.lower()) : (r0.upper() MIN r1.upper()) 
-    opr SHIFTLEFT(r: Range[\ZZ32\], newOrigin: ZZ32) = (r.lower() - newOrigin)#r.extent()
-    isEmpty(r: Range[\ZZ32\]) = r.extent() ≤ 0
+    (*Intersection of two ranges *)
+    opr ∩ (r0: Range[\ZZ32\], r1: Range[\ZZ32\]) = (r0.lower MAX r1.lower) : (r0.upper MIN r1.upper) 
+    (* Shift a range left by the specified amount.  *)
+    opr ↙(r: Range[\ZZ32\], leftShift: ZZ32) = (r.lower - leftShift)#r.extent
+
+(*
+==== CatString ====
+*)
 
   object CatString(left: String, right:String)  extends String
-    sizeField = left.size() + right.size()
-    getter size() = sizeField
-    getter bounds() = 0#sizeField
-    getter generator() = ConcatGenerator(left.generator(), right.generator())
+    size = left.size + right.size
+    depthField = 1 + (left.depth MAX right.depth)
+    getter depth() = depthField
+    getter bounds() = 0#size
+    getter generator() = ConcatGenerator(left.generator, right.generator)
     opr CMP(self, other: String) =
         if |left| ≥ |other|
         then
@@ -38,26 +44,41 @@ export CordedString
         end
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = EqualTo
 
-    get(i): Char = 'x'
+    get(i): Char = 
+    (* get is, and should be, without bounds checks.  [ ] does the bounds checks,a and then delegates to get *)   
+        if i ∈ left.indices then left[i] else right[i - |left|] end
 
     opr[r0:Range[\ZZ32\]] : String =  do
-        r1 = (self.bounds())[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
+        r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
         self.uncheckedSubstring(r1)
-      end 
+      end
       
-    uncheckedSubstring(r0: Range[\ZZ32\]) = do
-        r1 = (r0 SHIFTLEFT left.size)
+    verify() = do
+        assert(self.depth, (left.depth MAX right.depth) + 1, self)
+        assert(self.size(), |left| + |right|, self)
+    end 
+        
+    showStructure(indent: ZZ32) = do
+        margin(indent)
+        println  ("C" || |self| "/" self.depth || ":" )
+        left.showStructure(indent+8)
+        right.showStructure(indent+8)
+    end
+      
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        r1 = (r0 ↙ left.size)
         left.uncheckedSubstring(r0 ∩ left.bounds) || right.uncheckedSubstring(r1 ∩ right.bounds)            
       end
+      
       
 (* Here is the three-way version: this framework is better once we have subString nodes
  
     uncheckedSubstring(r0: Range[\ZZ32\]) = do
         leftBounds' = r0 ∩ left.bounds
-        r1 = (r0 SHIFTLEFT left.size)
+        r1 = (r0 ↙ left.size)
         rightBounds' = r1 ∩ right.bounds
-        if isEmpty(leftBounds) then right.uncheckedSubstring(rightBounds')
-        else if isEmpty(rightBounds) then left.uncheckedSubstring(leftBounds')
+        if leftBounds.isEmpty then right.uncheckedSubstring(rightBounds')
+        else if rightBounds.isEmpty then left.uncheckedSubstring(leftBounds')
         else left.uncheckedSubstring(leftBounds') || right.uncheckedSubstring(rightBounds')            
       end  
  *)
@@ -66,7 +87,10 @@ export CordedString
     opr || (self, other:String): String = 
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString) = self
-    opr || (self, other:Char) = CatString(self, other.toString())
+    opr || (self, other:Char) = CatString(self, other.toString)
+    
+    println(self): () = do print(left) ; println(right) end  
+    print(self): () = do print(left) ; print(right) end
 
   end
 
@@ -76,6 +100,9 @@ export CordedString
         r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
   end
 
+(*
+==== EmptyString ====
+*)
 
   value object EmptyString extends String
     getter size() = 0
@@ -89,28 +116,51 @@ export CordedString
     get(i): Char = fail("Can't get characters from an empty string")
 
     opr[r: Range[\ZZ32\]] : String = do
-        rr = (self.indices())[r]     (* to raise a bounds error *)
+        rr = self.indices[r]     (* to raise a bounds error *)
         EmptyString
+    end
+    
+    verify() = do
+        assert(self.depth, 0, self)
+        assert(self.size, 0, self)
+    end
+          
+    showStructure(indent) = do
+        margin(indent)
+        println "E" |self| "/" self.depth 
+    end
+    
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        assert r0.isEmpty 
+        self
     end
 
     opr || (self, other:String): String = other
 (*    opr || (other: String, self): String = other   *)    (* this optimizes the case with EmptyString on the right*)
     opr || (self, _: EmptyString): String = self
-    opr || (self, other:Char) = other.toString()
-  end
+    opr || (self, other:Char) = other.toString
+      
+    print(self): () = do end
+    println(self): () = println("")
   
+  end
+
   run(args: String...): () = do println "Finished" end 
   
   test rangeIntersect() = do
         assert((0:5) ∩ (0:3), 0:3)
         assert((0:5) ∩ (3:7), 3:5)
         assert((0:5) ∩ (7:10), 7:5)
-        deny(5:3, 9:8)                  (* I hoped that these would be equal *)
-        deny((5:3).extent(), 0, "The size of 5:3 is not zero!")   (* I had hoped for zero *)
-        assert((9:8).extent(), 0, "The size of 9:8 is not zero!")
-        assert(isEmpty(5:3), "5:3 is not empty!")
-        assert(isEmpty(9:8), "9:8 is not empty!")
-        assert(isEmpty((0:5) ∩ (7:10)), "0:5 has a non-empty intersection with 7:10 !")
+        deny(5:3, 9:8)                  (* I hoped that that this would be an assert! *)
+        assert((5:3).size, 0, "The size of 5:3 is not zero!")
+        assert((9:8).size, 0, "The size of 9:8 is not zero!")
+        assert( (5:3).isEmpty, "5:3 is not empty!")
+        assert( (9:8).isEmpty, "9:8 is not empty!")
+        assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
+  end
+  
+  margin(indent) = do
+      for i ← 0#indent do print " " end
   end
   
 end

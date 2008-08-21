@@ -227,6 +227,8 @@ deny(flag: Boolean, failMsg: String): ()
     if equal it includes the remaining arguments in its error indication. *)
 deny(x:Any, y:Any, failMsg: Any...): ()
 
+shouldRaise⟦Ex extends Exception⟧ (expr: ()→()): ()
+
 (************************************************************
 * \subsection*{Numeric hierarchy}
 ************************************************************)
@@ -1799,6 +1801,8 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
+  
+    getter isEmpty(): Boolean
     opr =(self,_:Range[\T\]): Boolean
 end
 
@@ -1958,6 +1962,10 @@ trait String extends { StandardTotalOrder[\String\],
     getter toString() : String
     getter indices() : FullRange[\ZZ32,true\]
     getter generator() : Generator[\Char\]
+    getter depth() : ZZ32
+    verify() : ()       (* Verify the data structure invaraints of self *)
+    showStructure() : ()        (* a debugging printout *)
+    showStructure(indent: ZZ32) : ()         (* a debugging printout *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
     opr [i:ZZ32]: Char
@@ -2004,6 +2012,10 @@ trait String extends { StandardTotalOrder[\String\],
     opr ///(self, a:String): String
     opr ///(self, a:Any): String
     opr ///(a:Any, self): String
+        
+    print(self): ()
+    println(self): ()
+  
 end
 
 (***********************************************************
@@ -2032,8 +2044,6 @@ match(regex:String,some:String):Boolean
     gracefully with %Char%s outside the 16-bit plane. **)
 char(a:ZZ32):Char
 
-print(a:String):()
-println(a:String):()
 print(a:Number):()
 println(a:Number):()
 print(a:Boolean):()

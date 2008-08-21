@@ -22,5 +22,7 @@ api CordedString
 
   value object EmptyString extends String
   end
+  
+  margin(prefix: String, indent: ZZ32)
 
 end
