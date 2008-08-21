@@ -21,18 +21,21 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
@@ -78,6 +81,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* files that are dependancies of everything */
     private static final String[] roots = defaultLibrary;
+    
+    private static Set<APIName> doNotDelete = null;
 
     /* stores the nodes and their relationships */
     private Graph<GraphNode> graph;
@@ -85,7 +90,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private Path path;
     /* underlying cache of compiled files */
     private CacheBasedRepository cache;
-    private GlobalEnvironment env;
     /* true if a recompile is needed */
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
@@ -94,8 +98,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
-        env = new GlobalEnvironment.FromRepository(this);
-
         addRoots();
     }
 
@@ -146,7 +148,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throw StaticError.make( "Cannot find component " + name + " in the repository. This should not happen, please contact a developer.", "" );
         }
     }
-
+    
     /* add an API node to the graph and return the node. if the API exists in the
      * cache it is loaded, otherwise it will remain empty until it gets
      * recompiled( probably via refreshGraph )
@@ -669,25 +671,55 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return 0;
     }
 
-    public void clear() {
-        ArrayList<APIName> names = new ArrayList<APIName>();
-        Boolean isRoot = false;
-        // There should be an easier way, but contains doesn't do string compare.
+    private void computeDoNotDelete() throws FileNotFoundException {
+        doNotDelete = new HashSet<APIName>();        
 
-        for (Object o : components().keySet()) {
-            APIName n = (APIName) o;
-            for (String r : roots) {
-                if (r.equalsIgnoreCase(n.getText()))
-                    isRoot = true;
+        // Seed the "do not delete" list
+        for( String rootName : roots) {
+            APIName rootAPIName = NodeFactory.makeAPIName(rootName);
+            doNotDelete.add(rootAPIName);
+        }              
+
+        // Look for dependencies in the "do not delete" list
+        boolean finished;
+        do {
+            finished = true;
+            Set<APIName> newNames = new HashSet<APIName>();
+            for (APIName name : doNotDelete) {
+                ComponentGraphNode cNode = new ComponentGraphNode( name );
+                ApiGraphNode aNode = new ApiGraphNode( name );
+                List<APIName> apiDependencies = dependencies( cNode );
+                List<APIName> componentDependencies = dependencies( aNode );
+                apiDependencies.removeAll(doNotDelete);
+                componentDependencies.removeAll(doNotDelete);
+                if (!apiDependencies.isEmpty() || !componentDependencies.isEmpty()) {
+                    finished = false;
+                    newNames.addAll(apiDependencies);
+                    newNames.addAll(componentDependencies);
+                }
+            }
+            doNotDelete.addAll(newNames);            
+        } while(!finished);        
+
+    }
+
+    public void clear() {
+        try {        
+
+            if (doNotDelete == null) computeDoNotDelete();
+
+            // Delete all components not in the "do not delete list"
+            Set<APIName> badComponents = new HashSet<APIName>(components().keySet());
+            badComponents.removeAll(doNotDelete);
+            for(APIName component : badComponents) {        
+                deleteComponent(component);                            
             }
 
-            if (!isRoot) names.add(n);
-            isRoot = false;
+        } catch (FileNotFoundException e) {
+            throw StaticError.make( "While cleaning repository: " + e.getMessage() + 
+                    " This should not happen, please contact a developer.", "" );
         }
 
-        for (APIName a : names) {
-            deleteComponent(a);
-        }
     }
 
 }
