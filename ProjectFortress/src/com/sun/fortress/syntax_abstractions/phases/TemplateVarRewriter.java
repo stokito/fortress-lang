@@ -38,6 +38,8 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.UnparsedTransformer;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
@@ -49,6 +51,7 @@ import com.sun.fortress.useful.Debug;
 import com.sun.fortress.exceptions.MacroError;
 
 import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
+import edu.rice.cs.plt.tuple.Option;
 
 /*
  * Rewrite all occurrences of variables in a given template to 
@@ -74,7 +77,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that, Id id_result) {
-        return new UnparsedTransformer( rewriteVars( that.getTransformer() ), id_result);
+        return new UnparsedTransformer(rewriteVars(that.getTransformer(), that), id_result);
     }
 
     @Override public Node forCaseTransformer(CaseTransformer thatTransformer) {
@@ -95,18 +98,29 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     private BaseType lookupType(Id id) {
+        Option<BaseType> otype = tryLookupType(id);
+        if (otype.isSome()) {
+            return otype.unwrap();
+        } else {
+            throw new MacroError(id, "No type found for gap: " + id);
+        }
+    }
+
+    private Option<BaseType> tryLookupType(Id id) {
         final BaseType baseType;
         if (varsToTypes.containsKey(id)) {
             baseType = varsToTypes.get(id);
-        } else {
+        } else if (gapEnv.isGap(id)) {
             baseType = gapEnv.getAstType(id);
+        } else {
+            return Option.<BaseType>none();
         }
         Depth depth = gapEnv.getDepth(id);
         if (depth == null) {
             // FIXME
             depth = new BaseDepth();
         }
-        return depth.accept(new Depth.Visitor<BaseType>() {
+        BaseType type = depth.accept(new Depth.Visitor<BaseType>() {
                 public BaseType forBaseDepth(BaseDepth depth) {
                     return baseType;
                 }
@@ -121,6 +135,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                          NodeFactory.makeTypeArg(depth.getParent().accept(this)));
                 }
             });
+        return Option.some(type);
     }
 
     private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType, 
@@ -163,6 +178,129 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         throw new MacroError(type, "expected a List type, got: " + type);
     }
 
+
+    /* Rewrite template to surround occurrences of pattern variables 
+     * with the gap brackets (ie, PREFIX and SUFFIX), also including
+     * associated AST type (FIXME: should be nonterminal).
+     *
+     * Main: Copy characters from input to output until encountering either
+     * a string opener (") or an identifier-character.
+     *
+     * String: Copy characters from input to output until encountering
+     * a string closer ("), then go back to Main.
+     *
+     * Identifier: Accumulate identifier characters until encountering
+     * a non-identifier character. 
+     *   - If the string is a gap name in scope, then try to parse 
+     *     gap arguments.
+     *   - Otherwise, copy the identifier to output and go back to Main.
+     *
+     * Gap Arguments: Expect a left parenthesis, then a comma-separated
+     * list of identifiers.
+     */
+
+    String rewriteVars(String t, Node src) {
+        int index = 0;
+        int size = t.length();
+        StringBuilder output = new StringBuilder();
+
+        while (index < size) {
+            // Main:
+            char next = t.charAt(index);
+            if (identifierStartChar(next)) {
+                index = identifierLoop(t, index, size, output, src);
+            } else if (stringStartChar(next)) {
+                index = stringLoop(t, index, size, output, src);
+            } else {
+                output.append(next);
+                index++;
+            }
+        }
+        return output.toString();
+    }
+
+    // for testing
+    String rewriteVars(String t) {
+        Node src = new UnparsedTransformer(new Span(), t, NodeFactory.makeId(new Span(), "Expr"));
+        return rewriteVars(t, src);
+    }
+
+    boolean identifierStartChar(char c) {
+        // FIXME: Accept Fortress identifiers, not Java identifiers
+        return Character.isJavaIdentifierStart(c);
+    }
+    boolean identifierChar(char c) {
+        // FIXME: Accept Fortress identifiers, not Java identifiers
+        return Character.isJavaIdentifierPart(c);
+    }
+    boolean stringStartChar(char c) {
+        return c == '"';
+    }
+    boolean stringEndChar(char c) {
+        return c == '"';
+    }
+
+    int stringLoop(String t, int index, int size, StringBuilder output, Node src) {
+        // index is on the quotation mark character
+        output.append(t.charAt(index));
+        index++;
+
+        while (index < size) {
+            char next = t.charAt(index);
+            output.append(next);
+            index++;
+            if (stringEndChar(next)) {
+                return index;
+            }
+        }
+        throw new MacroError(src, "Unclosed string literal in template");
+    }
+
+    int identifierLoop(String t, int index, int size, StringBuilder output, Node src) {
+        // index is on the first char of the identifier
+        StringBuilder varbuffer = new StringBuilder();
+        varbuffer.append(t.charAt(index));
+        index++;
+
+        while (index < size) {
+            char next = t.charAt(index);
+            if (identifierChar(next)) {
+                varbuffer.append(next);
+                index++;
+            } else {
+                break;
+            }
+        }
+        String var = varbuffer.toString();
+        Id varId = NodeFactory.makeId(src.getSpan(), var);
+        Option<BaseType> otype = tryLookupType(varId);
+
+        // FIXME! Add back support for parameters.
+
+        if (otype.isSome()) {
+            BaseType btype = otype.unwrap();
+            String type = btype.accept(new BaseTypeCollector());
+            Debug.debug(Debug.Type.SYNTAX, 3,
+                        "Found gap: name='" + var + "', type='" + type + "'");
+            writeVar(var, type, output);
+            return index;
+        } else {
+            output.append(var);
+            return index;
+        }
+    }
+
+    void writeVar(String var, String type, StringBuilder output) {
+        output.append(GAPSYNTAXPREFIX);
+        output.append(type.trim());
+        output.append(" ");
+        output.append(var);
+        output.append(" ");
+        output.append(GAPSYNTAXSUFFIX);
+    }
+
+
+    /*
     String rewriteVars(String t) {
         String result = "";
         boolean inSideString = false;
@@ -290,6 +428,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         }
         return ls;
     }
+    */
 
     static String getGapString(String var, String type) {
         return GAPSYNTAXPREFIX+type.trim()+" "+var+" "+GAPSYNTAXSUFFIX;
