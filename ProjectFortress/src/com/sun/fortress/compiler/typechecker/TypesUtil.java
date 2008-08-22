@@ -17,33 +17,32 @@
 
 package com.sun.fortress.compiler.typechecker;
 
+import static edu.rice.cs.plt.tuple.Option.none;
+import static edu.rice.cs.plt.tuple.Option.some;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
+import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.AbstractArrowType;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.Domain;
-import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ObjectExpr;
-import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.BottomType;
-import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.TypeAbstractVisitor;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
@@ -52,9 +51,6 @@ import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.TTarrowSetT;
-import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -62,9 +58,6 @@ import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
-
-import static com.sun.fortress.nodes_util.NodeFactory.makeId;
-import static edu.rice.cs.plt.tuple.Option.*;
 
 /**
  * Contains static utility methods for type checking.
@@ -218,7 +211,9 @@ public class TypesUtil {
                     public Type value(AbstractArrowType arg0) {
                         return arg0.getRange();
                     }});
-            return Option.some(Pair.make(checker.meet(ranges), result_constraint));
+            Type range_type = checker.meet(ranges);
+            range_type = checker.normalize(range_type);
+            return Option.some(Pair.make(range_type, result_constraint));
         }
     }
 
