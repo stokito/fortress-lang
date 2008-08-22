@@ -227,7 +227,7 @@ deny(flag: Boolean, failMsg: String): ()
     if equal it includes the remaining arguments in its error indication. *)
 deny(x:Any, y:Any, failMsg: Any...): ()
 
-shouldRaise⟦Ex extends Exception⟧ (expr: ()→()): ()
+shouldRaise[\Ex extends Exception\] (expr: ()->()): ()
 
 (************************************************************
 * \subsection*{Numeric hierarchy}
@@ -442,9 +442,9 @@ trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
     getter zero(): ZZ32
     getter one(): ZZ32
     getter minimum(): ZZ32
-    getter maximum(): ZZ32    
-    
-    
+    getter maximum(): ZZ32
+
+
 
     opr |self| : ZZ32
     opr =(self, b:ZZ32):Boolean
@@ -476,8 +476,8 @@ trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     getter zero(): ZZ64
     getter one(): ZZ64
     getter minimum(): ZZ64
-    getter maximum(): ZZ64    
-    
+    getter maximum(): ZZ64
+
 
     opr |x:ZZ64| : ZZ64
 
@@ -1801,7 +1801,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
-  
+
     getter isEmpty(): Boolean
     opr =(self,_:Range[\T\]): Boolean
 end
@@ -1973,7 +1973,7 @@ trait String extends { StandardTotalOrder[\String\],
         of the string, returning the empty string, in order to permit some convenient
         string-trimming idioms. **)
     opr[r0:Range[\ZZ32\]] : String
-    
+
     (** This version is like [ ] above, but does not do the bounds checking.  Really, this
          should be in a "friends" interface *)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
@@ -2012,10 +2012,10 @@ trait String extends { StandardTotalOrder[\String\],
     opr ///(self, a:String): String
     opr ///(self, a:Any): String
     opr ///(a:Any, self): String
-        
+
     print(self): ()
     println(self): ()
-  
+
 end
 
 (***********************************************************
