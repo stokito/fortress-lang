@@ -278,12 +278,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         FTraitOrObject rval;
 
-        if (!(gen.def instanceof AbsDeclOrDecl)) {
-            return bug(within, errorMsg("Generic surprise ", gen.def));
-        }
-        AbsDeclOrDecl dod = (AbsDeclOrDecl) gen.def;
-        if (dod instanceof TraitAbsDeclOrDecl) {
-            TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) dod;
+        if (gen.def instanceof TraitAbsDeclOrDecl) {
+            TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) gen.def;
             FTypeTrait ftt = new FTypeTraitInstance(td.getName().getText(),
                                                     clenv, gen, bind_args, key_args, gen.members);
             FTraitOrObject old = map.put(key_args, ftt); // Must put
@@ -303,8 +299,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             pendingFunctionalMethodFinishes.add(ftt);
 
             rval = ftt;
-        } else if (dod instanceof ObjectDecl) {
-            ObjectDecl td = (ObjectDecl) dod;
+        } else if (gen.def instanceof ObjectDecl) {
+            ObjectDecl td = (ObjectDecl) gen.def;
             FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
                                        clenv, gen, bind_args, key_args,
                                                       td.getParams(),
@@ -324,8 +320,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             //     ((FTraitOrObjectOrGeneric) fte).finishFunctionalMethods();
             // }
             rval = fto;
-        } else if (dod instanceof _RewriteObjectExpr) {
-            _RewriteObjectExpr td = (_RewriteObjectExpr) dod;
+        } else if (gen.def instanceof _RewriteObjectExpr) {
+            _RewriteObjectExpr td = (_RewriteObjectExpr) gen.def;
             FTypeObject fto = new FTypeObjectInstance(NodeUtil.stringName(td),
                                                       clenv, gen, bind_args,
                                                       key_args,
@@ -346,8 +342,12 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             // }
             rval = fto;
         } else {
-            rval = bug(within, errorMsg("Generic def-or-declaration surprise ", dod));
-        }
+            rval = bug( within, errorMsg("The use of generic type is " +
+                        "found at unexpected place; it needs to be either " +
+                        "within a trait, an object, or an object " + 
+                        "expression type, but found: " + gen.def) );
+       }
+
         return rval;
     }
 
