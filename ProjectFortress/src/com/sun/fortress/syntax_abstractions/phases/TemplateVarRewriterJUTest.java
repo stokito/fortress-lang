@@ -88,6 +88,8 @@ public class TemplateVarRewriterJUTest extends TestCase {
         assertTrue(r.equals(res));
     }
 
+    // FIXME: Gap parameters are disabled for now
+    /*
     public void testRewriteVars4() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         VarType expr = new VarType(NodeFactory.makeId("Expr"));
@@ -140,6 +142,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         //		System.err.println("R: "+res);
         assertTrue(r.equals(res));
     }
+    */
 
     public void testRewriteVars7() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
