@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,13 +57,20 @@ public class TestSuiteData implements Serializable {
     private final static int NUMCOLUMNS = 2;
 
     /** The names of test cases to monitor */
-    private final static String[] SPECIAL_TESTCASES = { "buffons",
+    /** {@link #TESTCASES_ARRAY is only used to initialize {@link #SPECIAL_TESTCASES} **/
+    private final static String[] TESTCASES_ARRAY = { "buffons",
             "WordCountSmall", "nestedTransactions1", "ArrayListQuick",
             "FuncOfFuncTest", "overloadTest6", "OverloadConstructor3",
             "whileTest", "caseTest", "genericTest4", "traitTest1" };
 
-    /** The names of ant targets to monitor */
-    private final static String[] SPECIAL_TARGETS = { "testCruiseControl" };
+    private final static List<String> SPECIAL_TESTCASES = 
+        Arrays.asList(TESTCASES_ARRAY);
+    
+    /** The names of ant targets to monitor */    
+    /** {@link #TARGETS_ARRAY is only used to initialize {@link #SPECIAL_TARGETS} **/
+    private final static String[] TARGETS_ARRAY = { "testCruiseControl" };    
+
+    private final static List<String> SPECIAL_TARGETS = Arrays.asList(TARGETS_ARRAY);
 
     TestSuiteData() {
         testData = new HashMap<String, SortedMap<Integer, Double>>();
@@ -147,9 +155,15 @@ public class TestSuiteData implements Serializable {
         dataset.addSeries(series);
         NumberAxis xaxis = new NumberAxis("Revision");
         NumberAxis yaxis = new NumberAxis("Time (sec)");
-        yaxis.setLowerBound(0);
-        double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
-        yaxis.setUpperBound(upperBound * 1.2);
+        if (SPECIAL_TESTCASES.contains(testcaseName)) {
+            yaxis.setLowerBound(0);            
+            double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
+            yaxis.setUpperBound(upperBound * 1.5);
+        } else {
+            yaxis.setLowerBound(0);            
+            double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
+            yaxis.setUpperBound(upperBound * 1.5);
+        }
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
                 false);
         renderer.setSeriesPaint(0, Color.BLUE);
@@ -194,15 +208,8 @@ public class TestSuiteData implements Serializable {
     }
 
     private boolean specialTestCase(String testCase) {
-        for (String special : SPECIAL_TESTCASES) {
-            if (special.equals(testCase))
-                return true;
-        }
-        for (String special : SPECIAL_TARGETS) {
-            if (special.equals(testCase))
-                return true;
-        }
-        return false;
+        return (SPECIAL_TESTCASES.contains(testCase) ||
+                SPECIAL_TARGETS.contains(testCase));
     }
 
 }
