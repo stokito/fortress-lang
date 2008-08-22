@@ -66,6 +66,13 @@ public class TestSuiteData implements Serializable {
     private final static List<String> SPECIAL_TESTCASES = 
         Arrays.asList(TESTCASES_ARRAY);
     
+    /** The names of test cases to monitor */
+    /** {@link #TESTSUITES_ARRAY is only used to initialize {@link #SPECIAL_TESTSUITES} **/
+    private final static String[] TESTSUITES_ARRAY = { "SpecDataJUTest" };
+
+    private final static List<String> SPECIAL_TESTSUITES = 
+        Arrays.asList(TESTSUITES_ARRAY);    
+    
     /** The names of ant targets to monitor */    
     /** {@link #TARGETS_ARRAY is only used to initialize {@link #SPECIAL_TARGETS} **/
     private final static String[] TARGETS_ARRAY = { "testCruiseControl" };    
@@ -155,15 +162,9 @@ public class TestSuiteData implements Serializable {
         dataset.addSeries(series);
         NumberAxis xaxis = new NumberAxis("Revision");
         NumberAxis yaxis = new NumberAxis("Time (sec)");
-        if (SPECIAL_TESTCASES.contains(testcaseName)) {
-            yaxis.setLowerBound(0);            
-            double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
-            yaxis.setUpperBound(upperBound * 1.5);
-        } else {
-            yaxis.setLowerBound(0);            
-            double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
-            yaxis.setUpperBound(upperBound * 1.5);
-        }
+        yaxis.setLowerBound(0);            
+        double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
+        yaxis.setUpperBound(upperBound * 1.5);
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
                 false);
         renderer.setSeriesPaint(0, Color.BLUE);
@@ -209,6 +210,7 @@ public class TestSuiteData implements Serializable {
 
     private boolean specialTestCase(String testCase) {
         return (SPECIAL_TESTCASES.contains(testCase) ||
+                SPECIAL_TESTSUITES.contains(testCase) ||
                 SPECIAL_TARGETS.contains(testCase));
     }
 

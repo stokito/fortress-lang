@@ -167,6 +167,9 @@ public class PerformanceLogMonitor {
         }
     }
 
+    
+    
+    
     /**
      * Parse all test cases for this revision number.  Calls 
      * parseTestcase(Node testcase, Integer revision) on each test case
@@ -175,9 +178,14 @@ public class PerformanceLogMonitor {
     private static void addCurrentRevision(Document doc, Integer revision) {
         NodeList cases = doc.getElementsByTagName("testcase");
         for(int i = 0; i < cases.getLength(); i++) {
-                Node testcase = cases.item(i);
-                parseTestcase(testcase, revision);
+            Node testcase = cases.item(i);
+            parseTestcase(testcase, revision);
         }
+        NodeList suites = doc.getElementsByTagName("testsuite");
+        for(int i = 0; i < suites.getLength(); i++) {
+            Node target = suites.item(i);
+            parseTestsuite(target, revision);
+        }                
         NodeList targets = doc.getElementsByTagName("target");
         for(int i = 0; i < targets.getLength(); i++) {
             Node target = targets.item(i);
@@ -185,48 +193,8 @@ public class PerformanceLogMonitor {
         }        
     }
 
-    /**
-     * Parse each target, and add the data to the appropriate data structures
-     * in the TestSuiteData object.  Before the data can be added, first check
-     * that this target did not throw an error.
-     */    
-    private static void parseTarget(Node target, Integer revision) {
-        boolean targetPassed = true;
-        NamedNodeMap attributes = target.getAttributes();        
-        String targetName = attributes.getNamedItem("name").getNodeValue();
-        NodeList children = target.getChildNodes();
-        for(int i = 0; i < children.getLength(); i++) {
-            Node child = children.item(i);
-            if (child.getNodeName().equals("error")) {
-                targetPassed = false;
-            }
-        }
-        if (targetPassed) {
-                String timeString = attributes.getNamedItem("time").getNodeValue();
-                timeString = timeString.replaceAll("min\\p{Alpha}*", "min");
-                timeString = timeString.replaceAll("sec\\p{Alpha}*", "sec");                
-                Date date = null;
-                try {                            
-                    date = _format1.parse(timeString);
-                } catch (ParseException e) {
-                    try {
-                        date = _format2.parse(timeString);
-                    } catch (ParseException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-                if (date != null) {
-                    _calendar.setTime(date);
-                    long seconds = (_calendar.get(Calendar.DAY_OF_MONTH) - 1) * 24 * 3600 + 
-                        _calendar.get(Calendar.HOUR_OF_DAY) * 3600 +
-                        _calendar.get(Calendar.MINUTE) * 60 + 
-                        _calendar.get(Calendar.SECOND);
-                    Double targetTime = Double.valueOf(seconds);
-                    testingData.addTimingInformation(targetName, revision, targetTime);
-                }
-        }        
-    }
-
+    
+    
     /**
      * Parse each test case, and add the data to the appropriate data structures
      * in the TestSuiteData object.  Before the data can be added, first check
@@ -250,6 +218,74 @@ public class PerformanceLogMonitor {
         }
     }
 
+
+    
+    /**
+     * Parse each test case, and add the data to the appropriate data structures
+     * in the TestSuiteData object.
+     */
+    private static void parseTestsuite(Node testsuite, Integer revision) {
+        NamedNodeMap attributes = testsuite.getAttributes();        
+        String testName = attributes.getNamedItem("name").getNodeValue();
+        testName = testName.substring(testName.lastIndexOf('.') + 1);
+        
+        // Hack because we renamed some of our testsuites from
+        // plural names to singular names
+        if (testName.charAt(testName.length() - 1) == 's') {
+            testName = testName.substring(0, testName.length() - 1);
+        }
+        Double testTime = Double.parseDouble(attributes.getNamedItem("time").getNodeValue());
+        testingData.addTimingInformation(testName, revision, testTime);
+    }
+
+    
+    
+    /**
+     * Parse each target, and add the data to the appropriate data structures
+     * in the TestSuiteData object.  Before the data can be added, first check
+     * that this target did not throw an error.
+     */    
+    private static void parseTarget(Node target, Integer revision) {
+        boolean targetPassed = true;
+        NamedNodeMap attributes = target.getAttributes();        
+        String targetName = attributes.getNamedItem("name").getNodeValue();
+        NodeList children = target.getChildNodes();
+        for(int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeName().equals("error")) {
+                targetPassed = false;
+            }
+        }
+        if (targetPassed) {
+                String timeString = attributes.getNamedItem("time").getNodeValue();
+                // Normalize "minute(s?)" into "min"
+                timeString = timeString.replaceAll("min\\p{Alpha}*", "min");
+                // Normalize "second(s?)" into "sec"                
+                timeString = timeString.replaceAll("sec\\p{Alpha}*", "sec");                
+                Date date = null;
+                try {                            
+                    date = _format1.parse(timeString);
+                } catch (ParseException e) {
+                    try {
+                        date = _format2.parse(timeString);
+                    } catch (ParseException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                if (date != null) {
+                    _calendar.setTime(date);
+                    long seconds = (_calendar.get(Calendar.DAY_OF_MONTH) - 1) * 24 * 3600 + 
+                        _calendar.get(Calendar.HOUR_OF_DAY) * 3600 +
+                        _calendar.get(Calendar.MINUTE) * 60 + 
+                        _calendar.get(Calendar.SECOND);
+                    Double targetTime = Double.valueOf(seconds);
+                    testingData.addTimingInformation(targetName, revision, targetTime);
+                }
+        }        
+    }
+
+    
+    
     /**
      * Look up the revision number in this log file.
      */
