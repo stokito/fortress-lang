@@ -57,6 +57,11 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         runFile("objectCC_multi_objExpr_mutVar2.fss");
     }
 
+    public void testObjectCC_StaticParams() 
+        throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC_staticParams.fss");
+    }
+
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
         String file = testsDir + SEP + fileName;

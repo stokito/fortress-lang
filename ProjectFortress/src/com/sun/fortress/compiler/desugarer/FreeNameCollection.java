@@ -103,12 +103,40 @@ public final class FreeNameCollection {
         this.enclosingSelfType = enclosingSelfType;
     }
 
+    /* 
+     * Sometimes static params can be used in a expr context, in which
+     * case, they are parsed as a VarRef.  As a result, redundant free
+     * references are captured in the freeVarRefs list when they are already
+     * present in the freeBoolRefs / freeIntRefs list.  Since we are 
+     * already passing the static params with the StaticParam list in the 
+     * lifted ObjectDecl, we don't want to repeat them in its Param list.  
+     * Hence, remove these redundant references from the freeVarRefs.
+     */
+    public void removeStaticRefsFromFreeVarRefs() {
+        // need to use a new list; can't just remove the redundant var from
+        // the old list, otherwise we get a ConcurrentModificationException.
+        List<VarRef> newFreeVarRefs = new LinkedList<VarRef>();
+
+        for(VarRef var : freeVarRefs) {
+            BoolRef b = new BoolRef( var.getVar() );
+            IntRef i = new IntRef( var.getVar() );
+            if( freeBoolRefs.contains(b) == false && 
+                freeIntRefs.contains(i) == false ) {
+                newFreeVarRefs.add(var);
+            }
+        }
+
+        this.freeVarRefs = newFreeVarRefs;
+    }
+
     public void setFreeMutableVarRefs(List<VarRef> freeMutableVarRefs) {
         this.freeMutableVarRefs = freeMutableVarRefs;
     }
 
-    /* Make copies of all the lists; only the lists themselves are
-       deep copied, but not the elements they contain */
+    /* 
+     * Make copies of all the lists; only the lists themselves are
+     *  deep copied, but not the elements they contain 
+     */
     public FreeNameCollection makeCopy() {
         FreeNameCollection copy = new FreeNameCollection();
         copy.composeResult(this);
