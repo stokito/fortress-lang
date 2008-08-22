@@ -81,7 +81,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* files that are dependancies of everything */
     private static final String[] roots = defaultLibrary;
-    
+
     private static Set<APIName> doNotDelete = null;
 
     /* stores the nodes and their relationships */
@@ -145,10 +145,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         try{
             return node.getComponent().unwrap();
         } catch ( OptionUnwrapException o ){
-            throw StaticError.make( "Cannot find component " + name + " in the repository. This should not happen, please contact a developer.", "" );
+            throw StaticError.make( "Cannot find component " + name + " in the repository. " +
+                                    "This should not happen, please contact a developer.", "" );
         }
     }
-    
+
     /* add an API node to the graph and return the node. if the API exists in the
      * cache it is loaded, otherwise it will remain empty until it gets
      * recompiled( probably via refreshGraph )
@@ -672,13 +673,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private void computeDoNotDelete() throws FileNotFoundException {
-        doNotDelete = new HashSet<APIName>();        
+        doNotDelete = new HashSet<APIName>();
 
         // Seed the "do not delete" list
         for( String rootName : roots) {
             APIName rootAPIName = NodeFactory.makeAPIName(rootName);
             doNotDelete.add(rootAPIName);
-        }              
+        }
 
         // Look for dependencies in the "do not delete" list
         boolean finished;
@@ -698,25 +699,25 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                     newNames.addAll(componentDependencies);
                 }
             }
-            doNotDelete.addAll(newNames);            
-        } while(!finished);        
+            doNotDelete.addAll(newNames);
+        } while(!finished);
 
     }
 
     public void clear() {
-        try {        
+        try {
 
             if (doNotDelete == null) computeDoNotDelete();
 
             // Delete all components not in the "do not delete list"
             Set<APIName> badComponents = new HashSet<APIName>(components().keySet());
             badComponents.removeAll(doNotDelete);
-            for(APIName component : badComponents) {        
-                deleteComponent(component);                            
+            for(APIName component : badComponents) {
+                deleteComponent(component);
             }
 
         } catch (FileNotFoundException e) {
-            throw StaticError.make( "While cleaning repository: " + e.getMessage() + 
+            throw StaticError.make( "While cleaning repository: " + e.getMessage() +
                     " This should not happen, please contact a developer.", "" );
         }
 

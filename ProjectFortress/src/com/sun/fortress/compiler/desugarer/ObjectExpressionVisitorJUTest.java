@@ -70,15 +70,18 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             WireTappedPrintStream.make(System.out, true);
         System.setErr(wt_err);
         System.setOut(wt_out);
+        // System.out.println("Evaluating " + file + "...");
         FValue original = Shell.eval(file, true);
 
         String name = file.substring( 0, file.lastIndexOf(".") );
         String tfs = name + ".tfs";
 
         String[] command = new String[]{ "desugar", "-out", tfs, file};
+        // System.out.println("Command: fortress desugar -out " + tfs + " " + file);
         Shell.main( command );
         String generated = RatsUtil.getTempDir() + fileName;
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
+        // System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
 
@@ -86,6 +89,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         com.sun.fortress.compiler.StaticChecker.typecheck = false;
         com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
 
+        // System.out.println("Evaluating " + generated + "...");
         assertEquals(original, Shell.eval(generated, true));
         System.setErr(oldErr);
         System.setOut(oldOut);

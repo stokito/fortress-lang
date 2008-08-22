@@ -145,26 +145,22 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     }
 
     public void deleteComponent(APIName name) {
-//        try {
             components.remove(name);
-            /*
-            ASTIO.deleteJavaAst(compFileName(name));
-            
-        } catch (IOException e) {
-            throw new ShellException(e);
-        }
-        */
     }
 
-    private String deCase(APIName s) {
+    private static String deCase(APIName s) {
         return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
     }
 
-    public String compFileName(APIName name) {
+    public static String cachedCompFileName(String passedPwd, APIName name) {
+        return passedPwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
+    }
+
+    private String compFileName(APIName name) {
         return pwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
     }
 
-    public String apiFileName(APIName name) {
+    private String apiFileName(APIName name) {
         return pwd + SEP + name + deCase(name) +DOT + ProjectProperties.API_TREE_SUFFIX;
     }
 
