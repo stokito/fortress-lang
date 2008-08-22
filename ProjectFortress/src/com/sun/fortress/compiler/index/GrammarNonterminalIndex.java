@@ -22,18 +22,13 @@ import java.util.Collection;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxDecl;
 
-import edu.rice.cs.plt.tuple.Option;
+public abstract class GrammarNonterminalIndex<T extends NonterminalDecl> extends NonterminalIndex<T>{
 
-public class GrammarNonterminalIndex<T extends NonterminalDecl> extends NonterminalIndex<T>{
-
-    public GrammarNonterminalIndex(Option<T> ast) {
+    public GrammarNonterminalIndex(T ast) {
         super(ast); 
     }
 
     public Collection<SyntaxDecl> getSyntaxDefs() {
-        if (this.ast().isNone()) {
-            throw new RuntimeException("Ast not found.");
-        }
-        return this.ast().unwrap().getSyntaxDefs();
+        return this.ast().getSyntaxDefs();
     }
 }

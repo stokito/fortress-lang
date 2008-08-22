@@ -46,6 +46,7 @@ import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
 import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.exceptions.MacroError;
 
 import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
 
@@ -136,17 +137,18 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 extendedVars.put(parameters.get(1), caseType);
                 return new TemplateVarRewriter(gapEnv, extendedVars);
             } else {
-                throw new RuntimeException("Cons case expects 2 parameters");
+                throw new MacroError(that, "Cons case expects 2 parameters");
             }
         } else if (that.getConstructor().getText().equals("Empty")) {
             if (parameters.isEmpty()) {
                 // nothing to add
                 return this;
             } else {
-                throw new RuntimeException("Empty case expects 0 parameters");
+                throw new MacroError(that, "Empty case expects 0 parameters");
             }
         } else {
-            throw new RuntimeException("Unrecognized constructor name: " + that.getConstructor());
+            throw new MacroError(that.getConstructor(),
+                                 "Unrecognized constructor name: " + that.getConstructor());
         }
     }
 
@@ -158,7 +160,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 return (BaseType)((TypeArg)params.get(0)).getType();
             }
         }
-        throw new RuntimeException("expected a List type, got: " + type);
+        throw new MacroError(type, "expected a List type, got: " + type);
     }
 
     String rewriteVars(String t) {

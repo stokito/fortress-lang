@@ -74,15 +74,9 @@ public class NonterminalEnv {
     private void initializeNonterminals() {
         for ( final NonterminalIndex<? extends GrammarMemberDecl> e : this.getGrammarIndex().getDeclaredNonterminals()) {
 
-            e.getAst().accept( new NodeDepthFirstVisitor_void(){
+            e.ast().accept( new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalDefOnly(NonterminalDef that) {
-                    Option<? extends GrammarDecl> optGd = NonterminalEnv.this.getGrammarIndex().ast();
-                    GrammarDecl currentGrammar;
-                    if (optGd.isSome()) {
-                        currentGrammar = optGd.unwrap();
-                    } else {
-                        currentGrammar = bug("NonterminalEnv.initializeNonterminals has failed!");
-                    }
+                    GrammarDecl currentGrammar = NonterminalEnv.this.getGrammarIndex().ast();
 
                     Span span = e.getName().getSpan();
                     String key = e.getName().getText();
@@ -113,13 +107,7 @@ public class NonterminalEnv {
 
     private void initializeForGrammar( GrammarIndex grammar ) {
         for (NonterminalIndex<? extends GrammarMemberDecl> e: grammar.getDeclaredNonterminals()) {
-            Option<? extends GrammarDecl> optGd = grammar.ast();
-            GrammarDecl currentGrammar;
-            if (optGd.isSome()) {
-                currentGrammar = optGd.unwrap();
-            } else {
-                currentGrammar = bug("NonterminalEnv.initializeNonterminals has failed!");
-            }
+            GrammarDecl currentGrammar = grammar.ast();
 
             Span span = e.getName().getSpan();
             String key = e.getName().getText();
@@ -203,11 +191,10 @@ public class NonterminalEnv {
         GrammarIndex grammar = this.getGrammarIndex();
         Set<Id> results = new HashSet<Id>();
         if (this.nonterminals.containsKey(name)) {
-            if (grammar.ast().isSome()) {
-                return this.nonterminals.get(name);
-            }
+            return this.nonterminals.get(name);
+        } else {
+            return results;
         }
-        return results;
     }
 
     /**

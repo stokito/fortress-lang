@@ -23,6 +23,7 @@ import java.util.Map;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.syntax_abstractions.util.FortressTypeToJavaType;
+import com.sun.fortress.exceptions.MacroError;
 
 public class NTEnv {
 
@@ -37,9 +38,10 @@ public class NTEnv {
 
     public BaseType getType(Id nt) {
         if (!ntToType.containsKey(nt)) {
-            throw new RuntimeException("no type entry for " + nt);
+            throw new MacroError(nt, "no type entry for " + nt);
+        } else {
+            return ntToType.get(nt);
         }
-        return ntToType.get(nt);
     }
 
     public String getJavaType(Id nt) {

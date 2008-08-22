@@ -22,8 +22,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalDefIndex extends GrammarNonterminalIndex<NonterminalDef> {
 
-	public NonterminalDefIndex(Option<NonterminalDef> ast) {
-		super(ast);
-	}
+    public NonterminalDefIndex(NonterminalDef ast) {
+        super(ast);
+    }
 
 }

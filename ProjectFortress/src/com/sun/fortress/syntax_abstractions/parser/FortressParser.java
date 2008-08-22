@@ -50,6 +50,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
 import com.sun.fortress.syntax_abstractions.phases.Transform;
+import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
@@ -59,7 +60,6 @@ import edu.rice.cs.plt.io.IOUtil;
 import edu.rice.cs.plt.tuple.Option;
 
 public class FortressParser {
-
 
     /** Parses a single file. */
     public static Result parse(APIName api_name, 
@@ -84,20 +84,32 @@ public class FortressParser {
                                      boolean verbose) {
         // throws StaticError, ParserError
 
-        PreParser.Result ppr = PreParser.parse(api_name, f, env);
-        if (!ppr.isSuccessful()) {
-            return new Result(ppr.errors());
+        Collection<GrammarIndex> grammars;
+        try {
+            grammars = PreParser.parse(api_name, f, env);
+        } catch (StaticError se) {
+            return new Result(se);
         }
+
         if (verbose) {
             System.err.println("Parsing files: "+f.getName());
         }
-        if (ppr.getGrammars().isEmpty()) {
+        if (grammars.isEmpty()) {
             return new Result(Parser.parseFileConvertExn(api_name, f), 
                               f.lastModified());
+        } else {
+            return parseWithGrammars(api_name, f, env, verbose, grammars);
         }
+    }
 
-        Collection<GrammarIndex> grammars = ppr.getGrammars();
-        initializeGrammarIndexExtensions( env.apis().values(), grammars );
+    private static Result parseWithGrammars(APIName api_name,
+                                            File f,
+                                            GlobalEnvironment env,
+                                            boolean verbose,
+                                            Collection<GrammarIndex> grammars) {
+
+        // throws StaticError, ParserError
+        EnvFactory.initializeGrammarIndexExtensions(env.apis().values(), grammars);
 
         // Compile the syntax abstractions and create a temporary parser
         Class<?> temporaryParserClass = 
@@ -126,34 +138,6 @@ public class FortressParser {
             if (in != null) try { in.close(); } catch (IOException ioe) {}
         }
     }
-
-    public static Collection<? extends StaticError> initializeGrammarIndexExtensions( Collection<ApiIndex> apis, Collection<GrammarIndex> grammars) {
-        List<StaticError> errors = new LinkedList<StaticError>();
-
-        Map<String, GrammarIndex> grammarMap = new HashMap<String, GrammarIndex>();
-        for (ApiIndex a2: apis) {
-            for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
-                grammarMap.put(e.getKey(), e.getValue());
-            }
-        }
-
-        for ( GrammarIndex grammar : grammars ){
-            Option<GrammarDef> og = grammar.ast();
-            if (og.isSome()) {
-                List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                for (Id n: og.unwrap().getExtends()) {
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() + "[" + grammarMap.get(n.getText()) + "] to the extends list of " + grammar );
-                    ls.add(grammarMap.get(n.getText()));
-                }
-                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + grammar.getName() + " extends " + ls );
-                grammar.setExtended(ls);
-            } else {
-                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + grammar.getName() + " has no ast" );
-            }
-        }
-        return errors;
-    }
-
 
     /**
      * Get all files potentially containing APIs imported by cu that aren't
@@ -191,6 +175,8 @@ public class FortressParser {
         return result;
     }
 
+    /* Utilities */
+
     /** Get the filename in which the given API should be defined. */
     private static File fileForApiName(APIName api, Path p) throws FileNotFoundException {
         return p.findFile(NodeUtil.dirString(api) + ".fsi");
@@ -216,5 +202,4 @@ public class FortressParser {
             e.printStackTrace();
         }
     }
-
 }

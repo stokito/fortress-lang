@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.SyntaxDef;
 
+import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Debug;
 
 /* Contains a mapping from a nonterminal name to its production
@@ -52,7 +53,7 @@ class PEG extends NTEnv {
      */
     public List<SyntaxDef> create(Id nt) {
         if (entries.containsKey(nt)) {
-            throw new RuntimeException("PEG already has an entry for " + nt);
+            throw new MacroError(nt, "PEG already has an entry for " + nt);
         }
         List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
         entries.put(nt, defs);
@@ -80,7 +81,7 @@ class PEG extends NTEnv {
     /* return the list of productions for a nonterminal */
     public List<SyntaxDef> get(Id nt) {
         if (!entries.containsKey(nt)) {
-            throw new RuntimeException("PEG has no entry for " + nt);
+            throw new MacroError(nt, "PEG has no entry for " + nt);
         }
         return entries.get(nt);
     }
@@ -92,7 +93,7 @@ class PEG extends NTEnv {
     /* map a nonterminal name to its type */
     public void putType(Id nt, BaseType type) {
         if (ntToType.containsKey(nt)) {
-            throw new RuntimeException("PEG already has a type for " + nt);
+            throw new MacroError(nt, "PEG already has a type for " + nt);
         }
         ntToType.put(nt, type);
     }

@@ -20,19 +20,14 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes._TerminalDef;
 
-import edu.rice.cs.plt.tuple.Option;
-
 public class GrammarTerminalIndex extends NonterminalIndex<_TerminalDef> {
 
-    public GrammarTerminalIndex(Option<_TerminalDef> ast) {
+    public GrammarTerminalIndex(_TerminalDef ast) {
         super(ast);
     }
 
     public SyntaxDef getSyntaxDef() {
-        if (this.ast().isNone()) {
-            throw new RuntimeException("Ast not found.");
-        }
-        return this.ast().unwrap().getSyntaxDef();
+        return this.ast().getSyntaxDef();
     }
 
 }

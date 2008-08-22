@@ -33,7 +33,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarIndex {
 
-    private Option<GrammarDef> ast;
+    private GrammarDef ast;
 
     private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
 
@@ -41,7 +41,7 @@ public class GrammarIndex {
 
     private boolean isToplevel;
 
-    public GrammarIndex(Option<GrammarDef> ast, 
+    public GrammarIndex(GrammarDef ast, 
                         Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
         this.ast = ast;
         this.extendedGrammars = new LinkedList<GrammarIndex>();
@@ -49,7 +49,7 @@ public class GrammarIndex {
         this.isToplevel = false;
     }
 
-    public Option<GrammarDef> ast() {
+    public GrammarDef ast() {
         return this.ast;
     }
 
@@ -66,19 +66,14 @@ public class GrammarIndex {
     }
 
     public Id getName() {
-        if (this.ast().isSome()) {
-            return this.ast().unwrap().getName();
-        }
-        throw new RuntimeException("No name for grammar: "+this.hashCode());
+        return this.ast().getName();
     }
 
     public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
         for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
             if (name.getText().equals(m.getName().getText())) {
-                if (m.ast().isSome()) {
-                    if (m instanceof GrammarNonterminalIndex) {
-                        return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
-                    }
+                if (m instanceof GrammarNonterminalIndex) {
+                    return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
                 }
             }
         }

@@ -14,6 +14,16 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component SyntaxGrammarImportsA
-export SyntaxGrammarImportsA
+
+api SXXSyntaxGrammarImports
+
+  import FortressAst.{...}
+  import FortressSyntax.{...}
+
+  (* Fails because it refers to Expr without importing Expression *)
+  grammar Hello extends { Identifier }
+      Expr |Expr:=
+         hello => <[ "hello" ]>
+  end
+
 end

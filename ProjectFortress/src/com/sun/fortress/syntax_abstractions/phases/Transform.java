@@ -233,8 +233,7 @@ public class Transform extends TemplateUpdateVisitor {
 		}
 		// else continue;
 	    }
-	    // FIXME
-	    throw new RuntimeException("match failed");
+	    throw new MacroError(that, "match failed");
 	}
 
 	private Option<Node> matchClause(CaseTransformerClause clause, Level toMatch) {
@@ -246,7 +245,8 @@ public class Transform extends TemplateUpdateVisitor {
 	    if (!(constructor.equals("Cons") && parameterCount == 2) &&
 		!(constructor.equals("Empty") && parameterCount == 0)) {
 		// Nothing else implemented yet
-		throw new RuntimeException("bad case transformer constructor: " + constructor);
+		throw new MacroError(clause.getConstructor(),
+                                     "bad case transformer constructor: " + constructor);
 	    }
 
 	    if (toMatch.getObject() instanceof List) {

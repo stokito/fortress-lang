@@ -63,6 +63,7 @@ import com.sun.fortress.useful.Debug;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalDecl;
@@ -112,19 +113,17 @@ public class ComposingMacroCompiler {
         public String forDefinition(String name) {
             return mangle(name);
         }
-        /* doesn't mangle native nonterminals */
         public String forReference(Id id) {
-            return forReference(NodeUtil.nameString(id));
-        }
-        public String forReference(String name) {
+            /* don't mangle native nonterminals */
+            String name = NodeUtil.nameString(id);
             if (nativeNonterminals.contains(name)) {
                 // (eg: Fortress.Expression.Expr => Expression.Expr)
-                return getRatsModuleName(name) + "." + afterLastDot(name);
+                return getRatsModuleName(name, id) + "." + afterLastDot(name, id);
             } else {
                 return mangle(name);
             }
         }
-        public String mangle(String name) {
+        private String mangle(String name) {
             return "USER_" + name.replaceAll("_", "__").replace('.', '_');
         }
     }
@@ -177,7 +176,7 @@ public class ComposingMacroCompiler {
     private static Class<?> pegFor(Collection<GrammarIndex> relevant,
                              Collection<GrammarIndex> imports,
                              Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions,
-                             Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions ){
+                             Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions){
 
         Debug.debug( Debug.Type.SYNTAX, 2, "Relevant grammars: " + relevant );
 
@@ -205,7 +204,7 @@ public class ComposingMacroCompiler {
 
         Set<String> nativeNonterminals = new HashSet<String>();
         for ( GrammarIndex grammar : relevant ) {
-            GrammarDef grammarDef = grammar.ast().unwrap();
+            GrammarDef grammarDef = grammar.ast();
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Grammar " + grammarDef + " native?: " + grammarDef.isNative());
             if (grammarDef.isNative()) {
@@ -237,11 +236,11 @@ public class ComposingMacroCompiler {
             Debug.debug(Debug.Type.SYNTAX, 2, "Add " + nonterminalName + " to peg definition");
             pegEntryForDef( defs, relevant, nonterminal );
 
-            Option<BaseType> type = nonterminal.getAst().getAstType();
+            Option<BaseType> type = nonterminal.ast().getAstType();
             if (type.isSome()) {
                 peg.putType(nonterminalName, type.unwrap());
             } else {
-                throw new RuntimeException("No type for nonterminal " + nonterminal);
+                throw new MacroError(nonterminalName, "No type for nonterminal " + nonterminal);
             }
         }
     }
@@ -250,7 +249,7 @@ public class ComposingMacroCompiler {
     private static void pegEntryForDef(final List<SyntaxDef> defs, 
                                        final Collection<GrammarIndex> relevant, 
                                        NonterminalIndex<? extends GrammarMemberDecl> nonterminal){
-        nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
+        nonterminal.ast().accept( new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalDef(NonterminalDef that){
                 for ( SyntaxDecl def : that.getSyntaxDefs() ){
                     defs.addAll( resolveChoice( relevant, def ) );
@@ -280,7 +279,7 @@ public class ComposingMacroCompiler {
         for ( GrammarIndex import_ : imports ){
             for (final NonterminalIndex<? extends GrammarMemberDecl> nonterminal
                      : import_.getDeclaredNonterminals()){
-                nonterminal.getAst().accept(new NodeDepthFirstVisitor_void(){
+                nonterminal.ast().accept(new NodeDepthFirstVisitor_void(){
                         @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                             if (implicit.contains(that.getHeader().getName().toString())){
                                 all.add(nonterminal);
@@ -312,7 +311,7 @@ public class ComposingMacroCompiler {
     private static void extensionDomain(final Set<String> domain, GrammarIndex grammar){
         for (NonterminalIndex<? extends GrammarMemberDecl> nonterminal 
                  : grammar.getDeclaredNonterminals()){
-            nonterminal.getAst().accept( new NodeDepthFirstVisitor_void(){
+            nonterminal.ast().accept( new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     domain.add(that.getHeader().getName().toString());
                 }
@@ -333,12 +332,9 @@ public class ComposingMacroCompiler {
                                        final Collection<GrammarIndex> relevant){
         Debug.debug(Debug.Type.SYNTAX, 2, "Apply extensions to " + extension.getName());
         final List<SyntaxDef> defs = peg.get(extension.getName());
-        if ( defs == null ){
-            throw new RuntimeException( "Defs is null, this cannot happen" );
-        }
 
         final List<SyntaxDef> intermediate = new ArrayList<SyntaxDef>();
-        extension.getAst().accept(new NodeDepthFirstVisitor_void(){
+        extension.ast().accept(new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     for (SyntaxDecl def : that.getSyntaxDefs()){
                     intermediate.addAll(resolveChoice(relevant, def));
@@ -381,7 +377,8 @@ public class ComposingMacroCompiler {
                 Debug.debug(Debug.Type.SYNTAX, 3, ".. no");
             }
         }
-        throw new MacroError("Could not find nonterminal " + nonterminalName +
+        throw new MacroError(nonterminalName,
+                             "Could not find nonterminal " + nonterminalName +
                              " in grammar " + grammarName);
     }
 
@@ -436,10 +433,10 @@ public class ComposingMacroCompiler {
                          "Checking if " + definedByPeg + " is native");
             if (nativeNonterminals.contains(definedByPeg)) {
                 Debug.debug( Debug.Type.SYNTAX, 3, "... yes!");
-                String moduleName = getRatsModuleName(definedByPeg);
-                String ntName = afterLastDot(definedByPeg);
+                String moduleName = getRatsModuleName(definedByPeg, definedByPegId);
+                String ntName = afterLastDot(definedByPeg, definedByPegId);
                 String userExtensionsName = mangler.forDefinition(definedByPeg);
-                Module baseModule = baseModules.get(getRatsModuleName(definedByPeg));
+                Module baseModule = baseModules.get(getRatsModuleName(definedByPeg, definedByPegId));
                 if (baseModule.modification != null){
                     Debug.debug(Debug.Type.SYNTAX, 3, 
                                 baseModule.getClassName() + " is a modification");
@@ -447,7 +444,7 @@ public class ComposingMacroCompiler {
                 Debug.debug(Debug.Type.SYNTAX, 3,
                             "Modify " + definedByPeg +
                             "; ntName=" + ntName + 
-                            "; baseModule=" + getRatsModuleName(definedByPeg));
+                            "; baseModule=" + getRatsModuleName(definedByPeg, definedByPegId));
                 boolean found = false;
                 for (Production p : baseModule.productions) {
                     if (ntName.equals(p.name.name)) {
@@ -462,8 +459,9 @@ public class ComposingMacroCompiler {
                     }
                 }
                 if (!found) {
-                    throw new RuntimeException("Failed to modify " + definedByPeg +
-                                               ". Could not find a production for it." );
+                    throw new MacroError(definedByPegId,
+                                         "Failed to modify " + definedByPeg +
+                                         ". Could not find a production for it.");
                 }
             }
         }
@@ -635,17 +633,25 @@ public class ComposingMacroCompiler {
     }
 
     /* helper functions */
-    private static String getRatsModuleName(String name) {
-        return afterLastDot(beforeLastDot(name));
+    private static String getRatsModuleName(String name, Node src) {
+        return afterLastDot(beforeLastDot(name, src), src);
     }
 
-    private static String beforeLastDot(String name) {
+    private static String beforeLastDot(String name, Node src) {
         int lastDot = name.lastIndexOf('.');
         if (lastDot >= 0) {
             return name.substring(0, lastDot);
         } else {
-            throw new RuntimeException("Saw unqualified nonterminal name: " + name);
-            // return name;
+            throw new MacroError(src, "Saw unqualified name: " + name);
+        }
+    }
+
+    private static String afterLastDot(String name, Node src) {
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            return name.substring(lastDot + 1);
+        } else {
+            throw new MacroError(src, "Saw unqualified name: " + name);
         }
     }
 
@@ -654,8 +660,7 @@ public class ComposingMacroCompiler {
         if (lastDot >= 0) {
             return name.substring(lastDot + 1);
         } else {
-            throw new RuntimeException("Saw unqualified nonterminal name: " + name);
-            // return name;
+            throw new MacroError("Saw unqualified name: " + name);
         }
     }
 
@@ -705,13 +710,13 @@ public class ComposingMacroCompiler {
 
     /* true if the nonterminal is a definition site */
     private static boolean isDefinition( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.getAst() instanceof NonterminalDef ||
-               index.getAst() instanceof _TerminalDef;
+        return index.ast() instanceof NonterminalDef ||
+               index.ast() instanceof _TerminalDef;
     }
 
     /* true if the nonterminal is an extension site */
     private static boolean isExtension( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.getAst() instanceof NonterminalExtensionDef;
+        return index.ast() instanceof NonterminalExtensionDef;
     }
 
     /* convert extensions to their names */

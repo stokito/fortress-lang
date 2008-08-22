@@ -214,21 +214,17 @@ public class Disambiguator {
 
         for (ApiIndex a1: apis) {
             for (Map.Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
-                Option<GrammarDef> og = e.getValue().ast();
-                if (og.isSome()) {
-                    List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                    for (Id n: og.unwrap().getExtends()) {
-                        GrammarIndex g = grammars.get(n.getText());
-                        if ( g == null ){
-                            throw new RuntimeException( "Could not find grammar for " + n.getText() );
-                        }
-                        ls.add(g);
+                GrammarDef og = e.getValue().ast();
+                List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+                for (Id n: og.getExtends()) {
+                    GrammarIndex g = grammars.get(n.getText());
+                    if ( g == null ){
+                        throw new RuntimeException( "Could not find grammar for " + n.getText() );
                     }
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
-                    e.getValue().setExtended(ls);
-                } else {
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " has no ast" );
+                    ls.add(g);
                 }
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
+                e.getValue().setExtended(ls);
             }
         }
         return errors;

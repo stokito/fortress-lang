@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.exceptions.MacroError;
 
 public class GapEnv {
 
@@ -63,7 +64,7 @@ public class GapEnv {
     public Id getNonterminal(Id var) {
         Id nt = varToNT.get(var);
         if (nt == null) {
-            throw new RuntimeException("Not bound to a nonterminal: " + var);
+            throw new MacroError(var, "Not bound to a nonterminal: " + var);
         } else {
             return nt;
         }
@@ -80,7 +81,7 @@ public class GapEnv {
         if (nt != null) {
             return ntEnv.getType(nt);
         } else {
-            throw new RuntimeException("Not a gap name bound to a nonterminal: " + var);
+            throw new MacroError(var, "Not a gap name bound to a nonterminal: " + var);
         }
     }
 
@@ -91,7 +92,7 @@ public class GapEnv {
         } else if (hasJavaStringType(var)) {
             return "String";
         } else {
-            throw new RuntimeException("Not a gap name: " + var);
+            throw new MacroError(var, "Not a gap name: " + var);
         }
     }
 

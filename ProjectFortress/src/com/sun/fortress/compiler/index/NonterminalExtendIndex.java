@@ -19,12 +19,10 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 
-import edu.rice.cs.plt.tuple.Option;
-
 public class NonterminalExtendIndex extends GrammarNonterminalIndex<NonterminalExtensionDef> {
-	
-	public NonterminalExtendIndex(Option<NonterminalExtensionDef> ast) {
-		super(ast);
-	}
-	
+
+    public NonterminalExtendIndex(NonterminalExtensionDef ast) {
+        super(ast);
+    }
+
 }
