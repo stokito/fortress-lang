@@ -71,7 +71,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private int objExprNestingLevel;
     private int uniqueId;
 
-    /* The following two things are results returned by FreeNameCollector */
+    /* The following three things are results returned by FreeNameCollector */
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
 
@@ -93,6 +93,15 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
      * node corresponding to the key in this Map will change.
      */
     private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
+
+    /* 
+     * Map key: pair of <Trait/ObjectDecl.getName(), VarType.getName()>
+     * value: TypeParam corresponding to the varType, where it's declared.
+     *     We need this info so that we don't lose the extends clauses on the 
+     *     TypeParam when we make the StaticParam list for the lifted ObjExpr 
+     */
+    private Map<Pair<Id,Id>, TypeParam> staticArgToTypeParam;
+
 
     // data structure to pass to getter setter desugarer pass so that it 
     // knows what references to rewrite into corresponding boxed FieldRefs
@@ -137,6 +146,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         objExprToFreeNames = freeNameCollector.getObjExprToFreeNames();
         declSiteToVarRefs  = freeNameCollector.getDeclSiteToVarRefs();
+        staticArgToTypeParam = freeNameCollector.getStaticArgToTypeParam();
 
         // No object expression found in this component. We are done.
         if(objExprToFreeNames.isEmpty()) {
@@ -380,10 +390,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         Id originalName = lifted.getName();
         List<Id> fns = new LinkedList<Id>();
         fns.add(originalName);
-        // TODO: Need to figure out what Static params are captured.
-        List<StaticArg> staticArgs = Collections.<StaticArg>emptyList();
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
         VarRef enclosingSelf = null;
+
+        List<StaticArg> staticArgs = makeStaticArgsToLiftedObj(freeNames);
 
         /* Now make the call to construct the lifted object */
         /* Use default value for parenthesized and exprType */
@@ -403,6 +413,28 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             ExprFactory.makeTightJuxt(span, objExpr.isParenthesized(), exprs);
 
         return callToConstructor;
+    }
+
+    private List<StaticArg> 
+    makeStaticArgsToLiftedObj(FreeNameCollection freeNames) {
+        List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
+        List<IntRef> intRefs = freeNames.getFreeIntRefs();
+        List<VarType> varTypes = freeNames.getFreeVarTypes();
+        List<StaticArg> args = new LinkedList<StaticArg>();
+
+        for(BoolRef boolRef : boolRefs) {
+            args.add( new BoolArg(boolRef.getSpan(), boolRef) ); 
+        }
+
+        for(IntRef intRef : intRefs) {
+            args.add( new IntArg(intRef.getSpan(), intRef) );
+        }
+
+        for(VarType varType: varTypes) {
+            args.add( new TypeArg(varType.getSpan(), varType) );
+        }
+
+        return args;
     }
 
     private List<Expr> makeArgsForCallToLiftedObj(ObjectExpr objExpr,
@@ -462,14 +494,17 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         String name = getMangledName(target);
         Span span = target.getSpan();
         Id liftedObjId = NodeFactory.makeId(span, name);
-        List<StaticParam> staticParams =
-            makeStaticParamsForLiftedObj(freeNames);
+
         List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
         List<Decl> decls = target.getDecls();
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
 
         Option<List<Param>> params = null;
         NormalParam enclosingSelf = null;
+
+        List<StaticParam> staticParams =
+                makeStaticParamsForLiftedObj(freeNames);
+
         if( freeMethodRefs.isEmpty() == false ) {
             // Use the span for the obj expr that we are lifting
             // FIXME: Is this the right span to use??
@@ -493,6 +528,47 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         }
 
         return lifted;
+    }
+
+    private List<StaticParam>
+    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
+        List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
+        List<IntRef> intRefs = freeNames.getFreeIntRefs();
+        List<VarType> varTypes = freeNames.getFreeVarTypes();
+        List<StaticParam> sParams = new LinkedList<StaticParam>();
+
+        for(BoolRef boolRef : boolRefs) {
+            sParams.add( new BoolParam(boolRef.getSpan(), boolRef.getName()) );
+        }
+        for(IntRef intRef : intRefs) {
+            sParams.add( new IntParam(intRef.getSpan(), intRef.getName()) );
+        }
+        for(VarType varType : varTypes) {
+            Id enclosingId = null;
+            if(enclosingTraitDecl != null){
+                enclosingId = enclosingTraitDecl.getName();
+            } else if(enclosingObjectDecl != null) {
+                enclosingId = enclosingObjectDecl.getName();
+            } else {
+                throw new DesugarerError( varType.getSpan(), "VarType " +
+                        varType + " found outside of Trait/ObjectDecl!" );
+            }
+
+            Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, varType.getName() );
+            TypeParam declSite = staticArgToTypeParam.get(key);
+        
+            if(declSite == null) {
+               throw new DesugarerError( varType.getSpan(), "Cannot find the "
+                            + "decl site of VarType " + varType + " in " + 
+                            "staticArgToTypeParam map!");
+            }
+
+            sParams.add( new TypeParam(varType.getSpan(), varType.getName(), 
+                                       declSite.getExtendsClause(), 
+                                       declSite.isAbsorbs()) );
+        }
+        
+        return sParams;
     }
 
     private Option<List<Param>>
@@ -568,13 +644,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         param = new NormalParam(paramSpan, enclosingParamId, enclosingSelfType);
 
         return param;
-    }
-
-    private List<StaticParam>
-    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
-        // TODO: Fill this in - get the VarTypes(?) that's free and
-        // generate static param using it
-        return Collections.<StaticParam>emptyList();
     }
 
     // Generate a map mapping from mutable VarRef to its coresponding 

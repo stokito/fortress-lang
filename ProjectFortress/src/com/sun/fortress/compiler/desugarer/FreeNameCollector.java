@@ -73,14 +73,22 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
      * other (i.e. LocalVarDecl), and once we rewrite the subtree, the decl
      * node corresponding to the key in this Map will change.
      */
+    private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
     // private Map<Span, List<Pair<ObjectExpr, VarRef>>> declSiteToVarRefs;
 
-    private Map<Pair<String,Span>, List<Pair<VarRef,Node>>> declSiteToVarRefs;
+    /* 
+     * Map key: pair of <Trait/ObjectDecl.getName(), VarType.getName()>
+     * value: TypeParam corresponding to the varType, where it's declared.
+     *     We need this info so that we don't lose the extends clauses on the 
+     *     TypeParam when we make the StaticParam list for the lifted ObjExpr 
+     */ 
+    private Map<Pair<Id,Id>, TypeParam> staticArgToTypeParam;
 
 	
 	private static final int DEBUG_LEVEL = 2;
 	private static final int DEBUG_LEVEL0 = 1;
 	
+
 	// This class is used to collect names captured by object expressions.
 	// A reference is considered as free with repect to an object expression
 	// (call it O), if it is not declared within the body of O, not 
@@ -95,6 +103,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
         this.declSiteToVarRefs = 
             new HashMap<Pair<String,Span>, List<Pair<VarRef,Node>>>();
+        this.staticArgToTypeParam = new HashMap<Pair<Id,Id>, TypeParam>();
         
 		this.enclosingTraitDecl = null; 
 		this.enclosingObjectDecl = null; 
@@ -107,6 +116,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
     public Map<Pair<String,Span>, List<Pair<VarRef,Node>>> 
     getDeclSiteToVarRefs() {
         return declSiteToVarRefs;
+    }
+
+    public Map<Pair<Id,Id>, TypeParam> getStaticArgToTypeParam() {
+        return staticArgToTypeParam;
     }
 
 	@Override
@@ -214,7 +227,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         objExprStack.pop();
         scopeStack.pop();
 
-        if( objExprStack.isEmpty() && enclosingObjectDecl != null ) {
+        if( objExprStack.isEmpty() && 
+            (enclosingObjectDecl != null || enclosingTraitDecl != null) ) {
             // use the "self" id to get the right type of the
             // enclosing object / trait decl
             Option<Type> type = 
@@ -222,9 +236,16 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
             freeNames.setEnclosingSelfType(type);
         }
 
+        // sometimes a static param can be used in a expr context, in which
+        // case, it is parsed as a VarRef; as a result, its reference may be
+        // captured in two different list and is redundant.  Remove them so
+        // we don't get a name collision in the lifted ObjectDecl. 
+        freeNames.removeStaticRefsFromFreeVarRefs();
+
         List<VarRef> mutableVars = 
             filterFreeMutableVarRefs( that, freeNames.getFreeVarRefs() );
         freeNames.setFreeMutableVarRefs(mutableVars);
+
         objExprToFreeNames.put( that.getSpan(), freeNames.makeCopy() );
 
         // Update the declsToVarRefs list 
@@ -396,8 +417,11 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if( isDeclaredInObjExpr(that.getName()) == false && 
-            isDeclaredInTopLevel(that.getName()) == false ) {
+
+        // There is no sense checking for whether it is declared in
+        // ObjectExpr, because object expr can never declare 
+        // static params of its own.
+		if( isDeclaredInTopLevel(that.getName()) == false ) {
 		    freeNames.add(that);
 		}
 
@@ -417,8 +441,11 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if( isDeclaredInObjExpr(that.getName()) == false &&
-            isDeclaredInTopLevel(that.getName()) == false ) {
+
+        // There is no sense checking for whether it is declared in
+        // ObjectExpr, because object expr can never declare 
+        // static params of its own.
+		if( isDeclaredInTopLevel(that.getName()) == false ) {
 		    freeNames.add(that);
 		}
 
@@ -427,6 +454,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 	@Override
 	public void forVarType(VarType that) {
+        Id typeName = that.getName();
+
 	    // Not in object expression; we are done.
         if( objExprStack.isEmpty() ) { 
             super.forVarType(that);
@@ -434,13 +463,44 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         }
        
         forVarTypeDoFirst(that);
-        recur(that.getName());
+        recur(typeName);
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if( isDeclaredInObjExpr(that.getName()) == false &&
-            isDeclaredInTopLevel(that.getName()) == false ) {
+
+        // There is no sense checking for whether it is declared in
+        // ObjectExpr, because object expr can never declare 
+        // static params of its own.
+		if( isDeclaredInTopLevel(typeName) == false ) {
+
 		    freeNames.add(that);
+
+            ObjectExpr innerMostObjExpr = objExprStack.peek();
+    		TypeEnv objExprTypeEnv = 
+                    typeCheckerOutput.getTypeEnv(innerMostObjExpr);
+
+            Id enclosingId = null; 
+            if(enclosingTraitDecl != null){
+                enclosingId = enclosingTraitDecl.getName();
+            } else if(enclosingObjectDecl != null) {
+                enclosingId = enclosingObjectDecl.getName();
+            } else {
+                throw new DesugarerError( that.getSpan(), "VarType " + 
+                        that + " found outside of Trait/ObjectDecl!" );
+            }
+
+            Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, typeName );
+            Option<StaticParam> spOp = objExprTypeEnv.staticParam(typeName);
+            if( spOp.isNone() ) {
+                throw new DesugarerError( that.getSpan(), "Cannot find the "
+                            + "decl site (StaticParam) of VarType " + that );
+            } else if( (spOp.unwrap() instanceof TypeParam) == false ) {
+                throw new DesugarerError( that.getSpan(), "Unexpected type "
+                         + "for decl site of VarType " + that + " found!  "
+                         + "Expected: TypeParam; found: " + spOp.unwrap() );
+            } else {
+                staticArgToTypeParam.put( key, (TypeParam) spOp.unwrap() );
+            }
 		}
 
         forVarTypeDoFirst(that);
@@ -502,7 +562,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	}
 	
 	private boolean isDeclaredInObjExpr(Node idOrOpOrEnclosing) { 
-        // FIXME: change if TypeCheckerResult.getTypeEnv(Span) is done 
         ObjectExpr innerMostObjExpr = objExprStack.peek();
         Span objExprSpan =  innerMostObjExpr.getSpan();
 		TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(innerMostObjExpr);
@@ -516,6 +575,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		    
         // There is no sense checking for the static param binding,
         // because object expr can never declare static params of its own.
+        // FIXME: check with Sukyoung - do I really need to check for Op or
+        // Enclosing??
 		Option<BindingLookup> binding = Option.<BindingLookup>none();
 		if(idOrOpOrEnclosing instanceof Id) {    
 		    binding = objExprTypeEnv.binding( (Id)idOrOpOrEnclosing );
@@ -566,7 +627,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	    Option<BindingLookup> binding = Option.<BindingLookup>none();
 	    Option<StaticParam> staticParam = Option.<StaticParam>none();
 	    
-	    if(idOrOpOrEnclosing instanceof Id) {    
+	    if(idOrOpOrEnclosing instanceof Id) {
 	        binding = topLevelEnv.binding( (Id)idOrOpOrEnclosing );
 	        staticParam = topLevelEnv.staticParam( (Id)idOrOpOrEnclosing );
 	    } else if(idOrOpOrEnclosing instanceof Op) {
