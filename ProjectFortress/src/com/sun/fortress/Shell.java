@@ -300,7 +300,7 @@ public final class Shell {
      */
     public static FValue eval( String file )
         throws Throwable {
-        return eval( file, new ArrayList<String>() );
+        return eval( file, new ArrayList<String>(), false );
     }
 
     public static FValue eval( String file, boolean deleteCache )
@@ -560,7 +560,7 @@ public final class Shell {
                     for (StaticError error: errors) {
                         System.err.println(error);
                     }
-                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" + 
+                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" +
                         (num_errors == 1 ? "." : "s.");
                     System.err.println(err_string);
                 }
@@ -608,6 +608,7 @@ public final class Shell {
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() ) {
                     ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
+                    ASTIO.deleteJavaAst( CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR, name) );
                     bcr.deleteComponent( name );
                 }
             } else {
@@ -628,14 +629,14 @@ public final class Shell {
             throw new WrappedException(ex);
         } catch ( IOException e ){
             throw new WrappedException(e);
-        } 
+        }
         catch ( MultipleStaticError ex) {
             List<StaticError> result = new LinkedList<StaticError>();
             for( StaticError err : ex ) {
                 result.add(new WrappedException(err, Debug.isOnMax()));
             }
             return result;
-        } 
+        }
         catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
         } finally {
