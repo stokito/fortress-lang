@@ -61,6 +61,9 @@ public class TestSuiteData implements Serializable {
             "FuncOfFuncTest", "overloadTest6", "OverloadConstructor3",
             "whileTest", "caseTest", "genericTest4", "traitTest1" };
 
+    /** The names of ant targets to monitor */
+    private final static String[] SPECIAL_TARGETS = { "testCruiseControl" };
+
     TestSuiteData() {
         testData = new HashMap<String, SortedMap<Integer, Double>>();
         revisionDate = new HashMap<Integer, String>();
@@ -192,6 +195,10 @@ public class TestSuiteData implements Serializable {
 
     private boolean specialTestCase(String testCase) {
         for (String special : SPECIAL_TESTCASES) {
+            if (special.equals(testCase))
+                return true;
+        }
+        for (String special : SPECIAL_TARGETS) {
             if (special.equals(testCase))
                 return true;
         }

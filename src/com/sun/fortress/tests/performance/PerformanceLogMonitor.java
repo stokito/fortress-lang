@@ -25,6 +25,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -73,6 +79,10 @@ import org.xml.sax.SAXException;
 public class PerformanceLogMonitor {
 
     public static TestSuiteData testingData;
+    
+    private static final DateFormat _format1 = new SimpleDateFormat("m 'min' s 'sec'");
+    private static final DateFormat _format2 = new SimpleDateFormat("s 'sec'");    
+    private static final GregorianCalendar _calendar = new GregorianCalendar();    
 
     /** 
      * Read from the contents of the file path 
@@ -168,6 +178,53 @@ public class PerformanceLogMonitor {
                 Node testcase = cases.item(i);
                 parseTestcase(testcase, revision);
         }
+        NodeList targets = doc.getElementsByTagName("target");
+        for(int i = 0; i < targets.getLength(); i++) {
+            Node target = targets.item(i);
+            parseTarget(target, revision);
+        }        
+    }
+
+    /**
+     * Parse each target, and add the data to the appropriate data structures
+     * in the TestSuiteData object.  Before the data can be added, first check
+     * that this target did not throw an error.
+     */    
+    private static void parseTarget(Node target, Integer revision) {
+        boolean targetPassed = true;
+        NamedNodeMap attributes = target.getAttributes();        
+        String targetName = attributes.getNamedItem("name").getNodeValue();
+        NodeList children = target.getChildNodes();
+        for(int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeName().equals("error")) {
+                targetPassed = false;
+            }
+        }
+        if (targetPassed) {
+                String timeString = attributes.getNamedItem("time").getNodeValue();
+                timeString = timeString.replaceAll("min\\p{Alpha}*", "min");
+                timeString = timeString.replaceAll("sec\\p{Alpha}*", "sec");                
+                Date date = null;
+                try {                            
+                    date = _format1.parse(timeString);
+                } catch (ParseException e) {
+                    try {
+                        date = _format2.parse(timeString);
+                    } catch (ParseException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                if (date != null) {
+                    _calendar.setTime(date);
+                    long seconds = (_calendar.get(Calendar.DAY_OF_MONTH) - 1) * 24 * 3600 + 
+                        _calendar.get(Calendar.HOUR_OF_DAY) * 3600 +
+                        _calendar.get(Calendar.MINUTE) * 60 + 
+                        _calendar.get(Calendar.SECOND);
+                    Double targetTime = Double.valueOf(seconds);
+                    testingData.addTimingInformation(targetName, revision, targetTime);
+                }
+        }        
     }
 
     /**
