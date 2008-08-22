@@ -134,7 +134,7 @@ public class Desugarer {
     public static Component desugarComponent(ComponentIndex component,
         GlobalEnvironment env, Option<TypeCheckerOutput> typeCheckerOutputOp) {
 
-        Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap = 
+        Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
                                     Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
 
@@ -152,7 +152,7 @@ public class Desugarer {
         	boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
         if(getter_setter_desugar) {
-            DesugaringVisitor desugaringVisitor = new DesugaringVisitor();
+            DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);
         }
         return comp;

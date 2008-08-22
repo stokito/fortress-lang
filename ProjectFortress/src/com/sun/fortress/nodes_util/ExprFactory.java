@@ -407,6 +407,10 @@ public class ExprFactory {
         return new VarRef(var.getSpan(), var.isParenthesized(), type, name);
     }
 
+    public static VarRef makeVarRef(Span span, Option<Type> type, Id name) {
+        return new VarRef(span, false, type, name);
+    }
+
     public static VarRef makeVarRef(Span span, String s) {
         return new VarRef(span, false, NodeFactory.makeId(span, s));
     }
@@ -454,6 +458,11 @@ public class ExprFactory {
     public static VarRef makeVarRef(APIName api, Id name) {
         Id qName = NodeFactory.makeId(api, name);
         return new VarRef(qName.getSpan(), false, qName);
+    }
+
+    public static FieldRef makeFieldRef(FieldRef expr, Span span) {
+        return new FieldRef(span, expr.isParenthesized(),
+                            expr.getExprType(), expr.getObj(), expr.getField());
     }
 
     public static FieldRef makeFieldRef(FieldRef expr, Expr receiver, Id field) {
