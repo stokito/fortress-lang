@@ -25,13 +25,15 @@ import com.sun.fortress.repository.ProjectProperties;
 
 public class SyntaxAbstractionJUTest extends TestSuite {
 
-	private final static String STATIC_TESTS_DIR = ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
+	private final static String STATIC_TESTS_DIR = 
+            ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
 
 	public static TestSuite suite() {
 		String[] files = new String[]{
-                    // "SyntaxTestUse.fss", this case is not template-based. EricAllen 7/24/2008
-			// "SyntaxTemplateVarsUse.fss",
-			"SyntaxNodesUse.fss",
+                    "CaseUse.fss",
+                    "DoubleCaseUse.fss",
+                    // "ForUse.fss", // pending resolution of Printer/Unprinter issue
+                    "SyntaxNodesUse.fss",
 		};
 		TestSuite suite = new TestSuite();
 		for ( String filename : files ){

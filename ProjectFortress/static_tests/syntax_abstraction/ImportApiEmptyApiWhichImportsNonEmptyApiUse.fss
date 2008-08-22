@@ -16,9 +16,7 @@
  ******************************************************************************)
 
 component ImportApiEmptyApiWhichImportsNonEmptyApiUse
-
-import api ImportEmptyApiWhichImportsNonEmptyApiEmpty
-
+import ImportEmptyApiWhichImportsNonEmptyApiEmpty.{...}
 export Executable
 
 run(args:String...) = println 42

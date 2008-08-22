@@ -22,14 +22,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.LinkedList;
 import com.sun.fortress.exceptions.MacroError;
 
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.CharacterClassSymbol;
+import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -42,6 +46,7 @@ import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.syntax_abstractions.phases.VariableCollector;
 import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.useful.Debug;
 
 public class EnvFactory {
 
@@ -49,15 +54,14 @@ public class EnvFactory {
         Map<Id, BaseType> typemap = new HashMap<Id, BaseType>();
         for (GrammarIndex gi : grammarIndexes) {
             for (NonterminalIndex<? extends GrammarMemberDecl> ni : gi.getDeclaredNonterminals()) {
-                if (!ni.ast().isSome()) continue;
-                if (ni.ast().unwrap() instanceof NonterminalDef) {
-                    NonterminalDef nd = (NonterminalDef) ni.ast().unwrap();
+                if (ni.ast() instanceof NonterminalDef) {
+                    NonterminalDef nd = (NonterminalDef) ni.ast();
                     Id name = ni.getName();
                     Option<BaseType> type = nd.getAstType();
                     if (type.isSome()) {
                         typemap.put(name, type.unwrap());
                     } else {
-                        throw new RuntimeException("No type for nonterminal " + ni);
+                        throw new MacroError(nd, "No type for nonterminal " + ni);
                     }
                 }
             }
@@ -115,5 +119,29 @@ public class EnvFactory {
     public static GapEnv makeTestingGapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth, 
                                            Map<Id, Id> varToNT, Set<Id> stringVars) {
         return new GapEnv(ntEnv, varToDepth, varToNT, stringVars);
+    }
+
+    public static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
+                                                        Collection<GrammarIndex> grammars) {
+        Map<String, GrammarIndex> grammarMap = new HashMap<String, GrammarIndex>();
+        for (ApiIndex a2: apis) {
+            for (Map.Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+                grammarMap.put(e.getKey(), e.getValue());
+            }
+        }
+
+        for ( GrammarIndex grammar : grammars ){
+            GrammarDef og = grammar.ast();
+            List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+            for (Id n: og.getExtends()) {
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() + 
+                            "[" + grammarMap.get(n.getText()) +
+                            "] to the extends list of " + grammar );
+                ls.add(grammarMap.get(n.getText()));
+            }
+            Debug.debug(Debug.Type.SYNTAX, 3, 
+                        "Grammar " + grammar.getName() + " extends " + ls);
+            grammar.setExtended(ls);
+        }
     }
 }

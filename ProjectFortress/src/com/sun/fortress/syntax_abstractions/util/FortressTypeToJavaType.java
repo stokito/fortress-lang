@@ -22,6 +22,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.exceptions.MacroError;
 
 /**
  * Translate a Fortress type to a corresponding Java type
@@ -45,7 +46,8 @@ public class FortressTypeToJavaType {
                     return that.getName().getText();                    
                 }
                 if (that.getArgs().size() != 1) {
-                    throw new RuntimeException("One type argument was expected for type: "+that.getName());
+                    throw new MacroError(that,
+                                         "One type argument was expected for type: "+that.getName());
                 }
                 String arg = that.getArgs().get(0).accept(this);
                 if (that.getName().getText().equals("List")) {
@@ -60,7 +62,7 @@ public class FortressTypeToJavaType {
                 if (that.getName().getText().equals("Nothing")) {
                     return "Option<"+arg+">";
                 }
-                throw new RuntimeException("Unexpected traittype: "+that.getName()+that.getArgs());
+                throw new MacroError(that, "Unexpected traittype: "+that.getName()+that.getArgs());
             }
 
             @Override

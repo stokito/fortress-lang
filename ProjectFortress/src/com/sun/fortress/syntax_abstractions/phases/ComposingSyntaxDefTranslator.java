@@ -173,7 +173,7 @@ public class ComposingSyntaxDefTranslator {
         public void forNonterminalSymbol(NonterminalSymbol that) {
             Debug.debug( Debug.Type.SYNTAX, 3,
                          "NonterminalSymbol contains: " + that.getNonterminal());
-            String renamed = mangler.forReference(NodeUtil.nameString(that.getNonterminal()));
+            String renamed = mangler.forReference(that.getNonterminal());
             elements.add(new NonTerminal(renamed));
         }
 

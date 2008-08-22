@@ -18,7 +18,7 @@
 package com.sun.fortress.exceptions;
 
 import com.sun.fortress.nodes_util.Span;
-
+import com.sun.fortress.nodes.Node;
 public class MacroError extends CompilerError {
 
     /**
@@ -27,18 +27,22 @@ public class MacroError extends CompilerError {
     private static final long serialVersionUID = 4547207829531871269L;
 
     public MacroError(String msg) {
-		super(msg);
-	}
-	
-        public MacroError(String msg, Exception e) {
-		super(msg, e);
-	}
-        
-        public MacroError(Exception e) {
-		super(e);
-	}
+        super(msg);
+    }
 
-	public MacroError(Span span, String msg) {
-		super(span, msg);
-	}
+    public MacroError(String msg, Exception e) {
+        super(msg, e);
+    }
+
+    public MacroError(Exception e) {
+        super(e);
+    }
+
+    public MacroError(Span span, String msg) {
+        super(span, msg);
+    }
+
+    public MacroError(Node node, String msg) {
+        super(node.getSpan(), msg);
+    }
 }

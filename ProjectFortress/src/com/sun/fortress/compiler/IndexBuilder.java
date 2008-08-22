@@ -530,7 +530,7 @@ public class IndexBuilder {
      */
     private void buildGrammar(GrammarDef ast, Map<String, GrammarIndex> grammars) {
         String name = ast.getName().getText();
-        GrammarIndex grammar = new GrammarIndex(Option.wrap(ast), buildMembers(ast.getMembers()));
+        GrammarIndex grammar = new GrammarIndex(ast, buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {
             error("Multiple grammars declared with the same name: "+name, ast);
         }
@@ -550,19 +550,19 @@ public class IndexBuilder {
 
                 @Override
                 public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
-                    return new NonterminalDefIndex(Option.wrap(that));
+                    return new NonterminalDefIndex(that);
                 }
 
                 @Override
                 public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
                         NonterminalExtensionDef that) {
-                    return new NonterminalExtendIndex(Option.wrap(that));
+                    return new NonterminalExtendIndex(that);
                 }
 
                 @Override
                 public NonterminalIndex<_TerminalDef> for_TerminalDef(
                         _TerminalDef that) {
-                    return new GrammarTerminalIndex(Option.wrap(that));
+                    return new GrammarTerminalIndex(that);
                 }
 
             }));

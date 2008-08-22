@@ -28,41 +28,31 @@ import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
 
-    private Option<T> ast;
+    private T ast;
 
-    public NonterminalIndex(Option<T> ast) {
+    public NonterminalIndex(T ast) {
         this.ast = ast;
     }
 
-    public Option<T> ast() {
+    public T ast() {
         return this.ast;
     }
 
     public Id getName() {
-        if (this.ast().isSome()) {
-            return this.ast().unwrap().getHeader().getName();
-        }
-        throw new RuntimeException("Production index without ast and thus no name");
+        return this.ast().getHeader().getName();
     }
 
     public BaseType getAstType() {
-        if (this.ast().isSome()) {
-            Option<BaseType> type = this.ast().unwrap().getAstType();
-            if (type.isSome()) {
-                return type.unwrap();
-            }
+        Option<BaseType> type = this.ast().getAstType();
+        if (type.isSome()) {
+            return type.unwrap();
+        } else {
             throw new RuntimeException("Production index without type, type inference is not implemented yet!");
         }
-        throw new RuntimeException("Production index without ast and thus no type");
-    }
-
-    public T getAst() {
-        try { return this.ast.unwrap(); }
-        catch (OptionUnwrapException e) { throw new RuntimeException("Ast not found."); }
     }
 
     public boolean isPrivate() {
-        return getAst().getHeader().getModifier().isSome();
+        return ast().getHeader().getModifier().isSome();
     }
 
     public String toString(){

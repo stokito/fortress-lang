@@ -106,15 +106,6 @@ public class GrammarRewriter {
     }
 
     private static List<Api> rewriteTransformerNames(List<Api> apis, GlobalEnvironment env) {
-        // Rebuild ApiIndices.
-        // IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apis, System.currentTimeMillis());
-        // if (!apiIR.isSuccessful()) { return new ApiResult(results, apiIR.errors()); }       
-        // initializeGrammarIndexExtensions(apiIR.apis().values(), env.apis().values());
-        // for (ApiIndex api: apiIR.apis().values()) { 
-        //     initGrammarEnv(api.grammars().values());
-        // }
-        // apis = apiIR.apis().values().MAP(lambda(x) {x.ast()});
-
         List<Api> results = new ArrayList<Api>();
         for (Api api: apis) {
             Debug.debug(Debug.Type.SYNTAX, 1, "Name transformers in " + api.getName());
@@ -130,7 +121,6 @@ public class GrammarRewriter {
         NTEnv ntEnv = buildNTEnv(apiIndexes, env);
 
         List<Api> results = new ArrayList<Api>();
-
         for (final ApiIndex api : apiIndexes){
             results.add(TemplateParser.parseTemplates(api, ntEnv));
         }
@@ -176,27 +166,15 @@ public class GrammarRewriter {
         }
         for (ApiIndex a1: apis) {
             for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
-                Option<GrammarDef> og = e.getValue().ast();
-                if (og.isSome()) {
-                    List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                    for (Id n: og.unwrap().getExtends()) {
-                        ls.add(grammars.get(n.getText()));
-                    }
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
-                    e.getValue().setExtended(ls);
-                } else {
-                    Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " has no ast" );
+                GrammarDef og = e.getValue().ast();
+                List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
+                for (Id n: og.getExtends()) {
+                    ls.add(grammars.get(n.getText()));
                 }
+                Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );
+                e.getValue().setExtended(ls);
             }
         }
         return grammars;
-    }
-
-    private static void initGrammarEnv(Collection<GrammarIndex> grammarIndexs) {
-        /*
-        for (GrammarIndex g: grammarIndexs) {
-            GrammarEnv.add(g);
-        }
-        */
     }
 }
