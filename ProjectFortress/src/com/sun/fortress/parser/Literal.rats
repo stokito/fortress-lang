@@ -92,9 +92,14 @@ private transient String RestNumericWord =
     a1:NumericSeparator a2:NumericWord { yyValue = a1+a2; };
 
 transient FloatLiteralExpr FloatLiteralExpr =
-    <FIRST> a1:DigitString dot a2:DigitString
+    <ErrorProduction> DigitString dot DigitString (dot DigitString)+
+    { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                            "Numerals contain no more than one `.' character.");
+    }
+  / <FIRST> a1:DigitString dot a2:DigitString
     { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
-                                                 a1 + "." + a2); };
+                                                 a1 + "." + a2);
+    };
 
 transient IntLiteralExpr IntLiteralExpr =
     <FIRST> a1:NumericWord "_" a2:RadixSpecifier &{ NodeUtil.validNumericLiteral(a1, a2) }
