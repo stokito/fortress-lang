@@ -1,3 +1,20 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 component objectCC_staticParams
 export Executable
 
@@ -13,9 +30,9 @@ object O[\X extends String, bool b, nat n\](v:ZZ32, s:X)
     (* After we move checking of method calls to be after
        type inference, remove the explicit return type T. *)
     bar():T[\X\] = object extends T[\X\]
-                x():ZZ32 = foo() 
-                y():ZZ32 = quack() 
-                z():ZZ32 = do 
+                x():ZZ32 = foo()
+                y():ZZ32 = quack()
+                z():ZZ32 = do
                     _ = O[\X, b, n\](v, s)
                     if b then n else (n-1) end
                 end
@@ -34,4 +51,3 @@ run(args:String...):() = do
 end
 
 end
-
