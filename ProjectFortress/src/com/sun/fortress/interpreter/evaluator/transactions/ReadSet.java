@@ -36,7 +36,8 @@ public class ReadSet extends AbstractSet<Transaction> {
       // There is a race here.  If I'm trying to copy from r and r is modified
       // out from underneath me, I get a NoSuchElementException, so I'm writing
       // my own add function.
-      myAdd(r);
+      if (r != null)
+          myAdd(r);
   }
 
   private void myAdd(ReadSet r) {
@@ -71,6 +72,7 @@ public class ReadSet extends AbstractSet<Transaction> {
       cleanup();
       if (sealed) {
 		  FortressTaskRunner.debugPrintln("add of " + t + " to readset " + toString() + " failed because readset was sealed");
+          Thread.dumpStack();
 		  return false;
       } else {
 		  elements.addIfAbsent(t);

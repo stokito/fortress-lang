@@ -43,27 +43,26 @@ public class ReferenceCell extends IndirectionCell {
 
     public ReferenceCell() {
         super();
-        node = new ValueNode();
-        id = counter.getAndIncrement();
-    }
-
-    public ReferenceCell(FType t, FValue v) {
-        super();
-        theType = t;
-        node = new ValueNode(v);
+        node = ValueNode.nullValueNode;
         id = counter.getAndIncrement();
     }
 
     public ReferenceCell(FType t) {
         super();
         theType = t;
-        node = new ValueNode();
+        node = ValueNode.nullValueNode;
+        id = counter.getAndIncrement();
+    }
+
+    public ReferenceCell(FType t, FValue v) {
+        super();
+        theType = t;
+        node = new ValueNode(v, FortressTaskRunner.getTransaction(), null, null);
         id = counter.getAndIncrement();
     }
 
     public FType getType() { return theType;}
     public String toString() { return "ReferenceCell" + id;}
-
 
     private boolean transactionIsCommitted(Transaction w) {
         if (w == null) return true;
@@ -89,35 +88,62 @@ public class ReferenceCell extends IndirectionCell {
 
     private synchronized void cleanup() {
         Transaction w = node.getWriter();
+        if (Transaction.debug)
+            FortressTaskRunner.debugPrintln("Cleanup:" + this + " start with node = " + node);
         while (w != null && transactionIsNotActive(w)) {
             if (transactionIsAbortedOrOrphaned(w)) {
                 node = node.getOld();
             } else {
                 assert(transactionIsCommitted(w));
                 Transaction p = w.getParent();
-                if (p == null) {
-                    node = new ValueNode(node.getValue(), node.getOld().getReaders());
-                } else  {
-                    node = new ValueNode(node.getValue(), p, node.getOld());
+                ValueNode old = node.getOld();
+                if (p == null && old == null) {
+                    // Committed to top level, with no previous value.
+                    node = new ValueNode(node.getValue(), null, null, null);
+                } else if (p == null) {
+                    // Committed to top level.  Any readers of the committed transaction
+                    // must be preserved.
+                    node = new ValueNode(node.getValue(), null, old.getReaders(), null);
+                } else  if (old != null) {
+                    // Committed to a parent transaction, must preserve readers and 
+                    // old transaction.
+                    node = new ValueNode(node.getValue(), p, old.getReaders(), old);
+                } else {
+                    node = new ValueNode(node.getValue(), p, null, null);
                 }
             }
             if (node != null) {
                 w = node.getWriter();
             } else {
-                node = new ValueNode();
+                node = ValueNode.nullValueNode;
+                if (Transaction.debug)
+                    FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
                 return;
             }
         }
+        if (Transaction.debug)
+            FortressTaskRunner.debugPrintln("Cleanup:" + this + " end with " + node);
     }
 
     public synchronized void assignValue(FValue f2) {
         Transaction me  = FortressTaskRunner.getTransaction();
         cleanup();
+        if (Transaction.debug) 
+            FortressTaskRunner.debugPrintln(this + " assignValue start = " + node + " value = " + f2);
+
+        if (node == ValueNode.nullValueNode) {
+            node = new ValueNode(f2, me, null, null);
+        }
+
         // writer is either active, or null
         if (me == null) { // top level assignment
-            ValueNode temp = node;
-            node = new ValueNode(f2);
-            temp.AbortAllReadersAndWriters();
+            if (node == ValueNode.nullValueNode) 
+                node = new ValueNode(f2, me, null, null);
+            else {
+                ValueNode temp = node;
+                node = new ValueNode(f2, null, null, null);
+                temp.AbortAllReadersAndWriters();
+            }
         } else if (!me.isActive()) {
             throw new AbortedException(me, "Somebody killed me ");
         } else {
@@ -127,15 +153,19 @@ public class ReferenceCell extends IndirectionCell {
                 throw new AbortedException(me, "Somebody killed me ");      
 
             Transaction w = node.getWriter();
+            ValueNode old = node.getOld();
 
             if (w == null || w.isAncestorOf(me)) {
-                node = new ValueNode(f2, me, node);
+                node = new ValueNode(f2, me, node.getReaders(), node);
                 if (Transaction.debug) me.addWrite(this, f2);
+
             } else if (w.isActive()) {
 				// Cleanup got us to a parent node with an active writer
                 assignValue(f2);
             }
         }
+        if (Transaction.debug)
+            FortressTaskRunner.debugPrintln(this + " assignValue finish = " + node);
     }
 
     public synchronized FValue getValue() {
