@@ -31,38 +31,27 @@ public class ValueNode {
     FValue value;
     Transaction writer;
     ReadSet readers;
-    
-    ValueNode() {
-        old = null;
-        value = null;
-        writer = FortressTaskRunner.getTransaction();
-        readers = new ReadSet();
-    }
 
-    ValueNode(FValue val) {
-        old = null;
-        value = val;
-        writer = FortressTaskRunner.getTransaction();
-        readers = new ReadSet();
-    }
-
-    ValueNode(FValue val, Transaction w, ValueNode o) {
+    public  ValueNode(FValue v, Transaction w, ReadSet r, ValueNode o) {
         old = o;
-        value = val;
+        value = v;
         writer = w;
-        if (o != null)
-            readers = new ReadSet(o.readers);
-        else readers = new ReadSet();
-    }
-
-    ValueNode(FValue val, ReadSet r) {
-        old = null;
-        value = val;
         readers = new ReadSet(r);
     }
 
+    ValueNode() {
+        old = null;
+        value = null;
+        writer = null;
+        readers = new ReadSet();
+    }
+
+    public static final ValueNode nullValueNode = new ValueNode();
+
     public String toString() {
-        return "ValueNode[" + value +  ":" + writer + "]" ;
+        if (this == nullValueNode)
+            return "nullValueNode";
+        else return "ValueNode[" + value +  ":" + writer +  "::" + readers + "]" ;
     }
 
     public FValue getValue() {  return value;}
@@ -79,6 +68,9 @@ public class ValueNode {
     }
             
     public void AbortAllReaders() {
+        if (this == nullValueNode)
+            throw new RuntimeException(Thread.currentThread().getName() + "Trying to abort all the readers of the null value node");
+
 		readers.seal();
 		for (Transaction r : readers) {
 			r.abort();
