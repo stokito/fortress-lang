@@ -20,12 +20,17 @@ package com.sun.fortress.compiler.desugarer;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
+import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarRef;
@@ -112,17 +117,24 @@ public final class FreeNameCollection {
      * lifted ObjectDecl, we don't want to repeat them in its Param list.  
      * Hence, remove these redundant references from the freeVarRefs.
      */
-    public void removeStaticRefsFromFreeVarRefs() {
+    public void removeStaticRefsFromFreeVarRefs(TypeEnv typeEnv) {
         // need to use a new list; can't just remove the redundant var from
         // the old list, otherwise we get a ConcurrentModificationException.
         List<VarRef> newFreeVarRefs = new LinkedList<VarRef>();
 
         for(VarRef var : freeVarRefs) {
-            BoolRef b = new BoolRef( var.getVar() );
-            IntRef i = new IntRef( var.getVar() );
-            if( freeBoolRefs.contains(b) == false && 
-                freeIntRefs.contains(i) == false ) {
+            Option<StaticParam> spOp = typeEnv.staticParam( var.getVar() );
+            if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
+            } else if( spOp.unwrap() instanceof BoolParam ) {
+                this.add( new BoolRef(var.getSpan(), var.getVar()) ); 
+            } else if( spOp.unwrap() instanceof IntParam ) {
+                this.add( new IntRef(var.getSpan(), var.getVar()) ); 
+            } else if( spOp.unwrap() instanceof NatParam ) {
+                this.add( new IntRef(var.getSpan(), var.getVar()) ); 
+            } else {
+                throw new DesugarerError( "Unexpected Static Param type " +
+                    "found: " + spOp.unwrap() );
             }
         }
 

@@ -99,8 +99,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
      * value: TypeParam corresponding to the varType, where it's declared.
      *     We need this info so that we don't lose the extends clauses on the 
      *     TypeParam when we make the StaticParam list for the lifted ObjExpr 
-     */
+     *
+     * This is no longer needed now that we are passing all static params
     private Map<Pair<Id,Id>, TypeParam> staticArgToTypeParam;
+     */
 
 
     // data structure to pass to getter setter desugarer pass so that it 
@@ -146,7 +148,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         objExprToFreeNames = freeNameCollector.getObjExprToFreeNames();
         declSiteToVarRefs  = freeNameCollector.getDeclSiteToVarRefs();
-        staticArgToTypeParam = freeNameCollector.getStaticArgToTypeParam();
+        // staticArgToTypeParam = freeNameCollector.getStaticArgToTypeParam();
 
         // No object expression found in this component. We are done.
         if(objExprToFreeNames.isEmpty()) {
@@ -289,8 +291,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // params being captured and mutated by some object expression(s) 
         if( rewriteList != null ) {
             String uniqueSuffix = "";
-            if( enclosingObjectDecl != null ) {
-                uniqueSuffix += enclosingObjectDecl.getName().getText();
+            Id enclosingId = getEnclosingTraitObjectName();
+
+            if( enclosingId != null ) {
+                uniqueSuffix += enclosingId.getText();
             }
             uniqueSuffix += nextUniqueId(); 
 
@@ -393,7 +397,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
         VarRef enclosingSelf = null;
 
-        List<StaticArg> staticArgs = makeStaticArgsToLiftedObj(freeNames);
+        List<StaticArg> staticArgs = 
+                makeStaticArgsToLiftedObj(objExpr, freeNames);
 
         /* Now make the call to construct the lifted object */
         /* Use default value for parenthesized and exprType */
@@ -403,7 +408,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         if (freeMethodRefs != null && freeMethodRefs.size() != 0) {
             enclosingSelf = ExprFactory.makeVarRef(span, "self");
-        }
+        } 
 
         List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr,
                                                       freeNames, enclosingSelf);
@@ -415,23 +420,38 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return callToConstructor;
     }
 
-    private List<StaticArg> 
-    makeStaticArgsToLiftedObj(FreeNameCollection freeNames) {
+    /* 
+     * Turns out that we do need pass all the static params from the outer
+     * enclosing Trait/ObjectDecl, but not just the ones being referenced, 
+     * because otherwise some varRef captured by object expression may have 
+     * types that's not recognized at top level.  Argh.  The old code is 
+     * commented out and left at the end of the file.
+     */ 
+    private List<StaticArg> makeStaticArgsToLiftedObj(ObjectExpr target, 
+                                            FreeNameCollection freeNames) {
         List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
         List<IntRef> intRefs = freeNames.getFreeIntRefs();
         List<VarType> varTypes = freeNames.getFreeVarTypes();
+        List<StaticParam> sParams = null;
         List<StaticArg> args = new LinkedList<StaticArg>();
-
-        for(BoolRef boolRef : boolRefs) {
-            args.add( new BoolArg(boolRef.getSpan(), boolRef) ); 
+            
+        if( enclosingTraitDecl != null ) {
+            sParams = enclosingTraitDecl.getStaticParams();
+        } else if( enclosingObjectDecl != null ) {
+            sParams = enclosingObjectDecl.getStaticParams();
+        } else {
+            if( boolRefs.isEmpty() == false ||  // sanity check
+                intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {   
+                throw new DesugarerError( target.getSpan(), 
+                        "Found refences to static params outside " + 
+                        "of Trait/ObjectDecl!");
+            }
         }
 
-        for(IntRef intRef : intRefs) {
-            args.add( new IntArg(intRef.getSpan(), intRef) );
-        }
-
-        for(VarType varType: varTypes) {
-            args.add( new TypeArg(varType.getSpan(), varType) );
+        if( sParams != null) {
+            for(StaticParam sp : sParams) {
+                args.add( makeStaticArgFromStaticParam(sp) ); 
+            }
         }
 
         return args;
@@ -446,7 +466,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
         List<Expr> exprs = new LinkedList<Expr>();
 
-        // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
                 if( freeNames.isMutable(var) ) { 
@@ -503,7 +522,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         NormalParam enclosingSelf = null;
 
         List<StaticParam> staticParams =
-                makeStaticParamsForLiftedObj(freeNames);
+                makeStaticParamsForLiftedObj(target, freeNames);
 
         if( freeMethodRefs.isEmpty() == false ) {
             // Use the span for the obj expr that we are lifting
@@ -530,53 +549,45 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return lifted;
     }
 
-    private List<StaticParam>
-    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
+    /* 
+     * Turns out that we do need pass all the static params from the outer
+     * enclosing Trait/ObjectDecl, but not just the ones being referenced, 
+     * because otherwise some varRef captured by object expression may have 
+     * types that's not recognized at top level.  Argh.  The old code is 
+     * commented out and left at the end of the file.
+     */ 
+    private List<StaticParam> makeStaticParamsForLiftedObj(ObjectExpr target, 
+                                                FreeNameCollection freeNames) {
         List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
         List<IntRef> intRefs = freeNames.getFreeIntRefs();
         List<VarType> varTypes = freeNames.getFreeVarTypes();
-        List<StaticParam> sParams = new LinkedList<StaticParam>();
+        List<StaticParam> sParamsCopy = new LinkedList<StaticParam>();
+        List<StaticParam> sParams = null;
 
-        for(BoolRef boolRef : boolRefs) {
-            sParams.add( new BoolParam(boolRef.getSpan(), boolRef.getName()) );
-        }
-        for(IntRef intRef : intRefs) {
-            sParams.add( new IntParam(intRef.getSpan(), intRef.getName()) );
-        }
-        for(VarType varType : varTypes) {
-            Id enclosingId = null;
-            if(enclosingTraitDecl != null){
-                enclosingId = enclosingTraitDecl.getName();
-            } else if(enclosingObjectDecl != null) {
-                enclosingId = enclosingObjectDecl.getName();
-            } else {
-                throw new DesugarerError( varType.getSpan(), "VarType " +
-                        varType + " found outside of Trait/ObjectDecl!" );
+        if( enclosingTraitDecl != null ) {
+            sParams = enclosingTraitDecl.getStaticParams();
+        } else if( enclosingObjectDecl != null ) {
+            sParams = enclosingObjectDecl.getStaticParams();
+        } else {
+            if( boolRefs.isEmpty() == false ||  // sanity check
+                intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {   
+                throw new DesugarerError( target.getSpan(), 
+                        "Found refences to static params outside " + 
+                        "of Trait/ObjectDecl!");
             }
-
-            Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, varType.getName() );
-            TypeParam declSite = staticArgToTypeParam.get(key);
-        
-            if(declSite == null) {
-               throw new DesugarerError( varType.getSpan(), "Cannot find the "
-                            + "decl site of VarType " + varType + " in " + 
-                            "staticArgToTypeParam map!");
-            }
-
-            sParams.add( new TypeParam(varType.getSpan(), varType.getName(), 
-                                       declSite.getExtendsClause(), 
-                                       declSite.isAbsorbs()) );
         }
-        
-        return sParams;
+
+        if(sParams != null) {
+            sParamsCopy.addAll(sParams);
+        }
+
+        return sParamsCopy;
     }
 
     private Option<List<Param>>
     makeParamsForLiftedObj(ObjectExpr target, 
                            FreeNameCollection freeNames,
                            NormalParam enclosingSelfParam) {
-        // TODO: need to figure out shadowed self via FnRef
-        // need to box any var that's mutabl
 
         Option<Type> type = null;
         NormalParam param = null;
@@ -584,7 +595,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
 
-        // FIXME: Need to handle mutated vars
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
                 if( freeNames.isMutable(var) ) {
@@ -633,7 +643,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         NormalParam param = null;
 
         // Just sanity check
-        if(enclosingTraitDecl == null && enclosingObjectDecl == null) {
+        if( getEnclosingTraitObjectName() == null ) {
             throw new DesugarerError("No enclosing trait or object " +
                         "decl found when a dotted method is referenced.");
         }
@@ -667,6 +677,38 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     // small helper methods
+    private StaticArg makeStaticArgFromStaticParam(StaticParam sParam) {
+        Span span = sParam.getSpan();
+
+        if( sParam instanceof BoolParam ) {
+            BoolRef boolRef = new BoolRef(span, ((BoolParam) sParam).getName());
+            return new BoolArg(span, boolRef);
+        } else if( sParam instanceof IntParam ) {
+            IntRef intRef = new IntRef(span, ((IntParam) sParam).getName());
+            return new IntArg(span, intRef);
+        } else if( sParam instanceof NatParam ) {
+            IntRef intRef = new IntRef(span, ((NatParam) sParam).getName());
+            return new IntArg(span, intRef);
+        } else if( sParam instanceof TypeParam ) {
+            VarType varType = new VarType(span, ((TypeParam) sParam).getName());
+            return new TypeArg(span, varType);
+        } else {
+            throw new DesugarerError(
+                "Unexpected type of Static Param found: " + sParam);
+        }
+    }
+ 
+    private Id getEnclosingTraitObjectName() {
+        Id enclosingId = null;
+        if(enclosingTraitDecl != null){
+            enclosingId = enclosingTraitDecl.getName();
+        } else if(enclosingObjectDecl != null) {
+            enclosingId = enclosingObjectDecl.getName();
+        } 
+
+        return enclosingId;
+    }
+
     private VarRef makeVarRefFromNormalParam(NormalParam param) {
         VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
                                                 param.getName(),
@@ -684,6 +726,78 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return uniqueId++;
     }
 
+
+/************
+ * Some code that I like to keep around - may be useful one day.
+ ************/
+
+    /*
+     * The old code that make static args to pass to the lifted object expr
+     * based on what BoolRefs and IntRefs are captured
+     * 
+    private List<StaticArg> 
+    makeStaticArgsToLiftedObj(FreeNameCollection freeNames) {
+        List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
+        List<IntRef> intRefs = freeNames.getFreeIntRefs();
+        List<VarType> varTypes = freeNames.getFreeVarTypes();
+        List<StaticArg> args = new LinkedList<StaticArg>();
+
+        for(BoolRef boolRef : boolRefs) {
+            args.add( new BoolArg(boolRef.getSpan(), boolRef) ); 
+        }
+
+        for(IntRef intRef : intRefs) {
+            args.add( new IntArg(intRef.getSpan(), intRef) );
+        }
+
+        for(VarType varType: varTypes) {
+            args.add( new TypeArg(varType.getSpan(), varType) );
+        }
+
+        return args;
+    } */
+
+    /*
+     * The old code that make static type params for the lifted object expr
+     * based on what BoolRefs and IntRefs are captured
+     * 
+    private List<StaticParam>
+    makeStaticParamsForLiftedObj(FreeNameCollection freeNames) {
+        List<BoolRef> boolRefs = freeNames.getFreeBoolRefs();
+        List<IntRef> intRefs = freeNames.getFreeIntRefs();
+        List<VarType> varTypes = freeNames.getFreeVarTypes();
+        List<StaticParam> sParams = new LinkedList<StaticParam>();
+
+        for(BoolRef boolRef : boolRefs) {
+            sParams.add( new BoolParam(boolRef.getSpan(), boolRef.getName()) );
+        }
+        for(IntRef intRef : intRefs) {
+            sParams.add( new IntParam(intRef.getSpan(), intRef.getName()) );
+        }
+        for(VarType varType : varTypes) {
+            Id enclosingId = getEnclosingTraitDeclName();
+  
+            if(enclosingId == null) {
+                throw new DesugarerError( varType.getSpan(), "VarType " +
+                        varType + " found outside of Trait/ObjectDecl!" );
+            }
+
+            Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, varType.getName() );
+            TypeParam declSite = staticArgToTypeParam.get(key);
+        
+            if(declSite == null) {
+               throw new DesugarerError( varType.getSpan(), "Cannot find the "
+                            + "decl site of VarType " + varType + " in " + 
+                            "staticArgToTypeParam map!");
+            }
+
+            sParams.add( new TypeParam(varType.getSpan(), varType.getName(), 
+                                       declSite.getExtendsClause(), 
+                                       declSite.isAbsorbs()) );
+        }
+        
+        return sParams;
+    } */
 
 //     private ObjectDecl 
 //     createContainerForMutableVars(Node originalContainer, 
