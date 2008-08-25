@@ -49,6 +49,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         throws FileNotFoundException, IOException, Throwable {
         runFile("objectCC_mutVar1.fss");
         runFile("objectCC_mutVar2.fss");
+        runFile("objectCC_mutable.fss");
     }
 
     public void testObjectCC_Mutli_ObjExpr_Mutables()

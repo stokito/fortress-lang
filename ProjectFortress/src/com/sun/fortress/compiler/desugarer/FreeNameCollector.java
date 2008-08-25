@@ -81,8 +81,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
      * value: TypeParam corresponding to the varType, where it's declared.
      *     We need this info so that we don't lose the extends clauses on the 
      *     TypeParam when we make the StaticParam list for the lifted ObjExpr 
-     */ 
+     *
+     * Don't need this now that we are passing all static params
     private Map<Pair<Id,Id>, TypeParam> staticArgToTypeParam;
+     */ 
 
 	
 	private static final int DEBUG_LEVEL = 2;
@@ -103,7 +105,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
         this.declSiteToVarRefs = 
             new HashMap<Pair<String,Span>, List<Pair<VarRef,Node>>>();
-        this.staticArgToTypeParam = new HashMap<Pair<Id,Id>, TypeParam>();
+        // this.staticArgToTypeParam = new HashMap<Pair<Id,Id>, TypeParam>();
         
 		this.enclosingTraitDecl = null; 
 		this.enclosingObjectDecl = null; 
@@ -118,9 +120,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         return declSiteToVarRefs;
     }
 
+    /* 
     public Map<Pair<Id,Id>, TypeParam> getStaticArgToTypeParam() {
         return staticArgToTypeParam;
-    }
+    } */
 
 	@Override
     public void forTraitDecl(TraitDecl that) {
@@ -227,12 +230,13 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         objExprStack.pop();
         scopeStack.pop();
 
+        TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(that);
+
         if( objExprStack.isEmpty() && 
             (enclosingObjectDecl != null || enclosingTraitDecl != null) ) {
             // use the "self" id to get the right type of the
             // enclosing object / trait decl
-            Option<Type> type = 
-                typeCheckerOutput.getTypeEnv(that).type( new Id("self") );
+            Option<Type> type = objExprTypeEnv.type( new Id("self") );
             freeNames.setEnclosingSelfType(type);
         }
 
@@ -240,7 +244,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         // case, it is parsed as a VarRef; as a result, its reference may be
         // captured in two different list and is redundant.  Remove them so
         // we don't get a name collision in the lifted ObjectDecl. 
-        freeNames.removeStaticRefsFromFreeVarRefs();
+        freeNames.removeStaticRefsFromFreeVarRefs(objExprTypeEnv);
 
         List<VarRef> mutableVars = 
             filterFreeMutableVarRefs( that, freeNames.getFreeVarRefs() );
@@ -475,6 +479,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		    freeNames.add(that);
 
+            /*
+             * Don't need to do this now that we are passing all static
+             * params
             ObjectExpr innerMostObjExpr = objExprStack.peek();
     		TypeEnv objExprTypeEnv = 
                     typeCheckerOutput.getTypeEnv(innerMostObjExpr);
@@ -500,7 +507,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
                          + "Expected: TypeParam; found: " + spOp.unwrap() );
             } else {
                 staticArgToTypeParam.put( key, (TypeParam) spOp.unwrap() );
-            }
+            } */
 		}
 
         forVarTypeDoFirst(that);
@@ -615,8 +622,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
 		
-		// FIXME: change if going back to Pair<Node,Span> key
-        // FIXME: change when the type checking ppl are done w/ getTypeEnv
 		TypeEnv topLevelEnv = typeCheckerOutput.getTypeEnv(topLevelNode);
 
 		if(topLevelEnv == null) {
