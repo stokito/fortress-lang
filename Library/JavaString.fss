@@ -32,10 +32,14 @@ package="com.sun.fortress.interpreter.glue.prim"
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+        
     uncheckedSubstring(r1: Range[\ZZ32\]) : String =
+    (* We could build a subString node here, but not until everything is working, because that will intorduce 
+       SubString objects into code that may still expect JavaStrings *)
         if r1.isEmpty then ""
         else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
         end
+        
     opr =(self, other:String): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")
     opr <(self, other:String): Boolean = self.cmp(other) < 0
@@ -65,10 +69,12 @@ package="com.sun.fortress.interpreter.glue.prim"
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
         
     (* The following are curently dead code; see lines 3765 ish in FortressLibrary.fss *)    
+(*
     javaPrint(a: JavaString): () = 
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
     javaPrintln(a: JavaString): () = 
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+*)
 
     indexOf(c:Char): Maybe[\ZZ32\] = do
         i = javaIndexOf(c)
@@ -100,16 +106,19 @@ package="com.sun.fortress.interpreter.glue.prim"
       end
 
     opr ||(self, b:String):String =
-        CatString(self, b)
-    (*  This makes the overloading resolution go beserk ...
-    opr ||(self, b:EmptyString):String = self
-    *)
+    (* It would be good to do something more sophisticated when b is short, such as copying
+       self and b into a StringBuffer and then turning the whole thing into a JavaString *)
+        if self.isEmpty then b else CatString(self, b) end
+        
+  
     opr ||(self, b:Char): String =
         if |self| ≥ flatStringInfo.maxSize then
             CatString(self, b.toString)
         else
             javaAppend(self, b)
         end
+        
+    subdivide() = Nothing[\Generator[\(ZZ32, String)\]\]
 
   end
 

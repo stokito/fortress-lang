@@ -99,6 +99,8 @@ object LexicographicReduction
     isLeftZero(_:Comparison): Boolean
 end
 
+opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\]
+
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
         comprises { Unordered, TotalComparison }
@@ -700,6 +702,7 @@ end
     as predicates in an if expression. **)
 trait Condition[\E\] extends SequentialGenerator[\E\]
     getter isEmpty(): Boolean
+    getter nonEmpty(): Boolean
     getter holds(): Boolean
     getter size(): ZZ32
     getter get(): E throws NotFound
@@ -972,6 +975,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
     (** %isEmpty()% indicates whether there are any valid indices.  It is
         defined as %|self| = 0%. *)
     getter isEmpty(): Boolean
+    getter nonEmpty(): Boolean
     (** %size()% is depracted; use %|self|% instead. *)
     abstract getter size(): ZZ32
     (** %bounds()% yields a range of indices that are valid for the
@@ -1801,8 +1805,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
-
-    getter isEmpty(): Boolean
+   
     opr =(self,_:Range[\T\]): Boolean
 end
 
@@ -1968,6 +1971,7 @@ trait String extends { StandardTotalOrder[\String\],
     showStructure(indent: ZZ32) : ()         (* a debugging printout *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
+    
     opr [i:ZZ32]: Char
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient
@@ -1977,6 +1981,8 @@ trait String extends { StandardTotalOrder[\String\],
     (** This version is like [ ] above, but does not do the bounds checking.  Really, this
          should be in a "friends" interface *)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
+    
+    subdivide(): Maybe[\Generator[\(ZZ32, String)\]\]
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)

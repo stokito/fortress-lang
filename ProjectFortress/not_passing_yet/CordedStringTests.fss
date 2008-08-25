@@ -17,6 +17,7 @@
 
 component CordedStringTests
   import CordedString.{...}
+  import JavaString.{...}
   import Set.{...}
   import List.{...}
   export Executable
@@ -44,7 +45,7 @@ component CordedStringTests
         shouldRaise⟦IndexOutOfBounds⟧ (fn() => testString[i])
     end
   end
-  
+ 
   test subString(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
@@ -55,9 +56,87 @@ component CordedStringTests
             j ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do 
         assert(testString[i:j], referenceString[i:j]) 
     end
-
   end
-
+  
+  test subStringSimplification():() = do
+    testString = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
+    testString.verify()
+    sub1 = testString[34:36]
+    typecase sub1 of
+        JavaString => assert(true)
+        String => do sub1.showStructure()
+                            assert(false, "sub1=" sub1 " is not a JavaString") end
+     end
+  end
+  
+  (* test *) validateSubdivision(subject: String, division: Maybe⟦Generator⟦(ZZ32, String)⟧⟧): () = do
+    var len: ZZ32 = 0
+    var accum: String = ""
+    if gen ← division then 
+      for (start, str) ← seq(gen) do
+         assert(start, len, str)
+         len := len + |str|
+         accum := accum || str
+      end
+      assert(len, |subject|)
+      assert(accum, subject)
+    end
+  end
+    
+  test testSubdivide():() = do
+    subject = CatString("abcd", "efgh")
+    substr1 = subject[2:6]
+    var len: ZZ32 = 0
+    var accum: String = ""
+    for (start, str) ← seq(substr1.subdivide()) do
+         assert(start, len, str)
+         len := len + |str|
+         accum := accum || str
+    end
+    assert(len, |substr1|)
+    accum.verify()
+    accum.showStructure()
+    assert(accum, substr1)  
+    
+    substr2 = subject[4:6]
+    assert(substr2.subdivide(), Nothing⟦Generator⟦(ZZ32,String)⟧⟧)
+    
+    substr3 = subject[0:5]
+    for p ← seq(substr1.subdivide()) do
+        println ("found tuple" || p)    (* This should (did?) work prefix string too *)
+    end
+    
+  end 
+  
+(*
+  test comparison():() = do
+    smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
+    bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
+    smaller.verify
+    bigger.verify
+    smaller.showStructure
+    bigger.showStructure
+    assert(smaller < bigger)
+    assert(smaller[10:] < bigger[10:])
+    a = smaller[30:36] 
+    b = bigger[30:36]
+    a.verify
+    b.verify
+    a.showStructure
+    b.showStructure
+    assert(smaller[30:36] = bigger[30:36], smaller[30:36] " is not = to " bigger[30:36])
+  end
+ *)
+  object CatStringReduction extends MonoidReduction[\String\]
+    getter toString() = "CatStringReduction"
+    empty(): String = EmptyString
+    join(a:String, b:String):String = CatString(a, b)
+  end
+  
+  test catStringFrom(args: String...): String =
+    seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
+  
+ 
   test testNonEmptyConcat(): () =  do
     stuff = "Hello "
     more = "World"
@@ -65,9 +144,6 @@ component CordedStringTests
     assert(|hw|, |stuff| + |more|)
     assert(hw, "Hello World")
     assert(hw, CatString("Hell", "o World"))
-    assert(hw[2:7], "llo Wo")
-    assert(hw[0:3], "Hell")
-    assert(hw[5:2], "")
   end
   
   test testEmptyConcat(): () = do   
@@ -105,7 +181,7 @@ component CordedStringTests
     assert(|result|, |chars|)
     for i ← result.bounds do assert(result[i] , chars[i]) end
   end  
-
+  
   run(args:String...):() = do
     println "Tests complete"
   end

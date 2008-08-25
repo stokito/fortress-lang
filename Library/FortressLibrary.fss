@@ -135,6 +135,10 @@ object LexicographicReduction
     isLeftZero(_:Comparison): Boolean = true
 end
 
+opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\] =
+  BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
+  
+
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
         comprises { Unordered, TotalComparison }
@@ -1099,6 +1103,7 @@ end
     as predicates in an if expression. **)
 trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter isEmpty(): Boolean = NOT holds()
+    getter nonEmpty(): Boolean = NOT isEmpty()
     getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
     getter size(): ZZ32 = if holds() then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
@@ -1452,7 +1457,8 @@ trait Indexed[\E, I\] extends Generator[\E\]
     (** isEmpty indicates whether there are any valid indices.  It is
         defined as size=0 *)
     getter isEmpty(): Boolean = |self| = 0
-    (** %size()% is depracated; use %|self|%. *)
+    getter nonEmpty(): Boolean = NOT self.isEmpty
+    (** %self.size% is equivalent to %|self|%. *)
     getter size(): ZZ32
     (** bounds() yields a range of indices that are valid for the
         indexed generator. *)
@@ -3026,7 +3032,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
-    getter isEmpty(): Boolean = (|self| ≤ 0)
+    
     opr[r:Range[\T\]]: Range[\T\] = fail("Unrecognized Range " r)
     opr[_:OpenRange[\Any\]] : Range[\T\] = self
     opr[other:LowerRange[\T\]] : Range[\T\]
@@ -3283,7 +3289,7 @@ trait CompleteRange[\T\]
         if r.extent <= self.extent then
             self.lower#r.extent
         else
-            fail(self "[" r "] is not sufficiently large in some dimension")
+            fail(self "[" r "] is too small in some dimension")
         end
     opr[r:CompleteRange[\T\]]: CompleteRange[\T\] =
         if r.lower < self.lower then
@@ -3302,8 +3308,11 @@ trait CompleteRange[\T\]
         end
 
     opr =(self, other:CompleteRange[\T\]): Boolean =
-        self.isBounded=other.isBounded AND self.lower=other.lower AND
-        self.extent = other.extent
+    (*    isBounded()=other.isBounded() AND 
+         APB 2008.08.20: this seems bogus: isBounded tells us only whether we were created 
+         using an extent or an upper bound, and should not effect the comparison *)
+         lower()=other.lower() AND extent() = other.extent()    
+         
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             CompleteRange[\T\] =>
@@ -3314,12 +3323,14 @@ trait CompleteRange[\T\]
                     (Comparison,Unordered) => Unordered
                     (LessThan,LessThan) => Unordered
                     (GreaterThan,GreaterThan) => Unordered
-                    (EqualTo,EqualTo) =>
+    (*  This case seems unncessary; the (EqualTo,Comparison) case will cover us    --- APB  2008.08.20
+                    (EqualTo,EqualTo) => EqualTo
                         if self.isBounded = other.isBounded then
                             EqualTo
                         else
                             Unordered
                         end
+   *)
                     (EqualTo,Comparison) => b
                     (GreaterThan,Comparison) => LessThan
                     else (* LessThan,Comparison *) => GreaterThan
@@ -3675,11 +3686,17 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     showStructure() = showStructure(0)
      
     opr |self| : ZZ32 = self.size
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
-    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+       
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
+      ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CASE_INSENSITIVE_CMP other.get(i)) LEXICO (|self| CMP |other|))
+    
+    opr CMP(self, other:String): TotalComparison =
+      ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|))
+      
+    opr [i:ZZ32]: Char =
+        (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the String, returning the empty String, in order to permit some convenient
         String-trimming idioms. **)
-    opr [i:ZZ32]: Char =
         if 0 <= i < |self|
         then self.get(i)
         else 
@@ -3772,8 +3789,8 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
 
-print(a:Any):() = print("" a)
-println(a:Any):() = println("" a)
+print(a:Any):() = print(a.toString)
+println(a:Any):() = println(a.toString)
 (* 0-argument versions handle passing of () to single-argument versions. *)
 print():() = print("")
 println():() = println("")
@@ -3781,7 +3798,6 @@ print(a: JavaString): () =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
 println(a: JavaString): () = 
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-
 
 forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
     if (radix<2 OR radix>16 OR x<0 OR x>=radix) then

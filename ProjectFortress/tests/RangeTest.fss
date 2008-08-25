@@ -130,8 +130,8 @@ run(args:String...):() = do
     chkOrder(lh,i,Unordered), i <- <|mh,hh|>
     chkOrder(mm,i,LessThan), i <- <|lm,lh',lh,mh|>
     chkOrder(mm,hh,Unordered)
-    chkOrder(lh,lh',Unordered)
-    chkOrder(lh',lh,Unordered)
+    chkOrder(lh,lh',EqualTo)        (* APB 2008.08.20 Changed this from Unordered.  Also changed the code *)
+    chkOrder(lh',lh,EqualTo)        (* APB 2008.08.20 Changed this from Unordered.  Also changed the code *)
   end
 
 end
