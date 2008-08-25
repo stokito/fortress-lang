@@ -16,20 +16,58 @@
  ******************************************************************************)
 
 component CordedString
+import List.{...}
 export CordedString
 
 (* I believe that these should eventually go with the range code. *)
-
     (*Intersection of two ranges *)
-    opr ∩ (r0: Range[\ZZ32\], r1: Range[\ZZ32\]) = (r0.lower MAX r1.lower) : (r0.upper MIN r1.upper) 
+    opr ∩ (r0: Range⟦ZZ32⟧, r1: Range⟦ZZ32⟧) = (r0.lower MAX r1.lower) : (r0.upper MIN r1.upper) 
+      
+  test rangeIntersect() = do
+        assert((0:5) ∩ (0:3), 0:3)
+        assert((0:5) ∩ (3:7), 3:5)
+        assert((0:5) ∩ (7:10), 7:5)
+        assert((5:3).size, 0, "The size of 5:3 is not zero!")
+        assert((9:8).size, 0, "The size of 9:8 is not zero!")
+        assert( (5:3).isEmpty, "5:3 is not empty!")
+        assert( (9:8).isEmpty, "9:8 is not empty!")
+        assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
+        assert( (7:9)≪7, (0#3), "7:9≪7 isn't 0#3" ) 
+  end
+  
     (* Shift a range left by the specified amount.  *)
-    opr ↙(r: Range[\ZZ32\], leftShift: ZZ32) = (r.lower - leftShift)#r.extent
+    opr ≪(r: Range⟦ZZ32⟧, leftShift: ZZ32) = (r.lower - leftShift)#r.extent
+    (* Shift a range right by the specified amount. *)
+    opr ≫(r: Range⟦ZZ32⟧, rightShift: ZZ32) = (r.lower + rightShift)#r.extent
+    
+  test testShiftLeft(): () = do
+    assert( (10:12) ≪ 9, 1:3)
+  end
+  
+  test testShiftRight(): () = do
+    assert( (2:3) ≫ 5, 7:8)
+  end
+  
+  test testRangeContainment = do
+    assert( (2:3) ≤ (2:3), "(2:3) not less than or equal to (2:3)")
+    (* println "(2#2) CMP (2:3) = " ((2#2) CMP (2:3))  *)
+    assert( (2#2) ≤ (2:3), "(2#2) not less than or equal to (2:3)")
+  end
+(* 
+==== Shared Traits ====
+*)
 
+  trait Concatenable extends String
+    opr || (self, other:String): String = 
+        if |other| = 0 then self else CatString(self, other) end
+    opr || (self, _:EmptyString): String = self
+    opr || (self, other:Char) = CatString(self, other.toString)
+  end
 (*
 ==== CatString ====
 *)
 
-  object CatString(left: String, right:String)  extends String
+  object CatString(left: String, right:String)  extends {String, Concatenable}
     size = left.size + right.size
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
@@ -48,9 +86,13 @@ export CordedString
     (* get is, and should be, without bounds checks.  [ ] does the bounds checks,a and then delegates to get *)   
         if i ∈ left.indices then left[i] else right[i - |left|] end
 
-    opr[r0:Range[\ZZ32\]] : String =  do
+    opr[r0:Range⟦ZZ32⟧] : String =  do
         r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
-        self.uncheckedSubstring(r1)
+        if r1.isEmpty then 
+            EmptyString 
+        else 
+            self.uncheckedSubstring(r1)
+        end
       end
       
     verify() = do
@@ -64,58 +106,65 @@ export CordedString
         left.showStructure(indent+8)
         right.showStructure(indent+8)
     end
+
+(* without SubString nodes: 
       
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
-        r1 = (r0 ↙ left.size)
+        r1 = (r0 ≪ left.size)
         left.uncheckedSubstring(r0 ∩ left.bounds) || right.uncheckedSubstring(r1 ∩ right.bounds)            
       end
-      
-      
-(* Here is the three-way version: this framework is better once we have subString nodes
- 
-    uncheckedSubstring(r0: Range[\ZZ32\]) = do
-        leftBounds' = r0 ∩ left.bounds
-        r1 = (r0 ↙ left.size)
-        rightBounds' = r1 ∩ right.bounds
-        if leftBounds.isEmpty then right.uncheckedSubstring(rightBounds')
-        else if rightBounds.isEmpty then left.uncheckedSubstring(leftBounds')
-        else left.uncheckedSubstring(leftBounds') || right.uncheckedSubstring(rightBounds')            
-      end  
  *)
-      
+            
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        leftBounds' = r0 ∩ left.bounds
+        r1 = (r0 ≪ left.size)
+        rightBounds' = r1 ∩ right.bounds
+(*        atomic do 
+            println "uncheckedSubstring " r0 " of "
+            self.showStructure()
+            println "==============="
+            println "leftBounds' = " leftBounds' ( if leftBounds'.isEmpty then "(empty)" else "(non-empty)" end )
+            println "rightBounds' = " rightBounds'  ( if rightBounds'.isEmpty then "(empty)" else "(non-empty)" end )
+            println "==============="
+        end  *)
+        if leftBounds'.isEmpty then 
+            right.uncheckedSubstring(rightBounds')
+        elif rightBounds'.isEmpty then
+            left.uncheckedSubstring(leftBounds')
+        else
+            SubString'(self, r0)
+        end       
+    end  
 
-    opr || (self, other:String): String = 
-        if |other| = 0 then self else CatString(self, other) end
-    opr || (self, _:EmptyString) = self
-    opr || (self, other:Char) = CatString(self, other.toString)
-    
     println(self): () = do print(left) ; println(right) end  
     print(self): () = do print(left) ; print(right) end
+    
+    subdivide(): Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Just ⟨ (0, left), (|left|, right) ⟩
 
   end
 
-  object ConcatGenerator[\T\](first:Generator[\T\], second:Generator[\T\])
-        extends Generator[\T\]
-    generate[\R\](r: Reduction[\R\], body:T->R):R =
-        r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
+  object ConcatGenerator⟦T⟧(first:Generator⟦T⟧, second:Generator⟦T⟧)
+        extends Generator⟦T⟧
+    generate⟦R⟧(r: Reduction⟦R⟧, body:T->R):R =
+        r.join(first.generate⟦R⟧(r, body), second.generate⟦R⟧(r, body))
   end
 
 (*
 ==== EmptyString ====
 *)
 
-  value object EmptyString extends String
+  value object EmptyString extends {String, Concatenable}
     getter size() = 0
     getter bounds() = 0#0
     getter isEmpty() = true
-    getter generator() = Nothing[\Char\]
+    getter generator() = Nothing⟦Char⟧
     opr CMP(self, other: String) =
         |self| CMP |other|
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
 
     get(i): Char = fail("Can't get characters from an empty string")
 
-    opr[r: Range[\ZZ32\]] : String = do
+    opr[r: Range⟦ZZ32⟧] : String = do
         rr = self.indices[r]     (* to raise a bounds error *)
         EmptyString
     end
@@ -136,27 +185,82 @@ export CordedString
     end
 
     opr || (self, other:String): String = other
-(*    opr || (other: String, self): String = other   *)    (* this optimizes the case with EmptyString on the right*)
-    opr || (self, _: EmptyString): String = self
     opr || (self, other:Char) = other.toString
       
     print(self): () = do end
     println(self): () = println("")
   
   end
-
-  run(args: String...): () = do println "Finished" end 
   
-  test rangeIntersect() = do
-        assert((0:5) ∩ (0:3), 0:3)
-        assert((0:5) ∩ (3:7), 3:5)
-        assert((0:5) ∩ (7:10), 7:5)
-        deny(5:3, 9:8)                  (* I hoped that that this would be an assert! *)
-        assert((5:3).size, 0, "The size of 5:3 is not zero!")
-        assert((9:8).size, 0, "The size of 9:8 is not zero!")
-        assert( (5:3).isEmpty, "5:3 is not empty!")
-        assert( (9:8).isEmpty, "9:8 is not empty!")
-        assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
+  subdivide() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+
+(*
+==== SubString ====
+*)
+  trait SubString extends {String, Concatenable}
+    comprises {SubString'}
+  end 
+  
+  object SubString'(parent: String, range: Range⟦ZZ32⟧) extends SubString
+    getter size() = range.size
+    getter depth() = parent.depth       (* Why not one more than the parent?  Would this break the balancing invariant? *)
+    getter isEmpty() = false
+    
+    opr CMP(self, other: String) =  do
+ (*       if pgen ← parent.subdivide() then
+            BIG LEXICO [(start, str) ← pgen] self.uncheckedSubstring((start#|str|) ∩ self.bounds) CMP str
+        else
+*)
+            (BIG LEXICO [i ← 0#(|self| MIN |other|)] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|)               
+(*        end
+*)
+    end
+    
+    
+    verify() = do
+        parent.verify()
+        deny(range.isEmpty, "SubString (" range ") has empty range")
+        assert(range < parent.bounds, "SubString (" range ") has range equal to or greater than that of parent (" parent.bounds ")") 
+    end
+    showStructure(indent) = do
+        margin(indent)
+        println "S" |self| "=[" range "]" 
+        parent.showStructure(indent + 8)
+    end
+    
+    get(i:ZZ32) = do
+      assert(i < range.size, "getting char " i " from a substring of size " |range|)
+      parent.get(range.lower+i)
+    end
+    
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        assert((r0≫range.lower) ≤ range, "asking for substring ["  r0 "] of S" self.size)
+        if r0.isEmpty then EmptyString
+        elif r0 = self.bounds then println "trivial substring"; self
+        else SubString'(parent, r0≫range.lower)
+        end
+    end
+    
+    println(self): () = do print(self) ; println() end  
+    print(self): () = for ch ← seq(self) do print ch end
+          
+    subdivide(): Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = do
+    (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = | str[0] || ... || str[i-1] |
+      and str[0] || str [1] || ... || str[n] = self
+    *)
+        pieces = parent.subdivide()
+        offset = range.lower
+        if pgen ← pieces then
+            <| if (start#piece.size) ≤ range then
+                    (start-offset, piece)
+                else 
+                    range' = range ∩ (start#piece.size)
+                    (range'.lower-offset, SubString'(piece, range'≪start))
+                end | (start, piece) ← pgen,   (range ∩ (start#piece.size)).nonEmpty |>
+        else
+            Nothing⟦Generator⟦(ZZ32,String)⟧⟧
+        end                    
+    end
   end
   
   margin(indent) = do
