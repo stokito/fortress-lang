@@ -26,7 +26,7 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -45,49 +45,69 @@ import com.sun.fortress.useful.Debug;
  */
 class PEG extends NTEnv {
 
-    Map<Id, List<SyntaxDef>> entries = new HashMap<Id,List<SyntaxDef>>();
+    Map<Id, List<SyntaxDef>> defEntries = new HashMap<Id,List<SyntaxDef>>();
+    Map<Id, List<SyntaxDef>> extEntries = new HashMap<Id,List<SyntaxDef>>();
     PEG() { }
 
     /* has the side effect of creating an entry in the peg with an
      * empty definition list
      */
     public List<SyntaxDef> create(Id nt) {
-        if (entries.containsKey(nt)) {
+        if (defEntries.containsKey(nt)) {
             throw new MacroError(nt, "PEG already has an entry for " + nt);
         }
-        List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
-        entries.put(nt, defs);
+        List<SyntaxDef> defs = new ArrayList<SyntaxDef>();
+        List<SyntaxDef> exts = new ArrayList<SyntaxDef>();
+        defEntries.put(nt, defs);
+        extEntries.put(nt, exts);
         return defs;
     }
 
     /* remove a nonterminal from the set of productions
      */
     private void remove(Id nt){
-        entries.remove(nt);
+        defEntries.remove(nt);
+        extEntries.remove(nt);
     }
 
     /* remove nonterminals with empty definitions
      */
     public void removeEmptyNonterminals(){
-        Set<Id> all = new HashSet<Id>( entries.keySet() );
+        Set<Id> all = new HashSet<Id>(defEntries.keySet());
         for (Id nt : all){
-            if (entries.get(nt).isEmpty()){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Removing empty nonterminal " + nt );
-                entries.remove(nt);
+            if (defEntries.get(nt).isEmpty() && extEntries.get(nt).isEmpty()) {
+                Debug.debug(Debug.Type.SYNTAX, 2, "Removing empty nonterminal " + nt);
+                defEntries.remove(nt);
+                extEntries.remove(nt);
             }
         }
     }
 
+    public List<SyntaxDef> getAll(Id nt) {
+        List<SyntaxDef> all = new ArrayList<SyntaxDef>();
+        all.addAll(getDefs(nt));
+        all.addAll(getExts(nt));
+        return all;
+    }
+
     /* return the list of productions for a nonterminal */
-    public List<SyntaxDef> get(Id nt) {
-        if (!entries.containsKey(nt)) {
+    public List<SyntaxDef> getDefs(Id nt) {
+        if (!defEntries.containsKey(nt)) {
             throw new MacroError(nt, "PEG has no entry for " + nt);
         }
-        return entries.get(nt);
+        return defEntries.get(nt);
+    }
+
+    /* return the list of productions for a nonterminal */
+    public List<SyntaxDef> getExts(Id nt) {
+        if (!extEntries.containsKey(nt)) {
+            throw new MacroError(nt, "PEG has no entry for " + nt);
+        }
+        return extEntries.get(nt);
     }
 
     public Set<Id> keySet() {
-        return entries.keySet();
+        return defEntries.keySet();
     }
 
     /* map a nonterminal name to its type */

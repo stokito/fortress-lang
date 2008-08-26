@@ -20,10 +20,16 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.NonterminalDef;
 import edu.rice.cs.plt.tuple.Option;
 
-public class NonterminalDefIndex extends GrammarNonterminalIndex<NonterminalDef> {
+public class NonterminalDefIndex extends NonterminalIndex {
+
+    private NonterminalDef ast;
 
     public NonterminalDefIndex(NonterminalDef ast) {
-        super(ast);
+        this.ast = ast;
+    }
+
+    public NonterminalDef ast() {
+        return ast;
     }
 
 }

@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler.index;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -34,34 +36,28 @@ import edu.rice.cs.plt.tuple.Option;
 public class GrammarIndex {
 
     private GrammarDef ast;
+    private List<NonterminalIndex> members;
+    private List<GrammarIndex> extendedGrammars;
 
-    private Collection<NonterminalIndex<? extends GrammarMemberDecl>> members;
-
-    private Collection<GrammarIndex> extendedGrammars;
-
-    private boolean isToplevel;
-
-    public GrammarIndex(GrammarDef ast, 
-                        Set<NonterminalIndex<? extends GrammarMemberDecl>> members) {
+    public GrammarIndex(GrammarDef ast, List<NonterminalIndex> members) {
         this.ast = ast;
         this.extendedGrammars = new LinkedList<GrammarIndex>();
         this.members = members;
-        this.isToplevel = false;
     }
 
     public GrammarDef ast() {
         return this.ast;
     }
 
-    public Collection<NonterminalIndex<? extends GrammarMemberDecl>> getDeclaredNonterminals() {
+    public List<NonterminalIndex> getDeclaredNonterminals() {
         return this.members;
     }
 
-    public void setExtended(Collection<GrammarIndex> gs) {
+    public void setExtended(List<GrammarIndex> gs) {
         this.extendedGrammars = gs;
     }
 
-    public Collection<GrammarIndex> getExtended() {
+    public List<GrammarIndex> getExtended() {
         return this.extendedGrammars;
     }
 
@@ -69,27 +65,42 @@ public class GrammarIndex {
         return this.ast().getName();
     }
 
-    public Option<GrammarNonterminalIndex<? extends NonterminalDecl>> getNonterminalDecl(Id name) {
-        for (NonterminalIndex<? extends GrammarMemberDecl> m: this.getDeclaredNonterminals()) {
+    public Option<NonterminalIndex> getNonterminalDecl(Id name) {
+        for (NonterminalIndex m: this.getDeclaredNonterminals()) {
             if (name.getText().equals(m.getName().getText())) {
-                if (m instanceof GrammarNonterminalIndex) {
-                    return Option.<GrammarNonterminalIndex<? extends NonterminalDecl>>some((GrammarNonterminalIndex) m);
+                if (m instanceof NonterminalIndex) {
+                    return Option.<NonterminalIndex>some((NonterminalIndex) m);
                 }
             }
         }
         return Option.none();
     }
 
-    public void isToplevel(boolean isTopLevel) {
-        this.isToplevel = isTopLevel;
+    /* returns the set of nonterminal definitions
+     */
+    public List<NonterminalDefIndex> getDefinitions() {
+        List<NonterminalDefIndex> all = new ArrayList<NonterminalDefIndex>();
+        for (NonterminalIndex index : this.getDeclaredNonterminals()){
+            if (index instanceof NonterminalDefIndex) {
+                all.add((NonterminalDefIndex) index);
+            }
+        }
+        return all;
     }
-    
-    public boolean isToplevel() {
-        return this.isToplevel;
+
+    /* returns the list of nonterminal extensions
+     */
+    public List<NonterminalExtendIndex> getExtensions() {
+        List<NonterminalExtendIndex> all = new ArrayList<NonterminalExtendIndex>();
+        for (NonterminalIndex index : this.getDeclaredNonterminals()){
+            if (index instanceof NonterminalExtendIndex) {
+                all.add((NonterminalExtendIndex) index);
+            }
+        }
+        return all;
     }
 
     public String toString(){
         return getName().toString();
     }
-
 }

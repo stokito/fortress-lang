@@ -38,7 +38,6 @@ import com.sun.fortress.compiler.index.FieldSetterMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.GrammarTerminalIndex;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.NonterminalDefIndex;
 import com.sun.fortress.compiler.index.NonterminalExtendIndex;
@@ -538,33 +537,25 @@ public class IndexBuilder {
     }
 
 
-    private Set<NonterminalIndex<? extends GrammarMemberDecl>> buildMembers(List<GrammarMemberDecl> members) {
-        Set<NonterminalIndex<? extends GrammarMemberDecl>> result = new HashSet<NonterminalIndex<? extends GrammarMemberDecl>>();
+    private List<NonterminalIndex> buildMembers(List<GrammarMemberDecl> members) {
+        List<NonterminalIndex> result = new ArrayList<NonterminalIndex>();
         Set<Id> names = new HashSet<Id>();
         for (GrammarMemberDecl m: members) {
             if (names.contains(m.getHeader().getName())) {
                 error("Nonterminal declared twice: "+m.getHeader().getName(), m);
             }
             names.add(m.getHeader().getName());
-            result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex<? extends GrammarMemberDecl>>(){
+            result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex>(){
 
                 @Override
-                public NonterminalIndex<NonterminalDef> forNonterminalDef(NonterminalDef that) {
+                public NonterminalIndex forNonterminalDef(NonterminalDef that) {
                     return new NonterminalDefIndex(that);
                 }
 
                 @Override
-                public NonterminalIndex<NonterminalExtensionDef> forNonterminalExtensionDef(
-                        NonterminalExtensionDef that) {
+                public NonterminalIndex forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     return new NonterminalExtendIndex(that);
                 }
-
-                @Override
-                public NonterminalIndex<_TerminalDef> for_TerminalDef(
-                        _TerminalDef that) {
-                    return new GrammarTerminalIndex(that);
-                }
-
             }));
         }
         return result;

@@ -347,12 +347,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forPrefixedSymbol(PrefixedSymbol item) {
-        Option oid = item.getId();
+        Id id = item.getId();
         SyntaxSymbol sym = item.getSymbol();
-        if (oid.isSome()) {
-            return oid.unwrap().toString() + "!FIXME!" + sym.toString();
-        } else {
-            return sym.toString();
-        }
+        return id.toString() + "!FIXME!" + sym.toString();
     }
 }

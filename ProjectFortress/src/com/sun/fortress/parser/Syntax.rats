@@ -271,37 +271,16 @@ SyntaxSymbol Single =
     ;
 
 SyntaxSymbol BaseSymbol =
-    a1:Id colon s1:Symbol type:(void:colon Type)?
-      { Option<Id> prefix = Option.some(a1);
-        Option<Type> type1 = Option.none();
-        if (null != type) type1 = Option.some(type);
-        if (s1 instanceof NoWhitespaceSymbol) {
+    a1:Id colon s1:Symbol
+      { if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
 
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), prefix, type1, tmp));
-        }
-        else {
-          yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), prefix, type1, s1);
-        }}
-    / s1:Symbol type:(void:colon Type)?
-      { Option<Id> prefix = Option.none();
-        Option<Type> type1 = Option.none();
-	// System.out.println( "Matched symbol " + s1 );
-        if (null != type) type1 = Option.some(type);
-        if (s1 instanceof NoWhitespaceSymbol) {
-          SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), prefix, type1, tmp));
+          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(s1.getSpan(), a1, tmp));
         } else {
-          if (s1 instanceof SpecialSymbol) {
-            if (type == null) {
-              yyValue = s1;
-            } else {
-              yyValue = syntaxError(createSpan(yyStart,yyCount), "A type declaration is not allowed immediately after a special symbol.");
-            }
-          } else {
-            yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), prefix, type1, s1);
-          }
-        }};
+          yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), a1, s1);
+        }}
+    / yyValue:Symbol
+    ;
 
 SyntaxSymbol GroupSymbol =
       "{" w syms:SyntaxSymbolsX w "}"

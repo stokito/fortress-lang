@@ -51,9 +51,7 @@ public class VariableCollector extends NodeDepthFirstVisitor_void {
     }	
 
     @Override public void forPrefixedSymbol(PrefixedSymbol that) {
-        if (that.getId().isSome()) {
-            this.depthMap.put(that.getId().unwrap(), this.depth);
-        }
+        this.depthMap.put(that.getId(), this.depth);
         super.forPrefixedSymbol(that);
     }
 

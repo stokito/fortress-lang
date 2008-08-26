@@ -29,6 +29,7 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.compiler.index.NonterminalDefIndex;
 
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BaseType;
@@ -53,9 +54,9 @@ public class EnvFactory {
     public static NTEnv makeNTEnv(Collection<GrammarIndex> grammarIndexes) {
         Map<Id, BaseType> typemap = new HashMap<Id, BaseType>();
         for (GrammarIndex gi : grammarIndexes) {
-            for (NonterminalIndex<? extends GrammarMemberDecl> ni : gi.getDeclaredNonterminals()) {
-                if (ni.ast() instanceof NonterminalDef) {
-                    NonterminalDef nd = (NonterminalDef) ni.ast();
+            for (NonterminalIndex ni : gi.getDeclaredNonterminals()) {
+                if (ni instanceof NonterminalDefIndex) {
+                    NonterminalDef nd = ((NonterminalDefIndex) ni).ast();
                     Id name = ni.getName();
                     Option<BaseType> type = nd.getAstType();
                     if (type.isSome()) {
@@ -78,11 +79,7 @@ public class EnvFactory {
             sym.accept(new VariableCollector(varToDepth));
             sym.accept(new NodeDepthFirstVisitor_void() {
                     @Override public void forPrefixedSymbolOnly(PrefixedSymbol that) {
-                        Option<Id> optName = that.getId();
-                        if (!optName.isSome()) {
-                            throw new MacroError("Prefix symbol without name: " + that);
-                        }
-                        final Id name = optName.unwrap();
+                        final Id name = that.getId();
                         SyntaxSymbol inner = that.getSymbol();
                         inner.accept(new NodeDepthFirstVisitor_void() {
                                 @Override

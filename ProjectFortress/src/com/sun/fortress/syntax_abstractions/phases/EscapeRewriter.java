@@ -125,11 +125,10 @@ public class EscapeRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forPrefixedSymbolOnly(PrefixedSymbol that,
-            Option<Id> result_id, Option<Type> type_result,
-            SyntaxSymbol result_symbol) {
-        if (result_id.isNone()) bug(that, "Missing an Id.");
-        String s = removeEscape(result_id.unwrap().getText());
-        return new PrefixedSymbol(that.getSpan(), Option.some(new Id(s)), type_result, result_symbol);
+                                      Id result_id,
+                                      SyntaxSymbol result_symbol) {
+        String s = removeEscape(result_id.getText());
+        return new PrefixedSymbol(that.getSpan(), new Id(s), result_symbol);
     }
 
     private String removeEscape(String s) {

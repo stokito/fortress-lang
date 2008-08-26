@@ -260,17 +260,11 @@ public class ComposingSyntaxDefTranslator {
             that.getSymbol().accept(subTranslator);
             if (sublist.size() == 1) {
                 Element e = sublist.get(0);
-                assert(that.getId().isSome());
-                elements.add(new Binding(prefixJavaVariable(that.getId().unwrap().getText()), e));
+                elements.add(new Binding(prefixJavaVariable(that.getId().getText()), e));
                 return;
             } else if (sublist.isEmpty()) {
-                if (that.getId().isSome()) {
-                    throw new MacroError("Malformed variable binding, bound to nonsensible symbol: "
-                                         + that.getId().unwrap().getText() + " " + that.getSymbol());
-                } else {
-                    throw new MacroError("Malformed variable binding, no identifier: "
-                                         + that.getSymbol());
-                }
+                throw new MacroError("Malformed variable binding, bound to nonsensible symbol: "
+                                     + that.getId().getText() + " " + that.getSymbol());
             } else {
                 throw new MacroError("Malformed variable binding, bound to multiple symbols: "
                                      + that.getSymbol());

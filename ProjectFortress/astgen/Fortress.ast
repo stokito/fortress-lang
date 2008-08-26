@@ -566,7 +566,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * nonterminal declaration
              */
-            abstract NonterminalDecl(List<SyntaxDecl> syntaxDefs);
+            abstract NonterminalDecl(List<SyntaxDecl> syntaxDecls);
                 /**
                  * nonterminal definition in nonterminal declarations
                  */
@@ -575,15 +575,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  * nonterminal extending definition in nonterminal declarations
                  */
                 NonterminalExtensionDef();
-            /**
-             * terminal declaration
-             */
-            abstract TerminalDecl(SyntaxDef syntaxDef);
-                /**
-                 * terminal definition result of rewrite of keyword and token
-		 * symbols in disambigutation of syntax abstractions
-                 */
-                _TerminalDef();
         /**
          * nonterminal header
          */
@@ -656,7 +647,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
             /**
              * prefixed syntax symbol
              */
-            PrefixedSymbol(Option<Id> id, Option<Type> type = Option.<Type>none(), SyntaxSymbol symbol);
+            PrefixedSymbol(Id id, SyntaxSymbol symbol);
             /**
              * optional syntax symbol
              */
@@ -714,7 +705,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  */
                 BreaklineSymbol(String s);
             /**
-             * item syntax symbol
+             * item syntax symbol;
+             * may be either nonterminal or keyword
              */
             ItemSymbol(String item);
             /**
