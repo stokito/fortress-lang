@@ -72,7 +72,7 @@ public class NonterminalEnv {
      * Initialize the mapping from nonterminal names to sets of qualified nonterminal names
      */
     private void initializeNonterminals() {
-        for ( final NonterminalIndex<? extends GrammarMemberDecl> e : this.getGrammarIndex().getDeclaredNonterminals()) {
+        for (final NonterminalIndex e : this.getGrammarIndex().getDeclaredNonterminals()) {
 
             e.ast().accept( new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalDefOnly(NonterminalDef that) {
@@ -106,7 +106,7 @@ public class NonterminalEnv {
     */
 
     private void initializeForGrammar( GrammarIndex grammar ) {
-        for (NonterminalIndex<? extends GrammarMemberDecl> e: grammar.getDeclaredNonterminals()) {
+        for (NonterminalIndex e: grammar.getDeclaredNonterminals()) {
             GrammarDecl currentGrammar = grammar.ast();
 
             Span span = e.getName().getSpan();

@@ -19,10 +19,15 @@ package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 
-public class NonterminalExtendIndex extends GrammarNonterminalIndex<NonterminalExtensionDef> {
+public class NonterminalExtendIndex extends NonterminalIndex {
+
+    private NonterminalExtensionDef ast;
 
     public NonterminalExtendIndex(NonterminalExtensionDef ast) {
-        super(ast);
+        this.ast = ast;
     }
 
+    public NonterminalExtensionDef ast() {
+        return ast;
+    }
 }

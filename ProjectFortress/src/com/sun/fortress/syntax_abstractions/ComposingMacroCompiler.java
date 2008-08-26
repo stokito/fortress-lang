@@ -53,9 +53,10 @@ import xtc.parser.OrderedChoice;
 import xtc.parser.Production;
 import xtc.parser.Sequence;
 
-import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
-import com.sun.fortress.compiler.index.GrammarNonterminalIndex;
+import com.sun.fortress.compiler.index.NonterminalIndex;
+import com.sun.fortress.compiler.index.NonterminalExtendIndex;
+import com.sun.fortress.compiler.index.NonterminalDefIndex;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
@@ -68,7 +69,6 @@ import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.NonterminalHeader;
-import com.sun.fortress.nodes._TerminalDef;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SuperSyntaxDef;
 import com.sun.fortress.nodes.SyntaxDecl;
@@ -129,81 +129,88 @@ public class ComposingMacroCompiler {
     }
 
     /* main entry point for a grammar of an api */
-    public static Class<?> compile( GrammarIndex grammar ){
+    public static Class<?> compile(GrammarIndex grammar){
         Debug.debug(Debug.Type.SYNTAX, 2, 
-                    "ComposingMacroCompiler: create parser for grammar " + grammar.getName() );
+                    "ComposingMacroCompiler: create parser for grammar " + grammar.getName());
 
-        Collection<GrammarIndex> imports = grammar.getExtended();
-        Debug.debug( Debug.Type.SYNTAX, 2, "Imports: " + imports );
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions = 
-            computeDefinitions( grammar );
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions = 
-            computeExtensions( grammar );
-        return pegFor( collectImports( grammar ), imports, definitions, extensions );
+        List<GrammarIndex> imports = grammar.getExtended();
+        Debug.debug(Debug.Type.SYNTAX, 2, "Imports: " + imports);
+        List<NonterminalDefIndex> definitions = grammar.getDefinitions();
+        List<NonterminalExtendIndex> extensions = grammar.getExtensions();
+        return pegFor(collectImports(grammar), imports, definitions, extensions);
     }
 
     /* main entry point for a component */
-    public static Class<?> parserForComponent(Collection<GrammarIndex> imports) {
+    public static Class<?> parserForComponent(List<GrammarIndex> imports) {
         Debug.debug(Debug.Type.SYNTAX, 2, 
                     "ComposingMacroCompiler: create parser for component");
-        Debug.debug( Debug.Type.SYNTAX, 2, "Imports: " + imports );
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions = 
-            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions = 
-            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-        return pegFor( collectImports( imports ), imports, definitions, extensions );
+        Debug.debug(Debug.Type.SYNTAX, 2, "Imports: " + imports);
+        List<NonterminalDefIndex> definitions = new LinkedList<NonterminalDefIndex>();
+        List<NonterminalExtendIndex> extensions = new LinkedList<NonterminalExtendIndex>();
+        return pegFor(collectImports(imports), imports, definitions, extensions);
     }
 
     /* get the complete list of imported grammars */
-    private static Collection<GrammarIndex> collectImports( GrammarIndex grammar ){
+    private static Set<GrammarIndex> collectImports(GrammarIndex grammar){
         return collectImports(grammar.getExtended());
     }
 
     /* finds imported grammars as well as their imported gramars */
-    private static Collection<GrammarIndex> collectImports( Collection<GrammarIndex> extended ) {
-        Collection<GrammarIndex> all = new HashSet<GrammarIndex>();
-        for ( GrammarIndex importedGrammar : extended ){
-            all.add( importedGrammar );
-            all.addAll( collectImports( importedGrammar ) );
+    private static Set<GrammarIndex> collectImports(List<GrammarIndex> extended) {
+        Set<GrammarIndex> all = new HashSet<GrammarIndex>();
+        for (GrammarIndex importedGrammar : extended){
+            all.add(importedGrammar);
+            all.addAll(collectImports(importedGrammar));
         }
-
         return all;
     }
 
     /* create a peg and populate it with nonterminals according to the
      * grammar composition rules
      */
-    private static Class<?> pegFor(Collection<GrammarIndex> relevant,
-                             Collection<GrammarIndex> imports,
-                             Collection<NonterminalIndex<? extends GrammarMemberDecl>> definitions,
-                             Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions){
+    private static Class<?> pegFor(Set<GrammarIndex> relevant,
+                                   List<GrammarIndex> imports,
+                                   Collection<NonterminalDefIndex> definitions,
+                                   Collection<NonterminalExtendIndex> extensions){
 
-        Debug.debug( Debug.Type.SYNTAX, 2, "Relevant grammars: " + relevant );
+        Debug.debug(Debug.Type.SYNTAX, 2, "Relevant grammars: " + relevant);
 
         PEG peg = new PEG();
 
-        pegForGrammarDefsOnly( peg, relevant );
-        pegForDefs( peg, relevant, definitions );
-        for ( NonterminalIndex<? extends GrammarMemberDecl> e : extensions ){
-            applyExtension( peg, e, relevant );
-        }
+        addGrammarDefsOnly(peg, relevant);
+        addDefs(peg, relevant, definitions);
 
-        Set<String> extendedNonterminals = importsExtensionDomain( imports );
+        Set<String> extendedNonterminals = importsExtensionDomain(imports);
         Set<String> extendedExplicit = computeExplicit(extensions);
         Set<String> extendedImplicit = setDifference(extendedNonterminals, extendedExplicit);
-        List<NonterminalIndex<? extends GrammarMemberDecl>> implicitExtensions = 
-            computeImplicitExtensions( extendedImplicit, imports );
 
-        for ( NonterminalIndex<? extends GrammarMemberDecl> e : implicitExtensions ){
-            applyExtension( peg, e, relevant );
+        Debug.debug(Debug.Type.SYNTAX, 2, "Extended nonterminals: " + extendedNonterminals);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Extended explicit: " + extendedExplicit);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Extended implicit: " + extendedImplicit);
+
+        for (NonterminalExtendIndex e : extensions){
+            applyExtension(peg, e, relevant);
         }
+        for (String implicitNonterminal : extendedImplicit) {
+            ; // FIXME: fill this in, and delete next part
+        }
+        // FIXME: from here
+        Collection<NonterminalExtendIndex> implicitExtensions = 
+            computeImplicitExtensions(extendedImplicit, imports);
+        for (NonterminalExtendIndex e : implicitExtensions){
+            applyExtension(peg, e, relevant);
+        }
+        // FIXME: to here
 
-        Debug.debug( Debug.Type.SYNTAX, 2, "Extended nonterminals: " + extendedNonterminals );
-        Debug.debug( Debug.Type.SYNTAX, 2, "Extended explicit: " + extendedExplicit );
-        Debug.debug( Debug.Type.SYNTAX, 2, "Extended implicit: " + extendedImplicit );
+        Set<String> nativeNonterminals = computeNativeNonterminals(relevant);
 
+        peg.removeEmptyNonterminals();
+        return makeParser(peg, nativeNonterminals);
+    }
+
+    private static Set<String> computeNativeNonterminals(Set<GrammarIndex> relevant) {
         Set<String> nativeNonterminals = new HashSet<String>();
-        for ( GrammarIndex grammar : relevant ) {
+        for (GrammarIndex grammar : relevant) {
             GrammarDef grammarDef = grammar.ast();
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Grammar " + grammarDef + " native?: " + grammarDef.isNative());
@@ -215,26 +222,25 @@ public class ComposingMacroCompiler {
                 }
             }
         }
-        Debug.debug( Debug.Type.SYNTAX, 2, "Native nonterminals: " + nativeNonterminals );
-        peg.removeEmptyNonterminals();
-        return makeParser(peg, nativeNonterminals);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Native nonterminals: " + nativeNonterminals);
+        return nativeNonterminals;
     }
 
     /* populate entries for definition sites only */
-    private static void pegForGrammarDefsOnly( PEG peg, Collection<GrammarIndex> relevant ){
-        for ( GrammarIndex grammar : relevant ){
-            pegForDefs( peg, relevant, computeDefinitions(grammar) );
+    private static void addGrammarDefsOnly(PEG peg, Set<GrammarIndex> relevant){
+        for (GrammarIndex grammar : relevant){
+            addDefs(peg, relevant, grammar.getDefinitions());
         }
     }
 
     /* populate peg for a single grammar and its definitions */
-    private static void pegForDefs(PEG peg, Collection<GrammarIndex> relevant, 
-                                   Collection<NonterminalIndex<? extends GrammarMemberDecl>> nonterminals ){
-        for ( NonterminalIndex<? extends GrammarMemberDecl> nonterminal : nonterminals ){
+    private static void addDefs(PEG peg, Set<GrammarIndex> relevant, 
+                                Collection<NonterminalDefIndex> nonterminals) {
+        for (NonterminalDefIndex nonterminal : nonterminals){
             Id nonterminalName = nonterminal.getName();
             List<SyntaxDef> defs = peg.create(nonterminalName);
             Debug.debug(Debug.Type.SYNTAX, 2, "Add " + nonterminalName + " to peg definition");
-            pegEntryForDef( defs, relevant, nonterminal );
+            addEntryForDef(defs, relevant, nonterminal);
 
             Option<BaseType> type = nonterminal.ast().getAstType();
             if (type.isSome()) {
@@ -246,22 +252,18 @@ public class ComposingMacroCompiler {
     }
 
     /* add choices for a single definition */
-    private static void pegEntryForDef(final List<SyntaxDef> defs, 
+    private static void addEntryForDef(final List<SyntaxDef> defs, 
                                        final Collection<GrammarIndex> relevant, 
-                                       NonterminalIndex<? extends GrammarMemberDecl> nonterminal){
-        nonterminal.ast().accept( new NodeDepthFirstVisitor_void(){
+                                       NonterminalDefIndex nonterminal){
+        nonterminal.ast().accept(new NodeDepthFirstVisitor_void(){
             @Override public void forNonterminalDef(NonterminalDef that){
-                for ( SyntaxDecl def : that.getSyntaxDefs() ){
-                    defs.addAll( resolveChoice( relevant, def ) );
+                for (SyntaxDecl decl : that.getSyntaxDecls()){
+                    resolveAndAdd(defs, relevant, decl);
                 }
             }
 
-            @Override public void for_TerminalDef(_TerminalDef that){
-                defs.addAll( resolveChoice( relevant, that.getSyntaxDef() ) );
-            }
-
             @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                return;
+                throw new MacroError(that, "Unexpected extension in definition?!");
             }
         });
     }
@@ -269,29 +271,18 @@ public class ComposingMacroCompiler {
     /* return set of nonterminals that are extended by virtue of being
      * in the extends clause of the grammar
      */
-    private static List<NonterminalIndex<? extends GrammarMemberDecl>> computeImplicitExtensions
-                                                   (final Set<String> implicit, 
-                                                    Collection<GrammarIndex> imports){
+    private static List<NonterminalExtendIndex> computeImplicitExtensions(final Set<String> implicit, 
+                                                                          List<GrammarIndex> imports){
 
-        final List<NonterminalIndex<? extends GrammarMemberDecl>> all = 
-            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-        
-        for ( GrammarIndex import_ : imports ){
-            for (final NonterminalIndex<? extends GrammarMemberDecl> nonterminal
-                     : import_.getDeclaredNonterminals()){
-                nonterminal.ast().accept(new NodeDepthFirstVisitor_void(){
-                        @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                            if (implicit.contains(that.getHeader().getName().toString())){
-                                all.add(nonterminal);
-                            }
-                        }
-                        @Override public void forNonterminalDef(NonterminalDef that) {
-                            return;
-                        }
-                        @Override public void for_TerminalDef(_TerminalDef that) {
-                            return;
-                        }
-                    });
+        final List<NonterminalExtendIndex> all = new ArrayList<NonterminalExtendIndex>();
+
+        for (GrammarIndex imp : imports){
+            for (final NonterminalIndex nonterminal : imp.getDeclaredNonterminals()){
+                if (nonterminal instanceof NonterminalExtendIndex) {
+                    if (implicit.contains(NodeUtil.nameString(nonterminal.getName()))) {
+                        all.add((NonterminalExtendIndex) nonterminal);
+                    }
+                }
             }
         }
         return all;
@@ -301,24 +292,20 @@ public class ComposingMacroCompiler {
      */
     private static Set<String> importsExtensionDomain(Collection<GrammarIndex> imports){
         Set<String> all = new HashSet<String>();
-        for ( GrammarIndex grammar : imports ){
-            extensionDomain( all, grammar );
+        for (GrammarIndex grammar : imports){
+            extensionDomain(all, grammar);
         }
         return all;
     }
 
     /* only handles nonterminal extensions */
     private static void extensionDomain(final Set<String> domain, GrammarIndex grammar){
-        for (NonterminalIndex<? extends GrammarMemberDecl> nonterminal 
-                 : grammar.getDeclaredNonterminals()){
-            nonterminal.ast().accept( new NodeDepthFirstVisitor_void(){
+        for (NonterminalIndex nonterminal : grammar.getDeclaredNonterminals()){
+            nonterminal.ast().accept(new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
                     domain.add(that.getHeader().getName().toString());
                 }
                 @Override public void forNonterminalDef(NonterminalDef that) {
-                    return;
-                }
-                @Override public void for_TerminalDef(_TerminalDef that) {
                     return;
                 }
             });
@@ -327,31 +314,28 @@ public class ComposingMacroCompiler {
 
     /* adds the choices for nonterminal extensions to the definition nonterminals
      */
-    private static void applyExtension(final PEG peg, 
-                                       final NonterminalIndex<? extends GrammarMemberDecl> extension, 
+    private static void applyExtension(final PEG peg, final NonterminalExtendIndex extension, 
                                        final Collection<GrammarIndex> relevant){
         Debug.debug(Debug.Type.SYNTAX, 2, "Apply extensions to " + extension.getName());
-        final List<SyntaxDef> defs = peg.get(extension.getName());
+        final List<SyntaxDef> exts = peg.getExts(extension.getName());
 
         final List<SyntaxDef> intermediate = new ArrayList<SyntaxDef>();
         extension.ast().accept(new NodeDepthFirstVisitor_void(){
                 @Override public void forNonterminalExtensionDef(NonterminalExtensionDef that) {
-                    for (SyntaxDecl def : that.getSyntaxDefs()){
-                    intermediate.addAll(resolveChoice(relevant, def));
+                    for (SyntaxDecl decl : that.getSyntaxDecls()){
+                        resolveAndAdd(exts, relevant, decl);
+                        // intermediate.addAll(resolveChoice(relevant, decl));
                     }
                 }
 
                 @Override public void forNonterminalDef(NonterminalDef that){
-                    for ( SyntaxDecl def : that.getSyntaxDefs() ){
-                        intermediate.addAll(resolveChoice(relevant, def));
+                    for (SyntaxDecl decl : that.getSyntaxDecls()){
+                        resolveAndAdd(exts, relevant, decl);
+                        // intermediate.addAll(resolveChoice(relevant, decl));
                     }
                 }
-
-                @Override public void for_TerminalDef(_TerminalDef that){
-                    intermediate.addAll(resolveChoice(relevant, that.getSyntaxDef()));
-                }
             });
-        defs.addAll(0, intermediate);
+        // exts.addAll(intermediate);
     }
 
     /* lookup the choices of a nonterminal in a specific grammar
@@ -363,15 +347,14 @@ public class ComposingMacroCompiler {
                     "Searching for extension for nonterminal " + nonterminalName +
                     " and grammar " + grammarName);
         for (GrammarIndex grammar : grammars){
-            Debug.debug( Debug.Type.SYNTAX, 3,
+            Debug.debug(Debug.Type.SYNTAX, 3,
                          "Checking if grammar " + grammar.getName() +
-                         " matches " + grammarName );
+                         " matches " + grammarName);
             if (grammar.getName().equals(grammarName)){
-                Debug.debug( Debug.Type.SYNTAX, 3, ".. yes!" );
-                Option<GrammarNonterminalIndex<? extends NonterminalDecl>> nt = 
-                    grammar.getNonterminalDecl(nonterminalName);
+                Debug.debug(Debug.Type.SYNTAX, 3, ".. yes!");
+                Option<NonterminalIndex> nt = grammar.getNonterminalDecl(nonterminalName);
                 if (nt.isSome()){
-                    return nt.unwrap().getSyntaxDefs();
+                    return nt.unwrap().getSyntaxDecls();
                 }
             } else {
                 Debug.debug(Debug.Type.SYNTAX, 3, ".. no");
@@ -385,22 +368,21 @@ public class ComposingMacroCompiler {
     /* add choices either defined by the SyntaxDecl or the choices defined by the
      * super non-terminal
      */
-    private static List<SyntaxDef> resolveChoice(final Collection<GrammarIndex> relevant, 
-                                                 SyntaxDecl def){
-        final List<SyntaxDef> defs = new LinkedList<SyntaxDef>();
-        def.accept(new NodeDepthFirstVisitor_void(){
+    private static void resolveAndAdd(final List<SyntaxDef> defs,
+                                      final Collection<GrammarIndex> relevant, 
+                                      SyntaxDecl decl){
+        decl.accept(new NodeDepthFirstVisitor_void(){
             @Override public void forSyntaxDef(SyntaxDef that) {
-                Debug.debug( Debug.Type.SYNTAX, 3, "Add choice " + that );
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add choice " + that);
                 defs.add(that);
             }
             @Override public void forSuperSyntaxDef(SuperSyntaxDef that) {
                 for (SyntaxDecl extension 
                          : findExtension(that.getNonterminal(), that.getGrammar(), relevant)){
-                    defs.addAll(resolveChoice(relevant, extension));
+                    resolveAndAdd(defs, relevant, extension);
                 }
             }
         });
-        return defs;
     }
 
     /* Compile a parser given a set of nonterminals and productions.
@@ -429,10 +411,10 @@ public class ComposingMacroCompiler {
         Map<String, Module> templateModules = getBaseModules(RatsUtil.getTemplateParserPath());
         for (Id definedByPegId : peg.keySet()) {
             String definedByPeg = NodeUtil.nameString(definedByPegId);
-            Debug.debug( Debug.Type.SYNTAX, 3,
-                         "Checking if " + definedByPeg + " is native");
+            Debug.debug(Debug.Type.SYNTAX, 3,
+                        "Checking if " + definedByPeg + " is native");
             if (nativeNonterminals.contains(definedByPeg)) {
-                Debug.debug( Debug.Type.SYNTAX, 3, "... yes!");
+                Debug.debug(Debug.Type.SYNTAX, 3, "... yes!");
                 String moduleName = getRatsModuleName(definedByPeg, definedByPegId);
                 String ntName = afterLastDot(definedByPeg, definedByPegId);
                 String userExtensionsName = mangler.forDefinition(definedByPeg);
@@ -490,7 +472,7 @@ public class ComposingMacroCompiler {
         }
 
         /* modify template parser modules */
-        for ( Module baseModule : templateModules.values() ){
+        for (Module baseModule : templateModules.values()){
             if (!baseModule.name.name.equals(TEMPLATEPARSER) && 
                 !baseModule.name.name.equals(FORTRESS) && 
                 !baseModule.name.name.equals(TEMPLATECOMPILATION)) {
@@ -506,8 +488,8 @@ public class ComposingMacroCompiler {
                 baseModule.parameters = new ModuleList(bps);
                 baseModule.dependencies.add(new ModuleImport(uname));
 
-                for ( ModuleDependency dependancy : baseModule.dependencies ){
-                    if ( dependancy instanceof ModuleModification ){
+                for (ModuleDependency dependancy : baseModule.dependencies){
+                    if (dependancy instanceof ModuleModification){
                         dependancy.arguments.names.add(uname);
                     }
                 }
@@ -570,9 +552,9 @@ public class ComposingMacroCompiler {
     /* Filter redundant syntax defs. Rats! will complain if they are left in */
     private static List<SyntaxDef> unique(List<SyntaxDef> defs){
         List<SyntaxDef> all = new LinkedList<SyntaxDef>();
-        for ( SyntaxDef def : defs ){
-            if ( ! all.contains( def ) ){
-                all.add( def );
+        for (SyntaxDef def : defs){
+            if (! all.contains(def)){
+                all.add(def);
             }
         }
         return all;
@@ -582,14 +564,14 @@ public class ComposingMacroCompiler {
      * add it to the peg
      */
     private static void addEntry(Module m, Mangler mangler, PEG peg, Id nt) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Create alternative for " + nt );
+        Debug.debug(Debug.Type.SYNTAX, 2, "Create alternative for " + nt);
 
         String name = mangler.forDefinition(nt);
         String javaType = peg.getJavaType(nt);
 
         ComposingSyntaxDefTranslator translator = 
             new ComposingSyntaxDefTranslator(mangler, nt, javaType, (NTEnv)peg);
-        List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.get(nt)));
+        List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.getAll(nt)));
 
         /* dont add an empty sequence */
         List<Attribute> attributes = new LinkedList<Attribute>();
@@ -664,68 +646,20 @@ public class ComposingMacroCompiler {
         }
     }
 
-
-
     // Utilities
 
-    private static <T> Set<T> setDifference( Set<T> s1, Set<T> s2 ){
-        Set<T> all = new HashSet<T>( s1 );
-        all.removeAll( s2 );
+    private static <T> Set<T> setDifference(Set<T> s1, Set<T> s2){
+        Set<T> all = new HashSet<T>(s1);
+        all.removeAll(s2);
         return all;
-    }
-
-    /* returns the set of definition nonterminals in a grammar
-     */
-    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeDefinitions
-                                                         (GrammarIndex grammar){
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
-            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index :
-                  grammar.getDeclaredNonterminals() ){
-            if ( isDefinition( index ) ){
-                all.add( index );
-            }
-        }
-
-        return all;
-    }
-
-    /* returns the set of nonterminal extensions in a grammar
-     */
-    private static Collection<NonterminalIndex<? extends GrammarMemberDecl>> computeExtensions
-                                                         (GrammarIndex grammar){
-        Collection<NonterminalIndex<? extends GrammarMemberDecl>> all = 
-            new LinkedList<NonterminalIndex<? extends GrammarMemberDecl>>();
-
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index : 
-                  grammar.getDeclaredNonterminals() ){
-            if ( isExtension( index ) ){
-                all.add( index );
-            }
-        }
-
-        return all;
-    }
-
-    /* true if the nonterminal is a definition site */
-    private static boolean isDefinition( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.ast() instanceof NonterminalDef ||
-               index.ast() instanceof _TerminalDef;
-    }
-
-    /* true if the nonterminal is an extension site */
-    private static boolean isExtension( NonterminalIndex<? extends GrammarMemberDecl> index ){
-        return index.ast() instanceof NonterminalExtensionDef;
     }
 
     /* convert extensions to their names */
-    private static Set<String> computeExplicit(Collection<NonterminalIndex<? extends GrammarMemberDecl>> extensions){
+    private static Set<String> computeExplicit(Collection<NonterminalExtendIndex> extensions){
         Set<String> all = new HashSet<String>();
-        for ( NonterminalIndex<? extends GrammarMemberDecl> index : extensions ){
-            all.add( index.getName().toString() );
+        for (NonterminalExtendIndex index : extensions) {
+            all.add(index.getName().toString());
         }
         return all;
     }
-
 }

@@ -84,7 +84,7 @@ public class FortressParser {
                                      boolean verbose) {
         // throws StaticError, ParserError
 
-        Collection<GrammarIndex> grammars;
+        List<GrammarIndex> grammars;
         try {
             grammars = PreParser.parse(api_name, f, env);
         } catch (StaticError se) {
@@ -106,7 +106,7 @@ public class FortressParser {
                                             File f,
                                             GlobalEnvironment env,
                                             boolean verbose,
-                                            Collection<GrammarIndex> grammars) {
+                                            List<GrammarIndex> grammars) {
 
         // throws StaticError, ParserError
         EnvFactory.initializeGrammarIndexExtensions(env.apis().values(), grammars);
@@ -151,8 +151,7 @@ public class FortressParser {
                 for (AliasedAPIName apiAlias : ((ImportApi) i).getApis()) {
                     importedApis.add(apiAlias.getApi());
                 }
-            }
-            else { // i instanceof ImportedNames
+            } else { // i instanceof ImportedNames
                 importedApis.add(((ImportedNames) i).getApi());
             }
         }

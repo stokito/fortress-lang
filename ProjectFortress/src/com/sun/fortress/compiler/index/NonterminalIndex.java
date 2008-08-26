@@ -17,7 +17,10 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.GrammarMemberDecl;
+import java.util.List;
+
+import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
@@ -26,17 +29,9 @@ import com.sun.fortress.useful.Pair;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
-public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
+public abstract class NonterminalIndex {
 
-    private T ast;
-
-    public NonterminalIndex(T ast) {
-        this.ast = ast;
-    }
-
-    public T ast() {
-        return this.ast;
-    }
+    public abstract NonterminalDecl ast();
 
     public Id getName() {
         return this.ast().getHeader().getName();
@@ -47,8 +42,12 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
         if (type.isSome()) {
             return type.unwrap();
         } else {
-            throw new RuntimeException("Production index without type, type inference is not implemented yet!");
+            throw new RuntimeException("Production index without type");
         }
+    }
+
+    public List<SyntaxDecl> getSyntaxDecls() {
+        return this.ast().getSyntaxDecls();
     }
 
     public boolean isPrivate() {
@@ -58,5 +57,4 @@ public abstract class NonterminalIndex<T extends GrammarMemberDecl> {
     public String toString(){
         return getName().toString();
     }
-
 }

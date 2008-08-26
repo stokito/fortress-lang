@@ -968,13 +968,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String for_TerminalDefOnly(_TerminalDef that,
-                                                String header_result,
-                                                Option<String> astType_result,
-                                                String syntaxDef_result) {
-        return "(* _TerminalDef *)";
-    }
-
     @Override public String forNonterminalHeaderOnly(NonterminalHeader that,
                                                      Option<String> modifier_result,
                                                      String name_result,
@@ -1086,21 +1079,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forPrefixedSymbolOnly(PrefixedSymbol that,
-                                                  Option<String> id_result,
-                                                  Option<String> type_result,
+                                                  String id_result,
                                                   String symbol_result) {
         StringBuilder s = new StringBuilder();
-
-        if ( id_result.isSome() ){
-            s.append( id_result.unwrap() );
-            s.append( ":" );
-        }
-        s.append( symbol_result );
-        if ( type_result.isSome() ){
-            s.append( ":" );
-            s.append( type_result.unwrap() );
-        }
-
+        s.append(id_result);
+        s.append(":");
+        s.append(symbol_result);
         return s.toString();
     }
 
