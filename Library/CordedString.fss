@@ -50,7 +50,7 @@ export CordedString
   
   test testRangeContainment = do
     assert( (2:3) ≤ (2:3), "(2:3) not less than or equal to (2:3)")
-    (* println "(2#2) CMP (2:3) = " ((2#2) CMP (2:3))  *)
+    assert (2#2, 2:3) 
     assert( (2#2) ≤ (2:3), "(2#2) not less than or equal to (2:3)")
   end
 (* 
@@ -62,7 +62,7 @@ export CordedString
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
-  end
+  end Concatenable
 (*
 ==== CatString ====
 *)
@@ -80,7 +80,14 @@ export CordedString
         else
             (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
         end
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = EqualTo
+        
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = 
+        if |left| ≥ |other|
+        then
+            left CASE_INSENSITIVE_CMP other
+        else
+            (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
+        end
 
     get(i): Char = 
     (* get is, and should be, without bounds checks.  [ ] does the bounds checks,a and then delegates to get *)   
@@ -141,13 +148,13 @@ export CordedString
     
     subdivide(): Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Just ⟨ (0, left), (|left|, right) ⟩
 
-  end
+  end CatString
 
   object ConcatGenerator⟦T⟧(first:Generator⟦T⟧, second:Generator⟦T⟧)
         extends Generator⟦T⟧
     generate⟦R⟧(r: Reduction⟦R⟧, body:T->R):R =
         r.join(first.generate⟦R⟧(r, body), second.generate⟦R⟧(r, body))
-  end
+  end ConcatGenerator
 
 (*
 ==== EmptyString ====
@@ -190,7 +197,8 @@ export CordedString
     print(self): () = do end
     println(self): () = println("")
   
-  end
+  end EmptyString
+  
   
   subdivide() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
