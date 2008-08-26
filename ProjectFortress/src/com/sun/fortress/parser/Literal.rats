@@ -172,6 +172,26 @@ CharLiteralExpr CharLiteralExpr =
      <FIRST> "'" a1:CharLiteralContent "'"
      { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
                                                  a1);
+     }
+   / "`" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
+                                                 a1);
+     }
+   / "\u2018" a1:CharLiteralContent "\u2019"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
+                                                 a1);
+     }
+   / <ErrorProduction1> "'" a1:CharLiteralContent "\u2019"
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The opening and closing marks of a character literal must match.");
+     }
+   / <ErrorProduction2> "`" a1:CharLiteralContent "\u2019"
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The opening and closing marks of a character literal must match.");
+     }
+   / <ErrorProduction3> "\u2018" a1:CharLiteralContent "'"
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The opening and closing marks of a character literal must match.");
      };
 
 StringLiteralExpr StringLiteralExpr =
