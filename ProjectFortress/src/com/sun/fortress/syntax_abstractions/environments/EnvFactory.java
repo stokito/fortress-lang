@@ -35,7 +35,6 @@ import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.CharacterClassSymbol;
 import com.sun.fortress.nodes.GrammarDef;
-import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;

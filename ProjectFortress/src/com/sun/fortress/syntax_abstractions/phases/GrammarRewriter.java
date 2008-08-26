@@ -36,7 +36,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.useful.Debug;
-import edu.rice.cs.plt.tuple.Option;
 
 /**
  * Syntax abstraction entry point:
@@ -58,15 +57,10 @@ import edu.rice.cs.plt.tuple.Option;
 public class GrammarRewriter {
 
     public static Collection<Api> rewriteApis(Map<APIName, ApiIndex> map, GlobalEnvironment env) {
-//         Collection<ApiIndex> apis = new LinkedList<ApiIndex>();
-//         apis.addAll(map.values());
-//         /* why is adding all the env apis necessary? it does redudant work */
-//         // apis.addAll(env.apis().values());
         initializeGrammarIndexExtensions(map.values(), env.apis().values());
 
         List<Api> apis = new ArrayList<Api>();
         for (ApiIndex apii : map.values()) { apis.add((Api)apii.ast()); }
-        // for (ApiIndex apii : env.apis().values()) { apis.add((Api)apii.ast(); }
 
         List<Api> results = rewritePatterns(apis, env);
         List<Api> i2 = rewriteTransformerNames(results, env);
@@ -127,12 +121,6 @@ public class GrammarRewriter {
         return results;
     }
 
-
-    private static Collection<ApiIndex> buildApiIndexes(Collection<Api> apis, GlobalEnvironment env) {
-        IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
-        initializeGrammarIndexExtensions(apiN.apis().values(), env.apis().values());
-        return apiN.apis().values();
-    }
 
     private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, GlobalEnvironment env) {
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );

@@ -22,18 +22,9 @@ import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 
-import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.io.IOUtil;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Box;
-import edu.rice.cs.plt.lambda.SimpleBox;
 
 import xtc.parser.ParserBase;
 import xtc.parser.SemanticValue;
@@ -47,19 +38,15 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Import;
-import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.AliasedAPIName;
-import com.sun.fortress.nodes.ImportApi;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.repository.ProjectProperties;
 
 
 /**
- * Methods to parse a collection of files to a collection of ASTs. Automatically
- * locates and parses any additional API definitions that are needed.
+ * Methods for parsing files using base Fortress syntax.
+ * For a parser that respects abstractions, use 
+ * com.sun.fortress.syntax_abstractions.parser.FortressParser.
  */
 public class Parser {
 
@@ -101,6 +88,7 @@ public class Parser {
     /**
      * Convert to a filename that is canonical for each (logical) file, preventing
      * reparsing the same file.
+     * FIXME: DEAD CODE
      */
     private static File canonicalRepresentation(File f) {
         // treat the same absolute path as the same file; different absolute path but

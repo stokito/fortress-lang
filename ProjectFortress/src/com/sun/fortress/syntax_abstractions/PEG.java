@@ -45,8 +45,10 @@ import com.sun.fortress.useful.Debug;
  */
 class PEG extends NTEnv {
 
-    Map<Id, List<SyntaxDef>> defEntries = new HashMap<Id,List<SyntaxDef>>();
-    Map<Id, List<SyntaxDef>> extEntries = new HashMap<Id,List<SyntaxDef>>();
+    private final Map<Id, List<SyntaxDef>> defEntries = new HashMap<Id,List<SyntaxDef>>();
+    private final Map<Id, List<SyntaxDef>> extEntries = new HashMap<Id,List<SyntaxDef>>();
+    public final Set<Id> nativeNonterminals = new HashSet<Id>();
+
     PEG() { }
 
     /* has the side effect of creating an entry in the peg with an
@@ -61,13 +63,6 @@ class PEG extends NTEnv {
         defEntries.put(nt, defs);
         extEntries.put(nt, exts);
         return defs;
-    }
-
-    /* remove a nonterminal from the set of productions
-     */
-    private void remove(Id nt){
-        defEntries.remove(nt);
-        extEntries.remove(nt);
     }
 
     /* remove nonterminals with empty definitions

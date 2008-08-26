@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.ArrayList;
 
 import xtc.parser.Action;
@@ -65,7 +64,6 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.WhitespaceSymbol;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
@@ -76,14 +74,15 @@ import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
 
-import static com.sun.fortress.syntax_abstractions.ComposingMacroCompiler.Mangler;
+import static com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 
 public class ComposingSyntaxDefTranslator {
 
     private static final String BOUND_VARIABLES = "boundVariables";
 
+    @SuppressWarnings("unused")
+	private Id nt;
     private Mangler mangler;
-    private Id nt;
     private String type;
     private NTEnv ntEnv;
 
@@ -149,10 +148,6 @@ public class ComposingSyntaxDefTranslator {
             indents.add(3);
         }
         return variable;
-    }
-
-    private static List<Element> mkList(Element... e) {
-        return Arrays.asList(e);
     }
 
     private class SymbolTranslator extends NodeDepthFirstVisitor_void {
@@ -549,7 +544,8 @@ public class ComposingSyntaxDefTranslator {
                     return fresh;
                     */
                 }
-                private void addCodeLine(String line){
+                @SuppressWarnings("unused")
+				private void addCodeLine(String line){
                     listIndents.add(indent);
                     listCode.add(line);
                 }

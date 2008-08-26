@@ -33,16 +33,11 @@ import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
-import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
@@ -159,23 +154,6 @@ public class SyntaxAbstractionUtil {
         return new OpExpr(span, opRef, exprs );
     }
 
-    private static Expr makeLocalVarDecl(Span span, String freshName, String lastFreshName, List<StaticArg> staticArgs, Expr expr, List<Expr> newBody) {
-        List<LValue> lhs = new LinkedList<LValue>();
-        Id freshVar = NodeFactory.makeId(freshName);
-        Option<Type> type = Option.<Type>some(new TraitType(NodeFactory.makeId("List", "List"), staticArgs));
-        lhs.add(new LValueBind(span, freshVar, type , false));
-
-        Id name = NodeFactory.makeId(lastFreshName, "addRight");
-        List<Expr> exprs = new LinkedList<Expr>();
-        exprs.add(NodeFactory.makeFnRef(span, name));
-        List<Expr> args = new LinkedList<Expr>();
-        args.add(expr);
-        exprs.add(new TupleExpr(args));
-        Option<Expr> rhs = Option.<Expr>some(new TightJuxt(exprs));
-
-        return new LocalVarDecl(span, newBody, lhs, rhs);
-    }
-
     public static Expr makeMaybe(Span span, Option<Expr> op, String typeArg) {
         List<StaticArg> maybeStaticArgs = new LinkedList<StaticArg>();
         maybeStaticArgs.add(new TypeArg(new VarType(NodeFactory.makeId(FORTRESSAST, typeArg))));
@@ -219,7 +197,8 @@ public class SyntaxAbstractionUtil {
         }
     }
     
-    private static <T extends TemplateGap> Field getField(Class<T> cls, String fieldName) throws SecurityException, NoSuchFieldException {
+    @SuppressWarnings("unchecked")
+	private static <T extends TemplateGap> Field getField(Class<T> cls, String fieldName) throws SecurityException, NoSuchFieldException {
         boolean done = false;
         Class<T> cl = cls;
         while (!done) {
@@ -234,13 +213,5 @@ public class SyntaxAbstractionUtil {
             }
         }
         return null;
-    }
-
-    private static String cutPackage(String name){
-        int last = name.lastIndexOf('.');
-        if ( last != -1 ){
-            return name.substring( last + 1 );
-        }
-        return name;
     }
 }

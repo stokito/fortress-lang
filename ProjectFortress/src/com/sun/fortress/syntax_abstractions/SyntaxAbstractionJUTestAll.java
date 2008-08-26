@@ -80,8 +80,10 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
 
     public static TestSuite suite() {
         TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"/xml/", Collections.<String>emptyList(), null);
-        TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
-        TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
+        @SuppressWarnings("unused")
+		TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"/regex/", Collections.<String>emptyList(), null);
+        @SuppressWarnings("unused")
+		TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"/sql/", Collections.<String>emptyList(), null);
         TestCaseDir basisTests = new TestCaseDir(STATIC_TESTS_DIR, FAILING_SYNTAXABSTRACTIONS, null);
 
         StaticTestSuite suite = new StaticTestSuite("SyntaxAbstractionJUTestAll", basisTests);

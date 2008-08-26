@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import xtc.parser.Action;
 import xtc.parser.Module;
 import xtc.parser.ModuleDependency;
 import xtc.parser.ModuleInstantiation;
@@ -126,21 +125,6 @@ public abstract class RatsUtil {
                 throw new RuntimeException("Could not create directories: "+dir.getAbsolutePath());
             }
         }
-    }
-
-    /** 
-     * In the generated module we use maps to associate variable names to their values
-     * @return
-     */
-    private static Action createHeader() {
-        List<String> imports = new LinkedList<String>();
-        List<Integer> indents = new LinkedList<Integer>();
-        indents.add(3);
-        imports.add("import java.util.Map;");
-        indents.add(3);
-        imports.add("import java.util.HashMap;");
-        Action a = new Action(imports, indents);
-        return a;
     }
 
     /**

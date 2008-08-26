@@ -33,12 +33,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.parser_util.SyntaxUtil;
-
-import edu.rice.cs.plt.tuple.Option;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /* EscapeRewriter
  * Replaces escape sequences in strings (see Syntax.rats : EscapedSpecialChars, EscapedSpecialSymbol)

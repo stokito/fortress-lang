@@ -33,17 +33,11 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalSymbol;
-import com.sun.fortress.nodes.OptionalSymbol;
-import com.sun.fortress.nodes.PrefixedSymbol;
-import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
-import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes.TokenSymbol;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.IdentifierUtil;
@@ -53,8 +47,6 @@ import com.sun.fortress.useful.Debug;
 import edu.rice.cs.plt.tuple.Option;
 
 /* ItemDisambiguator
- * - infers names for syntax symbols without a prefix
- *    eg, A -> A:A
  * - Disambiguates "items" to nonterminals or keywords/tokens
  * - Disambiguates occurrences of nonterminal names within patterns
  *    eg, Expr -> FortressSyntax.Expression.Expr
@@ -65,7 +57,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     private GlobalEnvironment _globalEnv;
     private GrammarIndex _currentGrammarIndex;
     private ApiIndex _currentApi;
-    private String _currentItem;
 
     public ItemDisambiguator(GlobalEnvironment env) {
         this._errors = new LinkedList<StaticError>();
@@ -129,7 +120,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         SyntaxSymbol n = nameResolution(that);
         if (n instanceof NonterminalSymbol ||
             n instanceof KeywordSymbol) {
-            this._currentItem = that.getItem();
         }
         Debug.debug(Debug.Type.SYNTAX, 4, "Resolve item symbol " + that.getItem() + " to " + n);
         return n;

@@ -18,12 +18,8 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -38,7 +34,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
@@ -46,11 +41,9 @@ import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.ListDepth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
 import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
-import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.exceptions.MacroError;
 
-import static com.sun.fortress.parser_util.SyntaxUtil.notIdOrOpOrKeyword;
 import edu.rice.cs.plt.tuple.Option;
 
 /*
