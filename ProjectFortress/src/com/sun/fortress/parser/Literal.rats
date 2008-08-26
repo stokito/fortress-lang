@@ -181,10 +181,27 @@ StringLiteralExpr StringLiteralExpr =
            str = str.concat(c);
        }
        yyValue = new StringLiteralExpr(createSpan(yyStart,yyCount), false, str);
+     }
+   / "\u201c" a1:StringLiteralContent* "\u201d"
+     { String str = "";
+       for (String c : (List<String>)a1.list()) {
+           str = str.concat(c);
+       }
+       yyValue = new StringLiteralExpr(createSpan(yyStart,yyCount), false, str);
+     }
+   / <ErrorProduction1> ["] a1:StringLiteralContent* "\u201d"
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The opening and closing marks of a string literal must match.");
+     }
+   / <ErrorProduction2> "\u201c" a1:StringLiteralContent* ["]
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "The opening and closing marks of a string literal must match.");
      };
 private String StringLiteralContent =
      EscapeSequence
-   / a1:(!["\\] _) { yyValue = String.valueOf(a1); };
+   / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); };
+
+private String InvalidStringLiteralContent = ["] / [\\] / [\u201c] / [\u201d] ;
 
 private String EscapeSequence = '\\' a1:[btnfr"\\]
      { switch (a1) {
