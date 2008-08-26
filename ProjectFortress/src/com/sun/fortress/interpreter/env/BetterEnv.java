@@ -32,7 +32,7 @@ import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.Visitor2;
 
 
-public final class BetterEnv extends BaseEnv
+public class BetterEnv extends BaseEnv
 {
 
     private BATreeNode<String, FType> type_env;
@@ -44,7 +44,7 @@ public final class BetterEnv extends BaseEnv
 
     /** (Lexical) ancestor environment */
     BetterEnv parent;
-
+ 
     private final static Comparator<String> comparator = StringHashComparer.V;
 
     public void visit(Visitor2<String, FType> vt,
@@ -69,7 +69,7 @@ public final class BetterEnv extends BaseEnv
 
     }
 
-    public static BetterEnv empty() {
+    private static BetterEnv empty() {
         return new BetterEnv("Empty");
     }
 
@@ -99,7 +99,7 @@ public final class BetterEnv extends BaseEnv
         this(new HasAt.FromString(s));
     }
 
-    // Used by Trait and Object to constructor declared-members environments.
+    // Used by Trait and Object to construct declared-members environments.
     public BetterEnv(HasAt s) {
         within = s;
     }
@@ -109,7 +109,7 @@ public final class BetterEnv extends BaseEnv
         this(existing, new HasAt.FromString(s));
     }
 
-    private BetterEnv(BetterEnv containing, HasAt x) {
+    protected BetterEnv(BetterEnv containing, HasAt x) {
         this(containing);
         within = x;
     }
@@ -133,7 +133,7 @@ public final class BetterEnv extends BaseEnv
      * @param existing
      * @param additions
      */
-    private BetterEnv(BetterEnv existing, BetterEnv additions) {
+    protected BetterEnv(BetterEnv existing, BetterEnv additions) {
         if ( !existing.getBlessed() || !additions.getBlessed() )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
         augment(existing, additions);
@@ -141,7 +141,7 @@ public final class BetterEnv extends BaseEnv
         bless();
     }
     
-    private BetterEnv(BetterEnv existing, Environment additions) {
+    protected BetterEnv(BetterEnv existing, Environment additions) {
         this(existing);
         if ( !existing.getBlessed() || !additions.getBlessed() )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
@@ -342,5 +342,10 @@ public final class BetterEnv extends BaseEnv
             return;
         var_env = var_env.delete(s, comparator);
     }
+    
+    public Environment getTopLevel() {
+        return bug("This should have been an environment with a Top Level");
+    }
+
 
 }

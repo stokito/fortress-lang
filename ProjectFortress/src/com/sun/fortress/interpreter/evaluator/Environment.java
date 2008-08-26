@@ -268,4 +268,6 @@ public interface Environment  {
     public void putApi(String apiName, Environment env);
     
     public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan);
+    
+    public Environment getTopLevel();
 }

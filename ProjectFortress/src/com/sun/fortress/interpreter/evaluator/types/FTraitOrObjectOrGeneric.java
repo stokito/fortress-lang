@@ -161,6 +161,8 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         if (isSymbolic)
             return;
 
+        topLevel = topLevel.getTopLevel();
+        
         List<? extends AbsDeclOrDecl> defs = members;
 
         for (AbsDeclOrDecl dod : defs) {

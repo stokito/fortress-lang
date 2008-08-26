@@ -288,7 +288,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                                                          // second pass.
 
             // Perhaps make this conditional on nothing being symbolic here?
-            ftt.initializeFunctionalMethods();
+            // Specify a top-level environment here.
+            ftt.initializeFunctionalMethods(gen.env);
             //be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
             be.secondPass();
             be.finishTrait(td, ftt, clenv);

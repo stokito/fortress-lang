@@ -139,17 +139,17 @@ public class ComponentWrapper {
         
          try {
             if (comp instanceof Component) {
-                Environment e = loadCompiledEnvs ? SimpleClassLoader
-                        .loadEnvironment(fortressFileName, false) : BetterEnv
-                        .empty(comp.at());
+                Environment e = loadCompiledEnvs ?
+                    SimpleClassLoader.loadEnvironment(fortressFileName, false) :
+                    new BetterEnvLevelZero(comp); // BetterEnv.empty(comp.at());
                 e.setTopLevel();
-                be = ((Component) comp).is_native() ? new BuildNativeEnvironment(
-                        e, linker)
-                        : new BuildTopLevelEnvironments(e, linker);
+                be = ((Component) comp).is_native() ?
+                        new BuildNativeEnvironment(e, linker) :
+                        new BuildTopLevelEnvironments(e, linker);
             } else { // comp instanceof Api
-                Environment e = loadCompiledEnvs ? SimpleClassLoader
-                        .loadEnvironment(fortressFileName, true) : BetterEnv
-                        .empty(comp.at());
+                Environment e = loadCompiledEnvs ?
+                     SimpleClassLoader.loadEnvironment(fortressFileName, true) :
+                         new BetterEnvLevelZero(comp); // BetterEnv.empty(comp.at());
                 e.setTopLevel();
                 be = new BuildApiEnvironment(e, linker);
             }

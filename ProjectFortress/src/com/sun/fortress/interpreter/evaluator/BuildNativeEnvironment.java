@@ -52,7 +52,7 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
     public static Constructor nativeConstructor(Environment containing,
             FTypeObject ft, GenericWithParams x, String fname) {
-        String pack = containing.getValue("package").getString();
+        String pack = containing.getTopLevel().getValue("package").getString();
         String classname = pack + "." + fname;
         try {
             Class cl = Class.forName(classname);

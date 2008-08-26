@@ -324,7 +324,7 @@ abstract public class FType implements Comparable<FType> {
     }
 
     public Environment getWithin() {
-        return BetterEnv.blessedEmpty();
+        throw new Error("Not supposed to happen");
     }
 
     protected final boolean commonSubtypeOf(FType other) {
