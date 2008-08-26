@@ -72,7 +72,6 @@ public class ReadSet extends AbstractSet<Transaction> {
       cleanup();
       if (sealed) {
 		  FortressTaskRunner.debugPrintln("add of " + t + " to readset " + toString() + " failed because readset was sealed");
-          Thread.dumpStack();
 		  return false;
       } else {
 		  elements.addIfAbsent(t);
