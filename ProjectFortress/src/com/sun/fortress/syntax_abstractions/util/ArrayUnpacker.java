@@ -23,7 +23,8 @@ import xtc.util.Pair;
 
 public class ArrayUnpacker {
 
-    public static <T> List<T> unpack(List<Object[]> arrays, int index) {
+    @SuppressWarnings("unchecked")
+	public static <T> List<T> unpack(List<Object[]> arrays, int index) {
         List<T> acc = new LinkedList<T>();
         for (Object[] array : arrays) {
             acc.add((T)array[index]);

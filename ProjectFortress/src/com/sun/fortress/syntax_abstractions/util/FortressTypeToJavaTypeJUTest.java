@@ -32,8 +32,6 @@ import junit.framework.TestCase;
 
 public class FortressTypeToJavaTypeJUTest extends TestCase {
 
-    private FortressTypeToJavaType tt = new FortressTypeToJavaType();
-
     private VarType stringType = new VarType(NodeFactory.makeId("FortressBuiltin", "String"));
     private String stringTypeResult = "String";
     private VarType fortressASTType = new VarType(NodeFactory.makeId("FortressAst", "Decl"));
@@ -47,60 +45,60 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     }
 
     public void testTypeTranslatorVarTypeString() {
-        assertEquals(tt.analyze(stringType), stringTypeResult);
+        assertEquals(FortressTypeToJavaType.analyze(stringType), stringTypeResult);
     }
 
     public void testTypeTranslatorVarTypeFortressAst() {
-        assertEquals(tt.analyze(fortressASTType), fortressASTTypeResult);
+        assertEquals(FortressTypeToJavaType.analyze(fortressASTType), fortressASTTypeResult);
     }
 
     public void testTypeTranslatorTraitTypeListString() {
         TraitType type = mkTraitType("List", "List", stringType);
-        assertEquals(tt.analyze(type), "List<"+stringTypeResult+">");
+        assertEquals(FortressTypeToJavaType.analyze(type), "List<"+stringTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeListFortressASTType() {
         TraitType type = mkTraitType("List", "List", fortressASTType);
-        assertEquals(tt.analyze(type), "List<"+fortressASTTypeResult+">");
+        assertEquals(FortressTypeToJavaType.analyze(type), "List<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeMaybeFortressASTType() {
         TraitType type = mkTraitType("FortressLibrary", "Maybe", fortressASTType);
-        assertEquals(tt.analyze(type), "Option<"+fortressASTTypeResult+">");
+        assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeJustFortressASTType() {
         TraitType type = mkTraitType("FortressLibrary", "Just", fortressASTType);
-        assertEquals(tt.analyze(type), "Option<"+fortressASTTypeResult+">");
+        assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeNothingFortressASTType() {
         TraitType type = mkTraitType("FortressLibrary", "Nothing", fortressASTType);
-        assertEquals(tt.analyze(type), "Option<"+fortressASTTypeResult+">");
+        assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeListListFortressASTType() {
         TraitType listType = mkTraitType("List", "List", fortressASTType);
         TraitType listListType = mkTraitType("List", "List", listType);
-        assertEquals(tt.analyze(listListType), "List<List<"+fortressASTTypeResult+">>");
+        assertEquals(FortressTypeToJavaType.analyze(listListType), "List<List<"+fortressASTTypeResult+">>");
     }
 
     public void testTypeTranslatorTraitTypeListListStringType() {
         TraitType listType = mkTraitType("List", "List", stringType);
         TraitType listListType = mkTraitType("List", "List", listType);
-        assertEquals(tt.analyze(listListType), "List<List<"+stringTypeResult+">>");
+        assertEquals(FortressTypeToJavaType.analyze(listListType), "List<List<"+stringTypeResult+">>");
     }
 
     public void testTypeTranslatorTraitTypeMaybeListFortressASTType() {
         TraitType listType = mkTraitType("List", "List", fortressASTType);
         TraitType listListType = mkTraitType("FortressLibrary", "Maybe", listType);
-        assertEquals(tt.analyze(listListType), "Option<List<"+fortressASTTypeResult+">>");
+        assertEquals(FortressTypeToJavaType.analyze(listListType), "Option<List<"+fortressASTTypeResult+">>");
     }
 
     public void testTypeTranslatorTraitTypeMaybeListStringType() {
         TraitType listType = mkTraitType("List", "List", stringType);
         TraitType listListType = mkTraitType("FortressLibrary", "Maybe", listType);
-        assertEquals(tt.analyze(listListType), "Option<List<"+stringTypeResult+">>");
+        assertEquals(FortressTypeToJavaType.analyze(listListType), "Option<List<"+stringTypeResult+">>");
     }
 
 }

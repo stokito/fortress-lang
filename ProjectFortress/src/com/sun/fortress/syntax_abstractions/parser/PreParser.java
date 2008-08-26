@@ -18,14 +18,12 @@
 package com.sun.fortress.syntax_abstractions.parser;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 
@@ -174,7 +172,6 @@ public class PreParser {
                 @Override public void forImportNamesOnly(ImportNames that) {
                     if (env.definesApi(that.getApi())) {
                         ApiIndex api = env.api(that.getApi());
-                        boolean foundSome = false;
                         for (AliasedSimpleName aliasedName: that.getAliasedNames()) {
                             if (aliasedName.getName() instanceof Id) {
                                 Id importedName = (Id) aliasedName.getName();

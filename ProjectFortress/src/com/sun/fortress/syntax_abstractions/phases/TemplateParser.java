@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.UnparsedTransformer;
-import com.sun.fortress.syntax_abstractions.ComposingMacroCompiler;
+import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
@@ -109,7 +109,7 @@ public class TemplateParser {
     }
 
     private static Class<?> createParser(GrammarIndex grammar){
-        return ComposingMacroCompiler.compile(grammar);
+        return ParserMaker.parserForGrammar(grammar);
     }
 
     private static AbstractNode parseTemplate(APIName apiName, String stuff, 
@@ -159,7 +159,7 @@ public class TemplateParser {
         }
     }
 
-    private static Option<Method> lookupExpression(Class parser, String production){
+    private static Option<Method> lookupExpression(Class<?> parser, String production){
         try {
             /* This is a Rats! specific naming convention. Move it
              * elsewhere?

@@ -50,12 +50,12 @@ import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.useful.Debug;
-// import com.sun.fortress.tools.FortressAstToConcrete;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/* replaces syntax transformations with their bodies, replacing
- * template variables along the way
+/** 
+ * Macro expander: Traverses AST node, replacing transformation nodes with
+ * the results of their transformer executions.
  */
 public class Transform extends TemplateUpdateVisitor {
     private Map<String,Transformer> transformers;
@@ -68,30 +68,20 @@ public class Transform extends TemplateUpdateVisitor {
         this.variables = variables;
     }
 
-    /*
-    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables, EllipsesEnvironment env ){
-        this.transformers = transformers;
-        this.variables = variables;
-        this.env = env;
-    }
-    */
-
     /* entry point to this class */
-    public static Node transform( GlobalEnvironment env, Node node ){
-        return node.accept( new Transform( populateTransformers(env), 
-					   new HashMap<String,Level>() ) );
+    public static Node transform(GlobalEnvironment env, Node node){
+        Transform transform = 
+            new Transform(populateTransformers(env), new HashMap<String,Level>());
+        return node.accept(transform);
     }
 
-    private static Map<String,Transformer> populateTransformers( GlobalEnvironment env ){
+    private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
         final Map<String,Transformer> map = new HashMap<String,Transformer>();
-        for ( ApiIndex api : env.apis().values() ){
+        for (ApiIndex api : env.apis().values()){
             api.ast().accept( new NodeDepthFirstVisitor_void(){
-                @Override public void forNamedTransformerDef(NamedTransformerDef that) {
-                    //Debug.debug(Debug.Type.SYNTAX, 3,
-                    //            "transformer " + that.getName() + " =\n" + 
-                    //            FortressAstToConcrete.astToString(that.getTransformer()));
-                    map.put(that.getName(), that.getTransformer());
-                }
+                    @Override public void forNamedTransformerDef(NamedTransformerDef that) {
+                        map.put(that.getName(), that.getTransformer());
+                    }
 		});
         }
         return map;
@@ -285,7 +275,7 @@ public class Transform extends TemplateUpdateVisitor {
             List<Object> all = new LinkedList<Object>();
             for ( Object o : (List<?>) partial ){
                 if ( o instanceof _Ellipses ){
-                    all.addAll( (List) traverse( o ) );
+                    all.addAll( (List<?>) traverse( o ) );
                 } else {
                     all.add( traverse( o ) );
                 }
@@ -298,8 +288,6 @@ public class Transform extends TemplateUpdateVisitor {
         }
         throw new MacroError( "Unknown object type " + partial.getClass().getName() + " value: " + partial );
     }
-
-            // Node argument = ((Node)var.getValue()).accept(this);
 
     @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
         if ( ! that.getSyntaxParameters().isEmpty() ){
@@ -476,7 +464,6 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-
     private class CurriedTransformer implements Node {
         private String original;
         private Map<String,Level> vars;
@@ -547,5 +534,4 @@ public class Transform extends TemplateUpdateVisitor {
             error();
         }
     }
-
 }
