@@ -197,7 +197,11 @@ public class ReferenceCell extends IndirectionCell {
     }
 
     public FValue getValueNull() {
-        return getValue();
+        FValue res = getValue();
+        if (res == null) {
+            throw new RuntimeException(Thread.currentThread().getName() + " getValueNull is about to return a null value ReferenceCell = " + this + " node = " + node);
+        }
+        return res;
     }
 
 
