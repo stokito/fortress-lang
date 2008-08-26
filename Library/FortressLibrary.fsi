@@ -2022,7 +2022,7 @@ trait String extends { StandardTotalOrder[\String\],
     print(self): ()
     println(self): ()
 
-end
+end String
 
 (***********************************************************
 * \subsection{Top-level primitives}

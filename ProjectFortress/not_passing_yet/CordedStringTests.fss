@@ -69,43 +69,30 @@ component CordedStringTests
      end
   end
   
-  (* test *) validateSubdivision(subject: String, division: Maybe⟦Generator⟦(ZZ32, String)⟧⟧): () = do
+  (* test *) validateSubdivision(subject: String, division): () = do
     var len: ZZ32 = 0
     var accum: String = ""
-    if gen ← division then 
-      for (start, str) ← seq(gen) do
+    for (start, str) ← division do
          assert(start, len, str)
          len := len + |str|
          accum := accum || str
-      end
+    end
       assert(len, |subject|)
       assert(accum, subject)
-    end
   end
+  
     
   test testSubdivide():() = do
     subject = CatString("abcd", "efgh")
     substr1 = subject[2:6]
-    var len: ZZ32 = 0
-    var accum: String = ""
-    for (start, str) ← seq(substr1.subdivide()) do
-         assert(start, len, str)
-         len := len + |str|
-         accum := accum || str
-    end
-    assert(len, |substr1|)
-    accum.verify()
-    accum.showStructure()
-    assert(accum, substr1)  
+    validateSubdivision(substr1, seq(substr1.subdivide()))
     
     substr2 = subject[4:6]
-    assert(substr2.subdivide(), Nothing⟦Generator⟦(ZZ32,String)⟧⟧)
+    assert(substr2.subdivide().isEmpty, "subject[4:6].subdivide is not empty!")
     
     substr3 = subject[0:5]
-    for p ← seq(substr1.subdivide()) do
-        println ("found tuple" || p)    (* This should (did?) work prefix string too *)
-    end
-    
+    validateSubdivision(substr3, seq(substr3.subdivide()))
+        
   end 
   
 (*
@@ -164,7 +151,7 @@ component CordedStringTests
         result := result || c
     end
     assert(result, hw)
-  end
+  end 
   
   test testParallelGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"

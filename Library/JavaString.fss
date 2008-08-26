@@ -67,14 +67,12 @@ package="com.sun.fortress.interpreter.glue.prim"
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
     javaAppend(self, b:Char):String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
-        
-    (* The following are curently dead code; see lines 3765 ish in FortressLibrary.fss *)    
-(*
-    javaPrint(a: JavaString): () = 
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-    javaPrintln(a: JavaString): () = 
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-*)
+
+    print(self): () = 
+        javaPrint(self)
+    println(self): () = 
+        javaPrintln(self)
+
 
     indexOf(c:Char): Maybe[\ZZ32\] = do
         i = javaIndexOf(c)
@@ -120,6 +118,11 @@ package="com.sun.fortress.interpreter.glue.prim"
         
     subdivide() = Nothing[\Generator[\(ZZ32, String)\]\]
 
-  end
-
+  end JavaString
+  
+    javaPrint(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+    javaPrintln(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+ 
 end
