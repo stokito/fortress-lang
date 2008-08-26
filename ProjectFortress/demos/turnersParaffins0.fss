@@ -108,9 +108,9 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
     opr CMP(self, other:Radical):TotalComparison =
         typecase other of
             H   => GreaterThan
-            Rad => ((r1 CMP other.r1) LEXICO:
-                   ((r2 CMP other.r2) LEXICO:
-                    (r3 CMP other.r3)))
+            Rad => (r1 CMP other.r1) LEXICO:
+                   (r2 CMP other.r2) LEXICO:
+                   (r3 CMP other.r3)
         end
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
@@ -165,10 +165,10 @@ end
 object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
     extends StandardTotalOrder[\Paraffin\]
     opr CMP(self, other:Paraffin):TotalComparison =
-        ((r1 CMP other.r1) LEXICO:
-        ((r2 CMP other.r2) LEXICO:
-        ((r3 CMP other.r3) LEXICO:
-         (r4 CMP other.r4))))
+        (r1 CMP other.r1) LEXICO:
+        (r2 CMP other.r2) LEXICO:
+        (r3 CMP other.r3) LEXICO:
+        (r4 CMP other.r4)
     rotate (self):Paraffin = Paraffin (r2, r3, r4, r1)
     swap   (self):Paraffin = Paraffin (r2, r1, r3, r4)
     invert (self):Paraffin =
