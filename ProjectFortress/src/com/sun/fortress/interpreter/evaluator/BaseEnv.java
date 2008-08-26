@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.sun.fortress.exceptions.CircularDependenceError;
 import com.sun.fortress.exceptions.RedefinitionError;
+import com.sun.fortress.interpreter.env.BetterEnvWithTopLevel;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -31,11 +32,13 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpName;
@@ -70,19 +73,20 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             return this;
         return getApi(oapi.unwrap());
     }
-
+    
     public Environment getApi(APIName a) {
         String s = NodeUtil.nameString(a);
-        return getApi(s);
+        return getTopLevel().getApi(s);
     }
 
     public Environment getApi(List<Id> ids) {
         String s = com.sun.fortress.useful.Useful.<Id>dottedList(ids);
-        return getApi(s);
+        return getTopLevel().getApi(s);
     }
 
     public Environment getApi(String s) {
-        Environment e = getApiNull(s);
+        Environment e = getTopLevel();
+        e = e.getApiNull(s);
         if (e == null) {
             return error(errorMsg("Missing api name ", s));
         }
@@ -94,18 +98,36 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
     
     public Environment extend() {
-        // TODO Auto-generated method stub
-        return null;    	
+        return tlExtend();
     }
-    
+
     public Environment extend(Environment additions) {
-        // TODO Auto-generated method stub
-        return null;   	
+        return tlExtend(additions);
     }
 
     public Environment extendAt(HasAt x) {
-        // TODO Auto-generated method stub
-        return null;   	    	
+        return tlExtendAt(x);
+    }
+
+    /**
+     * Extends a top-level environment.
+     * 
+     * @return
+     */
+    protected Environment tlExtend() {
+        return new BetterEnvWithTopLevel(this, this.getAt());
+    }
+
+    protected Environment tlExtend(Environment additions) {
+        BetterEnvWithTopLevel bewtl = new BetterEnvWithTopLevel(this, this.getAt());
+        bewtl.augment(additions);
+        bewtl.bless();
+        return bewtl;
+    }
+
+    protected Environment tlExtendAt(HasAt x) {
+        return new BetterEnvWithTopLevel(this, x);
+
     }
 
     public void visit(Visitor2<String, FType> vt,
@@ -191,7 +213,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
            }
        };
        
-       visit(vt,vn,vi,vv,vb);
+       additions.visit(vt,vn,vi,vv,vb);
        
    }   
 
@@ -361,7 +383,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     final public  FType getType(NamedType q)  {
-        FType x = getTypeNull(q.getName());
+        Environment e = toContainingObjectEnv(this, q.getLexicalDepth());
+        FType x = e.getTypeNull(q.getName());
         if (x == null)
             {
                 // System.err.println(this.toString());
@@ -640,9 +663,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
      * @param f2
      */
     public void putFunctionalMethodInstance(String str, FValue f2) {
-        if (f2 instanceof Fcn)
+        if (f2 instanceof Fcn) {
+//            if (str.contains("seq")) {
+//                System.err.println("seq " + f2);
+//            }
             putFunction(str, (Fcn) f2, "Var/value", true, true);
-        else
+        } else
             error(str + " must be a functional method instance ");
      }
 
@@ -678,7 +704,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
      * @return
      */
     public FType getTypeNull(String name, int level) {
-        return getTypeNull(name);
+        Environment e = toContainingObjectEnv(this, level);
+        return e.getTypeNull(name);
     }
 
     /**
@@ -689,7 +716,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
      * @return
      */
     public FValue getValueRaw(String s, int level) {
-        return getValueRaw(s);
+        Environment e = toContainingObjectEnv(this, level);
+        return e.getValueRaw(s);
     }
  
     public Environment getApiNull(String apiName) {
@@ -699,5 +727,32 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public Iterable<String> youngestFrame() {
         return this;
     }
+    
+    public Environment getTopLevel() {
+        return this;
+    }
+
+    /**
+         Retrieves the environment in which a name was defined,
+         if it was a surrounding object.  Currently accomplished
+         by chaining up the list of $self/$parent entries.
+         */
+    
+    static Environment toContainingObjectEnv(Environment e,
+            int negative_object_depth) {
+        if (-negative_object_depth > 0) {
+            negative_object_depth = -1 - negative_object_depth;
+            FObject obj = (FObject) e.getValue(WellKnownNames.secretSelfName);
+            e = obj.getSelfEnv();
+            while (negative_object_depth > 0) {
+                negative_object_depth--;
+                obj = (FObject) e.getValue(WellKnownNames.secretParentName);
+                e = obj.getSelfEnv();
+            }
+        } else if (negative_object_depth == 0)
+            e = e.getTopLevel();
+        return e;
+    }
+
 
 }

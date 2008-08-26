@@ -1008,7 +1008,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         String s = x.getGenSymName();
         // FType ft = e.getType(s);
         // System.out.println("for_RewriteObjectExpr "+s);
-        FValue v = e.getValue(s);
+        FValue v = e.getTopLevel().getValue(s);
 
         if (v instanceof GenericConstructor) {
             GenericConstructor gc = (GenericConstructor) v;
@@ -1649,7 +1649,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forVarRef(VarRef x) {
         
-        FValue res = toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
+        FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());
             error(x, e, errorMsg(Thread.currentThread().getName() + " undefined variable ", names));

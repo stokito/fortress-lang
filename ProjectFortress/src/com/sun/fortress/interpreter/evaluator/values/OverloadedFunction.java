@@ -699,6 +699,7 @@ public class  OverloadedFunction extends Fcn
         if (cls == this)
             return; // Prevents a comodification exception if
                     // we import FortressLibrary a second time.
+        
         List<Overload> clso = cls.overloads;
         for (Overload cl : clso) {
             addOverload(cl);
@@ -722,7 +723,7 @@ public class  OverloadedFunction extends Fcn
      * @param overload
      */
     public void addOverload(Overload overload) {
-
+        
          if (!finishedSecond) {
             // Reset finishedFirst -- new overloads can appear as side-effect
             // of finishing first overloads.

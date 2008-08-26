@@ -697,13 +697,11 @@ public class Desugarer extends Rewrite {
                 } else if (node instanceof OpRef) {
                     OpRef vre = (OpRef) node;
                     String s = NodeUtil.stringName(vre.getOriginalName());
-                    Expr update = newName(vre, s);
-                    return update;
+                    node = newName(vre, s);
                 } else if (node instanceof _RewriteObjectRef) {
                     _RewriteObjectRef vre = (_RewriteObjectRef) node;
                     String s = NodeUtil.stringName(vre.getObj());
-                    Expr update = newName(vre, s);
-                    return update;
+                    node = newName(vre, s);
                 } else if (node instanceof AmbiguousMultifixOpExpr ) {
                 	// NEB: This code is temporary. Very soon the static end will
                 	// remove these nodes and they should never appear at this
