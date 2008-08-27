@@ -164,7 +164,7 @@ public class TestSuiteData implements Serializable {
         NumberAxis yaxis = new NumberAxis("Time (sec)");
         yaxis.setLowerBound(0);            
         double upperBound = Math.max(performance.get(performance.firstKey()), performance.get(performance.lastKey()));
-        yaxis.setUpperBound(upperBound * 1.5);
+        yaxis.setUpperBound(upperBound * 2.0);
         XYItemRenderer renderer = new XYLineAndShapeRenderer(true,
                 false);
         renderer.setSeriesPaint(0, Color.BLUE);
