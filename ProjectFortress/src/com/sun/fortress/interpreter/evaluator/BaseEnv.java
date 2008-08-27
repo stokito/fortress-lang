@@ -85,9 +85,10 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     public Environment getApi(String s) {
-        Environment e = getTopLevel();
-        e = e.getApiNull(s);
+        Environment e1 = getTopLevel();
+        Environment e = e1.getApiNull(s);
         if (e == null) {
+            e = e1.getApiNull(s);
             return error(errorMsg("Missing api name ", s));
         }
         return e;

@@ -43,6 +43,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -514,11 +515,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
                 Constructor cl = new Constructor(containing, (FTypeObject) ft,
                         x);
-                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
+                guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), cl, x);
 
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
-                      ExprFactory.makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x), 0),
+                      ExprFactory.makeVarRef(x.getSpan(), WellKnownNames.obfuscatedSingletonConstructorName(fname, x), 0),
                       ExprFactory.makeVoidLiteralExpr(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
@@ -534,7 +535,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     private void makeGenericSingleton(ObjectAbsDeclOrDecl x, Environment e, Id name,
             String fname, FTraitOrObjectOrGeneric ft) {
         GenericConstructor gen = new GenericConstructor(e, x, name);
-        guardedPutValue(containing, obfuscatedConstructorName(fname), gen, x);
+        guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), gen, x);
         guardedPutValue(containing, fname, new GenericSingleton(x,ft, gen), x);
     }
 
@@ -611,7 +612,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             cl.finishInitializing();
         } else {
             Constructor cl = (Constructor) containing
-                .getValue(obfuscatedSingletonConstructorName(fname, x));
+                .getValue(WellKnownNames.obfuscatedSingletonConstructorName(fname, x));
             //  cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
         }
@@ -643,11 +644,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         }
     }
 
-
-    protected String obfuscatedSingletonConstructorName(String fname, HasAt x) {
-        // TODO Auto-generated method stub
-        return "*1_" + fname;
-    }
 
     private String obfuscatedConstructorName(String fname) {
         // TODO Auto-generated method stub

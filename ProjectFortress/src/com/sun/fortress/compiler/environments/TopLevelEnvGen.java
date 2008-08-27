@@ -38,6 +38,10 @@ import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.DeclaredVariable;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
@@ -47,12 +51,18 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
@@ -251,6 +261,18 @@ public class TopLevelEnvGen {
             importedApiNames.add(builtinLib);            
         }
         
+        // Any names that are exported, are also "imported", which is to say,
+        // the disambiguator will generate references to them, so we had better
+        // have an answer.
+        if (comp instanceof Component) {
+            Component ccomp = (Component) comp;
+            for (Export e : ccomp.getExports()) {
+                for (APIName api : e.getApis()) {
+                    importedApiNames.add(NodeUtil.nameString(api));
+                }
+            }
+        }
+        
         for(String apiName : importedApiNames) {
         	symbolNames.add(EnvironmentClass.ENVIRONMENT, apiName);
             apiName = apiName + EnvironmentClass.ENVIRONMENT.namespace();
@@ -269,13 +291,21 @@ public class TopLevelEnvGen {
         Set<String> idStringSet = new HashSet<String>();
         for(Id id : compUnitIndex.variables().keySet()) {                        
             String idString = NodeUtil.nameString(id);
+            if (idString.equals("_")) {
+                Variable v = compUnitIndex.variables().get(id);
+                if (v instanceof DeclaredVariable) {
+                    DeclaredVariable dv = (DeclaredVariable) v;
+                    LValueBind lvb = dv.ast();
+                    idString = WellKnownNames.tempForUnderscore(lvb.getName());
+                } else {
+                    throw new Error("unhandled case for _ variable");
+                }
+                System.err.println(v);
+                // apply further mangling.
+            }
             idStringSet.add(idString);            
         }
-        for(String idString : idStringSet) {
-            symbolNames.add(EnvironmentClass.FVALUE, idString);
-            idString = idString + EnvironmentClass.FVALUE.namespace();
-            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();
-        }
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
 
         // Create all functions as fields in the environment
         idStringSet.clear();
@@ -283,31 +313,64 @@ public class TopLevelEnvGen {
             String idString = NodeUtil.nameString(id);
             idStringSet.add(idString);            
         }        
-        for(String idString : idStringSet) {
-            symbolNames.add(EnvironmentClass.FVALUE, idString);
-            idString = idString + EnvironmentClass.FVALUE.namespace();
-            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();
-        }
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
 
         // Create all types as fields in the environment
         idStringSet.clear();
         for(Id id : compUnitIndex.typeConses().keySet()) {
             String idString = NodeUtil.nameString(id);
-            idStringSet.add(idString);                        
+            idStringSet.add(idString);
         }
-        for(String idString : idStringSet) {
-            symbolNames.add(EnvironmentClass.FTYPE, idString);
-            idString = idString + EnvironmentClass.FTYPE.namespace();
-            cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), EnvironmentClass.FTYPE.descriptor(), null, null).visitEnd();
+        namesToFields(EnvironmentClass.FTYPE, cw, symbolNames, idStringSet); 
+
+        // Special case for singleton objects; get to the object through
+        // its type
+        idStringSet.clear();
+        for(Id id : compUnitIndex.typeConses().keySet()) {
+            TypeConsIndex tci = compUnitIndex.typeConses().get(id);
+            if (tci instanceof ObjectTraitIndex) {
+                ObjectTraitIndex oti = (ObjectTraitIndex) tci;
+                if (oti.constructor().isNone()) {
+                    String idString = WellKnownNames.obfuscatedSingletonConstructorName(NodeUtil.nameString(id), id);
+                    idStringSet.add(idString);                    
+                }
+            }
         }
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
         
-        handleRewriteFnOverloadDecl(cw, compUnitIndex, symbolNames);
+        handleWeirdToplevelDecls(cw, compUnitIndex, symbolNames);
         
         writeImportFields(cw, compUnitIndex, symbolNames);
     }
 
-    private static void handleRewriteFnOverloadDecl(ClassWriter cw,
-            CompilationUnitIndex compUnitIndex, EnvSymbolNames symbolNames) {
+    private static void namesToFields(EnvironmentClass nameSpace,
+            ClassWriter cw, EnvSymbolNames symbolNames, Set<String> idStringSet) {
+        for(String idString : idStringSet) {
+           nameToField(nameSpace, cw, symbolNames, idString);
+        }
+    }
+
+    private static void nameToField(EnvironmentClass nameSpace,
+            ClassWriter cw, EnvSymbolNames symbolNames, String idString) {
+        symbolNames.add(nameSpace, idString);
+        idString = idString + nameSpace.namespace();
+        cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
+        return;
+    }
+
+    
+    
+    /**
+     * Emits additional names for overloaded functions,
+     * for temporaries generated by multiple assignment/init,
+     * and for object expressions.
+     * 
+     * @param cw
+     * @param compUnitIndex
+     * @param symbolNames
+     */
+    private static void handleWeirdToplevelDecls(final ClassWriter cw,
+            CompilationUnitIndex compUnitIndex, final EnvSymbolNames symbolNames) {
         CompilationUnit compUnit = compUnitIndex.ast();
         if (compUnit instanceof Component) {
             Component component = (Component) compUnit;
@@ -316,12 +379,34 @@ public class TopLevelEnvGen {
                 if (decl instanceof _RewriteFnOverloadDecl) {
                     _RewriteFnOverloadDecl rewrite = (_RewriteFnOverloadDecl) decl;
                     String idString = NodeUtil.nameString(rewrite.getName());
-                    symbolNames.add(EnvironmentClass.FVALUE, idString);
-                    idString = idString + EnvironmentClass.FVALUE.namespace();
-                    cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), 
-                            EnvironmentClass.FVALUE.descriptor(), null, null).visitEnd();                    
+                    nameToField(EnvironmentClass.FVALUE, cw, symbolNames, idString);
+                } else if (decl instanceof VarDecl) {
+                    // The interpreter rewrites a temporary for multiple assignment.
+                    VarDecl vd = (VarDecl) decl;
+                    List<LValueBind> lhs = vd.getLhs();
+                    if (lhs.size() > 1) {
+                        String idString = WellKnownNames.tempTupleName(vd);
+                        nameToField(EnvironmentClass.FVALUE, cw, symbolNames, idString);
+                    }
                 }
             }
+        
+        // Scan for all object exprs in a component; the interpreter will
+        // promote those to top level.
+        NodeDepthFirstVisitor_void visitor = new NodeDepthFirstVisitor_void() {
+
+                @Override
+                public void forObjectExprOnly(ObjectExpr that) {
+                    String idString = WellKnownNames.objectExprName(that);
+                    nameToField(EnvironmentClass.FVALUE, cw, symbolNames,
+                            idString);
+                    nameToField(EnvironmentClass.FTYPE, cw, symbolNames,
+                            idString);
+                    // super.forObjectExprOnly(that);
+                }
+
+            };
+            compUnit.accept(visitor);
         }
     }
 

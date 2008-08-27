@@ -653,7 +653,7 @@ public class ExprFactory {
         }
         return new _RewriteObjectExpr(expr.getSpan(), false,
                 expr.getExtendsClause(), expr.getDecls(),
-                implicit_type_parameters, expr.toString(),
+                implicit_type_parameters, WellKnownNames.objectExprName(expr),
                 stParams, staticArgs,
                 Option.some(Collections.<Param>emptyList()));
     }

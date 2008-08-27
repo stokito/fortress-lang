@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericNativeConstructor;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.Id;
@@ -143,7 +144,7 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
                 // A parameterized singleton is a sort of generic value.
                 bug(x,"Native generic singleton objects not yet implemented");
                 GenericConstructor gen = new GenericConstructor(containing, x, name);
-                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), gen, x);
+                guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), gen, x);
 
             } else {
                 // It is a singleton; do not expose the constructor, do
@@ -154,11 +155,11 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
                 Constructor cl = nativeConstructor(containing,
                         (FTypeObject) ft, x, fname);
-                guardedPutValue(containing, obfuscatedSingletonConstructorName(fname, x), cl, x);
+                guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), cl, x);
 
                 // Create a little expression to run the constructor.
                 Expr init = ExprFactory.makeTightJuxt(x.getSpan(), ExprFactory
-                        .makeVarRef(x.getSpan(), obfuscatedSingletonConstructorName(fname, x), 0),
+                        .makeVarRef(x.getSpan(), WellKnownNames.obfuscatedSingletonConstructorName(fname, x), 0),
                         ExprFactory.makeVoidLiteralExpr(x.getSpan()));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);

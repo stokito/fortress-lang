@@ -745,7 +745,7 @@ public class Desugarer extends Rewrite {
                     LValueBind lvb = (LValueBind) node;
                     Id id = lvb.getName();
                     if ("_".equals(id.getText())) {
-                        Id newId = new Id(id.getSpan(), "_$" + id.getSpan());
+                        Id newId = new Id(id.getSpan(), WellKnownNames.tempForUnderscore(id));
                         return NodeFactory.makeLValue(lvb, newId);
                     }
                 } else if (node instanceof FieldRef) {
@@ -776,7 +776,7 @@ public class Desugarer extends Rewrite {
                         init = (Expr) visitNode(init);
                         lhs = (List<LValueBind>) visitList(lhs);
                         ArrayList<AbstractNode> newdecls = new ArrayList<AbstractNode>(1+lhs.size());
-                        String temp = gensym();
+                        String temp = WellKnownNames.tempTupleName(vd);
                         Span at = vd.getSpan();
                         VarDecl new_vd = NodeFactory.makeVarDecl(at, temp, init);
                         newdecls.add(new_vd);

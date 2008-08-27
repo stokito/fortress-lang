@@ -114,6 +114,9 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         ComponentWrapper c = linker.get(s);
         if (c != null)
             bindInto.putApi(s, c.getEnvironment());
+        else {
+            System.err.println("Reference to missing api/component " + s);
+        }
         // Null Pointer Exception here means that static checking was inadequate.
     }
 
