@@ -44,10 +44,18 @@ transient private void Space      =
    / NoNewlineComment ;
 transient private void Newline    = void:"\r\n" / void:"\r" / void:"\n" / NewlineComment ;
 private void Comment    =
-     a1:"(*" CommentContents a3:"*)";
+     a1:"(*" CommentContents a3:"*)"
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Unbalanced comment: '*)' is expected.");
+     };
 
 private void NoNewlineComment    =
-     a1:"(*" NNCommentContents a3:"*)";
+     a1:"(*" NNCommentContents a3:"*)"
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Unbalanced comment: '*)' is expected.");
+     };
 
 transient private void CommentContents =
      CommentContent*;
