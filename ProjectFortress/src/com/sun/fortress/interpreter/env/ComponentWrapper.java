@@ -47,6 +47,10 @@ public class ComponentWrapper {
     
     private final static boolean loadCompiledEnvs =
         ProjectProperties.getBoolean("fortress.test.compiled.environments", false);
+    static {
+        if (loadCompiledEnvs)
+            System.err.println("Loading compiled environments");
+    }
     
     CompilationUnit p;
 

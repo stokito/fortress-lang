@@ -17,6 +17,11 @@
 
 package com.sun.fortress.interpreter.glue;
 
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.useful.HasAt;
+
 public class WellKnownNames {
     public static final String anyTypeName = "Any";
     public static final String objectTypeName = "Object";
@@ -72,4 +77,21 @@ public class WellKnownNames {
     public final static String matchFailureException = "MatchFailure";
     public final static String callerViolationException = "CallerViolation";
     public final static String calleeViolationException = "CalleeViolation";
+    
+    public final static String obfuscatedSingletonConstructorName(String fname, HasAt x) {
+        // TODO Auto-generated method stub
+        return "*1_" + fname;
+    }
+    public static String objectExprName(ObjectExpr expr) {
+        return "*objectexpr_" + expr.toString();
+    }
+    public static String tempTupleName(VarDecl vd) {
+        // TODO Auto-generated method stub
+        return "*tuple_"+vd.at();
+    }
+    public static String tempForUnderscore(Id id) {
+        // TODO Auto-generated method stub
+        return "*underscore_"+id.at();
+    }
+ 
 }
