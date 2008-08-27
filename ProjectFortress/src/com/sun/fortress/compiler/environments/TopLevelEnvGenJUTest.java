@@ -37,6 +37,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     private BaseEnv testCompiledEnv;
     private BaseEnv testCompiledImportEnv;
 	private BaseEnv testCompiledNestedImportEnv;
+	private BaseEnv testLibraryEnv;
 
 	private String fsiFiles[];
 	private String fssFiles[];
@@ -46,12 +47,13 @@ public class TopLevelEnvGenJUTest extends TestCase {
      */
     @Override
     protected void setUp() throws Exception {
-    	fssFiles = new String[3];
+    	fssFiles = new String[4];
     	fsiFiles = new String[3];
     	
     	fssFiles[0] = "TestCompiledEnvironments";
     	fssFiles[1] = "TestCompiledImports"; 
     	fssFiles[2] = "TestCompiledNestedImports";
+    	fssFiles[3] = "FortressLibrary";
     	
     	for(String fssFile : fssFiles) {
         	compileTestProgram(fssFile + ".fss");	
@@ -59,6 +61,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	testCompiledEnv = SimpleClassLoader.loadEnvironment(fssFiles[0], false);
     	testCompiledImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[1], false);
     	testCompiledNestedImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[2], false);
+    	testLibraryEnv = SimpleClassLoader.loadEnvironment(fssFiles[3], false);
     	
     	fsiFiles[0] = "AsciiVal";
     	fsiFiles[1] = "a.b.NestedOne";
@@ -120,6 +123,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
         Environment env = testCompiledImportEnv.getApiNull(apiName);        
         assertEquals(loadedEnv, env);
         
+        testLibraryEnv.putValue("false", val);        
         env.putValueRaw("A", val);
         assertEquals(val, loadedEnv.getValueNull("A"));
     }

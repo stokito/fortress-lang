@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +69,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Pair;
 
+import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
 
 
@@ -453,8 +455,15 @@ public class TopLevelEnvGen {
         Relation<String, Integer> hashCodeRelation = symbolNames.makeHashCodeRelation(environmentClass);
         ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
-        getRawHelper(mv, className, hashCodeRelation, environmentClass, sortedCodes);
+        Label defaultTarget = new Label();
+        
+        getRawHelper(mv, className, hashCodeRelation, environmentClass, sortedCodes, defaultTarget);
 
+
+        mv.visitLabel(defaultTarget);
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        mv.visitInsn(Opcodes.ARETURN);        
+        
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
         mv.visitLocalVariable("this", "L" + className + ";", null, defQueryHashCode, endFunction, 0);
@@ -466,41 +475,40 @@ public class TopLevelEnvGen {
 
     private static void getRawHelper(MethodVisitor mv, String className,
             Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
-            List<Integer> sortedCodes) {
-        if (sortedCodes.size() < 9) {
-            getRawBaseCase(mv, className, hashCodeRelation, environmentClass, sortedCodes);
-        } else {
-            Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
-            mv.visitVarInsn(Opcodes.ILOAD, 2);
-            mv.visitLdcInsn(middleCode);
-            Label startRightHalf = new Label();
-            mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
-            List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
-            List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
-            getRawHelper(mv, className, hashCodeRelation, environmentClass, leftCodes);
-            mv.visitLabel(startRightHalf);
-            getRawHelper(mv, className, hashCodeRelation, environmentClass, rightCodes);
+            List<Integer> sortedCodes, Label defaultTarget) {
+        int[] codes = new int[sortedCodes.size()];
+        Label[] labels = new Label[sortedCodes.size()];
+        for(int i = 0; i < codes.length; i++) {
+            codes[i] = sortedCodes.get(i);
+            Label label = new Label();
+            labels[i] = label;
+        }
+        mv.visitVarInsn(Opcodes.ILOAD, 2);
+        mv.visitLookupSwitchInsn(defaultTarget, codes, labels);
+        for(int i = 0; i < codes.length; i++) {
+            mv.visitLabel(labels[i]);
+            getRawBaseCase(mv, className, hashCodeRelation, environmentClass, codes[i], defaultTarget);
         }
     }
 
     private static void getRawBaseCase(MethodVisitor mv, String className,
             Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
-            List<Integer> sortedCodes) {
-        for(Integer testHashCode : sortedCodes) {
-            mv.visitVarInsn(Opcodes.ILOAD, 2);
-            mv.visitLdcInsn(testHashCode);
-            Label beforeInnerLoop = new Label();
-            Label afterInnerLoop = new Label();
-            mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
-            mv.visitLabel(beforeInnerLoop);
+            int code, Label defaultTarget) {
 
-            for(String testString : hashCodeRelation.matchSecond(testHashCode)) {
+            PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
+            Iterator<String> iterator = strings.iterator();
+            while(iterator.hasNext()) {
+                String testString = iterator.next();
                 mv.visitVarInsn(Opcodes.ALOAD, 1);
                 mv.visitLdcInsn(testString);
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
                 Label beforeReturn = new Label();
                 Label afterReturn = new Label();
-                mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
+                if (iterator.hasNext()) {
+                    mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
+                } else {
+                    mv.visitJumpInsn(Opcodes.IFEQ, defaultTarget);
+                }
                 mv.visitLabel(beforeReturn);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
                 String idString = testString + environmentClass.namespace();
@@ -510,12 +518,7 @@ public class TopLevelEnvGen {
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitLabel(afterReturn);
             }
-
-            mv.visitLabel(afterInnerLoop);
-        }
-
-        mv.visitInsn(Opcodes.ACONST_NULL);
-        mv.visitInsn(Opcodes.ARETURN);
+            mv.visitJumpInsn(Opcodes.GOTO, defaultTarget);
     }
 
 
@@ -544,9 +547,11 @@ public class TopLevelEnvGen {
         Relation<String, Integer> hashCodeRelation = symbolNames.makeHashCodeRelation(environmentClass);        
         ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
-        putRawHelper(mv, className, environmentClass, hashCodeRelation, sortedCodes);
-
-        Label endFunction = new Label();
+        Label defaultCase = new Label();
+        putRawHelper(mv, className, environmentClass, hashCodeRelation, sortedCodes, defaultCase);
+        mv.visitLabel(defaultCase);
+        mv.visitInsn(Opcodes.RETURN);        
+        Label endFunction = new Label();                
         mv.visitLabel(endFunction);
         mv.visitLocalVariable("this", "L" + className + ";", null,
                 defQueryHashCode, endFunction, 0);
@@ -560,53 +565,52 @@ public class TopLevelEnvGen {
 
     private static void putRawHelper(MethodVisitor mv, String className,
             EnvironmentClass environmentClass, Relation<String, Integer> hashCodeRelation,
-            List<Integer> sortedCodes) {
-        if (sortedCodes.size() < 9) {
-            putRawBaseCase(mv, className, environmentClass, hashCodeRelation, sortedCodes);
-        } else {
-            Integer middleCode = sortedCodes.get(sortedCodes.size() / 2);
-            mv.visitVarInsn(Opcodes.ILOAD, 3);
-            mv.visitLdcInsn(middleCode);
-            Label startRightHalf = new Label();
-            mv.visitJumpInsn(Opcodes.IF_ICMPGE, startRightHalf);
-            List<Integer> leftCodes = sortedCodes.subList(0, sortedCodes.size() / 2);
-            List<Integer> rightCodes = sortedCodes.subList(sortedCodes.size() / 2, sortedCodes.size());
-            putRawHelper(mv, className, environmentClass, hashCodeRelation, leftCodes);
-            mv.visitLabel(startRightHalf);
-            putRawHelper(mv, className, environmentClass, hashCodeRelation, rightCodes);
+            List<Integer> sortedCodes, Label defaultTarget) {
+
+        int[] codes = new int[sortedCodes.size()];
+        Label[] labels = new Label[sortedCodes.size()];
+        for(int i = 0; i < codes.length; i++) {
+            codes[i] = sortedCodes.get(i);
+            Label label = new Label();
+            labels[i] = label;
         }
+        mv.visitVarInsn(Opcodes.ILOAD, 3);
+        mv.visitLookupSwitchInsn(defaultTarget, codes, labels);
+        for(int i = 0; i < codes.length; i++) {
+            mv.visitLabel(labels[i]);
+            putRawBaseCase(mv, className, hashCodeRelation, environmentClass, codes[i], defaultTarget);
+        }        
+        
     }
 
     private static void putRawBaseCase(MethodVisitor mv, String className,
-            EnvironmentClass environmentClass, Relation<String, Integer> hashCodeRelation,
-            List<Integer> sortedCodes) {
-        for(Integer testHashCode : sortedCodes) {
-            mv.visitVarInsn(Opcodes.ILOAD, 3);
-            mv.visitLdcInsn(testHashCode);
-            Label beforeInnerLoop = new Label();
-            Label afterInnerLoop = new Label();
-            mv.visitJumpInsn(Opcodes.IF_ICMPNE, afterInnerLoop);
-            mv.visitLabel(beforeInnerLoop);
+            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, 
+            int code, Label defaultTarget ) {
 
-            for(String testString : hashCodeRelation.matchSecond(testHashCode)) {
-                mv.visitVarInsn(Opcodes.ALOAD, 1);
-                mv.visitLdcInsn(testString);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
-                Label beforeSetValue = new Label();
-                Label afterSetValue = new Label();
+        PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
+        Iterator<String> iterator = strings.iterator();
+        while(iterator.hasNext()) {
+            String testString = iterator.next();
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn(testString);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+            Label beforeSetValue = new Label();
+            Label afterSetValue = new Label();
+            if (iterator.hasNext()) {
                 mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
-                mv.visitLabel(beforeSetValue);
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitVarInsn(Opcodes.ALOAD, 2);
-                String idString = testString + environmentClass.namespace();
-                mv.visitFieldInsn(Opcodes.PUTFIELD, className,
-                        mangleIdentifier(idString), environmentClass.descriptor());
-                mv.visitInsn(Opcodes.RETURN);
-                mv.visitLabel(afterSetValue);
+            } else {
+                mv.visitJumpInsn(Opcodes.IFEQ, defaultTarget);
             }
-            mv.visitLabel(afterInnerLoop);
+            mv.visitLabel(beforeSetValue);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitVarInsn(Opcodes.ALOAD, 2);
+            String idString = testString + environmentClass.namespace();
+            mv.visitFieldInsn(Opcodes.PUTFIELD, className,
+                    mangleIdentifier(idString), environmentClass.descriptor());
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitLabel(afterSetValue);
         }
-        mv.visitInsn(Opcodes.RETURN);
+        mv.visitJumpInsn(Opcodes.GOTO, defaultTarget);
     }
 
     private static void writeNullGetter(ClassWriter cw, String className, String methodName, String signature) {
