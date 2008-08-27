@@ -36,9 +36,9 @@ export CordedString
   end
   
     (* Shift a range left by the specified amount.  *)
-    opr ≪(r: Range⟦ZZ32⟧, leftShift: ZZ32) = (r.lower - leftShift)#r.extent
+    opr ≪(r: Range⟦ZZ32⟧, leftShift: ZZ32) = (r.lower - leftShift)#r.size
     (* Shift a range right by the specified amount. *)
-    opr ≫(r: Range⟦ZZ32⟧, rightShift: ZZ32) = (r.lower + rightShift)#r.extent
+    opr ≫(r: Range⟦ZZ32⟧, rightShift: ZZ32) = (r.lower + rightShift)#r.size
     
   test testShiftLeft(): () = do
     assert( (10:12) ≪ 9, 1:3)
@@ -72,7 +72,8 @@ export CordedString
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
     getter bounds() = 0#size
-    getter generator() = ConcatGenerator(left.generator, right.generator)
+    getter generator() = ConcatGenerator(left.generator, right.generator)     
+    getter asJavaString() = (left.asJavaString) || (right.asJavaString)
     opr CMP(self, other: String) =
         if |left| ≥ |other|
         then
@@ -92,15 +93,6 @@ export CordedString
     get(i): Char = 
     (* get is, and should be, without bounds checks.  [ ] does the bounds checks,a and then delegates to get *)   
         if i ∈ left.indices then left[i] else right[i - |left|] end
-
-    opr[r0:Range⟦ZZ32⟧] : String =  do
-        r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
-        if r1.isEmpty then 
-            EmptyString 
-        else 
-            self.uncheckedSubstring(r1)
-        end
-      end
       
     verify() = do
         assert(self.depth, (left.depth MAX right.depth) + 1, self)
@@ -123,6 +115,7 @@ export CordedString
  *)
             
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString
         leftBounds' = r0 ∩ left.bounds
         r1 = (r0 ≪ left.size)
         rightBounds' = r1 ∩ right.bounds
@@ -143,16 +136,16 @@ export CordedString
         end       
     end  
 
-    println(self): () = do print(left) ; println(right) end  
-    print(self): () = do print(left) ; print(right) end
+    println(self): () = do println(self.asJavaString) end  
+    print(self): () = do print(self.asJavaString) end
     
-    subdivide(): Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Just ⟨ (0, left), (|left|, right) ⟩
+    subdivide(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
 
   end CatString
 
   object ConcatGenerator⟦T⟧(first:Generator⟦T⟧, second:Generator⟦T⟧)
         extends Generator⟦T⟧
-    generate⟦R⟧(r: Reduction⟦R⟧, body:T->R):R =
+    generate⟦R⟧(r: Reduction⟦R⟧, body:T→R):R =
         r.join(first.generate⟦R⟧(r, body), second.generate⟦R⟧(r, body))
   end ConcatGenerator
 
@@ -165,6 +158,7 @@ export CordedString
     getter bounds() = 0#0
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
+    getter asJavaString() = ""
     opr CMP(self, other: String) =
         |self| CMP |other|
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
@@ -187,6 +181,8 @@ export CordedString
     end
     
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        (* This method should execute only after a bounds check has
+        passed, so we know that r0 must be empty! *)
         assert r0.isEmpty 
         self
     end
@@ -196,80 +192,84 @@ export CordedString
       
     print(self): () = do end
     println(self): () = println("")
+    
+    subdivide() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
   
   end EmptyString
   
-  
-  subdivide() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
 (*
 ==== SubString ====
 *)
   trait SubString extends {String, Concatenable}
     comprises {SubString'}
-  end 
+  end SubString
   
-  object SubString'(parent: String, range: Range⟦ZZ32⟧) extends SubString
+  object SubString'(baseString: String, range: Range⟦ZZ32⟧) extends SubString
     getter size() = range.size
-    getter depth() = parent.depth       (* Why not one more than the parent?  Would this break the balancing invariant? *)
-    getter isEmpty() = false
+    getter depth() = baseString.depth       (* Why not one more than the baseString?  Would this break the balancing invariant? *)
+    getter isEmpty() = false    (* Because we take care never to construct an empty SubString' *)
+    getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
     
     opr CMP(self, other: String) =  do
- (*       if pgen ← parent.subdivide() then
-            BIG LEXICO [(start, str) ← pgen] self.uncheckedSubstring((start#|str|) ∩ self.bounds) CMP str
+        pieces = baseString.subdivide()
+        (if pieces.nonEmpty  then
+            BIG LEXICO [(start, str) ← pieces] (do
+            printlnWithThread ("piece @" start " is " str).asJavaString
+            self.uncheckedSubstring((start#|str|) ∩ self.bounds) 
+            end) CMP str
         else
-*)
-            (BIG LEXICO [i ← 0#(|self| MIN |other|)] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|)               
-(*        end
-*)
+            BIG LEXICO [i ← 0#(|self| MIN |other|)] self.get(i) CMP other.get(i)             
+        end) LEXICO (|self| CMP |other|)  
     end
     
-    
     verify() = do
-        parent.verify()
+        baseString.verify()
         deny(range.isEmpty, "SubString (" range ") has empty range")
-        assert(range < parent.bounds, "SubString (" range ") has range equal to or greater than that of parent (" parent.bounds ")") 
+        assert(range < baseString.bounds, "SubString (" range ") has range equal to or greater than that of baseString (" baseString.bounds ")") 
     end
     showStructure(indent) = do
         margin(indent)
         println "S" |self| "=[" range "]" 
-        parent.showStructure(indent + 8)
+        baseString.showStructure(indent + 8)
     end
     
     get(i:ZZ32) = do
       assert(i < range.size, "getting char " i " from a substring of size " |range|)
-      parent.get(range.lower+i)
+      baseString.get(range.lower+i)
     end
     
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString
         assert((r0≫range.lower) ≤ range, "asking for substring ["  r0 "] of S" self.size)
-        if r0.isEmpty then EmptyString
-        elif r0 = self.bounds then println "trivial substring"; self
-        else SubString'(parent, r0≫range.lower)
+        if r0.isEmpty then  printlnWithThread "returning EmptyString";  EmptyString
+        elif r0 = self.bounds then printlnWithThread "returning self" ; self
+        else printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" 
+            SubString'(baseString, r0≫range.lower)
         end
     end
     
-    println(self): () = do print(self) ; println() end  
-    print(self): () = for ch ← seq(self) do print ch end
+    println(self): () = do println(self.asJavaString) end  
+    print(self): () = do print(self.asJavaString) end
           
-    subdivide(): Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = do
-    (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = | str[0] || ... || str[i-1] |
+    subdivide(): Generator⟦(ZZ32, String)⟧ = do
+    (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
       and str[0] || str [1] || ... || str[n] = self
     *)
-        pieces = parent.subdivide()
+        pieces = baseString.subdivide()
         offset = range.lower
-        if pgen ← pieces then
+        if  pieces.nonEmpty then
             <| if (start#piece.size) ≤ range then
                     (start-offset, piece)
                 else 
                     range' = range ∩ (start#piece.size)
                     (range'.lower-offset, SubString'(piece, range'≪start))
-                end | (start, piece) ← pgen,   (range ∩ (start#piece.size)).nonEmpty |>
+                end | (start, piece) ← pieces,   (range ∩ (start#piece.size)).nonEmpty |>
         else
             Nothing⟦Generator⟦(ZZ32,String)⟧⟧
         end                    
     end
-  end
+  end SubString'
   
   margin(indent) = do
       for i ← 0#indent do print " " end
