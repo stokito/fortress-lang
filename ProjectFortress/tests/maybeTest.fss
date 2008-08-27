@@ -30,10 +30,10 @@ run(args:String...):() = do
   if r <- b then assert(r,"NOT r <- b") else fail("r<-b does not hold") end
   assert(b.get(),"NOT b.get()")
   assert(a, Nothing[\ZZ32\], "nothing =/= nothing")
-  assert(a=/=b, "nothing = just")
-  assert(a=/=Just[\ZZ32\](0), "nothing = just'")
+  deny(a, b, "nothing = just")
+  deny(a, Just[\ZZ32\](0), "nothing = just'")
   assert(b,Just[\Boolean\](true),"just=/=just")
-  assert(b=/=Just[\Boolean\](false),"just T=just F")
+  deny(b, Just[\Boolean\](false),"just T=just F")
   assert(|a|,0,"nothing size")
   assert(|b|,1,"just size")
   assert(17 NOTIN a,"17 in nothing")

@@ -33,7 +33,7 @@ testNonAtomicsWithAtomics() = do
     also do
        if x = 1 then z := y else z := 2 end
        if z = 0 then printThreadInfo(" x = " x " y = " y " z = " z) end
-       assert(z =/= 0, "testNonAtomicsWithAtomics: Impossible result")
+       deny(z, 0, "testNonAtomicsWithAtomics: Impossible result")
     end
 end
 

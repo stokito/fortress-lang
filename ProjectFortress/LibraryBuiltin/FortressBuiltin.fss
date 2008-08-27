@@ -70,17 +70,17 @@ value object RR32 extends RR64
     (** returns true if the value is a valid number (not NaN) **)
     getter isNumber(): Boolean = NOT self.isNaN
     (** returns true if the value is finite **)
-    getter isFinite(): Boolean = NOT (self.isInfinite() OR self.isNaN)
+    getter isFinite(): Boolean = NOT (self.isInfinite OR self.isNaN)
     (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
     getter check(): Maybe[\RR32\] =
-        if self.isFinite() then Just[\RR32\](self) else Nothing[\RR32\] end
+        if self.isFinite then Just[\RR32\](self) else Nothing[\RR32\] end
     (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
     getter check_star(): Maybe[\RR32\] =
         if self.isNaN then Nothing[\RR32\] else Just[\RR32\](self) end
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
     getter rawBits():ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$RawBits")
-    getter signBit():ZZ32 = if rawBits() < 0 then 1 else 0 end
+    getter signBit():ZZ32 = if self.rawBits < 0 then 1 else 0 end
     (** next higher IEEE float **)
     getter nextUp():RR32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NextUp")
@@ -392,7 +392,7 @@ object Char extends { StandardTotalOrder[\Char\] }
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
     getter codePoint(): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$CodePoint")
-    opr |self| : ZZ32 = self.codePoint()
+    opr |self| : ZZ32 = self.codePoint
     opr =(self, other:Char): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Eq")
     opr <(self, other:Char): Boolean =
