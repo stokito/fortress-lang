@@ -24,7 +24,7 @@ run(args:String...):()=do
     bar = 'a'
     baz = 'b'
     assert(foo, bar, "Character Compare")
-    assert(foo=/=baz, "Character Mismatch")
+    deny(foo, baz, "Character Mismatch")
     println("Now I know my " foo baz 'c' "s")
-end  
+end
 end

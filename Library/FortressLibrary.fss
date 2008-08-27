@@ -61,14 +61,14 @@ opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
 
 object __Proxy[\T extends (* U *) Any\]
     (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-  getter toString() = "__Proxy object, should not be user-visible."
+    getter toString() = "__Proxy object, should not be user-visible."
 end
 
 fail[\T\](s:String):T = do
-   println("FAIL: " s)
-   (* throwError(s) *)
-   throw FailCalled(s)
-end
+    println("FAIL: " s)
+    (* throwError(s) *)
+    throw FailCalled(s)
+  end
 
 (************************************************************
 * Control over locality and location
@@ -137,7 +137,7 @@ end
 
 opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\] =
   BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
-  
+
 
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
@@ -211,7 +211,7 @@ trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
         extends { Equality[\Self\] }
     opr CMP(self, other:Self): Comparison =
         if self < other then LessThan
-        elif other > self then GreaterThan
+        elif other < self then GreaterThan
         elif self = other then EqualTo
         else Unordered
         end
@@ -279,7 +279,7 @@ assert(x:Any, y:Any, failMsg: Any...): () =
         msg = x " =/= " y "; " (BIG || failMsg)
         fail(msg)
     end
-    
+
 deny(flag:Boolean): () = assert(NOT flag)
 
 deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
@@ -289,17 +289,17 @@ deny(x:Any, y:Any, failMsg: Any...): () =
         msg = x " = " y "; " (BIG || failMsg)
         fail(msg)
     end
-    
+
 shouldRaise⟦Ex extends Exception⟧ (expr: ()→()): () = do
     try
         expr()
         throw ForbiddenException
     catch x
-        Ex => assert(true) (* This is what we hope for *) 
+        Ex => assert(true) (* This is what we hope for *)
     forbid Exception
     end
 end
-        
+
 
 (************************************************************
 * Numeric hierarchy
@@ -604,7 +604,7 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr MOD(self,b:I):I
     opr GCD(self,b:I):I
     opr LCM(self,b:I):I
-    opr DIVIDES(self,b:I):Boolean = b =/= zero() AND: (b MOD self) = zero()
+    opr DIVIDES(self,b:I):Boolean = b =/= self.zero AND: (b MOD self) = self.zero
     opr CHOOSE(self,b:I):I
     opr BITAND(self,b:I):I
     opr BITOR(self,b:I):I
@@ -620,7 +620,7 @@ trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
     getter one(): ZZ32 = 1
     getter minimum(): ZZ32 = -2147483647 - 1
     getter maximum(): ZZ32 = 2147483647
-        
+
     opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b:ZZ32):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
@@ -799,7 +799,7 @@ trait ZZ extends Integral[\ZZ\]
         comprises { BigNum, ZZ64 }
     getter zero(): ZZ =
         1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
-    getter one(): ZZ = zero() + 1
+    getter one(): ZZ = self.zero + 1
     numerator(self):ZZ = self
     opr |self| : ZZ32 = if self>=0 then self else -self end
     opr =(self, b: ZZ):Boolean =
@@ -1050,9 +1050,9 @@ __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
 
 (** Application of a BIG operator, the topmost level of comprehension desugaring. **)
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
-    r = o.reduction()
-    body(i): L = r.lift((o.body())(i))
-    (o.unwrap())(r.unlift(desugaredClauses(r,body)))
+    r = o.reduction
+    body(i): L = r.lift((o.body)(i))
+    (o.unwrap)(r.unlift(desugaredClauses(r,body)))
   end
 
 (** Application of two nested BIG operators, possibly with fusion.  This only covers
@@ -1071,10 +1071,10 @@ __bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
                                     inner:BigOperator[\I,M,R2,L2\],
                                     gg: Generator[\Generator[\E\]\],
                                     innerBody:E->L2): L1 = do
-    o = outer.reduction()
-    i = inner.reduction()
+    o = outer.reduction
+    i = inner.reduction
     gg.generate(o,fn (xs) =>
-                   o.lift((outer.wrap())((inner.unwrap())(i.unlift(
+                   o.lift((outer.wrap())((inner.unwrap)(i.unlift(
                                                 xs.generate(i,innerBody))))))
   end
 
@@ -1102,17 +1102,17 @@ end
     Conditions can be used as nullary comprehension generators or
     as predicates in an if expression. **)
 trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
-    getter isEmpty(): Boolean = NOT holds()
-    getter nonEmpty(): Boolean = NOT isEmpty()
+    getter isEmpty(): Boolean = NOT self.holds
+    getter nonEmpty(): Boolean = NOT self.isEmpty
     getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
-    getter size(): ZZ32 = if holds() then 1 else 0 end
+    getter size(): ZZ32 = if self.holds then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
     getter bounds(): FullRange[\ZZ32,true\] = 0 # |self|
-    getter indices(): FullRange[\ZZ32,true\] = bounds()
+    getter indices(): FullRange[\ZZ32,true\] = self.bounds
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
-    opr |self|: ZZ32 = if holds() then 1 else 0 end
-    opr [i:ZZ32]:E throws NotFound = if i=0 then get() else throw NotFound end
+    opr |self|: ZZ32 = if self.holds then 1 else 0 end
+    opr [i:ZZ32]:E throws NotFound = if i=0 then self.get else throw NotFound end
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
         cond[\E\](fn (e:E): Condition[\E\] => do
                     r1 = (0#1)[r]
@@ -1281,68 +1281,68 @@ trait UncheckedException extends Exception excludes CheckedException
 end
 
 object FailCalled(s:String) extends UncheckedException
-  toString(): String = "FAIL: " s
+    getter toString(): String = "FAIL: " s
 end
 
 object DivisionByZero extends UncheckedException
-    toString(): String = "Division by zero"
+    getter toString(): String = "Division by zero"
 end
 
 object UnpastingError extends UncheckedException
-    toString(): String = "Unpasting error"
+    getter toString(): String = "Unpasting error"
 end
 
 object CallerViolation extends UncheckedException
-    toString(): String = "Caller violation"
+    getter toString(): String = "Caller violation"
 end
 
 object CalleeViolation extends UncheckedException
-    toString(): String = "Callee violation"
+    getter toString(): String = "Callee violation"
 end
 
 object TestFailure extends UncheckedException
-    toString(): String = "Test failure"
+    getter toString(): String = "Test failure"
 end
 
 object ContractHierarchyViolation extends UncheckedException
-    toString(): String = "Contract hierarchy violation"
+    getter toString(): String = "Contract hierarchy violation"
 end
 
 object NoEqualityOnFunctions extends UncheckedException
-    toString(): String = "No equality on functions"
+    getter toString(): String = "No equality on functions"
 end
 
 object InvalidRange extends UncheckedException
-    toString(): String = "Invalid range"
+    getter toString(): String = "Invalid range"
 end
 
 object ForbiddenException(chain : Exception) extends UncheckedException
-    toString(): String = "Forbidden exception"
+    getter toString(): String = "Forbidden exception"
 end
 
 (* Should this be called "IndexNotFound" instead? *)
 object NotFound extends UncheckedException
-    toString(): String = "Not found"
+    getter toString(): String = "Not found"
 end
 
 object IndexOutOfBounds(min:ZZ32,max:ZZ32,index:ZZ32) extends UncheckedException
-    toString(): String = index " is outside the range " min " to " max
+    getter toString(): String = index " is outside the range " min " to " max
 end
 
 object NegativeLength extends UncheckedException
-    toString(): String = "Negative length"
+    getter toString(): String = "Negative length"
 end
 
 object IntegerOverflow extends UncheckedException
-    toString(): String = "Integer Overflow"
+    getter toString(): String = "Integer Overflow"
 end
 
 object RationalComparisonError extends UncheckedException
-    toString(): String = "Rational comparison error"
+    getter toString(): String = "Rational comparison error"
 end
 
 object FloatingComparisonError extends UncheckedException
-    toString(): String = "Floating comparison error"
+    getter toString(): String = "Floating comparison error"
 end
 
 (* Checked Exceptions *)
@@ -1351,45 +1351,45 @@ trait CheckedException extends Exception excludes UncheckedException
 end
 
 object CastError extends CheckedException
-    toString(): String = "Cast error"
+    getter toString(): String = "Cast error"
 end
 
 object IOFailure extends CheckedException
-    toString(): String = "I/O error"
+    getter toString(): String = "I/O error"
 end
 
 object MatchFailure extends CheckedException
-    toString(): String = "Match failure"
+    getter toString(): String = "Match failure"
 end
 
 (* SetsNotDisjoint? *)
 object DisjointUnionError extends CheckedException
-    toString(): String = "Disjoint union error"
+    getter toString(): String = "Disjoint union error"
 end
 
 object APIMissing extends CheckedException
-    toString(): String = "Api is missing"
+    getter toString(): String = "Api is missing"
 end
 
 object APINameCollision extends CheckedException
-    toString(): String = "Api name collides with another"
+    getter toString(): String = "Api name collides with another"
 end
 
 object ExportedAPIMissing extends CheckedException
-    toString(): String = "Exported api is missing"
+    getter toString(): String = "Exported api is missing"
 end
 
 object HiddenAPIMissing extends CheckedException
-    toString(): String = "Hidden api is missing"
+    getter toString(): String = "Hidden api is missing"
 end
 
 object TryAtomicFailure extends CheckedException
-    toString(): String = "Try/atomic failure"
+    getter toString(): String = "Try/atomic failure"
 end
 
 (* Should take a spawned thread as an argument *)
 object AtomicSpawnSynchronization extends {UncheckedException}
-    toString(): String = "Atomic spawn synchronization"
+    getter toString(): String = "Atomic spawn synchronization"
 end
 
 (************************************************************
@@ -1446,7 +1446,7 @@ An object i that's an instance of Indexed defines three basic things:
     array.  i itself generates the values contained at those indices.
     i.indexValuePairs yields pairs of (index,value).  All of these
     share the same natural order.  It is necessary to define one of
-    indices() and indexValuePairs(), in addition to generate() (but
+    self.indices and self.indexValuePairs, in addition to generate() (but
     the latter requirement can be dispensed by instead extending
     DelegatedIndexed).
 
@@ -1459,35 +1459,35 @@ trait Indexed[\E, I\] extends Generator[\E\]
     getter isEmpty(): Boolean = |self| = 0
     getter nonEmpty(): Boolean = NOT self.isEmpty
     (** %self.size% is equivalent to %|self|%. *)
-    getter size(): ZZ32
-    (** bounds() yields a range of indices that are valid for the
+    getter size(): ZZ32 = |self|
+    (** self.bounds yields a range of indices that are valid for the
         indexed generator. *)
     getter bounds(): FullRange[\I,true\]
-    (** indexValuePairs() generates the elements of the indexed object
+    (** self.indexValuePairs generates the elements of the indexed object
         (exactly those elements that are generated by the object itself),
         but each element is paired with its index.  When we obtain
         (i,v) from indexValuePairs we know that:
            self[i] = v
-           the i are distinct and i IN bounds()
+           the i are distinct and i IN self.bounds
            stripping away the i yields exactly the results of v <- self
         This generator attempts to follow the structure of the
         underlying object as closely as possible.  *)
     getter indexValuePairs(): Indexed[\(I,E),I\] =
-        indices().map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
-    (** indices() yields the indices corresponding to the elements of
+        self.indices.map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
+    (** self.indices yields the indices corresponding to the elements of
         the indexed object---it corresponds to the index component of
-        indexValuePairs().  This may in general be a subset of all the
-        valid indices represented by bounds().  This generator
+        self.indexValuePairs.  This may in general be a subset of all the
+        valid indices represented by self.bounds.  This generator
         attempts to follow the structure of the underlying object as
         closely as possible. *)
     getter indices(): Indexed[\I,I\] =
-        indexValuePairs().map[\I\](fn (i:I, e:E): I => i)
+        self.indexValuePairs.map[\I\](fn (i:I, e:E): I => i)
 
     (** %|self|% indicates the number of distinct valid indices that may
         be passed to indexing operations. *)
-    opr |self| : ZZ32
+    opr |self| : ZZ32 = self.size
 
-    (** Indexing.  i IN bounds() must hold. *)
+    (** Indexing.  i IN self.bounds must hold. *)
     opr[i:I] : E
 
     (** Locality of a particular index (NOT of its contents!). *)
@@ -1500,7 +1500,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         other choices of lower bounds.  The easiest way to write the
         index by ranges operation for an instance of Indexed is to
         take advantage of indexing on the ranges themselves by writing
-        (bounds())[r] in order to narrow and bounds check the range r
+        (self.bounds)[r] in order to narrow and bounds check the range r
         and obtain a closed range of indices on the underlying
         data. **)
     opr[r:Range[\I\]] : Indexed[\E,I\]
@@ -1515,14 +1515,14 @@ trait Indexed[\E, I\] extends Generator[\E\]
         does for the instances in this library).  Copying can be bad
         for space, but is complexity-preserving if the mapped
         generator is used more than once. **)
-    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = indexValuePairs().map[\R\](f)
+    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = self.indexValuePairs.map[\R\](f)
     map[\R\](f:E->R): Indexed[\R, I\] = SimpleMappedIndexed[\E,R,I\](self,f)
 
     (** indexOf(e) returns an index at which e can be found,
         or Nothing if no such index exists. **)
     indexOf(e:E): Maybe[\I\] =
         label found
-            for (i,v) <- indexValuePairs(), v=e do
+            for (i,v) <- self.indexValuePairs, v=e do
                 exit found with Just[\I\](i)
             end
             Nothing[\I\]
@@ -1530,7 +1530,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
-    bounds(): FullRange[\ZZ32,true\] = 0 # |self|
+    getter bounds(): FullRange[\ZZ32,true\] = 0 # |self|
     zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](self,g)
 end
@@ -1562,7 +1562,7 @@ end
 
 toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
     bnds = g.bounds
-    r = array[\E\](|bnds|).shift(bnds.lower())
+    r = array[\E\](|bnds|).shift(bnds.lower)
     for (i,v) <- g.indexValuePairs do
         r.init(i,v)
     end
@@ -1570,28 +1570,28 @@ toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
   end
 
 (** DelegatedIndexed is an Indexed generator that has recourse to
-    another Indexed generator() internally.  By default this in turn
-    is defined in terms of indexValuePairs().  Thus it's only
-    necessary to define either indexValuePairs() or indices().
+    another Indexed self.generator internally.  By default this in turn
+    is defined in terms of self.indexValuePairs.  Thus it's only
+    necessary to define either self.indexValuePairs or self.indices.
 
     This class is designed for convenience; it shouldn't be used as a
     type in runing code, but only as a supertype in lieu of Indexed.
 **)
 trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
     getter generator(): Generator[\E\] =
-        indexValuePairs().map[\E\](fn (i:I, e:E): E => e)
-    getter size(): ZZ32 = |generator()|
-    opr |self| : ZZ32 = |generator()|
+        self.indexValuePairs.map[\E\](fn (i:I, e:E): E => e)
+    getter size(): ZZ32 = |self.generator|
+    opr |self| : ZZ32 = |self.generator|
     generate[\R\](r: Reduction[\R\], body: E->R): R =
-        generator().generate[\R\](r,body)
-    seq(self): SequentialGenerator[\E\] = seq(generator())
+        self.generator.generate[\R\](r,body)
+    seq(self): SequentialGenerator[\E\] = seq(self.generator)
     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
-        generator().cross[\G\](g)
+        self.generator.cross[\G\](g)
     mapReduce[\R\](body: E->R, join:(R,R)->R, id:R): R =
-        generator().mapReduce[\R\](body,join,id)
-    reduce(j:(E,E)->E, z:E):E = generator().reduce(j,z)
-    reduce(r: Reduction[\E\]):E = generator().reduce(r)
-    loop(f:E->()): () = generator().loop(f)
+        self.generator.mapReduce[\R\](body,join,id)
+    reduce(j:(E,E)->E, z:E):E = self.generator.reduce(j,z)
+    reduce(r: Reduction[\E\]):E = self.generator.reduce(r)
+    loop(f:E->()): () = self.generator.loop(f)
 end
 
 (** The MutableIndexed trait is an indexed trait whose elements can be
@@ -1609,7 +1609,7 @@ trait MutableIndexed[\E, I\]
         match, but the lower bounds need not. **)
     opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
     opr[_:OpenRange[\Any\]]:=(v:Indexed[\E,I\]) : () =
-        do self[bounds()] := v end
+        do self[self.bounds] := v end
 end
 
 (* Array whose bounds are implicit rather than static, and which may
@@ -1620,7 +1620,7 @@ trait ReadableArray[\E,I\]
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)
-    getter indices(): Indexed[\I,I\] = bounds()
+    getter indices(): Indexed[\I,I\] = self.bounds
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
     getter generator(): Indexed[\E,I\] =
@@ -1639,8 +1639,8 @@ trait ReadableArray[\E,I\]
     init(i:I, v:E) = init0(offset(i),v)
 
     generate[\R\](r: Reduction[\R\], body: E->R): R =
-        generator().generate[\R\](r,body)
-    seq(self): SequentialGenerator[\E\] = seq(generator())
+        self.generator.generate[\R\](r,body)
+    seq(self): SequentialGenerator[\E\] = seq(self.generator)
 
     (** 0-based non-bounds-checked indexing **)
     get(i:I): E
@@ -1677,7 +1677,7 @@ trait ReadableArray[\E,I\]
 
     opr =(self, other:HasRank): Boolean =
         typecase other of
-            ReadableArray[\E,I\] => indices().generate[\Boolean\](AndReduction,
+            ReadableArray[\E,I\] => self.indices.generate[\Boolean\](AndReduction,
                                            fn (i:I):Boolean => (self[i]=other[i]))
             else => false
         end
@@ -1834,13 +1834,13 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter bounds():ScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](b0,s0)
     getter mutability():String
     getter toString() = do
-        r = "[" b0 "#" s0 "]" mutability() " = ["
+        r = "[" b0 "#" s0 "]" self.mutability " = ["
         if s0=0 then
             r "]"
         else
             f(i:ZZ32,t:T):String = " " t
             j(a:String,b:String):String = a b
-            r indexValuePairs().mapReduce[\String\](f,j,"") " ]"
+            r self.indexValuePairs.mapReduce[\String\](f,j,"") " ]"
         end
       end
 
@@ -1872,10 +1872,10 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
-        r' = (bounds())[r]
+        r' = (self.bounds)[r]
         z = N[\0\]
         s = reflect( |r'| )
-        l = reflect(r'.lower())
+        l = reflect(r'.lower)
         __subarrayI(self,z,s,l)
       end
     opr[_:OpenRange[\ZZ32\]] : ImmutableArray1[\T,0,s0\] =
@@ -1887,7 +1887,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = (bounds())[o#s]
+        boundsCheck = (self.bounds)[o#s]
         __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1924,10 +1924,10 @@ trait Array1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
-        r' = (bounds())[r]
+        r' = (self.bounds)[r]
         z = N[\0\]
         s = reflect( |r'| )
-        l = reflect(r'.lower())
+        l = reflect(r'.lower)
         __subarray(self,z,s,l)
       end
     opr[_:OpenRange[\ZZ32\]] : Array1[\T,0,s0\] =
@@ -1939,7 +1939,7 @@ trait Array1[\T, nat b0, nat s0\]
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      boundsCheck = (bounds())[o#s]
+      boundsCheck = (self.bounds)[o#s]
       __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1984,7 +1984,7 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-        boundsCheck = (bounds())[o#s]
+        boundsCheck = (self.bounds)[o#s]
         o_n : ZZ32 = o - b0
         __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -1999,7 +1999,7 @@ object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = (bounds())[o#s]
+        boundsCheck = (self.bounds)[o#s]
         o_n : ZZ32 = o - b0
         __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -2019,7 +2019,7 @@ trait Vector[\T extends Number, nat s0\]
     pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
         ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
     dot(v: Vector[\T,s0\]): T =
-        SUM [(i,me_i)<-indexValuePairs()] me_i v.get(i)
+        SUM [(i,me_i)<-self.indexValuePairs] me_i v.get(i)
 end
 
 object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
@@ -2149,9 +2149,9 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t_1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t_1; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
-      r' = (bounds())[r]
-      (z0,z1) = r'.extent()
-      (l0,l1) = r'.lower()
+      r' = (self.bounds)[r]
+      (z0,z1) = r'.extent
+      (l0,l1) = r'.lower
       __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
                  reflect(l0),reflect(l1))
     end
@@ -2174,7 +2174,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\] = do
-      boundsCheck = (bounds())[ (o0,o1)#(so0,so1) ]
+      boundsCheck = (self.bounds)[ (o0,o1)#(so0,so1) ]
       SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
     end
 
@@ -2476,9 +2476,9 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
     opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
-        r' = (bounds())[r]
-        (z0,z1,z2) = r'.extent()
-        (l0,l1,l2) = r'.lower()
+        r' = (self.bounds)[r]
+        (z0,z1,z2) = r'.extent
+        (l0,l1,l2) = r'.lower
         __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
                    N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
       end
@@ -2504,7 +2504,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
               nat o0, nat o1, nat o2\]
             (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
-        boundsCheck = (bounds())[ (o0,o1,o2)#(so0,so1,so2) ]
+        boundsCheck = (self.bounds)[ (o0,o1,o2)#(so0,so1,so2) ]
         SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,1,o0,1,o1,1,o2)
       end
 
@@ -2577,7 +2577,7 @@ array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\] =
 
 trait Monoid[\ T, opr OPLUS \]
   where { T extends Monoid[\ T, OPLUS \] }
-    zero() : T
+    self.zero : T
     opr OPLUS(self, other:T):T
 end
 
@@ -2620,14 +2620,14 @@ end
 
 object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
     getter holds(): Boolean = false
-    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = e()
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = e()
 end
 
 trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
     getter holds(): Boolean = true
-    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
     getter outer(): Reduction[\R\]
     getter inner(): Reduction[\R\]
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
 end
 
 trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
@@ -2844,14 +2844,14 @@ trait SomeMappedGenerator[\F\] extends Generator[\F\] end
 trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
-    getter toString(): String = g() ".map(f)"
+    getter toString(): String = self.g ".map(f)"
     generate[\R\](r: Reduction[\R\], m: F->R): R =
-        g().generate[\R\](r, m COMPOSE f())
+        self.g.generate[\R\](r, m COMPOSE self.f)
     reduce(r: Reduction[\F\]): F =
-        g().generate[\F\](r, f())
+        self.g.generate[\F\](r, self.f)
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
-        SimpleMappedGenerator[\E,G\](g(), f' COMPOSE f())
-    seq(self) = SimpleMappedSeqGenerator[\E,F\](seq(g()),f())
+        SimpleMappedGenerator[\E,G\](self.g, f' COMPOSE self.f)
+    seq(self) = SimpleMappedSeqGenerator[\E,F\](seq(self.g),self.f)
 end
 
 object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
@@ -2862,22 +2862,22 @@ end
 
 object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
         extends { MappedGenerator[\E,F\], Indexed[\F,I\] }
-    getter size(): ZZ32 = |g()|
+    getter size(): ZZ32 = |self.g|
     getter g() = g0
     getter f() = f0
-    getter bounds(): Range[\I\] = g().bounds
+    getter bounds(): Range[\I\] = self.g.bounds
     getter indexValuePairs(): Indexed[\(I,F),I\] =
-        g().indexValuePairs.map[\(I,F)\](fn (i:I, e:E): F => (i,(f())(e)))
-    getter indices(): Indexed[\I,I\] = g().indices
-    opr |self| : ZZ32 = |g()|
-    opr[i:I] : F = (f())(g()[i])
+        self.g.indexValuePairs.map[\(I,F)\](fn (i:I, e:E): F => (i,(self.f)(e)))
+    getter indices(): Indexed[\I,I\] = self.g.indices
+    opr |self| : ZZ32 = |self.g|
+    opr[i:I] : F = (self.f)(self.g[i])
     opr[r:Range[\I\]] : Indexed[\F,I\] =
-        SimpleMappedIndexed[\E,F,I\](g()[r],f())
+        SimpleMappedIndexed[\E,F,I\](self.g[r],self.f)
 
     ivmap[\R\](ff:(I,F)->R): Indexed[\R,I\] =
-        g0().ivmap[\R\](fn (i:I, e:E) => ff(i, (f())(e)))
+        g0().ivmap[\R\](fn (i:I, e:E) => ff(i, (self.f)(e)))
     map[\G\](f': F->G): SimpleMappedIndexed[\E,G,I\] =
-        SimpleMappedIndexed[\E,G,I\](g(), f' COMPOSE f())
+        SimpleMappedIndexed[\E,G,I\](self.g, f' COMPOSE self.f)
 end
 
 object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
@@ -2891,14 +2891,14 @@ end
 trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
-    getter toString(): String = g() ".filter(p)"
+    getter toString(): String = self.g ".filter(p)"
     generate[\R\](r:Reduction[\R\], m: E->R): R =
-        g().generate[\R\](r, fn(e:E):R => if (p())(e).holds then m(e) else r.empty() end)
+        self.g.generate[\R\](r, fn(e:E):R => if (self.p)(e).holds then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
-        g().generate[\E\](r, fn(e:E):E => if (p())(e).holds then e else r.empty() end)
+        self.g.generate[\E\](r, fn(e:E):E => if (self.p)(e).holds then e else r.empty() end)
     filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
-        SimpleFilterGenerator[\E\](g(), p() ANDCOND p')
-    seq(self) = SimpleSeqFilterGenerator[\E\](seq(g()),p())
+        SimpleFilterGenerator[\E\](self.g, self.p ANDCOND p')
+    seq(self) = SimpleSeqFilterGenerator[\E\](seq(self.g),self.p)
 end
 
 object SimpleFilterGenerator[\E\](g0:Generator[\E\], p0: E->Condition[\()\])
@@ -2920,35 +2920,35 @@ trait NestedGenerator[\E,F\] extends Generator[\F\]
     getter f(): E -> Generator[\F\]
     getter toString(): String
     generate[\R\](r: Reduction[\R\], m: F->R): R =
-        g().generate[\R\](r,fn (e:E):R => (f())(e).generate[\R\](r,m))
+        self.g.generate[\R\](r,fn (e:E):R => (self.f)(e).generate[\R\](r,m))
     mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
-        g().mapReduce[\R\](
-            fn (e:E): R => (f())(e).mapReduce[\R\](body,join,id),
+        self.g.mapReduce[\R\](
+            fn (e:E): R => (self.f)(e).mapReduce[\R\](body,join,id),
             join, id)
     reduce(r: Reduction[\F\]): F =
-        g().generate[\F\](r,fn (e:E):F => (f())(e).reduce(r))
+        self.g.generate[\F\](r,fn (e:E):F => (self.f)(e).reduce(r))
     reduce(j:(F,F)->F, z:F):F =
-        g().mapReduce[\F\](fn (e:E): F => (f())(e).reduce(j,z), j, z)
+        self.g.mapReduce[\F\](fn (e:E): F => (self.f)(e).reduce(j,z), j, z)
     loop(body:F->()): () =
-        g().loop(fn (e:E) => (f())(e).loop(body))
+        self.g.loop(fn (e:E) => (self.f)(e).loop(body))
     map[\G\](h:F->G): Generator[\G\] =
-        g().nest[\G\](fn (e:E): Generator[\G\] => (f())(e).map[\G\](h))
+        self.g.nest[\G\](fn (e:E): Generator[\G\] => (self.f)(e).map[\G\](h))
     nest[\G\](h:F->Generator[\G\]): Generator[\G\] =
-        g().nest[\G\](fn (e:E):Generator[\G\] => (f())(e).nest[\G\](h))
+        self.g.nest[\G\](fn (e:E):Generator[\G\] => (self.f)(e).nest[\G\](h))
 end
 
 object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
         extends { NestedGenerator[\E,F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = g() ".nest(f)"
+    getter toString() = self.g ".nest(f)"
     seq(self) =
-        typecase ff = f() of
+        typecase ff = self.f of
             (E -> SequentialGenerator[\F\]) =>
-                SimpleNestedSeqGenerator[\E,F\](seq(g()),ff)
+                SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff)
             else =>
-                SimpleNestedSeqGenerator[\E,F\](seq(g()),
-                     fn (e:E): SequentialGenerator[\F\] => seq(self.f()(e)))
+                SimpleNestedSeqGenerator[\E,F\](seq(self.g),
+                     fn (e:E): SequentialGenerator[\F\] => seq(ff(e)))
         end
 end
 
@@ -2957,7 +2957,7 @@ object SimpleNestedSeqGenerator[\E,F\]
         extends { NestedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = "seq(" g() ".nest(f))"
+    getter toString() = "seq(" self.g ".nest(f))"
 end
 
 trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
@@ -2966,10 +2966,10 @@ trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
     getter f(): Generator[\F\]
     getter toString(): String
     getter size():ZZ32 = |self|
-    opr |self| : ZZ32 = |e()| |f()|
+    opr |self| : ZZ32 = |self.e| |self.f|
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
-        e().generate[\R\](r, fn (a: E): R =>
-                              f().generate[\R\](r, fn (b: F): R => m(a,b)))
+        self.e.generate[\R\](r, fn (a: E): R =>
+                              self.f.generate[\R\](r, fn (b: F): R => m(a,b)))
 end
 
 object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
@@ -3032,7 +3032,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
-    
+
     opr[r:Range[\T\]]: Range[\T\] = fail("Unrecognized Range " r)
     opr[_:OpenRange[\Any\]] : Range[\T\] = self
     opr[other:LowerRange[\T\]] : Range[\T\]
@@ -3049,7 +3049,7 @@ trait PartialRange[\T\] extends Range[\T\]
 end
 
 object OpenRange[\T\] extends { Range[\T\], PartialRange[\T\] }
-    toString():String = "#"
+    getter toString():String = "#"
     opr[_:OpenRange[\T\]] : OpenRange[\T\] = self
 
     opr[other:LowerRange[\T\]] : LowerRange[\T\] = other
@@ -3129,7 +3129,7 @@ rangeBoundError[\T\](r1:Range[\T\], r2: Range[\T\]): Range[\T\] =
 
 object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
     getter lower():T = lo
-    toString():String = lower() "#"
+    getter toString():String = self.lower "#"
     opr[_:OpenRange[\T\]] : LowerRange[\T\] = self
     opr[other:LowerRange[\T\]] : LowerRange[\T\] =
         if other.lower >= self.lower then
@@ -3137,7 +3137,7 @@ object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
         else
             rangeBoundError[\T\](self,other)
         end
-    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] = self.lower # other.extent()
+    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] = self.lower # other.extent
     opr[other:UpperRange[\T\]] : FullRange[\T,true\] =
         if other.upper >= self.lower then
             self.lower : other.upper
@@ -3172,7 +3172,7 @@ end
 
 object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
     getter upper():T = up
-    toString():String = ":" upper()
+    getter toString():String = ":" self.upper
     opr[_:OpenRange[\T\]] : UpperRange[\T\] = self
     opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower:self:upper
     opr[other:UpperRange[\T\]] : UpperRange[\T\] =
@@ -3189,7 +3189,7 @@ object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
         else
             rangeBoundError[\T\](self,other)
         end
-    opr =(self,x:UpperRange[\T\]): Boolean = upper() = x.upper()
+    opr =(self,x:UpperRange[\T\]): Boolean = self.upper = x.upper
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             OpenRange[\T\]  => LessThan
@@ -3207,7 +3207,7 @@ end
 trait RangeWithExtent[\T\] extends Range[\T\]
         comprises { ExtentRange[\T\], CompleteRange[\T\] }
     getter extent():T
-    toString():String = "#" self.extent
+    getter toString():String = "#" self.extent
 end
 
 object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
@@ -3246,9 +3246,15 @@ trait CompleteRange[\T\]
         extends { RangeWithLower[\T\], RangeWithUpper[\T\],
                   RangeWithExtent[\T\], Indexed[\T,T\] }
         comprises { FullRange[\T,true\], FullRange[\T,false\] }
-    getter indices(): FullRange[\T,true\] = bounds()
+    getter indices(): FullRange[\T,true\] = self.bounds
     getter isBounded(): Boolean
     getter isSized(): Boolean
+    getter toString():String =
+        if self.isBounded then
+            self.lower ":" self.upper
+        else
+            self.lower "#" self.extent
+        end
 
     (** The following two methods are used in bounds checking code to
         permit ranges that are just outside the edge of the given
@@ -3300,19 +3306,12 @@ trait CompleteRange[\T\]
             r
         end
 
-    toString():String =
-        if self.isBounded then
-            self.lower ":" self.upper
-        else
-            self.lower "#" self.extent
-        end
-
     opr =(self, other:CompleteRange[\T\]): Boolean =
-    (*    isBounded()=other.isBounded() AND 
-         APB 2008.08.20: this seems bogus: isBounded tells us only whether we were created 
+    (*    self.isBounded=other.isBounded AND
+         APB 2008.08.20: this seems bogus: isBounded tells us only whether we were created
          using an extent or an upper bound, and should not effect the comparison *)
-         lower()=other.lower() AND extent() = other.extent()    
-         
+         self.lower=other.lower AND self.extent = other.extent
+
     opr CMP(self, other:Range[\T\]): Comparison =
         typecase other of
             CompleteRange[\T\] =>
@@ -3360,25 +3359,25 @@ rangeIndexFailure[\T\](r:CompleteRange[\T\],i:T): () =
 
 (** ParRanges and SeqRanges, the simplest and most basic of all
     generators.  They generate |self| numbers, incrementing by 1,
-    starting with lower() (that's the canonical ordering). *)
+    starting with self.lower (that's the canonical ordering). *)
 trait ScalarRange[\N extends Integral[\N\], bool bounded\]
         extends { FullRange[\N, bounded\] }
         comprises { ParRange[\N, bounded\], SeqRange[\N, bounded\] }
-    getter bounds():FullRange[\N,true\] = ParRange[\N,true\](0,extent())
-    getter upper():N = lower() + extent() - 1
+    getter bounds():FullRange[\N,true\] = ParRange[\N,true\](0,self.extent)
+    getter upper():N = self.lower + self.extent - 1
     getter size():ZZ32 = |self|
-    widenUpper(): ScalarRange[\N,false\] = lower()#(extent()+1)
-    widenLower(): ScalarRange[\N,false\] = (lower()-1)#(extent()+1)
-    opr |self| : ZZ32 = narrow(0 MAX extent())
+    widenUpper(): ScalarRange[\N,false\] = self.lower#(self.extent+1)
+    widenLower(): ScalarRange[\N,false\] = (self.lower-1)#(self.extent+1)
+    opr |self| : ZZ32 = narrow(0 MAX self.extent)
     opr[i:N]: N =
-        if 0 <= i < extent() then
-            i + lower()
+        if 0 <= i < self.extent then
+            i + self.lower
         else
             rangeIndexFailure[\N\](self,i)
         end
     opr IN(a:N, self): Boolean = do
-        t = a - lower()
-        0 <= t < extent()
+        t = a - self.lower
+        0 <= t < self.extent
       end
 end
 
@@ -3457,7 +3456,7 @@ value object SeqRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
     getter extent() = ex
     getter lower() = lo
     getter toString() =
-        ("seq(" lo (if bounded then ":" upper() else "#" ex ")"))
+        ("seq(" lo (if bounded then ":" self.upper else "#" ex ")"))
     getter indexValuePairs() =
         SeqRange[\N,bounded\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
     generate[\R\](r: Reduction[\R\], m: N->R): R = do
@@ -3499,13 +3498,13 @@ object Tuple2Range[\N extends Integral[\N\], M extends Integral[\M\], bool bound
     getter toString(): String =
         ("(" l1 "," l2
          (if bounded then
-             (u1,u2) = upper()
+             (u1,u2) = self.upper
              "):(" u1 "," u2 ")"
          else
              ")#(" x1 "," x2 ")"
          end))
     getter indexValuePairs() =
-        bounds().map[\((N,M),(N,M))\](
+        self.bounds.map[\((N,M),(N,M))\](
             fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
     widenUpper(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1,l2,x1+1,x2+1)
     widenLower(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1-1,l2-1,x1+1,x2+1)
@@ -3544,7 +3543,7 @@ object Tuple3Range[\N1 extends Integral[\N1\], N2 extends Integral[\N2\], N3 ext
     getter toString(): String =
         ("(" l1 "," l2 "," l3
          (if bounded then
-             (u1,u2,u3) = upper()
+             (u1,u2,u3) = self.upper
              "):(" u1 "," u2 "," u3 ")"
          else
              ")#(" x1 "," x2 "," x3 ")"
@@ -3680,26 +3679,26 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
-        indices().map[\Char\](fn (i:ZZ32):Char => self[i])       
+        self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
     getter depth() = 0
-    
+
     showStructure() = showStructure(0)
-     
+
     opr |self| : ZZ32 = self.size
-       
+
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
       ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CASE_INSENSITIVE_CMP other.get(i)) LEXICO (|self| CMP |other|))
-    
+
     opr CMP(self, other:String): TotalComparison =
       ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|))
-      
+
     opr [i:ZZ32]: Char =
         (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the String, returning the empty String, in order to permit some convenient
         String-trimming idioms. **)
         if 0 <= i < |self|
         then self.get(i)
-        else 
+        else
             (* println "Index " i " not in bounds " self.bounds *)
             throw IndexOutOfBounds(0,(|self|)-1,i)
         end
@@ -3707,7 +3706,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr[r0:Range[\ZZ32\]] : String =  do
         r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
         self.uncheckedSubstring(r1)
-      end 
+      end
 
     (** The operator %||% with at least one String argument converts to String and
         appends **)
