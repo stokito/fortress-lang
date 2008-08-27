@@ -502,14 +502,12 @@ public class TopLevelEnvGen {
                 mv.visitVarInsn(Opcodes.ALOAD, 1);
                 mv.visitLdcInsn(testString);
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
-                Label beforeReturn = new Label();
                 Label afterReturn = new Label();
                 if (iterator.hasNext()) {
                     mv.visitJumpInsn(Opcodes.IFEQ, afterReturn);
                 } else {
                     mv.visitJumpInsn(Opcodes.IFEQ, defaultTarget);
                 }
-                mv.visitLabel(beforeReturn);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
                 String idString = testString + environmentClass.namespace();
                 mv.visitFieldInsn(Opcodes.GETFIELD, className,
@@ -594,14 +592,12 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(testString);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
-            Label beforeSetValue = new Label();
             Label afterSetValue = new Label();
             if (iterator.hasNext()) {
                 mv.visitJumpInsn(Opcodes.IFEQ, afterSetValue);
             } else {
                 mv.visitJumpInsn(Opcodes.IFEQ, defaultTarget);
             }
-            mv.visitLabel(beforeSetValue);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             String idString = testString + environmentClass.namespace();
