@@ -114,7 +114,7 @@ class GrammarComposer {
         for (NonterminalExtendIndex e : extensions){
             applyExtension(peg, e, relevant);
         }
-        for (@SuppressWarnings("unused") String implicitNonterminal : extendedImplicit) {
+        for (String implicitNonterminal : extendedImplicit) {
             ; // FIXME: fill this in, and delete next part
         }
         // FIXME: from here
