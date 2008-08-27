@@ -46,6 +46,7 @@ component CordedStringTests
     end
   end
  
+(*
   test subString(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
@@ -68,6 +69,9 @@ component CordedStringTests
                             assert(false, "sub1=" sub1 " is not a JavaString") end
      end
   end
+  *)
+  
+ 
   
   (* test *) validateSubdivision(subject: String, division): () = do
     var len: ZZ32 = 0
@@ -81,39 +85,62 @@ component CordedStringTests
       assert(accum, subject)
   end
   
-    
+  test testIlk() = do
+    three = 3
+    println(three " is a " three.ilkName)
+    println((three asif ZZ32)" is a " ((2+1) asif ZZ32).ilkName)    
+    hello = "Hello"
+    println(hello " is a " hello.ilkName)
+    hw = CatString(hello, " World")
+    println(hw " is a " hw.ilkName)
+  end
+  
+  test javaStringification() = do
+    e = EmptyString
+    assert(e.asJavaString, "", "EmptyString.javaString")
+    c = CatString("abcd", "efgh")
+    assert(c.asJavaString, "abcdefgh", "CatString.javaString")
+    s = c[2:5]
+    assert(s.asJavaString, "cdef", "SubString'.javaString")
+    ss = s[1:2]
+    assert(ss.asJavaString, "de", "Substring of SubString'.javaString")
+    lss = s[0:1]
+    assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
+  end  
+  
+(*
   test testSubdivide():() = do
     subject = CatString("abcd", "efgh")
+(*
     substr1 = subject[2:6]
+
     validateSubdivision(substr1, seq(substr1.subdivide()))
     
     substr2 = subject[4:6]
     assert(substr2.subdivide().isEmpty, "subject[4:6].subdivide is not empty!")
-    
+ *)   
     substr3 = subject[0:5]
     validateSubdivision(substr3, seq(substr3.subdivide()))
         
   end 
+*)
   
-(*
   test comparison():() = do
     smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
     smaller.verify
     bigger.verify
-    smaller.showStructure
-    bigger.showStructure
     assert(smaller < bigger)
+    assert(bigger > smaller)
     assert(smaller[10:] < bigger[10:])
+    assert(bigger[12:] > smaller[12:])
     a = smaller[30:36] 
     b = bigger[30:36]
     a.verify
     b.verify
-    a.showStructure
-    b.showStructure
-    assert(smaller[30:36] = bigger[30:36], smaller[30:36] " is not = to " bigger[30:36])
+    assert(smaller[30#6], bigger[30:35], smaller[30:36] " is not = to " bigger[30:36])
   end
- *)
+ 
   object CatStringReduction extends MonoidReduction[\String\]
     getter toString() = "CatStringReduction"
     empty(): String = EmptyString

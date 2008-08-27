@@ -41,6 +41,8 @@ builtinPrimitive[\T\](javaClass:String):T =
   fail ("Implementation should not invoke builtinPrimitive " javaClass)
 
 trait Object extends Any
+    getter ilkName(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ClassName")
     toString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ToString")
 end

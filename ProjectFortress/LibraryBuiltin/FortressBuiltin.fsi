@@ -36,6 +36,7 @@ api FortressBuiltin
 builtinPrimitive[\T\](javaClass:String):T
 
 trait Object extends Any
+    getter ilkName(): String
     toString(): String
 end
 

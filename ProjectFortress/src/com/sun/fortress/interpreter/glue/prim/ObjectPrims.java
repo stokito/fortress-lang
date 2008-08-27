@@ -39,4 +39,10 @@ public static final class ToString extends O2S {
     }
 }
 
+public static final class ClassName extends O2S {
+    protected final java.lang.String f(FObject o) {
+        return (o.type().toString());
+    }
+}
+
 }

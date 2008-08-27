@@ -59,6 +59,19 @@ public static final class PrintThreadInfo extends Util.S2V {
     }
 }
 
+public static final class PrintWithThread extends Util.S2V {
+    protected void f(String x) {
+          System.out.print(" Thread " + java.lang.Thread.currentThread().getId() + ": " + x);
+    }
+}
+
+
+public static final class PrintlnWithThread extends Util.S2V {
+    protected void f(String x) {
+          System.out.println(" Thread " + java.lang.Thread.currentThread().getId() + ": " + x);
+    }
+}
+
 public static final class ThrowError extends Util.S2V {
     protected void f(String x) {
         String msg = " Thread " + java.lang.Thread.currentThread().getName() + " got error " + x;
