@@ -81,9 +81,10 @@ end
 
 (* ===Radicals=== *)
 
-(* Radicals are represented as ternary trees with leaf nodes H.
- * An ordering is defined so that Paraffin can be ordered.
- *)
+(*
+Radicals are represented as ternary trees with leaf nodes H.
+An ordering is defined so that Paraffin can be ordered.
+*)
 trait Radical extends StandardTotalOrder[\Radical\] comprises {H, Rad}
     opr CMP(self, other:Radical):TotalComparison
     (* The following is for debugging and for testing. *)
@@ -135,17 +136,18 @@ t4:Radical     = Rad (methyl, methyl, methyl)
 y4:Radical     = Rad (H,      H,      y3    )
 z4:Radical     = Rad (H,      methyl, ethyl )
 
-(* Construct an array of lists of all radicals from size 0 to size n.
- * Array position i contains a list of all radicals of size i.
- *
- * Radicals are defined by strong induction over smaller radicals.
- * Partition the weight (n-1) among the children in all combinations.
- * Move toward a canonical order by insisting i<=j<=k.
- * This is not sufficient, however, for canonicalization. Why not?
- * Because we need to respect an order within a row (same size).
- *)
+(*
+Construct an array of lists of all radicals from size 0 to size n.
+Array position i contains a list of all radicals of size i.
+  
+Radicals are defined by strong induction over smaller radicals.
+Partition the weight (n-1) among the children in all combinations.
+Move toward a canonical order by insisting i<=j<=k.
+This is not sufficient, however, for canonicalization. Why not?
+Because we need to respect an order within a row (same size).
+*)
 
-genRadicals (n:ZZ32) = do
+genRadicals0 (n:ZZ32) = do
     rads = array[\List[\Radical\]\](n+1)
     genRads (m:ZZ32):List[\Radical\] =
         <|[\Radical\] Rad (ri,rj,rk) |
@@ -157,25 +159,32 @@ genRadicals (n:ZZ32) = do
     rads
 end
 
-(* Turner talks about filter promotion in his paper. Here's what you get
- * when you promote the filters into the generators, to not generate items
- * that are destined to be filtered out.
- * 1) The k binding takes a dimension out of the loop (6 to 5).
- * 2) The j lower bound is based on just i <= j
- * 3) We need both filters and linear algebraic facility to generate
- *    the upper bounds for a and b.
+(*
+Turner discusses the promotion filters into generators, not generating
+items that will be filtered out.
+
+1) The k binding takes a dimension out of the loop nest (6 to 5).
+2) The j lower bound is based on just i <= j
+3) We need both filters and linear algebraic facility to generate
+   the upper bounds for a and b.
+*)
+
+genRadicals (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    genRads (m:ZZ32):List[\Radical\] =
         <|[\Radical\] Rad (ri,rj,rk) |
             i<-0:((m-1) DIV 3),
             j<-i:((m-1-i) DIV 2),
-            k<-just(m-1-i-j),
-            ri<-rads[i], rj<-rads[j], rk<-rads[k]
-        |>
-*)
+            ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j] |>
+    rads[0] := <|[\Radical\] H|>
+    rads[i] := genRads i, i<-seq(1:n)        
+    rads
+end
 
 
 (* ===Paraffins===
- * Paraffins comprise four radical children.
- * A total order is needed to build Sets of paraffins.
+Paraffins comprise four radical children.
+A total order is needed to build Sets of paraffins.
 *)
 object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
     extends StandardTotalOrder[\Paraffin\]
@@ -192,79 +201,85 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
             Rad => Paraffin (r.r1, r.r2, r.r3, Rad(r2, r3, r4))
         end
     generators (self):Set[\Paraffin\] =
-        {[\Paraffin\] rotate(self), swap(self), invert(self)}
+        {[\Paraffin\] rotate self, swap self, invert self}
     equivClass (self) = closure ({[\Paraffin\] self}, generators)
 
     opr ~ (self, other:Paraffin):Boolean =
-        self IN equivClass(other)
+        self IN equivClass other
 
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4| 
-    toString():String = "[P" ||| r1 ||| r1 ||| r3 ||| (r4 || "]")
+    toString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
 end Paraffin
 
-(* Given a list of paraffins containing duplicates (equivalent representations), 
- * keep one witness from each equivalence class.
- *)
-quotientSlow (pars:List[\Paraffin\]):List[\Paraffin\] =
+(*
+Given a list of paraffins containing duplicates (equivalent representations), 
+keep one witness from each equivalence class.
+*)
+quotientQuadratic (pars:List[\Paraffin\]):List[\Paraffin\] =
     if   (p1,p2s) <- pars.extractLeft()
-    then <|p1|> || quotientSlow(<|[\Paraffin\] p2 | p2 <- p2s, NOT (p1~p2)|>)
+    then <|p1|> || quotientQuadratic <|[\Paraffin\] p2 | p2 <- p2s, NOT (p1~p2)|>
     else pars end
 
-(* We'd like to be able to say ~ is symmetric. Then, perhaps a very
- * clever compiler could translate quotientSlow into quotient:
- * 1) leverage the symmetry to replace p1~p2 by p2~p1
- * 2) inlinine ~ and equivClass
- * 3) pull p1closure out of the "loop"
- * The preceeding version of quotient is quadratic in the length of the input,
- * and the following version is linear.
- *)
-quotient (pars:List[\Paraffin\]):List[\Paraffin\] =
+(*
+Fortress will (soon) allow us to say that ~ is symmetric. Perhaps a very
+clever compiler will translate quotientQuadratic into quotientLinear:
+
+1) leverage symmetry to replace p1~p2 by p2~p1
+2) inlinine ~ and equivClass into quotientQuadratic
+3) hoist the calculation of p1closure out of the comprehension
+   quotientQuadratic is quadratic in the length of
+   the input list, and quotientLinear is, uh, linear.
+*)
+quotientLinear (pars:List[\Paraffin\]):List[\Paraffin\] =
     if   (p1,p2s) <- pars.extractLeft()
     then 
         p1closure = closure ({[\Paraffin\] p1}, generators)
-        <|p1|> || quotient(<|[\Paraffin\] p2 | p2 <- p2s, NOT (p2 IN p1closure)|>)
+        <|p1|> || quotientLinear <|[\Paraffin\] p2 | p2 <- p2s, p2 NOTIN p1closure|>
     else pars
 end
 
+quotient = quotientLinear
 
-(* Construct a list of lists of all Paraffins from size 1 to size n.
- * Outer list position i is a list of all Paraffins of size i.
- *
- * Generate paraffins by adding CH3 to all radicals with one fewer carbon.
- * Then call quotient to eliminate duplicates (equivalent molecules).
- *)
+(*
+Construct a list of lists of all Paraffins from size 1 to size n.
+Outer list position i is a list of all Paraffins of size i.
+  
+Generate paraffins by adding CH3 to all radicals with one fewer carbon.
+Then call quotient to eliminate duplicates (equivalent molecules).
+*)
 
 genParaffins (n:ZZ32) =
                 <| quotient
-            <| Paraffin (H, H, H, r) 
+            <| Paraffin (H,H,H,r) 
         | r <- radList |>
-    | radList <- genRadicals(n-1) |>
+    | radList <- genRadicals (n-1) |>
 
-(* Note the funky indenting (suggested by Dan Nussbaum), which makes this
- * construct much easier to understand. That is a red flag to me. Although
- * simple comprehensions are comprehendable enough, two levels of nesting
- * with context specified after the expression is hard to get my head around.
- * Once BIG || works for lists, the following should work:
+(*
+Note the funky indenting (suggested by Dan Nussbaum), which makes this
+construct much easier for me to understand. That is a red flag to me. Although
+simple comprehensions are comprehendable enough, two levels of nesting
+with context specified after the expression is hard to get my head around.
+Once BIG || works for lists, the following should work:
 
 genParaffins (n:ZZ32) =
-    BIG || [radList <- genRadicals(n-1)]
-        <| quotient BIG || [r <- radlist] <|Paraffin (H, H, H, r)|> |>
+    BIG || [radList <- genRadicals (n-1)]
+        <| quotient BIG || [r <- radlist] <|Paraffin (H,H,H,r)|> |>
 
 But, I really want a different comprehension syntax which allows me to specify
 generators first. Various folks are considering alternatives. Guy is considering
 this | based alternative, which I like.
 
 genParaffins (n:ZZ32) =
-    <|radList<-genRadicals(n-1) |
-     quotient <|r<-radList | Paraffin(H,H,H,r)|> |>
- *)
+    <|radList<-genRadicals (n-1) |
+     quotient <|r<-radList | Paraffin (H,H,H,r)|> |>
+*)
 
 run(args:String...) = do
   if |args| > 0 AND: ((args[0]="?")OR(args[0]="help")) then printUsage() else
     verbose:Boolean = 1 <= |args| <= 2
-    n_p:ZZ32 = if |args| < 1 then 5   else strToInt(args[0]) end
-    n_r:ZZ32 = if |args| < 2 then n_p else strToInt(args[1]) end
+    n_p:ZZ32 = if |args| < 1 then 5   else strToInt args[0] end
+    n_r:ZZ32 = if |args| < 2 then n_p else strToInt args[1] end
 
     vPrintln(a:Any) = if verbose then println a end
 
@@ -272,7 +287,7 @@ run(args:String...) = do
 
     vPrintln ("----- Generate paraffins up to size " n_p " -----")
     startPars = getTimeMS()
-    allPars = genParaffins(n_p)
+    allPars = genParaffins n_p
     endPars   = getTimeMS()
     if verbose then
         println("Generating " n_p " paraffins took " (endPars - startPars) " ms") end
@@ -280,7 +295,7 @@ run(args:String...) = do
     parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
     vPrintln("Numbers of paraffins; check results up to size " (|parStandards|))
     i:ZZ32 := 0
-    for pars <- seq(allPars) do
+    for pars <- seq allPars do
         vPrintln("carbon atoms: " (i+1))
         vPrintln("  paraffins:    " |pars|)
         if i < |parStandards| then assert (|pars|, parStandards[i]) end
@@ -290,14 +305,14 @@ run(args:String...) = do
 
     vPrintln("----- Generate radicals up to size " n_r " -----")
     startRads = getTimeMS()
-    allRads = genRadicals(n_r)
+    allRads = genRadicals n_r
     endRads   = getTimeMS()
     if verbose then
         println("Generating " n_r " radicals took " (endRads - startRads) " ms") end
 
     vPrintln("Numbers of radicals; no checking is performed.")
     i := 0
-    for rads <- seq(allRads) do
+    for rads <- seq allRads do
         vPrintln("carbon atoms: " i)
         vPrintln("  radicals (canonical & others): " (|rads|))
         i := i+1
@@ -315,27 +330,27 @@ test testRadicalConstruction () = do
     println(" propyl: " propyl);    println(" butyl:  " butyl)
     println(" pentyl: " pentyl)
 
-    assert (methyl = methyl);       assert (pentyl = pentyl)
+    assert (methyl,  methyl);       assert (pentyl,  pentyl)
     assert (methyl =/= ethyl);        assert (methyl =/= pentyl)
     assert (propyl =/= butyl);        assert (butyl  =/= pentyl)
 
-    assert (1 = |methyl|);          assert (2 = |ethyl|)
-    assert (3 = |propyl|);          assert (4 = |butyl|)
-    assert (5 = |pentyl|)
+    assert (1,|methyl|);            assert (2, |ethyl|)
+    assert (3,|propyl|);            assert (4, |butyl|)
+    assert (5,|pentyl|)
     println ("----- Simple Radical construction tests pass. -----")
 
-    println(" y3: "   y3);          println(" t4: "   t4)
-    println(" y4: "   y4);          println(" z4: "   z4)
+    println(" y3: "  y3);           println(" t4: " t4)
+    println(" y4: "  y4);           println(" z4: " z4)
 
-    assert (y3 = y3);               assert (z4 = z4)
+    assert (y3,  y3);               assert (z4,  z4)
     assert (y3 =/= t4);               assert (y4 =/= z4)
     assert (y3 =/= y4)
-    assert (y3  =/= methyl);          assert (y3  =/= ethyl)
-    assert (y3  =/= propyl);          assert (y3  =/= butyl)
-    assert (y3  =/= pentyl)
+    assert (y3 =/= methyl);           assert (y3 =/= ethyl)
+    assert (y3 =/= propyl);           assert (y3 =/= butyl)
+    assert (y3 =/= pentyl)
 
-    assert (3 = |y3|);              assert (4 = |t4|)
-    assert (4 = |y4|);              assert (4 = |z4|)
+    assert (3, |y3|);               assert (4, |t4|)
+    assert (4, |y4|);               assert (4, |z4|)
     println ("***** Radical Construction Tests pass. *****")
 end
 
@@ -350,15 +365,16 @@ test testRadicalGeneration() = do
          <|[\Radical\] propyl, y3|>
          <|[\Radical\] butyl, y4, z4, t4|>
         ]
-(* After type inference is online ...
+(*
+After type inference is online ...
     radsSmall = [<|H|> <|methyl|> <|ethyl|> <|propyl,y3|> <|butyl,y4,z4,t4|>]
 *)
 
-    for rads <- seq(genRadicals(7)) do
+    for rads <- seq(genRadicals 7) do
         println ("Size: " s)
         if 0 <= s < 4 then
             println (" " (|radsSmall[s]|) " hand generated Rads: " radsSmall[s])
-            assert (rads = radsSmall[s])
+            assert (rads, radsSmall[s])
         end
         println (" " (|rads|) " auto generated Rads: " rads)
         ncRads = <|[\Radical\] r | r <- rads, r.nonCanon()|>
@@ -384,7 +400,7 @@ hexane3:Paraffin  = Paraffin (H,      methyl, ethyl,  ethyl  )
 hexane4:Paraffin  = Paraffin (H,      methyl, methyl, y3     )
 hexane5:Paraffin  = Paraffin (H,      H,      methyl, t4     )
 
-parsSmall = array[\List[\Paraffin\]\](7)
+parsSmall = array[\List[\Paraffin\]\] 7
 (*
 parsSmall =
     [<|[\Paraffin\] |>
@@ -400,13 +416,12 @@ parsSmall =
      <|butane1, butane2|>
      <|pentane1, pentane2, pentane3|>
      <|hexane1, hexane2, hexane3, hexane4, hexane5|>]
-*)
 
-(* Utility testing routine to work around a bug in the interpreter:
- * http://projectfortress.sun.com/Projects/Community/ticket/46
- * When this bug is resolved, the following code can be replaced
- * by the above commented out code.
- *)
+Utility testing routine to work around a bug in the interpreter:
+http://projectfortress.sun.com/Projects/Community/ticket/46
+When this bug is resolved, the following code can be replaced
+by the above commented out code.
+*)
 test setSmallParaffins () = do
     (* Establish some values for testing *)
     parsSmall[1] := <|[\Paraffin\] methane|>
@@ -427,93 +442,92 @@ test testParaffinConstruction () = do
     println (" hexane3: "  hexane3);    println (" hexane4: "  hexane4)
     println (" hexane5: "  hexane5)
 
-    assert (methane  = methane);        assert (propane  = propane)
-    assert (butane2  = butane2);        assert (pentane2 = pentane2)
-    assert (hexane2  = hexane2);        assert (methane  =/= ethane)
+    assert (methane,   methane);        assert (propane,   propane)
+    assert (butane2,   butane2);        assert (pentane2,  pentane2)
+    assert (hexane2,   hexane2);        assert (methane  =/= ethane)
     assert (butane1  =/= butane2);        assert (pentane1 =/= pentane2)
     assert (pentane1 =/= pentane3);       assert (pentane2 =/= pentane3)
     assert (hexane1  =/= hexane2);        assert (hexane2  =/= hexane3)
 
     assert (hexane4  =/= hexane5)
 
-    assert (1 = |methane|);             assert (2 = |ethane|)
-    assert (3 = |propane|);             assert (4 = |butane1|)
-    assert (4 = |butane2|);             assert (5 = |pentane1|)
-    assert (5 = |pentane2|);            assert (5 = |pentane3|)
-    assert (6 = |hexane1|);             assert (6 = |hexane2|)
-    assert (6 = |hexane3|);             assert (6 = |hexane4|)
-    assert (6 = |hexane5|)
+    assert (1, |methane|);              assert (2, |ethane|)
+    assert (3, |propane|);              assert (4, |butane1|)
+    assert (4, |butane2|);              assert (5, |pentane1|)
+    assert (5, |pentane2|);             assert (5, |pentane3|)
+    assert (6, |hexane1|);              assert (6, |hexane2|)
+    assert (6, |hexane3|);              assert (6, |hexane4|)
+    assert (6, |hexane5|)
     println ("***** Paraffin construction tests pass. *****")
 end
 
 test testParaffinGenerators () = do
     println("***** Paraffin Generator Tests *****")
-    assert (methane = rotate methane);    assert (ethane  =/= rotate ethane)
-    assert (ethane  = rotate rotate rotate rotate ethane)
+    assert (methane, rotate methane);    assert (ethane  =/= rotate ethane)
+    assert (ethane,  rotate rotate rotate rotate ethane)
     println ("----- Simple rotate tests pass. -----")
     
-    assert (butane1  = swap butane1);    assert (butane2  =/= swap butane2)
-    assert (pentane1 = swap pentane1);   assert (pentane2 =/= swap pentane2)
-    assert (hexane1  = swap hexane1);    assert (hexane2  =/= swap hexane2)
+    assert (butane1,  swap butane1);    assert (butane2  =/= swap butane2)
+    assert (pentane1, swap pentane1);   assert (pentane2 =/= swap pentane2)
+    assert (hexane1,  swap hexane1);    assert (hexane2  =/= swap hexane2)
     println ("----- Simple swap tests pass. -----")
 
-    assert (pentane3 = rotate rotate rotate invert rotate rotate rotate invert pentane3)
+    assert (pentane3, rotate rotate rotate invert rotate rotate rotate invert pentane3)
     println ("An invert test passed.")
 
-    assert (generators (methane)  = {[\Paraffin\] methane} )
-    assert (generators (ethane)   = {[\Paraffin\] ethane, rotate ethane} )
-    assert (generators (pentane3) = {[\Paraffin\] pentane3, Paraffin (H,H,H,t4)} )
+    assert (generators methane,  {[\Paraffin\] methane} )
+    assert (generators ethane,   {[\Paraffin\] ethane, rotate ethane} )
+    assert (generators pentane3, {[\Paraffin\] pentane3, Paraffin (H,H,H,t4)} )
     println("***** Paraffin Generator Tests pass*****")
 end
 
 test testParaffinEQV () = do
     println("***** Paraffin ~ Tests *****")
     assert (methane~methane)
-    assert (ethane~(rotate (ethane)))
+    assert (ethane~(rotate ethane))
     println("***** Paraffin ~ Tests  pass*****")
 end
 
 test testParaffinQuotient () = do
     println("***** Paraffin Quotient Tests *****")
-    oneGen   (p:Paraffin):Set[\Paraffin\] = {[\Paraffin\] rotate(p)}
-    twoGen   (p:Paraffin):Set[\Paraffin\] = {[\Paraffin\] rotate(p), swap(p)}
-
+    oneGen   (p:Paraffin):Set[\Paraffin\] = {[\Paraffin\] rotate p}
+    twoGen   (p:Paraffin):Set[\Paraffin\] = {[\Paraffin\] rotate p, swap p}
     do  cp1 = closure ({[\Paraffin\] methane}, oneGen)
         println(" closure methane oneGen:   " cp1)
-        assert(1 = |cp1|)
-        assert({[\Paraffin\] methane} = cp1)
+        assert(1, |cp1|)
+        assert({[\Paraffin\] methane}, cp1)
 
         cp2 = closure ({[\Paraffin\] methane}, twoGen)
         println(" closure methane twoGen:   " cp2)
-        assert(1 = |cp2|)
-        assert({[\Paraffin\] methane} = cp2)
+        assert(1, |cp2|)
+        assert({[\Paraffin\] methane}, cp2)
 
         cp3 = closure ({[\Paraffin\] methane}, generators)
         println(" closure methane generators: " cp3)
-        assert(1 = |cp3|)
-        assert({[\Paraffin\] methane} = cp3)
+        assert(1, |cp3|)
+        assert({[\Paraffin\] methane}, cp3)
 
         assert(cp1 = cp2 = cp3)
         println(" cp1 = cp2 = cp3")
         assert(cp1 SUBSETEQ cp2 SUBSETEQ cp3)
         println(" cp1 SUBSETEQ cp2 SUBSETEQ cp3")
 
-        qp = quotient(<|[\Paraffin\] p | p <- cp3|>)
+        qp = quotient <|[\Paraffin\] p | p <- cp3|>
         println(" quotient {methane}: " qp)
-        assert(1 = |qp|)
+        assert(1, |qp|)
     end
 
     do  cp1 = closure ({[\Paraffin\] ethane}, oneGen)
         println(" closure ethane oneGen:   " cp1)
-        assert(4 = |cp1|)
+        assert(4, |cp1|)
 
         cp2 = closure ({[\Paraffin\] ethane}, twoGen)
         println(" closure ethane twoGen:   " cp2)
-        assert(4 = |cp2|)
+        assert(4, |cp2|)
 
         cp3 = closure ({[\Paraffin\] ethane}, generators)
         println(" closure ethane generators: " cp3)
-        assert(4 = |cp3|)
+        assert(4, |cp3|)
 
         assert(cp1 = cp2 = cp3)
         println(" cp1 = cp2 = cp3")
@@ -522,16 +536,16 @@ test testParaffinQuotient () = do
 
         qp = quotient(<|[\Paraffin\] p | p <- cp3|>)
         println(" quotient {ethane}: " qp)
-        assert(1 = |qp|)
+        assert(1, |qp|)
     end
 
     do  cp1 = closure ({[\Paraffin\] propane}, oneGen)
         println(" closure propane oneGen:   " cp1)
-        assert(4 = |cp1|)
+        assert(4, |cp1|)
 
         cp2 = closure ({[\Paraffin\] propane}, twoGen)
         println(" closure propane twoGen:   " cp2)
-        assert(6 = |cp2|)
+        assert(6, |cp2|)
 
         cp3 = closure ({[\Paraffin\] propane}, generators)
         println(" closure propane generators: " cp3)
@@ -541,21 +555,21 @@ test testParaffinQuotient () = do
 
         qp = quotient(<|[\Paraffin\] p | p <- cp3|>)
         println(" quotient {propane}: " qp)
-        assert(1 = |qp|)
+        assert(1, |qp|)
     end
     println("----- Small oneGen, twoGen and generators closure tests pass. -----")
     println("----- Small quotient tests pass. -----")
 
     setSmallParaffins ()
 
-    q4 = quotient(<|[\Paraffin\] p | p <- parsSmall[4]|>)
+    q4 = quotient <|[\Paraffin\] p | p <- parsSmall[4]|>
     println(" quotient over paraffins of size 4: " q4)
-    assert(2 = |q4|)
+    assert(2, |q4|)
     println("quotient set has correct size.")
 
-    q5 = quotient(<|[\Paraffin\] p | p <- parsSmall[5]|>)
+    q5 = quotient <|[\Paraffin\] p | p <- parsSmall[5]|>
     println(" quotient over paraffins of size 5: " q5)
-    assert(3 = |q5|)
+    assert(3, |q5|)
     println("----- quotient set has correct size. -----")
     println("***** Paraffin Quotient Tests Pass *****")
 end
@@ -564,13 +578,13 @@ test testParaffinGeneration() = do
     println("***** Paraffin Generation Tests *****")
     setSmallParaffins ()
     s:ZZ32 := 1
-    allPars = genParaffins(4)
-    for pars <- seq(allPars) do
+    allPars = genParaffins 4
+    for pars <- seq allPars do
         println ("Size: " s)
         println (" " (|pars|) " auto generated Pars: " pars)
         if 0 <= s <= 6 then
             println (" " (|parsSmall[s]|) " hand generated Pars: " parsSmall[s])
-            assert (|pars| = |parsSmall[s]|)
+            assert (|pars|, |parsSmall[s]|)
         end
         s += 1
     end
