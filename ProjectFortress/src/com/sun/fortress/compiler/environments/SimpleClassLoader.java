@@ -20,6 +20,8 @@ package com.sun.fortress.compiler.environments;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.repository.ProjectProperties;
@@ -28,10 +30,16 @@ public class SimpleClassLoader extends ClassLoader {
 
     static SimpleClassLoader aLoader = new SimpleClassLoader();
     
+    static Set<String> reloadEnvs = new HashSet<String>();
+    
     public Class<?> defineClass(String name, byte[] b) {
         return defineClass(name, b, 0, b.length);
     }
 
+    public static void reloadEnvironment(String name) {
+        reloadEnvs.add(name);
+    }
+    
     public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi) 
                                     throws IOException, InstantiationException, IllegalAccessException {
     	String className = fortressFileName;
@@ -52,7 +60,11 @@ public class SimpleClassLoader extends ClassLoader {
         if (read != classfile.length()) {
             throw new Error("Expected to read " + classfile.length() + " bytes but read " + read + " bytes instead.");
         }
-        Class<?> generatedClass = classLoader.findLoadedClass(className);
+        if (reloadEnvs.contains(fortressFileName)) {
+            classLoader = new SimpleClassLoader();
+            reloadEnvs.clear();
+        }
+        Class<?> generatedClass = classLoader.findLoadedClass(className);       
         if (generatedClass == null)
             generatedClass = classLoader.defineClass(className, bytecode);
         BaseEnv envObject = (BaseEnv) generatedClass.newInstance();

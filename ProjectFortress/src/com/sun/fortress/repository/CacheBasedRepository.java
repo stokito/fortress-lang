@@ -29,11 +29,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
 import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -145,7 +147,8 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     }
 
     public void deleteComponent(APIName name) {
-            components.remove(name);
+        components.remove(name);
+        SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));
     }
 
     private static String deCase(APIName s) {
