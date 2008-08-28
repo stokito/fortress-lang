@@ -18,6 +18,8 @@
 package com.sun.fortress.interpreter.evaluator.types;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +63,7 @@ public class FTypeTrait extends FTraitOrObject {
 
     public Set<FType> getTransitiveComprises() {
         if (transitiveComprises == null) {
-            Set<FType> tmp = computeTransitiveComprises();
+            Set<FType> tmp = Collections.unmodifiableSet(new HashSet<FType>(computeTransitiveComprises()));
             synchronized(this) {
                 if (transitiveComprises == null) {
                     transitiveComprises = tmp;
