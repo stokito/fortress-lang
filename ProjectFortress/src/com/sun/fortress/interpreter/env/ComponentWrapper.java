@@ -60,29 +60,29 @@ public class ComponentWrapper {
      */
     private String[]  implicitLibs;
     
-    public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    public BASet<String> ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-    public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+    public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+    public BASet<String> ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+    public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+    public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
 
     /**
      * If a variable/value/function name is missing when an API is initialized, 
      * store it here, in case it is found later (that is, imported into the 
      * component through some other API).
      */
-    //public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    //public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     /**
      * Any function that is exported, may be overloaded, and so any subsequently
      * discovered imports should also propagate.
      */
-    public BASet<String> overloadableExportedFunction = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    public BASet<String> overloadableExportedFunction = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     /**
      * If a type name is missing when an API is initialized, store it here, in
      * case it is found later  (that is, imported into the component through
      * some other API).
      */
-    //public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    //public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     
     public Set<AbstractNode> unresolvedExports = new HashSet<AbstractNode>();
     
@@ -238,9 +238,9 @@ public class ComponentWrapper {
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.
-        ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-        ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-        excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+        ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+        ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+        excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         be.getEnvironment().visit(nameCollector);
         p = cu;
         topLevelUsesForDebugging = desugarer.topLevelUses.copy();
@@ -275,9 +275,9 @@ public class ComponentWrapper {
                                        // Caches information in dis!
          be.visit(cu);
          // Reset the non-function names from the disambiguator.
-         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-         ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
-         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+         ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
          be.getEnvironment().visit(nameCollector);
          p = cu;
          topLevelUsesForDebugging = desugarer.topLevelUses.copy();

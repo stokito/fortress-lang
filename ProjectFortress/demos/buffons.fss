@@ -19,10 +19,11 @@ component buffons
 
 export Executable
 
+needleLength = 20
+numRows = 10
+tableHeight = needleLength numRows
+
 run(args:String...):()=do
-   needleLength = 20
-   numRows = 10
-   tableHeight = needleLength numRows
    var hits : RR64 := 0.0
    var n : RR64 := 0.0
 
