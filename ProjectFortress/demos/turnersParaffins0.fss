@@ -152,8 +152,7 @@ genRadicals (n:ZZ32) = do
             i+j+k=m-1,   i<=j<=k,
             ri<-rads[i], rj<-rads[j], rk<-rads[k] |>
     rads[0] := <|[\Radical\] H|>
-    for i <- seq(1:n) do
-        rads[i] := genRads(i) end
+    rads[i] := genRads(i), i<-seq(1:n)        
     rads
 end
 
@@ -191,7 +190,7 @@ end
  *)
 quotient (pars:List[\Paraffin\]):List[\Paraffin\] =
     if   (p1,p2s) <- pars.extractLeft()
-    then (quotient(<|[\Paraffin\] p2 | p2 <- p2s, p1 NEQV p2|>)).addLeft(p1)
+    then <|p1|> || quotient(<|[\Paraffin\] p2 | p2 <- p2s, p1 NEQV p2|>)
     else pars end
 
 
@@ -219,9 +218,11 @@ run(args:String...) = do
     vPrintln("===== Enumerate and count paraffins & radicals by Turner's method. =====")
 
     vPrintln ("----- Generate paraffins up to size " n_p " -----")
-    recordTime()
+    startPars = getTimeMS()
     allPars = genParaffins(n_p)
-    if verbose then printTime() end
+    endPars   = getTimeMS()
+    if verbose then
+        println("Generating " n_p " paraffins took " (endPars - startPars) " ms") end
 
     parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
     vPrintln("Numbers of paraffins; check results up to size " (|parStandards|))
@@ -235,9 +236,11 @@ run(args:String...) = do
     vPrintln("----- Generate paraffins up to size " n_p " done.-----")
 
     vPrintln("----- Generate radicals up to size " n_r " -----")
-    recordTime()
+    startRads = getTimeMS()
     allRads = genRadicals(n_r)
-    if verbose then printTime() end
+    endRads   = getTimeMS()
+    if verbose then
+        println("Generating " n_r " radicals took " (endRads - startRads) " ms") end
 
     vPrintln("Numbers of radicals; no checking is performed.")
     i := 0
@@ -251,6 +254,7 @@ run(args:String...) = do
   end
 end
 
+getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
 
 test testRadicalConstruction () = do
     println("***** Radical Construction Tests *****")
