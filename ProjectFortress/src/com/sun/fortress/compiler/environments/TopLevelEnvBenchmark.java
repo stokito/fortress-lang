@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.compiler.environments;
 
 import java.io.IOException;
@@ -21,7 +38,7 @@ public class TopLevelEnvBenchmark {
      * @param args
      */
     public static void main(String[] args) {
-        try {            
+        try {
             Environment compiled = SimpleClassLoader.loadEnvironment("FortressLibrary", false);
             FortressRepository defaultRepository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
             ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName("FortressLibrary"));
@@ -46,7 +63,7 @@ public class TopLevelEnvBenchmark {
                 betterEnv.getTypeNull("LessThan");
             }
             difference = System.currentTimeMillis() - start;
-            System.out.println("BATree environments get: " + (difference / (float) iterations) + " msec");            
+            System.out.println("BATree environments get: " + (difference / (float) iterations) + " msec");
 
             start = System.currentTimeMillis();
             for(int i = 0; i < iterations; i++) {
@@ -59,17 +76,17 @@ public class TopLevelEnvBenchmark {
                 betterEnv.putTypeRaw("LessThan", three);
             }
             difference = System.currentTimeMillis() - start;
-            System.out.println("BATree environments put: " + (difference / (float) iterations) + " msec");            
-            
+            System.out.println("BATree environments put: " + (difference / (float) iterations) + " msec");
+
         } catch (IOException e) {
-            
+
             e.printStackTrace();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        
+
     }
 
 }
