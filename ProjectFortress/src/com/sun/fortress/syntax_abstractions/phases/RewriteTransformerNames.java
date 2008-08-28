@@ -18,12 +18,14 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.List;
+import java.util.LinkedList;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NonterminalHeader;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NamedTransformerDef;
@@ -43,7 +45,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
     private Option<String> api;
     private Option<String> grammar;
     private Option<String> productionName;
-    private Option<List<NonterminalParameter>> parameters;
+    // private Option<List<NonterminalParameter>> parameters;
 
     public RewriteTransformerNames(){
         // this.names = new ArrayList<String>();
@@ -67,27 +69,41 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
      * api.unwrap() + "_"
      */
     private String transformationName( String name ){
-        return api.unwrap() + "_" + grammar.unwrap() + "_" + FreshName.getFreshName( name + "Transformer" );
+        return api.unwrap() + "_" + grammar.unwrap() + "_" + 
+            FreshName.getFreshName( name + "Transformer" );
     }
 
+    /*
     @Override public Node forNonterminalHeader(NonterminalHeader that) {
         parameters = Option.some(that.getParams());
         productionName = Option.some(that.getName().getText());
         Node result = super.forNonterminalHeader(that);
-        /*
-        parameters = Option.none();
+        return result;
+    }
+    */
+
+    @Override public Node forNonterminalDef(NonterminalDef that) {
+        productionName = Option.some(that.getName().getText());
+        Node result = super.forNonterminalDef(that);
         productionName = Option.none();
-        */
+        return result;
+    }
+
+    @Override public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
+        productionName = Option.some(that.getName().getText());
+        Node result = super.forNonterminalExtensionDef(that);
+        productionName = Option.none();
         return result;
     }
 
     @Override public Node forPreTransformerDefOnly(PreTransformerDef that, Transformer transformer) {
-        try{
+        try {
             Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
-            return new NamedTransformerDef( name, parameters.unwrap(), transformer );
-        } catch ( OptionUnwrapException e ){
-            throw new MacroError( "Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e );
+            List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
+            return new NamedTransformerDef( name, params, transformer );
+        } catch (OptionUnwrapException e){
+            throw new MacroError("Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e);
         }
     }
 }

@@ -30,8 +30,14 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 
 	public static TestSuite suite() {
 		String[] files = new String[]{
-                    "CaseUse.fss",
+                    // List trimmed to keep testing time quick.
+
+                    // "CaseUse.fss",
                     "DoubleCaseUse.fss",
+                    // "GrammarCompositionUseA.fss",
+                    // "GrammarCompositionUseB.fss",
+                    // "GrammarCompositionUseC.fss",
+                    "GrammarCompositionUseD.fss",
                     // "ForUse.fss", // pending resolution of Printer/Unprinter issue
                     "SyntaxNodesUse.fss",
 		};

@@ -33,26 +33,24 @@ import com.sun.fortress.useful.Debug;
 public class WhitespaceElimination extends NodeUpdateVisitor {
 
     @Override
-        public Node forSyntaxDef(SyntaxDef that) {
-            List<SyntaxSymbol> ls = new LinkedList<SyntaxSymbol>();
-            Iterator<SyntaxSymbol> it = that.getSyntaxSymbols().iterator();
-            boolean ignoreWhitespace = false;
-            while (it.hasNext()) {
-                SyntaxSymbol symbol = it.next();
-                if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {			
-                    if (symbol instanceof NoWhitespaceSymbol) {
-                        symbol = ((NoWhitespaceSymbol) symbol).getSymbol();
-                        ignoreWhitespace = true;
-                    }
-                    else {
-                        ignoreWhitespace = false;
-                    }
-                    ls.add(symbol);
+    public Node forSyntaxDef(SyntaxDef that) {
+        List<SyntaxSymbol> ls = new LinkedList<SyntaxSymbol>();
+        Iterator<SyntaxSymbol> it = that.getSyntaxSymbols().iterator();
+        boolean ignoreWhitespace = false;
+        while (it.hasNext()) {
+            SyntaxSymbol symbol = it.next();
+            if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {			
+                if (symbol instanceof NoWhitespaceSymbol) {
+                    symbol = ((NoWhitespaceSymbol) symbol).getSymbol();
+                    ignoreWhitespace = true;
                 } else {
-                    Debug.debug( Debug.Type.SYNTAX, 1, "[whitespace] Throwing out symbol ", symbol );
+                    ignoreWhitespace = false;
                 }
+                ls.add(symbol);
+            } else {
+                Debug.debug( Debug.Type.SYNTAX, 1, "[whitespace] Throwing out symbol ", symbol );
             }
-            return new SyntaxDef(that.getSpan(),ls, that.getTransformer());
         }
-
+        return new SyntaxDef(that.getSpan(), that.getModifier(), ls, that.getTransformer());
+    }
 }

@@ -541,10 +541,10 @@ public class IndexBuilder {
         List<NonterminalIndex> result = new ArrayList<NonterminalIndex>();
         Set<Id> names = new HashSet<Id>();
         for (GrammarMemberDecl m: members) {
-            if (names.contains(m.getHeader().getName())) {
-                error("Nonterminal declared twice: "+m.getHeader().getName(), m);
+            if (names.contains(m.getName())) {
+                error("Nonterminal declared twice: "+m.getName(), m);
             }
-            names.add(m.getHeader().getName());
+            names.add(m.getName());
             result.add(m.accept(new NodeDepthFirstVisitor<NonterminalIndex>(){
 
                 @Override

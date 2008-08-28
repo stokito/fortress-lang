@@ -15,22 +15,15 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api DoubleCase
+component GrammarCompositionUseC
+import GrammarComposition.{C}
+export Executable
 
-    import FortressAst.{...}
-    import FortressSyntax.{...}
-
-    grammar Case extends Expression
-        Expr |:=
-            foo {e:Expr , SPACE}* =>
-                case e of
-                    Empty => <[ println "none" ]>
-                    Cons(e1,e2) =>
-                    case e2 of
-                        Empty => <[ println "some 1" ]>
-                        Cons(e3,e4) => <[ println "some more" ]>
-                    end
-                end
-    end
+run():() = do
+  assert(baz, 3)
+  assert((fn(foo) => foo)1, 1)
+  (*  assert((fn(baz) => baz)1, 1) (* illegal because baz is a keyword *) *)
+  println("C okay")
+end
 
 end

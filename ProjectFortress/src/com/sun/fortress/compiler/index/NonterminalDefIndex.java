@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.BaseType;
 import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalDefIndex extends NonterminalIndex {
@@ -32,4 +33,16 @@ public class NonterminalDefIndex extends NonterminalIndex {
         return ast;
     }
 
+    public boolean isPrivate() {
+        return ast().getHeader().getModifier().isSome();
+    }
+
+    public BaseType getAstType() {
+        Option<BaseType> type = this.ast().getAstType();
+        if (type.isSome()) {
+            return type.unwrap();
+        } else {
+            throw new RuntimeException("Production index without type");
+        }
+    }
 }

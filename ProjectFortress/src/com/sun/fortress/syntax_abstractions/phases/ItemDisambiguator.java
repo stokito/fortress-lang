@@ -18,7 +18,7 @@
 package com.sun.fortress.syntax_abstractions.phases;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.List;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
@@ -58,8 +58,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     private GrammarIndex _currentGrammarIndex;
     private ApiIndex _currentApi;
 
-    public ItemDisambiguator(GlobalEnvironment env) {
-        this._errors = new LinkedList<StaticError>();
+    public ItemDisambiguator(GlobalEnvironment env, List<StaticError> errors) {
+        this._errors = errors;
         this._globalEnv = env;
     }
 
@@ -67,7 +67,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         this._errors.add(StaticError.make(msg, loc));
     }
 
-    public Option<GrammarIndex> grammarIndex(Id name) {
+    private Option<GrammarIndex> grammarIndex(Id name) {
         if (name.getApi().isSome()) {
             APIName api = name.getApi().unwrap();
             if (this._globalEnv.definesApi(api)) {

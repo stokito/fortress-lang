@@ -21,7 +21,7 @@ api Case
     import FortressSyntax.{...}
 
     grammar Case extends { Expression, Declaration }
-        Expr |Expr:=
+        Expr |:=
             foo {e:Expr , SPACE}* =>
                 case e of
                     Empty => Expr <[ println "none" ]>
