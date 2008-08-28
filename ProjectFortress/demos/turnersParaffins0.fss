@@ -217,8 +217,8 @@ Given a list of paraffins containing duplicates (equivalent representations),
 keep one witness from each equivalence class.
 *)
 quotientQuadratic (pars:List[\Paraffin\]):List[\Paraffin\] =
-    if   (p1,p2s) <- pars.extractLeft()
-    then <|p1|> || quotientQuadratic <|[\Paraffin\] p2 | p2 <- p2s, NOT (p1~p2)|>
+    if   (p1,p2s)<-pars.extractLeft()
+    then <|p1|> || quotientQuadratic <|[\Paraffin\] p2 | p2<-p2s, NOT (p1~p2)|>
     else pars end
 
 (*
@@ -232,39 +232,59 @@ clever compiler will translate quotientQuadratic into quotientLinear:
    the input list, and quotientLinear is, uh, linear.
 *)
 quotientLinear (pars:List[\Paraffin\]):List[\Paraffin\] =
-    if   (p1,p2s) <- pars.extractLeft()
+    if   (p1,p2s)<-pars.extractLeft()
     then 
         p1closure = closure ({[\Paraffin\] p1}, generators)
-        <|p1|> || quotientLinear <|[\Paraffin\] p2 | p2 <- p2s, p2 NOTIN p1closure|>
+        <|p1|> || quotientLinear <|[\Paraffin\] p2 | p2<-p2s, p2 NOTIN p1closure|>
     else pars
 end
 
 quotient = quotientLinear
 
-(*
-Construct a list of lists of all Paraffins from size 1 to size n.
+(* Construct a list  of lists of all Paraffins from size  1 to size n.
 Outer list position i is a list of all Paraffins of size i.
   
-Generate paraffins by adding CH3 to all radicals with one fewer carbon.
-Then call quotient to eliminate duplicates (equivalent molecules).
+Generate paraffins by adding CH3 to all radicals with one fewer
+carbon.  Then call quotient to eliminate duplicates (equivalent
+molecules).
+
 *)
+
+genParaffins (n:ZZ32) =
+    <| quotient <| Paraffin (H,H,H,r) | r<-radList |>
+      | radList<-genRadicals (n-1) |>
+
+
+(* During a code walk through I had trouble getting the meaning of
+this code across to Dan Nussbaum, a very experienced programmer
+unfamiliar with Fortress. Dan suggested the following funky indenting,
+which I found fascinating:
 
 genParaffins (n:ZZ32) =
                 <| quotient
             <| Paraffin (H,H,H,r) 
-        | r <- radList |>
-    | radList <- genRadicals (n-1) |>
+        | r<-radList |>
+    | radList<-genRadicals (n-1) |>
 
-(*
-Note the funky indenting (suggested by Dan Nussbaum), which makes this
-construct much easier for me to understand. That is a red flag to me. Although
-simple comprehensions are comprehendable enough, two levels of nesting
-with context specified after the expression is hard to get my head around.
-Once BIG || works for lists, the following should work:
+This layout captures the logical information flow left to right, some
+sort of causality. Although simple comprehensions are comprehendable
+enough, two levels of nesting with context specified after the
+expression is hard to get my head around.
+
+Victor Luchangco suggested abstracting the inner comprehension.
+
+genParaffins (n:ZZ32) = do
+  addMethyl (radList) = <| Paraffin (H,H,H,r) | r<-radList |>
+  <| quotient addMethyl radList | radList<-genRadicals (n-1) |>
+end
+
+I sort of like the alternative available with BIG ||, which allows me
+to put the generator first. Once BIG || works for lists, the following
+should work:
 
 genParaffins (n:ZZ32) =
-    BIG || [radList <- genRadicals (n-1)]
-        <| quotient BIG || [r <- radlist] <|Paraffin (H,H,H,r)|> |>
+    BIG || [radList<-genRadicals (n-1)]
+        <| quotient BIG || [r<-radlist] <|Paraffin (H,H,H,r)|> |>
 
 But, I really want a different comprehension syntax which allows me to specify
 generators first. Various folks are considering alternatives. Guy is considering
@@ -295,7 +315,7 @@ run(args:String...) = do
     parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
     vPrintln("Numbers of paraffins; check results up to size " (|parStandards|))
     i:ZZ32 := 0
-    for pars <- seq allPars do
+    for pars<-seq allPars do
         vPrintln("carbon atoms: " (i+1))
         vPrintln("  paraffins:    " |pars|)
         if i < |parStandards| then assert (|pars|, parStandards[i]) end
@@ -312,7 +332,7 @@ run(args:String...) = do
 
     vPrintln("Numbers of radicals; no checking is performed.")
     i := 0
-    for rads <- seq allRads do
+    for rads<-seq allRads do
         vPrintln("carbon atoms: " i)
         vPrintln("  radicals (canonical & others): " (|rads|))
         i := i+1
@@ -370,14 +390,14 @@ After type inference is online ...
     radsSmall = [<|H|> <|methyl|> <|ethyl|> <|propyl,y3|> <|butyl,y4,z4,t4|>]
 *)
 
-    for rads <- seq(genRadicals 7) do
+    for rads<-seq(genRadicals 7) do
         println ("Size: " s)
         if 0 <= s < 4 then
             println (" " (|radsSmall[s]|) " hand generated Rads: " radsSmall[s])
             assert (rads, radsSmall[s])
         end
         println (" " (|rads|) " auto generated Rads: " rads)
-        ncRads = <|[\Radical\] r | r <- rads, r.nonCanon()|>
+        ncRads = <|[\Radical\] r | r<-rads, r.nonCanon()|>
         println (" " (|ncRads|) " non-canonical Rads: " ncRads)
         println (" " (|rads| - |ncRads|) " canonical Rads")
         s += 1
@@ -512,7 +532,7 @@ test testParaffinQuotient () = do
         assert(cp1 SUBSETEQ cp2 SUBSETEQ cp3)
         println(" cp1 SUBSETEQ cp2 SUBSETEQ cp3")
 
-        qp = quotient <|[\Paraffin\] p | p <- cp3|>
+        qp = quotient <|[\Paraffin\] p | p<-cp3|>
         println(" quotient {methane}: " qp)
         assert(1, |qp|)
     end
@@ -534,7 +554,7 @@ test testParaffinQuotient () = do
         assert(cp1 SUBSETEQ cp2 SUBSETEQ cp3)
         println(" cp1 SUBSETEQ cp2 SUBSETEQ cp3")
 
-        qp = quotient(<|[\Paraffin\] p | p <- cp3|>)
+        qp = quotient(<|[\Paraffin\] p | p<-cp3|>)
         println(" quotient {ethane}: " qp)
         assert(1, |qp|)
     end
@@ -553,7 +573,7 @@ test testParaffinQuotient () = do
         assert(cp1 SUBSET cp2 SUBSET cp3)
         println(" cp1 SUBSET cp2 SUBSET cp3")
 
-        qp = quotient(<|[\Paraffin\] p | p <- cp3|>)
+        qp = quotient(<|[\Paraffin\] p | p<-cp3|>)
         println(" quotient {propane}: " qp)
         assert(1, |qp|)
     end
@@ -562,12 +582,12 @@ test testParaffinQuotient () = do
 
     setSmallParaffins ()
 
-    q4 = quotient <|[\Paraffin\] p | p <- parsSmall[4]|>
+    q4 = quotient <|[\Paraffin\] p | p<-parsSmall[4]|>
     println(" quotient over paraffins of size 4: " q4)
     assert(2, |q4|)
     println("quotient set has correct size.")
 
-    q5 = quotient <|[\Paraffin\] p | p <- parsSmall[5]|>
+    q5 = quotient <|[\Paraffin\] p | p<-parsSmall[5]|>
     println(" quotient over paraffins of size 5: " q5)
     assert(3, |q5|)
     println("----- quotient set has correct size. -----")
@@ -579,7 +599,7 @@ test testParaffinGeneration() = do
     setSmallParaffins ()
     s:ZZ32 := 1
     allPars = genParaffins 4
-    for pars <- seq allPars do
+    for pars<-seq allPars do
         println ("Size: " s)
         println (" " (|pars|) " auto generated Pars: " pars)
         if 0 <= s <= 6 then
