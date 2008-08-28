@@ -21,7 +21,7 @@ api SyntaxNodes
     import FortressSyntax.Expression
 
     grammar G extends Expression
-        Expr |Expr:=
+        Expr |:=
           b-a-d x:Thing => <[ x ]>
 
         B :Expr:=

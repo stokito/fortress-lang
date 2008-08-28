@@ -61,7 +61,8 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     private NonterminalEnv _currentEnv;
     private GlobalEnvironment _globalEnv;
 
-    public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, List<StaticError> newErrs) {
+    public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, 
+                                    List<StaticError> newErrs) {
         this._env = env;
         this._errors = newErrs;
         this._globalEnv = globalEnv;
@@ -82,40 +83,51 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         return super.forGrammarDef(that);
     }
 
-    /*
-    // Isn't this the default implementation?
-    @Override
-    public Node forGrammarDefOnly(GrammarDef that, Id name_result, List<Id> extends_result, List<GrammarMemberDecl> nonterminal_result, List<TransformerDecl> transformers) {
-        return new GrammarDef(that.getSpan(), name_result, extends_result, nonterminal_result, transformers, that.isNative());
-    }
-    */
-
     @Override
     public Node forNonterminalDefOnly(NonterminalDef that,
-            NonterminalHeader header_result, Option<BaseType> astType_result,
-            List<SyntaxDecl> syntaxDefs_result) {
+                                      Id _name_result,
+                                      List<SyntaxDecl> syntaxDefs_result,
+                                      NonterminalHeader header_result, 
+                                      Option<BaseType> astType_result) {
         if (astType_result.isNone()) {
             throw new RuntimeException("Type inference is not supported yet!");
         }
-        return super.forNonterminalDefOnly(that, header_result, astType_result, syntaxDefs_result);
+        return super.forNonterminalDefOnly(that, header_result.getName(), syntaxDefs_result,
+                                           header_result, astType_result);
+    }
+
+    @Override
+    public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
+                                               Id name_result,
+                                               List<SyntaxDecl> syntaxDefs_result) {
+        Id name = disambiguateNonterminalName(name_result);
+        return super.forNonterminalExtensionDefOnly(that, name, syntaxDefs_result);
     }
 
     @Override
     public Node forNonterminalHeaderOnly(NonterminalHeader that,
-            Option<ModifierPrivate> modifier_result, Id name_result,
-            List<NonterminalParameter> params_result,
-            List<StaticParam> staticParams_result, Option<Type> type_result,
-            Option<WhereClause> whereClause_result) {
+                                         Option<ModifierPrivate> modifier_result, 
+                                         Id name_result,
+                                         List<NonterminalParameter> params_result,
+                                         List<StaticParam> staticParams_result, 
+                                         Option<Type> type_result,
+                                         Option<WhereClause> whereClause_result) {
+        Id name = disambiguateNonterminalName(name_result);
+        return super.forNonterminalHeaderOnly(that, modifier_result, name, params_result, 
+                                              staticParams_result, type_result, whereClause_result);
+    }
+
+    private Id disambiguateNonterminalName(Id name) {
         NonterminalNameDisambiguator pnd = new NonterminalNameDisambiguator(this._globalEnv);
 
         // Disambiguate the name
-        Option<Id> oname = pnd.handleNonterminalName(_currentEnv, that.getName());
-        Id name = that.getName();
-        if (oname.isSome()) {
-            name = oname.unwrap();
-        }
-
+        Option<Id> oname = pnd.handleNonterminalName(_currentEnv, name);
         this._errors.addAll(pnd.errors());
-        return new NonterminalHeader(that.getSpan(), modifier_result, name, params_result, staticParams_result, type_result, whereClause_result);
+        if (oname.isSome()) {
+            return oname.unwrap();
+        } else {
+            return name;
+        }
     }
+
 }

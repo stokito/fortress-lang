@@ -22,7 +22,6 @@ import java.util.List;
 import com.sun.fortress.nodes.NonterminalDecl;
 import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.Pair;
 
@@ -34,24 +33,11 @@ public abstract class NonterminalIndex {
     public abstract NonterminalDecl ast();
 
     public Id getName() {
-        return this.ast().getHeader().getName();
-    }
-
-    public BaseType getAstType() {
-        Option<BaseType> type = this.ast().getAstType();
-        if (type.isSome()) {
-            return type.unwrap();
-        } else {
-            throw new RuntimeException("Production index without type");
-        }
+        return this.ast().getName();
     }
 
     public List<SyntaxDecl> getSyntaxDecls() {
         return this.ast().getSyntaxDecls();
-    }
-
-    public boolean isPrivate() {
-        return ast().getHeader().getModifier().isSome();
     }
 
     public String toString(){

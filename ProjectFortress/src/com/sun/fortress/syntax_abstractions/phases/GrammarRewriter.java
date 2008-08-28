@@ -35,6 +35,8 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
+import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.useful.Debug;
 
 /**
@@ -46,13 +48,11 @@ import com.sun.fortress.useful.Debug;
  * 2) Disambiguate nonterminal parameters
  * 3) Remove whitespace where indicated by no-whitespace symbols
  * 4) Rewrite escaped symbols
- * 5) Create a terminal declaration for each keyword and token symbols,
- *    and rewrite keyword and token symbols to nonterminal symbols, referring
- *    to the corresponding terminal definitions
- * 6) TODO: Extract subsequences of syntax symbols into a new
- *    nonterminal with a fresh name
- * 7) Parse pretemplates and replace with real templates
- * 8) Well-formedness check on template gaps
+ * 5) Desugar extensions: fill in unmentioned imported grammars
+ *    and collect multiple extensions of same nonterminal together.
+ * 6) Name transformers
+ * 6) Parse pretemplates and replace with real templates
+ * 7) Well-formedness check on template gaps (???)
  */
 public class GrammarRewriter {
 
@@ -62,52 +62,57 @@ public class GrammarRewriter {
         List<Api> apis = new ArrayList<Api>();
         for (ApiIndex apii : map.values()) { apis.add((Api)apii.ast()); }
 
-        List<Api> results = rewritePatterns(apis, env);
-        List<Api> i2 = rewriteTransformerNames(results, env);
-        List<Api> rs = parseTemplates(i2, env);
-        return rs;
+        // Steps 1-6
+        List<Api> results1 = rewritePatterns(apis, env);
+
+        // Step 7
+        List<Api> results2 = parseTemplates(results1, env);
+
+        return results2;
     }
 
     private static List<Api> rewritePatterns(List<Api> apis, GlobalEnvironment env) {
-        ItemDisambiguator id = new ItemDisambiguator(env);
         List<Api> results = new ArrayList<Api>();
+        List<StaticError> allErrors = new ArrayList<StaticError>();
 
         for (Api api: apis) {
+            List<StaticError> errors = new ArrayList<StaticError>();
+
             // 1) Disambiguate item symbols and rewrite to either nonterminal,
             //    keyword or token symbol
-            Api idResult = (Api) api.accept(id);
-            if (id.errors().isEmpty()) {
-                // 2) Disambiguate nonterminal parameters
-                // No longer done.
-                Api npdResult = idResult;
+            api = (Api) api.accept(new ItemDisambiguator(env, errors));
 
-                // 3) Remove whitespace where instructed by non-whitespace symbols
-                WhitespaceElimination we = new WhitespaceElimination();
-                Api sdResult = (Api) npdResult.accept(we);
+            // 2) Disambiguate nonterminal parameters
+            // No longer done.
 
-                // 4) Rewrite escaped characters
-                EscapeRewriter escapeRewriter = new EscapeRewriter();
-                Api erResult = (Api) sdResult.accept(escapeRewriter);
+            // 3) Remove whitespace where instructed by non-whitespace symbols
+            if (errors.isEmpty()) 
+                api = (Api) api.accept(new WhitespaceElimination());
 
-                // 5) Rewrite terminals to be declared using terminal definitions
-                //TerminalRewriter terminalRewriter = new TerminalRewriter();
-                // Api trResult = (Api) erResult.accept(terminalRewriter);
+            // 4) Rewrite escaped characters
+            if (errors.isEmpty())
+                api = (Api) api.accept(new EscapeRewriter());
 
-                results.add(erResult);
+            // 5) Desugar extensions
+            if (errors.isEmpty())
+                api = (Api) api.accept(new ExtensionDesugarer(env, errors));
+
+            // 6) Rewrite transformer names
+            if (errors.isEmpty())
+                api = (Api) api.accept(new RewriteTransformerNames());
+
+            if (errors.isEmpty()) {
+                results.add(api);
+            } else {
+                allErrors.addAll(errors);
             }
         }
-        return results;
-    }
 
-    private static List<Api> rewriteTransformerNames(List<Api> apis, GlobalEnvironment env) {
-        List<Api> results = new ArrayList<Api>();
-        for (Api api: apis) {
-            Debug.debug(Debug.Type.SYNTAX, 1, "Name transformers in " + api.getName());
-            RewriteTransformerNames collector = new RewriteTransformerNames();
-            final Api transformed = (Api) api.accept(collector);
-            results.add(transformed);
+        if (allErrors.isEmpty()) {
+            return results;
+        } else {
+            throw new MultipleStaticError(allErrors);
         }
-        return results;
     }
 
     private static List<Api> parseTemplates(List<Api> apis, GlobalEnvironment env) {
@@ -121,8 +126,8 @@ public class GrammarRewriter {
         return results;
     }
 
-
-    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, GlobalEnvironment env) {
+    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, 
+                                                            GlobalEnvironment env) {
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
         return apiN.apis().values();
     }

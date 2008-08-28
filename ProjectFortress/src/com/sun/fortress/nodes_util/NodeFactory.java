@@ -1160,11 +1160,14 @@ public class NodeFactory {
         });
     }
 
-    public static SyntaxDef makeSyntaxDef(Span s, List<SyntaxSymbol> syntaxSymbols, TransformerDecl transformation) {
-        return new SyntaxDef(s, syntaxSymbols, transformation);
+    public static SyntaxDef makeSyntaxDef(Span s, Option<String> modifier, 
+                                          List<SyntaxSymbol> syntaxSymbols, 
+                                          TransformerDecl transformation) {
+        return new SyntaxDef(s, modifier, syntaxSymbols, transformation);
     }
 
-    public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier, Id nonterminal, Id grammar) {
+    public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier, 
+                                                    Id nonterminal, Id grammar) {
         return new SuperSyntaxDef(s, modifier, nonterminal, grammar);
     }
 

@@ -936,9 +936,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forNonterminalDefOnly(NonterminalDef that,
+                                                  String name_result,
+                                                  List<String> syntaxDefs_result,
                                                   String header_result,
-                                                  Option<String> astType_result,
-                                                  List<String> syntaxDefs_result) {
+                                                  Option<String> astType_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( header_result );
@@ -952,17 +953,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
-                                                           String header_result,
-                                                           Option<String> astType_result,
+                                                           String name_result,
                                                            List<String> syntaxDefs_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( header_result );
-        if ( astType_result.isSome() ){
-            s.append( " |" );
-            s.append( astType_result.unwrap() );
-        }
-        s.append( ":=\n" );
+        s.append( name_result );
+        s.append( "|:=\n" );
         s.append( "  " + join(syntaxDefs_result, "\n| ") );
 
         return s.toString();

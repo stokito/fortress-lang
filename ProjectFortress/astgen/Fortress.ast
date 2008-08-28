@@ -561,8 +561,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * grammar member (nonterminal or terminal) declaration
          * Names and params must be unqualified.
          */
-        abstract GrammarMemberDecl(NonterminalHeader header,
-                                   Option<BaseType> astType) implements AbsDecl;
+        abstract GrammarMemberDecl(Id name) implements AbsDecl;
             /**
              * nonterminal declaration
              */
@@ -570,7 +569,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * nonterminal definition in nonterminal declarations
                  */
-                NonterminalDef();
+                NonterminalDef(NonterminalHeader header, Option<BaseType> astType);
                 /**
                  * nonterminal extending definition in nonterminal declarations
                  */
@@ -596,14 +595,14 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         /**
          * syntax declaration
          */
-        abstract SyntaxDecl() implements AbsDecl;
+        abstract SyntaxDecl(Option<String> modifier) implements AbsDecl;
             /**
              * syntax definition in syntax declarations
              */
             SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                       TransformerDecl transformer);
 
-            SuperSyntaxDef(Option<String> modifier, Id nonterminal, Id grammar);
+            SuperSyntaxDef(Id nonterminal, Id grammar);
 
         /**
           * Transformation declaration

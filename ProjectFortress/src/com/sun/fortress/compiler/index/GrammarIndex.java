@@ -30,6 +30,8 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NonterminalDecl;
+import com.sun.fortress.nodes.NonterminalDef;
+import com.sun.fortress.nodes.NonterminalExtensionDef;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -87,6 +89,16 @@ public class GrammarIndex {
         }
         return all;
     }
+    public List<NonterminalDef> getDefinitionAsts() {
+        List<NonterminalDef> all = new ArrayList<NonterminalDef>();
+        for (NonterminalIndex index : this.getDeclaredNonterminals()) {
+            if (index instanceof NonterminalDefIndex) {
+                all.add(((NonterminalDefIndex) index).ast());
+            }
+        }
+        return all;
+    }
+
 
     /* returns the list of nonterminal extensions
      */
@@ -95,6 +107,15 @@ public class GrammarIndex {
         for (NonterminalIndex index : this.getDeclaredNonterminals()){
             if (index instanceof NonterminalExtendIndex) {
                 all.add((NonterminalExtendIndex) index);
+            }
+        }
+        return all;
+    }
+    public List<NonterminalExtensionDef> getExtensionAsts() {
+        List<NonterminalExtensionDef> all = new ArrayList<NonterminalExtensionDef>();
+        for (NonterminalIndex index : this.getDeclaredNonterminals()) {
+            if (index instanceof NonterminalExtendIndex) {
+                all.add(((NonterminalExtendIndex) index).ast());
             }
         }
         return all;
