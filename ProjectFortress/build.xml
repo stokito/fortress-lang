@@ -138,7 +138,7 @@ checkParserUptodate, clean, cleanCache, compile, compileCommon, compileCommonLin
 compileLint, doc, grammarCoverage, help, init, interpreter-jar, makeAST, operatorsGen,
 fortressparser, preparser, parser, reportNotPassing, systemProperties,
 test, testAll, testDemos, testSystem,
-testOnly, testCruiseControl"/>
+testOnly -DtestPattern='some pattern', testCruiseControl"/>
         <echo message="If you are building Fortress, you want ant compile or ant test."/>
     </target>
 
