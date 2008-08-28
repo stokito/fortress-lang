@@ -223,7 +223,8 @@ private String StringLiteralContent =
 
 private String InvalidStringLiteralContent = ["] / [\\] / [\u201c] / [\u201d] ;
 
-private String EscapeSequence = '\\' a1:[btnfr"\\]
+private String EscapeSequence =
+     '\\' a1:[btnfr"\\]
      { switch (a1) {
            case 'b': { yyValue = "\b"; break; }
            case 't': { yyValue = "\t"; break; }
@@ -231,12 +232,19 @@ private String EscapeSequence = '\\' a1:[btnfr"\\]
            case 'f': { yyValue = "\f"; break; }
            case 'r': { yyValue = "\r"; break; }
            case '"': { yyValue = "\""; break; }
-           case '\'': { yyValue = "\'"; break; }
            case '\\': { yyValue = "\\"; break; }
            default: { yyValue = ""; }
        }
-     };
+     }
+   / '\\' a1:[\u201c] { yyValue = "\u201c"; }
+   / '\\' a1:[\u201d] { yyValue = "\u201d"; };
 
 private String CharLiteralContent =
      EscapeSequence
-   / a1:(![\\] _) { yyValue = String.valueOf(a1); };
+   / a1:(!InvalidCharLiteralContent _) { yyValue = String.valueOf(a1); };
+
+private String InvalidCharLiteralContent =
+     a1:[\\\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f"\u201c\u201d]
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Invalid character literal: " + a1);
+     };
