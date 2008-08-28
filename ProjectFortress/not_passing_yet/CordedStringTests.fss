@@ -71,7 +71,6 @@ component CordedStringTests
   end
   *)
   
- 
   
   (* test *) validateSubdivision(subject: String, division): () = do
     var len: ZZ32 = 0
@@ -87,8 +86,9 @@ component CordedStringTests
   
   test testIlk() = do
     three = 3
-    println(three " is a " three.ilkName)
-    println((three asif ZZ32)" is a " ((2+1) asif ZZ32).ilkName)    
+    println(three " is an " three.ilkName)
+    threeFourFive: ZZ32[3] = [3 4 5]
+    println(threeFourFive " is a " threeFourFive.ilkName)    
     hello = "Hello"
     println(hello " is a " hello.ilkName)
     hw = CatString(hello, " World")
@@ -128,17 +128,23 @@ component CordedStringTests
   test comparison():() = do
     smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
+    smallerFlat = smaller.asJavaString
+    biggerFlat = bigger.asJavaString
     smaller.verify
     bigger.verify
     assert(smaller < bigger)
+    assert(smallerFlat < bigger)
+    assert(smallerFlat < biggerFlat)
     assert(bigger > smaller)
     assert(smaller[10:] < bigger[10:])
     assert(bigger[12:] > smaller[12:])
+    assert(biggerFlat[12:] > smaller[12:])
     a = smaller[30:36] 
     b = bigger[30:36]
     a.verify
     b.verify
     assert(smaller[30#6], bigger[30:35], smaller[30:36] " is not = to " bigger[30:36])
+    assert(smallerFlat[30#6], bigger[30:35], smallerFlat[30:36] " is not = to " bigger[30:36])
   end
  
   object CatStringReduction extends MonoidReduction[\String\]

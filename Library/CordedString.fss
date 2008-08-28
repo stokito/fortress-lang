@@ -115,7 +115,7 @@ export CordedString
  *)
             
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
-        printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString
+        (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
         leftBounds' = r0 ∩ left.bounds
         r1 = (r0 ≪ left.size)
         rightBounds' = r1 ∩ right.bounds
@@ -212,22 +212,33 @@ export CordedString
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
     
     opr CMP(self, other: String) =  do
+        (* printlnWithThread (baseString.ilkName "[" self.range "]= " self " CMP " other.ilkName " " other).asJavaString *)
         pieces = baseString.subdivide()
         (if pieces.nonEmpty  then
             BIG LEXICO [(start, str) ← pieces] (do
-            printlnWithThread ("piece @" start " is " str).asJavaString
-            self.uncheckedSubstring((start#|str|) ∩ self.bounds) 
-            end) CMP str
-        else
-            BIG LEXICO [i ← 0#(|self| MIN |other|)] self.get(i) CMP other.get(i)             
-        end) LEXICO (|self| CMP |other|)  
+                    baseSubrange = (start#|str|) ∩ range
+                    baseString.uncheckedSubstring(baseSubrange) CMP other.uncheckedSubstring(baseSubrange≪range.lower)
+            end) 
+        else 
+            do otherPieces = other.subdivide()
+            if otherPieces.nonEmpty then
+                BIG LEXICO [(start, str) ← otherPieces] (do
+                        baseSubrange = ((start#|str|) ∩ range) ≫ range.lower
+                        baseString.uncheckedSubstring(baseSubrange) CMP str
+                end)
+            else
+                BIG LEXICO [i ← 0#(|self| MIN |other|)] self.get(i) CMP other.get(i)
+            end             
+        end) LEXICO (|self| CMP |other|)
     end
     
     verify() = do
         baseString.verify()
         deny(range.isEmpty, "SubString (" range ") has empty range")
-        assert(range < baseString.bounds, "SubString (" range ") has range equal to or greater than that of baseString (" baseString.bounds ")") 
+        assert(range < baseString.bounds, 
+                "SubString (" range ") has range equal to or greater than that of baseString (" baseString.bounds ")")
     end
+    
     showStructure(indent) = do
         margin(indent)
         println "S" |self| "=[" range "]" 
@@ -240,11 +251,11 @@ export CordedString
     end
     
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
-        printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString
+        (* printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString *)
         assert((r0≫range.lower) ≤ range, "asking for substring ["  r0 "] of S" self.size)
-        if r0.isEmpty then  printlnWithThread "returning EmptyString";  EmptyString
-        elif r0 = self.bounds then printlnWithThread "returning self" ; self
-        else printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" 
+        if r0.isEmpty then EmptyString
+        elif r0 = self.bounds then self
+        else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *) 
             SubString'(baseString, r0≫range.lower)
         end
     end
