@@ -64,7 +64,7 @@ import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.StringComparer;
+import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.Useful;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -376,18 +376,18 @@ public class Desugarer extends Rewrite {
         rewrites = initial;
         arrows = initialArrows;
         visibleGenericParameters = initialGenericScope;
-        usedGenericParameters = new BATree<String, StaticParam>(StringComparer.V);
+        usedGenericParameters = new BATree<String, StaticParam>(StringHashComparer.V);
         topLevelUses = initialTopLevelUses;
         functionals = initialFunctionals;
-        // packages = new BASet<String>(StringComparer.V);
+        // packages = new BASet<String>(StringHashComparer.V);
     }
 
     public Desugarer(boolean isLibrary) {
-        this(new BATree<String, Thing>(StringComparer.V),
-             new BATree<String, StaticParam>(StringComparer.V),
-             new BASet<String>(StringComparer.V),
-             new BASet<String>(StringComparer.V),
-             new BASet<String>(StringComparer.V)
+        this(new BATree<String, Thing>(StringHashComparer.V),
+             new BATree<String, StaticParam>(StringHashComparer.V),
+             new BASet<String>(StringHashComparer.V),
+             new BASet<String>(StringHashComparer.V),
+             new BASet<String>(StringHashComparer.V)
              );
         this.isLibrary = isLibrary;
     }
@@ -1331,7 +1331,7 @@ public class Desugarer extends Rewrite {
      */
     private BATree<String, Boolean> addToImmediateDef(BATree<String, Boolean> immediateDef, String s) {
         if (immediateDef == null)
-            immediateDef = new BATree<String, Boolean>(StringComparer.V);
+            immediateDef = new BATree<String, Boolean>(StringHashComparer.V);
         immediateDef.put(s, Boolean.FALSE);
         return immediateDef;
     }

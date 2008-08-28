@@ -470,7 +470,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return getValueNullTail(s, v);
     }
 
-    static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringComparer.V);
+    static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     
     final public  FValue getValueNull(VarRef vr) {
         Id name = vr.getVar();

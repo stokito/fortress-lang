@@ -770,6 +770,12 @@ public class  OverloadedFunction extends Fcn
                     System.err.print("\nRefining functional method "+ best_f);
                 best_f = fm.getApplicableClosure(args,loc,envForInference);
             }
+            if (best_f instanceof GenericFunctionOrMethod) {
+                GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
+                best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args,
+                        gsfn, loc, best_f.getWithin());
+            }
+
             if (debugMatch)
                 System.err.println("Choosing " + best_f + " for args " + args);
             cache.syncPut(args, best_f);
