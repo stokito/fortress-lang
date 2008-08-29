@@ -18,9 +18,6 @@
 package com.sun.fortress.compiler.desugarer;
 
 import junit.framework.TestCase;
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
-import junit.framework.Test;
 
 import java.io.FileNotFoundException;
 import java.io.File;
@@ -77,7 +74,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         System.setErr(wt_err);
         System.setOut(wt_out);
         // System.out.println("Evaluating " + file + "...");
-        FValue original = Shell.eval(file, true);
+        FValue original = Shell.eval(file);
 
         String name = file.substring( 0, file.lastIndexOf(".") );
         String tfs = name + ".tfs";
@@ -96,7 +93,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
 
         // System.out.println("Evaluating " + generated + "...");
-        assertEquals(original, Shell.eval(generated, true));
+        assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }

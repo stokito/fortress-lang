@@ -159,7 +159,7 @@ public class FileTests {
                     }
                 }
             } finally {
-                            fr.clear();
+                            //fr.clear();
             }
 
             /* Come here IFF NO EXCEPTIONS, to analyze output */
