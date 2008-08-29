@@ -55,6 +55,7 @@ export CordedString
   end
   
   fibonacci(n): ZZ32 = if n ≤ 2 then 1 else fibonacci(n-1) + fibonacci(n-2) end
+(*
   fib = do
     maxFib = 46         (* fib(47) > maximum ZZ32 *)
     a: Array1⟦ZZ32, 1, maxFib⟧ = array1⟦ZZ32, maxFib⟧().shift(1)
@@ -64,6 +65,7 @@ export CordedString
     println(a)
     a
   end
+*)
     
 (* 
 ==== Shared Traits ====
@@ -78,7 +80,9 @@ export CordedString
   
   
   trait Balanceable 
-    isBlanced() = |size| = 0 OR: |size| ≥ fib(self.depth]
+(*
+    isBlanced() = |size| = 0 OR: |size| ≥ fib(self.depth)
+*)
   end Balanceable
 (*
 ==== CatString ====
