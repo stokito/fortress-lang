@@ -15,11 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXtab
+component XXXinvalidSpace
 export Executable
 
 run(args:String...) = do
-  println"Tabs are not allowed."
+  println "Tabs are not allowed."
 end
 
 end

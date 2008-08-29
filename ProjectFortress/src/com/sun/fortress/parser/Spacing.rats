@@ -29,19 +29,22 @@ import Symbol;
 transient void EndOfFile  = !_ ;
 transient private void Whitespace =
      Space
-   / <ErrorProduction> "\t"
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Tab characters are not allowed in Fortress programs except in comments.");
-     }
+   / InvalidSpace
    / Newline ;
 transient private void Space      =
      void: " "
    / void: "\f"
-   / <ErrorProduction> "\t"
+   / InvalidSpace
+   / NoNewlineComment ;
+transient private void InvalidSpace =
+     <ErrorProduction1> ("\t" / "\u000b")
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Tab characters are not allowed in Fortress programs except in comments.");
      }
-   / NoNewlineComment ;
+   / <ErrorProduction2> ("\u001c" / "\u001d" / "\u001e" / "\u001f")
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "An invalid whitespace character is used.");
+     };
 transient private void Newline    = void:"\r\n" / void:"\r" / void:"\n" / NewlineComment ;
 private void Comment    =
      a1:"(*" CommentContents a3:"*)"
