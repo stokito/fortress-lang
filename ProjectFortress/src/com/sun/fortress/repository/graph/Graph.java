@@ -159,6 +159,10 @@ public class Graph<GNode extends GraphNode>{
 	public void addNode( GNode node ){
 		edges.put( node, new ArrayList<GNode>() );
 	}
+	
+	public void removeNode( GNode node ) {
+	    edges.remove( node );
+	}
 
 	public List<GNode> successors( GNode node ){
 		return edges.get( node );

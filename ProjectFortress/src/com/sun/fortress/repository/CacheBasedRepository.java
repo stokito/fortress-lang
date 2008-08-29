@@ -23,10 +23,7 @@ import static com.sun.fortress.useful.ConvenientStrings.SEP;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
@@ -40,7 +37,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Id;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -146,6 +142,10 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         }
     }
 
+    public void deleteApi(APIName name) {
+        apis.remove(name);
+    }    
+    
     public void deleteComponent(APIName name) {
         components.remove(name);
         SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));
@@ -200,6 +200,13 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
        return dateFromFile(name, s, tag);
     }
 
-    public void clear() {}
+    public void clear() {
+        for(APIName apiName : apis.keySet()) {
+            deleteApi(apiName);
+        }
+        for(APIName componentName : components.keySet()) {
+            deleteComponent(componentName);
+        }
+    }
 
 }
