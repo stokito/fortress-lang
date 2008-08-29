@@ -28,11 +28,11 @@ import static com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.e
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AnyType;
@@ -76,7 +76,7 @@ abstract public class FType implements Comparable<FType> {
     final String name;
     private final int serial;
     private final int hash;
-    private BASet<FType> excludes = new BASet<FType>(comparator);
+    private Set<FType> excludes = new BASet<FType>(comparator);
     private volatile boolean excludesClosed = false;
     private static int counter;
     protected volatile List<FType> transitiveExtends;
@@ -180,11 +180,12 @@ abstract public class FType implements Comparable<FType> {
             }
         }
         excludesClosed = true;
+        excludes = Collections.unmodifiableSet(new HashSet<FType>(excludes));
     }
 
     public Set<FType> getExcludes() {
         if (!excludesClosed) computeTransitiveExcludes();
-        return excludes.copy();
+        return excludes;
     }
 
     public Set<FType> getTransitiveComprises() {
@@ -216,7 +217,9 @@ abstract public class FType implements Comparable<FType> {
     }
 
     private void addExcludesInner(FType t) {
-        excludes.syncPut(t);
+        if (excludes instanceof BASet) {
+            ((BASet<FType>) excludes).syncPut(t);
+        }
     }
 
     public boolean excludesOther(FType other) {
@@ -334,7 +337,6 @@ abstract public class FType implements Comparable<FType> {
     /**
      * Returns "this subtypeof other"
      */
-    @SuppressWarnings("unchecked")
     public boolean subtypeOf(FType other) {
         if (this==other) return true;
         if (other == FTypeTop.ONLY)
