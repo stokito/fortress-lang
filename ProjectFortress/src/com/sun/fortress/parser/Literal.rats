@@ -221,7 +221,16 @@ private String StringLiteralContent =
      EscapeSequence
    / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); };
 
-private String InvalidStringLiteralContent = ["] / [\\] / [\u201c] / [\u201d] ;
+private void InvalidStringLiteralContent =
+     void:["\u201c\u201d]
+   / a1:[\\]
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Invalid string literal content: " + a1);
+     }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Invalid string literal content: " + c);
+     };
 
 private String EscapeSequence =
      '\\' a1:[btnfr"\\]
@@ -247,4 +256,8 @@ private String InvalidCharLiteralContent =
      a1:[\\\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f"\u201c\u201d]
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Invalid character literal: " + a1);
+     }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Invalid character literal: " + c);
      };
