@@ -41,7 +41,12 @@ while ( $line = <IN> ) {
     } else {
       push @codesstart1, $hex;
     }
-  } elsif ( $category =~ /Mn|Mc|Nd|Pc|Cf/ ) {
+  } elsif ( $category =~ /Pc/ ) {
+    my $hex = hex $code;
+    if ( $hex == 0x005F ) {
+      push @codesrest1, $hex;
+    }
+  } elsif ( $category =~ /Mn|Mc|Nd|Cf/ ) {
     my $hex = hex $code;
     if ( $hex > 0xFFFF ) {
       push @codesrest2, $hex;
