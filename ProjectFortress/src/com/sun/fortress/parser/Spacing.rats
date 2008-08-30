@@ -26,7 +26,8 @@ module com.sun.fortress.parser.Spacing(Symbol);
 
 import Symbol;
 
-transient void EndOfFile  = !_ ;
+transient void EndOfFile  = "\u001a"? w !_ ;
+
 transient private void Whitespace =
      Space
    / InvalidSpace
@@ -66,16 +67,25 @@ transient private void CommentContents =
 transient private void NNCommentContents =
      NNCommentContent*;
 
+transient private void WhitespaceCharacters =
+     [\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u2028\u2029] ;
+
+transient private void NoNewlineWhitespaceCharacters =
+     void:"\u000d\u000a"
+   / [\u0009\u000b\u000c\u001c\u001d\u001e\u001f] ;
+
 transient private void CommentContent =
      Comment
    / c:'*' !')'
-   / c:_ &{c != '*'}
+   / WhitespaceCharacters
+   / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
    ;
 
 transient private void NNCommentContent =
      NoNewlineComment
    / c:'*' !')'
-   / c:_ &{c != '*' && c != '\n' && c != '\r'}
+   / NoNewlineWhitespaceCharacters
+   / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
    ;
 
 transient private void NewlineComment = Comment;
