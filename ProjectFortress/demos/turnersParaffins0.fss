@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 (* Turner's Paraffins
-Version 0: as simple as possible
+Version 0: as simple as possible, modeled after Turner's paper, mostly.
 
 David Turner showed[1] that the generation of paraffins up to isometry
 could be solved elegantly using higher order functions. Turner didn't
@@ -167,6 +167,9 @@ items that will be filtered out.
 2) The j lower bound is based on just i <= j
 3) We need both filters and linear algebraic facility to generate
    the upper bounds for a and b.
+
+At the time I promoted these filters, the code did not speed up. Almost all
+the work is in paraffin generation, not radical generation.
 *)
 
 genRadicals (n:ZZ32) = do
@@ -247,13 +250,11 @@ Outer list position i is a list of all Paraffins of size i.
 Generate paraffins by adding CH3 to all radicals with one fewer
 carbon.  Then call quotient to eliminate duplicates (equivalent
 molecules).
-
 *)
 
 genParaffins (n:ZZ32) =
     <| quotient <| Paraffin (H,H,H,r) | r<-radList |>
       | radList<-genRadicals (n-1) |>
-
 
 (* During a code walk through I had trouble getting the meaning of
 this code across to Dan Nussbaum, a very experienced programmer
@@ -278,9 +279,9 @@ genParaffins (n:ZZ32) = do
   <| quotient addMethyl radList | radList<-genRadicals (n-1) |>
 end
 
-I sort of like the alternative available with BIG ||, which allows me
-to put the generator first. Once BIG || works for lists, the following
-should work:
+I like the alternative available with BIG ||, which allows me to put
+the generator first. Once BIG || works for lists, the following should
+work:
 
 genParaffins (n:ZZ32) =
     BIG || [radList<-genRadicals (n-1)]
@@ -288,7 +289,7 @@ genParaffins (n:ZZ32) =
 
 But, I really want a different comprehension syntax which allows me to specify
 generators first. Various folks are considering alternatives. Guy is considering
-this | based alternative, which I like.
+this alternative, which I like.
 
 genParaffins (n:ZZ32) =
     <|radList<-genRadicals (n-1) |
@@ -303,7 +304,7 @@ run(args:String...) = do
 
     vPrintln(a:Any) = if verbose then println a end
 
-    vPrintln("===== Enumerate and count paraffins & radicals by Turner's method. =====")
+    vPrintln("===== Enumerate/count paraffins & radicals by Turner's method. =====")
 
     vPrintln ("----- Generate paraffins up to size " n_p " -----")
     startPars = getTimeMS()
@@ -313,7 +314,7 @@ run(args:String...) = do
         println("Generating " n_p " paraffins took " (endPars - startPars) " ms") end
 
     parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
-    vPrintln("Numbers of paraffins; check results up to size " (|parStandards|))
+    vPrintln("Numbers of paraffins; check results up to size " |parStandards|)
     i:ZZ32 := 0
     for pars<-seq allPars do
         vPrintln("carbon atoms: " (i+1))
@@ -334,7 +335,7 @@ run(args:String...) = do
     i := 0
     for rads<-seq allRads do
         vPrintln("carbon atoms: " i)
-        vPrintln("  radicals (canonical & others): " (|rads|))
+        vPrintln("  radicals (canonical & others): " |rads|)
         i := i+1
     end
     vPrintln("----- Generate radicals up to size " n_r " done.-----")
@@ -350,7 +351,7 @@ test testRadicalConstruction () = do
     println(" propyl: " propyl);    println(" butyl:  " butyl)
     println(" pentyl: " pentyl)
 
-    assert (methyl,  methyl);       assert (pentyl,  pentyl)
+    for r<-<|methyl, ethyl, propyl, butyl, pentyl|> do assert (r,r) end
     assert (methyl =/= ethyl);        assert (methyl =/= pentyl)
     assert (propyl =/= butyl);        assert (butyl  =/= pentyl)
 
@@ -362,7 +363,7 @@ test testRadicalConstruction () = do
     println(" y3: "  y3);           println(" t4: " t4)
     println(" y4: "  y4);           println(" z4: " z4)
 
-    assert (y3,  y3);               assert (z4,  z4)
+    for r<-<|y3, y4, t4, z4|> do assert (r,r) end
     assert (y3 =/= t4);               assert (y4 =/= z4)
     assert (y3 =/= y4)
     assert (y3 =/= methyl);           assert (y3 =/= ethyl)
@@ -393,12 +394,12 @@ After type inference is online ...
     for rads<-seq(genRadicals 7) do
         println ("Size: " s)
         if 0 <= s < 4 then
-            println (" " (|radsSmall[s]|) " hand generated Rads: " radsSmall[s])
+            println (" " |radsSmall[s]| " hand generated Rads: " radsSmall[s])
             assert (rads, radsSmall[s])
         end
-        println (" " (|rads|) " auto generated Rads: " rads)
+        println (" " |rads| " auto generated Rads: " rads)
         ncRads = <|[\Radical\] r | r<-rads, r.nonCanon()|>
-        println (" " (|ncRads|) " non-canonical Rads: " ncRads)
+        println (" " |ncRads| " non-canonical Rads: " ncRads)
         println (" " (|rads| - |ncRads|) " canonical Rads")
         s += 1
     end
@@ -444,6 +445,7 @@ by the above commented out code.
 *)
 test setSmallParaffins () = do
     (* Establish some values for testing *)
+    parsSmall[0] := <|[\Paraffin\] |>
     parsSmall[1] := <|[\Paraffin\] methane|>
     parsSmall[2] := <|[\Paraffin\] ethane|>
     parsSmall[3] := <|[\Paraffin\] propane|>
@@ -462,14 +464,11 @@ test testParaffinConstruction () = do
     println (" hexane3: "  hexane3);    println (" hexane4: "  hexane4)
     println (" hexane5: "  hexane5)
 
-    assert (methane,   methane);        assert (propane,   propane)
-    assert (butane2,   butane2);        assert (pentane2,  pentane2)
-    assert (hexane2,   hexane2);        assert (methane  =/= ethane)
-    assert (butane1  =/= butane2);        assert (pentane1 =/= pentane2)
-    assert (pentane1 =/= pentane3);       assert (pentane2 =/= pentane3)
-    assert (hexane1  =/= hexane2);        assert (hexane2  =/= hexane3)
-
-    assert (hexane4  =/= hexane5)
+    for ps<-parsSmall, p<-ps do assert(p,p) end
+    assert (methane  =/= ethane);         assert (butane1  =/= butane2)
+    assert (pentane1 =/= pentane2);       assert (pentane1 =/= pentane3)
+    assert (pentane2 =/= pentane3);       assert (hexane1  =/= hexane2)
+    assert (hexane2  =/= hexane3);        assert (hexane4  =/= hexane5)
 
     assert (1, |methane|);              assert (2, |ethane|)
     assert (3, |propane|);              assert (4, |butane1|)
@@ -601,9 +600,9 @@ test testParaffinGeneration() = do
     allPars = genParaffins 4
     for pars<-seq allPars do
         println ("Size: " s)
-        println (" " (|pars|) " auto generated Pars: " pars)
+        println (" " |pars| " auto generated Pars: " pars)
         if 0 <= s <= 6 then
-            println (" " (|parsSmall[s]|) " hand generated Pars: " parsSmall[s])
+            println (" " |parsSmall[s]| " hand generated Pars: " parsSmall[s])
             assert (|pars|, |parsSmall[s]|)
         end
         s += 1
