@@ -44,9 +44,11 @@ option setOfString(FORTRESS_KEYWORDS);
           }
         };
 */
+private transient String PrimeCharacter = [\u2032-\u2037] ;
 transient String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
 transient String idstart = UnicodeIdStart / [_] ;
-transient String idrest  = UnicodeIdStart / ['] / UnicodeIdRest ;
+transient String idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest ;
+
 private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 
 Id Id =

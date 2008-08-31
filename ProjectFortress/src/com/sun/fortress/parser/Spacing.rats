@@ -46,7 +46,9 @@ transient private void InvalidSpace =
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "An invalid whitespace character is used.");
      };
-transient private void Newline    = void:"\r\n" / void:"\r" / void:"\n" / NewlineComment ;
+transient private void Newline =
+     void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
+   / NewlineComment ;
 private void Comment    =
      a1:"(*" CommentContents a3:"*)"
    / <ErrorProduction> "(*" CommentContents w EndOfFile
