@@ -30,11 +30,11 @@ transient void EndOfFile  = "\u001a"? w !_ ;
 
 transient private void Whitespace =
      Space
-   / InvalidSpace
    / Newline ;
 transient private void Space      =
      void: " "
    / void: "\f"
+   / "&" s Whitespace
    / InvalidSpace
    / NoNewlineComment ;
 transient private void InvalidSpace =
@@ -48,7 +48,7 @@ transient private void InvalidSpace =
      };
 transient private void Newline =
      void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
-   / NewlineComment ;
+   / !("&") NewlineComment ;
 private void Comment    =
      a1:"(*" CommentContents a3:"*)"
    / <ErrorProduction> "(*" CommentContents w EndOfFile
@@ -57,7 +57,8 @@ private void Comment    =
      };
 
 private void NoNewlineComment    =
-     a1:"(*" NNCommentContents a3:"*)"
+     "(*" NNCommentContents "*)"
+   / "&" s NewlineComment
    / <ErrorProduction> "(*" CommentContents w EndOfFile
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Unbalanced comment: '*)' is expected.");
