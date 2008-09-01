@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    Copyright 2007 Sun Microsystems, Inc.,
+%%    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%%    All rights reserved.
+%%
+%%    U.S. Government Rights - Commercial software.
+%%    Government users are subject to the Sun Microsystems, Inc. standard
+%%    license agreement and applicable provisions of the FAR and its supplements.
+%%
+%%    Use is subject to license terms.
+%%
+%%    This distribution may include materials developed by third parties.
+%%
+%%    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%%    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%
+%%
+%% Stuff for the EMACS "fortify" command (M-&) %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ProvidesPackage{fortify}
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+\usepackage{stmaryrd}
+\usepackage{inputenc} %useful to type directly accentuated
+                            %characters
+
+\newlength{\FortressCodeIndent}
+\setlength{\FortressCodeIndent}{1em}
+\newlength{\FortressParSkip}
+\setlength{\FortressParSkip}{\parskip}
+\def\Fortress{\list{}{\leftmargin \FortressCodeIndent
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}\item
+                      \begingroup\FortressInnerMacros\tabbing}
+\makeatletter
+% Need to be slightly different from \endtabbing
+\def\endFortress{\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+\newcommand\FortressMathsurround{\mathsurround=0.166666em}
+\newcommand\SmallFortressMathsurround{\mathsurround=0.083333em}
+\newcommand\KWD[1]{{\ensuremath{\mathtt{#1}\FortressMathsurround}}}
+\newcommand\OPR[1]{{\ensuremath{\mathtt{#1}\FortressMathsurround}}}
+\newcommand\TYP[1]{{\ensuremath{\mathrm{#1}\SmallFortressMathsurround}}}
+\newcommand\VAR[1]{{\ensuremath{\mathit{#1}\SmallFortressMathsurround}}}
+\newcommand\STR[1]{{\ensuremath{\hbox{\tt#1}\FortressMathsurround}}}
+\newcommand\EXP[1]{{\ensuremath{{\protect\FortressInnerMacros#1}\FortressMathsurround}}}
+\newcommand\FortressInnerKWD[1]{\mathrel{\mathtt{#1}}}
+\newcommand\FortressInnerOPR[1]{\mathbin{\mathtt{#1}}}
+\newcommand\FortressInnerTYP[1]{\mathord{\mathrm{#1}}}
+\newcommand\FortressInnerVAR[1]{\mathord{\mathit{#1}}}
+\newcommand\FortressInnerSTR[1]{{\tt#1}}
+\newcommand\FortressInnerMacros{\let\KWD\FortressInnerKWD\let\OPR\FortressInnerOPR
+  \let\TYP\FortressInnerTYP\let\VAR\FortressInnerVAR\let\STR\FortressInnerSTR}
+\newcommand\CONDEQ{\mathrel{\mathtt{:}}=\mathrel{\mathtt{:}}}
+\newcommand\ASSIGN{\mathrel{\mathtt{:}}=}
+\newcommand\COLON{\mathpunct{\mathtt{:}}}
+\newcommand\COLONOP{\mathinner{\mathtt{:}}}
+
+\newenvironment{FortressDoc}[1]{\vspace{0.5ex}%
+\begin{list}{}{%
+  \setlength{\parskip}{\FortressParSkip}
+  \settowidth{\leftmargin}{{\tt {#1}}}%
+  \addtolength{\leftmargin}{\FortressCodeIndent}}%
+     \item[]\raggedright%
+}{\unskip\end{list}\vspace{-3ex}}
+
+\newcommand\FortexSettings{%
+\setlength{\FortressCodeIndent}{0em}%
+}
+
+\medmuskip=4mu plus 2mu minus 1mu\relax      %Normal LaTeX has 4mu plus 2mu minus 4mu

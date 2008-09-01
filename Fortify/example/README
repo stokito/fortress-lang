@@ -6,9 +6,7 @@ I used the fortify tool to generate latex for the run method in buffons.fss.
 I added the following header:
 
 \documentclass{article}
-\usepackage{url, amssymb, amsmath, amsthm, stmaryrd, xspace}
-\usepackage{amsfonts, graphicx, fullpage, times, hyperref}
-\input ../fortify-macros
+\usepackage{fortify}
 
 \begin{document}
 
@@ -19,5 +17,5 @@ and the following footer:
 
 and saved the file in buffons.tex.  
 
-I then ran pdflatex on buffons.tex to generate buffons.pdf.
+I copied ../fortify.sty to this directory and then ran pdflatex on buffons.tex to generate buffons.pdf.
 
