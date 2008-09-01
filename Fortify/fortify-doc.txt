@@ -17,9 +17,9 @@
 
 This directory contains Emacs commands for converting Fortress code into LaTeX
 commands for the purposes of formatting. In order for LaTeX to understand the
-formatted code, you need to import Fortify/fortify-macros.tex in your LaTeX file:
+formatted code, you need to import the fortify.sty package in your LaTeX file:
 
-\input{$FORTRESS_HOME/Fortify/fortify-macros.tex}
+\usepackage{$FORTRESS_HOME/Fortify/fortify.sty}
 
 Emacs Formatting Commands
 -------------------------
