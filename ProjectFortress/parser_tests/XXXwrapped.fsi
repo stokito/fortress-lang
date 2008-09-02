@@ -15,11 +15,14 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api ApiFieldTest
+api XXXwrapped
 
 trait T
   (a: ZZ32, b: String)
   test x: ZZ32
+end
+
+object O(wrapped y: T)
 end
 
 end

@@ -467,10 +467,12 @@ AbsObjectDecl AbsObjectDecl =
        if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> contract = fhc.getContractClause();
+       Option<List<Param>> params = a2.getParams();
+       FortressUtil.checkNoWrapped(params);
        yyValue = new AbsObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
-            a2.getParams(), fhc.getThrowsClause(), contract, a3);
+            params, fhc.getThrowsClause(), contract, a3);
      };
 
 /* AbsGoInAnObject ::=

@@ -28,7 +28,7 @@ import Identifier;
 import Spacing;
 
 /* AbsFldDecl ::=
-     AbsFldMods? FldWTypes
+     AbsFldMods? NoNewlineFldWTypes
    | AbsFldMods? BindIdOrBindIdTuple w : w Type w ...
    | AbsFldMods? BindIdOrBindIdTuple w : w TupleType
  */
@@ -36,12 +36,29 @@ AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
 List<Modifier> AbsVarMods := AbsFldMods ;
 
-/* ApiFldDecl ::= ApiFldMods? BindId w NoNewlineIsType */
-AbsVarDecl ApiFldDecl = a1:ApiFldMods? a2:BindId w a3:NoNewlineIsType
-     { LValueBind lhs;
-       if (a1 == null)
-            lhs = (LValueBind)FortressUtil.mkLValueBind(a2, a3);
-       else lhs = (LValueBind)FortressUtil.mkLValueBind(a2, a3, a1);
-       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount),
-                                FortressUtil.mkList(lhs));
+/* ApiFldDecl ::=
+     ApiFldMods? NoNewlineFldWTypes
+   | ApiFldMods? BindIdOrBindIdTuple w : w Type w ...
+   | ApiFldMods? BindIdOrBindIdTuple w : w TupleType
+ */
+AbsVarDecl ApiFldDecl =
+     a1:ApiFldMods? a2:NoNewlineVarWTypes
+     { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
+     }
+   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:Type w ellipses
+     { List<LValueBind> lvs;
+       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
+       else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
+       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
+     }
+   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:TupleType
+     { Span span = createSpan(yyStart,yyCount);
+       List<Type> tys = a3.getElements();
+       if (a2.size() != tys.size())
+           syntaxError(span, "Mismatched numbers of variables and types.");
+       List<LValueBind> lvs;
+       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
+       else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
+       yyValue = new AbsVarDecl(span, lvs);
      };

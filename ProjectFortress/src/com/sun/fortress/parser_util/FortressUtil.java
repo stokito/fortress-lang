@@ -280,6 +280,20 @@ public final class FortressUtil {
         resetMods();
     }
 
+    public static void checkNoWrapped(Option<List<Param>> optParams) {
+        if ( optParams.isSome() ) {
+            List<Param> params = optParams.unwrap();
+            for ( Param param : params ) {
+                for ( Modifier mod : param.getMods() ) {
+                    if ( mod instanceof ModifierWrapped )
+                        syntaxError(mod.getSpan(),
+                                    "The modifier \"wrapped\" cannot " +
+                                    "appear in an API.");
+                }
+            }
+        }
+    }
+
     /* true is there exists a self parameter in a given parameter list */
     public static boolean isFunctionalMethod(List<Param> params) {
         for (Param p : params) {
