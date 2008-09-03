@@ -1834,7 +1834,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter bounds():ScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](b0,s0)
     getter mutability():String
     getter toString() = do
-        r = "[" b0 "#" s0 "]" self.mutability " = ["
+        r = "[" b0 "#" s0 "]" self.mutability "["
         if s0=0 then
             r "]"
         else
@@ -2115,13 +2115,13 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   getter size():ZZ32 = s0 s1
   getter bounds():Tuple2Range[\ZZ32,ZZ32,true\] = Tuple2Range[\ZZ32,ZZ32,true\](b0,b1,s0,s1)
   getter toString() = do
-    r : String := "[" b0 "#" s0 "," b1 "#" s1 "] ="
+    r : String := "[" b0 "#" s0 "," b1 "#" s1 "]"
     row(i) =
       for j <- seq(0#s1) do
          r := r " " get(i,j)
       end
     if s0 = 0 then
-      r " []"
+      r "[]"
     else
       r := r "\n["
       row(0)
@@ -2430,7 +2430,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         Tuple3Range[\ZZ32,ZZ32,ZZ32,true\](b0,b1,b2,s0,s1,s2)
 
     getter toString():String = do
-      r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "] ="
+      r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "]"
       row(i,k) =
           for j <- seq(0#s1) do
             r := r " " self[b0+i,b1+j,b2+k]
@@ -2444,7 +2444,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
           end
         end
       if s0=0 then
-        r " []"
+        r "[]"
       else
         r := r "\n["
         plane(0)
@@ -3319,7 +3319,7 @@ trait CompleteRange[\T\]
                     (true, true) =>  EqualTo
                     (true, false) => LessThan
                     (false, true) => GreaterThan
-                    else => do                    
+                    else => do
                                 a = self.lower PCMP other.lower
                                 b = self.upper PCMP other.upper
                                 typecase _ = (a,b) of
@@ -3339,7 +3339,7 @@ trait CompleteRange[\T\]
                                         (GreaterThan,Comparison) => LessThan
                                         else (* LessThan,Comparison *) => GreaterThan
                                 end (* typecase *)
-                         end (* do *)       
+                         end (* do *)
                 end (* case *)
             else => INVERSE (other CMP self)
         end (* typecase *)
@@ -3689,7 +3689,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
     getter depth() = 0
     getter asJavaString(): String
-    
+
     showStructure() = showStructure(0)
 
     opr |self| : ZZ32 = self.size
@@ -3717,9 +3717,9 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
       end
 
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
-    
+
     subdivide(): Generator[\(ZZ32, String)\]
-    
+
     (** The operator %||% with at least one String argument converts to String and
         appends **)
     opr ||(self, b:String):String
