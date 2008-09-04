@@ -223,6 +223,8 @@ private IfClause Elif = elif w a1:GeneratorClause w then w a2:BlockElems
 /* Else ::= else w BlockElems */
 Block Else = else w yyValue:BlockElems;
 
+/* CaseClause is defined in LocalDecl.rats */
+
 /* CaseClauses ::= CaseClause (br CaseClause)* */
 private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
