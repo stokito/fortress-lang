@@ -218,8 +218,7 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
    ObjectVarargs ::= transient w Varargs
    ObjectKeyword ::= ObjectParam w = w Expr
    ObjectParam   ::= ParamFldMods? Param
-                 |   var w transient w ParamWType
-                 |   (transient w)? var w ParamWType
+                 |   var w ParamWType
                  |   transient w Param
  */
 VarargsParam Varargs :=
@@ -238,36 +237,19 @@ NormalParam Param :=
      { if (a1 != null) yyValue = NodeFactory.makeParam(a2, a1);
        else yyValue = a2;
      }
-   / var w transient w a1:PlainParamWType
-     { List<Modifier> mods = new ArrayList<Modifier>(2);
-       mods.add(new ModifierVar(createSpan(yyStart,3)));
-       mods.add(new ModifierTransient(createSpan(yyStart+3,9)));
-       yyValue = NodeFactory.makeParam(a1, mods);
-     }
-   / a1:(transient w)? var w a2:PlainParamWType
+   / var w a1:PlainParamWType
      { List<Modifier> mods;
-       if (a1 == null) {
-           mods = new ArrayList<Modifier>(1);
-           mods.add(new ModifierVar(createSpan(yyStart,3)));
-       } else {
-           mods = new ArrayList<Modifier>(2);
-           mods.add(new ModifierTransient(createSpan(yyStart,9)));
-           mods.add(new ModifierVar(createSpan(yyStart+9,3)));
-       }
-       yyValue = NodeFactory.makeParam(a2, mods);
+       mods = new ArrayList<Modifier>(1);
+       mods.add(new ModifierVar(createSpan(yyStart,3)));
+       yyValue = NodeFactory.makeParam(a1, mods);
      }
    / transient w a1:PlainParam
      { List<Modifier> mods = new ArrayList<Modifier>(2);
        mods.add(new ModifierTransient(createSpan(yyStart,9)));
        yyValue = NodeFactory.makeParam(a1, mods);
      }
-   / <ErrorProduction1>
-     var w transient w PlainParam
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Mutable variables should be declared with their types.");
-     }
    / <ErrorProduction2>
-     (transient w)? var w PlainParam
+     var w PlainParam
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Mutable variables should be declared with their types.");
      };
