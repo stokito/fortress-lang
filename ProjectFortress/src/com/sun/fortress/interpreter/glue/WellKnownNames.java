@@ -69,8 +69,8 @@ public class WellKnownNames {
     public final static String bigOperator2 = "__bigOperator2";
     public final static String filter = "__filter";
 
-    public final static String generatorTypeName = "Generator";
-    public final static String generatorMatchName = "MATCH";
+    public final static String containsTypeName = "Contains";
+    public final static String containsMatchName = "MATCH";
 
     public final static String forbiddenException = "ForbiddenException";
     public final static String tryatomicFailureException = "TryAtomicFailure";

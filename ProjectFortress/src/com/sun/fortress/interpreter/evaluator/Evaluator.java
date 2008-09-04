@@ -562,8 +562,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 vargs.add(paramValue);
                 vargs.add(match);
                 if (Glue.extendsGenericTrait(match.type(),
-                                             WellKnownNames.generatorTypeName)) {
-                    fcn = (Fcn) Driver.getFortressLibrary().getValue(WellKnownNames.generatorMatchName);
+                                             WellKnownNames.containsTypeName)) {
+                    fcn = (Fcn) Driver.getFortressLibrary().getValue(WellKnownNames.containsMatchName);
                 }
                 FBool success = (FBool) functionInvocation(vargs, fcn, c);
                 if (success.getBool())
