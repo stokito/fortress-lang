@@ -20,7 +20,7 @@ api For
     import FortressSyntax.{...}
 
     grammar M extends {Expression, Identifier}
-        Expr |Expr:=
+        Expr |:=
             a:for {i:Id <- e:Expr ,? SPACE}* ; b:do block:Expr ; c:end =>
             <[ for2 i** ; e** ; do block ; end ]>
         | a:for2 i:Id* ; e:Expr* ; b:do block:Expr ; c:end =>
