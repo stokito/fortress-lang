@@ -702,8 +702,8 @@ public class ExprFactory {
         }
         public Expr forCaseExpr(CaseExpr e) {
             return new CaseExpr(e.getSpan(), true, e.getExprType() , e.getParam(),
-                    e.getCompare(),e.getInOp() ,e.getClauses(),
-                    e.getElseClause());
+                                e.getCompare(), e.getEqualsOp(), e.getInOp(),
+                                e.getClauses(), e.getElseClause());
         }
         public Expr forDo(Do e) {
             return new Do(e.getSpan(), true, e.getFronts());
