@@ -49,6 +49,7 @@ public class OprInstantiater extends Rewrite {
             // For now, remove it, no matter what.
             OpParam opp = (OpParam) node;
             if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
+                // throw new Error();
                 return new RewriteHackList();
             }
         }

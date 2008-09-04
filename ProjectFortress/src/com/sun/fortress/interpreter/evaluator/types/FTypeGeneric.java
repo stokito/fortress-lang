@@ -31,6 +31,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiater;
+import com.sun.fortress.interpreter.rewrite.OprInstantiaterVisitor;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.BoolParam;
@@ -253,7 +254,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                     i++;
                 }
 
-                OprInstantiater oi = new OprInstantiater(substitutions);
+                OprInstantiaterVisitor oi = new OprInstantiaterVisitor(substitutions);
+                //OprInstantiater oi = new OprInstantiater(substitutions);
 
                 TraitObjectAbsDeclOrDecl new_def =
                     (TraitObjectAbsDeclOrDecl)oi.visit((TraitObjectAbsDeclOrDecl)FTypeGeneric.this.getDef());
