@@ -105,8 +105,6 @@ import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 
 public class Driver {
 
-    private static int numThreads = Runtime.getRuntime().availableProcessors();
-
     private static boolean _libraryTest = false;
 
     static String libraryName = fortressLibrary;
@@ -538,9 +536,19 @@ public class Driver {
     public static FValue runProgram(FortressRepository fr, CompilationUnit p,
                                     boolean runTests, List<String> args)
         throws Throwable {
+
+        int numThreads;
+
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null)
             numThreads = Integer.parseInt(numThreadsString);
+        else {
+            int availThreads = Runtime.getRuntime().availableProcessors();
+            if (availThreads <= 2)
+                numThreads = availThreads;
+            else
+                numThreads = (int) Math.floor((double) availThreads/2.0);
+        }
 
         if (group == null)
 

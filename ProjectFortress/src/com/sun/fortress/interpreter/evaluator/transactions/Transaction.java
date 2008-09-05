@@ -47,12 +47,12 @@ public class Transaction {
     /** Updater for status */
     private volatile AtomicReference<Status> myStatus;
     private int nestingDepth;
-    private long threadID;
     private int count;
+    private static AtomicInteger counter = new AtomicInteger();
+
+    public static boolean debug = false;
 
     // Used for debugging
-    private static AtomicInteger counter = new AtomicInteger();
-    public static boolean debug = false;
     private ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>> updates;
 
 
@@ -60,32 +60,27 @@ public class Transaction {
      * Creates a new, active transaction.
      */
     public Transaction() {
-        threadID = Thread.currentThread().getId();
         parent = null;
         children = new ArrayList<Transaction>();
         nestingDepth = 0;
         myStatus = new AtomicReference(Status.ACTIVE);
+        count = counter.getAndIncrement();
 
         if (debug) {
-            count = counter.getAndIncrement();
             updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
-        } else {
-            count = 0;
         }
     }
 
     public Transaction(Transaction p) {
-        threadID = Thread.currentThread().getId();
         parent = p;
         children = new ArrayList<Transaction>();
+        count = counter.getAndIncrement();
 
         if (debug) {
             updates = new ConcurrentHashMap<ReferenceCell, ConcurrentHashMap<FortressTaskRunner, String>>();
-            count = counter.getAndIncrement();
-        } else {
-            count = 0;
+
         }
-        
+
         if (p == null) {
             nestingDepth = 0;
             myStatus = new AtomicReference(Status.ACTIVE);
@@ -136,7 +131,7 @@ public class Transaction {
     }
 
     public int getNestingDepth() { return nestingDepth;}
-    public long getThreadId() { return threadID;}
+    public long getID() { return count;}
 
 
     /* Access the transaction's current status.
@@ -217,32 +212,34 @@ public class Transaction {
      * @return whether transaction was committed
      */
     public boolean commit() {
-        if (myStatus.compareAndSet(Status.ACTIVE, Status.COMMITTED)) {
-            if (debug) {
-                if (parent == null) {
-                    Enumeration<ReferenceCell> temp = updates.keys();
-                    while (temp.hasMoreElements()) {
-                        ReferenceCell key = temp.nextElement();
-                        ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
-                        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-                        String mine = ups.get(runner);
-                    }
-                } else {
-                    Enumeration<ReferenceCell> temp = updates.keys();
-                    while (temp.hasMoreElements()) {
-                        ReferenceCell key = temp.nextElement();
-                        ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
-                        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-                        String mine = ups.get(runner);                          
-                        parent.mergeUpdates(mine, this, key);
+        while (myStatus.get() == Status.ACTIVE) {
+            if (myStatus.compareAndSet(Status.ACTIVE, Status.COMMITTED)) {
+                if (debug) {
+                    if (parent == null) {
+                        Enumeration<ReferenceCell> temp = updates.keys();
+                        while (temp.hasMoreElements()) {
+                            ReferenceCell key = temp.nextElement();
+                            ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
+                            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+                            String mine = ups.get(runner);
+                        }
+                    } else {
+                        Enumeration<ReferenceCell> temp = updates.keys();
+                        while (temp.hasMoreElements()) {
+                            ReferenceCell key = temp.nextElement();
+                            ConcurrentHashMap<FortressTaskRunner, String> ups = updates.get(key);
+                            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+                            String mine = ups.get(runner);                          
+                            parent.mergeUpdates(mine, this, key);
+                        }
                     }
                 }
-            }
 
-            synchronized(children) {
-                children.clear();
+                synchronized(children) {
+                    children.clear();
+                }
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -252,18 +249,19 @@ public class Transaction {
      * @return whether transaction was aborted (not necessarily by this call)
      */
     public boolean abort() {
-        if (myStatus.compareAndSet(Status.ACTIVE, Status.ABORTED)) {
-            synchronized(children ) {
-                for (Transaction child : children) 
-                    child.orphan();
-                children.clear();
-            } 
-            return true;
-        } else {
-            if (isActive())
-                throw new RuntimeException("Transaction " + this + " is active and didn't get aborted ?");
-            return false;
+        while (myStatus.get() == Status.ACTIVE) {
+            if (myStatus.compareAndSet(Status.ACTIVE, Status.ABORTED)) {
+                synchronized(children ) {
+                    for (Transaction child : children) 
+                        child.orphan();
+                    children.clear();
+                } 
+                return true;
+            }
         }
+        if (isActive())
+            throw new RuntimeException("Transaction " + this + " is active and didn't get aborted ?");
+        return false;
     }
 
     public boolean orphan() {
@@ -273,7 +271,7 @@ public class Transaction {
                     child.orphan();
                 children.clear();
             }
-            throw new OrphanedException(this, "I'm an orphan, so my kids are too");
+            return true;
         } else if (myStatus.compareAndSet(Status.ABORTED, Status.ORPHANED)) {
             synchronized(children ) {
                 for (Transaction child : children)

@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.env;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.exceptions.transactions.PanicException;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
@@ -57,7 +58,7 @@ public class ReferenceCell extends IndirectionCell {
     public ReferenceCell(FType t, FValue v) {
         super();
         theType = t;
-        node = new ValueNode(v, FortressTaskRunner.getTransaction(), null, null);
+        node = new ValueNode(v, FortressTaskRunner.getTransaction(), null, ValueNode.nullValueNode);
         id = counter.getAndIncrement();
     }
 
@@ -75,7 +76,7 @@ public class ReferenceCell extends IndirectionCell {
         else if (w.isAborted()) return true;
         else if (w.isOrphaned()) return true;
         else return false;
-	}
+        }
 
     private boolean transactionIsNotActive(Transaction w) {
         if (w == null) return false;
@@ -160,7 +161,7 @@ public class ReferenceCell extends IndirectionCell {
                 if (Transaction.debug) me.addWrite(this, f2);
 
             } else if (w.isActive()) {
-				// Cleanup got us to a parent node with an active writer
+                                // Cleanup got us to a parent node with an active writer
                 assignValue(f2);
             }
         }
@@ -172,10 +173,10 @@ public class ReferenceCell extends IndirectionCell {
         Transaction me  = FortressTaskRunner.getTransaction();
         // Top Level transaction 
         if (me == null) {
-			while (node.getWriter() != null) {
-				node.AbortWriter();
-				cleanup();
-			}
+                        while (node.getWriter() != null) {
+                                node.AbortWriter();
+                                cleanup();
+                        }
             return node.getValue();
         }
 
@@ -199,7 +200,14 @@ public class ReferenceCell extends IndirectionCell {
     public FValue getValueNull() {
         FValue res = getValue();
         if (res == null) {
-            throw new RuntimeException(Thread.currentThread().getName() + " getValueNull is about to return a null value ReferenceCell = " + this + " node = " + node);
+            FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+            Transaction t = runner.getTransaction();
+            if (t.isAborted())
+                throw new AbortedException(t, "UhOh Someone aborted me");
+            else if (t.isOrphaned())
+                throw new OrphanedException(t, "UhOh I'm an orphan");
+            else 
+                throw new RuntimeException(runner.getName() + " getValueNull is about to return a null value ReferenceCell = " + this + " node = " + node + " task = " + runner.getTask());
         }
         return res;
     }

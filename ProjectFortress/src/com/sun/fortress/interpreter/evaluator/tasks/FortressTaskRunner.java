@@ -22,15 +22,33 @@ import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
 import com.sun.fortress.interpreter.evaluator.transactions.ContentionManager;
-import com.sun.fortress.interpreter.evaluator.transactions.manager.FortressManager3;
+import com.sun.fortress.interpreter.evaluator.transactions.manager.GreedyManager;
 import com.sun.fortress.interpreter.evaluator.transactions.Transaction;
 import java.util.concurrent.Callable;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {
 
-    private static ContentionManager manager = new FortressManager3();
-
+    private static ContentionManager manager = new GreedyManager();
     public volatile BaseTask task;
+    private int retries;
+    private static long startTime = System.currentTimeMillis();
+ 
+    public int retries() { return retries;}
+
+    private static void incRetries() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.retries+= 1;
+    }
+
+    private static void resetRetries() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.retries = 0;
+    }
+
+    private static int getRetries() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        return runner.retries;
+    }
 
     public BaseTask task() {return task;}
 
@@ -55,7 +73,10 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     }
 
 
-    public FortressTaskRunner(FortressTaskRunnerGroup group) {super(group);}
+    public FortressTaskRunner(FortressTaskRunnerGroup group) {
+        super(group); 
+        retries = 0; 
+    }
 
     /**
      * Tests whether the current transaction can still commit.  Does not
@@ -90,7 +111,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     public static void debugPrintln(String msg) {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        System.out.println(runner.getName() + ":" + runner.task() + ":" + msg);
+        long t = System.currentTimeMillis() - startTime;
+        System.out.println(runner.getName() + ":" + runner.task() + ":" + t + "ms " + msg);
     }
 
     public static <T> T doItOnce(Callable<T> xaction) throws AbortedException, Exception {
@@ -117,6 +139,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
      */
 
     public static <T> T doIt(Callable<T> xaction) throws Exception {
+        resetRetries();
         while (true) {
             // Someday figure out how aborted transactions get this far...
             Transaction me = getTransaction();
@@ -126,7 +149,13 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
                 T result = doItOnce(xaction);
                 return result;
             } catch (OrphanedException oe) {
+                if (oe.getTransaction() != null && oe.getTransaction() != me && oe.getTransaction().getParent() != me)
+                    throw new RuntimeException(Thread.currentThread().getName() + " OE transaction  = " + oe + " me = " + me + " oe parent = " + oe.getTransaction().getParent());
             } catch (AbortedException ae) {
+                if (ae.getTransaction() != null && ae.getTransaction() != me && ae.getTransaction().getParent() != me)
+                    throw new RuntimeException(Thread.currentThread().getName() + " AE transaction  = " + ae + " me = " + me + " ae parent = " + ae.getTransaction().getParent());
+            } finally {
+                incRetries();
             }
         }
     }
@@ -139,5 +168,4 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         return runner.hashCode();
     }
-
 }

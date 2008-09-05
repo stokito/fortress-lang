@@ -50,6 +50,7 @@ public class TupleTask extends BaseTask {
             /* Null out fields so they are not retained by GC after termination. */
             eval = null;
             expr = null;
+	    transaction = null;
         }
     }
 
