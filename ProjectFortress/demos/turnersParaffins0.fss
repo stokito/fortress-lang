@@ -100,7 +100,7 @@ object H extends Radical
         end
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 0
-    nonCanon():Boolean = false
+    canonical():Boolean = true
     toString():String = "H"
 end H
 
@@ -115,7 +115,7 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
         end
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
-    nonCanon():Boolean = NOT (r1 <= r2 <= r3)
+    canonical():Boolean = r1 <= r2 <= r3
     toString():String =
         case self of
             methyl => "M";  ethyl  => "E"; propyl => "p3"
@@ -172,17 +172,55 @@ At the time I promoted these filters, the code did not speed up. Almost all
 the work is in paraffin generation, not radical generation.
 *)
 
-genRadicals (n:ZZ32) = do
+genRadicalsTurner (n:ZZ32) = do
     rads = array[\List[\Radical\]\](n+1)
     genRads (m:ZZ32):List[\Radical\] =
         <|[\Radical\] Rad (ri,rj,rk) |
-            i<-0:((m-1) DIV 3),
-            j<-i:((m-1-i) DIV 2),
-            ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j] |>
+         i<-0:((m-1)   DIV 3),
+         j<-i:((m-1-i) DIV 2),
+         ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j] |>
     rads[0] := <|[\Radical\] H|>
     rads[i] := genRads i, i<-seq(1:n)        
     rads
 end
+
+(* Does the local function genRads really help? *)
+genRadicals1 (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    rads[0] := <|[\Radical\] H|>
+    rads[m] := <|[\Radical\] Rad (ri,rj,rk) |
+                i<-0:((m-1)   DIV 3),
+                j<-i:((m-1-i) DIV 2),
+                ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j]
+                |>, m<-seq(1:n)
+    rads
+end
+
+(* Try for syntax for iteration *)
+genRadicals2 (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    rads[0] := <|[\Radical\] H|>
+    for m <- seq(1:n) do
+        rads[m] := <|[\Radical\] Rad (ri,rj,rk) |
+                i<-0:((m-1)   DIV 3),
+                j<-i:((m-1-i) DIV 2),
+                ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j]
+                |>
+        end
+    rads
+end
+
+genRadicals = genRadicalsTurner
+
+(* When we have array comprehesions, it will be interesting to revisit this code ...
+Maybe something like this ... . 
+genRadicals9 (n:ZZ32) =
+    [ [0]           = <|[\Radical\] H|>
+      [m<-seq(1:n)] = <|[\Radical\] Rad (ri,rj,rk) |
+                          i<-0:((m-1)   DIV 3),
+                          j<-i:((m-1-i) DIV 2),
+                          ri<-rads[i], rj<-rads[j], rk<-rads[m-1-i-j] |>]
+*)
 
 
 (* ===Paraffins===
@@ -252,38 +290,39 @@ carbon.  Then call quotient to eliminate duplicates (equivalent
 molecules).
 *)
 
-genParaffins (n:ZZ32) =
+genParaffins0 (n:ZZ32) =
     <| quotient <| Paraffin (H,H,H,r) | r<-radList |>
       | radList<-genRadicals (n-1) |>
 
 (* During a code walk through I had trouble getting the meaning of
 this code across to Dan Nussbaum, a very experienced programmer
 unfamiliar with Fortress. Dan suggested the following funky indenting,
-which I found fascinating:
+which I found fascinating: *)
 
-genParaffins (n:ZZ32) =
+genParaffins1 (n:ZZ32) =
                 <| quotient
             <| Paraffin (H,H,H,r) 
         | r<-radList |>
     | radList<-genRadicals (n-1) |>
 
-This layout captures the logical information flow left to right, some
+(* This layout captures the logical information flow left to right, some
 sort of causality. Although simple comprehensions are comprehendable
 enough, two levels of nesting with context specified after the
 expression is hard to get my head around.
 
 Victor Luchangco suggested abstracting the inner comprehension.
+*)
 
-genParaffins (n:ZZ32) = do
+genParaffins2 (n:ZZ32) = do
   addMethyl (radList) = <| Paraffin (H,H,H,r) | r<-radList |>
   <| quotient addMethyl radList | radList<-genRadicals (n-1) |>
 end
 
-I like the alternative available with BIG ||, which allows me to put
+(*I like the alternative available with BIG ||, which allows me to put
 the generator first. Once BIG || works for lists, the following should
 work:
 
-genParaffins (n:ZZ32) =
+genParaffins3 (n:ZZ32) =
     BIG || [radList<-genRadicals (n-1)]
         <| quotient BIG || [r<-radlist] <|Paraffin (H,H,H,r)|> |>
 
@@ -291,10 +330,12 @@ But, I really want a different comprehension syntax which allows me to specify
 generators first. Various folks are considering alternatives. Guy is considering
 this alternative, which I like.
 
-genParaffins (n:ZZ32) =
+genParaffins4 (n:ZZ32) =
     <|radList<-genRadicals (n-1) |
      quotient <|r<-radList | Paraffin (H,H,H,r)|> |>
 *)
+
+genParaffins = genParaffins0
 
 run(args:String...) = do
   if |args| > 0 AND: ((args[0]="?")OR(args[0]="help")) then printUsage() else
@@ -350,28 +391,29 @@ test testRadicalConstruction () = do
     println(" methyl: " methyl);    println(" ethyl:  " ethyl)
     println(" propyl: " propyl);    println(" butyl:  " butyl)
     println(" pentyl: " pentyl)
-
-    for r<-<|methyl, ethyl, propyl, butyl, pentyl|> do assert (r,r) end
-    assert (methyl =/= ethyl);        assert (methyl =/= pentyl)
-    assert (propyl =/= butyl);        assert (butyl  =/= pentyl)
+    println(" y3: "  y3);           println(" t4: " t4)
+    println(" y4: "  y4);           println(" z4: " z4)
 
     assert (1,|methyl|);            assert (2, |ethyl|)
     assert (3,|propyl|);            assert (4, |butyl|)
     assert (5,|pentyl|)
-    println ("----- Simple Radical construction tests pass. -----")
-
-    println(" y3: "  y3);           println(" t4: " t4)
-    println(" y4: "  y4);           println(" z4: " z4)
-
-    for r<-<|y3, y4, t4, z4|> do assert (r,r) end
-    assert (y3 =/= t4);               assert (y4 =/= z4)
-    assert (y3 =/= y4)
-    assert (y3 =/= methyl);           assert (y3 =/= ethyl)
-    assert (y3 =/= propyl);           assert (y3 =/= butyl)
-    assert (y3 =/= pentyl)
-
     assert (3, |y3|);               assert (4, |t4|)
     assert (4, |y4|);               assert (4, |z4|)
+
+    radsSmall:List[\Radical\][5] =
+        [<|[\Radical\] H|>
+         <|[\Radical\] methyl|>
+         <|[\Radical\] ethyl|>
+         <|[\Radical\] propyl, y3|>
+         <|[\Radical\] butyl, y4, z4, t4|>
+        ]
+    (* Move above to top level after bug disallowing it is fixed. *)
+
+    rsFlat = concat radsSmall
+    for i<-0#|rsFlat|, j<-0#|rsFlat| do
+        if i=j then assert(rsFlat[i] = rsFlat[j])
+               else assert(rsFlat[i] =/= rsFlat[j]) end
+    end
     println ("***** Radical Construction Tests pass. *****")
 end
 
@@ -389,6 +431,7 @@ test testRadicalGeneration() = do
 (*
 After type inference is online ...
     radsSmall = [<|H|> <|methyl|> <|ethyl|> <|propyl,y3|> <|butyl,y4,z4,t4|>]
+Also ... move to top level ... .
 *)
 
     for rads<-seq(genRadicals 7) do
@@ -398,7 +441,7 @@ After type inference is online ...
             assert (rads, radsSmall[s])
         end
         println (" " |rads| " auto generated Rads: " rads)
-        ncRads = <|[\Radical\] r | r<-rads, r.nonCanon()|>
+        ncRads = <|[\Radical\] r | r<-rads, NOT r.canonical()|>
         println (" " |ncRads| " non-canonical Rads: " ncRads)
         println (" " (|rads| - |ncRads|) " canonical Rads")
         s += 1
@@ -464,11 +507,11 @@ test testParaffinConstruction () = do
     println (" hexane3: "  hexane3);    println (" hexane4: "  hexane4)
     println (" hexane5: "  hexane5)
 
-    for ps<-parsSmall, p<-ps do assert(p,p) end
-    assert (methane  =/= ethane);         assert (butane1  =/= butane2)
-    assert (pentane1 =/= pentane2);       assert (pentane1 =/= pentane3)
-    assert (pentane2 =/= pentane3);       assert (hexane1  =/= hexane2)
-    assert (hexane2  =/= hexane3);        assert (hexane4  =/= hexane5)
+    psFlat = concat parsSmall
+    for i<-0#|psFlat|, j<-0#|psFlat| do
+        if i=j then assert(psFlat[i] = psFlat[j])
+               else assert(psFlat[i] =/= psFlat[j]) end
+    end
 
     assert (1, |methane|);              assert (2, |ethane|)
     assert (3, |propane|);              assert (4, |butane1|)
