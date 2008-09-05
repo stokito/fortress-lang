@@ -53,12 +53,12 @@ public class BaseManager implements ContentionManager {
    * Local-spin sleep method -- more accurate than Thread.sleep()
    * Difference discovered by V. Marathe.
    */
-  protected void sleep(long ns) {
-    long startTime = System.nanoTime();
+  protected void sleep(long ms) {
+    long startTime = System.currentTimeMillis();
     long stopTime = 0;
     do {
-      stopTime = System.nanoTime();
-    } while((stopTime - startTime) < ns);
+      stopTime = System.currentTimeMillis();
+    } while((stopTime - startTime) < ms);
   }
 
   public void committed() {

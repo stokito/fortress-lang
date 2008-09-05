@@ -21,6 +21,7 @@ export Executable
 
 run(args:String...):()=do
    var count : ZZ32 = 0
+   println("Starting test")     
    for i <- 1#300 do
       atomic do count+= 1; count+=1; count+=1 end
    end
