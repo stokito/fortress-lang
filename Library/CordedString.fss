@@ -24,6 +24,7 @@ export CordedString
     opr ∩ (r0: Range⟦ZZ32⟧, r1: Range⟦ZZ32⟧) = (r0.lower MAX r1.lower) : (r0.upper MIN r1.upper) 
       
   test rangeIntersect() = do
+        print "starting rangeIntersect: "
         assert((0:5) ∩ (0:3), 0:3)
         assert((0:5) ∩ (3:7), 3:5)
         assert((0:5) ∩ (7:10), 7:5)
@@ -33,6 +34,7 @@ export CordedString
         assert( (9:8).isEmpty, "9:8 is not empty!")
         assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
         assert( (7:9)≪7, (0#3), "7:9≪7 isn't 0#3" ) 
+        println "rangeIntersect done"
   end
   
     (* Shift a range left by the specified amount.  *)
@@ -54,19 +56,31 @@ export CordedString
     assert( (2#2) ≤ (2:3), "(2#2) not less than or equal to (2:3)")
   end
   
-  fibonacci(n): ZZ32 = if n ≤ 2 then 1 else fibonacci(n-1) + fibonacci(n-2) end
-(*
+
   fib = do
     maxFib = 46         (* fib(47) > maximum ZZ32 *)
-    a: Array1⟦ZZ32, 1, maxFib⟧ = array1⟦ZZ32, maxFib⟧().shift(1)
+    a: Array1⟦ZZ32, 0, 47⟧ = array1⟦ZZ32, 47⟧()
+    a[0] := 0
     a[1] := 1
-    a[2] := 1
-    a[n] := a[n-2] + a[n-1], n ← seq(3:maxFib)
-    println(a)
+    a[n] := a[n-2] + a[n-1], n ← seq(2:maxFib)
     a
   end
+  
+
+(*
+  test testFib() = do
+    fibonacci(n): ZZ32 =  (* We start with zero so that the empty string does not have to be a special case. *)
+                        case n of
+                                    0 => 0
+                                    1 => 1
+                                    else => fibonacci(n-1) + fibonacci(n-2) 
+                        end
+    print "starting testFib: "
+    for i ← 0:20 do assert(fib[i], fibonacci i); print "." end  (* We really can't use the naive fibonacci function for large n *)
+    println "testFib done"
+  end
 *)
-    
+       
 (* 
 ==== Shared Traits ====
 *)
@@ -80,9 +94,7 @@ export CordedString
   
   
   trait Balanceable 
-(*
-    isBlanced() = |size| = 0 OR: |size| ≥ fib(self.depth)
-*)
+    isBlanced() = |self| = 0 OR: |self| ≥ fib(self.depth)
   end Balanceable
 (*
 ==== CatString ====
@@ -306,5 +318,5 @@ export CordedString
   margin(indent) = do
       for i ← 0#indent do print " " end
   end
-  
+
 end

@@ -679,8 +679,8 @@ __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
 
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
-(** Application of two nested BIG operators, possibly with fusion.  This only covers
-    a comprehension of the form:
+(** Application of two nested BIG operators, possibly with fusion.  This covers only 
+    comprehensions of the form:
         %BIG outer [ xs <- expro ] (BIG inner [x <- xs] expri)
     The desugarer extracts comprehensions of this form from more complex nests of
     comprehensions, using a combination of splitting:
