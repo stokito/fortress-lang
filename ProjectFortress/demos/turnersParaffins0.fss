@@ -282,7 +282,7 @@ end
 
 quotient = quotientLinear
 
-(* Construct a list  of lists of all Paraffins from size  1 to size n.
+(* Construct a list  of lists of all Paraffins from size 1 to size n.
 Outer list position i is a list of all Paraffins of size i.
   
 Generate paraffins by adding CH3 to all radicals with one fewer
@@ -356,12 +356,11 @@ run(args:String...) = do
 
     parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
     vPrintln("Numbers of paraffins; check results up to size " |parStandards|)
-    i:ZZ32 := 0
-    for pars<-seq allPars do
-        vPrintln("carbon atoms: " (i+1))
+    for (sm1,pars)<-seq allPars.indexValuePairs do
+        s=sm1+1
+        vPrintln("carbon atoms: " s)
         vPrintln("  paraffins:    " |pars|)
-        if i < |parStandards| then assert (|pars|, parStandards[i]) end
-        i := i+1
+        if s <= |parStandards| then assert (|pars|, parStandards[s-1]) end
     end
     vPrintln("----- Generate paraffins up to size " n_p " done.-----")
 
@@ -373,11 +372,9 @@ run(args:String...) = do
         println("Generating " n_r " radicals took " (endRads - startRads) " ms") end
 
     vPrintln("Numbers of radicals; no checking is performed.")
-    i := 0
-    for rads<-seq allRads do
-        vPrintln("carbon atoms: " i)
+    for (s,rads)<-seq allRads.indexValuePairs do
+        vPrintln("carbon atoms: " s)
         vPrintln("  radicals (canonical & others): " |rads|)
-        i := i+1
     end
     vPrintln("----- Generate radicals up to size " n_r " done.-----")
     vPrintln("===== Enumeration and counting paraffins & radicals completed. =====")
@@ -419,7 +416,6 @@ end
 
 test testRadicalGeneration() = do
     println("***** Radical Generation Tests *****")
-    s:ZZ32 := 0
 
     radsSmall:List[\Radical\][5] =
         [<|[\Radical\] H|>
@@ -434,7 +430,7 @@ After type inference is online ...
 Also ... move to top level ... .
 *)
 
-    for rads<-seq(genRadicals 7) do
+    for (s,rads)<-seq (genRadicals 7).indexValuePairs do
         println ("Size: " s)
         if 0 <= s < 4 then
             println (" " |radsSmall[s]| " hand generated Rads: " radsSmall[s])
@@ -444,7 +440,6 @@ Also ... move to top level ... .
         ncRads = <|[\Radical\] r | r<-rads, NOT r.canonical()|>
         println (" " |ncRads| " non-canonical Rads: " ncRads)
         println (" " (|rads| - |ncRads|) " canonical Rads")
-        s += 1
     end
     println ("***** Radical Generation tests pass. *****")
 end
@@ -639,16 +634,14 @@ end
 test testParaffinGeneration() = do
     println("***** Paraffin Generation Tests *****")
     setSmallParaffins ()
-    s:ZZ32 := 1
-    allPars = genParaffins 4
-    for pars<-seq allPars do
+    for (sm1,pars)<-seq (genParaffins 4).indexValuePairs do
+        s = sm1+1
         println ("Size: " s)
         println (" " |pars| " auto generated Pars: " pars)
         if 0 <= s <= 6 then
             println (" " |parsSmall[s]| " hand generated Pars: " parsSmall[s])
             assert (|pars|, |parsSmall[s]|)
         end
-        s += 1
     end
     println ("***** Paraffin Generation tests pass. *****")
 end
