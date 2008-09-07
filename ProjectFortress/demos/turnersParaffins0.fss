@@ -60,6 +60,7 @@ component turnersParaffins0
 import List.{...}
 import Set.{...}
 import SetClosure.{...}
+import Map.{...}
 export Executable
 
 printUsage() = do
@@ -158,6 +159,44 @@ genRadicals0 (n:ZZ32) = do
     rads[i] := genRads(i), i<-seq(1:n)        
     rads
 end
+
+(* When BIG GENERATOR is working ...
+partition3 m = BIG GENERATOR[i<-0:m, j<-0:m, k<-0:m, i+j+k=m-1, i<=j<=k](i,j,k)
+
+genRadicals00 (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    genRads (m:ZZ32):List[\Radical\] =
+        <|[\Radical\] Rad (ri,rj,rk) |
+            (i,j,k)<-partition3 m,
+            ri<-rads[i], rj<-rads[j], rk<-rads[k] |>
+    rads[0] := <|[\Radical\] H|>
+    rads[i] := genRads(i), i<-seq(1:n)        
+    rads
+end
+
+genRadicals000 (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    threeRads (i,j,k) = BIG GENERATOR[ri<-rads[i], rj<-rads[j], rk<-rads[k]](ri,rj,rk)
+    genRads (m:ZZ32):List[\Radical\] =
+        <|[\Radical\] Rad (ri,rj,rk) |
+            (i,j,k)   <-partition3 m,
+            (ri,rj,rk)<-threeRads (i,j,k)
+            |>
+    rads[0] := <|[\Radical\] H|>
+    rads[i] := genRads(i), i<-seq(1:n)        
+    rads
+end
+
+Genradicals000 (n:ZZ32) = do
+    rads = array[\List[\Radical\]\](n+1)
+    threeRads    = BIG GENERATOR[ri<-rads[i], rj<-rads[j], rk<-rads[k]](ri,rj,rk)
+
+    rads[0] := <|[\Radical\] H|>
+    rads[q] := <|[\Radical\] Rad (ri,rj,rk) |
+                   (i,j,k)<-partition3 q, (ri,rj,rk)<-threeRads  |>,
+        i<-seq(1:n)
+end
+*)
 
 (*
 Turner discusses the promotion filters into generators, not generating
@@ -351,16 +390,28 @@ run(args:String...) = do
     startPars = getTimeMS()
     allPars = genParaffins n_p
     endPars   = getTimeMS()
-    if verbose then
-        println("Generating " n_p " paraffins took " (endPars - startPars) " ms") end
+    vPrintln("Generated " n_p " paraffins in " (endPars - startPars) " ms")
 
-    parStandards = <|1, 1, 1, 2, 3, 5, 9, 18, 35, 75|>
-    vPrintln("Numbers of paraffins; check results up to size " |parStandards|)
-    for (sm1,pars)<-seq allPars.indexValuePairs do
-        s=sm1+1
-        vPrintln("carbon atoms: " s)
-        vPrintln("  paraffins:    " |pars|)
-        if s <= |parStandards| then assert (|pars|, parStandards[s-1]) end
+(* The following should work after the kinks get worked out of Map
+      {0|->1, 1|->1, 2|->1, 3|->1, 4|->2, 5|->3, 6|->5, 7|->9, 8|->18, 9|->35, 10|->75}
+*)
+    parsExpected:Map[\ZZ32,ZZ32\] =
+      { 0 asif ZZ32 |->  1 asif ZZ32, 1 asif ZZ32 |->  1 asif ZZ32,
+        2 asif ZZ32 |->  1 asif ZZ32, 3 asif ZZ32 |->  1 asif ZZ32,
+        4 asif ZZ32 |->  2 asif ZZ32, 5 asif ZZ32 |->  3 asif ZZ32,
+        6 asif ZZ32 |->  5 asif ZZ32, 7 asif ZZ32 |->  9 asif ZZ32,
+        8 asif ZZ32 |-> 18 asif ZZ32, 9 asif ZZ32 |-> 35 asif ZZ32,
+       10 asif ZZ32 |-> 75 asif ZZ32}
+    vPrintln("Numbers of paraffins, checking smallish results ...")
+    for (index,pars)<-seq allPars.indexValuePairs do
+        (nCarbons, nPars) = (index+1, |pars|)
+        vPrintln("carbon atoms: " nCarbons "; paraffins: " nPars)
+        if nParsExpected <- parsExpected.member(nCarbons) then
+            assert (nPars, nParsExpected,
+                nPars " paraffins were generated for " nCarbons " carbons, but "
+                nParsExpected " were expected. These paraffins were generated: " pars)
+            vPrintln("... results match expectation for " nCarbons " carbon atoms")
+        end
     end
     vPrintln("----- Generate paraffins up to size " n_p " done.-----")
 
@@ -368,13 +419,11 @@ run(args:String...) = do
     startRads = getTimeMS()
     allRads = genRadicals n_r
     endRads   = getTimeMS()
-    if verbose then
-        println("Generating " n_r " radicals took " (endRads - startRads) " ms") end
+    vPrintln("Generated " n_r " radicals in " (endRads - startRads) " ms")
 
     vPrintln("Numbers of radicals; no checking is performed.")
-    for (s,rads)<-seq allRads.indexValuePairs do
-        vPrintln("carbon atoms: " s)
-        vPrintln("  radicals (canonical & others): " |rads|)
+    for (nCarbons,rads)<-seq allRads.indexValuePairs do
+        vPrintln("carbon atoms: " nCarbons "; radicals (canonical & others): " |rads|)
     end
     vPrintln("----- Generate radicals up to size " n_r " done.-----")
     vPrintln("===== Enumeration and counting paraffins & radicals completed. =====")
@@ -430,16 +479,19 @@ After type inference is online ...
 Also ... move to top level ... .
 *)
 
-    for (s,rads)<-seq (genRadicals 7).indexValuePairs do
-        println ("Size: " s)
-        if 0 <= s < 4 then
-            println (" " |radsSmall[s]| " hand generated Rads: " radsSmall[s])
-            assert (rads, radsSmall[s])
+    for (nCarbons,rads)<-seq (genRadicals 7).indexValuePairs do
+        println ("Number of carbons: " nCarbons)
+        if 0 <= nCarbons < 4 then
+            println (|radsSmall[nCarbons]| " hand generated Rads: " radsSmall[nCarbons])
+            assert (rads, radsSmall[nCarbons],
+                "Generated rads (" rads
+                ") were expected to be the same as the following set: "
+                radsSmall[nCarbons])
         end
-        println (" " |rads| " auto generated Rads: " rads)
+        println (|rads| " auto generated Rads: " rads)
         ncRads = <|[\Radical\] r | r<-rads, NOT r.canonical()|>
-        println (" " |ncRads| " non-canonical Rads: " ncRads)
-        println (" " (|rads| - |ncRads|) " canonical Rads")
+        println (|ncRads| " non-canonical Rads: " ncRads)
+        println ((|rads| - |ncRads|) " canonical Rads")
     end
     println ("***** Radical Generation tests pass. *****")
 end
@@ -634,13 +686,16 @@ end
 test testParaffinGeneration() = do
     println("***** Paraffin Generation Tests *****")
     setSmallParaffins ()
-    for (sm1,pars)<-seq (genParaffins 4).indexValuePairs do
-        s = sm1+1
-        println ("Size: " s)
-        println (" " |pars| " auto generated Pars: " pars)
-        if 0 <= s <= 6 then
-            println (" " |parsSmall[s]| " hand generated Pars: " parsSmall[s])
-            assert (|pars|, |parsSmall[s]|)
+    for (index,pars)<-seq (genParaffins 4).indexValuePairs do
+        (nCarbons, nPars) = (index+1, |pars|)
+        println ("Number of carbons: " nCarbons)
+        println (nPars " auto generated paraffins: " pars)
+        if 0 <= nCarbons <= 6 then
+            nParsExpected = |parsSmall[nCarbons]|
+            println (nParsExpected " hand generated Pars: " parsSmall[nCarbons])
+            assert (nPars, nParsExpected,
+                nPars " paraffins were generated for " nCarbons " carbons, but "
+                nParsExpected " were expected. These paraffins were generated: " pars)
         end
     end
     println ("***** Paraffin Generation tests pass. *****")
