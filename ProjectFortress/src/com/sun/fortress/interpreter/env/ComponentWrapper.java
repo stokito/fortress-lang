@@ -33,7 +33,6 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.rewrite.Desugarer;
 import com.sun.fortress.interpreter.rewrite.DesugarerVisitor;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.AbstractNode;

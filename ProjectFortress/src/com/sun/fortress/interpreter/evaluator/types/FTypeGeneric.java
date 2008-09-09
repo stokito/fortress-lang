@@ -30,7 +30,6 @@ import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
-import com.sun.fortress.interpreter.rewrite.OprInstantiater;
 import com.sun.fortress.interpreter.rewrite.OprInstantiaterVisitor;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
