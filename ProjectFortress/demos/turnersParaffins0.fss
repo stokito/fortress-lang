@@ -65,19 +65,18 @@ export Executable
 
 printUsage() = do
     println "Generate, count, and time paraffin & radical generation."
-    println "Args: n_p, n_r, flag"
-    println "0 args => batch (no output); default sizes; paraffin numbers checked"
+    println "Args: #paraffins, #radicals, flag"
     println "1 arg  => ? or help prints this usage information. Otherwise ... "
     println "1 arg  => verbose, paraffins and radicals to size args[0]"
-    println "2 args => verbose, paraffinns to size args[0] radicals to size args[1]"
-    println "3 args => batch"
+    println "2 args => verbose, paraffins to size args[0] radicals to size args[1]"
+    println "3 args => batch (no output)"
     println "Examples:"
     println "fortress turnersParaffins0.fss ?       => print this usage information"
     println "fortress turnersParaffins0.fss help    => print this usage information"
-    println "fortress turnersParaffins0.fss         => batch,  default parms"
-    println "fortress turnersParaffins0.fss 3       => verbose, n_p=3  n_r=3"
-    println "fortress turnersParaffins0.fss 4 6     => verbose, n_p=4  n_r=6"
-    println "fortress turnersParaffins0.fss 5 7 any => batch,   n_p=5  n_r=7"
+    println "fortress turnersParaffins0.fss         => print this usage information"
+    println "fortress turnersParaffins0.fss 3       => verbose, paraffins=3  radicals=3"
+    println "fortress turnersParaffins0.fss 4 6     => verbose, paraffins=4  radicals=6"
+    println "fortress turnersParaffins0.fss 5 7 any => batch,   paraffins=5  radicals=7"
 end
 
 (* ===Radicals=== *)
@@ -377,7 +376,7 @@ genParaffins4 (n:ZZ32) =
 genParaffins = genParaffins0
 
 run(args:String...) = do
-  if |args| > 0 AND: ((args[0]="?")OR(args[0]="help")) then printUsage() else
+  if |args| = 0 OR: ((args[0]="?")OR(args[0]="help")) then printUsage() else
     verbose:Boolean = 1 <= |args| <= 2
     n_p:ZZ32 = if |args| < 1 then 5   else strToInt args[0] end
     n_r:ZZ32 = if |args| < 2 then n_p else strToInt args[1] end
