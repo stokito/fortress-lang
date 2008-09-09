@@ -34,6 +34,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.Desugarer;
+import com.sun.fortress.interpreter.rewrite.DesugarerVisitor;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -89,7 +90,7 @@ public class ComponentWrapper {
     // For debugging use/def annotation
     public BASet<String> topLevelUsesForDebugging;
     
-    public Desugarer desugarer;
+    public DesugarerVisitor desugarer;
 
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
@@ -205,7 +206,7 @@ public class ComponentWrapper {
 
         visitState = IMPORTED;
 
-        desugarer = new Desugarer(isLibrary);
+        desugarer = new DesugarerVisitor(isLibrary);
 
         for (ComponentWrapper api: exports.values()) {
             api.getExports(isLibrary);

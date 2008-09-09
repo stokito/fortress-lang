@@ -22,7 +22,8 @@ import java.util.Map;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.rewrite.Desugarer;
+import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
+import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
@@ -161,9 +162,9 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     
     private void handlePossibleFM(List<? extends AbsDeclOrDecl> tdecls) {
         for (AbsDeclOrDecl adod : tdecls) {
-            Desugarer.ArrowOrFunctional aof = adod
-                    .accept(Desugarer.isAnArrowName);
-            if (aof == Desugarer.FUNCTIONAL) {
+            ArrowOrFunctional aof = adod
+                    .accept(IsAnArrowName.isAnArrowName);
+            if (aof == ArrowOrFunctional.FUNCTIONAL) {
                 // Only certain things can be a functional method.
                 FnAbsDeclOrDecl fadod = (FnAbsDeclOrDecl) adod;
                 String s = fadod.getName().stringName();
