@@ -31,19 +31,19 @@ import com.sun.fortress.useful.Voidoid;
  */
 public class RewriteHackList extends AbstractNode {
 
-    transient private List<AbstractNode> nodes;
+    transient private List<? extends AbstractNode> nodes;
 
     public RewriteHackList() {
         super(new Span());
         nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
-    public RewriteHackList(List<AbstractNode> n) {
+    public RewriteHackList(List<? extends AbstractNode> n) {
         super(new Span());
         nodes = n;
     }
 
-    public List<AbstractNode> getNodes() {
+    public List<? extends AbstractNode> getNodes() {
         return nodes;
     }
 
