@@ -45,7 +45,7 @@ component CordedStringTests
         assert(testString[i], referenceString[i]) 
     end
     for i ← ⟨ -1, -5, 37, 38, 109 ⟩ do
-        shouldRaise⟦IndexOutOfBounds⟧ (fn() => testString[i])
+        shouldRaise⟦IndexOutOfBounds[\ZZ32\]⟧ (fn() => testString[i])
     end
     println("indexing done")
   end

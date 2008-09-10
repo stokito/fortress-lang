@@ -99,6 +99,9 @@ end
 
 region(a:Any): Region = Global
 
+(* kludge for defining Indexed.region(i) *)
+topRegion(a:Any): Region = region(a)
+
 here(): Region = Global
 
 (************************************************************
@@ -1335,8 +1338,8 @@ object NotFound extends UncheckedException
     getter toString(): String = "Not found"
 end
 
-object IndexOutOfBounds(min:ZZ32,max:ZZ32,index:ZZ32) extends UncheckedException
-    getter toString(): String = index " is outside the range " min " to " max
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
+    getter toString(): String = index " is outside the range " range
 end
 
 object NegativeLength extends UncheckedException
@@ -1501,7 +1504,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
     opr[i:I] : E
 
     (** Locality of a particular index (NOT of its contents!). *)
-    region(i:I): Region = Global
+    region(i:I): Region = topRegion(self)
 
     (** Indexing by ranges.  The results are 0-based when the
         underlying index type has a notion of 0.  This ensures
@@ -3722,7 +3725,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         then self.get(i)
         else
             (* println "Index " i " not in bounds " self.bounds *)
-            throw IndexOutOfBounds(0,(|self|)-1,i)
+            throw IndexOutOfBounds[\ZZ32\](self.bounds,i)
         end
 
     opr[r0:Range[\ZZ32\]] : String =  do

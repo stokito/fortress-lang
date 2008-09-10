@@ -152,7 +152,6 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
-import com.sun.fortress.useful.MatchFailure;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -1614,13 +1613,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FType> res = evalTypeCaseBinding(ev, x);
         FValue result = FVoid.V;
         List<TypecaseClause> clauses = x.getClauses();
+        FType resTuple = FTypeTuple.make(res);
 
         for (TypecaseClause c : clauses) {
             List<Type> match = c.getMatch();
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
             FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
-            FType resTuple = FTypeTuple.make(res);
 
             if (resTuple.subtypeOf(matchTuple)) {
                 Block body = c.getBody();
@@ -1635,7 +1634,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             result = evalExprList(elseClauses.getExprs(), elseClauses, ev);
             return result;
         } else {
-            throw new MatchFailure();
+            // throw new MatchFailure();
+            return error(x, e, errorMsg("typecase match failure given ",resTuple));
         }
     }
 
@@ -1652,7 +1652,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());
-            error(x, e, errorMsg(Thread.currentThread().getName() + " undefined variable ", names));
+            error(x, e, errorMsg("undefined variable ", names));
         }
         return res;
     }
