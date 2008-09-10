@@ -42,13 +42,13 @@ run(args:String...):() = do
       a[-2]
       fail("a[-2] didn't throw.")
   catch x
-    IndexOutOfBounds => ()
+    IndexOutOfBounds[\ZZ32\] => ()
   end
   try
       a[-1]
       fail("a[-1] didn't throw.")
   catch x
-    IndexOutOfBounds => ()
+    IndexOutOfBounds[\ZZ32\] => ()
   end
   assert(a[0],'H')
   assert(a[1],'e')
@@ -60,7 +60,7 @@ run(args:String...):() = do
       a[6]
       fail("a[6] didn't throw.")
   catch x
-    IndexOutOfBounds => ()
+    IndexOutOfBounds[\ZZ32\] => ()
   end
   assert(a[0#3],"Hel")
   assert(a[2:4],"llo")

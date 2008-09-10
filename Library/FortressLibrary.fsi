@@ -876,7 +876,7 @@ end
 object NotFound extends UncheckedException
 end
 
-object IndexOutOfBounds(min:ZZ32,max:ZZ32,index:ZZ32) extends UncheckedException
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
 end
 
 object NegativeLength extends UncheckedException

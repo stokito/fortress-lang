@@ -1,0 +1,1221 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component RangePrototype
+import List.{...}
+export Executable
+
+printLimit = 5
+
+(** Much of the complexity in ranges is getting the corner cases right
+    for unbounded ranges, backwards ranges, and intersection thereof.
+    There's hairy modular arithmetic involved in intersecting strided
+    ranges, but that mostly involves working around the round-to-0
+    behavior of machine arithmetic (which is exceedingly
+    irritating). **)
+
+(* Round to nearest multiple of stride towards 0. *)
+roundToStride(amt:ZZ32, stride:ZZ32) =
+    stride (amt DIV stride)
+
+(* Perform necessary arithmetic on strides to find starting points of
+   ranges.  The following start at the given starting point and go either
+   up or down by stride, until the bound is reached as described.
+
+   A positive stride is assumed! *)
+atOrAboveGoingUp(start:ZZ32,bound:ZZ32,stride:ZZ32): ZZ32 =
+    start + roundToStride(bound-start+stride-1, stride)
+atOrBelowGoingUp(start:ZZ32,bound:ZZ32,stride:ZZ32): ZZ32 =
+    start + roundToStride(bound-start, stride)
+atOrBelowGoingDown(start:ZZ32,bound:ZZ32,stride:ZZ32): ZZ32 =
+    start - roundToStride(start-bound+stride-1, stride)
+atOrAboveGoingDown(start:ZZ32,bound:ZZ32,stride:ZZ32): ZZ32 =
+    start - roundToStride(start-bound, stride)
+
+(* These work as above, but do not assume a particular relationship0
+   between starting point and bound---so they either count up or count
+   down as appropriate.  This requires a test when rounding division
+   to 0. *)
+atOrBelow(start:ZZ32, bound:ZZ32, stride:ZZ32): ZZ32 =
+    if start <= bound then atOrBelowGoingUp(start,bound,stride)
+    else atOrBelowGoingDown(start,bound,stride) end
+
+atOrAbove(start:ZZ32, bound:ZZ32, stride:ZZ32): ZZ32 =
+    if start >= bound then atOrAboveGoingDown(start,bound,stride)
+    else atOrAboveGoingUp(start,bound,stride) end
+
+(* Find meeting point given the two bounds; tries to avoid overflow. *)
+meetingPoint(init0:ZZ32, stride0:ZZ32, init1:ZZ32, stride1:ZZ32, stride:ZZ32): Maybe[\ZZ32\] =
+    if init0 = init1 then Just[\ZZ32\](init0)
+    else
+        (i_min,s_min,i_max,s_max) : (ZZ32,ZZ32,ZZ32,ZZ32) :=
+            if init0 < init1 then
+                (init0,stride0,init1,stride1)
+            else
+                (init1,stride1,init0,stride0)
+            end
+        i_max := atOrAboveGoingDown(i_max,i_min,s_max)
+        endPoint = i_min + stride
+        while i_max =/= i_min AND i_max < endPoint do
+            i_next = atOrAboveGoingUp(i_min,i_max,s_min)
+            (i_min,s_min,i_max,s_max) := (i_max,s_max,i_next,s_min)
+        end
+        if i_max = i_min then
+            Just[\ZZ32\](i_max)
+        else
+            Nothing[\ZZ32\]
+        end
+    end
+
+(** This is the spec for intersection of unbounded ranges.
+    This portion of the spec was causing a great deal of trouble,
+    so it was pulled out so that ExtentRng could be added sensibly.
+**)
+intersectUnbounded(this:Rng, other:Rng, resultStride:ZZ32): Rng =
+    typecase (this,other) of
+        (OpenRng, Rng) =>
+            other.every(resultStride DIV other.stride)
+        (Rng, OpenRng) =>
+            intersectUnbounded(other,this,resultStride)
+        (ExtentRng, ExtentRng) =>
+            x = this.extent.get MIN other.extent.get
+            s = if (this.stride < 0 OR other.stride < 0) AND resultStride > 0
+                then -resultStride
+                else resultStride end
+            if this.fromLeft AND other.fromLeft then
+                extentRng(x,s)
+            else
+                extentRng(-x,s)
+            end
+        (ExtentRng, Rng) =>
+            if NOT this.fromLeft then
+                exit intersection with
+                    intersectUnbounded(this.flip(),other.flip(),resultStride).flip()
+            end
+            other.every(resultStride DIV other.stride).atMost(this.extent.get)
+        (Rng, ExtentRng) =>
+            intersectUnbounded(other,this,resultStride)
+    end
+
+(** This is the old spec for intersection.  It's been replaced by INTERSECTNEW below. **)
+opr INTERSECTOLD(this:Rng, other: Rng): Rng = label intersection
+    checkEmpty(): () =
+        if this.isEmpty OR other.isEmpty then exit intersection with emptyRng end
+    adjustDirection(): () =
+        if this.stride < 0 OR other.stride < 0 then
+            s = if this.stride < 0 then this.flip() else this end
+            o = if other.stride < 0 then other.flip() else other end
+            exit intersection with (s INTERSECTION o).flip()
+        end
+    resultStride = this.stride LCM other.stride
+    firstMeetingPointAbove(l0:ZZ32,l1:ZZ32):Maybe[\ZZ32\] = do
+        (l_min,s_min,l_max,s_max) : (ZZ32,ZZ32,ZZ32,ZZ32) :=
+            if l0 <= l1 then
+                (l0, this.stride,  l1,other.stride)
+            else
+                (l1,other.stride,  l0, this.stride)
+            end
+        endPoint = l_max + resultStride
+        while l_min < l_max AND l_max < endPoint do
+            l_new = atOrAboveGoingUp(l_min,l_max,s_min)
+            (l_min, s_min, l_max, s_max) := (l_max, s_max, l_new, s_min)
+        end
+        if l_min =/= l_max then exit intersection with emptyRng end
+        l_min
+      end
+    firstMeetingPointBelow(r0:ZZ32,r1:ZZ32):Maybe[\ZZ32\] = do
+        tooHigh = firstMeetingPointAbove(r0,r1)
+        r_min = r0 MIN r1
+        atOrBelowGoingDown(tooHigh,r_min,resultStride)
+      end
+    trimRight(l:ZZ32,r:ZZ32): ZZ32 =
+        if l <= r then atOrBelowGoingUp(l,r,resultStride)
+        else atOrBelowGoingDown(l,r,resultStride) end
+    trimLeft(l:ZZ32,r:ZZ32): ZZ32 =
+        if l <= r then atOrAboveGoingDown(r,l,resultStride)
+        else atOrAboveGoingUp(r,l,resultStride) end
+    typecase (l0,l1,r0,r1) = (this.left,other.left,this.right,other.right) of
+        (Just[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            l = firstMeetingPointAbove(l0.get,l1.get)
+            r = trimRight(l,r0.get MIN r1.get)
+            fullRng(l,r,resultStride)
+        (Just[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\],Nothing[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            l = firstMeetingPointAbove(l0.get,l1.get)
+            r = trimRight(l,r0.get)
+            fullRng(l,r,resultStride)
+        (Just[\ZZ32\],Just[\ZZ32\],Nothing[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            l = firstMeetingPointAbove(l0.get,l1.get)
+            r = trimRight(l,r1.get)
+            fullRng(l,r,resultStride)
+        (Just[\ZZ32\],Just[\ZZ32\],Nothing[\ZZ32\],Nothing[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            l = firstMeetingPointAbove(l0.get,l1.get)
+            leftRng(l,resultStride)
+        (Nothing[\ZZ32\],Nothing[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            r = firstMeetingPointBelow(r0.get,r1.get)
+            rightRng(r,resultStride)
+        (Just[\ZZ32\],Nothing[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            r = firstMeetingPointBelow(r0.get,r1.get)
+            l = trimLeft(l0.get,r)
+            fullRng(l,r,resultStride)
+        (Nothing[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            r = firstMeetingPointBelow(r0.get,r1.get)
+            l = trimLeft(l1.get,r)
+            fullRng(l,r,resultStride)
+        (Just[\ZZ32\],Nothing[\ZZ32\],Nothing[\ZZ32\],Just[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            actual_l1 = atOrAboveGoingDown(r1.get,l0.get,other.stride)
+            l = firstMeetingPointAbove(l0.get,actual_l1)
+            r = trimRight(l,r1.get)
+            fullRng(l,r,resultStride)
+        (Nothing[\ZZ32\],Just[\ZZ32\],Just[\ZZ32\],Nothing[\ZZ32\]) =>
+            checkEmpty()
+            adjustDirection()
+            actual_l0 = atOrAboveGoingDown(r0.get,l1.get,this.stride)
+            l = firstMeetingPointAbove(actual_l0,l1.get)
+            r = trimRight(l,r0.get)
+            fullRng(l,r,resultStride)
+        (Nothing[\ZZ32\],Maybe[\ZZ32\],Nothing[\ZZ32\],Maybe[\ZZ32\]) =>
+            intersectUnbounded(this,other,resultStride)
+        (Maybe[\ZZ32\],Nothing[\ZZ32\],Maybe[\ZZ32\],Nothing[\ZZ32\]) =>
+            intersectUnbounded(this,other,resultStride)
+    end
+  end intersection
+
+(** This is the current spec for INTERSECTION **)
+opr INTERSECTNEW(this:Rng, other: Rng): Rng = label intersection
+    checkEmpty(): () =
+        if this.isEmpty OR other.isEmpty then exit intersection with emptyRng end
+    adjustDirection(): () =
+        if this.stride < 0 OR other.stride < 0 then
+            s = if this.stride < 0 then this.flip() else this end
+            o = if other.stride < 0 then other.flip() else other end
+            exit intersection with (s INTERSECTION o).flip()
+        end
+    meetingPt(p0:ZZ32,s0:ZZ32,p1:ZZ32,s1:ZZ32,s:ZZ32): ZZ32 =
+        if p <- meetingPoint(p0,s0,p1,s1,s) then
+            p
+        else
+            exit intersection with emptyRng
+        end
+    resultStride = this.stride LCM other.stride
+    commute():() =
+        exit intersection with other INTERSECTNEW this
+    typecase (t,o) = (this,other) of
+        (FullRng, BoundedRng) =>
+            adjustDirection()
+            checkEmpty()
+            p = meetingPt(t.left.get,t.stride,o.leftOrRight,o.stride,resultStride)
+            l = atOrAbove(p,t.maxLeft(o),resultStride)
+            r = atOrBelow(l,t.minRight(o),resultStride)
+            fullRng(l,r,resultStride)
+        (BoundedRng, FullRng) =>
+            commute()
+        (LeftRng, LeftRng) =>
+            adjustDirection()
+            p = meetingPt(t.left.get,t.stride,o.left.get,o.stride,resultStride)
+            l = atOrAbove(p,t.left.get MAX o.left.get,resultStride)
+            leftRng(l,resultStride)
+        (LeftRng, RightRng) =>
+            adjustDirection()
+            p = meetingPt(t.left.get,t.stride,o.right.get,o.stride,resultStride)
+            l = atOrAbove(p,t.left.get,resultStride)
+            r = atOrBelow(l,o.right.get,resultStride)
+            fullRng(l,r,resultStride)
+        (RightRng,LeftRng) =>
+            commute()
+        (RightRng, RightRng) =>
+            adjustDirection()
+            p = meetingPt(t.right.get,t.stride,o.right.get,o.stride,resultStride)
+            r = atOrBelow(p,t.right.get MIN o.right.get,resultStride)
+            rightRng(r,resultStride)
+        else => intersectUnbounded(this,other,resultStride)
+    end
+  end intersection
+
+object dumpShow(r:Rng) extends Equality[\dumpShow\]
+    getter toString(): String = r.dump() ":" r.toString()
+    opr =(self, other:dumpShow): Boolean = self.r = other.r
+end
+
+trait Rng extends { StandardPartialOrder[\Rng\], Contains[\ZZ32\] }
+    getter stride(): ZZ32
+    getter left(): Maybe[\ZZ32\]
+    getter right(): Maybe[\ZZ32\]
+    getter extent(): Maybe[\ZZ32\]
+    getter isEmpty(): Boolean
+    getter upward(): Boolean = self.stride > 0
+    getter isLeftBounded(): Boolean = self.left.holds
+    getter isAnyBounded(): Boolean = self.left.holds OR self.right.holds
+    getter toString(): String
+    truncL(l:ZZ32): RngWithLeft = do
+        dir = if self.stride > 0 then 1 else -1 end
+        self INTERSECTION leftRng(l,dir)
+      end
+    truncR(r:ZZ32): RngWithRight = self.flip().truncL(r).flip()
+    flip(): Rng
+    every(s:ZZ32): Rng
+    atMost(n:ZZ32): Rng
+    opr INTERSECTION(self, other: Rng): Rng
+    intersectWithExtent(e:ExtentRng): RngWithExtent
+    opr =(self, b:Rng): Boolean = false
+    opr IN(n:ZZ32, self): Boolean
+    dump(): String
+    check(): Rng = do
+        str = self.stride
+        if str = 0 then fail(dump() ": Zero stride") end
+        for l <- self.left, r <- self.right do
+            if (l-r) MOD str =/= 0 AND NOT self.isEmpty then
+                fail(dump() ": Bounds don't match stride.")
+            end
+        end
+        self
+      end
+end
+
+object OpenRng(str: ZZ32) extends Rng
+    getter stride(): ZZ32 = str
+    getter left(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter right(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter extent(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter isEmpty(): Boolean = false
+    getter toString(): String =
+        if str > 0 then
+            "...o,o+" str "..."
+        else
+            "...o,o" str "..."
+        end
+    truncL(l:ZZ32): LeftRng = leftRng(l,str)
+    flip(): OpenRng = OpenRng(-str)
+    every(s:ZZ32): Rng = if s<0 AND str<0 then OpenRng(-s str) else OpenRng(s str) end
+    atMost(n:ZZ32): RngWithExtent = extentRng(n,str)
+    opr INTERSECTION(self, other: Rng): Rng = other.every(openEveryParam(other))
+    intersectWithExtent(e:ExtentRng): RngWithExtent =
+        e.every(openEveryParam(e))
+    openEveryParam(r:Rng): ZZ32 = do
+        gcd = str GCD r.stride
+        str DIV gcd
+      end
+    opr =(self, b:OpenRng): Boolean = str = b.str
+    opr IN(n:ZZ32, self): Boolean = true
+    dump(): String = "OpenRng(" str ")"
+end
+
+open = OpenRng(1)
+
+trait RngWithExtent extends Rng
+    getter extent(): Just[\ZZ32\]
+end
+
+(* Invariant: ex > 0.  Means take every every |str|^th element, up to
+   |ex| elements.  Work from left if ex is positive, from right if ex is
+   negative.  Reverse afterwards if str is negative. *)
+object ExtentRng(ex:ZZ32, str:ZZ32) extends RngWithExtent
+    getter stride(): ZZ32 = str
+    getter left(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter right(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter extent(): Just[\ZZ32\] = Just[\ZZ32\]( |ex| )
+    getter isEmpty(): Boolean = false
+    getter fromLeft(): Boolean = ex > 0
+    getter toString(): String =
+        case ex of
+            1 => "l"
+            -1 => "r"
+            2 => if str > 0 then "l,l+" str else "l,l" str end
+            -2 => if str > 0 then "r-" str ",r" else "r+" (-str) ",r" end
+            else =>
+                if ex > 0 then
+                    f = (ex-1) str
+                    if str > 0
+                    then "l,l+" str ",...l+" f
+                    else "l,l" str ",...l" f end
+                else
+                    f = (-ex-1) str
+                    if str > 0
+                    then "r-" f "...,r-" str ",r"
+                    else "r+" (-f) "...,r+" (-str) ",r" end
+                end
+        end
+    truncL(s:ZZ32): FullRng =
+        if ex > 0 then
+            fullRng(s, s + (ex-1) str, str)
+        else
+            fullRng(s, s - (ex+1) str, str)
+        end
+    flip(): ExtentRng = ExtentRng(-ex, -str)
+    every(s:ZZ32): ExtentRng =
+        if s < 0 then
+            every(-s).flip()
+        else
+            exr = if ex > 0 then ex+s-1 else ex-s+1 end
+            ExtentRng(exr DIV s, s str)
+        end
+    atMost(n:ZZ32): Rng =
+        (* If either n or ex is negative, yield negative ex in result (for idempotence) *)
+        if n = 0 then
+            emptyRng
+        elif n < 0 then
+            ExtentRng(-|ex| MAX n, str)
+        elif ex < 0 then
+            ExtentRng(ex MAX -n, str)
+        else
+            ExtentRng(ex MIN n, str)
+        end
+    opr INTERSECTION(self, other: Rng): RngWithExtent = other.intersectWithExtent(self)
+    intersectWithExtent(e:ExtentRng): RngWithExtent = do
+        x = self.extent.get MIN e.extent.get
+        resultStride = str LCM e.stride
+        s = if (str < 0 OR e.stride < 0) AND resultStride > 0
+            then -resultStride
+            else resultStride end
+        if self.fromLeft AND e.fromLeft then
+            extentRng(x,s)
+        else
+            extentRng(-x,s)
+        end
+      end
+    opr =(self, b:ExtentRng): Boolean = ex = b.ex AND (str = b.str OR ex=1 OR ex=-1)
+    opr IN(n:ZZ32, self): Boolean = true
+    dump(): String = "ExtentRng(" ex "," str ")"
+end
+
+extentRng(ex:ZZ32, str:ZZ32): RngWithExtent =
+    if ex = 0 then emptyRng else ExtentRng(ex,str).check() end
+
+trait BoundedRng extends Rng
+    getter leftOrRight(): ZZ32
+    every(s:ZZ32): BoundedRng
+    atMost(n:ZZ32): FullRng
+    opr INTERSECTION(self, other: Rng): BoundedRng =
+        typecase other of
+            BoundedRng =>
+                if self.stride < 0 OR other.stride < 0 then
+                    s = if self.stride < 0 then self.flip() else self end
+                    o = if other.stride < 0 then other.flip() else other end
+                    s.forwardIntersection(o).flip()
+                else
+                    self.forwardIntersection(other)
+                end
+            ExtentRng => self.intersectWithExtent(other)
+            OpenRng => self.every(other.openEveryParam(self))
+        end
+    intersectWithExtent(e:ExtentRng): FullRng =
+        if e.fromLeft then
+            resultGCD = self.stride GCD e.stride
+            str' = e.stride DIV resultGCD
+            self.every(str').atMost(e.extent.get)
+        else
+            self.flip().intersectWithExtent(e.flip()).flip()
+        end
+    forwardIntersection(other: BoundedRng): BoundedRng =
+        typecase other of
+            FullRng => other.forwardIntersection(self)
+            else =>
+                resultStride = self.stride LCM other.stride
+                self.nonemptyUpwardIntersection(other, resultStride)
+        end
+    (* nonemptyUpwardIntersection does the bulk of the work of opr INTERSECTION. *)
+    nonemptyUpwardIntersection(other:BoundedRng, resultStride:ZZ32):BoundedRng =
+        if p <- meetingPoint(self.leftOrRight,  self.stride,
+                             other.leftOrRight, other.stride, resultStride) then
+            other.nonemptyUpwardIntersectionWithPoint(self, resultStride, p)
+        else
+            emptyRng
+        end
+    nonemptyUpwardIntersectionWithPoint(other: BoundedRng, resultStride:ZZ32, p:ZZ32): BoundedRng
+end
+
+trait RngWithLeft extends BoundedRng
+    getter left(): Just[\ZZ32\]
+    getter leftOrRight(): ZZ32 = self.left.get
+    maxLeft(other:Rng): ZZ32 =
+        if ol <- other.left then
+            ol MAX self.left.get
+        else
+            self.left.get
+        end
+end
+
+object LeftRng(l:ZZ32, str:ZZ32) extends RngWithLeft
+    getter stride(): ZZ32 = str
+    getter left(): Just[\ZZ32\] = Just[\ZZ32\](l)
+    getter right(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter extent(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter isEmpty(): Boolean = false
+    getter toString(): String = do
+        t : ZZ32 := l
+        v : String := "["
+        n : ZZ32 := 1
+        s = self.stride
+        while n < printLimit do
+            v ||= t ","
+            t += s
+            n += 1
+        end
+        v || t "..."
+      end
+    flip(): RightRng = rightRng(l, -str)
+    every(s:ZZ32): Rng =
+        if s > 0 then
+            leftRng(l, s str)
+        else
+            flip().every(-s)
+        end
+    atMost(n:ZZ32): Rng =
+        fullRng(l, l + ( |n| - 1 ) str, str)
+    dump(): String = "leftRng(" l "," str ")"
+    opr =(self, b:LeftRng): Boolean = l = b.l AND str = b.str
+    opr IN(n:ZZ32, self): Boolean =
+        (if self.stride > 0 then l <= n else n <= l) AND: (self.stride DIVIDES (n-l))
+    nonemptyUpwardIntersectionWithPoint(other: BoundedRng, resultStride:ZZ32, p:ZZ32): RngWithLeft =
+        if r <- other.right then
+            fullRngInter(l,r,resultStride,p)
+        else
+            leftRngInter(self.maxLeft(other),resultStride,p)
+        end
+end
+
+leftRng(l:ZZ32, str:ZZ32): LeftRng = LeftRng(l,str).check()
+
+leftRngInter(l:ZZ32, str:ZZ32, p:ZZ32): LeftRng =
+    leftRng(atOrAbove(p,l,str),str)
+
+trait RngWithRight extends BoundedRng
+    getter right(): Just[\ZZ32\]
+    minRight(other:Rng): ZZ32 =
+        if ol <- other.right then
+            ol MIN self.right.get
+        else
+            self.right.get
+        end
+end
+
+object RightRng(r:ZZ32, str:ZZ32) extends RngWithRight
+    getter stride(): ZZ32 = str
+    getter left(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter right(): Just[\ZZ32\] = Just[\ZZ32\](r)
+    getter leftOrRight(): Just[\ZZ32\] = r
+    getter extent(): Nothing[\ZZ32\] = Nothing[\ZZ32\]
+    getter isEmpty(): Boolean = false
+    getter toString(): String = do
+        t : ZZ32 := r
+        v : String := "]"
+        n : ZZ32 := 1
+        s = self.stride
+        while n < printLimit do
+            v := "," t || v
+            t -= s
+            n += 1
+        end
+        "..." t || v
+      end
+    flip(): LeftRng = leftRng(r, -str)
+    every(s:ZZ32): RightRng =
+        if s < 0 then
+            flip().every(-s)
+        else
+            rightRng(r, s str)
+        end
+    atMost(n:ZZ32): Rng =
+        fullRng(r - ( |n| - 1 ) str, r, str)
+    dump(): String = "rightRng(" r "," str ")"
+    opr =(self, b:RightRng): Boolean = r = b.r AND str = b.str
+    opr IN(n:ZZ32, self): Boolean =
+        (if self.stride > 0 then n <= r else r <= n) AND: (self.stride DIVIDES (r-n))
+    nonemptyUpwardIntersectionWithPoint(other: BoundedRng, resultStride:ZZ32, p:ZZ32): RngWithRight =
+        if l <- other.left then
+            fullRngInter(l,r,resultStride,p)
+        else
+            rightRngInter(self.minRight(other),resultStride,p)
+        end
+end
+
+rightRng(r:ZZ32, str:ZZ32): RightRng = RightRng(r,str).check()
+
+rightRngInter(r:ZZ32, str:ZZ32, p:ZZ32): RightRng =
+    rightRng(atOrBelow(p,r,str),str)
+
+trait CompactRng extends Rng
+    getter stride(): ZZ32 = 1
+end
+
+trait FullRng extends { RngWithLeft, RngWithRight, RngWithExtent, Indexed[\ZZ32,ZZ32\] }
+    getter bounds(): CompactFullRng = CompactFullRng(0,size()-1)
+    getter extent(): Just[\ZZ32\] = Just[\ZZ32\](self.size)
+    getter toString(): String =
+        if self.isEmpty then
+            "[]"
+        else
+            r = self.right.get
+            t : ZZ32 := self.left.get
+            v : String := "["
+            n : ZZ32 := 1
+            s = self.stride
+            if s > 0 then
+                while t < r AND n < printLimit do
+                    v ||= t ","
+                    t += s
+                    n += 1
+                end
+            else
+                while t > r AND n < printLimit do
+                    v ||= t ","
+                    t += s
+                    n += 1
+                end
+            end
+            if t=r then
+                v || t "]"
+            else
+                v || "... " r "]"
+            end
+        end
+    flip(): FullRng = fullRng(self.right.get,self.left.get,-self.stride)
+    every(s:ZZ32): FullRng =
+        if s < 0 then
+            flip().every(-s)
+        elif self.isEmpty then self
+        elif s > 0 then
+            r = self.right.get
+            l = self.left.get
+            str' = s self.stride
+            steps = (r-l) DIV str' (* Doesn't work for empty b/c DIV rounds to 0! *)
+            fullRng(l, l + steps str', str')
+        else
+            fail(dump() ".every(" s "); zero stride.")
+        end
+    atMost(n:ZZ32): FullRng =
+        if n >= 0 then
+            l = self.left.get
+            str = self.stride
+            r' = l + (n-1) str (* ' *)
+            r = self.right.get
+            if (str > 0 AND r' > r) OR (str < 0 AND r' < r) then
+                self
+            else
+                fullRng(l, r', str)
+            end
+        else (* n < 0 *)
+            r = self.right.get
+            str = self.stride
+            l' = r + (n+1) str (* ' *)
+            l = self.left.get
+            if (str > 0 AND l' < l) OR (str < 0 AND l' > l) then (* ' *)
+                self
+            else
+                fullRng(l', r, str) (* ' *)
+            end
+        end
+    opr =(self, b:FullRng): Boolean =
+        (self.isEmpty AND b.isEmpty) OR
+        (self.left = b.left AND self.right = b.right AND
+            (self.stride = b.stride OR self.left=self.right))
+    forwardIntersection(other: BoundedRng): FullRng =
+        if self.isEmpty then self
+        elif other.isEmpty then other
+        else
+            resultStride = self.stride LCM other.stride
+            self.nonemptyUpwardIntersection(other, resultStride)
+        end
+    (* nonemptyUpwardIntersection does the bulk of the work of opr INTERSECTION. *)
+    nonemptyUpwardIntersection(other: BoundedRng, resultStride:ZZ32): FullRng =
+        if p <- meetingPoint(self.leftOrRight, self.stride,
+                             other.leftOrRight, other.stride, resultStride) then
+            nonemptyUpwardIntersectionWithPoint(other, resultStride, p)
+        else
+            emptyRng
+        end
+    nonemptyUpwardIntersectionWithPoint(other: BoundedRng, resultStride:ZZ32, p:ZZ32): FullRng =
+        fullRngInter(self.maxLeft(other),self.minRight(other),resultStride,p)
+    opr [r:Range[\ZZ32\]]: FullRng = do
+        f = bounds().selectIndices(r2r(r))
+        l = self.left.get
+        s = self.stride
+        fullRng(l + f.left.get s, l + f.right.get s, f.stride s)
+      end
+end
+
+r2r(r:Range[\ZZ32\]): Rng =
+    typecase r of
+        OpenRange[\ZZ32\] => open
+        LowerRange[\ZZ32\] => leftRng(r.lower,1)
+        UpperRange[\ZZ32\] => rightRng(r.upper,1)
+        ExtentRange[\ZZ32\] => extentRng(r.extent,1)
+        CompleteRange[\ZZ32\] => CompactFullRng(r.lower,r.upper)
+    end
+
+rng2r(r:Rng): Range[\ZZ32\] =
+    typecase r of
+        OpenRng => OpenRange[\ZZ32\]
+        LeftRng => LowerRange[\ZZ32\](r.left.get)
+        RightRng => UpperRange[\ZZ32\](r.right.get)
+        RngWithExtent => ExtentRange[\ZZ32\](r.extent.get)
+        FullRng => r.left:r.right
+    end
+
+object CompactFullRng(l:ZZ32, r:ZZ32) extends { FullRng, CompactRng }
+    getter left(): Just[\ZZ32\] = Just[\ZZ32\](l)
+    getter right(): Just[\ZZ32\] = Just[\ZZ32\](r)
+    getter extent(): Just[\ZZ32\] = Just[\ZZ32\]( self.size() )
+    getter size(): ZZ32 = do
+        res = r-l+1
+        if res <= 1 AND l>r then 0 else res end
+      end
+    getter isEmpty(): Boolean = l>r
+    getter indexValuePairs(): Indexed[\(ZZ32,ZZ32),ZZ32\] =
+        self.map[\(ZZ32,ZZ32)\](fn (i:ZZ32):(ZZ32,ZZ32) => (i-l,i))
+    getter indices(): Indexed[\ZZ32,ZZ32\] =
+        self.map[\ZZ32\](fn (i:ZZ32):(ZZ32,ZZ32) => (i-l))
+    opr[i:ZZ32]: ZZ32 =
+        if i NOTIN bounds() then throw IndexOutOfBounds(bounds(),i)
+        else i+l end
+    dump(): String = "CompactFullRng(" l "," r ")"
+    opr IN(n:ZZ32, self): Boolean = l <= n <= r
+    generate[\T\](red:Reduction[\T\], body: ZZ32->T): T =
+        if r < l then
+            red.empty()
+        else
+            loop(lo:ZZ32,hi:ZZ32): T =
+                if lo=hi then
+                    body(lo)
+                else
+                    (* Identify power-of-2 boundary in region, split there *)
+                    split = partitionL((lo BITXOR hi)+1)
+                    mid   = hi BITAND (BITNOT (split-1))
+                    red.join(loop(lo,mid-1),loop(mid,hi))
+                end
+            loop(l,r)
+        end
+    loop(body: ZZ32->()): () =
+        if r < l then
+            ()
+        else
+            lop(lo:ZZ32,hi:ZZ32): () =
+                if lo=hi then
+                    body(lo)
+                else
+                    (* Identify power-of-2 boundary in region, split there *)
+                    split = partitionL((lo BITXOR hi)+1)
+                    mid   = hi BITAND (BITNOT (split-1))
+                    do
+                        lop(lo,mid-1)
+                    also do
+                        lop(mid,hi)
+                    end
+                end
+            lop(l,r)
+        end
+    selectIndices(i:Rng) : FullRng =
+        if self.isEmpty then self
+        elif i.isEmpty then i
+        else
+            ii = if i.stride < 0 then i.flip() else i end
+            if ii.left.holds AND: ii.left.get < self.left.get then
+                throw IndexOutOfBounds[\ZZ32\](rng2r(self),ii.left.get)
+            elif ii.right.holds AND: ii.right.get > self.right.get then
+                throw IndexOutOfBounds[\ZZ32\](rng2r(self),ii.right.get)
+            end
+            res = self INTERSECTION ii
+            if i.stride < 0 then res.flip() else res end
+        end
+end
+
+object StridedFullRng(l:ZZ32, r:ZZ32, str:ZZ32) extends FullRng
+    getter stride(): ZZ32 = str
+    getter left(): Just[\ZZ32\] = Just[\ZZ32\](l)
+    getter right(): Just[\ZZ32\] = Just[\ZZ32\](r)
+    getter size(): ZZ32 = do
+        res = (r-l) DIV str + 1
+        if res <= 1 AND: self.isEmpty then 0
+        else res end
+      end
+    getter isEmpty(): Boolean =
+        if str > 0 then (l>r) else (l<r) end
+    getter indexValuePairs(): Indexed[\(ZZ32,ZZ32),ZZ32\] =
+        self.map[\(ZZ32,ZZ32)\](fn (i:ZZ32):(ZZ32,ZZ32) => ((i-l) DIV str,i))
+    getter indices(): Indexed[\ZZ32,ZZ32\] =
+        self.map[\ZZ32\](fn (i:ZZ32):(ZZ32,ZZ32) => (i-l) DIV str)
+    opr[i:ZZ32]: ZZ32 =
+        if i NOTIN self.bounds then throw IndexOutOfBounds[\ZZ32\](rng2r(self.bounds),i)
+        else i str + l end
+    dump(): String = "StridedFullRng(" l "," r "," str ")"
+    opr IN(n:ZZ32, self): Boolean =
+        (if str > 0 then l <= n <= r else r <= n <= l) AND: (str DIVIDES (n-l))
+    generate[\T\](red:Reduction[\T\], body: ZZ32->T): T =
+        if str > 0 then
+            if r < l then
+                red.empty()
+            else
+                loop(lo:ZZ32,hi:ZZ32): T =
+                    if lo=hi then
+                        body(lo)
+                    else
+                        (* Identify power-of-2 boundary *)
+                        split = partitionL((lo BITXOR hi)+1)
+                        midAmt = (hi BITAND (BITNOT (split-1))) - lo - 1
+                        (* Round power-of-2 boundary down to stride size
+                           WARNING?  Problem with negative lo here?  *)
+                        midL = lo + str (midAmt DIV str)
+                        midR = midL + str
+                        red.join(loop(lo,midL),loop(midR,hi))
+                    end
+                loop(l,r)
+            end
+        else (* str > 0 *)
+            if l < r then
+                red.empty()
+            else
+                str' = -str
+                loop(lo:ZZ32,hi:ZZ32): T =
+                    if lo=hi then
+                        body(lo)
+                    else
+                        (* Identify power-of-2 boundary *)
+                        split = partitionL((lo BITXOR hi)+1)
+                        midAmt = (hi BITAND (BITNOT (split-1))) - lo - 1
+                        (* Round power-of-2 boundary down to stride size
+                           WARNING?  Problem with negative lo here?  *)
+                        midL = lo + str' (midAmt DIV str')
+                        midR = midL + str'
+                        red.join(loop(midR,hi),loop(lo,midL))
+                    end
+                loop(r,l)
+            end
+        end
+    loop(body: ZZ32->()): () =
+        if str > 0 then
+            if r < l then
+                ()
+            else
+                lop(lo:ZZ32,hi:ZZ32): () =
+                    if lo=hi then
+                        body(lo)
+                    else
+                        (* Identify power-of-2 boundary *)
+                        split = partitionL((lo BITXOR hi)+1)
+                        midAmt = (hi BITAND (BITNOT (split-1))) - lo - 1
+                        (* Round power-of-2 boundary down to stride size
+                           WARNING?  Problem with negative lo here?  *)
+                        midL = lo + str (midAmt DIV str)
+                        midR = midL + str
+                        do
+                            lop(lo,midL)
+                        also do
+                            lop(midR,hi)
+                        end
+                    end
+                lop(l,r)
+            end
+        else (* str > 0 *)
+            if l < r then
+                ()
+            else
+                str' = -str
+                lop(lo:ZZ32,hi:ZZ32): () =
+                    if lo=hi then
+                        body(lo)
+                    else
+                        (* Identify power-of-2 boundary *)
+                        split = partitionL((lo BITXOR hi)+1)
+                        midAmt = (hi BITAND (BITNOT (split-1))) - lo - 1
+                        (* Round power-of-2 boundary down to stride size
+                           WARNING?  Problem with negative lo here?  *)
+                        midL = lo + str' (midAmt DIV str')
+                        midR = midL + str'
+                        do
+                            lop(midR,hi)
+                        also do
+                            lop(lo,midL)
+                        end
+                    end
+                lop(r,l)
+            end
+        end
+end
+
+fullRng(l:ZZ32, r:ZZ32, str:ZZ32): FullRng =
+    if str=1 then CompactFullRng(l,r).check()
+    else StridedFullRng(l,r,str).check() end
+
+fullRngInter(l:ZZ32, r:ZZ32, str:ZZ32, p:ZZ32): FullRng =
+    fullRng(atOrAbove(p,l,str), atOrBelow(p,r,str), str)
+
+emptyRng : FullRng = CompactFullRng(0,-1)
+
+object StrideReduction(f:FullRng) extends AssociativeReduction[\(ZZ32,ZZ32,ZZ32)\]
+    getter toString():String = "StrideReduction " f.dump() " " f
+    simpleJoin(l:Any,r:Any):Any = do
+        (ll,sl,lr) = l
+        (rl,sr,rr) = r
+        assert(rl-lr, f.stride, "Stride between ", rl, " and ", lr, " in ", self)
+        (ll,sl+sr,rr)
+      end
+end
+
+strideUnit(f:FullRng): ZZ32->Maybe[\(ZZ32,ZZ32,ZZ32)\] = fn (e:ZZ32) => do
+    assert(e IN f, true, "Membership test failed for enumerated element ",e," of ",f)
+    Just[\(ZZ32,ZZ32,ZZ32)\](e,1,e)
+  end
+
+run(args:String...):() =
+  if false then ()
+  else
+    (* Spot-test failures first *)
+    assert(StridedFullRng(1,0,2).extent.get,0,"Emptiness 0")
+    assert(CompactFullRng(1,1).isEmpty,false,"Emptiness 1")
+    assert(StridedFullRng(1,1,-1).isEmpty,false,"Emptiness 2")
+    assert(CompactFullRng(1,1),StridedFullRng(1,1,-1),"Singleton equality 1")
+    assert(StridedFullRng(1,1,-1),CompactFullRng(1,1),"Singleton equality 2")
+    assert(CompactFullRng(0,23).every(-2), fullRng(23,1,-2), "Backward every")
+    assert(CompactFullRng(0,23) INTERSECTION OpenRng(-2), fullRng(23,1,-2), "Backward intersection")
+    strides = <|[\ZZ32\] 1,2,3,4,-1,-3|>
+    lefts = <|[\ZZ32\] -2,0,1,2|>
+    rights = <|[\ZZ32\] -3,-1,0,1,45,46,47|>
+    print("fullRngs")
+    fullRngs = <|[\Rng\] fullRng(0,-1,1), fullRng(0,0,1), fullRng(0,0,2), fullRng(0,0,-3),
+                 fullRng(0,-1,2), fullRng(0,1,-1), fullRng(0,1,-4),
+                 fullRng(0,4,1), fullRng(1,9,2), fullRng(2,11,3),
+                 fullRng(4,0,-1), fullRng(9,1,-2), fullRng(11,2,-3),
+                 fullRng(-1,45,2), fullRng(2,47,3), fullRng(3,45,1) |>
+    print(" (" |fullRngs| ")")
+    for f <- fullRngs do
+        print(".")
+        g = f.generate[\AnyMaybe\](StrideReduction(f),strideUnit(f))
+        if (l0,sz0,r0) <- g then
+            if l <- f.left then
+                assert(l0,l,"Actual and generated left bound for ",f)
+                assert(l0 IN f, NOT f.isEmpty, "Membership test for lower bound of ",f)
+            else
+                fail(f ": no left")
+            end
+            if r <- f.right then
+                assert(r0,r,"Actual and generated right bound for ",f)
+                assert(r0 IN f, NOT f.isEmpty, "Membership test for upper bound of ",r)
+            else
+                fail(f ": no right")
+            end
+            if sz <- f.extent then
+                assert(sz0,sz,"Actual and generated extent for ",f)
+            else
+                fail(f ": no extent")
+            end
+            if f.isEmpty then
+                fail(f ".isEmpty but generated " (l0,sz0,r0))
+            end
+        elif NOT f.isEmpty then
+            fail("No elements generated by non-empty " f.dump() " " f)
+        elif sz <- f.extent then
+            if sz =/= 0 then
+                fail("Empty but nonzero extent " sz " " f " " f.dump())
+            end
+        else
+            fail("Empty but undefined extent " f)
+        end
+    end
+    print("\nleftRngs")
+    leftRngs = <|[\Rng\] leftRng(0,1), leftRng(2,-1),
+                     leftRng(45,-3), leftRng(-2,1),
+                     leftRng(-2,3), leftRng(4,4) |>
+    print(" (" |leftRngs| ")")
+    for l <- lefts, s <- strides do
+        print(".")
+        rng = leftRng(l,s)
+        assert(rng.isEmpty, false, "Empty left range ", rng)
+        assert(rng.left.get,l,rng,".left")
+        assert(rng.right.holds,false,rng,".right")
+        assert(rng.extent.holds,false,rng,".extent")
+        assert(rng.stride,s,rng,".stride")
+    end
+    print("\nrightRngs")
+    rightRngs = <|[\Rng\] rightRng(0,1), rightRng(2,1),
+                     rightRng(45,3), rightRng(-2,-1),
+                     rightRng(-2,-3), rightRng(4,-4) |>
+    print(" (" |rightRngs| ")")
+    for r <- lefts, s <- strides do
+        print(".")
+        rng = rightRng(r,s)
+        assert(rng.isEmpty, false, "Empty right range ", rng)
+        assert(rng.left.holds,false,rng,".left")
+        assert(rng.right.get,r,rng,".right")
+        assert(rng.extent.holds,false,rng,".extent")
+        assert(rng.stride,s,rng,".stride")
+    end
+    print("\nopenRngs")
+    openRngs = <|[\Rng\] OpenRng(1), OpenRng(-1), OpenRng(3), OpenRng(-2)|>
+    print(" (" |openRngs| ")")
+    for rng <- openRngs do
+        print(".")
+        _ = rng.check()
+        s = rng.stride
+        assert(rng.isEmpty, false, "Empty open range ", rng)
+        assert(rng.left.holds,false,rng,".left")
+        assert(rng.right.holds,false,rng,".right")
+        assert(rng.extent.holds,false,rng,".extent")
+        assert(OpenRng(s).stride,s,"Fresh range extent mismatch")
+    end
+    boundedRngs = leftRngs || rightRngs || fullRngs
+    print("\nextentRngs")
+    extentRngs = <|[\Rng\] extentRng(1,1), extentRng(-1,1),
+                       extentRng(1,-3), extentRng(3,-2),
+                       extentRng(-2,1), extentRng(5, 3) |>
+    print(" (" |extentRngs| ")")
+    for rng <- extentRngs do
+        print(".")
+        _ = rng.check()
+        assert(rng.isEmpty, false, "Empty extent range ", rng)
+        assert(rng.left.holds,false,rng,".left")
+        assert(rng.right.holds,false,rng,".right")
+        assert(rng.extent.holds,true,rng,".extent")
+    end
+    testRngss = <|[\List[\Rng\]\] openRngs, leftRngs, rightRngs, fullRngs, extentRngs |>
+    testRngs : List[\Rng\] = concat(testRngss)
+    println("\ntestRngs (" |testRngs| ")")
+    print("\nspec match")
+    for i <- seq(testRngs), j <- seq(testRngs) do
+        print(".")
+        a = i INTERSECTNEW j
+        b = i INTERSECTION j
+        assert(dumpShow(a), dumpShow(b), "\n  (spec, curr) match for ",
+               dumpShow(i)," and ",dumpShow(j))
+    end
+    print("\nemptiness and toString")
+    for t <- testRngs do
+        print(".")
+        if t.check().isEmpty then
+            assert(t.toString, "[]", "Empty self.toString")
+        else
+            deny(t.toString,"[]", true, "Nonempty self.toString not []")
+        end
+        assert(t,t, "Reflexivity of equality, ",t)
+    end
+    print("\nunlike ne")
+    for (i,rs) <- testRngss.indexValuePairs(), ss <- testRngss[0#i], r <- rs, s <- ss do
+        print(".")
+        assert(r=s, false, r, "=", s)
+        assert(s=r, false, s, "=", r)
+        assert(s.toString=r.toString,false, s, " ", r, " toString equals.")
+    end
+    print("\ncommutativity of equality")
+    for rs <- testRngss, (i,t) <- rs.indexValuePairs(), u <- rs[#i] do
+        print(".")
+        eq = (t=u)
+        if eq =/= (u=t) then
+            fail("Commutativity of equality:\n" dumpShow(t) "\n" dumpShow(u))
+        end
+        if eq =/= (t.toString=u.toString) then
+            fail("Equality of toString:\n" dumpShow(t) "\n" dumpShow(u))
+        end
+    end
+    print("\nevery")
+    for i <- testRngs, s <- strides do
+        print(".")
+        v = i.every(s)
+        assert(v.isEmpty, s=0 OR i.isEmpty, dumpShow(i),
+               ".every(", s, ") emptiness, ",dumpShow(v))
+        if x <- i.extent then
+            s_abs = |s|
+            assert((x+s_abs-1) DIV s_abs, v.extent.get, i, ".every(", s, ") extent, ", dumpShow(v))
+        end
+        if i.left.holds AND s > 0 then
+            assert(i.left.get, v.left.get, i, ".every(", s, ") left, ",v)
+        elif i.right.holds AND s < 0 then
+            assert(v.left.holds, true, i, ".every(", s, ") left, ",v)
+            assert(i.right.get, v.left.get, i, ".every(", s, ") left, ",v)
+        end
+    end
+    print("\natMost empty")
+    for i <- testRngs, j <- testRngs, x0 <- j.extent,
+            x <- if x0=0 then <|x0|> else <|x0,-x0|> end do
+        print(".")
+        v = i.atMost(x)
+        vx = v.extent.get
+        vxs = if ix <- i.extent then ix MIN x0 else x0 end
+        assert(vx,vxs,dumpShow(i),".atMost(",x,") = ",dumpShow(v)," size")
+        for l <- i.left, x>0 do
+            assert(l,v.left.get,dumpShow(i),".atMost(",x,") = ",dumpShow(v)," left")
+        end
+        for r <- i.right, x<0 do
+            assert(r,v.right.get,dumpShow(i),".atMost(",x,") = ",dumpShow(v)," right")
+        end
+    end
+    print("\nempty indexed")
+    compactRngs = <| c | r <- fullRngs,
+                        c <- if r.stride()=1 then <|r,r.bounds()|> else <|r.bounds()|> end |>
+    for i <- compactRngs, i.isEmpty, j <- testRngs do
+        print(".")
+        s = i.selectIndices(j)
+        assert(s.isEmpty, true, "nonEmpty ",i,".selectIndices(",j,") = ",s)
+    end
+    print("\nnonempty indexed by empty")
+    for i <- compactRngs, NOT i.isEmpty, j <- fullRngs, j.isEmpty do
+        print(".")
+        s = i.selectIndices(j)
+        assert(s.isEmpty, true, "nonEmpty ",i,".selectIndices(",j,") = ",s)
+    end
+    print("\nintersection")
+    print("\nempty intersection")
+    for i <- testRngs, i.isEmpty, j <- testRngs do
+        print(".")
+        assert((i INTERSECTNEW j),emptyRng,"nonempty intersection of ",i," and ",j)
+        assert((j INTERSECTNEW i),emptyRng,"nonempty intersection of ",j," and ",i)
+    end
+    print("\nidentity intersection")
+    for i <- testRngs do
+        print(".")
+        assert(open INTERSECTNEW i, i, " open not an identity when intersected.")
+        assert(i INTERSECTNEW open, i, " open not an identity when intersected'.")
+    end
+    print("\nsingleton")
+    for i <- testRngs, i.extent.getDefault(3) = 1, l <- i.left, j <- testRngs do
+        print(".")
+        assert(i INTERSECTNEW j, if l IN j then i else emptyRng end,
+               " singleton intersection of ", dumpShow(i), " with ", dumpShow(j),
+               " namely ", dumpShow(i INTERSECTNEW j),
+               " doesn't match membership test of ", l, " in ", j)
+        assert(j INTERSECTNEW i, if l IN j then i else emptyRng end,
+               " singleton intersection of ", j, " with ", i,
+               " doesn't match membership test.")
+    end
+    print("\nFull unequal non-singleton cases")
+    for f <- fullRngs, f.extent.get > 1,
+        g <- testRngs, f.extent.getDefault(3) > 1, f=/=g,
+        g.left.holds OR g.right.holds do
+      print(".")
+      i = f INTERSECTNEW g
+      for a <- i do
+          assert(a IN f, true," element ",a," of intersection ",i,
+                 " of ",f," and ",g," not in first")
+          assert(a IN g, true," element ",a," of intersection ",i,
+                 " of ",f," and ",g," not in second")
+      end
+      for b <- f, NOT (b IN i) do
+          assert(b IN g,false," element ",b," of ",f," in ",g,
+                 " but not in intersection ",i)
+      end
+      if g.extent.holds then
+          for b <- g, NOT (b IN i) do
+              assert(b IN f,false," element ",b," of ",g," in ",f,
+                     " but not in intersection ",i)
+          end
+      end
+    end
+    for lr <- leftRngs, rr <- rightRngs do
+        i0 = lr INTERSECTNEW rr
+        i1 = rr INTERSECTNEW lr
+        assert(i0,i1,"Commutativity of open range intersection of ",lr," and ",rr)
+        l = lr.left.get
+        r = rr.right.get
+    end
+    print("\nCommutativity, idempotence, partial associativity of intersection")
+    for i <- testRngs, j <- testRngs do
+        n = i INTERSECTNEW j
+        m = j INTERSECTNEW i
+        print(".")
+        assert(dumpShow(n),dumpShow(m),
+               "Commutativity of ", dumpShow(i), " INTERSECTNEW ", dumpShow(j))
+        if i=j then
+            assert(dumpShow(n),dumpShow(i),
+                   "Non-idempotent intersection of latter and the equal ",
+                   dumpShow(j))
+        elif (i.left.holds OR i.right.holds) AND
+             (j.left.holds OR j.right.holds) then
+            for k <- boundedRngs, k=/=j do
+                assert(n INTERSECTNEW k, i INTERSECTNEW (j INTERSECTNEW k),
+                       "Associativity of ",i,", ",j,", and ",k)
+            end
+        end
+    end
+    print("\ntruncL")
+    for r <- testRngs, l <- lefts do
+        print(".")
+        t = r.truncL(l)
+        tassert(p:Boolean, s:String): () =
+            if NOT p then
+                println(s ": " dumpShow(r) ".truncL(" l ") = " dumpShow(t)
+                        "\nupInter = " dumpShow(t INTERSECTNEW leftRng(l,1))
+                        "\ndnInter = " dumpShow(t INTERSECTNEW leftRng(l,-1)))
+            end
+        tassert(t.left.holds," didn't impose a lower bound!")
+        lft = t.left.get
+        if r.isEmpty then
+            tassert(t.isEmpty," ought to be empty")
+        elif t.isEmpty then
+            tassert(r.right.holds," empty from interval unbounded to right")
+            if r.stride > 0 then
+                tassert(l > r.right.get, " empty but inside")
+            else
+                tassert(l < r.right.get, " empty, back, but inside")
+            end
+        else
+            tassert(r.stride=t.stride," stride mismatch")
+            if r.stride > 0 then
+                tassert(lft >= l, " bound truncation didn't happen?")
+                if rl <- r.left then
+                    tassert(lft >= rl, " truncation enlarged?")
+                else
+                    tassert(lft < l + r.stride, " truncation went too far")
+                end
+            else
+                tassert(lft <= l, " reverse bound truncation didn't happen?")
+                if rl <- r.left then
+                    tassert(lft <= rl, " truncation enlarged?")
+                else
+                    tassert(lft > l + r.stride, " truncation went too far")
+                end
+            end
+        end
+    end
+    println("\nnonempty indexed")
+    for i <- compactRngs, NOT i.isEmpty, j <- testRngs, NOT j.isEmpty do
+        print(".")
+        jj = if j.stride < 0 then j.flip() else j end
+        shouldThrow = (jj.left.holds AND: jj.left.get < i.left.get) OR
+                      (jj.right.holds AND: jj.right.get > i.right.get)
+        try
+            f = i.selectIndices(j)
+            assert(shouldThrow, false,
+                   "Missed IndexOutOfBounds on ",i,".selectIndices(",j,")")
+            if j.stride > 0 then
+                assert(dumpShow(f), dumpShow(i INTERSECTION j),
+                       "Doesn't match intersection ",i,".selectIndices(",j,")")
+            else
+                assert(dumpShow(f.flip()), dumpShow(i INTERSECTION jj),
+                       "Doesn't match flip ",i,".selectIndices(",j,")")
+            end
+            (* println(i ".selectIndices(" j ") = " f) *)
+        catch e IndexOutOfBounds[\ZZ32\] =>
+            assert(shouldThrow, true,
+                   "Spurious IndexOutOfBounds on ",i,".selectIndices(",j,")")
+        end
+    end
+  end
+
+end
