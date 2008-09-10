@@ -65,18 +65,14 @@ export Executable
 
 printUsage() = do
     println "Generate, count, and time paraffin & radical generation."
-    println "Args: #paraffins, #radicals, flag"
-    println "1 arg  => ? or help prints this usage information. Otherwise ... "
-    println "1 arg  => verbose, paraffins and radicals to size args[0]"
-    println "2 args => verbose, paraffins to size args[0] radicals to size args[1]"
-    println "3 args => batch (no output)"
+    println "Args: #paraffins, #radicals"
+    println "0 args => prints this usage information and perform a default run."
+    println "1 arg  => paraffins and radicals to size args[0]"
+    println "2 args => paraffins to size args[0] radicals to size args[1]"
     println "Examples:"
-    println "fortress turnersParaffins0.fss ?       => print this usage information"
-    println "fortress turnersParaffins0.fss help    => print this usage information"
-    println "fortress turnersParaffins0.fss         => print this usage information"
-    println "fortress turnersParaffins0.fss 3       => verbose, paraffins=3  radicals=3"
-    println "fortress turnersParaffins0.fss 4 6     => verbose, paraffins=4  radicals=6"
-    println "fortress turnersParaffins0.fss 5 7 any => batch,   paraffins=5  radicals=7"
+    println "fortress turnersParaffins0.fss     => print usage info; paraffins=5  radicals=5"
+    println "fortress turnersParaffins0.fss 3   => paraffins=3  radicals=3"
+    println "fortress turnersParaffins0.fss 4 6 => paraffins=4  radicals=6"
 end
 
 (* ===Radicals=== *)
@@ -376,20 +372,17 @@ genParaffins4 (n:ZZ32) =
 genParaffins = genParaffins0
 
 run(args:String...) = do
-  if |args| = 0 OR: ((args[0]="?")OR(args[0]="help")) then printUsage() else
-    verbose:Boolean = 1 <= |args| <= 2
+    if |args| = 0 then printUsage() end
     n_p:ZZ32 = if |args| < 1 then 5   else strToInt args[0] end
     n_r:ZZ32 = if |args| < 2 then n_p else strToInt args[1] end
 
-    vPrintln(a:Any) = if verbose then println a end
+    println("===== Enumerate/count paraffins & radicals by Turner's method. =====")
 
-    vPrintln("===== Enumerate/count paraffins & radicals by Turner's method. =====")
-
-    vPrintln ("----- Generate paraffins up to size " n_p " -----")
+    println ("----- Generate paraffins up to size " n_p " -----")
     startPars = getTimeMS()
     allPars = genParaffins n_p
     endPars   = getTimeMS()
-    vPrintln("Generated " n_p " paraffins in " (endPars - startPars) " ms")
+    println("\nGenerated " n_p " paraffins in " (endPars - startPars) " ms")
 
 (* The following should work after the kinks get worked out of Map
       {0|->1, 1|->1, 2|->1, 3|->1, 4|->2, 5|->3, 6|->5, 7|->9, 8|->18, 9|->35, 10|->75}
@@ -401,32 +394,31 @@ run(args:String...) = do
         6 asif ZZ32 |->  5 asif ZZ32, 7 asif ZZ32 |->  9 asif ZZ32,
         8 asif ZZ32 |-> 18 asif ZZ32, 9 asif ZZ32 |-> 35 asif ZZ32,
        10 asif ZZ32 |-> 75 asif ZZ32}
-    vPrintln("Numbers of paraffins, checking smallish results ...")
+    println("Numbers of paraffins, checking smallish results ...")
     for (index,pars)<-seq allPars.indexValuePairs do
         (nCarbons, nPars) = (index+1, |pars|)
-        vPrintln("carbon atoms: " nCarbons "; paraffins: " nPars)
+        println("carbon atoms: " nCarbons "; paraffins: " nPars)
         if nParsExpected <- parsExpected.member(nCarbons) then
             assert (nPars, nParsExpected,
                 nPars " paraffins were generated for " nCarbons " carbons, but "
                 nParsExpected " were expected. These paraffins were generated: " pars)
-            vPrintln("... results match expectation for " nCarbons " carbon atoms")
+            println("...results as expected.")
         end
     end
-    vPrintln("----- Generate paraffins up to size " n_p " done.-----")
+    println("----- Generate paraffins up to size " n_p " done.-----")
 
-    vPrintln("----- Generate radicals up to size " n_r " -----")
+    println("----- Generate radicals up to size " n_r " -----")
     startRads = getTimeMS()
     allRads = genRadicals n_r
     endRads   = getTimeMS()
-    vPrintln("Generated " n_r " radicals in " (endRads - startRads) " ms")
+    println("\nGenerated " n_r " radicals in " (endRads - startRads) " ms")
 
-    vPrintln("Numbers of radicals; no checking is performed.")
+    println("Numbers of radicals; no checking is performed.")
     for (nCarbons,rads)<-seq allRads.indexValuePairs do
-        vPrintln("carbon atoms: " nCarbons "; radicals (canonical & others): " |rads|)
+        println("carbon atoms: " nCarbons "; radicals (canonical & others): " |rads|)
     end
-    vPrintln("----- Generate radicals up to size " n_r " done.-----")
-    vPrintln("===== Enumeration and counting paraffins & radicals completed. =====")
-  end
+    println("----- Generate radicals up to size " n_r " done.-----")
+    println("===== Enumeration and counting paraffins & radicals completed. =====")
 end
 
 getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
