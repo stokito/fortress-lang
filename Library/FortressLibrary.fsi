@@ -879,6 +879,9 @@ end
 object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
 end
 
+object EmptyReduction extends UncheckedException
+end
+
 object NegativeLength extends UncheckedException
 end
 

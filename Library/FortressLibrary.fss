@@ -1342,6 +1342,10 @@ object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedExceptio
     getter toString(): String = index " is outside the range " range
 end
 
+object EmptyReduction extends UncheckedException
+    getter toString(): String = "EmptyReduction: no identity, no elements"
+end
+
 object NegativeLength extends UncheckedException
     getter toString(): String = "Negative length"
 end
@@ -2663,7 +2667,12 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
         end
     simpleJoin(a:Any, b:Any): Any
     lift(r:Any): AnyMaybe = Just(r)
-    unlift(r:AnyMaybe): R = r.get
+    unlift(r:AnyMaybe): R =
+        if res <- r then
+            res
+        else
+            throw EmptyReduction
+        end
 end
 
 trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
