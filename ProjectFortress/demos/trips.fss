@@ -39,7 +39,6 @@ printUsage() = do
     println ""
 end
 
-
 opr |  (x:Number, y:Number):Number  = x DIVIDES y
 coPrime(x:Number, y:Number):Boolean = (1 = x GCD y)
 even (x) =    2|x
@@ -75,12 +74,10 @@ object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
     toString():String = "[generator " doc " max: " max "]"
 end generator
 
-
 naive0 = generator ("Naive search: Triple loop, then filter", 25,
  fn (max:ZZ32) =>
     <| trip (a,b,c) |
         a<-3:max, b<-3:max, c<-3:max,
-        max<=25,
         a < b < c,
         a^2 + b^2 = c^2,
         coPrime (a,b) |>)
@@ -104,15 +101,19 @@ naive1 = generator ("Naive search: Double loop, calculate c", 100,
 naive2 = generator ("Naive search: fold a<b and c<max into generators", 100,
   fn (max:ZZ32) =>
     <| trip(a,b,cInt) |
-        a<-3:(max-1),
+        a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>)
 
+(* This generator syntax is being considered: 3 <= a < b < c <= max !!!
+This will figure out that a <= max-2, which I missed for a while.
+*)
+
 naive3 = generator ("Naive search: promote 2 as a common factor", 100,
   fn (max:ZZ32) =>
     <| trip(a,b,cInt) |
-        a<-3:(max-1),
+        a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
         (odd a) OR (odd b),
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
@@ -255,7 +256,7 @@ run(args:String...) = do
 end
 
 test compareEmAll() = do
-    (min,max,stride) = (5,150,7)
+    (min,max,stride) = (3,150,1)
     println ("Comparing " min " to " max " with stride " stride)
     var n:ZZ32 = min
     while n<=max do
