@@ -44,7 +44,7 @@ import Spacing;
    | for w GeneratorClauseList w DoFront w end
    | if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
-   | case w Expr (w (Encloser / Op))? w of w CaseClauses (w CaseElse)? w end
+   | case w Expr (w (Encloser / Op))? w of w CaseClauses (br CaseElse)? w end
    | case w most w (Encloser / Op) w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
@@ -103,7 +103,7 @@ Expr DelimitedExpr =
                         Option.some(a4));
      }
    / case w a1:Expr a2:(w (Encloser / Op))? w of w a3:CaseClauses
-     a4:(w CaseElse)? w end
+     a4:(br CaseElse)? w end
      { Option<OpRef> compare;
        if (a2 == null) compare = Option.none();
        else            compare = Option.some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a2)));
@@ -115,7 +115,7 @@ Expr DelimitedExpr =
                               Option.some(a1), compare, a3, _else);
      }
    / <ErrorProduction1>
-     case w Expr (w (Encloser / Op))? w do w CaseClauses (w CaseElse)? w end
+     case w Expr (w (Encloser / Op))? w do w CaseClauses (br CaseElse)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "In a case expression, 'do' is used incorrectly.  Use 'of' instead.");
      }
