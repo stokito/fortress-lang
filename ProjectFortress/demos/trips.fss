@@ -239,12 +239,6 @@ end
 
 (* The following comments based on code no longer present. Subsequencing is nice: ss[2:4] and subindexing would also be nice: sameAcross = allSame ss[<0,2,5,7>] *)
 
-(* I ran into a bug where semicolons to allow multiple case arms on the same line didn't work.
-sameAcross =
-    allSame <| ss[i] | i<-<|0,2,5,7|>,
-              i >= (case n of 301:=>7; 101:300=>5; 21:100=>2; else=>0 end) |>
-*)
-
 (* Using = for binding means parens are needed in the = tests above.
 I'd prefer to use another symbol for binding. How about "IS"?  as in x
 IS 5? I had been noodling left arrow for binding & "double left arrow"
@@ -261,7 +255,7 @@ run(args:String...) = do
     allSame <|trips | (trips,time) <- tripsAndTime,
         do atomic totalTime += time; true end |>
     println("... in " totalTime " ms")
-    bestGenerator = generators[(|generators|)-1]
+    bestGenerator = generators[|generators| - 1]
     ts = bestGenerator.fun n
     println ("\nThe " |ts| " trips under " n " in generated order:")
     println ts
