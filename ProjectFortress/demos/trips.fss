@@ -31,8 +31,8 @@ export Executable
 
 printUsage() = do
     println "\nGenerate and check Pythagorean triples up to some max"
-    println "0 args => prints this usage information and perform a default run."
-    println "1 arg  => trips to args[0]"
+    println "0 args => Print this usage information and perform a default run."
+    println "1 arg  => Generate/print trips to the specified max."
     println "Examples:"
     println "fortress trips.fss    => print usage info; max=100"
     println "fortress trips.fss 50 => max=50"
@@ -74,55 +74,68 @@ object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
     toString():String = "[generator " doc " max: " max "]"
 end generator
 
-naive0 = generator ("Naive search: Triple loop, then filter", 25,
- fn (max:ZZ32) =>
+generators = <|
+  generator ("Wikipedia 100", 100000, fn (max) => do
+    Wikipedia100 = (* Wikipedia lists triples under 100. *)
+        <|trip ( 3, 4, 5), trip ( 5,12,13), trip ( 7,24,25), trip ( 8,15,17),
+         trip ( 9,40,41), trip (11,60,61), trip (12,35,37), trip (13,84,85),
+         trip (16,63,65), trip (20,21,29), trip (28,45,53), trip (33,56,65),
+         trip (36,77,85), trip (39,80,89), trip (48,55,73), trip (65,72,97)|>
+    tripsTo (Wikipedia100, max)
+    end),
+
+  generator ("Naive search: Triple loop, then filter", 25, fn (max) =>
     <| trip (a,b,c) |
         a<-3:max, b<-3:max, c<-3:max,
         a < b < c,
         a^2 + b^2 = c^2,
-        coPrime (a,b) |>)
+        coPrime (a,b) |>),
+
+(* This generator syntax is being considered: 3 <= a < b < c <= max !!!
+This will figure out that a <= max-2, which I missed for a while
+(below). But, if I just have 3 <= a < b <=  *)
 
 (* Can I set up a global mutable collection of generators?
 var generators:Set[\generator\] = set()
 generators UNION= {generator ...}
 *)
 
-naive1 = generator ("Naive search: Double loop, calculate c", 100,
-  fn (max:ZZ32) =>
+  generator ("Naive search: Double loop, calculate c", 100, fn (max) =>
     <| trip(a,b,cInt) |
         a<-3:max, b<-3:max,
         a < b,
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         c <= max,
-        coPrime (a,b) |>)
+        coPrime (a,b) |>),
 
 (* narrow will go away with automatic coercion. *)
 
-naive2 = generator ("Naive search: fold a<b and c<max into generators", 100,
-  fn (max:ZZ32) =>
+  generator ("Naive search: fold a<b & c<max into generators", 100, fn (max) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
-        coPrime (a,b) |>)
+        coPrime (a,b) |>),
 
-(* This generator syntax is being considered: 3 <= a < b < c <= max !!!
-This will figure out that a <= max-2, which I missed for a while.
-*)
-
-naive3 = generator ("Naive search: promote 2 as a common factor", 100,
-  fn (max:ZZ32) =>
+  generator ("Naive search: promote 2 as a common factor", 100, fn (max) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
         (odd a) OR (odd b),
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
-        coPrime (a,b) |>)
-
-naive4 = generator ("Naive search: absorb 2 into b striding", 100,
-  fn (max:ZZ32) =>
+        coPrime (a,b) |>),
+(*
+  generator ("Naive search: absorb 2 into b striding", 100, fn (max) =>
     <| trip(a,b,cInt) |
-        a<-3:(max-1),
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if odd a then 1 else 2 end),
+        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        coPrime (a,b) |>),
+*)
+
+  generator ("Naive search: absorb 2 into b striding", 100, fn (max) =>
+    <| trip(a,b,cInt) |
+        a<-3:(max-2),
         bb<-do
             bMin = a+1
             bMax = narrow(|\SQRT(max^2 - a^2)/|)
@@ -132,7 +145,7 @@ naive4 = generator ("Naive search: absorb 2 into b striding", 100,
         end,
         b<-if odd a then <| (a+1) + bb|> else  <| (a+1) + (2 bb) |> end,
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
-        coPrime (a,b) |>)
+        coPrime (a,b) |>),
 
 (* Once strides are implemented, we'll be able to write:
 b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if odd a then 1 else 2 end)
@@ -142,8 +155,7 @@ b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(2 - a MOD 2)
 Yes, but it's not as easy to understand by most people, I
 suspect. Again, I'd like to do some binding here.  *)
 
-euclid0 =  generator ("Euclid's formula with naive upper bounds", 100,
-  fn (max:ZZ32) =>
+  generator ("Euclid's formula with naive upper bounds", 100, fn (max) =>
     <| orderedTrip(a, b, c) |
         n<-1:max,
         m<-n+1:max,
@@ -151,42 +163,40 @@ euclid0 =  generator ("Euclid's formula with naive upper bounds", 100,
         a<-just(2 n m),
         b<-just(m^2 - n^2),
         c<-just(m^2 + n^2),
-        c <= max |>)
+        c <= max |>),
 
 (* I'd really like to do explicit binding in a sequence of generators
 with an explicit syntax, but the overloaded use of = makes this hard.
 In this context, = indicates a predicate. *)
 
-euclid1 = generator ("Euclid's formula, naive upper bounds, no binding", 100,
-  fn (max:ZZ32) =>
+  generator ("Euclid's formula, naive bounds, no binding", 100, fn (max) =>
     <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
         n<-1:max,
         m<-n+1:max,
         (even n) XOR (even m), coPrime (n, m),
-        m^2 + n^2 <= max |>)
+        m^2 + n^2 <= max |>),
 
 (* Promoting the quadratic filters above to the range upper bounds below in a
-compiler is a challenge, perhaps a good thesis. *)
+compiler is a challenge, perhaps a good thesis. I think about it this way:
+m^2 + n^2 <= max all by itself implies 
+m^2 <= max - n^2 which can be rearranged m <= SQRT(max - n^2)
+When can also combine m^2 + n^2 <= max with n<m, which imply
+2n^2 <= max which can be rearranged
+n <= SQRT(max DIV 2) --- this is a bit tricky.
+Then we simply merge upper bounds.
 
-euclid2 = generator ("Euclid's, (m^2+n^2<=max) & n<m => upper bounds", 100000,
-  fn (max:ZZ32) =>
+Along a similar line of reasoning, the XOR filter can be promoted into m striding:
+if odd n then 1 else 2 end
+
+Simpler striding rules might be written (for other situations): 2|a,
+3|b, etc. Merging these into striding is more straight forward.  *)
+
+  generator ("Euclid's, (m^2+n^2<=max) & n<m => bounds", 100000, fn (max) =>
     <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
         n<-1:(narrow (|\SQRT(max DIV 2)/|)),
         m<-n+1:(narrow(|\SQRT(max - n^2)/|)),
         (even n) XOR (even m), coPrime (n, m) |>)
-
-wiki0 = generator ("Wikipedia 100", 100000,
-  fn (max:ZZ32) => do
-    Wikipedia100 = (* Wikipedia lists triples under 100. *)
-        <|trip ( 3, 4, 5), trip ( 5,12,13), trip ( 7,24,25), trip ( 8,15,17),
-         trip ( 9,40,41), trip (11,60,61), trip (12,35,37), trip (13,84,85),
-         trip (16,63,65), trip (20,21,29), trip (28,45,53), trip (33,56,65),
-         trip (36,77,85), trip (39,80,89), trip (48,55,73), trip (65,72,97)|>
-    tripsTo (Wikipedia100, max)
-  end)
-
-generators =
-  <|wiki0, naive0, naive1, naive2, naive3, naive4, euclid0, euclid1, euclid2|>
+  |>
 
 tripsTo(ts, x:Number) = { t | t<-ts, t.a <= x, t.b <= x, t.c <= x }
 
@@ -227,11 +237,12 @@ compareTwo(ps,qs):Boolean = do
     truncatedMatch AND lengthMatch
 end
 
-(* subsequencing is nice: ss[2:4] and subindexing would also be nice:
-    sameAcross = allSame ss[<0,2,5,7>]
-    sameAcross =
-        allSame <| ss[i] | i<-<|0,2,5,7|>,
-                 i >= (case n of 301:=>7; 101:300=>5; 21:100=>2; else=>0 end) |>
+(* The following comments based on code no longer present. Subsequencing is nice: ss[2:4] and subindexing would also be nice: sameAcross = allSame ss[<0,2,5,7>] *)
+
+(* I ran into a bug where semicolons to allow multiple case arms on the same line didn't work.
+sameAcross =
+    allSame <| ss[i] | i<-<|0,2,5,7|>,
+              i >= (case n of 301:=>7; 101:300=>5; 21:100=>2; else=>0 end) |>
 *)
 
 (* Using = for binding means parens are needed in the = tests above.
@@ -250,13 +261,16 @@ run(args:String...) = do
     allSame <|trips | (trips,time) <- tripsAndTime,
         do atomic totalTime += time; true end |>
     println("... in " totalTime " ms")
-    ts = euclid2.fun n
-    println ("\nThe " |ts| " trips under " n ":")
+    bestGenerator = generators[(|generators|)-1]
+    ts = bestGenerator.fun n
+    println ("\nThe " |ts| " trips under " n " in generated order:")
     println ts
+    println ("\nThe " |ts| " trips under " n " in canonical order:")
+    println { t | t <- ts }
 end
 
 test compareEmAll() = do
-    (min,max,stride) = (3,150,1)
+    (min,max,stride) = (3,150,3)
     println ("Comparing " min " to " max " with stride " stride)
     var n:ZZ32 = min
     while n<=max do
