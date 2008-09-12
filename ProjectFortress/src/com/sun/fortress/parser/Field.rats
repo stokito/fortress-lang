@@ -28,14 +28,14 @@ import Identifier;
 import Spacing;
 
 /* FldDecl ::=
-     FldMods? FldWTypes w InitVal
+     FldMods? FldMayTypes w InitVal
    | FldImmutableMods? BindIdOrBindIdTuple w = w NoNewlineExpr
    | FldMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
    | FldMods? BindIdOrBindIdTuple w : w TupleType w InitVal
-   FldWTypes ::=
-     FldWType
-   | ( w FldWType (w , w FldWType)+ w )
-   FldWType ::= BindId w IsType
+   FldMayTypes ::=
+     FldMayType
+   | ( w FldMayType (w , w FldMayType)+ w )
+   FldMayType ::= BindId (w IsType)?
  */
 VarDecl FldDecl = VarDecl ;
 

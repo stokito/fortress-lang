@@ -45,8 +45,8 @@ instantiate com.sun.fortress.parser.templateparser.Method(MethodParam, NoNewline
 instantiate com.sun.fortress.parser.templateparser.MethodParam(Parameter, Keyword)
             as MethodParam;
 instantiate com.sun.fortress.parser.templateparser.Variable(NoNewlineHeader, MayNewlineHeader,
-                                             Type, NoNewlineExpr, Identifier,
-                                             Keyword, Symbol, Spacing)
+                                             NoNewlineType, NoNewlineExpr,
+                                             Identifier, Keyword, Symbol, Spacing)
             as Variable;
 instantiate com.sun.fortress.parser.templateparser.Field(Variable, NoNewlineHeader, Type,
                                           Identifier, Spacing)
@@ -105,7 +105,7 @@ instantiate com.sun.fortress.parser.templateparser.Literal(MayNewlineHeader, Del
                                             Spacing, Identifier, Gaps)
             as Literal;
 instantiate com.sun.fortress.parser.templateparser.LocalDecl(Variable, Function, Parameter,
-                                              NoNewlineHeader, Type,
+                                              NoNewlineHeader, NoNewlineType,
                                               NoNewlineExpr, DelimitedExpr,
                                               Identifier, Keyword, Symbol,
                                               Spacing)

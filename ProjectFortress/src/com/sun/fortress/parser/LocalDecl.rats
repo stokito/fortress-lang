@@ -18,14 +18,15 @@
 /*
  * Definition of Fortress local declarations.
  */
-module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header, Type,
-                                         NoNewlineExpr, DelimitedExpr,
-                                         Identifier, Keyword, Symbol, Spacing);
+module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header,
+                                         NoNewlineType, NoNewlineExpr,
+                                         DelimitedExpr, Identifier, Keyword,
+                                         Symbol, Spacing);
 modify Variable;
 import Function;
 import Param;
 import Header;
-import Type;
+import NoNewlineType;
 import NoNewlineExpr;
 import DelimitedExpr;
 import Identifier;
@@ -88,19 +89,20 @@ private FnDef LocalFnDecl =
      };
 
 /* LocalVarDecl ::=
-     (var w)? LocalVarWTypes s InitVal
+     (var w)? LocalVarMayTypes s = w NoNewlineExpr
+   | (var w)? NoNewlineLocalVarWTypes s := w NoNewlineExpr
    | (var w)? NoNewlineLocalVarWTypes
    |          LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
-   | (var w)? LocalVarWoTypes s : s TupleType (s InitVal)?
+   | (var w)? LocalVarWoTypes s : s NoNewlineTupleType (s InitVal)?
    NoNewlineLocalVarWTypes ::=
      NoNewlineLocalVarWType
    | ( w NoNewlineLocalVarWType (w , w NoNewlineLocalVarWType)+ w )
    NoNewlineLocalVarWType ::= BindId s : s NoNewlineType
-   LocalVarWTypes ::=
-     LocalVarWType
-   | ( w LocalVarWType (w , w LocalVarWType)+ w )
-   LocalVarWType ::= BindId s : s Type
+   LocalVarMayTypes ::=
+     LocalVarMayType
+   | ( w LocalVarMayType (w , w LocalVarMayType)+ w )
+   LocalVarMayType ::= BindId (s : s NoNewlineType)?
    LocalVarWoTypes ::=
      LocalVarWoType
    | ( w LocalVarWoType (w , w LocalVarWoType)+ w )
@@ -109,12 +111,18 @@ private FnDef LocalFnDecl =
    | Unpasting
  */
 LocalVarDecl LocalVarDecl =
-     a1:(var w)? a2:NoNewlineVarWTypes s a3:InitVal
-     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       else if (a3.getB()) a2 = FortressUtil.setMutable(a2);
+     a1:(var w)? a2:VarMayTypes s equals w a3:NoNewlineExpr
+     { if (a1 != null) {
+           FortressUtil.allHaveTypes(a2);
+           a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       }
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
-                                             FortressUtil.toLValueList(a2),
-                                             a3.getA());
+                                             FortressUtil.toLValueList(a2), a3);
+     }
+   / a1:(var w)? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
+     { a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
+                                             FortressUtil.toLValueList(a2), a3);
      }
    / a1:(var w)? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
@@ -123,7 +131,7 @@ LocalVarDecl LocalVarDecl =
      }
    / a1:VarWoTypes s equals w a2:NoNewlineExpr
      { yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a1,a2); }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:Type s ellipses a4:(s InitVal)?
+   / a1:(var w)? a2:VarWoTypes s colon s a3:NoNewlineType s ellipses a4:(s InitVal)?
      { Option<Expr> init;
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
@@ -142,7 +150,7 @@ LocalVarDecl LocalVarDecl =
        yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2,
                                              init);
      }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:TupleType a4:(s InitVal)?
+   / a1:(var w)? a2:VarWoTypes s colon s a3:NoNewlineTupleType a4:(s InitVal)?
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        Option<Expr> init;
@@ -169,8 +177,12 @@ LocalVarDecl LocalVarDecl =
                              "Mutable variables should be declared with their types.");
      };
 
-LValueBind VarWType := a1:BindId s colon s a2:Type
-     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
+LValueBind VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?
+     { if (a2 == null)
+           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1);
+       else
+           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2);
+     };
 
 /* VarWoTypes ::=
      VarWoType
@@ -216,9 +228,11 @@ private Unpasting UnpastingElem =
      }
    / Unpasting ;
 
-/* UnpastingDim ::= ExtentRange (w BY w ExtentRange)+  */
+// NoNewlineExtentRange instead of ExtnetRange
+// due to the Rats! module system
+/* UnpastingDim ::= NoNewlineExtentRange (w BY w NoNewlineExtentRange)+  */
 private List<ExtentRange> UnpastingDim =
-     a1:ExtentRange a2s:(w cross w ExtentRange)+
+     a1:NoNewlineExtentRange a2s:(w cross w NoNewlineExtentRange)+
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */

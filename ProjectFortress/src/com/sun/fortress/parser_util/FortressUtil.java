@@ -342,6 +342,14 @@ public final class FortressUtil {
         return false;
     }
 
+    public static void allHaveTypes(List<LValueBind> vars) {
+        for (LValueBind l : vars) {
+            if (l.getType().isNone())
+                syntaxError(l.getSpan(),
+                            "Mutable variables should be declared with their types.");
+        }
+    }
+
     public static List<LValueBind> setMutable(List<LValueBind> vars) {
         List<LValueBind> result = new ArrayList<LValueBind>();
         for (LValueBind l : vars) {
