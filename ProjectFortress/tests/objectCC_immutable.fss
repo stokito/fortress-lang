@@ -74,6 +74,24 @@ object O(v:ZZ32)
     local():ZZ32 = v
 end
 
+(* objExpr capturing Abs fields and vars in Trait *)
+trait XTrait
+    v:ZZ32
+    getVal():T = do 
+            enclosing:XTrait = self
+            object extends T
+                x():ZZ32 = enclosing.v
+                y():ZZ32 = local() 
+            end
+        end
+    local():ZZ32 
+end
+
+object XObj(v:ZZ32) extends XTrait
+    local():ZZ32 = 2 + self.v
+end
+
+
 run(args:String...):() = do
     obj1:T = topFunc1()
     assert(a1, obj1.x(), "obj1.x() failed.")
@@ -98,6 +116,12 @@ run(args:String...):() = do
     assert( quack(o1, o1.tmp2), o2.x(), "o2.x() failed" )
     assert( o1.v + o1.tmp, o2.y(), "o2.y() failed" )
 
+    xo1:XObj = XObj(7)
+    o3:T = xo1.getVal()
+        
+    assert( xo1.v, o3.x(), "o3.x() failed" )
+    assert( xo1.local(), o3.y(), "o3.y() failed" )
+    
     println ("Testing object closure conversion for immutable " ||
              "varRefs and fnRefs: passed.")
 end
