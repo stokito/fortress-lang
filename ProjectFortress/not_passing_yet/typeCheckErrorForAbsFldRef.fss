@@ -1,0 +1,17 @@
+component typeCheckErrorForAbsFldRef
+export Executable
+
+trait XTrait 
+    v:ZZ32
+end
+
+object XObj(v:ZZ32) extends XTrait
+    foo():ZZ32 = v
+end
+
+run(args:String ... ) = do
+    println "Pass."
+end 
+
+end
+
