@@ -202,8 +202,8 @@ List<LValueBind> NoNewlineVarWTypes =
      closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* NoNewlineVarWType ::= BindId w NoNewlineIsType */
-LValueBind NoNewlineVarWType = a1:BindId w a2:NoNewlineIsType
+/* NoNewlineVarWType ::= BindId s NoNewlineIsType */
+LValueBind NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
      { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
 
 /* NoNewlineIsType ::= : w NoNewlineType */

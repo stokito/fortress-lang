@@ -28,6 +28,10 @@ import Symbol;
 import Spacing;
 
 private Type Type := ... ;
+private TupleType TupleType := ... ;
+TupleType NoNewlineTupleType = TupleType ;
+private ExtentRange ExtentRange := ... ;
+ExtentRange NoNewlineExtentRange = ExtentRange ;
 
 /* NoNewlineType ::= NoNewlineTypePrimary (w in w NoNewlineExpr)? */
 Type NoNewlineType =
