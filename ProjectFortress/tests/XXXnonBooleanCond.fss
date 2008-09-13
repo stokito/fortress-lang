@@ -15,19 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component typeCheckErrorForAbsFldRef
+component XXXnonBooleanCond
+import File.{...}
 export Executable
 
-trait XTrait
-    v:ZZ32
+krs1() = do
+    println "bar"
 end
 
-object XObj(v:ZZ32) extends XTrait
-    foo():ZZ32 = v
+run(args:String...) = do
+    while krs1() do
+        println "baz"
+    end
 end
 
-run(args:String ... ) = do
-    println "Pass."
-end
-
-end
+end XXXnonBooleanCond
