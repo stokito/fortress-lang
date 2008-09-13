@@ -1,3 +1,20 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 component tictactoe
 import List.{...}
 import File.{...}
@@ -5,13 +22,14 @@ export Executable
 
 boardSize = 3
 playerOne = "X"
-playerTwo = "0"
+playerTwo = "O"
 
 object IllegalMove(n) extends Exception
     toString() = "Illegal move at " n
 end
 
 (* I think this is suboptimal but I keep forgetting the proper way to do it *)
+(* Returns a string copied x times *)
 opr juxtaposition(x:Number, y:String) =
     BIG || <| y | n <- 0#x |>
 
@@ -20,18 +38,22 @@ opr [n:ZZ32](z:List) =
     z.take(n).drop(n-1).left().get()
 *)
 
+(* nth element of a list *)
 element(z:List[\ZZ32\], n:ZZ32) = 
     z.take(n+1).right().get()
 
+(* replace the indexth element with val *)
 update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
     z.take(index).addRight(val) || z.drop(index+1)
 
+(* convert an id to a string *)
 player(id) =
     case id of
     1 => playerOne
     2 => playerTwo
     end
 
+(* represents the tic-tac-toe board *)
 object Board(rows)
     toString() = do
         var all:String = ""
@@ -109,6 +131,7 @@ object Board(rows)
         isFull()
     end
 
+    (* returns a list of indexes that are empty in the board *)
     emptySquares() = do
         var squares:List[\ZZ32\] = emptyList[\ZZ32\]()
         for i <- seq(0#(boardSize boardSize)) do
@@ -119,6 +142,7 @@ object Board(rows)
         squares
     end
 
+    (* returns the winner, 0 for a tie, 1 for player 1, 2 for player 2 *)
     winner() = do
         all = (<| winnerHorizontal(i) | i <- 0#boardSize |> ||
               <| winnerVertical(i) | i <- 0#boardSize |> ||
@@ -132,11 +156,13 @@ object Board(rows)
         end
     end
 
+    (* true if the move is legal, false otherwise *)
     isLegal(position) =
         position >= 0 AND:
         position < boardSize boardSize AND:
         element(rows, position) = 0
 
+    (* set the position to the players id and return a new board *)
     move(position, id) = do
         if NOT isLegal(position-1) then
             throw IllegalMove(position)
@@ -162,6 +188,7 @@ ai(board) = do
     end
 end
 
+(* a blank tic-tac-toe board *)
 emptyBoard() = do
     var rows:List[\ZZ32\] = emptyList[\ZZ32\]()
     (* must operate on a mutable variable in a sequential loop
@@ -174,6 +201,7 @@ emptyBoard() = do
     Board(rows)
 end
 
+(* hack to read user input. only works in unix *)
 readLine() = do
     input = FileReadStream("/dev/stdin")
     input.readLine()
@@ -181,6 +209,7 @@ end
 
 isNo(x) = (x = "no")
 
+(* play the game *)
 playGame(name) = do
 
     play(board) = do
