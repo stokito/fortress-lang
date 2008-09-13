@@ -17,9 +17,9 @@
 
 component Multifix
   export Executable
-  
-  trait Foo end
-  trait Gnar end
+
+  object Foo end
+  object Gnar end
 
   opr +(a:Foo, b:Foo):Foo = a
   opr +(a:Foo, b:Gnar):Gnar = b
@@ -37,5 +37,9 @@ component Multifix
      So overloading should be taken into account *)
   quux(a:Foo,b:Gnar) : Gnar = a+a+a+b
 
-  run(args:String...):() = ()
+  run(args:String...):() = do
+    assert(foo(Foo), "Surprise!")
+    assert(bar(Foo), Foo)
+    assert(quux(Foo, Gnar), Gnar)
+  end
 end
