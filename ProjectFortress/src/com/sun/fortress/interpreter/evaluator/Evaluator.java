@@ -475,7 +475,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Added some special-case code to avoid explosion of TupleTasks.
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
-                
+
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
         } else if (sz > 1) {
@@ -965,15 +965,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue for_RewriteFnApp(_RewriteFnApp that) {
         // This method was written by NEB, so there is plenty of reason to believe
         // that I did it incorrectly.
-        
+
         Expr fn = that.getFunction();
         Expr arg = that.getArgument();
-        
+
         List<FValue> evaled = evalExprListParallel(Useful.list(fn, arg));
-        
+
         FValue fn_ = IterUtil.first(evaled);
         FValue arg_ = IterUtil.last(evaled);
-        
+
         return functionInvocation(arg_, fn_, that);
     }
 
@@ -1648,7 +1648,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forVarRef(VarRef x) {
-        
+
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());
@@ -1669,12 +1669,19 @@ public class Evaluator extends EvaluatorBase<FValue> {
             test = cond.getInit();
         else
             test = bug(x,"Undesugared generalized while expression.");
-        FBool res = (FBool) test.accept(this);
-        while (res.getBool() != false) {
-            body.accept(this);
-            res = (FBool) test.accept(this);
+        FValue clauseVal = test.accept(this);
+        if (clauseVal instanceof FBool) {
+            FBool res = (FBool) clauseVal;
+            while (res.getBool() != false) {
+                body.accept(this);
+                res = (FBool) test.accept(this);
+            }
+            return FVoid.V;
+        } else {
+            return error(test,
+                         errorMsg("While condition does not have type Boolean, " +
+                                  "but ", clauseVal));
         }
-        return FVoid.V;
     }
 
     public FValue forThrow(Throw throw1) {
@@ -1717,10 +1724,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
         Id name = that.getObj();
         FValue g = forIdOfTLRef(name);
-        
+
         if( that.getStaticArgs().isEmpty() )
             return g;
-        else 
+        else
             return applyToActualStaticArgs(g,that.getStaticArgs(),that);
     }
 
