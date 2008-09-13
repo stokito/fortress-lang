@@ -212,6 +212,8 @@ isNo(x) = (x = "no")
 (* play the game *)
 playGame(name) = do
 
+    label quit
+
     play(board) = do
         if board.isGameOver() then
             println board
@@ -231,6 +233,10 @@ playGame(name) = do
                     println "You cannot move there. Choose again"
                     play(board)
                 end
+                IndexOutOfBounds[\ZZ32\] => do
+                    println "Invalid response"
+                    exit quit with false
+                end
             end
         end
     end
@@ -239,6 +245,8 @@ playGame(name) = do
 
     println "Do you want to play again? Type 'no' to quit or anything else for yes"
     NOT isNo(readLine())
+
+    end quit
 end
 
 run(args:String...) = do
