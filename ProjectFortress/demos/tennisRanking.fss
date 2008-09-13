@@ -77,6 +77,7 @@ tableBegin =
   "-------------------------------------------------------------------"
 gamesBegin = "begin"
 gamesEnd   = "end"
+debugOut:Maybe[\FileWriteStream\] := Nothing[\FileWriteStream\]
 
 (* String manipulation *********************************)
 (* Read n words and return the remaining string *)
@@ -372,12 +373,22 @@ addGame(fout: FileWriteStream,
          end
     end
   end
+failWithNewMember(msg: String) = do
+  msg' = msg " is a new member!"
+  println msg'
+  if debugOut.holds
+  then debugOut.get().println(msg')
+       debugOut.get().close()
+  end
+  fail "end"
+end
 addGame(fout: FileWriteStream, winnerName: String, loserName: String) =
   if database.member(winnerName)
   then if database.member(loserName)
        then addGame(fout, winnerName, true, loserName, true)
-       else println loserName " is a new member!"; fail("end") end
-  else println winnerName " is a new member!"; fail("end") end
+       else failWithNewMember loserName end
+  else failWithNewMember winnerName
+  end
 
 (* doubles games ****************************************)
 won(player1: Player, player2: Player, against1: Player, against2: Player,
@@ -466,10 +477,10 @@ addGame(fout: FileWriteStream,
             then if database.member(loserName2)
                  then addGame(fout, winnerName1, true, winnerName2, true,
                                     loserName1 , true, loserName2 , true)
-                 else println loserName2 " is a new member!"; fail("end") end
-            else println loserName1 " is a new member!"; fail("end") end
-       else println winnerName2 " is a new member!"; fail("end") end
-  else println winnerName1 " is a new member!"; fail("end") end
+                 else failWithNewMember loserName2 end
+            else failWithNewMember loserName1 end
+       else failWithNewMember winnerName2 end
+  else failWithNewMember winnerName1 end
 
 (* Print result ***************************************************************)
 (* MVP(Most Valuable Players): the biggest points earned in this term *)
@@ -612,6 +623,7 @@ run(args:String...) = do
        games    = args[2]
        fin : FileReadStream := FileReadStream previous
        fout: FileWriteStream = FileWriteStream today
+       debugOut := Just[\FileWriteStream\](fout)
        initialize(fin)
        fin.close()
        numPlayers := |database|
