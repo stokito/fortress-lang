@@ -1,0 +1,225 @@
+component tictactoe
+import List.{...}
+import File.{...}
+export Executable
+
+boardSize = 3
+playerOne = "X"
+playerTwo = "0"
+
+object IllegalMove(n) extends Exception
+    toString() = "Illegal move at " n
+end
+
+(* I think this is suboptimal but I keep forgetting the proper way to do it *)
+opr juxtaposition(x:Number, y:String) =
+    BIG || <| y | n <- 0#x |>
+
+(*
+opr [n:ZZ32](z:List) =
+    z.take(n).drop(n-1).left().get()
+*)
+
+element(z:List[\ZZ32\], n:ZZ32) = 
+    z.take(n+1).right().get()
+
+update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
+    z.take(index).addRight(val) || z.drop(index+1)
+
+player(id) =
+    case id of
+    1 => playerOne
+    2 => playerTwo
+    end
+
+object Board(rows)
+    toString() = do
+        var all:String = ""
+        for y <- seq(0#boardSize) do
+            for x <- seq(0#boardSize) do
+                id = element(rows, y boardSize + x)
+                if id = 0 then
+                    index = y boardSize + x
+                    all := all (index + 1)
+                else
+                    all := all player(element(rows, y boardSize + x))
+                end
+                if x < boardSize - 1 then
+                    all := all "|"
+                end
+            end
+            all := all "\n"
+            if y < boardSize - 1 then
+                all := all ((2 boardSize - 1) "-") "\n"
+            end
+        end
+        all
+    end
+
+    private winnerHorizontal(row) = do
+        first = element(rows,row boardSize)
+        all = BIG AND <| element(rows,row boardSize + i) = first | i <- 0#boardSize |>
+        if all then
+            first
+        else
+            0
+        end
+    end
+
+    private winnerVertical(column) = do
+        first = element(rows, column)
+        all = BIG AND <| element(rows,i boardSize + column) = first | i <- 0#boardSize |>
+        if all then
+            first
+        else
+            0
+        end
+    end
+
+    private winnerLeftDiagonal() = do
+        first = element(rows, 0)
+        all = BIG AND <| element(rows, i boardSize + i) = first | i <- 0#boardSize |>
+        if all then
+            first
+        else
+            0
+        end
+    end
+
+    private winnerRightDiagonal() = do
+        first = element(rows, boardSize - 1)
+        all = BIG AND <| element(rows, i boardSize + boardSize - i - 1) = first | i <- 0#boardSize |>
+        if all then
+            first
+        else
+            0
+        end
+    end
+
+    (* if the board is full its probably a tie *)
+    isFull() = do
+        BIG AND <| element(rows, i) > 0 | i <- 0#(boardSize boardSize) |>
+    end
+
+    isGameOver() = do
+        (BIG OR <| winnerHorizontal(i) > 0 | i <- 0#boardSize |>) OR:
+        (BIG OR <| winnerVertical(i) > 0 | i <- 0#boardSize |>) OR:
+        winnerLeftDiagonal() > 0 OR:
+        winnerRightDiagonal() > 0 OR:
+        isFull()
+    end
+
+    emptySquares() = do
+        var squares:List[\ZZ32\] = emptyList[\ZZ32\]()
+        for i <- seq(0#(boardSize boardSize)) do
+            if element(rows, i) = 0 then
+                squares := squares.addRight(i)
+            end
+        end
+        squares
+    end
+
+    winner() = do
+        all = (<| winnerHorizontal(i) | i <- 0#boardSize |> ||
+              <| winnerVertical(i) | i <- 0#boardSize |> ||
+              <| winnerLeftDiagonal() |> ||
+              <| winnerRightDiagonal() |>)
+        who = all.filter(fn i => i =/= 0)
+        if |who| > 0 then
+            who.left().get()
+        else
+            0
+        end
+    end
+
+    isLegal(position) =
+        position >= 0 AND:
+        position < boardSize boardSize AND:
+        element(rows, position) = 0
+
+    move(position, id) = do
+        if NOT isLegal(position-1) then
+            throw IllegalMove(position)
+        end
+        Board(update(rows, position - 1, id))
+    end
+end
+
+(* computer player. returns a move *)
+ai(board) = do
+    (*
+    bestMove(board, possible) = do
+    end
+    bestMove(board, board.emptySquares())
+    *)
+    if board.isGameOver() then
+        board
+    else
+        empty = board.emptySquares()
+        index = narrow(truncate(random(|empty|)))
+        move = element(empty, index) + 1
+        board.move(move, 2)
+    end
+end
+
+emptyBoard() = do
+    var rows:List[\ZZ32\] = emptyList[\ZZ32\]()
+    (* must operate on a mutable variable in a sequential loop
+     * otherwise a race condition exists wherein the rows is set
+     * to a smaller list
+     *)
+    for n <- seq(0#(boardSize boardSize)) do
+        rows := rows.addRight(0)
+    end
+    Board(rows)
+end
+
+readLine() = do
+    input = FileReadStream("/dev/stdin")
+    input.readLine()
+end
+
+isNo(x) = (x = "no")
+
+playGame(name) = do
+
+    play(board) = do
+        if board.isGameOver() then
+            println board
+            case board.winner() of
+                0 => println "Its a tie!"
+                1 => println "You win!"
+                2 => println "You lose!"
+            end
+        else
+            try
+                println board
+                println "Your turn " name
+                pos = strToInt(readLine())
+                play(ai(board.move(pos, 1)))
+            catch e
+                IllegalMove => do
+                    println "You cannot move there. Choose again"
+                    play(board)
+                end
+            end
+        end
+    end
+
+    println play(emptyBoard())
+
+    println "Do you want to play again? Type 'no' to quit or anything else for yes"
+    NOT isNo(readLine())
+end
+
+run(args:String...) = do
+    println "Welcome to Tic Tac Toe!"
+    println "Whats your name, friend?"
+    name = readLine()
+    while playGame(name) do
+        println ""
+    end
+    println "Bye"
+end
+
+end tictactoe
