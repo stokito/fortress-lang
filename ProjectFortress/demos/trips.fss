@@ -39,21 +39,21 @@ printUsage() = do
     println ""
 end
 
-opr |  (x:Number, y:Number):Number  = x DIVIDES y
-coPrime(x:Number, y:Number):Boolean = (1 = x GCD y)
-even (x) =    2|x
-odd  (x) = NOT (2|x)
+opr |  (x:ZZ32, y:ZZ32):Boolean  = x DIVIDES y
+coPrime(x:ZZ32, y:ZZ32):Boolean = (1 = x GCD y)
+even   (x:ZZ32):       Boolean =    2|x
+odd    (x:ZZ32):       Boolean = NOT (2|x)
 
-(* for debugging *)
+(* The specification defines a builtin symbol for DIVIDES. Until it's
+implemented, I define it myself along with some helper functions. *)
+
+(* For debugging *)
 trueDat  (dat:Any):Boolean = true
 tPrint   (dat:Any):Boolean = trueDat(print   dat)
 tPrintln (dat:Any):Boolean = trueDat(println dat)
 tAssert  (dat:Any):Boolean = trueDat(assert  dat)
 
-(* The specification defines a builtin symbol for DIVIDES. Until it's
-implemented, I define it myself. *)
-
-object trip (a:Number, b:Number, c:Number)
+object trip (a:ZZ32, b:ZZ32, c:ZZ32)
     extends StandardTotalOrder[\trip\]
     opr CMP(self, other:trip):TotalComparison =
         (a CMP other.a) LEXICO (b CMP other.b) LEXICO (c CMP other.c)
@@ -62,17 +62,18 @@ end trip
 
 (* When I did this exercise, using an object was a much faster way to
 represent a triple than a tuple or a list, likely due to genericity.
-Perhaps that will always be so, as data structures shoud be cheap.
+Perhaps that will always be so as data structures shoud be cheap.
 
 Note: CMP & toString follow canonical patterns. Perhaps they could be
 specified implicitly. *)
 
-orderedTrip(a:Number, b:Number, c:Number):trip =
+orderedTrip(a:ZZ32, b:ZZ32, c:ZZ32):trip =
     trip ((a MIN b), (a MAX b), c)
 
-(* In this exercise, I define a number of triple generators. A
-generator object contains the generator, a doc string, and a
-recommended max value as the argument. *)
+
+(* Generators: In this exercise, I define a number of triple
+generators. A generator object contains a doc string, a recommended
+max value as the argument, and the generator function. *)
 
 object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
     extends StandardTotalOrder[\trip\]
@@ -98,13 +99,14 @@ generators = <|
         coPrime (a,b) |>),
 
 (* This generator syntax is being considered: 3 <= a < b < c <= max !!!
-This will figure out that a <= max-2, which I missed for a while
-(below). But, if I just have 3 <= a < b <=  *)
+This will figure out that a <= max-2, which I missed for a while (I was
+using a <= max-1). *)
 
 (* Can I set up a global mutable collection of generators?
 var generators:Set[\generator\] = set()
 generators UNION= {generator ...}
-*)
+I got around that issue by defining the generator directly as members
+of the generator list *)
 
   generator ("Naive search: Double loop, calculate c", 100, fn (max) =>
     <| trip(a,b,cInt) |
@@ -138,7 +140,7 @@ println "Both a & b are odd: " a " " b end),
   generator ("Naive search: absorb 2 into b striding", 100, fn (max) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
-        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if even a then 2 else 1 end)
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 *)
@@ -198,12 +200,7 @@ When can also combine m^2 + n^2 <= max with n<m, which imply
 2n^2 <= max which can be rearranged
 n <= SQRT(max DIV 2) --- this is a bit tricky.
 Then we simply merge upper bounds.
-
-Along a similar line of reasoning, the XOR filter can be promoted into m striding:
-if odd n then 1 else 2 end
-
-Simpler striding rules might be written (for other situations): 2|a,
-3|b, etc. Merging these into striding is more straight forward.  *)
+*)
 
   generator ("Euclid's, (m^2+n^2<=max) & n<m => bounds", 100000, fn (max) =>
     <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
@@ -212,7 +209,12 @@ Simpler striding rules might be written (for other situations): 2|a,
         (even n) XOR (even m), coPrime (n, m) |>)
   |>
 
-(* when we have striding ...
+(* The XOR filter can be promoted into m striding:
+if odd n then 1 else 2 end
+
+Simpler striding rules might be written (for other situations): 2|a,
+3|b, etc. Merging these into striding is more straight forward.
+
   generator ("Euclid's, bounds & filter promotion", 100000, fn (max) =>
     <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
         n<-  1:(narrow (|\SQRT(max DIV  2 )/|)),
@@ -221,7 +223,7 @@ Simpler striding rules might be written (for other situations): 2|a,
   |>
 *)
 
-tripsTo(ts, x:Number) = { t | t<-ts, t.a <= x, t.b <= x, t.c <= x }
+tripsTo(ts, x:ZZ32) = { t | t<-ts, t.a <= x, t.b <= x, t.c <= x }
 
 getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
 totalTime:ZZ64 := 0
