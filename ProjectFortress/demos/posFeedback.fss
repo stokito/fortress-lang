@@ -112,7 +112,7 @@ median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
 repeat(i:ZZ32, s:String): String = BIG ||[_ <- 0#i] s
 
 object Entity(var positivity: ZZ32,
-              known: ZZ32[2], transient initFacts: ZZ32[2])
+              known: ZZ32[2], initFacts: ZZ32[2])
     time : ZZ32 := -1
     factNeg = -1
     factPos = 1

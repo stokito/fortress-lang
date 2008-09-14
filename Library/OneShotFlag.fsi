@@ -17,7 +17,7 @@
 
 api OneShotFlag
 
-object OneShot( var canTryIt : Boolean )
+object OneShot( canTryIt : Boolean )
     getter canTry(): Boolean
     tryOnce() : Boolean
 end

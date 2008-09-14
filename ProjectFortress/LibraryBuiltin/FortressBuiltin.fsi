@@ -146,11 +146,11 @@ end
 
 object BigNum extends ZZ end
 
-object Boolean
+value object Boolean
     extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
 end
 
-object Char extends { StandardTotalOrder[\Char\] }
+value object Char extends { StandardTotalOrder[\Char\] }
     (** %char.codePoint% converts %char% to the equivalent integer code point.
         It is always the case that %c = char(c.codePoint())% for %c : Char%. **)
     getter codePoint(): ZZ32
