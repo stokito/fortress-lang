@@ -17,6 +17,7 @@
 
 component tictactoe
 import List.{...}
+import Set.{...}
 import File.{...}
 export Executable
 
@@ -37,11 +38,11 @@ opr [n:ZZ32](z:List) =
 *)
 
 (* Returns nth element of a list *)
-element(z:List[\ZZ32\], n:ZZ32) =
+element(z:List[\Int\], n:Int) =
     z.take(n+1).right().get()
 
 (* Replaces the index-th element with val *)
-update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
+update(z:List[\Int\], index:Int, val:Int) =
     z.take(index).addRight(val) || z.drop(index+1)
 
 (* Converts an id to a string *)
@@ -130,7 +131,7 @@ object Board(rows)
 
     (* returns a list of indexes that are empty in the board *)
     emptySquares() = do
-        var squares:List[\ZZ32\] = emptyList[\ZZ32\]()
+        var squares:List[\Int\] = emptyList[\Int\]()
         for i <- seq(0#(boardSize boardSize)) do
             if element(rows, i) = 0 then
                 squares := squares.addRight(i)
@@ -170,6 +171,7 @@ end
 
 (* Computer player. Returns a move. *)
 ai(board) = do
+    
     (*
     bestMove(board, possible) = do
     end
@@ -187,14 +189,7 @@ end
 
 (* Blank tic-tac-toe board *)
 emptyBoard() = do
-    var rows:List[\ZZ32\] = emptyList[\ZZ32\]()
-    (* Must operate on a mutable variable in a sequential loop.
-     * Otherwise a race condition exists wherein the rows is set
-     * to a smaller list.
-     *)
-    for n <- seq(0#(boardSize boardSize)) do
-        rows := rows.addRight(0)
-    end
+    rows = <| 0 | n <- seq(0#(boardSize boardSize)) |>
     Board(rows)
 end
 
