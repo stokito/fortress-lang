@@ -23,19 +23,23 @@ import Map.{...}
 
 export Executable
 
-isDelimiter(c:Char):Boolean =   c IN <| ' ',  ',', '.', '?' |>
+isDelimiter(c:Char):Boolean =   c IN " ,.?"
 
-maybeAddWord(word:String,
-                         database:Map[\String,ZZ32\]):Map[\String,ZZ32\]= do
-    var result:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
+(*
+maybeAddWord(word:String,database:Map[\String,ZZ32\]):Map[\String,ZZ32\]= do
     occurs = database.member(word,0)
     if occurs > 0 then
-        result := database.update(word,occurs+1)
+        database.update(word,occurs+1)
     else
-        result := database.add(word,1)
+        database.add(word,1)
     end
-    result
 end
+*)
+
+maybeAddWord(word:String,database:Map[\String,ZZ32\]):Map[\String,ZZ32\]=
+    database.updateWith(
+        fn (mv:Maybe[\ZZ32\]): Just[\ZZ32\] => Just[\ZZ32\](mv.getDefault(0)+1),
+        word)
 
 getWords(s:String):Map[\String, ZZ32\] = do
     var database:Map[\String,ZZ32\] := mapping[\String,ZZ32\]()
@@ -49,7 +53,7 @@ getWords(s:String):Map[\String, ZZ32\] = do
            if count >= 1 then
                word:String = s[start#count]
                database := maybeAddWord(word, database)
-          end
+           end
            start := current + 1
            count := 0
         end
@@ -83,16 +87,22 @@ opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[
     embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
 
 processFile(name:String):() = do
+    time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
     println("Processing file " name)
     var rs:FileReadStream = FileReadStream(name)
+    start = nanoTime()
     database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
     rs.close()
+    acq = nanoTime()
+    time("Acquired words",start,acq)
     var invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
+    inv = nanoTime()
+    time("Inverted database",acq,inv)
     expected = <| (6,1),(4,2),(3,1),(2,13),(1,154) |>
     try
         for (ce,me) <- seq(expected) do
-            (c:ZZ32,m:List[\String\]) = invDatabase.maximum().get()
-            invDatabase := invDatabase.deleteMaximum()
+            (c,m,newinv) = invDatabase.extractMaximum().get
+            invDatabase := newinv
             println(m ": " c " times")
             assert(c,ce," expected occurrences mismatched")
             assert(|m|,me," expected number of words mismatched")
@@ -101,6 +111,9 @@ processFile(name:String):() = do
             NotFound => fail("ended too early!")
     end
     assert(|invDatabase|, 0, "Still entries in invDatabase ", invDatabase)
+    finish = nanoTime()
+    time("Outputted",inv,finish)
+    time("Total run",start,finish)
 end
 
 

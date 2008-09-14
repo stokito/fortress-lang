@@ -18,7 +18,7 @@
 component testTransient
 export Executable
 
-object Method(a:ZZ32, transient b:ZZ32)
+object Method(a:ZZ32, b:ZZ32)
   x = b
   m() = a
   n() = x

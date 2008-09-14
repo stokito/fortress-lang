@@ -403,9 +403,9 @@ object Function[\nat k\]
                (thresh : RR64,        (* Truncation threshold for coeffs *)
                 initial_level : ZZ32,
                 max_level : ZZ32,
-                transient compressed_ : Boolean, (* Which basis are we in? *)
-                transient s_ : LeafTree[\ RR64[ k ], 2 \],
-                transient d_ : Tree[\ RR64[ k ], 2 \],
+                compressed_ : Boolean, (* Which basis are we in? *)
+                s_ : LeafTree[\ RR64[ k ], 2 \],
+                d_ : Tree[\ RR64[ k ], 2 \],
                 c : FConsts[\k\]      (* Quadrature constants *)
                 )
 

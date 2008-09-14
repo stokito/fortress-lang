@@ -354,7 +354,7 @@ value object BigNum extends ZZ
 end
 
 
-object Boolean
+value object Boolean
         extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
     getter holds(): Boolean = self
     getter get(): () = ()
@@ -389,7 +389,7 @@ end
 
 myJavaDigit(x:Char, radix:ZZ32): ZZ32 = javaDigit(x, radix)
 
-object Char extends { StandardTotalOrder[\Char\] }
+value object Char extends { StandardTotalOrder[\Char\] }
     getter toString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
     getter codePoint(): ZZ32 =
