@@ -28,32 +28,30 @@ object IllegalMove(n) extends Exception
     toString() = "Illegal move at " n
 end
 
-(* I think this is suboptimal but I keep forgetting the proper way to do it *)
 (* Returns a string copied x times *)
-opr juxtaposition(x:Number, y:String) =
-    BIG || <| y | n <- 0#x |>
+opr juxtaposition(x:Number, y:String) = BIG ||[n <- 0#x] y
 
 (*
 opr [n:ZZ32](z:List) =
     z.take(n).drop(n-1).left().get()
 *)
 
-(* nth element of a list *)
-element(z:List[\ZZ32\], n:ZZ32) = 
+(* Returns nth element of a list *)
+element(z:List[\ZZ32\], n:ZZ32) =
     z.take(n+1).right().get()
 
-(* replace the indexth element with val *)
+(* Replaces the index-th element with val *)
 update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
     z.take(index).addRight(val) || z.drop(index+1)
 
-(* convert an id to a string *)
+(* Converts an id to a string *)
 player(id) =
     case id of
-    1 => playerOne
-    2 => playerTwo
+        1 => playerOne
+        2 => playerTwo
     end
 
-(* represents the tic-tac-toe board *)
+(* Represents the tic-tac-toe board *)
 object Board(rows)
     toString() = do
         var all:String = ""
@@ -80,7 +78,7 @@ object Board(rows)
 
     private winnerHorizontal(row) = do
         first = element(rows,row boardSize)
-        all = BIG AND <| element(rows,row boardSize + i) = first | i <- 0#boardSize |>
+        all = BIG AND[i <- 0#boardSize] element(rows,row boardSize + i) = first
         if all then
             first
         else
@@ -90,7 +88,7 @@ object Board(rows)
 
     private winnerVertical(column) = do
         first = element(rows, column)
-        all = BIG AND <| element(rows,i boardSize + column) = first | i <- 0#boardSize |>
+        all = BIG AND[i <- 0#boardSize] element(rows,i boardSize + column) = first
         if all then
             first
         else
@@ -100,7 +98,7 @@ object Board(rows)
 
     private winnerLeftDiagonal() = do
         first = element(rows, 0)
-        all = BIG AND <| element(rows, i boardSize + i) = first | i <- 0#boardSize |>
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + i) = first
         if all then
             first
         else
@@ -110,7 +108,7 @@ object Board(rows)
 
     private winnerRightDiagonal() = do
         first = element(rows, boardSize - 1)
-        all = BIG AND <| element(rows, i boardSize + boardSize - i - 1) = first | i <- 0#boardSize |>
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + boardSize - i - 1) = first
         if all then
             first
         else
@@ -118,14 +116,13 @@ object Board(rows)
         end
     end
 
-    (* if the board is full its probably a tie *)
-    isFull() = do
-        BIG AND <| element(rows, i) > 0 | i <- 0#(boardSize boardSize) |>
-    end
+    (* If the board is full it's probably a tie *)
+    isFull() =
+        BIG AND[i <- 0#(boardSize boardSize)] element(rows, i) > 0
 
     isGameOver() = do
-        (BIG OR <| winnerHorizontal(i) > 0 | i <- 0#boardSize |>) OR:
-        (BIG OR <| winnerVertical(i) > 0 | i <- 0#boardSize |>) OR:
+        (BIG OR[i <- 0#boardSize] winnerHorizontal(i) > 0) OR:
+        (BIG OR[i <- 0#boardSize] winnerVertical(i) > 0) OR:
         winnerLeftDiagonal() > 0 OR:
         winnerRightDiagonal() > 0 OR:
         isFull()
@@ -171,7 +168,7 @@ object Board(rows)
     end
 end
 
-(* computer player. returns a move *)
+(* Computer player. Returns a move. *)
 ai(board) = do
     (*
     bestMove(board, possible) = do
@@ -188,12 +185,12 @@ ai(board) = do
     end
 end
 
-(* a blank tic-tac-toe board *)
+(* Blank tic-tac-toe board *)
 emptyBoard() = do
     var rows:List[\ZZ32\] = emptyList[\ZZ32\]()
-    (* must operate on a mutable variable in a sequential loop
-     * otherwise a race condition exists wherein the rows is set
-     * to a smaller list
+    (* Must operate on a mutable variable in a sequential loop.
+     * Otherwise a race condition exists wherein the rows is set
+     * to a smaller list.
      *)
     for n <- seq(0#(boardSize boardSize)) do
         rows := rows.addRight(0)
@@ -201,7 +198,7 @@ emptyBoard() = do
     Board(rows)
 end
 
-(* hack to read user input. only works in unix *)
+(* Hack to read user input.  Only works in unix. *)
 readLine() = do
     input = FileReadStream("/dev/stdin")
     input.readLine()
@@ -209,7 +206,7 @@ end
 
 isNo(x) = (x = "no")
 
-(* play the game *)
+(* Plays the game *)
 playGame(name) = do
 
     label quit
@@ -218,7 +215,7 @@ playGame(name) = do
         if board.isGameOver() then
             println board
             case board.winner() of
-                0 => println "Its a tie!"
+                0 => println "It's a tie!"
                 1 => println "You win!"
                 2 => println "You lose!"
             end
@@ -230,11 +227,11 @@ playGame(name) = do
                 play(ai(board.move(pos, 1)))
             catch e
                 IllegalMove => do
-                    println "You cannot move there. Choose again"
+                    println "You cannot move there. Choose again."
                     play(board)
                 end
                 IndexOutOfBounds[\ZZ32\] => do
-                    println "Invalid response"
+                    println "Invalid response."
                     exit quit with false
                 end
             end
@@ -251,7 +248,7 @@ end
 
 run(args:String...) = do
     println "Welcome to Tic Tac Toe!"
-    println "Whats your name, friend?"
+    println "What's your name, friend?"
     name = readLine()
     while playGame(name) do
         println ""
