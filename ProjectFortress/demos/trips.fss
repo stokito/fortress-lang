@@ -44,6 +44,12 @@ coPrime(x:Number, y:Number):Boolean = (1 = x GCD y)
 even (x) =    2|x
 odd  (x) = NOT (2|x)
 
+(* for debugging *)
+trueDat  (dat:Any):Boolean = true
+tPrint   (dat:Any):Boolean = trueDat(print   dat)
+tPrintln (dat:Any):Boolean = trueDat(println dat)
+tAssert  (dat:Any):Boolean = trueDat(assert  dat)
+
 (* The specification defines a builtin symbol for DIVIDES. Until it's
 implemented, I define it myself. *)
 
@@ -121,14 +127,18 @@ generators UNION= {generator ...}
     <| trip(a,b,cInt) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
-        (odd a) OR (odd b),
+        NOT ((even a) AND (even b)),
+(*
+trueDat (if NOT ((even a) XOR (even b)) then
+println "Both a & b are odd: " a " " b end),
+*)
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 (*
   generator ("Naive search: absorb 2 into b striding", 100, fn (max) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
-        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if odd a then 1 else 2 end),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 *)
@@ -149,17 +159,21 @@ generators UNION= {generator ...}
 
 (* Once strides are implemented, we'll be able to write:
 b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if odd a then 1 else 2 end)
+actually, it turns out that exactly one of a and b are even, so we can write:
+b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2
 
 Is the following simpler?
 b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(2 - a MOD 2)
 Yes, but it's not as easy to understand by most people, I
-suspect. Again, I'd like to do some binding here.  *)
+suspect. Again, I'd like to do some binding here. *)
 
   generator ("Euclid's formula with naive upper bounds", 100, fn (max) =>
     <| orderedTrip(a, b, c) |
         n<-1:max,
         m<-n+1:max,
         (even n) XOR (even m), coPrime (n, m),
+trueDat (if ((even n) AND (even m)) then
+print "Both n & m are even: " n " " m end),
         a<-just(2 n m),
         b<-just(m^2 - n^2),
         c<-just(m^2 + n^2),
@@ -197,6 +211,15 @@ Simpler striding rules might be written (for other situations): 2|a,
         m<-n+1:(narrow(|\SQRT(max - n^2)/|)),
         (even n) XOR (even m), coPrime (n, m) |>)
   |>
+
+(* when we have striding ...
+  generator ("Euclid's, bounds & filter promotion", 100000, fn (max) =>
+    <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
+        n<-  1:(narrow (|\SQRT(max DIV  2 )/|)),
+        m<-n+1:(narrow (|\SQRT(max - n^2)/|)):2,
+        coPrime (n, m) |>)
+  |>
+*)
 
 tripsTo(ts, x:Number) = { t | t<-ts, t.a <= x, t.b <= x, t.c <= x }
 
