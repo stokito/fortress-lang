@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component mapCombine
+import Map.{...}
+export Executable
+
+run(args:String...) = do
+  n: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 4, 2 |-> 8}
+  f: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 9, 2 |-> 3}
+  println n
+  println f
+  println n.combine[\ZZ32,ZZ32\]( fn (key:ZZ32, v1:ZZ32, v2:ZZ32): Maybe[\ZZ32\] => just(v1 + v2),
+                                  fn (k:ZZ32, v:ZZ32): Maybe[\ZZ32\] => just(v),
+                                  fn (k:ZZ32, v:ZZ32): Maybe[\ZZ32\] => just(v),
+                                  identity[\Map[\ZZ32,ZZ32\]\],
+                                  identity[\Map[\ZZ32,ZZ32\]\],
+                                  f asif Map[\ZZ32,ZZ32\] )
+end
+
+end
