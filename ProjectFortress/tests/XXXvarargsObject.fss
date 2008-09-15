@@ -15,18 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXtransient
+component XXXvarargsObject
 export Executable
 
-object Method(a:ZZ32, transient b:ZZ32)
-  m() = a
-  n() = b
-end
+object O(x: ZZ32...) end
 
-run(args) = do
-  o = Method(5, 8)
-  assert(o.m() = 5)
-  assert(o.n() = 8)
-end
+run(args:String...) = println "Fail!"
 
 end

@@ -49,6 +49,7 @@ object
 of
 opr
 or
+outcome
 override
 private
 property
@@ -64,7 +65,6 @@ then
 throw
 throws
 trait
-transient
 try
 tryatomic
 type

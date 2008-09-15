@@ -618,7 +618,7 @@ export File
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-object FileReadStream(transient filename:String)
+object FileReadStream(filename:String)
         extends { ReadStream, FileStream}
     getter fileName():String =
       builtinPrimitive(

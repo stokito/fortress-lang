@@ -577,9 +577,6 @@ public class IndexBuilder {
             @Override public void forModifierSettable(ModifierSettable m) {
                 result.isSettable = true;
             }
-            @Override public void forModifierTransient(ModifierTransient m) {
-                result.isTransient = true;
-            }
             @Override public void forModifierAbstract(ModifierAbstract m) {
                 result.isAbstract = true;
             }
@@ -621,7 +618,6 @@ public class IndexBuilder {
         public boolean isVar = false;
         public boolean isHidden = false;
         public boolean isSettable = false;
-        public boolean isTransient = false;
         public boolean isAbstract = false;
         public boolean isAtomic = false;
         public boolean isIO = false;

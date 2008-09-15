@@ -19,35 +19,31 @@ package com.sun.fortress.interpreter.evaluator.values;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 
 public class Parameter {
-  String param_name;
-  FType param_type;
-  boolean is_mutable;
-  boolean is_transient;
+    String param_name;
+    FType param_type;
+    boolean is_mutable;
 
-  public Parameter(String pname, FType ptype, boolean mutable,
-                   boolean _transient) {
-    param_name = pname;
-    param_type = ptype;
-    is_mutable = mutable;
-    is_transient = _transient;
-  }
+    public Parameter(String pname, FType ptype, boolean mutable) {
+        param_name = pname;
+        param_type = ptype;
+        is_mutable = mutable;
+    }
 
-  public String getName() { return param_name;}
-  public FType  getType() { return param_type;}
-  public boolean getMutable() { return is_mutable;}
-  public boolean isTransient() { return is_transient;}
+    public String getName() { return param_name;}
+    public FType  getType() { return param_type;}
+    public boolean getMutable() { return is_mutable;}
 
-  public String toString() {
-      return param_name+":"+param_type;
-  }
-  
-  public boolean equals(Object o) {
-      if (o instanceof Parameter) {
-          Parameter p = (Parameter) o;
-          if (! param_type.equals(p.param_type))
-              return false;
-          return is_mutable == p.is_mutable && is_transient == p.is_transient;
-      }
-      return false;
-  }
+    public String toString() {
+        return param_name+":"+param_type;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof Parameter) {
+            Parameter p = (Parameter) o;
+            if (! param_type.equals(p.param_type))
+                return false;
+            return is_mutable == p.is_mutable;
+        }
+        return false;
+    }
 }

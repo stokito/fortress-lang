@@ -92,7 +92,7 @@ trait Map[\Key,Val\]
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
-                           mapThat:Map[\Key,Val\]->Map[\Key,Result\],
+                           mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\]
     (** %self.mapFilter(f)% is equivalent to:
           %{ k |-> v'  |  (k,v) <- self, v' <- f(k,v) }

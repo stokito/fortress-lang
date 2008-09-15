@@ -67,15 +67,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private boolean trans(ImplicitGetterSetter field) {
-        for (Modifier mod : field.getMods()) {
-            if (mod instanceof ModifierTransient) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean settable(ImplicitGetterSetter field) {
         for (Modifier mod : field.getMods()) {
             if (mod instanceof ModifierSettable) {
@@ -307,11 +298,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             for (Param param : params.unwrap()) {
                 if (param instanceof NormalParam) {
                     NormalParam _param = (NormalParam)param;
-                    if (! hidden(_param) && ! trans(_param) &&
+                    if (! hidden(_param) &&
                         ! hasExplicitGetter(_param.getName(), decls))
                         result.add(makeGetter(owner, _param));
                     if ((settable(_param) || mutable(_param)) &&
-                        ! trans(_param) &&
                         ! hasExplicitSetter(_param.getName(), decls)) {
                         result.add(makeSetter(owner, _param));
                     }
@@ -322,12 +312,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             decl.accept(new NodeAbstractVisitor_void() {
                 public void forVarDecl(VarDecl decl) {
                     for (LValueBind binding : decl.getLhs()) {
-                        if (! hidden(binding) && ! trans(binding) &&
+                        if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(owner, binding));
                         }
                         if ((settable(binding) || mutable(binding)) &&
-                            ! trans(binding) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
                             result.add(makeSetter(owner, binding));
                         }
@@ -346,12 +335,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             decl.accept(new NodeAbstractVisitor_void() {
                 public void forVarDecl(VarDecl decl) {
                     for (LValueBind binding : decl.getLhs()) {
-                        if (! hidden(binding) && ! trans(binding) &&
+                        if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(owner, binding));
                         }
                         if ((settable(binding) || mutable(binding)) &&
-                            ! trans(binding) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
                             result.add(makeSetter(owner, binding));
                         }

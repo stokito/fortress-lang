@@ -89,15 +89,6 @@ public class NodeUtil {
         return (params.size() > 2);
     }
 
-    public static boolean isTransient(Param p) {
-        for (Modifier m : p.getMods()) {
-            if (m instanceof ModifierTransient) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static boolean isMutable(Param p) {
         for (Modifier m : p.getMods()) {
             if (m instanceof ModifierVar || m instanceof ModifierSettable) {
@@ -112,13 +103,13 @@ public class NodeUtil {
         @Override public String forAPIName(APIName n) {
             return n.getText();
             }
-        public String forId(Id n) {      
+        public String forId(Id n) {
             return n.getText();
         }
         public String forOp(Op n) {
             return OprUtil.fixityDecorator(n.getFixity(), n.getText());
         }
-        public String forEnclosing(Enclosing n) { 
+        public String forEnclosing(Enclosing n) {
             // Interior space is REQUIRED
             return n.getOpen().getText() + " " + n.getClose().getText();
         }
@@ -126,7 +117,7 @@ public class NodeUtil {
             return n.getSpan().toString();
         }
     };
-    
+
     public static String nameSuffixString(AbstractNode n) {
         return n.accept(nameSuffixGetter);
     }
@@ -140,7 +131,7 @@ public class NodeUtil {
         @Override public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName n) {
             return nameString(n);
             }
-        public String forId(Id n) {      
+        public String forId(Id n) {
             final String last = n.getText();
             Option<APIName> odn = n.getApi();
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
@@ -150,7 +141,7 @@ public class NodeUtil {
             String last = OprUtil.fixityDecorator(n.getFixity(), n.getText());
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
-        public String forEnclosing(Enclosing n) { 
+        public String forEnclosing(Enclosing n) {
             Option<APIName> odn = n.getApi();
             // Interior space is REQUIRED
             String last = n.getOpen().getText() + " " + n.getClose().getText();
@@ -308,7 +299,7 @@ public class NodeUtil {
         public String forVarRef(VarRef node) {
             return node.getVar().accept(this);
         }
-        
+
             @Override
         public String defaultCase(Node node) {
             return node.getClass().getSimpleName();
@@ -401,7 +392,7 @@ public class NodeUtil {
             }
             public IterableOnce<String> for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl d) {
                 return new UnitIterable<String>(nameString(d.getName()));
-            }            
+            }
         });
     }
 
@@ -427,7 +418,7 @@ public class NodeUtil {
     public static <T> T NYI(String s) {
         return (T)bug("AST." + s + " NYI");
     }
-    
+
     /* function ************************************************************/
     public static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
             public String apply(Id x) {

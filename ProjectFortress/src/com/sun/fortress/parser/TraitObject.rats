@@ -212,24 +212,17 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
      };
 
 /* ObjectParams  ::=
-     (ObjectParam w , w)* (ObjectVarargs w , w)? ObjectKeyword (w , w ObjectKeyword)*
-   | (ObjectParam w , w)*  ObjectVarargs
+     (ObjectParam w , w)* ObjectKeyword (w , w ObjectKeyword)*
    |  ObjectParam (w , w ObjectParam)*
-   ObjectVarargs ::= transient w Varargs
    ObjectKeyword ::= ObjectParam w = w Expr
    ObjectParam   ::= ParamFldMods? Param
                  |   var w ParamWType
-                 |   transient w Param
  */
 VarargsParam Varargs :=
-     transient w a1:VarargsParam
-     { yyValue = NodeFactory.makeVarargsParam(a1, FortressUtil.mkList(
-                    (Modifier)new ModifierTransient(createSpan(yyStart,9))));
-     }
-   / <ErrorProduction>
+     <ErrorProduction>
      VarargsParam
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Varargs parameters of objects should be transient.");
+                             "Varargs parameters of objects are not allowed.");
      };
 
 NormalParam Param :=
@@ -241,11 +234,6 @@ NormalParam Param :=
      { List<Modifier> mods;
        mods = new ArrayList<Modifier>(1);
        mods.add(new ModifierVar(createSpan(yyStart,3)));
-       yyValue = NodeFactory.makeParam(a1, mods);
-     }
-   / transient w a1:PlainParam
-     { List<Modifier> mods = new ArrayList<Modifier>(2);
-       mods.add(new ModifierTransient(createSpan(yyStart,9)));
        yyValue = NodeFactory.makeParam(a1, mods);
      }
    / <ErrorProduction2>

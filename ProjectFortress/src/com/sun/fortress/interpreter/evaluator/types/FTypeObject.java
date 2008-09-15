@@ -70,8 +70,7 @@ public class FTypeObject extends FTraitOrObject {
                 }
                 if (params.isSome()) {
                     for (Param p : params.unwrap()) {
-                        if (!NodeUtil.isTransient(p))
-                            fields.add(p.getName());
+                        fields.add(p.getName());
                     }
                 }
             } else if (v instanceof FnAbsDeclOrDecl) {
