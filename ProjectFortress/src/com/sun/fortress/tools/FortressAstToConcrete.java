@@ -214,7 +214,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     private String handleType(String type) {
         if ( type.startsWith("(*") ) return "";
-        else return ": " + type;
+        else return " : " + type;
     }
 
     /* visit nodes ************************************************************/
