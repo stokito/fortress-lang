@@ -135,7 +135,7 @@ trait Map[\Key,Val\]
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
-                           mapThat:Map[\Key,Val\]->Map[\Key,Result\],
+                           mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\]
     (** self.mapFilter(f) is equivalent to:
           { k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
@@ -221,7 +221,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
-                           mapThat:Map[\Key,Val\]->Map[\Key,Result\],
+                           mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\] =
       mapThat(that)
     mapFilter[\Result\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] =
@@ -386,7 +386,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
-                           mapThat:Map[\Key,Val\]->Map[\Key,Result\],
+                           mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\] =
         if that.isEmpty() then mapThis(self)
         else

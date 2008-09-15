@@ -2850,10 +2850,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "test";
     }
 
-    @Override public String forModifierTransientOnly(ModifierTransient that) {
-        return "transient";
-    }
-
     @Override public String forModifierValueOnly(ModifierValue that) {
         return "value";
     }

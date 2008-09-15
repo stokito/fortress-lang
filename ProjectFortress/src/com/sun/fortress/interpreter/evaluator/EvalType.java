@@ -167,7 +167,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             else { // in_p instanceof VarargsParam
                 ptype = FTypeRest.make(e.getFType(((VarargsParam)in_p).getType()));
             }
-            Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p), NodeUtil.isTransient(in_p));
+            Parameter fp = new Parameter(pname, ptype, NodeUtil.isMutable(in_p));
             fparams.add(i++, fp);
         }
         return fparams;

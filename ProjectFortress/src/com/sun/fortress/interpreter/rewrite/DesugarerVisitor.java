@@ -220,32 +220,20 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     private class Member extends Thing {
-        private boolean isTransient = false;
         Member() { super(); }
-        Member(boolean _transient) {
-            super();
-            if (_transient) isTransient = true;
-        }
         @Override
         Expr replacement(VarRef original) {
-            if (isTransient) {
-                return original;
-            } else {
-                return new _RewriteFieldRef(original.getSpan(), false,
-                                            // Use this constructor
-                                            // here because it is a
-                                            // com.sun.fortress.interpreter.rewrite.
-                                            dottedReference(original.getSpan(),
-                                                            objectNestingDepth - objectNestedness),
-                                            filterQID(original.getVar()));
-            }
+            return new _RewriteFieldRef(original.getSpan(), false,
+                                        // Use this constructor
+                                        // here because it is a
+                                        // com.sun.fortress.interpreter.rewrite.
+                                        dottedReference(original.getSpan(),
+                                                        objectNestingDepth - objectNestedness),
+                                        filterQID(original.getVar()));
         }
 
         public String toString() {
-            if (isTransient)
-                return "TransientMember@"+objectNestedness+"/"+lexicalNestedness;
-            else
-                return "Member@"+objectNestedness+"/"+lexicalNestedness;
+            return "Member@"+objectNestedness+"/"+lexicalNestedness;
         }
     }
 
@@ -535,14 +523,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * This simplifies translation of code from the reflective visitor,
      * and also allows easy spearation (below) of the normal recursion from
      * the within-trait-or-object recursion (visitNode, visitNodeTO).
-     * 
+     *
      */
     final NodeUpdateVisitor helper = new NodeUpdateVisitor() {
         @Override
         public Node recur(Node that) {
             return DesugarerVisitor.this.recur(that);
         }
-        
+
         /**
          * Optionally splices in the contents of a RewriteHackList
          * returned from a visit; otherwise, it is just like the supertype's
@@ -574,14 +562,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             }
             return unchanged ? that : accum;
         }
-        
+
     };
-    
+
     /**
      * Explicit recursion, from anything that is not a trait or an object.
      * All things that can appear at the top level of a trait or object use
      * explicit recursive calls.
-     * 
+     *
      * @param that
      * @return
      */
@@ -589,18 +577,18 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         atTopLevelInsideTraitOrObject = false;
         return (AbstractNode) that.accept(helper);
     }
-    
+
     /**
      * Explicit recursion from a trait or object.
      * Leaves atTopLevelInsideTraitOrObject unchanged.
-     * 
+     *
      * @param that
      * @return
      */
     public AbstractNode visitNodeTO(Node that) {
         return (AbstractNode) that.accept(helper);
-    } 
-   
+    }
+
     /**
      * Recursion into descendant nodes is wrapped in a save/restore/filter
      * of the various maps and state variables set in desugarer's walk over
@@ -633,7 +621,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
          * TRUE RECURSION HERE
          */
         Node returned_node = that.accept(this);
-        
+
         rewrites = savedE;
         arrows = savedA;
         // Copy references from enclosed into enclosing.
@@ -655,7 +643,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         lexicalNestingDepth = savedLexicalNestingDepth;
         currentSelfName = savedSelfName;
         immediateDef = savedImmediateDef;
-        
+
         return returned_node;
     }
 
@@ -668,7 +656,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         return helper.recurOnListOfDecl(that);
     }
 
-    
+
     @Override
     public Node forComponent(Component com) {
         List<? extends AbsDeclOrDecl> defs = com.getDecls();
@@ -729,8 +717,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         return visitNode(node);
 
     }
-    
-    
+
+
     @Override
     public Node forFieldRef(FieldRef that) {
         atTopLevelInsideTraitOrObject = false;
@@ -774,8 +762,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Node node = newType(vre, s);
         return visitNode(node);
     }
-    
-    
+
+
     @Override
     public Node forFnDef(FnDef fndef) {
         if (atTopLevelInsideTraitOrObject) {
@@ -806,7 +794,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             _invariants = Option.<List<Expr>>none();
         }
         List<Expr> _exprs = new ArrayList<Expr>();
-        
+
         AbstractNode n;
 
         if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
@@ -862,10 +850,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         // handled
         // at the enclosing block.
         return visitNode(vd);
-        
+
     }
-    
-    
+
+
     public Node forAbstractObjectExpr(AbstractObjectExpr oe) {
         List<? extends AbsDeclOrDecl> defs = oe.getDecls();
         List<BaseType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
@@ -887,7 +875,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         return n;
     }
-    
+
     @Override
     public Node for_RewriteObjectExpr(_RewriteObjectExpr that) {
         return forAbstractObjectExpr(that);
@@ -896,7 +884,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forObjectExpr(ObjectExpr that) {
         return forAbstractObjectExpr(that);
     }
-    
+
     @Override
     public Node forCatch(Catch that) {
         String s = ((Catch) that).getName().stringName();
@@ -929,7 +917,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forLocalVarDecl(LocalVarDecl lvd) {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
-        
+
         List<LValue> lhs = lvd.getLhs();
         Option<Expr> rhs = lvd.getRhs();
         List<Expr> body = lvd.getBody();
@@ -965,7 +953,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         return n;
     }
-    
+
     @Override
     public Node forAbsTraitDecl(AbsTraitDecl td) {
         List<? extends AbsDecl> defs = td.getDecls();
@@ -984,7 +972,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         inTrait = false;
         return n;
     }
-    
+
     @Override
     public Node forTraitDecl(TraitDecl td) {
         List<? extends Decl> defs = td.getDecls();
@@ -1003,7 +991,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         inTrait = false;
         return n;
     }
-    
+
     /**
      *  Given generalized if expression, desugar into __cond calls (binding)
      *  where required.
@@ -1057,7 +1045,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forGeneratedExpr(GeneratedExpr ge) {
         return visitLoop(ge.getSpan(), ge.getGens(), ge.getExpr());
     }
-    
+
     @Override
     public Node forSpawn(Spawn s) {
         Expr body = s.getBody();
@@ -1081,15 +1069,15 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         exprs.add(fnExpr);
 
         TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
-        
+
         return visitNode(juxt);
     }
-    
+
     @Override
     public Node forGrammarDef(GrammarDef node) {
         return node;
     }
-    
+
     @Override
     public Node forTypecase(Typecase tc) {
         List<Id> lid = tc.getBindIds();
@@ -1423,7 +1411,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (params.isSome())
             for (Param d : params.unwrap()) {
                 String s = d.getName().getText();
-                rewrites_put(s, new Member(NodeUtil.isTransient(d)));
+                rewrites_put(s, new Member());
                 ArrowOrFunctional aof = d.accept(IsAnArrowName.isAnArrowName);
                 if (aof != ArrowOrFunctional.NEITHER) {
                     arrows.add(s);

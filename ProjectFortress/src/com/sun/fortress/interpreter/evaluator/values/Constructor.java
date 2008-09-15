@@ -596,10 +596,6 @@ public class Constructor extends NonPrimitive {
 
     private FObject stripTransient(FObject original) {
         Environment selfEnv = original.getSelfEnv();
-        for (Parameter param : getParameters()) {
-            if (param.isTransient())
-                selfEnv.removeVar(param.getName());
-        }
         return makeAnObject(original.getLexicalEnv(), selfEnv);
     }
 

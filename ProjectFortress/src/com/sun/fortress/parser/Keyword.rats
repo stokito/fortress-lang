@@ -42,11 +42,11 @@ body {
         "if",           "import",       "int",
         "invariant",    "io",           "label",        "most",
         "nat",          "native",       "object",       "of",
-        "opr",          "or",           "override",     "private",
-        "property",     "provided",     "requires",
+        "opr",          "or",           "outcome",      "override",
+        "private",      "property",     "provided",     "requires",
         "self",         "settable",     "setter",       "spawn",
         "syntax",       "test",         "then",         "throw",
-        "throws",       "trait",        "transient",    "try",
+        "throws",       "trait",        "try",
         "tryatomic",    "type",         "typecase",     "unit",
         "value",        "var",          "where",        "while",
         "widens",       "with",         "wrapped"
@@ -111,6 +111,7 @@ transient void object = "object" !(idrest);
 transient void of = "of" !(idrest);
 transient void opr = "opr" !(idrest);
 transient void or = "or" !(idrest);
+transient void outcome = "outcome" !(idrest);
 transient void property = "property" !(idrest);
 transient void provided = "provided" !(idrest);
 transient void requires = "requires" !(idrest);
@@ -145,7 +146,6 @@ transient String self = "self" !(idrest);
 transient String settable = "settable" !(idrest);
 transient String setter = "setter" !(idrest);
 transient String test = "test" !(idrest);
-transient String transient = "transient" !(idrest);
 transient String unit = "unit" !(idrest);
 transient String value = "value" !(idrest);
 transient String var = "var" !(idrest);

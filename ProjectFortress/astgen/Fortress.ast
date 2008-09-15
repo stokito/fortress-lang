@@ -307,13 +307,11 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                  * FnClauses ::= Throws? Where? Contract
                  * Throws ::= throws MayTraitTypes
                  * ObjectValParam ::= ( ObjectParams? )
-                 * ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
-                 *                | (ObjectParam ,)* ObjectVarargs
+                 * ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
                  *                | ObjectParam (, ObjectParam)*
-                 * ObjectVarargs ::= transient Varargs
                  * ObjectKeyword ::= ObjectParam = Expr
                  * ObjectParam ::= ParamFldMods? Param
-                 *               | transient Param
+                 *               | var Param
                  * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
                  *                   | AbsCoercions? AbsGoBackInAnObject
                  *                   | AbsCoercions
@@ -471,7 +469,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              *         | Type
              * e.g.) x: ZZ32 = 3
              * e.g.) self
-             * e.g.) transient x: String
              */
             NormalParam(Option<Type> type = Option.<Type>none(),
                         Option<Expr> defaultExpr = Option.<Expr>none())
@@ -1948,10 +1945,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              * e.g.) test object TestSuite(testFunctions = {}) end
              */
             ModifierTest();
-            /**
-             * e.g.) object O(transient x: ZZ32) end
-             */
-            ModifierTransient();
             /**
              * e.g.) value object IntEmpty extends List[\ZZ32\] end
              */

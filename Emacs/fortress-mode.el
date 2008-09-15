@@ -117,7 +117,7 @@
      "Boolean"))
 
   (defvar fortress-builtin-functions nil)
-  (setq 
+  (setq
    fortress-builtin-functions
    (list
     "println" "print"
@@ -132,7 +132,7 @@
     "arg" "deg" "det" "exp" "inf" "sup" "lg" "ln" "log"
     "gcd" "max" "min"
     ))
-  
+
   (setq
    fortress-font-lock-keywords
    (list
@@ -148,10 +148,10 @@
         "end" "ensures" "except" "excludes" "exit" "export" "extends"
         "finally" "fn" "for" "forbid" "from" "getter" "grammar" "hidden" "ident"
         "idiom" "if" "import" "in" "int" "invariant" "io" "juxtaposition"
-        "label" "largest" "nat" "object" "of" "or" "opr" "private"
+        "label" "largest" "nat" "object" "of" "or" "opr" "outcome" "private"
         "property" "provided" "requires" "self" "settable" "setter"
         "smallest" "spawn" "syntax" "test" "then" "throw" "throws"
-        "trait" "transient" "try" "tryatomic" "type" "typecase" "unit"
+        "trait" "try" "tryatomic" "type" "typecase" "unit"
         "value" "var" "where" "while" "widening" "widens" "with" "wrapped"))
       "\\)\\>")
      'font-lock-keyword-face)
@@ -373,7 +373,7 @@
       (buffer-substring
        (line-beginning-position 1)
        (line-end-position 1))))
-  
+
   (let ((nb-rel -1) ;; relative point of nearest non-blank line before current line
         (nb-str nil) ;; string of nb-rel line
         (nb-indent nil)) ;; indentation of nb-rel line

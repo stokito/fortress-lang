@@ -155,7 +155,6 @@ FORTRESS ABSTRACT SYNTAX TREE
  - ModifierSettable     	: NYI
  - ModifierSetter       	: NYI
  - ModifierTest         	: NYI
- - ModifierTransient    	: NYI
  - ModifierValue        	: FTraitOrObjectOrGeneric
  - ModifierVar          	: EvalType
  - ModifierWidens       	: NYI
@@ -277,13 +276,11 @@ TraitObjectAbsDeclOrDecl(..., Option<List<TraitType>> extendsClause ...)
     example:
 
 ObjectValParam ::= ( ObjectParams? )
-ObjectParams ::= (ObjectParam ,)* (ObjectVarargs, )? ObjectKeyword(, ObjectKeyword)*
-               | (ObjectParam ,)* ObjectVarargs
+ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
                | ObjectParam (, ObjectParam)*
-ObjectVarargs ::= transient Varargs
 ObjectKeyword ::= ObjectParam = Expr
 ObjectParam ::= ParamFldMods? Param
-              | transient Param
+              | Param
 
     AST does not distinguish them but abstracts them as follows:
 
