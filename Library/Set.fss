@@ -84,7 +84,7 @@ set[\E extends StandardTotalOrder[\E\], T extends E\](g: Generator[\T\]): Set[\E
 opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: Set[\E\] =
     es.generate[\Set[\E\]\](Union[\E\], fn (e:E): Set[\E\] => singleton[\E\](e))
 
-opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Set[\T\] =
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyList,AnyList\] =
     covariantComprehension[\T,Set[\T\]\](fn x => set(x))
 
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =

@@ -59,7 +59,7 @@ singleton[\E\](x:E): Set[\E\]
 set[\E\](): Set[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\]
 opr {[\E\] es: E... }: Set[\E\]
-opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Set[\T\]
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyList,AnyList\]
 
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\]
 
