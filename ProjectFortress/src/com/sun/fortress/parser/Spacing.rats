@@ -79,14 +79,16 @@ transient private void NoNewlineWhitespaceCharacters =
    / [\u0009\u000b\u000c\u001c\u001d\u001e\u001f] ;
 
 transient private void CommentContent =
-     Comment
+     "(*)"
+   / Comment
    / c:'*' !')'
    / WhitespaceCharacters
    / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
    ;
 
 transient private void NNCommentContent =
-     NoNewlineComment
+     "(*)"
+   / NoNewlineComment
    / c:'*' !')'
    / NoNewlineWhitespaceCharacters
    / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
