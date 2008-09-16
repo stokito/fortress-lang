@@ -57,7 +57,8 @@ private void Comment    =
      };
 
 private void NoNewlineComment    =
-     "(*" NNCommentContents "*)"
+     "(*)" NNCommentContents
+   / "(*" NNCommentContents "*)"
    / "&" s NewlineComment
    / <ErrorProduction> "(*" CommentContents w EndOfFile
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
