@@ -203,7 +203,7 @@ public class ExprFactory {
             }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
                 return new LocalVarDecl(expr.getSpan(), false, body,
-                        expr.getLhs(), expr.getRhs());
+                                        expr.getLhs(), expr.getRhs());
             }
         });
     }
@@ -788,7 +788,7 @@ public class ExprFactory {
         }
         public Expr forLocalVarDecl(LocalVarDecl e) {
             return new LocalVarDecl(e.getSpan(), true, e.getBody(),
-                    e.getLhs(), e.getRhs());
+                                    e.getLhs(), e.getRhs());
         }
         public Expr forOpExpr(OpExpr e) {
             return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());

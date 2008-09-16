@@ -38,7 +38,7 @@ export Executable
  * is >= 10, and there's more than twice as many facts of one type,
  * that type has "won" and the simulation ends.
  *
- * We record a histogram of outcomes.  Ticks are daily for a year.
+ * We record a histogram of results.  Ticks are daily for a year.
  *)
 
 (* Express a/b as a nearest percentage.  Why use integer math?
@@ -83,11 +83,11 @@ object Stats
     recordOver(): () = atomic do
         overAYear += 1
       end
-    record(time: ZZ32, outcome: ZZ32): () =
+    record(time: ZZ32, result: ZZ32): () =
         if time >= maxTime then
             fail("Recording overtime " time)
         else
-            atomic histogram[outcome,time] += 1
+            atomic histogram[result,time] += 1
         end
 end
 
@@ -131,25 +131,25 @@ object Entity(var positivity: ZZ32,
         ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time //
          facts.toString())
 
-    otherOutcome(outcome: ZZ32): ZZ32 = 1 - outcome
-    eventToOutcome(kind: ZZ32): ZZ32 = (kind+1) DIV 2
+    otherResult(result: ZZ32): ZZ32 = 1 - result
+    eventToResult(kind: ZZ32): ZZ32 = (kind+1) DIV 2
 
     unlearn(fact: ZZ32, kind: ZZ32): () = do
         facts[fact] := factUnk
-        outcome = otherOutcome(eventToOutcome(kind))
-        known[outcome] -= 1
-        if known[outcome] < 0 then
-            fail("Outcome " outcome " dipped below 0!")
+        result = otherResult(eventToResult(kind))
+        known[result] -= 1
+        if known[result] < 0 then
+            fail("Result " result " dipped below 0!")
         end
       end
 
     learn(fact: ZZ32, kind: ZZ32): Boolean = do
         facts[fact] := kind
-        outcome = eventToOutcome(kind)
-        known[outcome] += 1
+        result = eventToResult(kind)
+        known[result] += 1
         if known[0]+known[1] >= 10 AND
-           (known[outcome] >= 2 known[otherOutcome(outcome)]) then
-            Stats.record(time, outcome)
+           (known[result] >= 2 known[otherResult(result)]) then
+            Stats.record(time, result)
             true
         else
             false

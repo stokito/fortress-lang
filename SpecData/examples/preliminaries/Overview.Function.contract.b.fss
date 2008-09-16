@@ -24,7 +24,7 @@ export Executable
 (** EXAMPLE **)
 factorial(n)
   requires { n >= 0 }
-  ensures { result >= 0 }
+  ensures { outcome >= 0 }
   = if n = 0 then 1
     else n factorial(n-1) end
 (** END EXAMPLE **)

@@ -164,6 +164,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private void checkForShadowingVar(Id var) {
         if (CHECK_FOR_SHADOWING) {
             if (! var.getText().equals("self") && ! var.getText().equals("_") &&
+                ! var.getText().equals("outcome") &&
                 ! _uninitializedNames.contains(var)) {
                 if( !_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty()) {
                     error("Variable " + var + " is already declared.", var);
@@ -221,8 +222,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private void checkForValidParams(Set<Id> params) {
         for (Id param : params) {
-            if (param.getText().equals("result")) {
-                error("Parameters must not be named `result'", param);
+            if (param.getText().equals("outcome")) {
+                error("Parameters must not be named `outcome'", param);
             }
         }
     }
@@ -271,9 +272,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return extendWithVars(selfSet);
     }
 
-    private ExprDisambiguator extendWithResult(Span span) {
-        Set<Id> resultSet = Collections.singleton(new Id(span, "result"));
-        return extendWithVars(resultSet);
+    private ExprDisambiguator extendWithOutcome(Span span) {
+        Set<Id> outcomeSet = Collections.singleton(new Id(span, "outcome"));
+        return extendWithVars(outcomeSet);
     }
 
     private void error(String msg, HasAt loc) {
@@ -977,11 +978,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     /**
-     * Contracts are implicitly allowed to refer to a variable, "result."
+     * Contracts are implicitly allowed to refer to a variable, "outcome."
      */
     @Override
 	public Node forContract(Contract that) {
-        ExprDisambiguator v = extendWithResult(that.getSpan());
+        ExprDisambiguator v = extendWithOutcome(that.getSpan());
         return forContractOnly(that,
                                v.recurOnOptionOfListOfExpr(that.getRequires()),
                                v.recurOnOptionOfListOfEnsuresClause(that.getEnsures()),

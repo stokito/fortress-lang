@@ -54,12 +54,14 @@ VarDecl VarDecl =
                  a2 = FortressUtil.setMutable(a2);
              }
        }
+       FortressUtil.validId(a2);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
    / a1:VarImmutableMods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
        else lvs = FortressUtil.ids2Lvs(a2);
+       FortressUtil.validId(lvs);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a3);
      }
    / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
@@ -71,6 +73,7 @@ VarDecl VarDecl =
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a3, true);
            else           lvs = FortressUtil.ids2Lvs(a2, a3, false);
        }
+       FortressUtil.validId(lvs);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a4.getA());
      }
    / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType w a4:InitVal
@@ -86,6 +89,7 @@ VarDecl VarDecl =
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, tys, true);
            else           lvs = FortressUtil.ids2Lvs(a2, tys, false);
        }
+       FortressUtil.validId(lvs);
        yyValue = new VarDecl(span, lvs, a4.getA());
      }
    / <ErrorProduction>
@@ -154,12 +158,14 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
 AbsVarDecl AbsVarDecl =
      a1:AbsVarMods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
+       FortressUtil.validId(a2);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
+       FortressUtil.validId(lvs);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
      }
    / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
@@ -170,6 +176,7 @@ AbsVarDecl AbsVarDecl =
        List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
+       FortressUtil.validId(lvs);
        yyValue = new AbsVarDecl(span, lvs);
      };
 

@@ -125,6 +125,7 @@ import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.StringHashComparer;
 import com.sun.fortress.useful.Useful;
@@ -281,8 +282,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     protected void noteUse(String s, VarRef vre) {
         if (functionals.contains(s))
             topLevelUses.add(s);
-        else
-            System.err.println(s + " used at " + vre.at());
+        else Debug.debug( Debug.Type.INTERPRETER, 2, s, " used at ", vre.at());
     }
     /**
      * All the object exprs (this may generalize to nested functions as well)
@@ -1635,7 +1635,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Id t1 = gensymId("t1");
             Block inner_block =
                 ExprFactory.makeBlock(sp,
-                                      ExprFactory.makeVarRef(sp, "result"));
+                                      ExprFactory.makeVarRef(sp, "outcome"));
             GeneratorClause cond;
             cond = ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(),
                                                    e.getPost());
@@ -1648,8 +1648,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                                    Useful.<Id>list(), (Expr) ExprFactory.makeVarRef(sp,t1));
             If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
                                                          ExprFactory.makeBlock(sp,_inner_if)),
-                                        ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"result")));
-            LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"result"), b, _if);
+                                        ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"outcome")));
+            LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"outcome"), b, _if);
             Option<Expr> _pre = e.getPre();
             LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, "true")),
                                                                      ExprFactory.makeBlock(sp, r));
@@ -1662,7 +1662,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (Expr e : _invariants.unwrap(Collections.<Expr>emptyList())) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
-            Id t_result = gensymId("result");
+            Id t_outcome = gensymId("outcome");
             Id t2 = gensymId("t2");
 
             Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
@@ -1674,10 +1674,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
                                                     ExprFactory.makeBlock(sp,
                                                                           ExprFactory.makeVarRef(sp,
-                                                                                                 "result"))),
+                                                                                                 "outcome"))),
                                           ExprFactory.makeThrow(sp, "CalleeViolation"));
             LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(sp, t2, e, _post);
-            LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "result"), b, r2);
+            LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "outcome"), b, r2);
 
             b = ExprFactory.makeBlock(sp, ExprFactory.makeLocalVarDecl(sp, t1,e,r1));
         }

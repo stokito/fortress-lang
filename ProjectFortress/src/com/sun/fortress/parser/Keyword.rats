@@ -42,7 +42,7 @@ body {
         "if",           "import",       "int",
         "invariant",    "io",           "label",        "most",
         "nat",          "native",       "object",       "of",
-        "opr",          "or",           "outcome",      "override",
+        "opr",          "or",           "override",
         "private",      "property",     "provided",     "requires",
         "self",         "settable",     "setter",       "spawn",
         "syntax",       "test",         "then",         "throw",
@@ -111,7 +111,6 @@ transient void object = "object" !(idrest);
 transient void of = "of" !(idrest);
 transient void opr = "opr" !(idrest);
 transient void or = "or" !(idrest);
-transient void outcome = "outcome" !(idrest);
 transient void property = "property" !(idrest);
 transient void provided = "provided" !(idrest);
 transient void requires = "requires" !(idrest);
