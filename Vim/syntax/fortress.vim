@@ -13,7 +13,9 @@ elseif exists("b:current_syntax") && b:current_syntax == "fortress"
   finish
 endif
 
+" syn region   fortressComment start="(\*)" end="\\$" end="$"
 syn region   fortressComment start="(\*" end="\*)" contains=fortressComment
+syn match    fortressLineComment "(\*).*"
 syn match    fortressEnd    "\<end\>"
 
 " syn match    fortressKeyword "\<getter\>"
@@ -69,6 +71,7 @@ if version >= 508 || !exists("did_fortress_syntax_inits")
   endif
 
   HiLink fortressComment	   Comment
+  HiLink fortressLineComment	   Comment
   HiLink fortressKeyword	   Keyword
   HiLink fortressExternal          Include
   HiLink fortressType		   Type
