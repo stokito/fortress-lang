@@ -73,7 +73,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             return this;
         return getApi(oapi.unwrap());
     }
-    
+
     public Environment getApi(APIName a) {
         String s = NodeUtil.nameString(a);
         return getTopLevel().getApi(s);
@@ -97,7 +97,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public void putApi(String apiName, Environment env) {
         /* Should override in the generated top level environment */
     }
-    
+
     public Environment extend() {
         return tlExtend();
     }
@@ -112,7 +112,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     /**
      * Extends a top-level environment.
-     * 
+     *
      * @return
      */
     protected Environment tlExtend() {
@@ -136,11 +136,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             Visitor2<String, Number> vi,
             Visitor2<String, FValue> vv,
             Visitor2<String, Boolean> vb) {
-        // TODO Auto-generated method stub    	
+        // TODO Auto-generated method stub
     }
-    
+
     public void visit(Visitor2<String, Object> nameCollector) {
-        // TODO Auto-generated method stub    	
+        // TODO Auto-generated method stub
     }
 
     /** Names noted for possible future overloading */
@@ -148,14 +148,14 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     private int namesPutCount;
 
     private boolean blessed = false; /* until blessed, cannot be copied */
-    private boolean topLevel = false;    
-    
+    private boolean topLevel = false;
+
     public boolean debug = false;
-    public boolean verboseDump = false;    
+    public boolean verboseDump = false;
 
     /** Where created */
     protected HasAt within;
-    
+
     public void debugPrint(String debugString) {
         if (debug)
             System.out.println(debugString);
@@ -180,7 +180,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
    public boolean isTopLevel() {
        return topLevel;
-   }   
+   }
 
    protected void augment(final Environment additions) {
        final Visitor2<String, FType> vt = new Visitor2<String, FType>() {
@@ -200,11 +200,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
        };
        final Visitor2<String, FValue> vv = new Visitor2<String, FValue>() {
            public void visit(String s, FValue o) {
-             
+
                    FType ft = additions.getVarTypeNull(s);
                    if (ft != null)
                       putValueRaw(s, o, ft);
-                   else 
+                   else
                       putValueRaw(s, o);
            }
        };
@@ -213,16 +213,16 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                putBoolRaw(s, o);
            }
        };
-       
+
        additions.visit(vt,vn,vi,vv,vb);
-       
-   }   
+
+   }
 
     abstract public  Appendable dump(Appendable a) throws IOException;
 
     protected final void putNoShadow(String index, FValue value, String what) {
         FValue fvo = getValueRaw(index);
-        if (fvo == null) {
+        if (fvo == null || index.equals("outcome")) {
             putValueRaw(index, value);
         } else  if (fvo instanceof IndirectionCell) {
          // TODO Need to push the generic type Result into IndirectionCell, etc.
@@ -302,7 +302,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                     ovl = new OverloadedFunction(gm.getFnName(), this);
                     ovl.addOverload(gm);
                     putValueRaw(index, ovl);
-                    
+
                 } else if (fvo instanceof OverloadedFunction) {
                     ovl = (OverloadedFunction)fvo;
                 } else {
@@ -321,11 +321,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                  * The overloading occurs in the original table, unless a new overload
                  * was created (see returns of "table.add" above).
                  */
-               
-            } 
-        
+
+            }
+
     }
- 
+
     public void assignValue(HasAt loc, String str, FValue value) {
         FValue v = getValueRaw(str);
         if (v instanceof ReferenceCell) {
@@ -346,7 +346,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             error(loc, this, "Cannot assign to unbound variable " + str);
         error(loc, this, "Cannot assign to immutable " + str);
     }
- 
+
     public void storeType(HasAt loc, String str, FType f2) {
         FValue v = getValueRaw(str);
         if (v instanceof ReferenceCell) {
@@ -358,7 +358,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         error(loc, this, "Type stored to immutable variable " + str);
 
     }
-       
+
     final public  Boolean getBool(String str)  {
         Boolean x = getBoolNull(str);
         if (x == null)
@@ -394,7 +394,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         else
             return x;
     }
-    
+
     final public  FType getType(Id q)  {
         FType x = getTypeNull(q);
         if (x == null)
@@ -416,7 +416,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     final public FType getTypeNull(Id name) {
         String local = NodeUtil.nameSuffixString(name);
         Option<APIName> opt_api = name.getApi();
-        
+
         if (opt_api.isSome()) {
             APIName api = opt_api.unwrap();
             // Circular dependence etc will be signalled in API.
@@ -428,8 +428,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         }
     }
 
-    abstract public  FType getTypeNull(String str) ;    
-    
+    abstract public  FType getTypeNull(String str) ;
+
 //    final public  FValue getValue(FValue f1) {
 //        return getValue(string(f1));
 //    }
@@ -446,17 +446,17 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         FValue x = getValueNull(str);
         return getValueTail(str, x);
     }
-    
+
     final public  FValue getValue(VarRef vr) {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
-    
+
     final public  FValue getValue(OpRef vr) {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
-    
+
     private FValue getValueTail(Object str, FValue x) {
         if (x == null) {
             return error(errorMsg("Missing value: ", str," in environment:\n",this));
@@ -471,7 +471,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-    
+
     final public  FValue getValueNull(VarRef vr) {
         Id name = vr.getVar();
         int l = vr.getLexicalDepth();
@@ -524,7 +524,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                   (FValue) error(errorMsg("Missing value: ", local," in api:\n",opt_api.unwrap())) :
                   (FValue) error(errorMsg("Missing value: ", local," in environment:\n",this));
     }
-      
+
       private FValue getValueNullTail(IdOrOpName name, int l, String local,
               Option<APIName> opt_api) throws OptionUnwrapException,
               CircularDependenceError {
@@ -541,7 +541,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
               return getValueNullTail(local, v);
           }
       }
-      
+
     private FValue getValueNullTail(String s, FValue v)
         throws CircularDependenceError {
     if (v == null)
@@ -574,29 +574,29 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
        }
        return null;
    }
-   
+
     public Environment installPrimitives() {
         Primitives.installPrimitives(this);
         return this;
    }
-          
+
     public void putType(Id name, FType x) {
         putType(NodeUtil.nameString(name), x);
-    }    
-    
-    
+    }
+
+
     final public void putValue(FValue f1, FValue f2) {
         putValue(string(f1), f2);
     }
-    
+
     public void putValue(Id name, FValue x) {
         putValue(NodeUtil.nameString(name), x);
     }
-    
+
     public Closure getClosure(String s) {
         return (Closure) getValue(s);
     }
-    
+
     public void putVariable(String str, FValue f2) {
         putValue(str, new ReferenceCell(FTypeTop.ONLY, f2));
      }
@@ -639,15 +639,15 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public void putType(String str, FType f2) {
     	putTypeRaw(str,f2);
     }
-    
-    
+
+
     public void putValue(String str, FValue f2) {
         if (f2 instanceof Fcn)
             putFunction(str, (Fcn) f2, "Var/value", false, false);
         else
             // var_env = putNoShadow(var_env, str, f2, "Var/value");
             putNoShadow(str, f2, "Var/value");
-        
+
      }
 
     public void putValueNoShadowFn(String str, FValue f2) {
@@ -657,7 +657,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             // var_env = putNoShadow(var_env, str, f2, "Var/value");
             putNoShadow(str, f2, "Var/value");
      }
-    
+
     /**
      *
      * @param str
@@ -689,17 +689,17 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         if (namesPutCount > 0)
             return new StringArrayIterator(namesPut, namesPutCount);
        return Collections.<String>emptySet().iterator();
-    }    
-    
+    }
+
     // Slightly wrong -- returns all, not just the most recently bound.
 
     public HasAt getAt() {
         return within;
-    }    
-    
+    }
+
     /**
      * Level-tagged version of getTypeNull
-     * 
+     *
      * @param name
      * @param level
      * @return
@@ -711,7 +711,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     /**
      * Level-tagged version of getValueRaw
-     * 
+     *
      * @param s
      * @param level
      * @return
@@ -720,15 +720,15 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         Environment e = toContainingObjectEnv(this, level);
         return e.getValueRaw(s);
     }
- 
+
     public Environment getApiNull(String apiName) {
     	return null;
     }
-    
+
     public Iterable<String> youngestFrame() {
         return this;
     }
-    
+
     public Environment getTopLevel() {
         return this;
     }
@@ -738,7 +738,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
          if it was a surrounding object.  Currently accomplished
          by chaining up the list of $self/$parent entries.
          */
-    
+
     static Environment toContainingObjectEnv(Environment e,
             int negative_object_depth) {
         if (-negative_object_depth > 0) {

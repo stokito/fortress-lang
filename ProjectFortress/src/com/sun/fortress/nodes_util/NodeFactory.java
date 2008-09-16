@@ -752,7 +752,7 @@ public class NodeFactory {
     public static Op makeOpInfix(Span span, String apiName, String name) {
         Op op =  new Op(span, Option.some(NodeFactory.makeAPIName(apiName)), PrecedenceMap.ONLY.canon(name), infix);
         return op;
-    
+
     }
 
     public static Op makeOpInfix(Op op) {
@@ -972,23 +972,28 @@ public class NodeFactory {
     }
 
     public static AbsVarDecl makeAbsVarDecl(Span span, List<LValueBind> lvals) {
+        FortressUtil.validId(lvals);
         return new AbsVarDecl(span, lvals);
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValueBind> lvals, Expr init) {
+        FortressUtil.validId(lvals);
         return new VarDecl(span, lvals, init);
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
+        FortressUtil.validId(name);
         LValueBind bind = new LValueBind(span, name, Option.<Type>none(),
                 Collections.<Modifier>emptyList(), true);
         return new VarDecl(span, Useful.<LValueBind>list(bind), init);
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
-        LValueBind bind = new LValueBind(span, new Id(span, name),
-                Option.<Type>none(),
-                Collections.<Modifier>emptyList(), true);
+        Id id = new Id(span, name);
+        FortressUtil.validId(id);
+        LValueBind bind = new LValueBind(span, id,
+                                         Option.<Type>none(),
+                                         Collections.<Modifier>emptyList(), true);
         return new VarDecl(span, Useful.<LValueBind>list(bind), init);
     }
 
@@ -1160,13 +1165,13 @@ public class NodeFactory {
         });
     }
 
-    public static SyntaxDef makeSyntaxDef(Span s, Option<String> modifier, 
-                                          List<SyntaxSymbol> syntaxSymbols, 
+    public static SyntaxDef makeSyntaxDef(Span s, Option<String> modifier,
+                                          List<SyntaxSymbol> syntaxSymbols,
                                           TransformerDecl transformation) {
         return new SyntaxDef(s, modifier, syntaxSymbols, transformation);
     }
 
-    public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier, 
+    public static SuperSyntaxDef makeSuperSyntaxDef(Span s, Option<String> modifier,
                                                     Id nonterminal, Id grammar) {
         return new SuperSyntaxDef(s, modifier, nonterminal, grammar);
     }

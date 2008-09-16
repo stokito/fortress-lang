@@ -54,17 +54,17 @@ atom_sum(n) = do
 end
 
 foo(n)
-    ensures {summationVerify(n,result) provided n >= 0} = do
+    ensures {summationVerify(n,outcome) provided n >= 0} = do
     atom_sum(n)
 end
 
 bar(n)
-    ensures {summationVerifyWrong(n,result) provided n =/= n} = do
+    ensures {summationVerifyWrong(n,outcome) provided n =/= n} = do
     atom_sum(n)
 end
 
 baz(n)
-    ensures {summationVerifyWrong(n,result) provided n >= 0} = do
+    ensures {summationVerifyWrong(n,outcome) provided n >= 0} = do
     atom_sum(n)
 end
 

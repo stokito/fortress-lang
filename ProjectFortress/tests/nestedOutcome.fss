@@ -1,4 +1,3 @@
-(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,31 +14,16 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-(** END COPYRIGHT **)
 
-component Fun.Contract
-
+component nestedOutcome
 export Executable
 
-trait List end
-object Cons extends List end
-object Empty extends List end
-sorted(x: List) = true
-first(x: List) = Empty
-rest(x: List) = Empty
-(** EXAMPLE **)
-factorial(n: ZZ64) requires { n >= 0 } =
-  if n = 0 then 1
-  else n factorial(n - 1)
-  end
+f() ensures { do (outcome = 5)
+                 g() ensures { (outcome = 3) } = 3
+                 g()
+                 true
+              end } = 5
 
-mangle(input: List) ensures { sorted(outcome) provided sorted(input) } =
-  if input =/= Empty
-  then mangle(first(input))
-       mangle(rest(input))
-  end
-(** END EXAMPLE **)
-
-run(args:String...) = ()
+run(args:String...) = println(f())
 
 end

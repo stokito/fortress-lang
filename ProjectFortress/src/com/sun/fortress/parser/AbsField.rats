@@ -44,12 +44,14 @@ List<Modifier> AbsVarMods := AbsFldMods ;
 AbsVarDecl ApiFldDecl =
      a1:ApiFldMods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
+       FortressUtil.validId(a2);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:Type w ellipses
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
+       FortressUtil.validId(lvs);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:TupleType
@@ -60,5 +62,6 @@ AbsVarDecl ApiFldDecl =
        List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
+       FortressUtil.validId(lvs);
        yyValue = new AbsVarDecl(span, lvs);
      };

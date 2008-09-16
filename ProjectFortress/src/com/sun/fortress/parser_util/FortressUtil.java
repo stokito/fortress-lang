@@ -302,6 +302,23 @@ public final class FortressUtil {
         return false;
     }
 
+    public static void validId(Id name) {
+        if (name.getText().equals("outcome"))
+            syntaxError(name.getSpan(),
+                        "Invalid variable name: 'outcome' is a reserved word.");
+    }
+
+    public static void validId(List<? extends LValue> lvs) {
+        for (LValue lv : lvs) {
+            if (lv instanceof LValueBind) {
+                validId(((LValueBind)lv).getName());
+            } else if (lv instanceof UnpastingBind) {
+                validId(((UnpastingBind)lv).getName());
+            } else // if (lv instanceof UnpastingSplit)
+                validId(((UnpastingSplit)lv).getElems());
+        }
+    }
+
     public static boolean validId(String s) {
         return (!FortressUtil.validOp(s) && !s.equals("_") &&
                 !s.equals("SUM") && !s.equals("PROD"));
@@ -831,6 +848,9 @@ public final class FortressUtil {
             if (e instanceof LetExpr) {
                 LetExpr _e = (LetExpr)e;
                 if (_e.getBody().isEmpty()) {
+                    if (_e instanceof LocalVarDecl) {
+                        validId(((LocalVarDecl)_e).getLhs());
+                    }
                     _e = ExprFactory.makeLetExpr(_e, es);
                     es = mkList((Expr)_e);
                 } else {
