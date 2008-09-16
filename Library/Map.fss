@@ -391,11 +391,11 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
         if that.isEmpty() then mapThis(self)
         else
             (l,mv,r) = that.splitAt(key)
-            (lc,mc,rc) = (left.combine(f,doThis,doThat,mapThis,mapThat,l),
+            (lc,mc,rc) = (left.combine[\That,Result\](f,doThis,doThat,mapThis,mapThat,l),
                           if v <- mv
                           then f(key,val,v)
                           else doThis(key,val) end,
-                          right.combine(f,doThis,doThat,mapThis,mapThat,r))
+                          right.combine[\That,Result\](f,doThis,doThat,mapThis,mapThat,r))
             if c <- mc
             then lc.concat3(key,c,rc)
             else rc.concat(key,rc) end
