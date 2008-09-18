@@ -567,7 +567,6 @@ public class Driver {
         if (group == null)
             group = new FortressTaskRunnerGroup(getNumThreads());
 
-        System.out.println("Just messingAround");
         EvaluatorTask evTask = new EvaluatorTask(fr, p, "run", args);
         try {
             group.invoke(evTask);
