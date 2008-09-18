@@ -907,7 +907,7 @@ run(args:String...):() =
                  fullRng[\ZZ32\](-1,45,2), fullRng[\ZZ32\](2,47,3), fullRng[\ZZ32\](3,45,1) |>
     print(" (" |fullRngs| ")")
     for f <- fullRngs do
-        g = f.generate[\AnyMaybe\](StrideReduction(f),strideUnit(f))
+        g = f.generate[\AnyMaybe\](StrideReduction(f),strideUnit[\ZZ32\](f))
         if (l0,sz0,r0) <- g then
             if l <- f.left then
                 assert(l0,l,"Actual and generated left bound for ",f)
