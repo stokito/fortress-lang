@@ -1074,7 +1074,7 @@ __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
         BIG Op Expr === BIG Op [x <- Expr] x
     **)
 __bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
-    __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,R\](g, r, u))
+    __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,L\](g, r, u))
 
 (** Application of a BIG operator, the topmost level of comprehension desugaring. **)
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
