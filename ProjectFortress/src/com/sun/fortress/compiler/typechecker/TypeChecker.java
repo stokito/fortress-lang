@@ -2316,9 +2316,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 that.getSelfName(),
                 (Expr)bodyResult.ast());
         return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
-                bodyResult, result)
-                .addNodeTypeEnvEntry(new_node, typeEnv)
-                .removeStaticParamsFromScope(that.getStaticParams());
+                bodyResult, result);
+                //.addNodeTypeEnvEntry(new_node, typeEnv)
+                //.removeStaticParamsFromScope(that.getStaticParams());
     }
 
 	 @Override
@@ -3427,9 +3427,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, paramsResult),
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, throwsClauseResult),
                 contractResult,
-                TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, decls_result))
-                .addNodeTypeEnvEntry(new_node, typeEnv)
-                .removeStaticParamsFromScope(that.getStaticParams());
+                TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, decls_result));
+                /* .addNodeTypeEnvEntry(new_node, typeEnv)
+                 .removeStaticParamsFromScope(that.getStaticParams()); */
     }
 
 	 @Override
@@ -3976,8 +3976,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, excludesResult),
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, comprisesResult),
                 TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, decls_result)
-        ).addNodeTypeEnvEntry(new_node, typeEnv)
-         .removeStaticParamsFromScope(that.getStaticParams());
+        );//.addNodeTypeEnvEntry(new_node, typeEnv)
+         //.removeStaticParamsFromScope(that.getStaticParams());
     }
 
 
