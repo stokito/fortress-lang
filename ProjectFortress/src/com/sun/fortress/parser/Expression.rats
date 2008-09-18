@@ -646,6 +646,8 @@ Expr Exponent =
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?
    | Accumulator StaticArgs? (w [ w GeneratorClauseList w ])? w Expr
+   | BIG w { w |-> StaticArgs? w } w Expr
+   | BIG w LeftEncloser StaticArgs? w RightEncloser w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
    | spawn w Expr
@@ -657,7 +659,7 @@ Expr FlowExpr =
        Option<Expr> expr = Option.wrap(a2);
        yyValue = new Exit(createSpan(yyStart,yyCount), false, Option.<Type>none() ,name, expr);
      }
-   / <ErrorProduction>
+   / <ErrorProduction1>
      Accumulator wr StaticArgs
      (w opensquare w GeneratorClauseList w closesquare)? w Expr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -671,6 +673,27 @@ Expr FlowExpr =
            yyValue = ExprFactory.makeOpExpr(span, a1, a4, a2);
        } else
            yyValue = new Accumulator(span, a2, a1, a3, a4);
+     }
+   / <ErrorProduction2>
+     BIG w LeftEncloser wr StaticArgs w RightEncloser w Expr
+     { yyValue = syntaxError(createSpan(yyStart,yyCount),
+                             "Space is not allowed immediately before left white square bracket.");
+     }
+   / BIG w opencurly w mapsto a1:StaticArgs? w closecurly w a2:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
+       Op open  = NodeFactory.makeOpBig(span, "BIG {|->");
+       Op close = NodeFactory.makeOpBig(span, "BIG }");
+       OpName opr = new Enclosing(span, open, close);
+       yyValue = ExprFactory.makeOpExpr(span, opr, a2, a1);
+     }
+   / BIG w a1:LeftEncloser a2:StaticArgs? w a3:RightEncloser w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       Op open  = NodeFactory.makeOpBig(span, "BIG " + a1.getText());
+       Op close = NodeFactory.makeOpBig(span, "BIG " + a3.getText());
+       OpName opr = new Enclosing(span, open, close);
+       yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
      }
    / atomic w a1:AtomicBack
      { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }

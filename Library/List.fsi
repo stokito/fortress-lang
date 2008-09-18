@@ -117,6 +117,7 @@ end
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
 opr BIG <|[\T\]|>:Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
+opr BIG <|[\T\] g:Generator[\T\]|>:List[\T\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]
