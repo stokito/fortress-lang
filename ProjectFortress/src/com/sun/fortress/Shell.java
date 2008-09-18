@@ -96,7 +96,8 @@ public final class Shell {
     private static void printUsageMessage() {
         System.err.println("Usage:");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" [run] [-test] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" [run] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" test [-debug [type]* [#]] somefile.fss...");
         System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
@@ -116,9 +117,12 @@ public final class Shell {
          "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
          "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
          "\n"+
-         "fortress [run] [-test] [-debug [type]* [#]] somefile.fss arg ...\n"+
+         "fortress [run] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
          "  run method of somefile.fss.\n"+
+         "\n"+
+         "fortress test [-debug [type]* [#]] somefile.fss ...\n"+
+         "  Runs the functions with the test modifier in the specified components \n"+
          "\n"+
          "fortress api [-out file] [-debug [type]* [#]] somefile.fss\n"+
          "  Automatically generate an API from a component.\n"+
@@ -154,7 +158,6 @@ public final class Shell {
          "\n"+
          "More details on each flag:\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
-         "   -test : first runs test functions associated with the program.\n"+
          "   -debug : enables debugging to the maximum level (99) for all \n"+
          "            debugging types and prints java stack traces.\n"+
          "   -debug # : sets debugging to the specified level, where # is a number, \n"+
@@ -218,6 +221,8 @@ public final class Shell {
                 turnOnTypeChecking();
                 setPhase( PhaseOrder.TYPECHECK );
                 compile(args, Option.<String>none());
+            } else if (what.equals("test")) {
+                runTests(args);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
@@ -312,7 +317,7 @@ public final class Shell {
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
         CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-        FValue result = Driver.runProgram(bcr, cu, test, args);
+        FValue result = Driver.runProgram(bcr, cu, args);
         bcr.deleteComponent(cu.getName());
         return result;
     }
@@ -642,9 +647,6 @@ public final class Shell {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-test")) {
-            	test = true;
-            }
             if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
 
             run(rest);
@@ -716,6 +718,22 @@ public final class Shell {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Source path is " + source );
         Debug.debug( Debug.Type.REPOSITORY, 2, "Lookup path is " + path );
         return path;
+    }
+
+    private static void runTests(List<String> files) 
+        throws UserError, Throwable {
+        setPhase( PhaseOrder.CODEGEN );
+        for (String file : files) {
+            System.out.println("runTests file = " + file);
+            if ( ! isComponent(file) )
+                throw new UserError("A component file is expected to evaluate.");
+            APIName name = trueApiName( file );
+            Path path = sourcePath( file, name );
+            GraphRepository bcr = specificRepository( path, defaultRepository );
+            CompilationUnit cu = bcr.getLinkedComponent(name).ast();
+            System.out.println("Calling Driver.runTests");
+            Driver.runTests(bcr, cu);
+        }
     }
 
     /* run all the analysis available */

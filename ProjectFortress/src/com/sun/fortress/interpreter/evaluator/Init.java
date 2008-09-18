@@ -16,7 +16,6 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
-import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -49,7 +48,6 @@ public class Init {
         FTypeRest.reset();
         FTypeOverloadedArrow.reset();
         FTypeGeneric.reset();
-        FortressTests.reset();
         IntNat.reset();
         GenericFunctionOrMethod.FunctionsAndState.reset();
 
