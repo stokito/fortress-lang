@@ -24,7 +24,6 @@ export CordedString
     opr ∩ (r0: Range⟦ZZ32⟧, r1: Range⟦ZZ32⟧) = (r0.lower MAX r1.lower) : (r0.upper MIN r1.upper) 
       
   test rangeIntersect() = do
-        print "starting rangeIntersect: "
         assert((0:5) ∩ (0:3), 0:3)
         assert((0:5) ∩ (3:7), 3:5)
         assert((0:5) ∩ (7:10), 7:5)
@@ -34,7 +33,6 @@ export CordedString
         assert( (9:8).isEmpty, "9:8 is not empty!")
         assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
         assert( (7:9)≪7, (0#3), "7:9≪7 isn't 0#3" ) 
-        println "rangeIntersect done"
   end
   
     (* Shift a range left by the specified amount.  *)
