@@ -112,16 +112,17 @@ public class FileTests {
                             args.add(dir + "/tennis050307");
                             args.add(dir + "/tennis051707");
                             args.add(dir + "/tennisGames");
-                            Driver.runProgram(fr, p, false, args);
+                            Driver.runProgram(fr, p, args);
                         }
                         // Test files requiring "-test" flag
                         else if (name.equals("XXXTestTest") ||
                                  name.equals("natInference0") ||
+                                 name.equals("testTest1") ||
                                  name.equals("testTest2")) {
-                            Driver.runProgram(fr, p, true, new ArrayList<String>());
+                            Driver.runTests(fr, p);
                         }
                         else {
-                            Driver.runProgram(fr, p, false, new ArrayList<String>());
+                            Driver.runProgram(fr, p, new ArrayList<String>());
                         }
                     }
                 }
@@ -193,8 +194,8 @@ public class FileTests {
 
             }
         }
-    }
 
+    }
     public static void main(String[] args) throws IOException {
         junit.textui.TestRunner.run(FileTests.suite("tests", true, false));
         junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false, true));
@@ -209,7 +210,7 @@ public class FileTests {
         System.err.println(dir);
         Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
         for(String s : shuffled){
-        	  if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
+              if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
                   System.out.println("Not compiling file " + s);
               else if (!s.startsWith(".")) {
                   if (s.endsWith(".fss")) {

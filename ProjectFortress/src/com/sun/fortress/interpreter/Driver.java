@@ -37,7 +37,7 @@ import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;
-import com.sun.fortress.interpreter.env.FortressTests;
+import com.sun.fortress.interpreter.evaluator.BuildTestEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
@@ -497,26 +497,16 @@ public class Driver {
 
     // This runs the program from inside a task.
     public static FValue
-        runProgramTask(CompilationUnit p, boolean runTests,
+        runProgramTask(CompilationUnit p,
                        List<String> args, String toBeRun,
                        FortressRepository fr)
         throws IOException
     {
 
-        FortressTests.reset();
         Environment e = evalComponent(p, fr);
 
         Closure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
-        if (runTests) {
-            List<Closure> testClosures = FortressTests.get();
-            for (Iterator<Closure> i = testClosures.iterator(); i.hasNext();) {
-                Closure testCl = i.next();
-                List<FValue> fvalue_args = new ArrayList<FValue>();
-
-                testCl.apply(fvalue_args, toplevel, e);
-            }
-        }
         ArrayList<FValue> fvalueArgs = new ArrayList<FValue>();
         for (String s : args) {
             fvalueArgs.add(FString.make(s));
@@ -532,11 +522,7 @@ public class Driver {
 
     static FortressTaskRunnerGroup group;
 
-    // This creates the parallel context
-    public static FValue runProgram(FortressRepository fr, CompilationUnit p,
-                                    boolean runTests, List<String> args)
-        throws Throwable {
-
+    static int getNumThreads() {
         int numThreads;
 
         String numThreadsString = System.getenv("FORTRESS_THREADS");
@@ -549,12 +535,40 @@ public class Driver {
             else
                 numThreads = (int) Math.floor((double) availThreads/2.0);
         }
+        return numThreads;
+    }
+
+
+    public static void runTests(FortressRepository fr, CompilationUnit p) 
+        throws Throwable {
+
+        BuildTestEnvironments bte = new BuildTestEnvironments ();
+        bte.visit(p);
+        List<String> tests = BuildTestEnvironments.getTests();
+            
+        if (group == null)
+            group = new FortressTaskRunnerGroup(getNumThreads());
+
+        for (String s : tests) {
+            List<String> args = new ArrayList<String>();
+            EvaluatorTask evTask = new EvaluatorTask(fr, p, s, args);
+            group.invoke(evTask);
+            if (evTask.causedException()) {
+                throw evTask.taskException();
+            }
+        }            
+    }
+
+    // This creates the parallel context
+    public static FValue runProgram(FortressRepository fr, CompilationUnit p,
+                                    List<String> args)
+        throws Throwable {
 
         if (group == null)
+            group = new FortressTaskRunnerGroup(getNumThreads());
 
-           group = new FortressTaskRunnerGroup(numThreads);
-
-        EvaluatorTask evTask = new EvaluatorTask(fr, p, runTests, "run", args);
+        System.out.println("Just messingAround");
+        EvaluatorTask evTask = new EvaluatorTask(fr, p, "run", args);
         try {
             group.invoke(evTask);
             if (evTask.causedException()) {

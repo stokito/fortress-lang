@@ -15,29 +15,25 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component testTest2
+component testTest1
 export Executable
 
-fact(x:ZZ32) = do
-   if (x = 0) then 1 else x fact(x-1) end
+
+fib(n:ZZ32): ZZ32 =
+  if n <= 1 then n
+  else fib(n-1) + fib(n-2)
+  end
+
+test testFib1() = do
+   assert(fib(0) = 0)
+   assert(fib(5) = 5)
+   println("testFib1 passed");
 end
 
-test testFactorial1() = do
-   assert(fact(0) = 1)
-   assert(fact(5) = 120)
-   println("testFactorial1 passed");
-end
-
-test testFactorial2() = do
-   assert(fact(0) = 1)
-   assert(fact(5) = 120)
-   println("testFactorial2 passed");
-end
-
-test testFactorial3() = do
-   assert(fact(0) = 1)
-   assert(fact(5) = 120)
-   println("testFactorial3 passed");
+test testFib2() = do
+  assert(fib(20),6765,"fib(20) wrong")
+  assert(fib(25),75025,"fib(25) wrong")
+  println("testFib2 passed");
 end
 
 end

@@ -23,7 +23,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.interpreter.env.FortressTests;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
@@ -282,24 +281,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         } else {
             // NOT GENERIC
             cl = newClosure(containing, x);
-
-            // Search for test modifier -- can't we have a generic test modifier?
-            List<Modifier> mods = x.getMods();
-            if (!mods.isEmpty()) {
-                for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
-                    Modifier m = i.next();
-                    if (m instanceof ModifierTest) {
-                        FortressTests.add((Closure) cl);
-                        break;
-                    }
-                }
-            }
         }
         // TODO this isn't right if it was a test function.
         // it belongs in a different namespace if it is.
         bindInto.putValue(fname, cl); // was "shadow"
         //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
-
     }
 
    private void forFnDef2(FnDef x) {
