@@ -22,6 +22,9 @@ export Executable
 opr BIG STAR[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
     Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
 
+opr BIG STAR[\T extends Number\](g: Generator[\T\]): T =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG STAR[\T\](), g)
+
 run(args:String...):() = do
     body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
 
