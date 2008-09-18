@@ -101,6 +101,8 @@ end
 
 opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\]
 
+opr BIG LEXICO(g: Generator[\TotalComparison\]): TotalComparison
+
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
         comprises { Unordered, TotalComparison }
@@ -677,9 +679,11 @@ __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R
 
 __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
 
+__bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O
+
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
-(** Application of two nested BIG operators, possibly with fusion.  This covers only 
+(** Application of two nested BIG operators, possibly with fusion.  This covers only
     comprehensions of the form:
         %BIG outer [ xs <- expro ] (BIG inner [x <- xs] expri)
     The desugarer extracts comprehensions of this form from more complex nests of
@@ -1687,6 +1691,8 @@ end
 
 opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
+opr SUM[\T extends Number\](g: Generator[\T\]): Number
+
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString()
     empty(): Number
@@ -1695,12 +1701,16 @@ end
 
 opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
+opr PROD[\T extends Number\](g: Generator[\T\]): Number
+
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
     simpleJoin(a:T, b:T): T
 end
 
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\]
+
+opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]): T
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString()
@@ -1709,9 +1719,15 @@ end
 
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\]
 
+opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]): T
+
 opr BIG MINNUM(): BigReduction[\RR64,RR64\]
 
+opr BIG MINNUM(g: Generator[\RR64\]): RR64
+
 opr BIG MAXNUM(): BigReduction[\RR64,RR64\]
+
+opr BIG MAXNUM(g: Generator[\RR64\]): RR64
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction
@@ -1725,6 +1741,8 @@ end
 
 opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\]
 
+opr BIG AND[\T\](g: Generator[\Boolean\]): Boolean
+
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
@@ -1735,6 +1753,8 @@ object OrReduction
 end
 
 opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\]
+
+opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
@@ -1760,15 +1780,21 @@ end
     its inputs (of type Any) to String if necessary. **)
 opr BIG ||(): Comprehension[\Any,String,String,String\]
 
+opr BIG ||(g: Generator[\Any\]): String
+
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary, and separating
     non-empty components by a space. **)
 opr BIG |||(): Comprehension[\Any,String,String,String\]
 
+opr BIG |||(g: Generator[\Any\]): String
+
 (** This operator performs string concatenation with newline
     separation, first converting its inputs (of type Any) to String if
     necessary. **)
-opr BIG //(): Comprehension[\Any,String,AnyMaybe,AnyMaybe\]
+opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\]
+
+opr BIG //(g: Generator[\Any\]): String
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
@@ -1822,7 +1848,7 @@ trait Range[\T\]
     comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
                 RangeWithExtent[\T\], PartialRange[\T\] }
     excludes { Number }
-   
+
     opr =(self,_:Range[\T\]): Boolean
 end
 
@@ -1989,7 +2015,7 @@ trait String extends { StandardTotalOrder[\String\],
     showStructure(indent: ZZ32) : ()         (* a debugging printout *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
-    
+
     opr [i:ZZ32]: Char
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient
@@ -2001,13 +2027,13 @@ trait String extends { StandardTotalOrder[\String\],
          whatever optimizationms for empty ranges and trivial (whole string) ranges may be
          appropriate for the representation.*)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
-    
+
     (** Answers a subdivision of self into substrings.  Both this method, and the access to the substrings that
         it anwers, must be linear time.   If there is no linear time subdivision it's fine to answer the empty generator
-        Nothing, but in this case the implementation of the subtrait must offer linear time indexing.        
-        The pairs (start, str) that are generated by this method must be such that 
-            start[0] = 0,      and 
-            start[i] = | str[0] || ... || str[i-1] |,       and 
+        Nothing, but in this case the implementation of the subtrait must offer linear time indexing.
+        The pairs (start, str) that are generated by this method must be such that
+            start[0] = 0,      and
+            start[i] = | str[0] || ... || str[i-1] |,       and
             str[0] || str [1] || ... || str[n] = self
     **)
     subdivide(): Generator[\(ZZ32, String)\]
