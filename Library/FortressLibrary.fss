@@ -139,8 +139,10 @@ object LexicographicReduction
 end
 
 opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\] =
-  BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
+    BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
 
+opr BIG LEXICO(g: Generator[\TotalComparison\]) =
+    __bigOperatorSugar[\TotalComparison,TotalComparison,TotalComparison,TotalComparison\](BIG LEXICO(), g)
 
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
@@ -1066,6 +1068,13 @@ __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
         SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g,p)
         else => SimpleFilterGenerator[\E\](g,p)
     end
+
+(** Application of a BIG operator with a single generator
+    to support the following syntactic sugar:
+        BIG Op Expr === BIG Op [x <- Expr] x
+    **)
+__bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
+    __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,R\](g, r, u))
 
 (** Application of a BIG operator, the topmost level of comprehension desugaring. **)
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
@@ -2727,6 +2736,9 @@ end
 opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
     Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
 
+opr SUM[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](SUM[\T\](), g)
+
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
     getter toString() = "ProdReduction"
     empty(): Number = 1
@@ -2736,6 +2748,9 @@ end
 opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
     Comprehension[\T,Number,Number,Number\](fn x => x, ProdReduction, cast[\Number\])
 
+opr PROD[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](PROD[\T\](), g)
+
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MinReduction"
     simpleJoin(a, b) = a MIN b
@@ -2743,6 +2758,9 @@ end
 
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MinReduction[\T\])
+
+opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MIN[\T\](), g)
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
     getter toString() = "MaxReduction"
@@ -2752,13 +2770,22 @@ end
 opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
 
+opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MAX[\T\](), g)
+
 opr BIG MINNUM(): BigReduction[\RR64,RR64\] =
     BigReduction[\RR64,RR64\](
         MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0))
 
+opr BIG MINNUM(g: Generator[\RR64\]) =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BIG MINNUM(), g)
+
 opr BIG MAXNUM(): BigReduction[\RR64,RR64\] =
     BigReduction[\RR64,RR64\](
         MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MAXNUM b, 0.0/0.0))
+
+opr BIG MAXNUM(g: Generator[\RR64\]) =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BIG MAXNUM(), g)
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction
@@ -2773,6 +2800,9 @@ end
 opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\] =
     BigReduction[\Boolean,Boolean\](AndReduction)
 
+opr BIG AND[\T\](g: Generator[\Boolean\]) =
+    __bigOperatorSugar[\Boolean,Boolean,Boolean,Boolean\](BIG AND[\T\](), g)
+
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
@@ -2784,6 +2814,9 @@ end
 
 opr BIG OR[\T\]():BigReduction[\Boolean, Boolean\] =
     BigReduction[\Boolean,Boolean\](OrReduction)
+
+opr BIG OR[\T\](g: Generator[\Boolean\]) =
+    __bigOperatorSugar[\Boolean,Boolean,Boolean,Boolean\](BIG OR[\T\](), g)
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
@@ -2811,6 +2844,9 @@ opr BIG ||(): Comprehension[\Any,String,String,String\] =
     Comprehension[\Any,String,String,String\](
         identity[\String\],StringReduction,fn (x:Any)=> "" x)
 
+opr BIG ||(g: Generator[\Any\]) =
+    __bigOperatorSugar[\Any,String,String,String\](BIG ||(), g)
+
 (** This operator performs string concatenation, first converting
     its inputs (of type Any) to String if necessary, and separating
     non-empty components by a space. **)
@@ -2818,12 +2854,18 @@ opr BIG |||(): Comprehension[\Any,String,String,String\] =
     Comprehension[\Any,String,String,String\](
         identity[\String\],SpaceReduction,fn (x:Any)=> "" x)
 
+opr BIG |||(g: Generator[\Any\]) =
+    __bigOperatorSugar[\Any,String,String,String\](BIG |||(), g)
+
 (** This operator performs string concatenation with newline
     separation, first converting its inputs (of type Any) to String if
     necessary. **)
 opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\] =
     Comprehension[\Any,String,String,AnyMaybe\](
         fn x => x,NewlineReduction,fn (x:Any)=> "" x)
+
+opr BIG //(g: Generator[\Any\]) =
+    __bigOperatorSugar[\Any,String,String,AnyMaybe\](BIG //(), g)
 
 (** A %MapReduceReduction% takes an associative binary function %j% on
     arguments of type %R%, and the identity of that function %z%, and
