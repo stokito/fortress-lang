@@ -17,6 +17,7 @@
 
 component tictactoe
 import List.{...}
+import Map.{...}
 import Set.{...}
 import File.{...}
 export Executable
@@ -169,14 +170,7 @@ object Board(rows)
     end
 end
 
-(* Computer player. Returns a move. *)
-ai(board) = do
-    
-    (*
-    bestMove(board, possible) = do
-    end
-    bestMove(board, board.emptySquares())
-    *)
+dumbAi(board) = do
     if board.isGameOver() then
         board
     else
@@ -185,6 +179,28 @@ ai(board) = do
         move = element(empty, index) + 1
         board.move(move, 2)
     end
+end
+
+(* Computer player. Returns a move. *)
+smartAi(board) = do
+    label answer 
+        if board.isGameOver() then
+            exit answer with board
+        end
+
+        for i <- board.emptySquares() do
+            if board.move(i+1,2).winner() = 2 then
+                exit answer with board.move(i + 1, 2)
+            end
+        end
+
+        for i <- board.emptySquares() do
+            if board.move(i+1,1).winner() = 1 then
+                exit answer with board.move(i + 1, 2)
+            end
+        end
+        dumbAi(board)
+    end answer
 end
 
 (* Blank tic-tac-toe board *)
@@ -219,7 +235,7 @@ playGame(name) = do
                 println board
                 println "Your turn " name
                 pos = strToInt(readLine())
-                play(ai(board.move(pos, 1)))
+                play(smartAi(board.move(pos, 1)))
             catch e
                 IllegalMove => do
                     println "You cannot move there. Choose again."
