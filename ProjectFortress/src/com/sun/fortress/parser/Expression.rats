@@ -665,9 +665,12 @@ Expr FlowExpr =
      }
    / a1:Accumulator a2:StaticArgs?
      a3:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a4:Expr
-     { if (a3 == null) a3 = Collections.<GeneratorClause>emptyList();
+     { Span span = createSpan(yyStart,yyCount);
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), a2, a1, a3, a4);
+       if (a3 == null) {
+           yyValue = ExprFactory.makeOpExpr(span, a1, a4, a2);
+       } else
+           yyValue = new Accumulator(span, a2, a1, a3, a4);
      }
    / atomic w a1:AtomicBack
      { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }
