@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.AbstractArrowType;
@@ -355,8 +356,15 @@ public class TypesUtil {
         });
     }
 
-    /** Does the given ast contain InferenceVarTypes? */
-    public static boolean containsInferenceVarTypes(Node ast) {
+    /**
+     * Does the given ast contain any of the given InferenceVarTypes?
+     * @param ast The Node tree in which to check.
+     * @param ivars A set of inference variables to check for. If any of these are found in the ast,
+     *     this method returns true. If ivars is null, then this is as if the set contained
+     *     everything.
+     * @return true if any of ivars are found recursively in ast, false otherwise
+     */
+    public static boolean containsInferenceVarTypes(Node ast, final Set<_InferenceVarType> ivars) {
         final Box<Boolean> result_ = new Box<Boolean>() {
             Boolean b = Boolean.FALSE;
             public void set(Boolean arg0) { b = arg0; }
@@ -365,12 +373,23 @@ public class TypesUtil {
         
         ast.accept(new NodeDepthFirstVisitor_void() {
             @Override
-            public void for_InferenceVarType(_InferenceVarType that) { 
-                result_.set(Boolean.TRUE); 
+            public void for_InferenceVarType(_InferenceVarType that) {
+                if (ivars == null || ivars.contains(that)) {
+                    result_.set(Boolean.TRUE);
+                }
             }
         });
         
         return result_.value();
+    }
+
+    /**
+     * Does the given ast contain any InferenceVarTypes?
+     * @param ast The Node tree in which to check for inference variables.
+     * @return true if any inference variables are found in the ast, false otherwise
+     */
+    public static boolean containsInferenceVarTypes(Node ast) {
+        return containsInferenceVarTypes(ast, null);
     }
     
     /**
