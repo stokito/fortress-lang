@@ -59,9 +59,9 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
       by the elements of %f% *)
   append(f:List[\E\]): List[\E\]
   (** the operator %||% performs the %append% operation *)
-  opr ||(self, other:List[\E\]): List[\E\]     
+  opr ||(self, other:List[\E\]): List[\E\]
   (** %addLeft% and %addRight% add an element to the left or right of
-      the list, respectively *)      
+      the list, respectively *)
   addLeft(e:E):List[\E\]
   addRight(e:E):List[\E\]
   (** %take% returns the leftmost %n% elements of the list; if the
@@ -91,6 +91,7 @@ end
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
 opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\]
+opr BIG <|[\T\] g:Generator[\T\]|>: List[\T\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
 list[\E\](g:Generator[\E\]):List[\E\]

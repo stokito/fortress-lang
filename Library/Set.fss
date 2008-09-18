@@ -87,8 +87,14 @@ opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: Set[\E\] =
 opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyList,AnyList\] =
     covariantComprehension[\T,Set[\T\]\](fn x => set(x))
 
+opr BIG {[\T extends StandardTotalOrder[\T\]\] g:Generator[\T\]} =
+    __bigOperatorSugar[\T,Set[\T\],AnyList,AnyList\](BIG {[\T\]}(), g)
+
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =
     BigReduction[\Set[\R\],Set[\R\]\](Union[\R\])
+
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]) =
+    __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],Set[\R\]\](BIG UNION[\R\](), g)
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduction[\Set[\E\]\]
     getter toString(): String = "Union reduction"
@@ -99,6 +105,9 @@ end
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
         BigReduction[\Set[\R\],AnyMaybe\] =
     BigReduction[\Set[\R\],AnyMaybe\](Intersection[\R\])
+
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]) =
+    __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],AnyMaybe\](BIG INTERSECTION[\R\](), g)
 
 object Intersection[\E extends StandardTotalOrder[\E\]\]
         extends { CommutativeReduction[\Set[\E\]\],

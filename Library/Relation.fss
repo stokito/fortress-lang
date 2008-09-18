@@ -94,7 +94,7 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
     BIG AND[p <- pairs()] do (x,y) = p; (y,x) IN self end
 
   isTransitive(): Boolean =
-    BIG AND[(x, onesteps) <- rel, onestep <- onesteps, twosteps <- rel.member(onestep)] 
+    BIG AND[(x, onesteps) <- rel, onestep <- onesteps, twosteps <- rel.member(onestep)]
       twosteps SUBSETEQ onesteps
 
   isReflexive(): Boolean =
@@ -143,6 +143,9 @@ opr BIG RELATION[\T\](): Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\],
     Relation[\T\],
     RelationReduction[\T\],
     fn(k:T,v:T):Map[\T,Set[\T\]\] => {[\T,Set[\T\]\] k |-> {[\T\] v } })
+
+opr BIG RELATION[\T\](g: Generator[\(T,T)\]) =
+  __bigOperatorSugar[\(T,T),Relation[\T\],Map[\T,Set[\T\]\],Map[\T,Set[\T\]\]\](BIG RELATION[\T\](), g)
 
 object RelationReduction[\T\] extends CommutativeMonoidReduction[\Map[\T,Set[\T\]\]\]
   getter toString() = "Relation reduction"

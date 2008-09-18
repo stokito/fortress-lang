@@ -61,5 +61,6 @@ relation[\T\](rel: Map[\T,Set[\T\]\]): Relation[\T\]
 relation[\T\](pairs: Generator[\(T,T)\]): Relation[\T\]
 
 opr BIG RELATION[\T\](): Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\], Map[\T,Set[\T\]\]\]
+opr BIG RELATION[\T\](g: Generator[\(T,T)\]): Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\], Map[\T,Set[\T\]\]\]
 
 end

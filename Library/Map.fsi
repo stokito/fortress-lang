@@ -108,8 +108,14 @@ opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
 
 opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\]
 
+opr BIG {|->[\Key,Val\] g:Generator[\(Key,Val)\]}: Map[\Key,Val\]
+
 opr BIG UNION[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\]
 
+opr BIG UNION[\Key,Val\](g: Generator[\Map[\Key,Val\]\]) : Map[\Key,Val\]
+
 opr BIG UPLUS[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\]
+
+opr BIG UPLUS[\Key,Val\](g: Generator[\Map[\Key,Val\]\]) : Map[\Key,Val\]
 
 end

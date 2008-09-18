@@ -60,12 +60,15 @@ set[\E\](): Set[\E\]
 set[\E\](g: Generator[\E\]): Set[\E\]
 opr {[\E\] es: E... }: Set[\E\]
 opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyList,AnyList\]
+opr BIG {[\T extends StandardTotalOrder[\T\]\] g: Generator[\T\]} : Set[\T\]
 
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\]
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]): Set[\R\]
 
 object Union[\E\] extends CommutativeMonoidReduction[\Set[\E\]\] end
 
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
         BigReduction[\Set[\R\],AnyMaybe\]
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]): Set[\R\]
 
 end
