@@ -1511,9 +1511,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 UnionType();
             /**
              * Fixed point (a.k.a. "mu") type.  Used internally for type analysis.
-             * Names must be unqualified.
              */
-            FixedPointType(Id name, Type body);
+            FixedPointType(_InferenceVarType name, Type body);
             /**
              * The type of the name given to a label expression.  Used internally.
              */

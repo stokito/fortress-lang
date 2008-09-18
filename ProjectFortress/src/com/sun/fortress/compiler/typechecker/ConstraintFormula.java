@@ -47,6 +47,7 @@ import com.sun.fortress.useful.IMultiMap;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+import com.sun.tools.apt.mirror.type.TypeMaker;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
@@ -513,6 +514,7 @@ public abstract class ConstraintFormula {
 			
 			//Preprocess: make sure every inference variable is bounded
 			
+			// temp will initially store all inference variables that have bounds.
 			final Set<_InferenceVarType> temp = new HashSet<_InferenceVarType>();
 			temp.addAll(ivars);
 			final NodeDepthFirstVisitor_void v=new NodeDepthFirstVisitor_void(){
@@ -527,6 +529,7 @@ public abstract class ConstraintFormula {
 				}
 			};
 			
+			// Add all additional inference variables found within the types' bounds. 
 			for(_InferenceVarType ivar: ivars){
 				if(ivarUpperBounds.containsKey(ivar)){
 					Set<Type> potentials = ivarUpperBounds.get(ivar);
@@ -537,54 +540,57 @@ public abstract class ConstraintFormula {
 					IterUtil.run(potentials, accepter);
 				}
 			}
-			IMultiMap<_InferenceVarType,Type> newuppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
-			IMultiMap<_InferenceVarType,Type> newlowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
+			IMultiMap<_InferenceVarType,Type> bounded_uppers = new MultiMap<_InferenceVarType,Type>(ivarUpperBounds);
+			IMultiMap<_InferenceVarType,Type> bounded_lowers = new MultiMap<_InferenceVarType,Type>(ivarLowerBounds);
 			for(_InferenceVarType ivar: CollectUtil.complement(temp,ivarUpperBounds.keySet())){
-				newuppers.putItem(ivar,Types.ANY);
+				bounded_uppers.putItem(ivar,Types.ANY);
 			}
 			for(_InferenceVarType ivar: CollectUtil.complement(temp,ivarLowerBounds.keySet())){
-				newlowers.putItem(ivar,Types.BOTTOM);
+				bounded_lowers.putItem(ivar,Types.BOTTOM);
 			}
 			
 			ivars=temp;
 			
-			// 2-3
-			Map<_InferenceVarType,Type> lubs = solveHelper(ivars, newuppers, 
-					new Lambda<Set<Type>,Type>(){
-						public Type value(Set<Type> arg0) {
-							return arg0.size() == 1 ? IterUtil.first(arg0) : NodeFactory.makeIntersectionType(arg0);
-						}});
+			// 2
+			Map<_InferenceVarType, Type> new_uppers = new HashMap<_InferenceVarType, Type>();
+			for(_InferenceVarType ivar: ivars){
+				new_uppers.put(ivar,Types.makeIntersection(bounded_uppers .get(ivar)));
+			}
+			//3
+			TypeExpander expander = new TypeExpander(new_uppers);
+			Map<_InferenceVarType,Type> lubs = new HashMap<_InferenceVarType,Type>();
+			for(_InferenceVarType ivar: ivars){
+				lubs.put(ivar,(Type) ivar.accept(expander));
+			}
 			
-			// 4-3'
-			Map<_InferenceVarType,Type> glbs = solveHelper(ivars, newlowers,
-					new Lambda<Set<Type>,Type>(){
-						public Type value(Set<Type> arg0) {
-							return arg0.size() == 1 ? IterUtil.first(arg0) : NodeFactory.makeUnionType(arg0);
-						}});
+			
+			// 4
+			Map<_InferenceVarType, Type> new_lowers = new HashMap<_InferenceVarType, Type>();
+			for(_InferenceVarType ivar: ivars){
+				new_lowers.put(ivar,Types.makeUnion(bounded_lowers .get(ivar)));
+			}
+			//3'
+			expander = new TypeExpander(new_lowers);
+			Map<_InferenceVarType,Type> glbs = new HashMap<_InferenceVarType,Type>();
+			for(_InferenceVarType ivar: ivars){
+				glbs.put(ivar, (Type)ivar.accept(expander));
+			}
 			
 			//5.) The inferred type is the intersection of its expanded lower and upper bounds
 			Map<_InferenceVarType,Type> inferred_types = new HashMap<_InferenceVarType,Type>();
 			boolean solvable = true;
 			for( _InferenceVarType ivar : ivars ) {
-				if( lubs.containsKey(ivar) && glbs.containsKey(ivar) ) {
-					Type lub = lubs.get(ivar);
-					Type glb = glbs.get(ivar);
-					if( this.history.subtypeNormal(glb, lub).isFalse() ){
-					    solvable = false;
-					    //return FALSE;
-					}
-					else{
-					    inferred_types.put(ivar, NodeFactory.makeIntersectionType(lubs.get(ivar), glbs.get(ivar)));
-					}
+				if( !lubs.containsKey(ivar) || !glbs.containsKey(ivar) ) {
+					InterpreterBug.bug("An inference variable is unbounded");
 				}
-				else if( lubs.containsKey(ivar) ) {
-					inferred_types.put(ivar, lubs.get(ivar));
+				Type lub = lubs.get(ivar);
+				Type glb = glbs.get(ivar);
+				if( this.history.subtypeNormal(glb, lub).isFalse() ){
+					solvable = false;
+					//return FALSE;
 				}
-				else if( glbs.containsKey(ivar) ) {
-					inferred_types.put(ivar, glbs.get(ivar));
-				}
-				else {
-					return bug("Is this a bug?");
+				else{
+					inferred_types.put(ivar, NodeFactory.makeIntersectionType(lub, glb));
 				}
 			}
 			if(solvable){
@@ -593,75 +599,6 @@ public abstract class ConstraintFormula {
 			else{
 			    return new FailedSolvedFormula(inferred_types, history);
 			}
-		}
-		
-		private Map<_InferenceVarType,Type> solveHelper(Set<_InferenceVarType> ivars, 
-				                                        IMultiMap<_InferenceVarType,Type> bounds,
-				                                        Lambda<Set<Type>,Type> type_maker) {
-			// 2.) for every naked static prime variable ...
-			final Map<_InferenceVarType,Type> lubs_or_glbs = new HashMap<_InferenceVarType,Type>();
-			for(_InferenceVarType ivar: ivars){
-				if( bounds.containsKey(ivar) ) {
-					Type lub_or_glb = type_maker.value(bounds.get(ivar)); 
-					lubs_or_glbs.put(ivar, lub_or_glb);
-				}
-			}
-			
-			IMultiMap<_InferenceVarType,Type> new_bounds = new MultiMap<_InferenceVarType,Type>();
-			
-			for(final _InferenceVarType t: ivars){
-				Set<Type> uis = bounds.get(t);
-				if( uis != null ) {
-					for(Type  ui : uis) {
-						NodeUpdateVisitor v=new NodeUpdateVisitor(){
-
-							@Override
-							public Node for_InferenceVarType(_InferenceVarType that) {
-								if(that.equals(t) || !lubs_or_glbs.containsKey(that)){
-									return that;
-								}
-								else {
-									return lubs_or_glbs.get(that);
-								}
-							}	
-						};
-						Type lub_or_glb=(Type)ui.accept(v);
-						new_bounds.putItem(t, lub_or_glb);
-					}
-				}
-			}
-			
-			if(!new_bounds.equals(bounds)) {
-				bounds.clear(); // This just gets us a little love from the garbage collector.
-				return solveHelper(ivars, new_bounds, type_maker);
-			}
-			
-			for(final _InferenceVarType t: ivars){
-				Type lub = lubs_or_glbs.get(t);
-				if( lub != null ) {
-					final boolean[] flags = {false,false};
-					NodeDepthFirstVisitor_void v= new NodeDepthFirstVisitor_void(){
-						@Override
-						public void for_InferenceVarType(
-								_InferenceVarType that) {
-							if(that.equals(t))
-								flags[1]=true;
-							else
-								flags[0]=true;
-						}	
-					};
-					lub.accept(v);
-					if(flags[0])
-						lubs_or_glbs.put(t, Types.OBJECT);
-					else if(flags[1]){
-						Id x = new Id("x");
-						Type new_lub = (Type)lubs_or_glbs.get(t).accept(new InferenceVarReplacer(Collections.<_InferenceVarType,Type>singletonMap(t, new VarType(x))));
-						lubs_or_glbs.put(t, NodeFactory.makeFixedPointType(x, new_lub));
-					}
-				}
-			}
-			
-			return lubs_or_glbs;
 		}
 
 		@Override
@@ -1077,6 +1014,33 @@ public abstract class ConstraintFormula {
 		return this;
 	}
     
-
+    static protected class TypeExpander extends NodeUpdateVisitor{
+    	Map<_InferenceVarType,Type> bounds;
+    	Set<_InferenceVarType> context;
+    	TypeExpander(Map<_InferenceVarType,Type> _bounds){
+    		bounds=_bounds;
+    		context= new HashSet<_InferenceVarType>();
+    	}
+    	TypeExpander extend(_InferenceVarType t){
+    		TypeExpander temp = new TypeExpander(bounds);
+    		temp.context.addAll(context);
+    		temp.context.add(t);
+    		return temp;
+    	}
+    	
+    	@Override
+    	public Type for_InferenceVarType(_InferenceVarType that) {
+    		if(context.contains(that)){
+    			return that;
+    		}
+    		else{
+    			Type bound=bounds.get(that);
+    			TypeExpander v = this.extend(that);
+    			//return NodeFactory.makeFixedPointType(that,(Type)bound.accept(v));
+    			return (Type)bound.accept(v);
+    		}
+    	}
+    	
+    }
 
 }

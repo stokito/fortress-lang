@@ -254,7 +254,7 @@ public class NodeFactory {
                 s);
     }
 
-    public static FixedPointType makeFixedPointType(Id name, Type s) {
+    public static FixedPointType makeFixedPointType(_InferenceVarType name, Type s) {
         return new FixedPointType(s.getSpan(), s.isParenthesized(), name, s);
     }
 
