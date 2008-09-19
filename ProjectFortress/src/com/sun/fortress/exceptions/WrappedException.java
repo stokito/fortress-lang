@@ -20,6 +20,8 @@ package com.sun.fortress.exceptions;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
+
 public class WrappedException extends StaticError {
 
     /**
@@ -68,13 +70,22 @@ public class WrappedException extends StaticError {
 		return throwable;
 	}
 
+    private void temp(Throwable th) {
+        if (th instanceof AbortedException) {
+            System.out.println("Creating a Wrapped Exception");
+            Thread.dumpStack();
+        }
+    }        
+
 	public WrappedException(Throwable th) {
 		this(th, false);
+        temp(th);
 	}
 
 	public WrappedException(Throwable th, boolean db) {
 		throwable = th;
 		debug = db;
+        temp(th);
 	}
 
 }

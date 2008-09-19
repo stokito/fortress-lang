@@ -724,14 +724,12 @@ public final class Shell {
         throws UserError, Throwable {
         setPhase( PhaseOrder.CODEGEN );
         for (String file : files) {
-            System.out.println("runTests file = " + file);
             if ( ! isComponent(file) )
                 throw new UserError("A component file is expected to evaluate.");
             APIName name = trueApiName( file );
             Path path = sourcePath( file, name );
             GraphRepository bcr = specificRepository( path, defaultRepository );
             CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-            System.out.println("Calling Driver.runTests");
             Driver.runTests(bcr, cu);
         }
     }
