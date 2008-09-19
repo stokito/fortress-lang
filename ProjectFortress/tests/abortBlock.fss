@@ -25,7 +25,7 @@ run(args:String...):()=do
           label foo
             atomic do
                 if flag then
-                    println("Aborting")
+                    printThreadInfo("Aborting")
                     abort()
                     (* Uncommenting this line causes things to work. *)
                     fail("Control should never get past abort!")
@@ -34,8 +34,11 @@ run(args:String...):()=do
             end
           end foo
         end
+   var count:ZZ32 := 0
     for i <- seq(0#iters) do
-        println("Waiting " i)
+        count += 1
+        if count = 100
+            then print("."); count := 0; end
     end
     assert(t.ready(),false,"Thread appears to have terminated before condition")
     flag := false

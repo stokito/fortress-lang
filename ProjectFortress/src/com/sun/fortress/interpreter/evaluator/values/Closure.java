@@ -43,6 +43,10 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
 
+import com.sun.fortress.exceptions.transactions.AbortedException;
+import com.sun.fortress.exceptions.transactions.OrphanedException;
+import com.sun.fortress.exceptions.FortressException;
+
 import edu.rice.cs.plt.tuple.Option;
 
 /**
@@ -196,6 +200,12 @@ public class Closure extends NonPrimitive implements Scope {
             args = typecheckParams(args,loc);
             try {
                 return ((NativeApp)def).applyToArgs(args);
+            } catch (AbortedException ae) {
+                throw ae;
+            } catch (OrphanedException oe) {
+                throw oe;
+            } catch (FortressException fe) {
+                throw fe;
             } catch (RuntimeException ex) {
                 return error(loc, errorMsg("Wrapped exception ", ex.toString()), ex);
             } catch (Error ex) {
