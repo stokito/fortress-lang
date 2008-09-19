@@ -802,7 +802,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         if( pruned_fns.isEmpty() ){
             //No statically most applicable Fn
-            String err = "No applicable overloading of " + name + " exists for argument of type " + arg_type;
+            String err = "No applicable overloading of " + name + " exists for argument of type " + arg_type.toString();
             TypeCheckerResult err_result = new TypeCheckerResult(ref, TypeError.make(err, ref));
             return TypeCheckerResult.compose(ref, subtypeChecker, err_result);
         }
@@ -2520,6 +2520,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     arrow_types.add(instantiated_type.unwrap());
             }
 
+            if (arrow_types.isEmpty()) {
+                type = Option.<Type>none();
+            } else if (arrow_types.size() == 1) { // special case to allow for simpler types
+                type = Option.<Type>some(arrow_types.get(0));
+            } else {
+                type = Option.<Type>some(new IntersectionType(arrow_types));
+            }
+            
             type = (arrow_types.isEmpty()) ?
                     Option.<Type>none() :
                         Option.<Type>some(new IntersectionType(arrow_types));
