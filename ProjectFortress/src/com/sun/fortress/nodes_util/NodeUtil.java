@@ -178,6 +178,22 @@ public class NodeUtil {
         return IterUtil.toString(ns, "", "/", "");
     }
 
+    public static String shortNameString(Id n) {
+        final String last = n.getText();
+        Option<APIName> odn = n.getApi();
+        if (odn.isSome()) {
+            APIName _odn = odn.unwrap();
+            if (_odn.getText().equals("FortressBuiltin")
+                || _odn.getText().equals("FortressLibrary")) {
+                return last;
+            } else {  
+                return nameString(odn.unwrap()) + "." + last;
+            }
+        } else {
+            return last;
+        }
+    }
+    
     public static String nameString(Id n) {
         final String last = n.getText();
         Option<APIName> odn = n.getApi();
