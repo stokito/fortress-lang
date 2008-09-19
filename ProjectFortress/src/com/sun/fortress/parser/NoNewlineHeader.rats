@@ -96,7 +96,7 @@ private List<BaseType> ComprisingTypeList =
      where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
    | where w { w WhereConstraintList w }
  */
-WhereClause Where =
+transient WhereClause Where =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
      a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
      { if (a2 == null)
@@ -112,7 +112,7 @@ WhereClause Where =
      };
 
 /* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
-List<WhereBinding> WhereBindingList =
+transient List<WhereBinding> WhereBindingList =
      a1:WhereBinding a2s:(w comma w WhereBinding)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
@@ -123,7 +123,7 @@ List<WhereBinding> WhereBindingList =
    | unit w Id
    | Id (w Extends)?
  */
-WhereBinding WhereBinding =
+transient WhereBinding WhereBinding =
      nat w a1:Id
      { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
    / <ErrorProduction1> nat w a1:OpName
