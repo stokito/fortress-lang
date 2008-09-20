@@ -76,14 +76,49 @@ public class Transform extends TemplateUpdateVisitor {
     }
     */
 
+    private SyntaxEnvironment getSyntaxEnvironment(){
+        return this.syntaxEnvironment;
+    }
+
+    private void setSyntaxEnvironment( SyntaxEnvironment e ){
+        this.syntaxEnvironment = e;
+    }
+
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Id var_result = syntaxEnvironment.lookup(that.getVar());
         return forVarRefOnly(that, exprType_result, var_result);
     }
 
+    public Node forFnExpr(FnExpr that) {
+        SyntaxEnvironment save = getSyntaxEnvironment();
+        Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(that.getName());
+        List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        List<Param> params_result = Useful.applyToAll(that.getParams(), new Fn<Param,Param>(){
+            public Param apply(Param value){
+                return (Param) value.accept( new NodeUpdateVisitor(){
+                    public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
+                        Id generatedId = NodeFactory.makeId(name_result, FreshName.getFreshName(name_result.getText() + "-g"));
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + name_result + " = " + generatedId );
+                        extendSyntaxEnvironment(name_result, generatedId);
+                        return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
+                    }
+                });
+            }
+        });
+
+        Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
+        Option<WhereClause> where_result = recurOnOptionOfWhereClause(that.getWhere());
+        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+        Expr body_result = (Expr) recur(that.getBody());
+        Node ret = forFnExprOnly(that, exprType_result, name_result, staticParams_result, params_result, returnType_result, where_result, throwsClause_result, body_result);
+        setSyntaxEnvironment(save);
+        return ret;
+    }
+
     public Node forLocalVarDecl(LocalVarDecl that) {
-        SyntaxEnvironment save = this.syntaxEnvironment;
+        SyntaxEnvironment save = getSyntaxEnvironment();
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
         List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
@@ -93,7 +128,7 @@ public class Transform extends TemplateUpdateVisitor {
                         Id generatedId = NodeFactory.makeId(name_result, FreshName.getFreshName(name_result.getText() + "-g"));
                         Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + name_result + " = " + generatedId );
                         extendSyntaxEnvironment(name_result, generatedId);
-                        return new LValueBind(generatedId, type_result, mods_result);
+                        return new LValueBind(that.getSpan(), generatedId, type_result, mods_result);
                     }
                 });
             }
@@ -113,7 +148,7 @@ public class Transform extends TemplateUpdateVisitor {
         });
         */
         Node ret = forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
-        this.syntaxEnvironment = save;
+        setSyntaxEnvironment(save);
         return ret;
     }
 
