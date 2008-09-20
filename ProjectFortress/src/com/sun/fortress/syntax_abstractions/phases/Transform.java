@@ -90,18 +90,28 @@ public class Transform extends TemplateUpdateVisitor {
         return forVarRefOnly(that, exprType_result, var_result);
     }
 
+    public Node forTemplateGapVarRef(TemplateGapVarRef that) {
+        Id gapId_result = (Id) recur(that.getGapId());
+        List<Id> templateParams_result = recurOnListOfId(that.getTemplateParams());
+        return forTemplateGapOnly((TemplateGap) that, gapId_result, templateParams_result);
+    }
+
+
     public Node forFnExpr(FnExpr that) {
+        final Transform transformer = this;
         SyntaxEnvironment save = getSyntaxEnvironment();
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(that.getName());
         List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
         List<Param> params_result = Useful.applyToAll(that.getParams(), new Fn<Param,Param>(){
             public Param apply(Param value){
-                return (Param) value.accept( new NodeUpdateVisitor(){
+                return (Param) value.accept( new TemplateUpdateVisitor(){
                     public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
-                        Id generatedId = NodeFactory.makeId(name_result, FreshName.getFreshName(name_result.getText() + "-g"));
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + name_result + " = " + generatedId );
-                        extendSyntaxEnvironment(name_result, generatedId);
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
+                        Id old = (Id) name_result.accept(transformer);
+                        Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                        extendSyntaxEnvironment(old, generatedId);
                         return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
                     }
                 });
@@ -118,16 +128,18 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     public Node forLocalVarDecl(LocalVarDecl that) {
+        final Transform transformer = this;
         SyntaxEnvironment save = getSyntaxEnvironment();
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
         List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
             public LValue apply(LValue value){
-                return (LValue) value.accept( new NodeUpdateVisitor(){
+                return (LValue) value.accept( new TemplateUpdateVisitor(){
                     public Node forLValueBindOnly(LValueBind that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
-                        Id generatedId = NodeFactory.makeId(name_result, FreshName.getFreshName(name_result.getText() + "-g"));
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + name_result + " = " + generatedId );
-                        extendSyntaxEnvironment(name_result, generatedId);
+                        Id old = (Id) name_result.accept(transformer);
+                        Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                        extendSyntaxEnvironment(old, generatedId);
                         return new LValueBind(that.getSpan(), generatedId, type_result, mods_result);
                     }
                 });
@@ -201,6 +213,7 @@ public class Transform extends TemplateUpdateVisitor {
                     return new _RepeatedExpr((List) binding);
                 }
                 */
+                Debug.debug( Debug.Type.SYNTAX, 2, "Found template gap " + binding.getObject() );
                 return binding;
             } else {
 
@@ -240,7 +253,10 @@ public class Transform extends TemplateUpdateVisitor {
     @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result, 
 					     List<Id> templateParams_result) {
         /* another annoying cast */
-        return (Node) lookupVariable(gapId_result, templateParams_result).getObject();
+        Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
+        Node n = ((Node) lookupVariable(gapId_result, templateParams_result).getObject()).accept(this);
+        Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
+        return n;
     }
 
     /*
@@ -280,11 +296,13 @@ public class Transform extends TemplateUpdateVisitor {
             } else if ( obj.getObject() instanceof CurriedTransformer ){
                 throw new MacroError( name + " cannot accept parameters in a case expression" );
             }
+            Debug.debug( Debug.Type.SYNTAX, 3, "Looking up variable in transformer evaluator: " + name + " and found " + obj );
             return obj;
         }
 
 	@Override public Node forNodeTransformer(NodeTransformer that) {
-	    return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment));
+	    // return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment));
+	    return that.getNode().accept(new Transform(transformers, variables, SyntaxEnvironment.identityEnvironment()));
 	}
 
 	@Override public Node forCaseTransformer(CaseTransformer that) {
