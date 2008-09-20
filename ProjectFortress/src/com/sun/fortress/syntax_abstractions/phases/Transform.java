@@ -17,6 +17,8 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
+import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -27,28 +29,14 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 
 import com.sun.fortress.exceptions.MacroError;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Useful;
 
-import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.Level;
-import com.sun.fortress.nodes.NamedTransformerDef;
-import com.sun.fortress.nodes.Transformer;
-import com.sun.fortress.nodes.NodeTransformer;
-import com.sun.fortress.nodes.CaseTransformer;
-import com.sun.fortress.nodes.CaseTransformerClause;
-import com.sun.fortress.nodes.TemplateGap;
-import com.sun.fortress.nodes._Ellipses;
-import com.sun.fortress.nodes._SyntaxTransformation;
-import com.sun.fortress.nodes._SyntaxTransformationExpr;
+import com.sun.fortress.nodes_util.NodeFactory;
+
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes.TemplateUpdateVisitor;
-import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NodeVisitor;
-import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.TabPrintWriter;
+
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -60,19 +48,50 @@ import edu.rice.cs.plt.tuple.Option;
 public class Transform extends TemplateUpdateVisitor {
     private Map<String,Transformer> transformers;
     private Map<String,Level> variables;
+    private SyntaxEnvironment syntaxEnvironment;
     // private EllipsesEnvironment env;
 
-    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables ){
+    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables, SyntaxEnvironment syntaxEnvironment ){
         // this( transformers, variables, new EllipsesEnvironment() );
         this.transformers = transformers;
         this.variables = variables;
+        this.syntaxEnvironment = syntaxEnvironment;
     }
 
     /* entry point to this class */
     public static Node transform(GlobalEnvironment env, Node node){
         Transform transform = 
-            new Transform(populateTransformers(env), new HashMap<String,Level>());
+            new Transform(populateTransformers(env), new HashMap<String,Level>(), SyntaxEnvironment.identityEnvironment() );
         return node.accept(transform);
+    }
+
+    private void extendSyntaxEnvironment(Id from, Id to){
+        syntaxEnvironment = syntaxEnvironment.extend(from, to);
+    }
+
+    public Node forIdOnly(Id that, Option<APIName> api_result) {
+        Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
+        return syntaxEnvironment.lookup(that);
+    }
+
+    public Node forLocalVarDecl(LocalVarDecl that) {
+        Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+        Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
+        List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
+            public LValue apply(LValue value){
+                return (LValue) value.accept( new NodeUpdateVisitor(){
+                    public Node forLValueBindOnly(LValueBind that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
+                        Id generatedId = NodeFactory.makeId(name_result, FreshName.getFreshName(name_result.getText() + "-g"));
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + name_result + " = " + generatedId );
+                        extendSyntaxEnvironment(name_result, generatedId);
+                        return new LValueBind(generatedId, type_result, mods_result);
+                    }
+                });
+            }
+        });
+        Option<Expr> rhs_result = recurOnOptionOfExpr(that.getRhs());
+        List<Expr> body_result = recurOnListOfExpr(that.getBody());
+        return forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
     }
 
     private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
@@ -207,7 +226,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
 
 	@Override public Node forNodeTransformer(NodeTransformer that) {
-	    return that.getNode().accept(new Transform(transformers, variables));
+	    return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment));
 	}
 
 	@Override public Node forCaseTransformer(CaseTransformer that) {
@@ -409,7 +428,7 @@ public class Transform extends TemplateUpdateVisitor {
                 }
             }
 
-            all.add( new Transform( transformers, newVars ) );
+            all.add( new Transform( transformers, newVars, this.syntaxEnvironment ) );
         }
 
         return all;
