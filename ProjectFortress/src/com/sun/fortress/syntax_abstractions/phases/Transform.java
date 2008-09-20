@@ -69,12 +69,21 @@ public class Transform extends TemplateUpdateVisitor {
         syntaxEnvironment = syntaxEnvironment.extend(from, to);
     }
 
+    /*
     public Node forIdOnly(Id that, Option<APIName> api_result) {
         Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
         return syntaxEnvironment.lookup(that);
     }
+    */
+
+    public Node forVarRef(VarRef that){
+        Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+        Id var_result = syntaxEnvironment.lookup(that.getVar());
+        return forVarRefOnly(that, exprType_result, var_result);
+    }
 
     public Node forLocalVarDecl(LocalVarDecl that) {
+        SyntaxEnvironment save = this.syntaxEnvironment;
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
         List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
@@ -91,7 +100,21 @@ public class Transform extends TemplateUpdateVisitor {
         });
         Option<Expr> rhs_result = recurOnOptionOfExpr(that.getRhs());
         List<Expr> body_result = recurOnListOfExpr(that.getBody());
-        return forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
+        /*
+        List<Expr> body_result = Useful.applyToAll(recurOnListOfExpr(that.getBody()), new Fn<Expr, Expr>(){
+            public Expr apply(Expr value){
+                return value.accept( new NodeUpdateVisitor(){
+                    public Node forIdOnly(Id that, Option<APIName> api_result) {
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
+                        return Transform.this.syntaxEnvironment.lookup(that);
+                    }
+                });
+            }
+        });
+        */
+        Node ret = forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
+        this.syntaxEnvironment = save;
+        return ret;
     }
 
     private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
