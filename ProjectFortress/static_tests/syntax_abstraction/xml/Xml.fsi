@@ -54,7 +54,7 @@ api Xml
   end
 
   grammar xml extends {Expression, Symbols}
-    Expr:Element |Expr:= (* type: Content *)
+    Expr |:= (* type: Content *)
       x:XExpr => <[ x ]>
 
     XExpr:Element :Expr:= (* type: Content *)
