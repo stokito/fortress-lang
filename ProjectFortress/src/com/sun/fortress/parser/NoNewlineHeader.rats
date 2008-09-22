@@ -334,9 +334,10 @@ transient List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* ParamFldMod ::= hidden | settable | wrapped */
+/* ParamFldMod ::= var | hidden | settable | wrapped */
 transient private Modifier ParamFldMod =
-     hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
+     var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
+   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
    / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
    / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
 
@@ -359,8 +360,12 @@ transient private Modifier FldMod =
      var { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
    / AbsFldMod ;
 
-/* FldImmutableMod ::= AbsFldMod */
-transient private Modifier FldImmutableMod = AbsFldMod ;
+/* FldImmutableMod ::= hidden / test / wrapped / private */
+transient private Modifier FldImmutableMod =
+     hidden  { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
+   / test    { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); }
+   / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
+   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= (AbsFldMod w)+ */

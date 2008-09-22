@@ -216,7 +216,6 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
    |  ObjectParam (w , w ObjectParam)*
    ObjectKeyword ::= ObjectParam w = w Expr
    ObjectParam   ::= ParamFldMods? Param
-                 |   var w ParamWType
  */
 VarargsParam Varargs :=
      <ErrorProduction>
@@ -227,14 +226,12 @@ VarargsParam Varargs :=
 
 NormalParam Param :=
      a1:ParamFldMods? a2:PlainParam
-     { if (a1 != null) yyValue = NodeFactory.makeParam(a2, a1);
-       else yyValue = a2;
-     }
-   / var w a1:PlainParamWType
-     { List<Modifier> mods;
-       mods = new ArrayList<Modifier>(1);
-       mods.add(new ModifierVar(createSpan(yyStart,3)));
-       yyValue = NodeFactory.makeParam(a1, mods);
+     { if (a1 != null) {
+           if (FortressUtil.getMutable(a1) && a2.getType().isNone())
+               syntaxError(a2.getSpan(),
+                           "Mutable fields should be declared with their types.");
+           yyValue = NodeFactory.makeParam(a2, a1);
+       } else yyValue = a2;
      }
    / <ErrorProduction2>
      var w PlainParam
