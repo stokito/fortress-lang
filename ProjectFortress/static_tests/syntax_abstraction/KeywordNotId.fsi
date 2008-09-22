@@ -21,8 +21,8 @@ api KeywordNotId
     import FortressSyntax.Expression
 
     grammar G extends Expression
-        Expr |Expr:=
-          one fish two fish => <[ "red fish blue fish" ]>
+        Expr |:=
+          a:one b:fish c:two d:fish => <[ "red fish blue fish" ]>
     end
 
 end
