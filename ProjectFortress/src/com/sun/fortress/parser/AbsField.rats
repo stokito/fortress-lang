@@ -18,19 +18,19 @@
 /*
  * Definition of Fortress abstract field declarations.
  */
-module com.sun.fortress.parser.AbsField(Variable, Header, Type, Identifier,
-                                        Spacing);
+module com.sun.fortress.parser.AbsField(Variable, Header, NoNewlineType,
+                                        Identifier, Spacing);
 
 modify Variable;
 import Header;
-import Type;
+import NoNewlineType;
 import Identifier;
 import Spacing;
 
 /* AbsFldDecl ::=
      AbsFldMods? NoNewlineFldWTypes
-   | AbsFldMods? BindIdOrBindIdTuple w : w Type w ...
-   | AbsFldMods? BindIdOrBindIdTuple w : w TupleType
+   | AbsFldMods? BindIdOrBindIdTuple w : w NoNewlineType w ...
+   | AbsFldMods? BindIdOrBindIdTuple w : w NoNewlineTupleType
  */
 AbsVarDecl AbsFldDecl = AbsVarDecl ;
 
@@ -38,8 +38,8 @@ List<Modifier> AbsVarMods := AbsFldMods ;
 
 /* ApiFldDecl ::=
      ApiFldMods? NoNewlineFldWTypes
-   | ApiFldMods? BindIdOrBindIdTuple w : w Type w ...
-   | ApiFldMods? BindIdOrBindIdTuple w : w TupleType
+   | ApiFldMods? BindIdOrBindIdTuple w : w NoNewlineType w ...
+   | ApiFldMods? BindIdOrBindIdTuple w : w NoNewlineTupleType
  */
 AbsVarDecl ApiFldDecl =
      a1:ApiFldMods? a2:NoNewlineVarWTypes
@@ -47,14 +47,14 @@ AbsVarDecl ApiFldDecl =
        FortressUtil.validId(a2);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
-   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:Type w ellipses
+   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValueBind> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        FortressUtil.validId(lvs);
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
      }
-   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:TupleType
+   / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
