@@ -30,8 +30,8 @@ import Spacing;
 /* FldDecl ::=
      FldMods? FldMayTypes w InitVal
    | FldImmutableMods? BindIdOrBindIdTuple w = w NoNewlineExpr
-   | FldMods? BindIdOrBindIdTuple w : w Type w ... w InitVal
-   | FldMods? BindIdOrBindIdTuple w : w TupleType w InitVal
+   | FldMods? BindIdOrBindIdTuple w : w NoNewlineType w ... w InitVal
+   | FldMods? BindIdOrBindIdTuple w : w NoNewlineTupleType w InitVal
    FldMayTypes ::=
      FldMayType
    | ( w FldMayType (w , w FldMayType)+ w )

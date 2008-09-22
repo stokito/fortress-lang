@@ -48,7 +48,7 @@ instantiate com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader,
                                              NoNewlineType, NoNewlineExpr,
                                              Identifier, Keyword, Symbol, Spacing)
             as Variable;
-instantiate com.sun.fortress.parser.Field(Variable, NoNewlineHeader, Type,
+instantiate com.sun.fortress.parser.Field(Variable, NoNewlineHeader, NoNewlineType,
                                           Identifier, Spacing)
             as Field;
 instantiate com.sun.fortress.parser.AbsField(Variable, NoNewlineHeader,
