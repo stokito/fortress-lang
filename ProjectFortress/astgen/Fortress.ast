@@ -1690,7 +1690,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                         /**
                          * boolean equality constraint
                          * BoolConstraint ::= BoolExpr = BoolExpr
-                         * e.g.) ninf AND pinf = true
+                         * e.g.) ninf = pinf
                          */
                         BEConstraint();
             /**
