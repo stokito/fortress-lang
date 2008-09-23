@@ -16,4 +16,4 @@ r=$1
 e=$2
 e=$(( e+1 ))
 
-while [ $r -lt $e ] ; do echo $r; svn diff -c $r | awk -f bin/svnlinecount.awk > Stats/${r}.lines; r=$(( r+1 )); done
+while [ $r -lt $e ] ; do echo $r; svn diff -c $r | awk -f bin/svnlinecount.awk > SvnStats/${r}.lines; r=$(( r+1 )); done

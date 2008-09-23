@@ -20,6 +20,7 @@ ProjectFortress/TEST-RESULTS/*
 *~
 *.jst
 *.out
+SvnStats/
 ProjectFortress/*.tfs
 ProjectFortress/*.tfi
 fortress_*.zip
