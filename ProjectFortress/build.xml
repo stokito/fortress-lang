@@ -229,7 +229,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
         <delete dir="${junit.dir}"/>
 
         <!-- No longer needed, but eases the upgrade-->
-        <delete file="${nodesUtil}/BaseNodeMaker.java"/> 
+        <delete file="${nodesUtil}/BaseNodeMaker.java"/>
         <!-- No longer needed, but eases the upgrade-->
         <delete file="${nodesUtil}/InterfaceMaker.java"/>
         <delete file="${parser}/Fortress.java"/>
@@ -650,6 +650,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     <target name="testCruiseControl" depends="compile"
             description="Run all unit and system tests expected to pass.">
         <mkdir dir="${test.results}"/>
+	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -659,6 +660,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${junit.dir}">
                 <formatter type="brief" usefile="false" />
@@ -672,6 +674,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
         </junit>
+	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
@@ -764,6 +767,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     <target name="testsyntax" depends="compile"
             description="Run SyntaxAbstractionJUTests.">
         <mkdir dir="${test.results}"/>
+	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -773,6 +777,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -783,6 +788,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
       </junit>
+	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
