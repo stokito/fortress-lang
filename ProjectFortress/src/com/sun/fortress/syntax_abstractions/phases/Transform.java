@@ -100,6 +100,19 @@ public class Transform extends TemplateUpdateVisitor {
     }
     */
 
+    /* Support renaming for these nodes
+     * LValueBind - done
+     * UnpastingBind
+     * FnDef
+     * NormalParam
+     * VarargsParam
+     * Label
+     * Typecase
+     * FnExpr - done
+     * Catch
+     * GeneratorClause
+     */
+
     public Node forFnExpr(FnExpr that) {
         if ( rename ){
             final Transform transformer = this;
