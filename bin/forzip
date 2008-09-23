@@ -35,6 +35,7 @@ ln -s `pwd` ../${ourname}
            -name "fortress_*.zip" -o \
            -name .hg -o \
            -name test-tmp -o \
+           -name SvnStats -o \
            -name "*.log" -o \
            -name "*~" -o \
            -name .dependencies -o \

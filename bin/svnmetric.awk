@@ -1,5 +1,5 @@
 donext == 1 {donext = 0; r=substr($1,2); u = $3; ymd = $5; hms = $6; 
-file="Stats/" r ".lines";
+file="SvnStats/" r ".lines";
 lines="";
 getline lines < file;
 close(file);
