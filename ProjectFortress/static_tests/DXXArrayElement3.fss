@@ -19,9 +19,9 @@ component DXXArrayElement3
   export Executable
 
   foo() : () = do
-    var a_1 : Array1[\String,0,1\] 
-    
-    a_1 := [[\String,String,String\]"Here is a simple string"] 
+    var a1 : Array1[\String,0,1\]
+
+    a1 := [[\String,String,String\]"Here is a simple string"]
 
 end
 

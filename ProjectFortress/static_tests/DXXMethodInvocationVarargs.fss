@@ -23,7 +23,7 @@ component DXXMethodInvocationVarargs
      different tuple types are possible. *)
 
   trait VarArgT
-    takeVararg(i_1:ZZ32, s_2:String, s_s:String...):ZZ32
+    takeVararg(i1:ZZ32, s2:String, s_s:String...):ZZ32
 
     takeMoreVararg(s_s:String...):ZZ32
   end

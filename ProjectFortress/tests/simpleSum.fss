@@ -52,15 +52,15 @@ run(args:String...):() = do
     p1 = PROD[x<-0#10, x<0] x
     assert(p1,1,"p1 = PROD[x<-0#10, x<0] x")
 
-    p2 = PROD[x<-1#5] 2x
-    assert(p2,32 120,"p2 = PROD[x<-1#5] 2x")
+    p2 = PROD[x<-1#5] 2 x
+    assert(p2,32 120,"p2 = PROD[x<-1#5] 2 x")
 
     (* Test MIN and MAX *)
-    p3 = BIG MIN[x<-(-2)#10] x^2+2x+3
-    assert(p3,2,"p3 = MIN[x<-(-2)#10] x^2+2x-3")
+    p3 = BIG MIN[x<-(-2)#10] x^2 + 2 x + 3
+    assert(p3,2,"p3 = MIN[x<-(-2)#10] x^2 + 2 x + 3")
 
     try
-      r = BIG MIN[x<-(0#10),x<0] x^2+2x+3
+      r = BIG MIN[x<-(0#10),x<0] x^2 + 2 x + 3
       fail("Empty BIG MIN returned " r)
     catch x EmptyReduction => ()
     end

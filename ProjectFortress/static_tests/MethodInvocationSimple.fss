@@ -29,27 +29,27 @@ component MethodInvocationSimple
 
     doFoo[\A\](g:Generator[\A\],b:String) : ZZ32
 
-    (* This is just TightJuxt actually. *) 
+    (* This is just TightJuxt actually. *)
     callLocalMethod(s:String):String = singleArg(s)
   end
-  
+
   object Bar
     doIt():() = ()
   end
-   
-  methodCaller(a_1:ZZ32, b_1:String,f_1:Foo, g:Generator[\ZZ32\]) : () = do
+
+  methodCaller(a1:ZZ32, b1:String,f1:Foo, g:Generator[\ZZ32\]) : () = do
     var s:String
-    s := f_1.doFoo[\ZZ32\](a_1,b_1)
+    s := f1.doFoo[\ZZ32\](a1,b1)
 
     (* Ensure that when we call a different one it does return
        a different static type. *)
     var i:ZZ32
-    i := f_1.doFoo[\ZZ32\](g,b_1)
-   
+    i := f1.doFoo[\ZZ32\](g,b1)
+
     (* I hope single args work, because we create a tuple type. *)
-    s := f_1.singleArg(b_1)
+    s := f1.singleArg(b1)
   end
-  
+
   run(args:String...):() = Bar.doIt()
 
 end

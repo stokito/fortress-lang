@@ -22,7 +22,7 @@ component InOp
     getT():T = t
   end
 
-  opr +[\T\](b_1:Blank[\T\], b_2:Blank[\T\]):T = b_1.getT()
+  opr +[\T\](b1:Blank[\T\], b2:Blank[\T\]):T = b1.getT()
 
   callSiteFn():String = do
     a:Blank[\String\] = Blank[\String\]("Some string")

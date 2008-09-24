@@ -19,13 +19,13 @@ component MethodInvocationStaticInfer1
   export Executable
 
   trait Foo
-    doIt[\T\](t_1:T, t_2:T):T
+    doIt[\T\](t1:T, t2:T):T
   end
 
   foo(a:ZZ32, f:Foo) : () = do
-    var a_2 : ZZ32    
+    var a2 : ZZ32
 
-    a_2 := f.doIt(a,a)
+    a2 := f.doIt(a,a)
   end
 
   run(args:String...):() = ()

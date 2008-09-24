@@ -42,7 +42,7 @@ run(args:String...):()= do
   println(u(v)^2)
   println((u)(v))
   println(3(v)^2)
-  println(3v^2)
+  println(3 v^2)
   println((u)v^2)
 end
 

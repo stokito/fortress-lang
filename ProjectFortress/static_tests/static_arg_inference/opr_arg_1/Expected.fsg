@@ -5,8 +5,8 @@ object Blank [\ T \] (t : T) extends { FortressBuiltin.Object }
     t
 end
 
-opr +[\ T \](b_1 : Blank[\ T \], b_2 : Blank[\ T \]) : T  =
-b_1.getT()
+opr +[\ T \](b1 : Blank[\ T \], b2 : Blank[\ T \]) : T  =
+b1.getT()
 callSiteFn() : FortressLibrary.String  =
 do
     a : Blank[\ FortressLibrary.String \] = Blank[\ FortressLibrary.String \]("Some string")

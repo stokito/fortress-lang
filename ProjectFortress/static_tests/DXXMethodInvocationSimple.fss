@@ -25,11 +25,11 @@ component DXXMethodInvocationSimple
     doFoo[\A\](a:ZZ32,b:String):String
   end
 
-  methodCaller(a_1:ZZ32, b_1:String,f_1:Foo) : () = do
+  methodCaller(a1:ZZ32, b1:String,f1:Foo) : () = do
     var s:String
-    s := f_1.doFoo[\ZZ32\](a_1)
+    s := f1.doFoo[\ZZ32\](a1)
   end
-  
+
   run(args:String...):() = ()
 
 end

@@ -19,20 +19,20 @@ component DXXArrayElement
   export Executable
 
   foo() : () = do
-    var a_1 : Array1[\String,0,1\] (*
-    var a_2 : Array[\String,ZZ32\]
-    var a_3 : Array1[\Any,0,1\] *)
-    
+    var a1 : Array1[\String,0,1\] (*
+    var a2 : Array[\String,ZZ32\]
+    var a3 : Array1[\Any,0,1\] *)
+
     (* not a subtype of explicit type *)
-    a_1 := [[\ZZ32,0,1\]"NelsRulesSuckers"] 
+    a1 := [[\ZZ32,0,1\]"NelsRulesSuckers"]
 
     (*
-    a_1 := ["NelsRulesSuckers"]
+    a1 := ["NelsRulesSuckers"]
 
-    a_2 := [[\String,0,1\]"NelsRulesSuckers"]
-    a_2 := ["NelsRulesSuckers"]
+    a2 := [[\String,0,1\]"NelsRulesSuckers"]
+    a2 := ["NelsRulesSuckers"]
 
-    a_3 := [[\Any,0,1\]"NelsRulesSuckers"] *)
+    a3 := [[\Any,0,1\]"NelsRulesSuckers"] *)
 end
 
   run(args:String...):()= ()

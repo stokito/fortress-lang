@@ -60,7 +60,7 @@ run() = do
  *)
   n : ZZ32 (Length/Time)Mass
   n' : ZZ32 (Length / Time Mass)
-  o: ZZ32(Length)^3Meter
+  o: ZZ32(Length)^3(Meter)
   o': ZZ32(Length)^3(Meter / Second)
   p: ZZ32(square Length)
 (* Rightly rejected

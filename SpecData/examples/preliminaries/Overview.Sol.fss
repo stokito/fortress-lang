@@ -30,10 +30,10 @@ trait Moving extends { Tangible, Object }
 end
 
 trait Stellar end
-object G_2 end
+object G2 end
 (** EXAMPLE **)
 object Sol extends { Moving, Stellar }
-  spectralClass = G_2
+  spectralClass = G2
   position() = [0 0 0]
   velocity() = [0 0 0]
 end
