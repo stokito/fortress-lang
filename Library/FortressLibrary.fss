@@ -2157,8 +2157,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   end
   opr |self| : ZZ32 = s0 s1
   (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
-  offset(t_1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do
-    (a0,a1) = t_1
+  offset(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do
+    (a0,a1) = t1
     c0 = a0 - b0
     c1 = a1 - b1
     if NOT (0 <= c0 < s0) then
@@ -2169,7 +2169,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
         (c0,c1)
     end
   end
-  toIndex(t_1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t_1; (a0+b0,a1+b1) end
+  toIndex(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t1; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
       r' = (self.bounds)[r]
@@ -2182,8 +2182,8 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       subarray[\0,s0,0,s1,0,0\]()
   opr[_:OpenRange[\Any\]] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\]()
-  shift(t_1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
-      (o0,o1)=t_1
+  shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
+      (o0,o1)=t1
       if o0=0 AND o1=0 then
           self
       else
@@ -2236,9 +2236,9 @@ __subarray[\T, nat b0, nat s0, nat b1, nat s1,
 object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
         extends Array2[\T, b0, s0, b1, s1\]
     mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
-    init0(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.init0(i s1 + j, v) end
-    put(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.put(i s1 + j, v) end
-    get(t_1:(ZZ32,ZZ32)):T = do (i,j)=t_1; mem.get(i s1 + j) end
+    init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0(i s1 + j, v) end
+    put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put(i s1 + j, v) end
+    get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(i s1 + j) end
 end
 
 (** Transposes the index of the underlying array mem, and transposes
@@ -2248,9 +2248,9 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
     extends Array2[\T, b0, s0, b1, s1\]
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] = mem.replica[\U\]().t()
 
-  init0(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.init0((j,i),v) end
-  put(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.put((j,i),v) end
-  get(t_1:(ZZ32,ZZ32)):T = do (i,j)=t_1; mem.get(j,i) end
+  init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0((j,i),v) end
+  put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
+  get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
   t() = mem
 end
 
@@ -2267,9 +2267,9 @@ object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
                  m0:ZZ32, o0:ZZ32, m1:ZZ32, o1:ZZ32)
         extends Array2[\T,b0,s0,b1,s1\]
     index(a0:ZZ32, a1:ZZ32): (ZZ32,ZZ32) = (m0 a0 + o0, m1 a1 + o1)
-    init0(t_1:(ZZ32,ZZ32), v:T): () = mem.init0(index(t_1),v)
-    put(t_1:(ZZ32,ZZ32), v:T): () = mem.put(index(t_1),v)
-    get(t_1:(ZZ32,ZZ32)): T = mem.get(index(t_1))
+    init0(t1:(ZZ32,ZZ32), v:T): () = mem.init0(index(t1),v)
+    put(t1:(ZZ32,ZZ32), v:T): () = mem.put(index(t1),v)
+    get(t1:(ZZ32,ZZ32)): T = mem.get(index(t1))
 end
 
 trait AnyMatrix end
@@ -2282,7 +2282,7 @@ trait Matrix[\T extends Number, nat s0, nat s1\]
     opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
         ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
     opr -(self): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => - e)
-    scale(t_1: T): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => t_1 e)
+    scale(t1: T): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => t1 e)
     mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
         res = matrix[\T,s0,s2\]()
         mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
@@ -2343,18 +2343,18 @@ end
 object __DefaultMatrix[\T, nat s0, nat s1\]()
     extends Matrix[\T, s0, s1\]
   mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
-  init0(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.init0(i s1 + j, v) end
-  put(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.put(i s1 + j, v) end
-  get(t_1:(ZZ32,ZZ32)):T = do (i,j)=t_1; mem.get(i s1 + j) end
+  init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0(i s1 + j, v) end
+  put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put(i s1 + j, v) end
+  get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(i s1 + j) end
 end
 
 object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
         extends Matrix[\T, s0, s1\]
     replica[\U\]():Array2[\U,0,s0,0,s1\] = mem.replica[\U\]().t()
 
-    init0(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.init0((j,i),v) end
-    put(t_1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t_1; mem.put((j,i),v) end
-    get(t_1:(ZZ32,ZZ32)):T = do (i,j)=t_1; mem.get(j,i) end
+    init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0((j,i),v) end
+    put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
+    get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
     t(): Matrix[\T,s1,s0\] = mem
     add(v:TransposedMatrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.add(v.t()).t()
     subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.subtract(v.t()).t()

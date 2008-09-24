@@ -21,7 +21,7 @@ component LexStr.Words
 
 export Executable
 
-object A'bc_123
+object A'bc_123a
   def = println
 end
 
@@ -29,7 +29,7 @@ phi456= 3
 
 run(args:String...) =
 (** EXAMPLE **)
-  A'bc_123.def phi456
+  A'bc_123a.def phi456
 (** END EXAMPLE **)
 
 end

@@ -29,6 +29,7 @@ import com.sun.fortress.useful.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
@@ -186,14 +187,14 @@ public class NodeUtil {
             if (_odn.getText().equals("FortressBuiltin")
                 || _odn.getText().equals("FortressLibrary")) {
                 return last;
-            } else {  
+            } else {
                 return nameString(odn.unwrap()) + "." + last;
             }
         } else {
             return last;
         }
     }
-    
+
     public static String nameString(Id n) {
         final String last = n.getText();
         Option<APIName> odn = n.getApi();
@@ -478,103 +479,78 @@ public class NodeUtil {
     }
 
     /* for String manipulation *********************************************/
-    public static boolean validNumericWord(List<String> rest) {
-        int size = rest.size();
-        if (size == 0) return true;
-        else return (!rest.get(size-1).endsWith("'") &&
-                     !rest.get(size-1).endsWith("\u202F"));
-    }
-
-    public static boolean validNumericLiteral(String numeral) {
-        if (numeral.length() <= 0 || !Character.isDigit(numeral.charAt(0)))
-            return false;
+    public static void validNumericLiteral(Span span, String numeral) {
+        int numberOfDots = 0;
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
-            /* It is a static error if a numeral contains letters and
-               does not have a radix specifier.
-            */
             if (Character.isLetter(c))
-                return false;
+                syntaxError(span, "It is a static error if a numeral contains " +
+                            "letters and does not have a radix specifier.");
+            if (c == '.') numberOfDots++;
         }
-        return true;
+        if (numberOfDots > 1)
+            syntaxError(span, "It is a static error if a numeral contains more " +
+                        "than one `.' character.");
     }
 
-    public static boolean validNumericLiteral(String numeral, int numberOfDots) {
-        if (!validNumericLiteral(numeral))
-            return false;
-        /* It is a static error
-           if a numeral contains more than one `.' character.
-        */
-        return (numberOfDots == 1);
-    }
-
-    public static boolean validNumericLiteral(String numeral, String radix) {
+    public static void validNumericLiteral(Span span, String numeral,
+                                           String radix) {
         int radixNumber = radix2Number(radix);
-        if (radixNumber == -1) return false;
+        if (radixNumber == -1)
+            syntaxError(span, "It is a static error if the radix of " +
+                        "a numeral is not an integer from 2 to 16.");
         boolean sawUpperCase = false;
         boolean sawLowerCase = false;
         boolean sawAb = false;
         boolean sawXe = false;
+        int numberOfDots = 0;
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
+            if (c == '.') numberOfDots++;
             if (Character.isUpperCase(c)) {
-                /* It is a static error if a numeral
-                   contains both uppercase and lowercase letters.
-                */
-                if (sawLowerCase) return false;
+                if (sawLowerCase)
+                    syntaxError(span, "It is a static error if a numeral " +
+                                "contains both uppercase and lowercase letters.");
                 else sawUpperCase = true;
             } else if (Character.isLowerCase(c)) {
-                /* It is a static error if a numeral
-                   contains both uppercase and lowercase letters.
-                */
-                if (sawUpperCase) return false;
+                if (sawUpperCase)
+                    syntaxError(span, "It is a static error if a numeral " +
+                                "contains both uppercase and lowercase letters.");
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-		    return false;
+		    syntaxError(span, "It is a static error if a numeral " +
+                                "has radix 12 and contains letters other " +
+                                "than A, B, X, E, a, b, x or e.");
 		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
-                    /* It is a static error if a numeral
-                       has radix 12 and contains at least one
-                       A, B, a or b and at least one X, E, x or e.
-                    */
-                    if (sawXe) return false;
+                    if (sawXe)
+                        syntaxError(span, "It is a static error if a numeral " +
+                                    "has radix 12 and contains at least one " +
+                                    "A, B, a or b and at least one X, E, x or e.");
                     else sawAb = true;
                 } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
-                    /* It is a static error if a numeral
-                       has radix 12 and contains at least one
-                       A, B, a or b and at least one X, E, x or e.
-                     */
-                    if (sawAb) return false;
+                    if (sawAb)
+                        syntaxError(span, "It is a static error if a numeral " +
+                                    "has radix 12 and contains at least one " +
+                                    "A, B, a or b and at least one X, E, x or e.");
                     else sawXe = true;
                 }
             }
             // The numeral has a radix other than 12.
-            /* It is a static error if a numeral has a radix
-               specifier and contains a digit or letter that
-               denotes a value greater than or equal to the
-               numeral's radix.
-            */
             else if (!validDigitOrLetter(c, radixNumber)
                      && c != '.' && c != '\'' && c != '\u202F') {
-                return false;
+                syntaxError(span, "It is a static error if a numeral has a radix " +
+                            "specifier and contains a digit or letter that " +
+                            "denotes a value greater than or equal to the " +
+                            "numeral's radix.");
 	    }
         }
-        return true;
-    }
-
-    public static boolean validNumericLiteral(String first, List<String> rest, String radix) {
-        /* It is a static error if a numeral contains
-           more than one `.' character.
-         */
-        if (rest.size() > 1) return false;
-        String numeral = first;
-        for (String numericWord: rest) {
-            numeral += numericWord;
-        }
-        return validNumericLiteral(numeral, radix);
+        if (numberOfDots > 1)
+            syntaxError(span, "It is a static error if a numeral contains more " +
+                        "than one `.' character.");
     }
 
     public static int radix2Number(String radix) {

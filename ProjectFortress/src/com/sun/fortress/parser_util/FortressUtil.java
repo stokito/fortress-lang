@@ -24,6 +24,7 @@ package com.sun.fortress.parser_util;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -34,6 +35,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
@@ -302,6 +304,25 @@ public final class FortressUtil {
         return false;
     }
 
+    public static boolean validRadix(Span span, String radix) {
+        String[] all = new String[]{"2","3","4","5","6","7","8","9","10",
+                                    "11","12","13","14","15","16"};
+        List<String> validRadix = new LinkedList<String>(java.util.Arrays.asList(all));
+        if (! validRadix.contains( radix )) {
+            syntaxError(span, "It is a static error if the radix of " +
+                        "a numeral is not an integer from 2 to 16.");
+            return false;
+        } else return true;
+    }
+
+    public static boolean validIntLiteral(String numeral) {
+        for (int index = 0; index < numeral.length(); index++) {
+            if (numeral.charAt(index) == '.')
+                return false;
+        }
+        return true;
+    }
+
     public static void validId(Id name) {
         if (name.getText().equals("outcome"))
             syntaxError(name.getSpan(),
@@ -319,9 +340,21 @@ public final class FortressUtil {
         }
     }
 
+    private static boolean allDigits(String s) {
+        for (int index = 0; index < s.length(); index++) {
+            if ( ! Character.isDigit(s.charAt(index)) )
+                return false;
+        }
+        return true;
+    }
+
     public static boolean validId(String s) {
+        String[] words = s.split("_");
+        boolean isNumeral = (words.length == 2 &&
+                             (NodeUtil.radix2Number(words[1]) != -1 ||
+                              allDigits(words[1])));
         return (!FortressUtil.validOp(s) && !s.equals("_") &&
-                !s.equals("SUM") && !s.equals("PROD"));
+                !isNumeral && !s.equals("SUM") && !s.equals("PROD"));
     }
 
     private static boolean compoundOp(String s) {

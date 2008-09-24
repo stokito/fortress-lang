@@ -21,18 +21,18 @@ export Executable
 (* Check that tuple assignment to multiple vars on LHS works. *)
 
 run(args:String...):() = do
-  var t_b : Boolean 
+  var t_b : Boolean
   var t_i : IntLiteral
   var t_f : IntLiteral->Boolean
-  
-  (*
-  f(x:IntLiteral):Boolean = true 
-  *)
- 
-  
-  f_2 = (fn(i:IntLiteral):Boolean => true)
 
-  (a, b, c, d) = (5, true, 1.0, f_2)
+  (*
+  f(x:IntLiteral):Boolean = true
+  *)
+
+
+  f2 = (fn(i:IntLiteral):Boolean => true)
+
+  (a, b, c, d) = (5, true, 1.0, f2)
   t_b := b
   t_i := a
   t_f := d

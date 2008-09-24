@@ -44,7 +44,7 @@ object BlockedRange(lo: ZZ64, hi: ZZ64, b: ZZ64) extends Generator[\ZZ64\]
     end
 end
 
-f() = <| 2x | x <- BlockedRange(1,10,3) |>
+f() = <| 2 x | x <- BlockedRange(1,10,3) |>
 (** END EXAMPLE **)
 
 run(args:String...) = do

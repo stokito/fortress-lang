@@ -2,7 +2,7 @@
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
-a
+
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
     license agreement and applicable provisions of the FAR and its supplements.
@@ -25,11 +25,11 @@ component DXXMethodInvocationSimple2
     doFoo[\A\](a:ZZ32,b:String):String
   end
 
-  methodCaller(a_1:ZZ32, b_1:ZZ32,f_1:Foo) : () = do
+  methodCaller(a1:ZZ32, b1:ZZ32,f1:Foo) : () = do
     var s:String
-    s := f_1.doFoo[\ZZ32\](a_1,b_1)
+    s := f1.doFoo[\ZZ32\](a1,b1)
   end
-  
+
   run(args:String...):() = ()
 
 end

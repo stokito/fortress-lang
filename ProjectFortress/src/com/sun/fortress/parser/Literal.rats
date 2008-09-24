@@ -69,85 +69,58 @@ Expr VoidLiteralExpr =
      <FIRST> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
 
+transient IntLiteralExpr IntLiteralExpr =
+     <FIRST> a1:NumericLiteralExpr &{ (a1 instanceof IntLiteralExpr) }
+     { yyValue = (IntLiteralExpr)a1; };
+
 NumberLiteralExpr NumericLiteralExpr =
-    a1:NumericWord a2s:RestNumericWord+ "_" a3:RadixSpecifier &{ NodeUtil.validNumericLiteral(a1, a2s.list(), a3) }
-    { String numeral = a1;
-      for (String numericWord: a2s.list()) {
-          numeral += numericWord;
-      }
-      yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
-                                                 numeral+"_"+NodeUtil.radix2Number(a3));
-    }
-  / a1:NumericWord a2s:RestNumericWord+ &{ NodeUtil.validNumericLiteral(a1, a2s.size()) }
-    { String numeral = a1;
-      for (String numericWord: a2s.list()) {
-          numeral += numericWord;
-      }
-      yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount), numeral);
-    }
-  / FloatLiteralExpr
-  / IntLiteralExpr ;
+     NumericLiteralWithRadix
+   / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
+     { String numeral = a1;
+       for (String n: a2s.list()) {
+           numeral += n;
+       }
+       Span span = createSpan(yyStart,yyCount);
+       NodeUtil.validNumericLiteral(span, numeral);
+       if ( FortressUtil.validIntLiteral(numeral) )
+           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+     };
+
+private NumberLiteralExpr NumericLiteralWithRadix =
+     a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
+     { String numeral = a1;
+       for (String n: a2s.list()) {
+           numeral += n;
+       }
+       Span span = createSpan(yyStart,yyCount);
+       NodeUtil.validNumericLiteral(span, numeral, a3);
+       numeral += "_"+NodeUtil.radix2Number(a3);
+       if ( FortressUtil.validIntLiteral(numeral) )
+           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+     };
+
+private transient String NumericWord =
+     a1s:NumericCharacter+
+     { yyValue = "";
+       for (String n: a1s.list()) {
+           yyValue += n;
+       }
+     };
+private transient String NumericCharacter = [0-9a-zA-Z];
 
 private transient String RestNumericWord =
     a1:NumericSeparator a2:NumericWord { yyValue = a1+a2; };
 
-transient FloatLiteralExpr FloatLiteralExpr =
-    <ErrorProduction> DigitString dot DigitString (dot DigitString)+
-    { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                            "Numerals contain no more than one `.' character.");
-    }
-  / <FIRST> a1:DigitString dot a2:DigitString
-    { yyValue = ExprFactory.makeFloatLiteralExpr(createSpan(yyStart,yyCount),
-                                                 a1 + "." + a2);
-    };
-
-transient IntLiteralExpr IntLiteralExpr =
-    <FIRST> a1:NumericWord "_" a2:RadixSpecifier &{ NodeUtil.validNumericLiteral(a1, a2) }
-    { Span span = createSpan(yyStart,yyCount);
-      yyValue = ExprFactory.makeIntLiteralExpr(span, a1+"_"+NodeUtil.radix2Number(a2));
-    }
-  / a1:NumericWord &{ NodeUtil.validNumericLiteral(a1) }
-    { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount), a1); }
-  / a1:DigitString
-    { yyValue = ExprFactory.makeIntLiteralExpr(createSpan(yyStart,yyCount),
-                                               a1);
-    };
-
-private transient String NumericCharacter = [0-9a-zA-Z];
-private transient String NumericWord =
-    a1s:NumericCharacter+ a2s:(NumericSpace / NumericCharacter)* &{ NodeUtil.validNumericWord(a2s.list()) }
-    { yyValue = "";
-      for (String n: a1s.list()) {
-          yyValue += n;
-      }
-      for (String n: a2s.list()) {
-          yyValue += n;
-      }
-    };
-
+private transient String NumericSeparator = NumericSpace / "." ;
 private transient String NumericSpace = "'" / "\u202f" ;
-private transient String NumericSeparator = "." ;
 
 private transient String RadixSpecifier =
-     RadixDigits
+     a1:DigitString !([a-zA-Z]) &{ FortressUtil.validRadix(createSpan(yyStart,yyCount), a1) }
    / RadixNames ;
 
-private transient String RadixDigits =
-     "16"
-   / "15"
-   / "14"
-   / "13"
-   / "12"
-   / "11"
-   / "10"
-   / "9"
-   / "8"
-   / "7"
-   / "6"
-   / "5"
-   / "4"
-   / "3"
-   / "2" ;
+private transient String DigitString = [0-9]+;
 
 private transient String RadixNames =
      "SIXTEEN"
@@ -165,8 +138,6 @@ private transient String RadixNames =
    / "FOUR"
    / "THREE"
    / "TWO" ;
-
-private transient String DigitString = [0-9]+;
 
 CharLiteralExpr CharLiteralExpr =
      <FIRST> "'" a1:CharLiteralContent "'"

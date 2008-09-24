@@ -22,7 +22,7 @@ component CrazyGenerators
     getC():Maybe[\String\]
   end
 
-  stupidMethodIShouldntNeed(s_1:String,s_2:String):()
+  stupidMethodIShouldntNeed(s1:String,s2:String):()
 
   foo():() = do
 
