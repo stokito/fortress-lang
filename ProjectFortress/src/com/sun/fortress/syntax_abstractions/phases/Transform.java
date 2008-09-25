@@ -41,7 +41,7 @@ import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/** 
+/**
  * Macro expander: Traverses AST node, replacing transformation nodes with
  * the results of their transformer executions.
  */
@@ -62,7 +62,7 @@ public class Transform extends TemplateUpdateVisitor {
 
     /* entry point to this class */
     public static Node transform(GlobalEnvironment env, Node node){
-        Transform transform = 
+        Transform transform =
             new Transform(populateTransformers(env), new HashMap<String,Level>(), SyntaxEnvironment.identityEnvironment(), false );
         return node.accept(transform);
     }
@@ -101,14 +101,13 @@ public class Transform extends TemplateUpdateVisitor {
     */
 
     /* Support renaming for these nodes
-     * LValueBind - done
-     * UnpastingBind
-     * FnDef
-     * NormalParam
-     * VarargsParam
+     * LValueBind    ( only for LocalVarDecl ) - done
+     * UnpastingBind ( only for LocalVarDecl ) - done
+     * FnDef         ( only for local function decls ) - done
+     * NormalParam   ( only for FnExpr and local function decls ) - done
+     * VarargsParam  ( only for FnExpr and local function decls ) - done
      * Label
      * Typecase
-     * FnExpr - done
      * Catch
      * GeneratorClause
      */
@@ -120,21 +119,7 @@ public class Transform extends TemplateUpdateVisitor {
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
             IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(that.getName());
             List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-            List<Param> params_result = Useful.applyToAll(that.getParams(), new Fn<Param,Param>(){
-                public Param apply(Param value){
-                    return (Param) value.accept( new TemplateUpdateVisitor(){
-                        public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
-                            Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
-                            Id old = (Id) name_result.accept(transformer);
-                            Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
-                            Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                            extendSyntaxEnvironment(old, generatedId);
-                            return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
-                        }
-                    });
-                }
-            });
-
+            List<Param> params_result = Useful.applyToAll(that.getParams(), renameParam);
             Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
             Option<WhereClause> where_result = recurOnOptionOfWhereClause(that.getWhere());
             Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
@@ -144,6 +129,62 @@ public class Transform extends TemplateUpdateVisitor {
             return ret;
         } else {
             return super.forFnExpr(that);
+        }
+    }
+
+    private Fn<Param,Param> renameParam = new Fn<Param,Param>(){
+        public Param apply(Param value){
+            return (Param) value.accept( new TemplateUpdateVisitor(){
+                public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
+                    Id old = (Id) name_result.accept(this);
+                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                    extendSyntaxEnvironment(old, generatedId);
+                    return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
+                }
+                public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Type type_result) {
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
+                    Id old = (Id) name_result.accept(this);
+                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                    Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                    extendSyntaxEnvironment(old, generatedId);
+                    return new VarargsParam(that.getSpan(), mods_result, generatedId, type_result);
+                }
+            });
+        }
+    };
+
+    public Node forLetFn(LetFn that) {
+        if ( rename ){
+            final Transform transformer = this;
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            List<Expr> body_result = recurOnListOfExpr(that.getBody());
+            List<FnDef> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDef, FnDef>(){
+                public FnDef apply(FnDef fn){
+                    return (FnDef) fn.accept( new TemplateUpdateVisitor(){
+                            public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) {
+                                List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
+                                if ( name_result instanceof Id) {
+                                    Id old = (Id) ((Id)name_result).accept(transformer);
+                                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                                    extendSyntaxEnvironment(old, generatedId);
+                                    return new FnDef(that.getSpan(), mods_result, generatedId, staticParams_result, new_params_result, returnType_result, throwsClause_result, where_result, contract_result, that.getSelfName(), body_result);
+                                } else {
+                                    return new FnDef(that.getSpan(), mods_result, name_result, staticParams_result,
+                                                     new_params_result, returnType_result, throwsClause_result,
+                                                     where_result, contract_result, body_result);
+                                }
+                            }
+                        });
+                }
+            });
+            Node ret = forLetFnOnly(that, exprType_result, body_result, fns_result);
+            setSyntaxEnvironment(save);
+            return ret;
+        } else {
+            return super.forLetFn(that);
         }
     }
 
@@ -162,6 +203,13 @@ public class Transform extends TemplateUpdateVisitor {
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
                             return new LValueBind(that.getSpan(), generatedId, type_result, mods_result);
+                        }
+                        public Node forUnpastingBindOnly(UnpastingBind that, Id name_result, List<ExtentRange> dim_result) {
+                            Id old = (Id) name_result.accept(transformer);
+                            Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                            Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                            extendSyntaxEnvironment(old, generatedId);
+                            return new UnpastingBind(that.getSpan(), generatedId, dim_result);
                         }
                     });
                 }
@@ -207,7 +255,7 @@ public class Transform extends TemplateUpdateVisitor {
         return transformers.get( name );
     }
 
-    private Node curry( String original, Map<String,Level> vars, 
+    private Node curry( String original, Map<String,Level> vars,
 			List<String> parameters ){
         return new CurriedTransformer(original, vars, parameters);
     }
@@ -243,7 +291,7 @@ public class Transform extends TemplateUpdateVisitor {
 
                 if ( ! (binding.getObject() instanceof CurriedTransformer) ){
                     throw new MacroError("Parameterized template gap is not bound " +
-					 "to a CurriedTransformer, instead bound to " + 
+					 "to a CurriedTransformer, instead bound to " +
 					 binding.getClass().getName());
                 }
 
@@ -251,11 +299,11 @@ public class Transform extends TemplateUpdateVisitor {
                 Map<String,Level> vars = new HashMap<String,Level>( curried.getVariables() );
                 if ( curried.getSyntaxParameters().size() != params.size() ){
                     throw new MacroError( "Passing " + params.size() +
-					  " arguments to a nonterminal that accepts " + 
+					  " arguments to a nonterminal that accepts " +
 					  curried.getSyntaxParameters().size() + " arguments." );
                 }
 
-                Debug.debug( Debug.Type.SYNTAX, 3, 
+                Debug.debug( Debug.Type.SYNTAX, 3,
 			     "Template gap " + id.getText() + " has parameters " + params );
                 for ( int i = 0; i < params.size(); i++ ){
                     Id parameter = params.get( i );
@@ -266,15 +314,15 @@ public class Transform extends TemplateUpdateVisitor {
                 // return curry((Node)binding, vars);
 
                 /* the type of the transformer doesn't matter */
-		Node newNode = 
-		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(), 
+		Node newNode =
+		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(),
 						  vars, new LinkedList<String>());
                 return new Level( binding.getLevel(), newNode.accept( this ) );
             }
         }
     }
 
-    @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result, 
+    @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result,
 					     List<Id> templateParams_result) {
         /* another annoying cast */
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
@@ -308,7 +356,7 @@ public class Transform extends TemplateUpdateVisitor {
 	private Map<String,Level> variables;
         // private EllipsesEnvironment ellipsesEnv;
 
-	private TransformerEvaluator(Map<String,Transformer> transformers, 
+	private TransformerEvaluator(Map<String,Transformer> transformers,
 				     Map<String,Level> variables ){
 	    this.transformers = transformers;
 	    this.variables = variables;
@@ -413,19 +461,19 @@ public class Transform extends TemplateUpdateVisitor {
     @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
         if ( ! that.getSyntaxParameters().isEmpty() ){
 	    /* needs parameters, curry it! */
-            return curry( that.getSyntaxTransformer(), 
-			  that.getVariables(), 
+            return curry( that.getSyntaxTransformer(),
+			  that.getVariables(),
 			  that.getSyntaxParameters() );
         }
         /*
-	  Debug.debug(Debug.Type.SYNTAX, 1, 
-	              "Run transformation on " + that + " is " + 
+	  Debug.debug(Debug.Type.SYNTAX, 1,
+	              "Run transformation on " + that + " is " +
 		      that.getSyntaxTransformer().invoke());
 	  return that.getSyntaxTransformer().invoke().accept( this );
 	*/
         Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation " + that.getSyntaxTransformer() );
         Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
-        //Debug.debug( Debug.Type.SYNTAX, 1, 
+        //Debug.debug( Debug.Type.SYNTAX, 1,
         //             "Transformation is " + FortressAstToConcrete.astToString(transformer));
         // EllipsesEnvironment env = new EllipsesEnvironment();
         Map<String,Level> arguments = that.getVariables();
@@ -441,7 +489,7 @@ public class Transform extends TemplateUpdateVisitor {
             */
             // Level level = var.getValue();
             // Object argument = traverse( level.getObject() );
-            
+
             /* argh, this cast shouldn't be needed */
             Level argument = (Level) traverse( var.getValue() );
 
@@ -452,7 +500,7 @@ public class Transform extends TemplateUpdateVisitor {
                 env.add( NodeFactory.makeId( varName ), 1, argument );
             }
             */
-            
+
             // checkFullyTransformed(argument);
             // evaluated.put(varName, new Level( level.getLevel(), argument ) );
             evaluated.put(varName, argument);
@@ -460,14 +508,14 @@ public class Transform extends TemplateUpdateVisitor {
 			 "Argument " + varName + " is " + argument);
         }
 
-        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " + 
+        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " +
 		     that.getSyntaxTransformer() );
-        Node transformed = 
+        Node transformed =
 	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated) );
         checkFullyTransformed(transformed);
         return transformed;
     }
- 
+
     @Override public List<Expr> recurOnListOfExpr(List<Expr> that) {
         List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
         for (Expr elt : that) {
@@ -485,7 +533,7 @@ public class Transform extends TemplateUpdateVisitor {
     private void checkFullyTransformed(Node n) {
         n.accept(new TemplateNodeDepthFirstVisitor_void() {
                 @Override public void forTemplateGapOnly(TemplateGap that) {
-                    throw new MacroError("Transformation left over template gap: " + 
+                    throw new MacroError("Transformation left over template gap: " +
 					 that);
                 }
                 @Override public void for_SyntaxTransformationOnly(_SyntaxTransformation that) {
@@ -513,7 +561,7 @@ public class Transform extends TemplateUpdateVisitor {
      */
     private List<Transform> decompose( List<Id> freeVariables ){
         List<Transform> all = new ArrayList<Transform>();
-        
+
         Debug.debug( Debug.Type.SYNTAX, 2, "Free variables in the decomposed list: " + freeVariables );
 
         int repeats = findRepeatedVar( freeVariables );
@@ -590,7 +638,7 @@ public class Transform extends TemplateUpdateVisitor {
         private Map<String,Level> vars;
         private List<String> parameters;
 
-        public CurriedTransformer( String original, Map<String,Level> vars, 
+        public CurriedTransformer( String original, Map<String,Level> vars,
 				   List<String> parameters ){
             this.original = original;
             this.vars = vars;
