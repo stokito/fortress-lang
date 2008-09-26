@@ -36,6 +36,18 @@ import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
 public class NodeFactory {
+    public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
+                                          Id name, Option<Type> type) {
+        return makeAbsFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
+    }
+
+    public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
+                                          Id name, List<Param> params,
+                                          Option<Type> type) {
+        return new AbsFnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
+                             params, type);
+    }
+
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
                                           Option<Id> optSelfName,
