@@ -32,10 +32,36 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /* Getter/setter desugaring
+ */
+/* For each trait declaration,
+ * 1) extends the scope of an existing DesugaringVisitor
+ *    with abstract fields declared in the trait;
+ * 2) removes abstract field declarations from the trait;
+ * 3) makes getter/setter declarations for the removed abstract fields;
+ * 4) adds the generated getter/setter declarations to the trait.
+ */
+/* For each object declaration,
+ * 1) extends the scope of an existing DesugaringVisitor
+ *    with fields and parameters declared in the object;
+ * 2) mangles parameter and field names;
+ * 3) makes getter/setter declarations for the removed abstract fields;
+ * 4) adds the generated getter/setter declarations to the trait.
+ */
+/* For each object expression,
+ * 1) extends the scope of an existing DesugaringVisitor
+ *    with fields declared in the object;
+ * 2) mangles field names;
+ * 3) makes getter/setter declarations for the removed abstract fields;
+ * 4) adds the generated getter/setter declarations to the trait.
+ */
+/* For each explicit getter/setter declaration,
+ * remove the getter/setter modifier.
  * After this desugaring, the getter/setter modifiers are eliminated.
  */
+/* For each reference of a field,
+ * change the reference to a mangled name.
+ */
 public class DesugaringVisitor extends NodeUpdateVisitor {
-    private boolean inTrait = false;
     private List<Id> fieldsInScope;
     private Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
         Option.<Map<Pair<Id,Id>,FieldRef>>none();
@@ -47,13 +73,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     public DesugaringVisitor( List<Id> _fieldsInScope,
                               Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap ) {
-        fieldsInScope = _fieldsInScope;
-        this.boxedRefMap = boxedRefMap;
-    }
-
-    public DesugaringVisitor( boolean _inTrait, List<Id> _fieldsInScope,
-                              Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap ) {
-        inTrait = _inTrait;
         fieldsInScope = _fieldsInScope;
         this.boxedRefMap = boxedRefMap;
     }
@@ -163,6 +182,9 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }.recurOnOptionOfListOfParam(params);
     }
 
+    /* Extends the scope of a DesugaringVisitor
+       with fields including object parameters, if any.
+     */
     private DesugaringVisitor extend(Option<List<Param>> params, List<Decl> decls) {
         List<Id> newScope = new ArrayList<Id>();
 
@@ -173,8 +195,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             }
         }
         for (Decl decl: decls) {
-            if (decl instanceof VarDecl) {
-                for (LValueBind binding : (((VarDecl)decl).getLhs())) {
+            if (decl instanceof VarAbsDeclOrDecl) {
+                for (LValueBind binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -183,12 +205,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new DesugaringVisitor( newScope, boxedRefMap );
     }
 
+    /* Extends the scope of a DesugaringVisitor
+       with fields (for object expressions)
+       and abstract fields (for trait declarations).
+     */
     private DesugaringVisitor extend(List<Decl> decls) {
         List<Id> newScope = new ArrayList<Id>();
 
         for (Decl decl: decls) {
-            if (decl instanceof VarDecl) {
-                for (LValueBind binding : (((VarDecl)decl).getLhs())) {
+            if (decl instanceof VarAbsDeclOrDecl) {
+                for (LValueBind binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -197,26 +223,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new DesugaringVisitor( newScope, boxedRefMap );
     }
 
-    private List<Decl> removeVarDecls(List<Decl> decls) {
-    	// System.err.println("decls.size() = " + decls.size());
-        final List<Decl> result = new ArrayList<Decl>();
-
-        for (Decl decl : decls) {
-            if (decl instanceof VarDecl) {
-                // skip it
-            } else {
-                result.add(decl);
-            }
-        }
-        // System.err.println("result.size() = " + result.size());
-        return result;
-    }
-
-    private FnDef makeGetter(Id owner, ImplicitGetterSetter field) {
+    private FnDef makeGetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
             if (!(mod instanceof ModifierSettable) &&
-                !(mod instanceof ModifierVar))
+                !(mod instanceof ModifierVar) &&
+                !(mod instanceof ModifierWrapped))
                 mods.add(mod);
         }
         Id name = field.getName();
@@ -233,25 +245,34 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                              mangleName(obj.getVar()));
                 body = (Expr)forFieldRefOnly(rewrite, field.getType(),
                                              obj, rewrite.getField());
-            } else
-                body = ExprFactory.makeVarRef(field.getSpan(),
-                                              mangleName(name));
+            } else {
+                body = makeGetter(inTrait, field.getSpan(), mangleName(name));
+            }
         } else
-            body = ExprFactory.makeVarRef(field.getSpan(),
-                                          mangleName(name));
+            body = makeGetter(inTrait, field.getSpan(), mangleName(name));
 
         return NodeFactory.makeFnDef(field.getSpan(), mods, field.getName(),
                                      field.getType(), body);
     }
 
-    private FnDef makeSetter(Id owner, ImplicitGetterSetter field) {
+    private Expr makeGetter(boolean inTrait, Span span, Id name) {
+        if ( inTrait ) {
+            Expr self = ExprFactory.makeVarRef(span, "self");
+            return ExprFactory.makeFieldRef(span, self, name);
+        } else
+            return ExprFactory.makeVarRef(span, name);
+    }
+
+    private FnDef makeSetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
         Span span = field.getSpan();
         Type voidType = NodeFactory.makeVoidType(span);
         Option<Type> ty = field.getType();
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
             if (!(mod instanceof ModifierSettable) &&
-                !(mod instanceof ModifierVar))
+                !(mod instanceof ModifierVar) &&
+                !(mod instanceof ModifierHidden) &&
+                !(mod instanceof ModifierWrapped))
                 mods.add(mod);
         }
         Id name = field.getName();
@@ -276,18 +297,26 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                           rewrite.getField(), rhs);
             } else {
                 List<Lhs> lhs = new ArrayList<Lhs>();
-                lhs.add(ExprFactory.makeVarRef(span, mangleName(name), ty));
+                lhs.add(makeSetter(inTrait, span, mangleName(name), ty));
                 assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                     lhs, rhs);
             }
         } else {
             List<Lhs> lhs = new ArrayList<Lhs>();
-            lhs.add(ExprFactory.makeVarRef(span, mangleName(name), ty));
+            lhs.add(makeSetter(inTrait, span, mangleName(name), ty));
             assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                 lhs, rhs);
         }
         return NodeFactory.makeFnDef(span, mods, name, params,
                                      Option.some(voidType), assign);
+    }
+
+    private Lhs makeSetter(boolean inTrait, Span span, Id name, Option<Type> ty) {
+        if ( inTrait ) {
+            Expr self = ExprFactory.makeVarRef(span, "self");
+            return ExprFactory.makeFieldRef(span, self, name);
+        } else
+            return ExprFactory.makeVarRef(span, name, ty);
     }
 
     private LinkedList<Decl> makeGetterSetters(final Id owner,
@@ -300,25 +329,25 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     NormalParam _param = (NormalParam)param;
                     if (! hidden(_param) &&
                         ! hasExplicitGetter(_param.getName(), decls))
-                        result.add(makeGetter(owner, _param));
+                        result.add(makeGetter(false, owner, _param));
                     if ((settable(_param) || mutable(_param)) &&
                         ! hasExplicitSetter(_param.getName(), decls)) {
-                        result.add(makeSetter(owner, _param));
+                        result.add(makeSetter(false, owner, _param));
                     }
                 }
             }
         }
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
-                public void forVarDecl(VarDecl decl) {
+                public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl decl) {
                     for (LValueBind binding : decl.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
-                            result.add(makeGetter(owner, binding));
+                            result.add(makeGetter(false, owner, binding));
                         }
                         if ((settable(binding) || mutable(binding)) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
-                            result.add(makeSetter(owner, binding));
+                            result.add(makeSetter(false, owner, binding));
                         }
                     }
                 }
@@ -327,21 +356,22 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    private LinkedList<Decl> makeGetterSetters(final Id owner,
+    private LinkedList<Decl> makeGetterSetters(final boolean inTrait,
+                                               final Id owner,
                                                final List<Decl> decls) {
         final LinkedList<Decl> result = new LinkedList<Decl>();
 
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
-                public void forVarDecl(VarDecl decl) {
-                    for (LValueBind binding : decl.getLhs()) {
+                public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl dec) {
+                    for (LValueBind binding : dec.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
-                            result.add(makeGetter(owner, binding));
+                            result.add(makeGetter(inTrait, owner, binding));
                         }
                         if ((settable(binding) || mutable(binding)) &&
                             ! hasExplicitSetter(binding.getName(), decls)) {
-                            result.add(makeSetter(owner, binding));
+                            result.add(makeSetter(inTrait, owner, binding));
                         }
                     }
                 }
@@ -538,7 +568,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         DesugaringVisitor newVisitor = extend(that.getDecls());
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
-        LinkedList<Decl> gettersAndDecls = makeGetterSetters(NodeFactory.makeTemporaryId(),
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(false,
+                                                             NodeFactory.makeTemporaryId(),
                                                              that.getDecls());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
@@ -571,10 +602,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     @Override
     public Node forTraitDecl(TraitDecl that) {
         DesugaringVisitor newVisitor = extend(that.getDecls());
-        List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+        List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         // System.err.println("decls_result size = " + decls_result.size());
-        LinkedList<Decl> gettersAndDecls = makeGetterSetters(that.getName(),
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(true,
+                                                             that.getName(),
                                                              that.getDecls());
 
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
