@@ -24,11 +24,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
-import com.sun.fortress.compiler.typechecker.StaticParamEnv;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeChecker;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
@@ -39,7 +39,6 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.repository.ProjectProperties;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -58,15 +57,6 @@ import edu.rice.cs.plt.iter.IterUtil;
  * </li>
  */
 public class StaticChecker {
-
-    /**
-     * This field is a temporary switch used for testing.
-     * When typecheck is true, the TypeChecker is called during static checking.
-     * It's false by default to allow the static checker to be used at the command
-     * line before the type checker is fully functional.
-     * StaticTest sets typecheck to true before running type checking tests.
-     */
-    public static boolean typecheck = ProjectProperties.getBoolean("fortress.test.typecheck", false);
     
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
@@ -142,7 +132,7 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component,
                                                    GlobalEnvironment env)
     {
-        if (typecheck) {
+        if (Shell.getTypeChecking() == true) {
             Node component_ast = component.ast();
             
             // Replace implicit types with explicit ones.

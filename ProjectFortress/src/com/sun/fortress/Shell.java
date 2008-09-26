@@ -55,6 +55,14 @@ import com.sun.fortress.nodes_util.ApiMaker;
 
 public final class Shell {
     static boolean test;
+    
+    /* This object groups in one place all the public static flags that 
+     * we had lying around before.  To set a flag on / off, one must 
+     * invoke its corresonding static method in Shell to do so.  
+     * This approach works better with JUnit.  We have seen weird behaviors 
+     * when using public static variables with JUnit tests.
+     */
+    private static CompileProperties compileProperties = new CompileProperties();
 
     /* set this statically if you only want to run up to a certain phase */
     private static PhaseOrder finalPhase = PhaseOrder.CODEGEN;
@@ -172,12 +180,36 @@ public final class Shell {
         );
     }
 
-    private static void turnOnTypeChecking(){
-        com.sun.fortress.compiler.StaticChecker.typecheck = true;
+    public static boolean getPreparse() {
+        return compileProperties.preparse;
     }
 
-    private static void turnOnObjExprDesugaring(){
-        com.sun.fortress.compiler.Desugarer.objExpr_desugar = true;
+    public static boolean getTypeChecking() {
+        return compileProperties.type_check;
+    }
+
+    public static boolean getObjExprDesugaring(){
+        return compileProperties.objExpr_desugar;
+    }
+
+    public static boolean getGetterSetterDesugaring(){
+        return compileProperties.getter_setter_desugar;
+    }
+
+    public static void setPreparse(boolean preparse) {
+        compileProperties.preparse = preparse;
+    }
+
+    public static void setTypeChecking(boolean type_check) {
+        compileProperties.type_check = type_check;
+    }
+
+    public static void setObjExprDesugaring(boolean desugar){
+        compileProperties.objExpr_desugar = desugar;
+    }
+
+    public static void setGetterSetterDesugaring(boolean desugar){
+        compileProperties.getter_setter_desugar = desugar;
     }
 
     /* Main entry point for the fortress shell.*/
@@ -209,8 +241,8 @@ public final class Shell {
                 setPhase( PhaseOrder.DISAMBIGUATE );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "desugar" ) ){
-                turnOnTypeChecking();
-                turnOnObjExprDesugaring();
+                setTypeChecking(true);
+                setObjExprDesugaring(true);
                 setPhase( PhaseOrder.DESUGAR );
                 compile(args, Option.<String>none());
             } else if ( what.equals( "grammar" ) ){
@@ -218,7 +250,7 @@ public final class Shell {
                 compile(args, Option.<String>none());
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
-                turnOnTypeChecking();
+                setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 compile(args, Option.<String>none());
             } else if (what.equals("test")) {
@@ -260,7 +292,7 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);
 
             api( rest, out );
         } else {
@@ -337,7 +369,7 @@ public final class Shell {
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);;
 
             compare( rest );
         } else {
@@ -393,7 +425,7 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);
 
             parse( rest, out );
         } else {
@@ -462,7 +494,7 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);
 
             unparse( rest, out, unqualified, unmangle );
         } else {
@@ -540,7 +572,7 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);
             compile(rest, out);
         } else {
             try {
@@ -647,7 +679,7 @@ public final class Shell {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-noPreparse")) ProjectProperties.noPreparse = true;
+            if (s.equals("-noPreparse")) setPreparse(false);
 
             run(rest);
         } else {
@@ -744,5 +776,15 @@ public final class Shell {
     	return result;
     }
 
+
+    /**
+     * The fields of this class serve as temporary switches used for testing.
+     */
+    private static class CompileProperties {
+        boolean preparse = true;    // run syntax abstraction or not
+        boolean type_check = false; // run type checker or not
+        boolean objExpr_desugar = false; // run obj expression desugaring or not
+        boolean getter_setter_desugar = true; // run getter/setter desugaring or not
+    }
 
 }

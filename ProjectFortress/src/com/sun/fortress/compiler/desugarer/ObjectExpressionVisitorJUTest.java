@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -33,9 +34,29 @@ import com.sun.fortress.useful.WireTappedPrintStream;
 
 public class ObjectExpressionVisitorJUTest extends TestCase {
 
+    private static final char SEP = File.separatorChar;
     private static final String testsDir =
         ProjectProperties.FORTRESS_AUTOHOME + "/ProjectFortress/tests";
-    private static final char SEP = File.separatorChar;
+    private static final String tester = testsDir + SEP + "testerTest.fss";
+
+    public void setUp() throws Exception {
+        try {
+            // evaluate a tester so that we ensure FortressLibrary is compiled
+            // this is a hack which should be removed once the
+            // FortressLibrary pass type checker. 
+            Shell.eval(tester);
+        } catch(Throwable e) {
+            throw new InterpreterBug("Fail to evaluate " + 
+                tester + " in ObjectExpressionVisitorJUTest");
+        }
+        Shell.setTypeChecking(true);
+        Shell.setObjExprDesugaring(true);
+    }
+
+    public void tearDown() throws Exception {
+        Shell.setTypeChecking(false);
+        Shell.setObjExprDesugaring(false);
+    }
 
     public void testObjectCC()
         throws FileNotFoundException, IOException, Throwable {
@@ -58,7 +79,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
     public void testObjectCC_StaticParams() 
         throws FileNotFoundException, IOException, Throwable {
         runFile("objectCC_staticParams.fss");
-    }
+    } 
 
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
@@ -73,29 +94,26 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             WireTappedPrintStream.make(System.out, true);
         System.setErr(wt_err);
         System.setOut(wt_out);
-        // System.out.println("Evaluating " + file + "...");
-        FValue original = Shell.eval(file);
 
         String name = file.substring( 0, file.lastIndexOf(".") );
         String tfs = name + ".tfs";
 
         String[] command = new String[]{ "desugar", "-out", tfs, file};
-        // System.out.println("Command: fortress desugar -out " + tfs + " " + file);
+        // System.out.println("Command: " + 
+        //                    "fortress desugar -out " + tfs + " " + file);
         Shell.main( command );
+
         String generated = RatsUtil.getTempDir() + fileName;
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
-        // System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);
+        // System.out.println("Command: fortress unparse " + 
+        //     "-unqualified -unmangle -out " + generated + " " + tfs);
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
 
-        // must turn these passes off
-        com.sun.fortress.compiler.StaticChecker.typecheck = false;
-        com.sun.fortress.compiler.Desugarer.objExpr_desugar = false;
-
-        // System.out.println("Evaluating " + generated + "...");
-        assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);
     }
 
 }
+
+

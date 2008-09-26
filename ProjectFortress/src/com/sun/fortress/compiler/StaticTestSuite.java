@@ -38,9 +38,6 @@ import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.Path;
 
 public final class StaticTestSuite extends TestSuite {
 
@@ -154,13 +151,13 @@ public final class StaticTestSuite extends TestSuite {
 
         @Override
         protected void setUp() throws Exception {
-            typecheckStore = com.sun.fortress.compiler.StaticChecker.typecheck;
-            com.sun.fortress.compiler.StaticChecker.typecheck = typecheck;
+            typecheckStore = Shell.getTypeChecking();
+            Shell.setTypeChecking(typecheck);
         }
 
         @Override
         protected void tearDown() throws Exception {
-            com.sun.fortress.compiler.StaticChecker.typecheck = typecheckStore;
+            Shell.setTypeChecking(typecheckStore);
         }
 
         @Override
@@ -177,7 +174,7 @@ public final class StaticTestSuite extends TestSuite {
         }
 
         private void assertDisambiguatorFails(File f) throws IOException {
-            com.sun.fortress.compiler.StaticChecker.typecheck = false;
+            Shell.setTypeChecking(false);
             Iterable<? extends StaticError> errors = compile(f);
             assertFalse("Source " + f + " was compiled without disambiguator errors",
                         IterUtil.isEmpty(errors));
@@ -188,7 +185,7 @@ public final class StaticTestSuite extends TestSuite {
         }
 
         private void assertSyntaxAbstractionFails(File f) throws IOException {
-            com.sun.fortress.compiler.StaticChecker.typecheck = false;
+            Shell.setTypeChecking(false);
             try{
                 Iterable<? extends StaticError> errors = compile(f);
                 assertFalse("Source " + f + " was compiled without syntax abstraction errors",

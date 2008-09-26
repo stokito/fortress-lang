@@ -231,6 +231,11 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         scopeStack.pop();
 
         TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(that);
+        if( objExprTypeEnv == null ) {
+            new DesugarerError( that.getSpan(), "The typeEnv associated " +
+                "with node " + that + " at span " + that.getSpan() + 
+                " is null!" );
+        }
 
         if( objExprStack.isEmpty() && 
             (enclosingObjectDecl != null || enclosingTraitDecl != null) ) {
@@ -254,10 +259,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         // Update the declsToVarRefs list 
         if(mutableVars != null) {
-            TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(that);
-
             for(VarRef var : mutableVars) {
-            	Option<Node> declNodeOp = typeEnv.declarationSite(var.getVar());
+            	Option<Node> declNodeOp = 
+                    objExprTypeEnv.declarationSite( var.getVar() );
         		if(declNodeOp.isNone()) {
         		    throw new DesugarerError( var.getSpan(), 
                                 "Decl node for " + var + " is null!" );
@@ -576,8 +580,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         if(objExprTypeEnv == null) {
             throw new DesugarerError( objExprSpan, 
                 "TypeEnv corresponding to Object Expr at source " + 
-                objExprSpan + " is not found!" + " And, typechecker is " +
-                com.sun.fortress.compiler.StaticChecker.typecheck );
+                objExprSpan + " is not found!" );
         }
 		    
         // There is no sense checking for the static param binding,
@@ -626,7 +629,8 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		if(topLevelEnv == null) {
 		    throw new DesugarerError("TypeEnv associated with " 
-		            + topLevelNode + " is not found.");
+		            + topLevelNode + " is not found when querying for " + 
+                    "type info for " + idOrOpOrEnclosing);
 		}
 		
 	    Option<BindingLookup> binding = Option.<BindingLookup>none();
@@ -662,6 +666,12 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
         TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
         
+		if(typeEnv == null) {
+		    throw new DesugarerError("TypeEnv associated with" +  
+                    " object expression at span " + objExpr.getSpan() + 
+                    " is not found.");
+		}
+		
         for(VarRef var : freeVarRefs) {
             Option<Boolean> isMutable = typeEnv.mutable( var.getVar() );
             if( isMutable.isNone() ) {

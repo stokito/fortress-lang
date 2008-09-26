@@ -39,7 +39,7 @@ object O[\X extends String, bool b, nat n\](var v:ZZ32, s:X)
                 x():ZZ32 = foo()
                 y():ZZ32 = quack()
                 z():ZZ32 = do
-                    _ = O[\X, b, 3\](v, s)
+                    o = O[\X, b, 3\](v, s)
                     if b then n else (n-1) end
                 end
                 a():X = s
