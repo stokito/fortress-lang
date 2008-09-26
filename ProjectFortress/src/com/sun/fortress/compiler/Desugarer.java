@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler;
 
 import java.util.*;
+
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.desugarer.*;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -28,12 +30,8 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -65,8 +63,6 @@ public class Desugarer {
      * the closure conversion pass for object expressions is called.
      * The closure conversion comes after the desugaring pass for getter / setter.
      */
-    public static boolean getter_setter_desugar = true;
-    public static boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.test.desugar.objexpr", false);
 
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
@@ -138,7 +134,7 @@ public class Desugarer {
                                     Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
 
-        if(objExpr_desugar) {
+        if( Shell.getObjExprDesugaring() ) {
             if(typeCheckerOutputOp.isNone()) {
                 throw new DesugarerError("Expected TypeCheckerOutput from " +
                                          "type checking phase is not found.");
@@ -151,7 +147,7 @@ public class Desugarer {
         	comp = (Component) comp.accept(objExprVisitor);
         	boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
-        if(getter_setter_desugar) {
+        if( Shell.getGetterSetterDesugaring() ) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);
         }

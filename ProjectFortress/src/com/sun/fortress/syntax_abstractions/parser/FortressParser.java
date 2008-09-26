@@ -22,12 +22,13 @@ import java.io.IOException;
 import java.util.List;
 
 import xtc.parser.ParserBase;
+
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Node;
@@ -52,7 +53,7 @@ public class FortressParser {
                                GlobalEnvironment env, 
                                boolean verbose) {
         try {
-            if (!ProjectProperties.noPreparse) {
+            if ( Shell.getPreparse() ) {
                 return parseInner(api_name, f, env, verbose);
             } else {
                 return new Result(Parser.parseFileConvertExn(api_name, f),
