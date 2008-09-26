@@ -75,10 +75,6 @@ object O(v:ZZ32)
 end
 
 (* objExpr capturing Abs fields and vars in Trait *)
-(* This is not working yet... comment out for now.
-   The obj exp captures v, and later invokes getter v()
-   But the type checker does not recognize method v() in XTrait ...
-   It should be implicitly defined within the object extends XTrait *) 
 trait XTrait
     v:ZZ32
     getVal():T = do 
@@ -119,8 +115,6 @@ run(args:String...):() = do
     assert( quack(o1, o1.tmp2), o2.x(), "o2.x() failed" )
     assert( o1.v + o1.tmp, o2.y(), "o2.y() failed" )
 
-    (* This is not working yet due to typechecker.  See comments above the
-        definition of XTrait *)
     xo1:XObj = XObj(7)
     o3:T = xo1.getVal()
         
