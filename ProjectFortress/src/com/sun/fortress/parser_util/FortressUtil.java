@@ -324,9 +324,21 @@ public final class FortressUtil {
     }
 
     public static void validId(Id name) {
-        if (name.getText().equals("outcome"))
-            syntaxError(name.getSpan(),
-                        "Invalid variable name: 'outcome' is a reserved word.");
+        name.accept(new NodeDepthFirstVisitor_void(){
+            public void forIdOnly(Id id){
+                if (id.getText().equals("outcome"))
+                    syntaxError(id.getSpan(),
+                                "Invalid variable name: 'outcome' is a reserved word.");
+            }
+
+            public void defaultTemplateGap(TemplateGap g){
+                /* nothing */
+            }
+
+            public void for_EllipsesIdOnly(_EllipsesId e){
+                /* nothing */
+            }
+        });
     }
 
     public static void validId(List<? extends LValue> lvs) {
