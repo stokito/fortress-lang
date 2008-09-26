@@ -1,0 +1,85 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component XXXobjectCC_shadowTest
+export Executable
+
+trait T1
+    foo(): String = "Foo in trait T1"
+    callFoo(): String = "callFoo in trait T1"
+end
+
+trait T2
+    callFoo(): String
+end
+
+trait Bar extends T1
+    foo(): String = "Foo in trait Bar"
+
+    m1():T1 = object extends T1
+                (* This should call the one defined in T1 *)
+                callFoo(): String = foo() 
+            end
+
+    m2():T1 = object extends T1
+                foo(): String = "Foo in obj expr extends T1"
+                (* This should call the one defined above *)
+                callFoo(): String = foo()
+            end
+
+    m3():T2 = object extends T2
+                foo(): String = "Foo in obj expr extends T2"
+                (* This should call the one defined above *)
+                callFoo(): String = foo()
+            end
+
+    m4():T2 = object extends T2
+                (* This should call the one defined in Bar *)
+                callFoo(): String = foo()
+            end
+
+    m5():T1 = object extends T1
+                foo(x:ZZ32): String = "Value is " x
+                (* This should call the one defined above *)
+                callFoo(): String = foo(3)
+            end
+end
+
+object A() extends Bar
+end
+
+
+run(args:String...):()=do
+    a:A = A()
+    x1:T1 = a.m1()
+    x2:T1 = a.m2()
+    x3:T2 = a.m3()
+    x4:T2 = a.m4()
+    x5:T1 = a.m5()
+
+    assert("Foo in trait T1", x1.callFoo(), "x1.callFoo() failed.")
+    assert("Foo in obj expr extends T1", x2.callFoo(), "x2.callFoo() failed.")
+    assert("Foo in obj expr extends T2", x3.callFoo(), "x3.callFoo() failed.")
+    assert("Foo in trait Bar", x4.callFoo(), "x4.callFoo() failed.")
+    assert("Value is 3", x5.callFoo(), "x5.callFoo() failed.")
+
+    println ("Testing object closure conversion with shawdowing: passed.") 
+end
+
+end
+
+
