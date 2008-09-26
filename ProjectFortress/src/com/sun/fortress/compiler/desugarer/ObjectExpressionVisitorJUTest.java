@@ -29,7 +29,6 @@ import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
-import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.WireTappedPrintStream;
@@ -88,7 +87,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         String[] command = new String[]{ "desugar", "-out", tfs, file};
         // System.out.println("Command: fortress desugar -out " + tfs + " " + file);
         Shell.main( command );
-        String generated = RatsUtil.getTempDir() + fileName;
+        String generated = System.getProperty("java.io.tmpdir") + SEP + fileName;
 
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
         // System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);

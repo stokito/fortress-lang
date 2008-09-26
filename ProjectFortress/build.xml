@@ -589,6 +589,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     <target name="testOnly" depends="compile"
             description="Run specific tests (use -DtestPattern=...).">
         <mkdir dir="${test.results}"/>
+	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="off"
                haltonerror="off"
                haltonfailure="off"
@@ -598,6 +599,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="false"/>
             <syspropertyset>
                 <propertyref prefix="plt." />
@@ -615,6 +617,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
              </batchtest>
         </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
@@ -681,6 +684,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     <target name="testNotPassing" depends="compile"
             description="Run system tests that aren't passing yet.">
         <mkdir dir="${test.results}"/>
+ 	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -690,6 +694,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="brief" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -697,12 +702,14 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
         </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to fail are failing!" if="tests.failed"/>
     </target>
 
     <target name="testSpecData" depends="compile"
             description="Run SpecDataJUTests.">
         <mkdir dir="${test.results}"/>
+ 	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -712,6 +719,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -719,12 +727,14 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
       </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
     <target name="testSystem" depends="compile"
             description="Run SystemJUTests.">
         <mkdir dir="${test.results}"/>
+ 	<mkdir dir="${basedir}/test-tmp" />
         <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -734,6 +744,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -741,10 +752,12 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
       </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
     <target name="testblas" depends="compile,blas" description="Test blas">
+ 	<mkdir dir="${basedir}/test-tmp" />
 	    <junit printsummary="on"
                haltonerror="off"
                haltonfailure="off"
@@ -754,6 +767,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                errorProperty="tests.failed"
                failureProperty="tests.failed">
             <classpath refid="compile.classpath"/>
+	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
             <formatter type="plain" usefile="true"/>
             <batchtest fork="true" todir="${test.results}">
                 <fileset dir="${build}">
@@ -761,6 +775,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 </fileset>
             </batchtest>
       </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
     </target>
 
@@ -795,6 +810,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     <target name="testDemos" depends="compile"
              description="Run demos in a test harness.">
          <mkdir dir="${test.results}"/>
+ 	<mkdir dir="${basedir}/test-tmp" />
          <junit printsummary="on"
                 haltonerror="off"
                 haltonfailure="off"
@@ -804,6 +820,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                 errorProperty="tests.failed"
                 failureProperty="tests.failed">
              <classpath refid="compile.classpath"/>
+	     <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
              <formatter type="brief" usefile="true"/>
              <batchtest fork="true" todir="${test.results}">
                  <fileset dir="${build}">
@@ -811,6 +828,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
                  </fileset>
              </batchtest>
         </junit>
+ 	<delete dir="${basedir}/test-tmp" />
         <fail message="Tests expected to pass are failing!" if="tests.failed"/>
      </target>
 
