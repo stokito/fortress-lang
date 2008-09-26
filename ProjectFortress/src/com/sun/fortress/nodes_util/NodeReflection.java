@@ -20,6 +20,7 @@ package com.sun.fortress.nodes_util;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.TemplateGap;
+import com.sun.fortress.nodes._Ellipses;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -212,9 +213,10 @@ abstract public class NodeReflection {
         Field[] fields;
         ArrayList<Field> fal = new ArrayList<Field>();
         Class icl = cl;
-        // Is it an ordinary AbstractNode, or a Template Gap?
+        // Is it an ordinary AbstractNode, or a Template Gap/Ellipses?
         boolean isTemplate = isTemplateGap(icl);
-        if (!isTemplate) {
+        boolean isEllipses = isEllipses(icl);
+        if (!isTemplate && !isEllipses) {
             while (icl != AbstractNode.class && icl != Object.class) {
                 fields = icl.getDeclaredFields();
                 handleFields(fields, fal);
@@ -237,6 +239,14 @@ abstract public class NodeReflection {
             isTemplate = c.equals(TemplateGap.class);
         }
         return isTemplate;
+    }
+
+    private static boolean isEllipses(Class<?> icl) {
+        boolean isEllipses = false;
+        for (Class<?> c : icl.getInterfaces()) {
+            isEllipses = c.equals(_Ellipses.class);
+        }
+        return isEllipses;
     }
 
     private static void handleFields(Field[] fields, ArrayList<Field> fal) {
