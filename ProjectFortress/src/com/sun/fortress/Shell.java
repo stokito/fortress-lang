@@ -55,11 +55,11 @@ import com.sun.fortress.nodes_util.ApiMaker;
 
 public final class Shell {
     static boolean test;
-    
-    /* This object groups in one place all the public static flags that 
-     * we had lying around before.  To set a flag on / off, one must 
-     * invoke its corresonding static method in Shell to do so.  
-     * This approach works better with JUnit.  We have seen weird behaviors 
+
+    /* This object groups in one place all the public static flags that
+     * we had lying around before.  To set a flag on / off, one must
+     * invoke its corresonding static method in Shell to do so.
+     * This approach works better with JUnit.  We have seen weird behaviors
      * when using public static variables with JUnit tests.
      */
     private static CompileProperties compileProperties = new CompileProperties();
@@ -254,6 +254,7 @@ public final class Shell {
                 setPhase( PhaseOrder.TYPECHECK );
                 compile(args, Option.<String>none());
             } else if (what.equals("test")) {
+                setPhase( PhaseOrder.CODEGEN );
                 runTests(args);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
@@ -752,17 +753,70 @@ public final class Shell {
         return path;
     }
 
-    private static void runTests(List<String> files) 
-        throws UserError, Throwable {
-        setPhase( PhaseOrder.CODEGEN );
-        for (String file : files) {
-            if ( ! isComponent(file) )
-                throw new UserError("A component file is expected to evaluate.");
-            APIName name = trueApiName( file );
-            Path path = sourcePath( file, name );
-            GraphRepository bcr = specificRepository( path, defaultRepository );
-            CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-            Driver.runTests(bcr, cu);
+    private static void runTests(List<String> args)
+        throws UserError, IOException, Throwable {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to run");
+        }
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+            	rest = Debug.parseOptions(rest);
+            }
+            if (s.equals("-noPreparse")) setPreparse(false);
+            run(rest);
+        } else {
+            for (String file : args) {
+                try {
+                    Iterable<? extends StaticError> errors = IterUtil.empty();
+                    try {
+                        if ( ! isComponent(file) )
+                            throw new UserError("A component file is expected to evaluate.");
+                        APIName name = trueApiName( file );
+                        Path path = sourcePath( file, name );
+                        GraphRepository bcr = specificRepository( path, defaultRepository );
+                        CompilationUnit cu = bcr.getLinkedComponent(name).ast();
+                        Driver.runTests(bcr, cu);
+                    } catch (Throwable th) {
+                        // TODO FIXME what is the proper treatment of errors/exceptions etc.?
+                        if (th instanceof FortressException) {
+                            FortressException pe = (FortressException) th;
+                            if (pe.getStaticErrors() != null)
+                                errors = pe.getStaticErrors();
+                        }
+                        if (th instanceof RuntimeException)
+                            throw (RuntimeException) th;
+                        if (th instanceof Error)
+                            throw (Error) th;
+                        throw new WrappedException(th, Debug.isOnMax());
+                    }
+
+                    for (StaticError error: errors) {
+                        System.err.println(error);
+                    }
+                    // If there are no errors,
+                    // all components will have been written to disk
+                    // by the CacheBasedRepository.
+                } catch ( StaticError e ){
+                    System.err.println(e);
+                    if ( Debug.isOnMax() ){
+                        e.printStackTrace();
+                    }
+                } catch (RepositoryError e) {
+                    System.err.println(e.getMessage());
+                } catch (FortressException e) {
+                    System.err.println(e.getMessage());
+                    e.printInterpreterStackTrace(System.err);
+                    if (Debug.isOnMax()) {
+                        e.printStackTrace();
+                    } else {
+                        System.err.println("Turn on -debug for Java-level error dump.");
+                    }
+                    System.exit(1);
+                }
+            }
         }
     }
 
