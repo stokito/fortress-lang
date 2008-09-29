@@ -71,6 +71,10 @@ public class Transform extends TemplateUpdateVisitor {
         syntaxEnvironment = syntaxEnvironment.extend(from, to);
     }
 
+    private Id generateId(Id original){
+        return NodeFactory.makeId(original, FreshName.getFreshName(original.getText() + "-g"));
+    }
+
     /*
     public Node forIdOnly(Id that, Option<APIName> api_result) {
         Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
@@ -138,7 +142,7 @@ public class Transform extends TemplateUpdateVisitor {
                 public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
                     Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
                     Id old = (Id) name_result.accept(this);
-                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                    Id generatedId = generateId(old);
                     Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                     extendSyntaxEnvironment(old, generatedId);
                     return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
@@ -146,7 +150,7 @@ public class Transform extends TemplateUpdateVisitor {
                 public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Type type_result) {
                     Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
                     Id old = (Id) name_result.accept(this);
-                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                    Id generatedId = generateId(old);
                     Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                     extendSyntaxEnvironment(old, generatedId);
                     return new VarargsParam(that.getSpan(), mods_result, generatedId, type_result);
@@ -168,7 +172,7 @@ public class Transform extends TemplateUpdateVisitor {
                                 List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
                                 if ( name_result instanceof Id) {
                                     Id old = (Id) ((Id)name_result).accept(transformer);
-                                    Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                                    Id generatedId = generateId(old);
                                     extendSyntaxEnvironment(old, generatedId);
                                     return new FnDef(that.getSpan(), mods_result, generatedId, staticParams_result, new_params_result, returnType_result, throwsClause_result, where_result, contract_result, that.getSelfName(), body_result);
                                 } else {
@@ -199,14 +203,14 @@ public class Transform extends TemplateUpdateVisitor {
                     return (LValue) value.accept( new TemplateUpdateVisitor(){
                         public Node forLValueBindOnly(LValueBind that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
                             Id old = (Id) name_result.accept(transformer);
-                            Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                            Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
                             return new LValueBind(that.getSpan(), generatedId, type_result, mods_result);
                         }
                         public Node forUnpastingBindOnly(UnpastingBind that, Id name_result, List<ExtentRange> dim_result) {
                             Id old = (Id) name_result.accept(transformer);
-                            Id generatedId = NodeFactory.makeId(old, FreshName.getFreshName(old.getText() + "-g"));
+                            Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
                             return new UnpastingBind(that.getSpan(), generatedId, dim_result);
