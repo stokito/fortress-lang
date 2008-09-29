@@ -296,6 +296,4 @@ test testRelationClosures() = do
   println("Relation closure tests pass")
 end
 
-run(args: String...) = ()
-
 end
