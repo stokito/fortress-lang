@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component XXXLabelShadowing
+export Executable
+run(args: String...) =
+do
+    println (do
+        label blah exit blah with do
+            do
+                label blah exit blah with do
+                    do
+                        label blah exit blah with do
+                            1
+                            7
+                        end
+                        end blah
+                    end
+                    6
+                end
+                end blah
+            end
+            5
+        end
+        end blah
+    end)
+end
+
+end
