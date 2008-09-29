@@ -1324,14 +1324,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override public Node forLabel(Label that) {
-        Id newName = (Id) that.getName().accept(this);
-        ExprDisambiguator dis = new ExprDisambiguator(_env, _errors,
-                                                      Option.wrap(that.getName()));
-        Block newBody = (Block) that.getBody().accept(dis);
+        Set<Id> labels = Useful.set(that.getName());
+        checkForShadowingVars(labels);
+        NameEnv newEnv = new LocalVarEnv(_env, labels);
+        ExprDisambiguator v =  new ExprDisambiguator(newEnv, _uninitializedNames, _errors,
+                                                     Option.wrap(that.getName()));
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return super.forLabelOnly(that, type_result , newName, newBody);
+        return forLabelOnly(that, type_result, (Id) that.getName().accept(v),
+                            (Block) that.getBody().accept(v));
     }
-
 
     @Override public Node forExitOnly(Exit that, Option<Type> exprType_result, Option<Id> target_result, Option<Expr> returnExpr_result) {
         Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
