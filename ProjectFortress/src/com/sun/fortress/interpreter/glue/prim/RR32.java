@@ -22,6 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FRR32;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
@@ -59,6 +60,12 @@ static private abstract class F2F extends NativeMeth0 {
     protected abstract float f(float x);
     protected final FValue act(FObject x) {
         return FRR32.make(f(x.getRR32()));
+    }
+}
+static private abstract class F2R extends NativeMeth0 {
+    protected abstract double f(float x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(x.getRR32()));
     }
 }
 static private abstract class F2L extends NativeMeth0 {
@@ -237,6 +244,9 @@ public static final class isNaN extends F2B {
 }
 public static final class ToString extends F2S {
     protected java.lang.String f(float x) { return java.lang.Float.toString(x); }
+}
+public static final class AsFloat extends F2R {
+    protected double f(float x) { return (double)x; }
 }
 
 }

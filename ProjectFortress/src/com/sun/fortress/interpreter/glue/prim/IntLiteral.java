@@ -51,9 +51,9 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 }
 
 private static BigInteger toB(FValue x) {
-	if (x instanceof FBigNum) {
-		return x.getBigInteger();
-	} else if (x instanceof FIntLiteral) {
+    if (x instanceof FBigNum) {
+        return x.getBigInteger();
+    } else if (x instanceof FIntLiteral) {
         return ((FIntLiteral)x).getLit();
     } else {
         return BigInteger.valueOf(x.getLong());
@@ -66,6 +66,12 @@ public static abstract class K2K extends NativeMeth0 {
         return FIntLiteral.make(f(toB(x)));
     }
 }
+static private abstract class K2R extends NativeMeth0 {
+    protected abstract double f(BigInteger x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(toB(x)));
+    }
+}
 public static abstract class K2S extends NativeMeth0 {
     protected abstract java.lang.String f(BigInteger x);
     protected final FValue act(FObject x) {
@@ -75,7 +81,7 @@ public static abstract class K2S extends NativeMeth0 {
 public static abstract class KK2K extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, BigInteger y);
     protected final FValue act(FObject x, FValue y) {
-		if (y instanceof FBigNum)
+        if (y instanceof FBigNum)
             return FBigNum.make(f(toB(x),toB(y)));
         else return FIntLiteral.make(f(toB(x),toB(y)));
     }
@@ -190,6 +196,9 @@ public static final class Cmp extends KK2I {
 }
 public static final class ToString extends K2S {
     protected java.lang.String f(BigInteger x) { return x.toString(); }
+}
+public static final class AsFloat extends K2R {
+    protected double f(BigInteger x) { return x.doubleValue(); }
 }
 public static final class Pow extends KL2N {
     protected FValue f(BigInteger u, long v) {

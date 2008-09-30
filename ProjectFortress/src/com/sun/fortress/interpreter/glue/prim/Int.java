@@ -69,6 +69,12 @@ static private abstract class Z2L extends NativeMeth0 {
         return FLong.make(f(x.getInt()));
     }
 }
+static private abstract class Z2R extends NativeMeth0 {
+    protected abstract double f(int x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(x.getInt()));
+    }
+}
 static private abstract class Z2S extends NativeMeth0 {
     protected abstract java.lang.String f(int x);
     protected final FValue act(FObject x) {
@@ -188,6 +194,9 @@ public static final class ToLong extends Z2L {
 }
 public static final class ToString extends Z2S {
     protected java.lang.String f(int x) { return Integer.toString(x); }
+}
+public static final class AsFloat extends Z2R {
+    protected double f(int x) { return (double)x; }
 }
 
 public static int rc(long i) {

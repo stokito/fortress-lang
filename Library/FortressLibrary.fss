@@ -339,20 +339,14 @@ trait Number
     getter zero(): Number = 0.0
     getter one(): Number = 1.0
     getter toString(): String
-    opr |self| : Number =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
-    opr =(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
-    opr =/=(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NEq")
-    opr <(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Less")
-    opr <=(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$LessEq")
-    opr >(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Greater")
-    opr >=(self, b:Number):Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
+    asFloat(self): RR64
+    opr |self| : Number = |asFloat(self)|
+    opr =(self, b:Number):Boolean = asFloat(self) = asFloat(b)
+    opr =/=(self, b:Number):Boolean = asFloat(self) =/= asFloat(b)
+    opr <(self, b:Number):Boolean = asFloat(self) < asFloat(b)
+    opr <=(self, b:Number):Boolean = asFloat(self) <= asFloat(b)
+    opr >(self, b:Number):Boolean = asFloat(self) > asFloat(b)
+    opr >=(self, b:Number):Boolean = asFloat(self) >= asFloat(b)
     opr CMP(self, b:Number):Comparison =
         if self<b then LessThan
         elif self>b then GreaterThan
@@ -361,106 +355,60 @@ trait Number
         end
     (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
         total order. **)
-    opr MIN(self, b:Number):Number =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
-    opr MAX(self, b:Number):Number =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
+    opr MIN(self, b:Number):Number = asFloat(self) MIN asFloat(b)
+    opr MAX(self, b:Number):Number = asFloat(self) MAX asFloat(b)
 
-    opr -(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
-    opr +(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
-    opr -(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
-    opr DOT(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-    opr TIMES(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr -(self):RR64 = -asFloat(self)
+    opr +(self,b:Number):RR64 = asFloat(self) + asFloat(b)
+    opr -(self,b:Number):RR64 = asFloat(self) - asFloat(b)
+    opr DOT(self,b:Number):RR64 = asFloat(self) DOT asFloat(b)
+    opr TIMES(self,b:Number):RR64 = asFloat(self) TIMES asFloat(b)
     opr juxtaposition
-         (self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
-    opr /(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
-    opr SQRT(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
-    opr PLUS_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUpNoNaN")
-    opr MINUS_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUpNoNaN")
-    opr DOT_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUpNoNaN")
-    opr SLASH_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUpNoNaN")
-    opr SQRT_UP(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtUp")
-    opr PLUS_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDownNoNaN")
-    opr MINUS_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDownNoNaN")
-    opr DOT_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDownNoNaN")
-    opr SLASH_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDownNoNaN")
-    opr SQRT_DOWN(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
-    opr IEEE_PLUS_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUp")
-    opr IEEE_MINUS_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUp")
-    opr IEEE_DOT_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUp")
-    opr IEEE_SLASH_UP(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUp")
-    opr IEEE_PLUS_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDown")
-    opr IEEE_MINUS_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDown")
-    opr IEEE_DOT_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDown")
-    opr IEEE_SLASH_DOWN(self,b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
-    opr ^(self, b:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+         (self,b:Number):RR64 = asFloat(self) asFloat(b)
+    opr /(self,b:Number):RR64 = asFloat(self) / asFloat(b)
+    opr SQRT(self):RR64 = SQRT asFloat(self)
+    opr PLUS_UP(self,b:Number):RR64 = asFloat(self) PLUS_UP asFloat(b)
+    opr MINUS_UP(self,b:Number):RR64 = asFloat(self) MINUS_UP asFloat(b)
+    opr DOT_UP(self,b:Number):RR64 = asFloat(self) DOT_UP asFloat(b)
+    opr SLASH_UP(self,b:Number):RR64 = asFloat(self) SLASH_UP asFloat(b)
+    opr SQRT_UP(self):RR64 = SQRT_UP asFloat(self)
+    opr PLUS_DOWN(self,b:Number):RR64 = asFloat(self) PLUS_DOWN asFloat(b)
+    opr MINUS_DOWN(self,b:Number):RR64 = asFloat(self) MINUS_DOWN asFloat(b)
+    opr DOT_DOWN(self,b:Number):RR64 = asFloat(self) DOT_DOWN asFloat(b)
+    opr SLASH_DOWN(self,b:Number):RR64 = asFloat(self) SLASH_DOWN asFloat(b)
+    opr SQRT_DOWN(self):RR64 = SQRT_DOWN asFloat(self)
+    opr IEEE_PLUS_UP(self,b:Number):RR64 = asFloat(self) IEEE_PLUS_UP asFloat(b)
+    opr IEEE_MINUS_UP(self,b:Number):RR64 = asFloat(self) IEEE_MINUS_UP asFloat(b)
+    opr IEEE_DOT_UP(self,b:Number):RR64 = asFloat(self) IEEE_DOT_UP asFloat(b)
+    opr IEEE_SLASH_UP(self,b:Number):RR64 = asFloat(self) IEEE_SLASH_UP asFloat(b)
+    opr IEEE_PLUS_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_PLUS_DOWN asFloat(b)
+    opr IEEE_MINUS_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_MINUS_DOWN asFloat(b)
+    opr IEEE_DOT_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_DOT_DOWN asFloat(b)
+    opr IEEE_SLASH_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_SLASH_DOWN asFloat(b)
+    opr ^(self, b:Number):RR64 = (asFloat(self))^b
     (** Shouldn't need this extra declaration. **)
-    opr ^(self, b:AnyIntegral):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
-    sin(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
-    cos(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
-    tan(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
-    asin(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ASin")
-    acos(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ACos")
-    atan(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan")
-    atan2(self,x:Number):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan2")
-    log(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Log")
-    exp(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Exp")
-    floor(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
-    opr |\self/| : ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
-    ceiling(self):RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
-    opr |/self\| : ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
-    truncate(self):ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
+    opr ^(self, b:AnyIntegral):RR64 = (asFloat(self))^b
+    sin(self):RR64 = sin(asFloat(self))
+    cos(self):RR64 = cos(asFloat(self))
+    tan(self):RR64 = tan(asFloat(self))
+    asin(self):RR64 = asin(asFloat(self))
+    acos(self):RR64 = acos(asFloat(self))
+    atan(self):RR64 = atan(asFloat(self))
+    atan2(self,x:Number):RR64 = atan2(asFloat(self), asFloat(x))
+    log(self):RR64 = log(asFloat(self))
+    exp(self):RR64 = exp(asFloat(self))
+    floor(self):RR64 = floor(asFloat(self))
+    opr |\self/| : ZZ64 = |\asFloat(self)/|
+    ceiling(self):RR64 = ceiling(asFloat(self))
+    opr |/self\| : ZZ64 = |/asFloat(self)\|
+    truncate(self):ZZ64 = truncate(asFloat(self))
 end
 
 trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
     (** returns true if the value is an IEEE NaN **)
-    getter isNaN(): Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isNaN")
+    getter isNaN(): Boolean = false
     (** returns true if the value is an IEEE infinity **)
-    getter isInfinite(): Boolean =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isInfinite")
+    getter isInfinite(): Boolean = false
     (** returns true if the value is a valid number (not NaN) **)
     getter isNumber(): Boolean = NOT self.isNaN
     (** returns true if the value is finite **)
@@ -472,15 +420,12 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
     getter check_star(): Maybe[\RR64\] =
         if self.isNaN then Nothing[\RR64\] else Just[\RR64\](self) end
     (** obtain the raw bits of the IEEE floating-point representation of this value. **)
-    getter rawBits():ZZ64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$RawBits")
-    getter signBit():ZZ32 = if rawBits() < 0 then 1 else 0 end
+    getter rawBits():ZZ64 = asFloat(self).rawBits
+    getter signBit():ZZ32 = if self.rawBits < 0 then 1 else 0 end
     (** next higher IEEE float **)
-    getter nextUp():RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextUp")
+    getter nextUp():RR64 = asFloat(self).nextUp
     (** next lower IEEE float **)
-    getter nextDown():RR64 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextDown")
+    getter nextDown():RR64 = asFloat(self).nextDown
     (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
         Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
         that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
@@ -505,8 +450,7 @@ trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
         end
       end
     (** returns a value of type RR32 **)
-    narrow(self): RR32 =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Narrow")
+    narrow(self): RR32 = narrow(asFloat(self))
 end
 
 trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
@@ -514,7 +458,6 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
     getter one(): QQ = 1
     getter isNaN(): Boolean
     getter isInfinite(): Boolean
-    getter isNumber(): Boolean = NOT self.isNaN
     getter isFinite(): Boolean = (denominator(self) =/= 0)
     numerator(self): ZZ
     denominator(self): ZZ  (* Ideally would be NN *)
@@ -583,6 +526,11 @@ object Ratio(num: ZZ, den: ZZ) extends { QQ }
     getter toString(): String = num.toString || "/" || den.toString
     getter isNaN(): Boolean = (numerator(self) = 0 AND denominator(self) = 0)
     getter isInfinite(): Boolean = (numerator(self) =/= 0 AND denominator(self) = 0)
+    (* note: The following will be wrong if num is very large but
+    comparable in magnitude to den.  Good algorithms for this case
+    exist (we can find the simplest rational within epsilon of the
+    given rational) and we ought to support them. *)
+    asFloat(self): RR64 = (num+0.0) / den
     numerator(self):ZZ = num
     denominator(self):ZZ = den
 end
@@ -1854,7 +1802,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
         extends { Indexed1[\s0\], Rank1, ReadableArray[\T,ZZ32\] }
         comprises { ImmutableArray1[\T,b0,s0\], Array1[\T,b0,s0\] }
     getter size():ZZ32 = s0
-    getter bounds():ScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](b0,s0)
+    getter bounds():DoomedScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](b0,s0)
     getter mutability():String
     getter toString() = do
         r = "[" b0 "#" s0 "]" self.mutability "["
@@ -1880,7 +1828,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     end
     toIndex(i:ZZ32):ZZ32 = i + b0
 
-    zeroIndices(): ScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](0,s0)
+    zeroIndices(): DoomedScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](0,s0)
 end
 
 trait ImmutableArray1[\T, nat b0, nat s0\]
@@ -3421,7 +3369,7 @@ end
 
     Data structure bounds are always bounded. **)
 trait FullRange[\T, bool bounded\] extends CompleteRange[\T\]
-        comprises { ScalarRange[\T,bounded\], TupleRange[\T,bounded\] }
+        comprises { DoomedScalarRange[\T,bounded\], TupleRange[\T,bounded\] }
     getter isBounded(): Boolean = bounded
     getter isSized(): Boolean = NOT bounded
 end
@@ -3432,14 +3380,14 @@ rangeIndexFailure[\T\](r:CompleteRange[\T\],i:T): () =
 (** ParRanges and SeqRanges, the simplest and most basic of all
     generators.  They generate |self| numbers, incrementing by 1,
     starting with self.lower (that's the canonical ordering). *)
-trait ScalarRange[\N extends Integral[\N\], bool bounded\]
+trait DoomedScalarRange[\N extends Integral[\N\], bool bounded\]
         extends { FullRange[\N, bounded\] }
         comprises { ParRange[\N, bounded\], SeqRange[\N, bounded\] }
     getter bounds():FullRange[\N,true\] = ParRange[\N,true\](0,self.extent)
     getter upper():N = self.lower + self.extent - 1
     getter size():ZZ32 = |self|
-    widenUpper(): ScalarRange[\N,false\] = self.lower#(self.extent+1)
-    widenLower(): ScalarRange[\N,false\] = (self.lower-1)#(self.extent+1)
+    widenUpper(): DoomedScalarRange[\N,false\] = self.lower#(self.extent+1)
+    widenLower(): DoomedScalarRange[\N,false\] = (self.lower-1)#(self.extent+1)
     opr |self| : ZZ32 = narrow(0 MAX self.extent)
     opr[i:N]: N =
         if 0 <= i < self.extent then
@@ -3454,7 +3402,7 @@ trait ScalarRange[\N extends Integral[\N\], bool bounded\]
 end
 
 value object ParRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
-        extends ScalarRange[\N,bounded\]
+        extends DoomedScalarRange[\N,bounded\]
     getter extent() = ex
     getter lower() = lo
     getter indexValuePairs() =
@@ -3524,7 +3472,7 @@ value object ParRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
         end
 end
 value object SeqRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
-        extends { ScalarRange[\N,bounded\], SequentialGenerator[\N\] }
+        extends { DoomedScalarRange[\N,bounded\], SequentialGenerator[\N\] }
     getter extent() = ex
     getter lower() = lo
     getter toString() =
