@@ -1105,7 +1105,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (arg instanceof OpExpr &&
                 isExponentiation((OpExpr)arg)) { // a^b!
                 vargs = error(arg,
-                              "It is a static error if an exponentiation is " +
+                              "Syntax Error: an exponentiation should not be " +
                               "immediately followed by a non-expression " +
                               "element.");
             } else if (arg instanceof TightJuxt) { // f(x)!
@@ -1232,13 +1232,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // It is a static error if either the argument is not
                     // parenthesized, or the argument is immediately followed by
                     // a non-expression element.
-                    if (!isParenthesisDelimited(argE) ||
-                        (ftnInd+2 < vs.size() &&
-                         !isExpr(vs.get(ftnInd+2).getA())))
+                    if (!isParenthesisDelimited(argE))
                        return error(((ExprMI)argE).getExpr(),
-                                    "It is a static error if either the " +
-                                    "argument is not parenthesized, or the " +
-                                    "argument is immediately followed by a " +
+                                    "Syntax Error: the " +
+                                    "argument is not parenthesized.");
+                    if (ftnInd+2 < vs.size() &&
+                        !isExpr(vs.get(ftnInd+2).getA()))
+                       return error(((ExprMI)argE).getExpr(),
+                                    "Syntax Error: the " +
+                                    "argument should not be immediately followed by a " +
                                     "non-expression element.");
                     // Otherwise, replace the function and argument with a
                     // single element that is the application of the function to
@@ -1253,8 +1255,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     if (isPostfix && vs.size() == 2 &&
                         isFunction(vs.get(0).getB()) && isExpr(vs.get(1).getA()))
                         return error(((ExprMI)vs.get(1).getA()).getExpr(),
-                                     "It is a static error if a " +
-                                     "function argument is immediately " +
+                                     "Syntax Error: a " +
+                                     "function argument should not be immediately " +
                                      "followed by a postfix operator.");
                     // Reassociate the resulting sequence (which is one element
                     // shorter).
@@ -1363,15 +1365,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     vs.add(new Pair<MathItem,FValue>(mi, ((ExprMI)mi).getExpr().accept(this)));
                 else { // mi instanceof NonExprMI
                     if (isExponentiation)
-                       return error(x, "It is a static error if an " +
-                                    "exponentiation is immediately followed " +
+                       return error(x, "Syntax Error: an " +
+                                    "exponentiation should not be immediately followed " +
                                     "by a subscripting or an exponentiation.");
                     vs.add(new Pair<MathItem,FValue>(mi, null));
                     isExponentiation = (mi instanceof ExponentiationMI);
                 }
             }
             if (isPostfix && isExponentiation) {
-                return error(x, "It is a static error if an exponentiation is " +
+                return error(x, "Syntax Error: an exponentiation should not be " +
                              "immediately followed by a postfix operator.");
             }
             if (vs.size() == 1) fval = vs.get(0).getB();
@@ -1462,8 +1464,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (isPostfix) {
                 // It is a static error if a function argument is immediately
                 // followed by a non-expression element.  For example, f(x)!
-                return error(x, "It is a static error if a function argument " +
-                             "is immediately followed by a non-expression " +
+                return error(x, "Syntax Error: a function argument " +
+                             "should not be immediately followed by a non-expression " +
                              "element.");
             } else {
                 return finishFunctionInvocation(exprs, fnVal, x);

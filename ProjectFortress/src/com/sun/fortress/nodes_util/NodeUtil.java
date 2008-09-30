@@ -484,12 +484,12 @@ public class NodeUtil {
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
             if (Character.isLetter(c))
-                syntaxError(span, "It is a static error if a numeral contains " +
+                syntaxError(span, "Syntax Error: a numeral contains " +
                             "letters and does not have a radix specifier.");
             if (c == '.') numberOfDots++;
         }
         if (numberOfDots > 1)
-            syntaxError(span, "It is a static error if a numeral contains more " +
+            syntaxError(span, "Syntax Error: a numeral contains more " +
                         "than one `.' character.");
     }
 
@@ -497,8 +497,8 @@ public class NodeUtil {
                                            String radix) {
         int radixNumber = radix2Number(radix);
         if (radixNumber == -1)
-            syntaxError(span, "It is a static error if the radix of " +
-                        "a numeral is not an integer from 2 to 16.");
+            syntaxError(span, "Syntax Error: the radix of " +
+                        "a numeral should be an integer from 2 to 16.");
         boolean sawUpperCase = false;
         boolean sawLowerCase = false;
         boolean sawAb = false;
@@ -509,31 +509,31 @@ public class NodeUtil {
             if (c == '.') numberOfDots++;
             if (Character.isUpperCase(c)) {
                 if (sawLowerCase)
-                    syntaxError(span, "It is a static error if a numeral " +
+                    syntaxError(span, "Syntax Error: a numeral " +
                                 "contains both uppercase and lowercase letters.");
                 else sawUpperCase = true;
             } else if (Character.isLowerCase(c)) {
                 if (sawUpperCase)
-                    syntaxError(span, "It is a static error if a numeral " +
+                    syntaxError(span, "Syntax Error: a numeral " +
                                 "contains both uppercase and lowercase letters.");
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-		    syntaxError(span, "It is a static error if a numeral " +
+		    syntaxError(span, "Syntax Error: a numeral " +
                                 "has radix 12 and contains letters other " +
                                 "than A, B, X, E, a, b, x or e.");
 		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
                     if (sawXe)
-                        syntaxError(span, "It is a static error if a numeral " +
+                        syntaxError(span, "Syntax Error: a numeral " +
                                     "has radix 12 and contains at least one " +
                                     "A, B, a or b and at least one X, E, x or e.");
                     else sawAb = true;
                 } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
                     if (sawAb)
-                        syntaxError(span, "It is a static error if a numeral " +
+                        syntaxError(span, "Syntax Error: a numeral " +
                                     "has radix 12 and contains at least one " +
                                     "A, B, a or b and at least one X, E, x or e.");
                     else sawXe = true;
@@ -542,14 +542,14 @@ public class NodeUtil {
             // The numeral has a radix other than 12.
             else if (!validDigitOrLetter(c, radixNumber)
                      && c != '.' && c != '\'' && c != '\u202F') {
-                syntaxError(span, "It is a static error if a numeral has a radix " +
+                syntaxError(span, "Syntax Error: a numeral has a radix " +
                             "specifier and contains a digit or letter that " +
                             "denotes a value greater than or equal to the " +
                             "numeral's radix.");
 	    }
         }
         if (numberOfDots > 1)
-            syntaxError(span, "It is a static error if a numeral contains more " +
+            syntaxError(span, "Syntax Error: a numeral contains more " +
                         "than one `.' character.");
     }
 
