@@ -46,9 +46,18 @@ import edu.rice.cs.plt.tuple.Option;
  * the results of their transformer executions.
  */
 public class Transform extends TemplateUpdateVisitor {
+    /* Map of a name to the macro transformer */
     private Map<String,Transformer> transformers;
+    /* Map of a template variable to a structure containing its value and
+     * its ellipses nesting depth
+     */
     private Map<String,Level> variables;
+    /* Map of original variable names to their renamed counterparts.
+     */
     private SyntaxEnvironment syntaxEnvironment;
+    /* rename is true if a macro has been invoked. When it is true
+     * variables must be renamed hygienically.
+     */
     private boolean rename = false;
     // private EllipsesEnvironment env;
 
@@ -67,6 +76,17 @@ public class Transform extends TemplateUpdateVisitor {
         return node.accept(transform);
     }
 
+    /* Anyone that calls this method should be sure to save the syntax
+     * environment on entry to the function and restore the environment
+     * on exit. Something like
+     * void foo(){
+     *      SyntaxEnvironment save = getSyntaxEnvironment();
+     *      ...
+     *      extendSyntaxEnvironment(...);
+     *      ...
+     *      setSyntaxEnvironment(save);
+     * }
+     */
     private void extendSyntaxEnvironment(Id from, Id to){
         syntaxEnvironment = syntaxEnvironment.extend(from, to);
     }
@@ -112,9 +132,21 @@ public class Transform extends TemplateUpdateVisitor {
      * VarargsParam  ( only for FnExpr and local function decls ) - done
      * Label - done
      * Typecase - done
-     * Catch
-     * GeneratorClause
+     * Catch - done
+     * GeneratorClause - 
      */
+
+    public Node forCatch(Catch that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Id name_result = generateId(that.getName());
+            List<CatchClause> clauses_result = recurOnListOfCatchClause(that.getClauses());
+            setSyntaxEnvironment(save);
+            return forCatchOnly(that, name_result, clauses_result);
+        } else {
+            return super.forCatch(that);
+        }
+    }
 
     public Node forLabel(Label that) {
         if ( rename ){
@@ -132,6 +164,7 @@ public class Transform extends TemplateUpdateVisitor {
 
     public Node forTypecase(Typecase that) {
         if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
             // List<Id> bindIds_result = recurOnListOfId(that.getBindIds());
             List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id,Id>(){
@@ -142,6 +175,7 @@ public class Transform extends TemplateUpdateVisitor {
             Option<Expr> bindExpr_result = recurOnOptionOfExpr(that.getBindExpr());
             List<TypecaseClause> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
             Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+            setSyntaxEnvironment(save);
             return new Typecase(exprType_result, newIds, bindExpr_result, clauses_result, elseClause_result);
         } else {
             return super.forTypecase(that);
