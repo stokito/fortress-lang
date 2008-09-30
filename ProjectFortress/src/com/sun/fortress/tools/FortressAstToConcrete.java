@@ -1393,7 +1393,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                        Option<String> finallyClause_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "try " ).append( body_result ).append( "\n" );
+        increaseIndent();
+        s.append( "try\n" ).append( indent(body_result) ).append( "\n" );
+        decreaseIndent();
         if ( catchClause_result.isSome() ) {
             s.append( catchClause_result.unwrap() ).append( "\n" );
         }
