@@ -110,8 +110,8 @@ public class Transform extends TemplateUpdateVisitor {
      * FnDef         ( only for local function decls ) - done
      * NormalParam   ( only for FnExpr and local function decls ) - done
      * VarargsParam  ( only for FnExpr and local function decls ) - done
-     * Label
-     * Typecase
+     * Label - done
+     * Typecase - done
      * Catch
      * GeneratorClause
      */
@@ -127,6 +127,24 @@ public class Transform extends TemplateUpdateVisitor {
             return new Label(exprType_result, newId, body_result);
         } else {
             return super.forLabel(that);
+        }
+    }
+
+    public Node forTypecase(Typecase that) {
+        if ( rename ){
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            // List<Id> bindIds_result = recurOnListOfId(that.getBindIds());
+            List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id,Id>(){
+                public Id apply(Id value){
+                    return generateId(value);
+                }
+            });
+            Option<Expr> bindExpr_result = recurOnOptionOfExpr(that.getBindExpr());
+            List<TypecaseClause> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
+            Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
+            return new Typecase(exprType_result, newIds, bindExpr_result, clauses_result, elseClause_result);
+        } else {
+            return super.forTypecase(that);
         }
     }
 
