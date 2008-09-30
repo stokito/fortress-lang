@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Typecase
+api GeneratorClause
     import FortressAst.{...}
     import FortressSyntax.{...}
 
@@ -27,9 +27,8 @@ api Typecase
                 Cons(fs,bs) =>
                     <[
                     do
-                        typecase q = "One" of
-                            String => q " " fs
-                            else => (foobar bs**)
+                        for x <- 0#fs do
+                            x + (foobar bs**)
                         end
                     end
                 ]>

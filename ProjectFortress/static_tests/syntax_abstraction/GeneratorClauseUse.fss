@@ -15,24 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Typecase
-    import FortressAst.{...}
-    import FortressSyntax.{...}
+component GeneratorClauseUse
+import GeneratorClause.{...}
+export Executable
 
-    grammar L extends {Expression, Identifier}
-        Expr |:=
-            a:foobar {e:Expr ,? SPACE}* =>
-            case e of
-                Empty => <[ 1 ]>
-                Cons(fs,bs) =>
-                    <[
-                    do
-                        typecase q = "One" of
-                            String => q " " fs
-                            else => (foobar bs**)
-                        end
-                    end
-                ]>
-            end
-    end
+run(args:String...) = do
+    println (foobar 5, 6, 7)
+end
+
 end

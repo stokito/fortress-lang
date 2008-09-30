@@ -133,18 +133,71 @@ public class Transform extends TemplateUpdateVisitor {
      * Label - done
      * Typecase - done
      * Catch - done
-     * GeneratorClause - 
+     * GeneratorClause - all the following nodes can contain GeneratorClause
+     *    TestDecl
+     *    For - done
+     *    While
+     *    Accumulator 
+     *    GeneratedExpr 
+     *    ArrayComprehensionClause 
+     *    IfClause
      */
+
+    /* this should only be called by a method that has a GeneratorClause */
+    private GeneratorClause handleGeneratorClause(GeneratorClause that){
+        List<Id> newIds = Useful.applyToAll(that.getBind(), new Fn<Id,Id>(){
+            public Id apply(Id value){
+                Id gen = generateId(value);
+                extendSyntaxEnvironment(value, gen);
+                return gen;
+            }
+        });
+        Expr init_result = (Expr) recur(that.getInit());
+        return new GeneratorClause(newIds, init_result);
+    }
+
+    public Node forFor(For that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            List<GeneratorClause> gens_result = Useful.applyToAll(that.getGens(), new Fn<GeneratorClause, GeneratorClause>(){
+                public GeneratorClause apply(GeneratorClause value){
+                    return handleGeneratorClause(value);
+                }
+            });
+            DoFront body_result = (DoFront) recur(that.getBody());
+            setSyntaxEnvironment(save);
+            return forForOnly(that, exprType_result, gens_result, body_result);
+        } else {
+            return super.forFor(that);
+        }
+    }
 
     public Node forCatch(Catch that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Id name_result = generateId(that.getName());
+            Id name_result = (Id) recur(that.getName());
+            Id newId = generateId(name_result);
+            extendSyntaxEnvironment(name_result, newId);
             List<CatchClause> clauses_result = recurOnListOfCatchClause(that.getClauses());
             setSyntaxEnvironment(save);
-            return forCatchOnly(that, name_result, clauses_result);
+            return forCatchOnly(that, newId, clauses_result);
         } else {
             return super.forCatch(that);
+        }
+    }
+
+    public Node forExit(Exit that) {
+        if ( rename ){
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Id> target_result = recurOnOptionOfId(that.getTarget());
+            if ( target_result.isSome() ){
+                target_result = Option.some(syntaxEnvironment.lookup(target_result.unwrap()));
+            }
+            Option<Expr> returnExpr_result = recurOnOptionOfExpr(that.getReturnExpr());
+            return forExitOnly(that, exprType_result, target_result, returnExpr_result);
+        } else {
+            return super.forExit(that);
         }
     }
 
@@ -154,6 +207,7 @@ public class Transform extends TemplateUpdateVisitor {
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
             Id name_result = (Id) recur(that.getName());
             Id newId = generateId(name_result);
+            extendSyntaxEnvironment(name_result, newId);
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
             return new Label(exprType_result, newId, body_result);
@@ -169,7 +223,9 @@ public class Transform extends TemplateUpdateVisitor {
             // List<Id> bindIds_result = recurOnListOfId(that.getBindIds());
             List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id,Id>(){
                 public Id apply(Id value){
-                    return generateId(value);
+                    Id gen = generateId(value);
+                    extendSyntaxEnvironment(value, gen);
+                    return gen;
                 }
             });
             Option<Expr> bindExpr_result = recurOnOptionOfExpr(that.getBindExpr());
