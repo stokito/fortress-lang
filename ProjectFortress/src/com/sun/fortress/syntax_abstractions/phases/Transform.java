@@ -116,6 +116,20 @@ public class Transform extends TemplateUpdateVisitor {
      * GeneratorClause
      */
 
+    public Node forLabel(Label that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Id name_result = (Id) recur(that.getName());
+            Id newId = generateId(name_result);
+            Block body_result = (Block) recur(that.getBody());
+            setSyntaxEnvironment(save);
+            return new Label(exprType_result, newId, body_result);
+        } else {
+            return super.forLabel(that);
+        }
+    }
+
     public Node forFnExpr(FnExpr that) {
         if ( rename ){
             final Transform transformer = this;
