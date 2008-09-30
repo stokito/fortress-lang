@@ -32,6 +32,7 @@ import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.GraphRepository;
@@ -102,7 +103,7 @@ public class FileTests {
                     //Option<CompilationUnit> _p = ASTIO.parseToJavaAst(fssFile, in, false);
 
                     {
-                        CompilationUnit p = ci.ast();
+                        Component p = (Component) ci.ast();
 
                         // oldOut.print(" RUNNING"); oldOut.flush();
                         if (!unexpectedOnly) System.out.println();

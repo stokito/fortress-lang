@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
@@ -36,8 +37,11 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.DesugarerVisitor;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Export;
+import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
@@ -123,36 +127,28 @@ public class ComponentWrapper {
     };
 
 
-    public ComponentWrapper(CompilationUnit comp, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
-        if (comp == null)
-            throw new NullPointerException("Null compilation unit not allowed");
-        p = comp;
-        p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
-        /*
-        if (ProjectProperties.noStaticAnalysis)
-            p = (CompilationUnit) RewriteInAbsenceOfTypeInfo.Only.visit(p);
-        else
-            p = (CompilationUnit) RewriteInPresenceOfTypeInfoVisitor.Only.visit(p);
-            */
+    public ComponentWrapper(Component comp, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+       this.implicitLibs = implicitLibs;
+       if (comp == null)
+            throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
+        p = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
         
-         String fortressFileName = comp.getName().getText();
+         String fortressFileName = p.getName().getText();
         
          try {
-            if (comp instanceof Component) {
+            
                 Environment e = loadCompiledEnvs ?
                     SimpleClassLoader.loadEnvironment(fortressFileName, false) :
-                    new BetterEnvLevelZero(comp); // BetterEnv.empty(comp.at());
+                    new BetterEnvLevelZero(comp);
                 e.setTopLevel();
-                be = ((Component) comp).is_native() ?
+                be = (comp.is_native() ?
                         new BuildNativeEnvironment(e, linker) :
-                        new BuildTopLevelEnvironments(e, linker);
-            } else { // comp instanceof Api
-                Environment e = loadCompiledEnvs ?
-                     SimpleClassLoader.loadEnvironment(fortressFileName, true) :
-                         new BetterEnvLevelZero(comp); // BetterEnv.empty(comp.at());
-                e.setTopLevel();
-                be = new BuildApiEnvironment(e, linker);
-            }
+                        new BuildTopLevelEnvironments(e, linker));
+                List<Export> component_exports = comp.getExports();
+                for (Export exp : component_exports) {
+                    // TODO work in progress, this might not be the best place
+                }
+            
         } catch (IOException ex) {
             bug("Failed to load class (" + ex + ") for " + comp);
         } catch (InstantiationException ex) {
@@ -160,7 +156,30 @@ public class ComponentWrapper {
         } catch (IllegalAccessException ex) {
             bug("Failed to load class (" + ex + ") for " + comp);
         }
+    }
+
+    public ComponentWrapper(Api api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
         this.implicitLibs = implicitLibs;
+        if (api == null)
+            throw new NullPointerException("Null api (1st parameter to constructor) not allowed");
+        p = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
+        
+         String fortressFileName = p.getName().getText();
+        
+         try {
+                Environment e = loadCompiledEnvs ?
+                     SimpleClassLoader.loadEnvironment(fortressFileName, true) :
+                         new BetterEnvLevelZero(api);
+                e.setTopLevel();
+                be = new BuildApiEnvironment(e, linker);
+            
+        } catch (IOException ex) {
+            bug("Failed to load class (" + ex + ") for " + api);
+        } catch (InstantiationException ex) {
+            bug("Failed to load class (" + ex + ") for " + api);
+        } catch (IllegalAccessException ex) {
+            bug("Failed to load class (" + ex + ") for " + api);
+        }
     }
 
     /**
@@ -172,6 +191,12 @@ public class ComponentWrapper {
         this(comp, linker, implicitLibs);
 
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
+    }
+
+    public ComponentWrapper(Component comp, List<ComponentWrapper> api_list, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+        this(comp, linker, implicitLibs);
+        for (ComponentWrapper api : api_list) 
+            exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
     public static boolean overloadable(Object u) {
@@ -199,16 +224,16 @@ public class ComponentWrapper {
         return exports.values();
     }
     
-    public void getExports(boolean isLibrary) {
+    public void touchExports(boolean suppressDebugDump) {
         if (visitState != UNVISITED)
             return;
 
         visitState = IMPORTED;
 
-        desugarer = new DesugarerVisitor(isLibrary);
+        desugarer = new DesugarerVisitor(suppressDebugDump);
 
         for (ComponentWrapper api: exports.values()) {
-            api.getExports(isLibrary);
+            api.touchExports(suppressDebugDump);
         }
     }
 
@@ -228,7 +253,7 @@ public class ComponentWrapper {
 
      public CompilationUnit populateOne() {
         if (visitState != IMPORTED)
-            return bug("Component wrapper in wrong visit state: " + visitState);
+            return bug("Component wrapper " + name() + " in wrong visit state: " + visitState);
 
         visitState = POPULATED;
 
@@ -349,6 +374,10 @@ public class ComponentWrapper {
 
     public boolean isOwnName(String s) {
         return ownNames.contains(s);
+    }
+
+    public List<Import> getImports() {
+        return p.getImports();
     }
 
 

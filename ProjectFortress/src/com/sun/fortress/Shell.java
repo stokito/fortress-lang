@@ -349,9 +349,9 @@ public final class Shell {
         APIName name = trueApiName( file );
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
-        CompilationUnit cu = bcr.getLinkedComponent(name).ast();
-        FValue result = Driver.runProgram(bcr, cu, args);
-        bcr.deleteComponent(cu.getName());
+        Component c = (Component) bcr.getLinkedComponent(name).ast();
+        FValue result = Driver.runProgram(bcr, c, args);
+        bcr.deleteComponent(c.getName());
         return result;
     }
 
@@ -777,7 +777,7 @@ public final class Shell {
                         APIName name = trueApiName( file );
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );
-                        CompilationUnit cu = bcr.getLinkedComponent(name).ast();
+                        Component cu =  (Component) bcr.getLinkedComponent(name).ast();
                         Driver.runTests(bcr, cu);
                     } catch (Throwable th) {
                         // TODO FIXME what is the proper treatment of errors/exceptions etc.?
