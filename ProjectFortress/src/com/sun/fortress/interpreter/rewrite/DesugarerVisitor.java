@@ -306,14 +306,19 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         // packages = new BASet<String>(StringHashComparer.V);
     }
 
-    public DesugarerVisitor(boolean isLibrary) {
+    /**
+     * Returns a new DesugarerVisitor.
+     * 
+     * @param suppressDebugDump normally true for everything but files mentioned on the command line.
+     */
+    public DesugarerVisitor(boolean suppressDebugDump) {
         this(new BATree<String, Thing>(StringHashComparer.V),
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V)
              );
-        this.isLibrary = isLibrary;
+        this.isLibrary = suppressDebugDump;
     }
 
     /**

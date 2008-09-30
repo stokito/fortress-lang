@@ -64,6 +64,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnDef;
@@ -126,7 +127,7 @@ public class Driver {
 
     public static ArrayList<ComponentWrapper> components;
 
-    public static Environment evalComponent(CompilationUnit p,
+    public static Environment evalComponent(Component p,
                                             FortressRepository fr)
         throws IOException {
 
@@ -143,14 +144,19 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
+        /* 
+         * This looks like gratuitous and useless error checking that
+         * interferes with the "test" flag.
+         * 
         for(String defaultLib : WellKnownNames.defaultLibrary) {
             APIName libAPI = NodeFactory.makeAPIName(defaultLib);
             if (p.getName().equals(libAPI)) {
                 error("Fortress built-in library " + defaultLib + " does not export executable.");
             }
         }
-        
-        ComponentWrapper comp = new ComponentWrapper((Component) p, linker, WellKnownNames.defaultLibrary);
+        */
+       
+        ComponentWrapper comp = commandLineComponent(fr, linker, pile, p);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -170,9 +176,9 @@ public class Driver {
          * the values/types associated with each of those names).
          *
          */
-        comp.getExports(false);
-        linker.put("main", comp);
-        pile.push(comp);
+        comp.touchExports(false);
+        // linker.put("Executable", comp);
+        //pile.push(comp);
 
 
         /*
@@ -481,23 +487,48 @@ public class Driver {
 
             ComponentWrapper apicw = new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary);
             newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
-            newwrapper.getExports(true);
+            newwrapper.touchExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
 
-            List<Import> imports = newcomp.getImports();
-            // This is what pile.push is for:
-            // ensureImportsImplemented(linker, pile, imports);
-
-            imports = newapi.getImports();
+            List<Import> imports = newapi.getImports();
             ensureImportsImplemented(fr, linker, pile, imports);
         }
         return newwrapper;
     }
+    
+    private static ComponentWrapper commandLineComponent(FortressRepository fr,
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile, Component comp) throws IOException {
+        
+            APIName name = comp.getName();
+            String apiname = NodeUtil.nameString(name);
+            ComponentWrapper comp_wrapper; 
+            
+            List<ComponentWrapper> exports_list = new ArrayList<ComponentWrapper>(1);
+            for (Export ex : comp.getExports()) 
+                for (APIName ex_apiname : ex.getApis()) {
+                    String ex_name = NodeUtil.nameString(ex_apiname);
+                    Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
+                    exports_list.add( new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
+                }
+                         
+            comp_wrapper = new ComponentWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
+            comp_wrapper.touchExports(true);
+            linker.put(apiname, comp_wrapper);
+            pile.push(comp_wrapper);
+
+            for (ComponentWrapper apicw : exports_list) {
+                List<Import> imports  = apicw.getImports();
+                linker.put(apicw.name(), comp_wrapper);
+                ensureImportsImplemented(fr, linker, pile, imports);
+            }
+        return comp_wrapper;
+    }
 
     // This runs the program from inside a task.
     public static FValue
-        runProgramTask(CompilationUnit p,
+        runProgramTask(Component p,
                        List<String> args, String toBeRun,
                        FortressRepository fr)
         throws IOException
@@ -539,7 +570,7 @@ public class Driver {
     }
 
 
-    public static void runTests(FortressRepository fr, CompilationUnit p) 
+    public static void runTests(FortressRepository fr, Component p) 
         throws Throwable {
 
         BuildTestEnvironments bte = new BuildTestEnvironments ();
@@ -560,7 +591,7 @@ public class Driver {
     }
 
     // This creates the parallel context
-    public static FValue runProgram(FortressRepository fr, CompilationUnit p,
+    public static FValue runProgram(FortressRepository fr, Component p,
                                     List<String> args)
         throws Throwable {
 

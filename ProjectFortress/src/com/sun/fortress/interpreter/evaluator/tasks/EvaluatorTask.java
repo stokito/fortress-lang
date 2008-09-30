@@ -23,11 +23,12 @@ import java.util.List;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class EvaluatorTask extends BaseTask {
 
-    final CompilationUnit p;
+    final Component p;
 
     final List<String> args;
 
@@ -37,7 +38,7 @@ public class EvaluatorTask extends BaseTask {
 
     FValue theResult;
 
-    public EvaluatorTask(FortressRepository fr, CompilationUnit prog,
+    public EvaluatorTask(FortressRepository fr, Component prog,
                          String toRun, List<String> args_) {
         super();
         p = prog;
