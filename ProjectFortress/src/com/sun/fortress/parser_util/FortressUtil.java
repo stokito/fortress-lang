@@ -309,8 +309,8 @@ public final class FortressUtil {
                                     "11","12","13","14","15","16"};
         List<String> validRadix = new LinkedList<String>(java.util.Arrays.asList(all));
         if (! validRadix.contains( radix )) {
-            syntaxError(span, "It is a static error if the radix of " +
-                        "a numeral is not an integer from 2 to 16.");
+            syntaxError(span, "Syntax Error: the radix of " +
+                        "a numeral must be an integer from 2 to 16.");
             return false;
         } else return true;
     }

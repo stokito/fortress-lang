@@ -191,8 +191,8 @@ private constant inline Action<IntExpr> ExponentIntExpr =
            public IntExpr run(IntExpr base) {
                if (NodeUtil.isExponentiation((IntExpr)base))
                    return syntaxError(((IntExpr)base).getSpan(),
-                                      "It is a static error if an " +
-                                      "exponentiation is immediately followed " +
+                                      "Syntax Error: an " +
+                                      "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");
                return new ExponentConstraint(createSpan(yyStart,yyCount),
                                              (IntExpr)base, a1);
