@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component fib13
+export Executable
+
+phi = (1 + SQRT 5) / 2
+
+fib13[\I\](n:I): I requires { n >= 0 } = do
+    |\ phi^n / SQRT 5 + 1/2 /|
+  end
+
+run(args:String...):()=do
+  assert(fib13(20),6765,"fib(20) wrong")
+  assert(fib13(25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ\](25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ32\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ32\](25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ64\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ64\](25),75025,"fib(25) wrong")
+  assert(fib13[\NN32\](unsigned(20)),6765,"fib(20) wrong")
+  assert(fib13[\NN32\](unsigned(25)),75025,"fib(25) wrong")
+  assert(fib13[\NN64\](unsigned(20)),6765,"fib(20) wrong")
+  assert(fib13[\NN64\](unsigned(25)),75025,"fib(25) wrong")
+end
+
+end
