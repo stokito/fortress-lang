@@ -64,6 +64,12 @@ public static abstract class Z2Z extends NativeMeth0 {
         return FBigNum.make(f(toB(x)));
     }
 }
+static private abstract class Z2R extends NativeMeth0 {
+    protected abstract double f(BigInteger x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(toB(x)));
+    }
+}
 public static abstract class Z2S extends NativeMeth0 {
     protected abstract java.lang.String f(BigInteger x);
     protected final FValue act(FObject x) {
@@ -186,6 +192,9 @@ public static final class Cmp extends ZZ2I {
 }
 public static final class ToString extends Z2S {
     protected java.lang.String f(BigInteger x) { return x.toString(); }
+}
+public static final class AsFloat extends Z2R {
+    protected double f(BigInteger x) { return x.doubleValue(); }
 }
 
 public static final class Pow extends ZL2N {

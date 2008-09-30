@@ -85,6 +85,12 @@ static private abstract class L2Z extends NativeMeth0 {
         return FBigNum.make(f(x.getLong()));
     }
 }
+static private abstract class L2R extends NativeMeth0 {
+    protected abstract double f(long x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(x.getLong()));
+    }
+}
 static private abstract class L2S extends NativeMeth0 {
     protected abstract java.lang.String f(long x);
     protected final FValue act(FObject x) {
@@ -208,6 +214,9 @@ public static final class ToBigNum extends L2Z {
 
 public static final class ToString extends L2S {
     protected java.lang.String f(long x) { return java.lang.Long.toString(x); }
+}
+public static final class AsFloat extends L2R {
+    protected double f(long x) { return (double)x; }
 }
 
 public static final class NanoTime extends NativeFn0 {

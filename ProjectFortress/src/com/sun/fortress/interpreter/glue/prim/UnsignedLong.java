@@ -76,6 +76,12 @@ static private abstract class U2N extends NativeMeth0 {
         return FNN32.make(f(x.getNN64()));
     }
 }
+static private abstract class U2R extends NativeMeth0 {
+    protected abstract double f(long x);
+    protected final FValue act(FObject x) {
+        return FFloat.make(f(x.getNN64()));
+    }
+}
 static private abstract class U2S extends NativeMeth0 {
     protected abstract java.lang.String f(long x);
     protected final FValue act(FObject x) {
@@ -194,6 +200,9 @@ public static final class FromLong extends U2N {
 }
 public static final class ToString extends U2S {
     protected java.lang.String f(long x) { return Unsigned.toString(x); }
+}
+public static final class AsFloat extends U2R {
+    protected double f(long x) { return Unsigned.toDouble(x); }
 }
 
 public static long gcd(long u, long v) {

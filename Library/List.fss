@@ -71,7 +71,10 @@ export List
    demos/ArrayListLong.fss
 *)
 
-private scale(x : ZZ32): ZZ32 = 2 x
+(* minSize must be >= 1 *)
+minSize : ZZ32 := 44
+
+private scale(x : ZZ32): ZZ32 = minSize MAX (2 x)
 
 private expansion(curr: ZZ32, new: ZZ32) =
     if new > curr then
@@ -490,9 +493,9 @@ emptyList[\E\](n:ZZ32): List[\E\] =
 private cvSingleton(e:Any): AnyList = singleton(e)
 
 singleton[\E\](e:E): List[\E\] = do
-    u = PrimImmutableArray[\E,1\]()
+    u = primitiveImmutableArray[\E\](minSize)
     u.init0(0,e)
-    fromImmutableArray[\E\](u)
+    ArrayList[\E\](u,0,noShot,1,if minSize > 1 then oneShot() else noShot end)
   end
 
 end

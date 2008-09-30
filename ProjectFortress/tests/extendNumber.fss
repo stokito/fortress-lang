@@ -22,6 +22,7 @@ export Executable
 
 object Infinity extends Number
   getter toString(): String = "Infinity"
+  asFloat(self): RR64 = 1.0 / 0.0
 end
 
 run(args:String...):() = ()

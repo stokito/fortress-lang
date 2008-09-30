@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
+import com.sun.fortress.interpreter.evaluator.values.FFloat;
 import com.sun.fortress.interpreter.evaluator.values.FFloatLiteral;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FString;
@@ -47,8 +48,17 @@ static private abstract class Rlit2S extends NativeMeth0 {
         return FString.make(f(x.getString()));
     }
 }
+static private abstract class Rlit2R extends NativeMeth0 {
+    protected abstract double f(double x);
+    protected final FFloat act(FObject x) {
+        return FFloat.make(f(x.getFloat()));
+    }
+}
 public static final class ToString extends Rlit2S {
     protected java.lang.String f(java.lang.String x) { return x; }
+}
+public static final class AsFloat extends Rlit2R {
+    protected double f(double x) { return x; }
 }
 
 }
