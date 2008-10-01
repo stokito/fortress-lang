@@ -766,7 +766,7 @@ public final class Shell {
             	rest = Debug.parseOptions(rest);
             }
             if (s.equals("-noPreparse")) setPreparse(false);
-            run(rest);
+            runTests(rest);
         } else {
             for (String file : args) {
                 try {
