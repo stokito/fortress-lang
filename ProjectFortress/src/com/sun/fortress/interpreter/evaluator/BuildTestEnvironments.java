@@ -24,12 +24,11 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.values.Closure;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
-
-import com.sun.fortress.interpreter.evaluator.values.Closure;
-import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 
 /**
  * This is a very simple visitor which just gathers up all of the test functions/data and adds them to the environment.
@@ -58,15 +57,15 @@ public class BuildTestEnvironments extends NodeDepthFirstVisitor<Boolean> {
         if (!mods.isEmpty()) {
             for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
                     Modifier m = i.next();
-                    if (m instanceof ModifierTest) 
+                    if (m instanceof ModifierTest)
                         return true;
             }
         }
         return false;
     }
-        
+
     public Boolean forFnDef(FnDef x) {
-        System.out.println("ForFnDef " + x);
+        Debug.debug( Debug.Type.INTERPRETER, 2, "ForFnDef ", x);
         List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
