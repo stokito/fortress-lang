@@ -19,7 +19,10 @@
    Implementation in the Fortress Programming Language of an Interpreter for the
    dynamic semantics of Featherweight Java, as defined in:
 
-   Types and Programming Languages. Benjamin C. Pierce. MIT Press, 2002.
+   Featherweight Java: A Minimal Core Calculus for Java and GJ,
+   Atsushi Igarashi and Benjamin C. Pierce,
+   ACM Transactions on Programming Languages and Systems, Vol. 23, No. 3,
+   May 2001, Pages 396-450.
 
    Author: Eric Allen, January 2008.
  *)
@@ -84,21 +87,21 @@ object Class(name: String, ext: Type,
              fields: List[\Decl\], cons: Cons, meths: List[\Meth\])
 end
 
-(* Terms *)
-trait Term
+(* Exprs *)
+trait Expr
   isVal(): Boolean = false
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr
     ensures { outcome.isVal() }
   toString(): String
 end
 
-object Var(x: String) extends Term
+object Var(x: String) extends Expr
   opr =(self, other: Var) = (x = other.x)
   toString(): String = x
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term = theta[x]
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = theta[x]
 end
 
-object New(tag: Type, args: List[\Term\]) extends Term
+object New(tag: Type, args: List[\Expr\]) extends Expr
   isVal() = BIG AND[arg <- args] arg.isVal()
 
   opr =(self, other: New) =
@@ -106,43 +109,43 @@ object New(tag: Type, args: List[\Term\]) extends Term
 
   toString() = "new " tag.toString() <|[\String\] a.toString() | a <- args|>
 
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term =
-    New(tag, <|[\Term\] arg.eval(CT_, theta) | arg <- args |>)
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
+    New(tag, <|[\Expr\] arg.eval(CT_, theta) | arg <- args |>)
 end
 
-object Proj(receiver: Term, field: String) extends Term
+object Proj(receiver: Expr, field: String) extends Expr
   opr =(self, other: Proj) =
     (receiver = other.receiver) AND (field = other.field)
 
   toString() = (receiver.toString() "." field)
 
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term =
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
     CT_.field(cast[\New\](receiver.eval(CT_, theta)), field)
 end
 
-object Invk(receiver: Term, m_name: String, args: List[\Term\]) extends Term
+object Invk(receiver: Expr, m_name: String, args: List[\Expr\]) extends Expr
   opr =(self, other: Invk) =
     (receiver = other.receiver) AND (m_name = other.m_name) AND (args = other.args)
 
   toString() = (receiver.toString "." m_name args)
 
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term = do
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     rec_v = cast[\New\](receiver.eval(CT_, theta))
-    args_v = <|[\Term\] arg.eval(CT_, theta) | arg <- sequential(args) |>
+    args_v = <|[\Expr\] arg.eval(CT_, theta) | arg <- sequential(args) |>
     m = CT_.mbody(rec_v.tag, m_name)
-    theta' = {[\String, Term\]"this" |-> rec_v asif Term} UNION
-      {[\String, Term\] x.name |-> e | (x,e) <- m.params.zip[\Term\](args_v)}
+    theta' = {[\String, Expr\]"this" |-> rec_v asif Expr} UNION
+      {[\String, Expr\] x.name |-> e | (x,e) <- m.params.zip[\Expr\](args_v)}
 
     m.body.eval(CT_, theta')
   end
 end
 
-object Cast(typ: Type, term: Term) extends Term
+object Cast(typ: Type, term: Expr) extends Expr
   opr =(self, other: Cast) = (typ = other.typ) AND (term = other.term)
 
   toString() = ("(" typ.toString() ")" term.toString())
 
-  eval(CT_: ClassTable, theta: Map[\String, Term\]): Term = do
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     cast_v = cast[\New\](term.eval(CT_, theta))
     if (CT_ VDASH (cast_v.tag < typ)) then cast_v
     else fail("Class cast exception: " cast_v.typ
@@ -161,17 +164,17 @@ end
 object Decl(typ: Type, name: String)
   toString() = typ " " name ";"
 end
-object Cons(params: List[\Decl\],
+object Cons(tag: Type, params: List[\Decl\],
             super: List[\Var\], this: List[\Init\])
 end
 object Init(left: String, right: String) end
 
 object Meth(return: Type, name: String, params: List[\Decl\],
-            body: Term)
+            body: Expr)
 end
 
 (* Operators *)
-opr VDASH(context: (ClassTable, Map[\String, Term\]), terms: EvalThunk) = do
+opr VDASH(context: (ClassTable, Map[\String, Expr\]), terms: EvalThunk) = do
   (terms.t1.eval(context) = terms.t2)
 end
 
@@ -179,40 +182,40 @@ opr VDASH(context: ClassTable, types: SubtypeThunk) = do
   context.subtype(types.typ1, types.typ2)
 end
 
-object EvalThunk(t1: Term, t2: Term) end
+object EvalThunk(t1: Expr, t2: Expr) end
 object SubtypeThunk(typ1: Type, typ2: Type) end
 
-opr ->(t1: Term, t2: Term) = EvalThunk(t1, t2)
+opr ->(t1: Expr, t2: Expr) = EvalThunk(t1, t2)
 
 opr <(typ1: Type, typ2: Type) = SubtypeThunk(typ1, typ2)
 
 (* Testing *)
 run(args) = do
   obj = Type("Object")
-  newObj = New(obj, emptyList[\Term\]())
+  newObj = New(obj, emptyList[\Expr\]())
   x = Var("x")
   y = Var("y")
   this = Var("this")
   c = Type("c")
-  n = New(c, <|newObj asif Term|>)
+  n = New(c, <|newObj asif Expr|>)
   d = Decl(obj,"_x")
   dx = Decl(obj, "x")
   dy = Decl(obj, "y")
   i = Init("x","_x")
   e = <|d|>
-  k = Cons(e, emptyList[\Var\](), <| i |>)
+  k = Cons(c, e, emptyList[\Var\](), <| i |>)
   m = Meth(obj, "m", <|dy|>, y)
   m' = Meth(obj, "n", <|d|>, Proj(this, "x"))
   l = Class("c", obj, <|dx|>, k, <|m, m'|>)
   t = {[\String,Class\]"c" |-> l}
   p = Proj(x, "x")
-  v = Invk(x, "m", <|n asif Term|>)
+  v = Invk(x, "m", <|n asif Expr|>)
   cst1 = Cast(c, x)
   cst2 = Cast(obj, x)
-  v' = Invk(x, "n", <|n asif Term|>)
+  v' = Invk(x, "n", <|n asif Expr|>)
   CT_ = ClassTable(t)
-  theta0 = mapping[\String, Term\]()
-  theta1 = {[\String,Term\]"x" |-> n asif Term, "y" |-> newObj}
+  theta0 = mapping[\String, Expr\]()
+  theta1 = {[\String,Expr\]"x" |-> n asif Expr, "y" |-> newObj}
 
   assert((CT_, theta0) VDASH (n -> n))
   assert((CT_, theta1) VDASH (x -> n))
