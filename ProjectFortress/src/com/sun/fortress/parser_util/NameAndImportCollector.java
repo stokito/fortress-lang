@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
+import com.sun.fortress.nodes._RewriteObjectExpr;
 
 public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> {
 
@@ -44,13 +45,15 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 	@Override
 	public List<Import> forComponentOnly(Component that,
 			List<Import> name_result, List<List<Import>> imports_result,
-			List<List<Import>> exports_result, List<List<Import>> decls_result) {
+			List<List<Import>> exports_result, List<List<Import>> decls_result,
+                        List<List<Import>> objectExprs) {
+	        // note objectExprs parameter is a temporary hack.
 		this.namesAndImports = new NameAndImportCollection();
 		this.namesAndImports.setComponentName(that.getName());
 		this.namesAndImports.setImports(collapseList(imports_result));
 
 		return super.forComponentOnly(that, name_result, imports_result,
-				exports_result, decls_result);
+				exports_result, decls_result, objectExprs);
 	}
 
 	@Override
