@@ -126,7 +126,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forNumberConstraint(NumberConstraint node) {
-        return "" + node.getVal().toString();
+        return node.getVal().accept(this);
     }
 
     public String forBoolParam(BoolParam node) {
@@ -184,7 +184,23 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forUnitRef(UnitRef node) {
         return NodeUtil.nameString(node.getName());
     }
+    
+    private String forUnitOpExpr(UnitOpExpr node, String op) {
+        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
+    }
 
+    public String forProductUnit(ProductUnit node) {
+        return forUnitOpExpr(node, " ");
+    }
+    
+    public String forQuotientUnit(QuotientUnit node) {
+        return forUnitOpExpr(node, "/");
+    }
+    
+    public String forExponentUnit(ExponentUnit node) {
+        return forUnitOpExpr(node, "^");
+    }
+    
     public String forIntRef(IntRef node) {
         return NodeUtil.nameString(node.getName());
     }
@@ -192,11 +208,54 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forBoolRef(BoolRef node) {
         return NodeUtil.nameString(node.getName());
     }
+    
+    public String forNotConstraint(NotConstraint node) {
+        return "NOT(" + node.getBool().accept(this) + ")";
+    }
+    
+    private String forBoolOpConstraint(BinaryBoolConstraint node, String op) {
+        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";        
+    }
+    public String forAndConstraint(AndConstraint node) {
+        return forBoolOpConstraint(node, " AND ");
+    }
+    
+    public String forOrConstraint(OrConstraint node) {
+        return forBoolOpConstraint(node, " OR ");
+    }
+    
+    public String forImpliesConstraint(ImpliesConstraint node) {
+        return forBoolOpConstraint(node, " IMPLIES ");
+    }
 
+    public String forBEConstraint(BEConstraint node) {
+        return forBoolOpConstraint(node, " IFF ");
+    }
+    
     public String forVarRef(VarRef node) {
         return NodeUtil.nameString(node.getVar());
     }
 
+    private String forOpConstraint(IntOpExpr node, String op) {
+        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
+
+    }
+    public String forSumConstraint(SumConstraint node) {
+        return forOpConstraint(node, "+");
+    }
+    
+    public String forMinusConstraint(MinusConstraint node) {
+        return forOpConstraint(node, "-");
+    }
+    
+    public String forProductConstraint(ProductConstraint node) {
+        return forOpConstraint(node, " ");
+    }
+    
+    public String forExponentConstraint(ExponentConstraint node) {
+        return forOpConstraint(node, "^");
+    }
+    
     public String for_RewriteObjectRef(_RewriteObjectRef node) {
         List<StaticArg> sargs = node.getStaticArgs();
         return forId(node.getObj()) +
