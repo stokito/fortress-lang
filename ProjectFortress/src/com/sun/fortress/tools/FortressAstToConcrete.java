@@ -221,7 +221,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forComponentOnly(Component that, String name_result,
                                              List<String> imports_result,
                                              List<String> exports_result,
-                                             List<String> decls_result) {
+                                             List<String> decls_result,
+                                             List<String> objectExprs) {
+        // note objectExprs parameter is a temporary hack.
         StringBuilder s = new StringBuilder();
         if (that.is_native())
             s.append( "native " );

@@ -167,10 +167,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     public Node forComponentOnly(Component that, APIName name_result,
                                      List<Import> imports_result,
                                      List<Export> exports_result,
-                                     List<Decl> decls_result) {
+                                     List<Decl> decls_result,
+                                     List<_RewriteObjectExpr> objectExprs) {
+        // note objectExprs parameter is a temporary hack.
         decls_result.addAll(newObjectDecls);
         return super.forComponentOnly(that, name_result,
-                        imports_result, exports_result, decls_result);
+                        imports_result, exports_result, decls_result, objectExprs);
     }
 
     @Override

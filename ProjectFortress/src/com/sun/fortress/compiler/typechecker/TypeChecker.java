@@ -2001,7 +2001,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	         TypeCheckerResult name_result,
 	         List<TypeCheckerResult> imports_result,
 	         List<TypeCheckerResult> exports_result,
-	         List<TypeCheckerResult> decls_result) {
+	         List<TypeCheckerResult> decls_result,
+	         List<TypeCheckerResult> objectExprs
+	         ) {
+	        // note objectExprs parameter is a temporary hack.
+	        // It should be ok to ignore it below, because it is
+	        // empty until a later phase.
 
 	     Component new_comp =
 	         new Component(that.getSpan(),
