@@ -340,6 +340,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                 List<String> decls_result) {
         StringBuilder s = new StringBuilder();
 
+        increaseIndent();
         if ( ! mods_result.isEmpty() ) {
             s.append( join(mods_result, " ") );
             s.append( " ");
@@ -369,8 +370,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( "{ ... }" );
         }
         s.append( "\n" );
-        s.append( join(decls_result,"\n") );
+        s.append( indent(join(decls_result,"\n")) );
         s.append( "\nend" ).append( "\n" );
+
+        decreaseIndent();
 
         return s.toString();
     }
