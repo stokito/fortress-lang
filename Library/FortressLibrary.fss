@@ -2989,7 +2989,8 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
     seq(self) = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
 end
 
-object SimplePairSeqGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
+object SimplePairSeqGenerator[\E,F\]
+        (e0: SequentialGenerator[\E\], f0: SequentialGenerator[\F\])
         extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
     getter e() = e0
     getter f() = f0

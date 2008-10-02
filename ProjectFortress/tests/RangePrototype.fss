@@ -261,7 +261,7 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
     end
   end intersection
 
-object dumpShow[\I extends Integral[\I\]\](r:ScalarRange[\I\]) extends Equality[\dumpShow[\I\]\]
+object dumpShow[\I\](r:Rng[\I\]) extends Equality[\dumpShow[\I\]\]
     getter toString(): String = r.dump() ":" r.toString()
     opr =(self, other:dumpShow[\I\]): Boolean = self.r = other.r
 end
@@ -275,7 +275,8 @@ trait Rng[\I\] extends { StandardPartialOrder[\Rng[\I\]\], Contains[\I\] }
     getter isLeftBounded(): Boolean = self.left.holds
     getter isAnyBounded(): Boolean = self.left.holds OR self.right.holds
     getter toString(): String
-    truncR(r:I): Rng[\I\] = self.flip().truncL(r).flip()
+    truncL(l:I): RngWithLeft[\I\]
+    truncR(r:I): RngWithRight[\I\] = self.flip().truncL(r).flip()
     flip(): Rng[\I\]
     every(s:I): Rng[\I\]
     atMost(n:I): Rng[\I\]
@@ -283,6 +284,7 @@ trait Rng[\I\] extends { StandardPartialOrder[\Rng[\I\]\], Contains[\I\] }
     opr =(self, b:Rng[\I\]): Boolean = false
     opr IN(n:I, self): Boolean
     dump(): String
+    check(): Rng[\I\]
 end
 
 trait ScalarRange[\I extends Integral[\I\]\] extends { Rng[\I\] }
@@ -305,15 +307,71 @@ trait ScalarRange[\I extends Integral[\I\]\] extends { Rng[\I\] }
       end
 end
 
-trait PartialScalarRange[\I extends Integral[\I\]\] extends ScalarRange[\I\]
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:ScalarRange[\I\], j:ScalarRange[\J\]): Range2D[\I,J\] =
+    fail("shouldn't happen: combine2D of non-uniform ranges " i " and " j)
+
+trait Range2D[\I extends Integral[\I\], J extends Integral[\J\]\] extends Rng[\(I,J)\]
+    getter range1(): ScalarRange[\I\]
+    getter range2(): ScalarRange[\J\]
+    getter stride(): (I,J) = (self.range1.stride, self.range2.stride)
+    getter isEmpty(): Boolean = self.range1.isEmpty OR self.range2.isEmpty
+    getter toString(): String = "(" self.range1 " BY " self.range2 ")"
+    every(s_i:I, s_j:J): Range2D[\I,J\]
+    atMost(n_i:I, n_j:J): Range2D[\I,J\] =
+        combine2D(self.range1.atMost(n_i), self.range2.atMost(n_j))
+    truncL(l_i:I, l_j:J): RngWithLeft[\(I,J)\] =
+        combine2D(self.range1.truncL(l_i),self.range2.truncL(l_j))
+    truncR(r_i:I, r_j:J): RngWithRight[\(I,J)\] =
+        combine2D(self.range1.truncR(r_i),self.range2.truncR(r_j))
+    opr INTERSECTION(self, other: Rng[\(I,J)\]): Rng[\(I,J)\] =
+        fail("other is Rng[\\(I,J)\\] but not Range2D")
+    opr INTERSECTION(self, other: Range2D[\I,J\]): Rng[\(I,J)\] =
+        combine2D(self.range1 INTERSECTION other.range2,
+                  self.range2 INTERSECTION other.range2)
+    opr IN(n:(I,J), self): Boolean = do
+        (n_i,n_j) = n
+        n_i IN self.range1 AND: n_j IN self.range2
+      end
+    opr =(self, other:Range2D[\I,J\]): Boolean =
+        self.range1 = other.range1 AND: self.range2 = other.range2
+    check():Range2D[\I,J\] = do
+        _ = self.range1.check()
+        _ = self.range2.check()
+        self
+      end
 end
 
-object OpenScalarRange[\I extends Integral[\I\]\](str: I) extends PartialScalarRange[\I\]
-    getter stride(): I = str
+trait ActualRange2D[\I extends Integral[\I\], J extends Integral[\J\],
+                    Self extends ActualRange2D[\I,J,Self,Scalar1,Scalar2\],
+                    Scalar1 extends ScalarRange[\I\],
+                    Scalar2 extends ScalarRange[\J\]\] extends Range2D[\I,J\]
+    getter range1(): Scalar1
+    getter range2(): Scalar2
+    every(s_i:I, s_j:J): Self =
+        self.recombine(self.range1.every(s_i), self.range2.every(s_j))
+    recombine(a:Scalar1, b:Scalar2): Self
+end
+
+trait PartialRng[\I\] extends Rng[\I\]
+end
+
+trait PartialScalarRange[\I extends Integral[\I\]\]
+    extends { ScalarRange[\I\], PartialRng[\I\] }
+end
+
+trait OpenRng[\I\] extends PartialRng[\I\]
     getter left(): Nothing[\I\] = Nothing[\I\]
     getter right(): Nothing[\I\] = Nothing[\I\]
     getter extent(): Nothing[\I\] = Nothing[\I\]
     getter isEmpty(): Boolean = false
+    opr =(self, b:OpenScalarRange[\I\]): Boolean = self.stride = b.stride
+    opr IN(n:I, self): Boolean = true
+end
+
+object OpenScalarRange[\I extends Integral[\I\]\](str: I)
+        extends { PartialScalarRange[\I\], OpenRng[\I\] }
+    getter stride(): I = str
     getter toString(): String =
         if str > 0 then
             "...o,o+" str "..."
@@ -331,26 +389,52 @@ object OpenScalarRange[\I extends Integral[\I\]\](str: I) extends PartialScalarR
         gcd = str GCD r.stride
         str DIV gcd
       end
-    opr =(self, b:OpenScalarRange[\I\]): Boolean = str = b.str
-    opr IN(n:I, self): Boolean = true
     dump(): String = "OpenScalarRange(" str ")"
+end
+
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:OpenScalarRange[\I\], j:OpenScalarRange[\J\]): OpenRange2D[\I,J\] =
+    OpenRange2D[\I,J\](i.stride, j.stride)
+
+object OpenRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](str_i:I, str_j:J)
+        extends { OpenRng[\(I,J)\],
+                  ActualRange2D[\I,J,OpenRange2D[\I,J\],OpenScalarRange[\I\],OpenScalarRange[\J\]\] }
+    getter stride(): (I,J) = (str_i,str_j)
+    getter range1(): OpenScalarRange[\I\] = OpenScalarRange[\I\](str_i)
+    getter range2(): OpenScalarRange[\J\] = OpenScalarRange[\J\](str_j)
+    flip(): OpenRange2D[\I,J\] = OpenRange2D[\ZZ32,ZZ32\](-str_i,-str_j)
+    recombine(i:OpenScalarRange[\I\], j:OpenScalarRange[\J\]): OpenRange2D[\I,J\] =
+        combine2D[\I,J\](i, j)
+    dump(): String = "OpenRange2D(" str_i "," str_j ")"
 end
 
 open[\I extends Integral[\I\]\]() = OpenScalarRange[\I\](1)
 
-trait ScalarRangeWithExtent[\I extends Integral[\I\]\] extends ScalarRange[\I\]
+trait RngWithExtent[\I\] extends Rng[\I\]
     getter extent(): Just[\I\]
+end
+
+trait ScalarRangeWithExtent[\I extends Integral[\I\]\]
+        extends { ScalarRange[\I\], RngWithExtent[\I\] }
+end
+
+trait ExtentRng[\I\] extends { RngWithExtent[\I\], PartialRng[\I\] }
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr IN(n:I, self): Boolean = true
+(* This signature is more specific, but troublesome:
+    opr INTERSECTION(self, other: Rng[\I\]): RngWithExtent[\I\]
+*)
 end
 
 (* Invariant: ex > 0.  Means take every every |str|^th element, up to
    |ex| elements.  Work from left if ex is positive, from right if ex is
    negative.  Reverse afterwards if str is negative. *)
-object ExtentScalarRange[\I\](ex:I, str:I) extends { ScalarRangeWithExtent[\I\], PartialScalarRange[\I\] }
+object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
+        extends { ScalarRangeWithExtent[\I\], PartialScalarRange[\I\], ExtentRng[\I\] }
     getter stride(): I = str
-    getter left(): Nothing[\I\] = Nothing[\I\]
-    getter right(): Nothing[\I\] = Nothing[\I\]
     getter extent(): Just[\I\] = Just[\I\]( |ex| )
-    getter isEmpty(): Boolean = false
     getter fromLeft(): Boolean = ex > 0
     getter toString(): String =
         case ex of
@@ -396,7 +480,8 @@ object ExtentScalarRange[\I\](ex:I, str:I) extends { ScalarRangeWithExtent[\I\],
         else
             ExtentScalarRange[\I\](ex MIN n, str)
         end
-    opr INTERSECTION(self, other: ScalarRange[\I\]): ScalarRangeWithExtent[\I\] = other.intersectWithExtent(self)
+    opr INTERSECTION(self, other: Rng[\I\]): ScalarRangeWithExtent[\I\] =
+        other.intersectWithExtent(self)
     intersectWithExtent(e:ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\] = do
         x = self.extent.get MIN e.extent.get
         resultStride = str LCM e.stride
@@ -410,17 +495,40 @@ object ExtentScalarRange[\I\](ex:I, str:I) extends { ScalarRangeWithExtent[\I\],
         end
       end
     opr =(self, b:ExtentScalarRange[\I\]): Boolean = ex = b.ex AND (str = b.str OR ex=1 OR ex=-1)
-    opr IN(n:I, self): Boolean = true
     dump(): String = "ExtentScalarRange(" ex "," str ")"
 end
 
 extentScalarRange[\I extends Integral[\I\]\](ex:I, str:I): ScalarRangeWithExtent[\I\] =
     if ex = 0 then emptyScalarRange[\I\]() else ExtentScalarRange[\I\](ex,str).check() end
 
-trait BoundedScalarRange[\I extends Integral[\I\]\] extends ScalarRange[\I\]
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:ExtentScalarRange[\I\], j:ExtentScalarRange[\J\]): ExtentRange2D[\I,J\] =
+    ExtentRange2D[\I,J\](i.ex, j.ex, i.stride, j.stride)
+
+object ExtentRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+                    (ex_i:I, ex_j:J, str_i:I, str_j:J)
+        extends { ExtentRng[\(I,J)\],
+                  ActualRange2D[\I,J,ExtentRange2D[\I,J\],
+                                ExtentScalarRange[\I\],ExtentScalarRange[\J\]\] }
+    getter stride(): (I,J) = (str_i,str_j)
+    getter extent(): Just[\(I,J)\] = Just[\(I,J)\]( |ex_i|, |ex_j| )
+    getter range1(): ExtentScalarRange[\I\] = ExtentScalarRange[\I\](ex_i,str_i)
+    getter range2(): ExtentScalarRange[\J\] = ExtentScalarRange[\J\](ex_j,str_j)
+    flip(): ExtentRange2D[\I,J\] = ExtentRange2D[\ZZ32,ZZ32\](-ex_i,-ex_j,-str_i,-str_j)
+    recombine(i:ExtentScalarRange[\I\], j:ExtentScalarRange[\J\]): ExtentRange2D[\I,J\] =
+        combine2D[\I,J\](i, j)
+    dump(): String = "ExtentRange2D(" ex_i "," ex_j ", " str_i "," str_j ")"
+end
+
+trait BoundedRng[\I\] extends Rng[\I\]
     getter leftOrRight(): I
-    every(s:I): BoundedScalarRange[\I\]
-    atMost(n:I): FullScalarRange[\I\]
+    every(s:I): BoundedRng[\I\]
+    atMost(n:I): FullRng[\I\]
+    opr INTERSECTION(self, other: Rng[\I\]): BoundedRng[\I\]
+end
+
+trait BoundedScalarRange[\I extends Integral[\I\]\]
+        extends { ScalarRange[\I\], BoundedRng[\I\] }
     opr INTERSECTION(self, other: ScalarRange[\I\]): BoundedScalarRange[\I\] =
         typecase other of
             BoundedScalarRange[\I\] =>
@@ -460,9 +568,13 @@ trait BoundedScalarRange[\I extends Integral[\I\]\] extends ScalarRange[\I\]
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride:I, p:I): BoundedScalarRange[\I\]
 end
 
-trait ScalarRangeWithLeft[\I extends Integral[\I\]\] extends BoundedScalarRange[\I\]
+trait RngWithLeft[\I\] extends BoundedRng[\I\]
     getter left(): Just[\I\]
     getter leftOrRight(): I = self.left.get
+end
+
+trait ScalarRangeWithLeft[\I extends Integral[\I\]\]
+        extends { BoundedScalarRange[\I\], RngWithLeft[\I\] }
     maxLeft(other:ScalarRange[\I\]): I =
         if ol <- other.left then
             ol MAX self.left.get
@@ -471,12 +583,16 @@ trait ScalarRangeWithLeft[\I extends Integral[\I\]\] extends BoundedScalarRange[
         end
 end
 
-object LeftScalarRange[\I extends Integral[\I\]\](l:I, str:I) extends { ScalarRangeWithLeft[\I\], PartialScalarRange[\I\] }
-    getter stride(): I = str
-    getter left(): Just[\I\] = Just[\I\](l)
+trait LeftRng[\I\] extends { RngWithLeft[\I\], PartialRng[\I\] }
     getter right(): Nothing[\I\] = Nothing[\I\]
     getter extent(): Nothing[\I\] = Nothing[\I\]
     getter isEmpty(): Boolean = false
+end
+
+object LeftScalarRange[\I extends Integral[\I\]\](l:I, str:I)
+        extends { ScalarRangeWithLeft[\I\], PartialScalarRange[\I\], LeftRng[\I\] }
+    getter stride(): I = str
+    getter left(): Just[\I\] = Just[\I\](l)
     getter toString(): String = do
         t : I := l
         v : String := "["
@@ -515,8 +631,31 @@ leftScalarRange[\I extends Integral[\I\]\](l:I, str:I): LeftScalarRange[\I\] = L
 leftScalarRangeInter[\I extends Integral[\I\]\](l:I, str:I, p:I): LeftScalarRange[\I\] =
     leftScalarRange[\I\](atOrAbove(p,l,str),str)
 
-trait ScalarRangeWithRight[\I extends Integral[\I\]\] extends BoundedScalarRange[\I\]
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:LeftScalarRange[\I\], j:LeftScalarRange[\J\]): LeftRange2D[\I,J\] =
+    LeftRange2D[\I,J\](i.left.get, j.left.get, i.stride, j.stride)
+
+object LeftRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+                    (l_i:I, l_j:J, str_i:I, str_j:J)
+        extends { LeftRng[\(I,J)\],
+                  ActualRange2D[\I,J,LeftRange2D[\I,J\],
+                                LeftScalarRange[\I\],LeftScalarRange[\J\]\] }
+    getter stride(): (I,J) = (str_i,str_j)
+    getter left(): Just[\(I,J)\] = Just[\(I,J)\]( l_i, l_j )
+    getter range1(): LeftScalarRange[\I\] = LeftScalarRange[\I\](l_i,str_i)
+    getter range2(): LeftScalarRange[\J\] = LeftScalarRange[\J\](l_j,str_j)
+    flip(): RightRange2D[\I,J\] = RightRange2D[\ZZ32,ZZ32\](l_i,l_j,-str_i,-str_j)
+    recombine(i:LeftScalarRange[\I\], j:LeftScalarRange[\J\]): LeftRange2D[\I,J\] =
+        combine2D[\I,J\](i, j)
+    dump(): String = "LeftRange2D(" l_i "," l_j ", " str_i "," str_j ")"
+end
+
+trait RngWithRight[\I\] extends BoundedRng[\I\]
     getter right(): Just[\I\]
+end
+
+trait ScalarRangeWithRight[\I extends Integral[\I\]\]
+        extends { BoundedScalarRange[\I\], RngWithRight[\I\] }
     minRight(other:ScalarRange[\I\]): I =
         if ol <- other.right then
             ol MIN self.right.get
@@ -525,13 +664,17 @@ trait ScalarRangeWithRight[\I extends Integral[\I\]\] extends BoundedScalarRange
         end
 end
 
-object RightScalarRange[\I\](r:I, str:I) extends { ScalarRangeWithRight[\I\], PartialScalarRange[\I\] }
-    getter stride(): I = str
+trait RightRng[\I\] extends { RngWithRight[\I\], PartialRng[\I\] }
     getter left(): Nothing[\I\] = Nothing[\I\]
-    getter right(): Just[\I\] = Just[\I\](r)
-    getter leftOrRight(): Just[\I\] = r
+    getter leftOrRight(): Just[\I\] = self.right.get
     getter extent(): Nothing[\I\] = Nothing[\I\]
     getter isEmpty(): Boolean = false
+end
+
+object RightScalarRange[\I\](r:I, str:I)
+        extends { ScalarRangeWithRight[\I\], PartialScalarRange[\I\], RightRng[\I\] }
+    getter stride(): I = str
+    getter right(): Just[\I\] = Just[\I\](r)
     getter toString(): String = do
         t : I := r
         v : String := "]"
@@ -557,7 +700,8 @@ object RightScalarRange[\I\](r:I, str:I) extends { ScalarRangeWithRight[\I\], Pa
     opr =(self, b:RightScalarRange[\I\]): Boolean = r = b.r AND str = b.str
     opr IN(n:I, self): Boolean =
         (if self.stride > 0 then n <= r else r <= n) AND: (self.stride DIVIDES (r-n))
-    nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride:I, p:I): ScalarRangeWithRight[\I\] =
+    nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride:I, p:I):
+            ScalarRangeWithRight[\I\] =
         if l <- other.left then
             fullScalarRangeInter(l,r,resultStride,p)
         else
@@ -570,13 +714,33 @@ rightScalarRange[\I extends Integral[\I\]\](r:I, str:I): RightScalarRange[\I\] =
 rightScalarRangeInter[\I extends Integral[\I\]\](r:I, str:I, p:I): RightScalarRange[\I\] =
     rightScalarRange[\I\](atOrBelow(p,r,str),str)
 
-trait CompactScalarRange[\I extends Integral[\I\]\] extends ScalarRange[\I\]
-    getter stride(): I = 1
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:RightScalarRange[\I\], j:RightScalarRange[\J\]): RightRange2D[\I,J\] =
+    RightRange2D[\I,J\](i.right.get, j.right.get, i.stride, j.stride)
+
+object RightRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+                    (r_i:I, r_j:J, str_i:I, str_j:J)
+        extends { RightRng[\(I,J)\],
+                  ActualRange2D[\I,J,RightRange2D[\I,J\],
+                                RightScalarRange[\I\],RightScalarRange[\J\]\] }
+    getter stride(): (I,J) = (str_i,str_j)
+    getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
+    getter range1(): RightScalarRange[\I\] = RightScalarRange[\I\](r_i,str_i)
+    getter range2(): RightScalarRange[\J\] = RightScalarRange[\J\](r_j,str_j)
+    flip(): LeftRange2D[\I,J\] = LeftRange2D[\ZZ32,ZZ32\](r_i,r_j,-str_i,-str_j)
+    recombine(i:RightScalarRange[\I\], j:RightScalarRange[\J\]): RightRange2D[\I,J\] =
+        combine2D[\I,J\](i, j)
+    dump(): String = "RightRange2D(" r_i "," r_j ", " str_i "," str_j ")"
 end
 
-trait FullScalarRange[\I extends Integral[\I\]\] extends { ScalarRangeWithLeft[\I\], ScalarRangeWithRight[\I\], ScalarRangeWithExtent[\I\], Indexed[\I,I\] }
-    getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,size()-1)
+trait FullRng[\I\] extends { RngWithLeft[\I\], RngWithRight[\I\], RngWithExtent[\I\], Indexed[\I,I\] }
     getter extent(): Just[\I\] = Just[\I\](self.size)
+end
+
+trait FullScalarRange[\I extends Integral[\I\]\]
+        extends { ScalarRangeWithLeft[\I\], ScalarRangeWithRight[\I\],
+                  ScalarRangeWithExtent[\I\], FullRng[\I\] }
+    getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,size()-1)
     getter toString(): String =
         if self.isEmpty then
             "[]"
@@ -662,7 +826,7 @@ trait FullScalarRange[\I extends Integral[\I\]\] extends { ScalarRangeWithLeft[\
         end
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride:I, p:I): FullScalarRange[\I\] =
         fullScalarRangeInter(self.maxLeft(other),self.minRight(other),resultStride,p)
-    opr [r:Range[\I\]]: FullScalarRange[\I\] = do
+    opr[r:Range[\I\]]: FullScalarRange[\I\] = do
         f = bounds().selectIndices(r2r(r))
         l = self.left.get
         s = self.stride
@@ -688,7 +852,41 @@ rng2r[\I extends Integral[\I\]\](r:ScalarRange[\I\]): Range[\I\] =
         FullScalarRange[\I\] => r.left:r.right
     end
 
-trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRange[\I\], CompactScalarRange[\I\] }
+trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+        extends { FullRng[\(I,J)\], Range2D[\I,J\], DelegatedIndexed[\(I,J),(I,J)\] }
+    getter extent(): Just[\(I,J)\] = Just[\(I,J)\]( self.range1.extent, self.range2.extent )
+    getter generator(): Generator[\(I,J)\] = self.range1.cross[\J\](self.range2)
+    getter indices(): Generator[\(I,J)\] = do
+        (l_i,l_j) = self.left
+        self.generator.map[\(I,J)\](fn (i,j) => (i-l_i, j-l_j))
+      end
+    getter indexValuePairs(): Generator[\((I,J),(I,J))\] = do
+        (l_i,l_j) = self.left
+        self.generator.map[\(I,J)\](fn (i,j) => ((i-l_i, j-l_j),(i,j)))
+      end
+    flip(): FullRange2D[\I,J\] = do
+        (l_i,l_j) = self.left.get
+        (r_i,r_j) = self.right.get
+        (str_i,str_j) = self.stride.get
+        fullRange2D[\ZZ32,ZZ32\](r_i,r_j,l_i,l_j,-str_i,-str_j)
+      end
+    opr[ij:(I,J)]: (I,J) = do (i,j) = ij; (self.range1[i],self.range2[j]) end
+    opr[r:Range[\(I,J)\]]: FullScalarRange[\I\] = do
+        f = bounds().selectIndices(r2r(r))
+        (l1,l2) = self.left.get
+        (s1,s2) = self.stride
+        (fl1,fl2) = f.left.get
+        (fr1,fr2) = f.right.get
+        (fs1,fs2) = f.stride
+        fullRange2D[\I,J\](l1 + fl1 s1, l2 + fl2 s2, fs1 s1, fs2 s2)
+      end
+end
+
+trait CompactFullRng[\I\] extends { FullRng[\I\] }
+end
+
+trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRange[\I\], CompactFullRng[\I\] }
+    getter stride(): I = 1
     getter extent(): Just[\I\] = Just[\I\]( self.size )
     getter size(): ZZ32 = do
         l = self.left.get
@@ -790,8 +988,33 @@ object CompactFullSeqScalarRange[\I extends Integral[\I\]\](l:I, r:I)
       end
 end
 
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:CompactFullScalarRange[\I\], j:CompactFullScalarRange[\J\]): CompactFullRange2D[\I,J\] =
+    CompactFullRange2D[\I,J\](i.left.get, j.left.get, i.right.get, j.right.get)
 
-trait StridedFullScalarRange[\I extends Integral[\I\]\] extends FullScalarRange[\I\]
+object CompactFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+                         (l_i:I, l_j:J, r_i:I, r_j:J)
+        extends { CompactFullRng[\(I,J)\], FullRange2D[\I,J\],
+                  ActualRange2D[\I,J,CompactFullRange2D[\I,J\],
+                                CompactFullScalarRange[\I\],CompactFullScalarRange[\J\]\] }
+    getter bounds(): CompactFullRange2D[\I,J\] =
+        CompactFullRange2D[\I,J\](0,0,r_i-l_i,r_j-l_j)
+    getter stride(): (I,J) = (1,1)
+    getter left(): Just[\(I,J)\] = Just[\(I,J)\]( l_i, l_j )
+    getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
+    getter range1(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](l_i,r_i)
+    getter range2(): CompactFullScalarRange[\J\] = CompactFullParScalarRange[\J\](l_j,r_j)
+    recombine(i:CompactFullScalarRange[\I\], j:CompactFullScalarRange[\J\]):
+            CompactFullRange2D[\I,J\] = combine2D[\I,J\](i, j)
+    dump(): String = "CompactFullRange2D(" l_i "," l_j ", " r_i "," r_j ")"
+end
+
+
+trait StridedFullRng[\I\] extends FullRng[\I\]
+end
+
+trait StridedFullScalarRange[\I extends Integral[\I\]\]
+        extends { FullScalarRange[\I\], StridedFullRng[\I\] }
     getter size(): ZZ32 = do
         res = narrow((self.right.get-self.left.get) DIV self.stride + 1)
         if res <= 1 AND: self.isEmpty then 0
@@ -819,7 +1042,7 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
     getter stride(): I = str
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
-    seq(self): StridedFullSeqScalarRange[\I\] = StridedFullSeqScalarRange[\I\](l,r)
+    seq(self): StridedFullSeqScalarRange[\I\] = StridedFullSeqScalarRange[\I\](l,r,str)
     dump(): String = "StridedFullParScalarRange(" l "," r "," str ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T =
         if str > 0 then
@@ -955,12 +1178,44 @@ object StridedFullSeqScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I)
 end
 
 
+combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+         (i:FullScalarRange[\I\], j:FullScalarRange[\J\]): FullRange2D[\I,J\] =
+    StridedFullRange2D[\I,J\](i.left.get, j.left.get, i.right.get, j.right.get,
+                            i.stride, j.stride)
+
+object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+                         (l_i:I, l_j:J, r_i:I, r_j:J, str_i:I, str_j:J)
+        extends { StridedFullRng[\(I,J)\], FullRange2D[\I,J\],
+                  ActualRange2D[\I,J,StridedFullRange2D[\I,J\],
+                                FullScalarRange[\I\],FullScalarRange[\J\]\] }
+    getter bounds(): StridedFullRange2D[\I,J\] =
+        StridedFullRange2D[\I,J\](0,0,r_i-l_i,r_j-l_j,str_i,str_j)
+    getter stride(): (I,J) = (str_i,str_j)
+    getter left(): Just[\(I,J)\] = Just[\(I,J)\]( l_i, l_j )
+    getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
+    getter range1(): FullScalarRange[\I\] = StridedFullParScalarRange[\I\](l_i,r_i,str_i)
+    getter range2(): FullScalarRange[\J\] = StridedFullParScalarRange[\J\](l_j,r_j,str_j)
+    recombine(i:FullScalarRange[\I\], j:FullScalarRange[\J\]):
+            StridedFullRange2D[\I,J\] = combine2D[\I,J\](i, j)
+    dump(): String = ("StridedFullRange2D(" l_i "," l_j ", " r_i "," r_j ", "
+                                          str_i "," str_j ")" )
+end
+
+
 fullScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I): FullScalarRange[\I\] =
     if str=1 then CompactFullParScalarRange[\I\](l,r).check()
     else StridedFullParScalarRange[\I\](l,r,str).check() end
 
 fullScalarRangeInter[\I extends Integral[\I\]\](l:I, r:I, str:I, p:I): FullScalarRange[\I\] =
     fullScalarRange[\I\](atOrAbove(p,l,str), atOrBelow(p,r,str), str)
+
+fullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
+           (l_i:I, l_j:J, r_i:I, r_j:J, str_i:I, str_j:J): FullRange2D[\I,J\] =
+    if str_i=1 AND str_j=1 then
+        CompactFullRange2D[\I,J\](l_i,l_j,r_i,r_j).check()
+    else
+        StridedFullRange2D[\I,J\](l_i,l_j,r_i,r_j,str_i,str_j).check()
+    end
 
 emptyScalarRange[\I\]() : FullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,-1)
 
@@ -990,9 +1245,79 @@ run(args:String...):() =
     assert(StridedFullParScalarRange[\ZZ32\](1,1,-1),CompactFullParScalarRange[\ZZ32\](1,1),"Singleton equality 2")
     assert(CompactFullParScalarRange[\ZZ32\](0,23).every(-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward every")
     assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION OpenScalarRange[\ZZ32\](-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward intersection")
+
     strides = <|[\ZZ32\] 1,2,3,4,-1,-3|>
     lefts = <|[\ZZ32\] -2,0,1,2|>
     rights = <|[\ZZ32\] -3,-1,0,1,45,46,47|>
+
+    (* Start by testing later implemented stuff: 2D ranges *)
+    pairOpen = combine2D(open[\ZZ32\](),open[\ZZ32\]())
+    pairOpens = <|[\Range2D[\ZZ32,ZZ32\]\] pairOpen |>
+    pairLefts = <|[\Range2D[\ZZ32,ZZ32\]\] LeftRange2D[\ZZ32,ZZ32\](-1,2,1,1),
+                                   LeftRange2D[\ZZ32,ZZ32\](0,25,2,-3) |>
+    pairRights = <|[\Range2D[\ZZ32,ZZ32\]\] RightRange2D[\ZZ32,ZZ32\](17,22,1,1),
+                                    RightRange2D[\ZZ32,ZZ32\](-3,19,-2,5) |>
+    pairExtents = <|[\Range2D[\ZZ32,ZZ32\]\] ExtentRange2D[\ZZ32,ZZ32\](5,4,1,1),
+                                     ExtentRange2D[\ZZ32,ZZ32\](-5,-7,2,-3) |>
+    pairFulls = <|[\Range2D[\ZZ32,ZZ32\]\] CompactFullRange2D[\ZZ32,ZZ32\](-1,1,34,17),
+                                   fullRange2D[\ZZ32,ZZ32\](17,0,1,39,-2,3) |>
+    pairTestRanges = concat <|[\List[\Range2D[\ZZ32,ZZ32\]\]\] pairOpens,
+                              pairLefts, pairRights, pairExtents, pairFulls |>
+    for r <- seq(pairFulls) do
+        rg1 = r.range1
+        rg2 = r.range2
+        for (i,j) <- r do
+            assert((i,j) IN r, true, (i,j)," generated but not in ",dumpShow(r))
+            assert(i IN rg1, true, i," generated but not in range1 ",dumpShow(rg1))
+            assert(j IN rg2, true, j," generated but not in range2 ",dumpShow(rg2))
+        end
+        is_par = <| (i,j) | (i,j) <- r |>
+        is_seq = <| (i,j) | (i,j) <- seq(r) |>
+        assert(is_par,is_seq," par and seq for ",r)
+        for (l1,l2) <- r.left, (r1,r2) <- r.right, NOT r.isEmpty do
+            assert((l1,r2) IN r, true, (l1,r2)," not in ", dumpShow(r))
+            assert((r1,l2) IN r, true, (r1,l2)," not in ", dumpShow(r))
+        end
+    end
+    for r <- pairTestRanges do
+        println(dumpShow(r))
+        assert(r,r,"Self equality")
+        assert(combine2D(r.range1,r.range2),r,"combine2D identity")
+        assert( <| s | s <- pairTestRanges, NOT s.isEmpty, r=s |>,
+                <| r |>, "Uniqueness of equality")
+        for lft <- r.left, NOT r.isEmpty do
+            assert(lft IN r, "left not in")
+        end
+        for rgt <- r.right, NOT r.isEmpty do
+            assert(rgt IN r, true, "right ",rgt," not in ",r)
+        end
+    end
+    for rs <- <| pairOpens, pairExtents |>, r <- rs do
+        assert(r.isEmpty, false, "Empty unbounded ", dumpShow(r))
+        for p <- <| (17,19), (-23,-39) |> do
+            assert(p IN r, true, "Membership for unbounded range ", r)
+        end
+    end
+    for r <- pairExtents, (e1,e2) <- r.extent do
+        ea1 = if r.range1.fromLeft then e1 else -e1 end
+        ea2 = if r.range2.fromLeft then e2 else -e2 end
+        rr = pairOpen.every(r.stride).atMost(ea1,ea2)
+        assert(dumpShow(r),dumpShow(rr))
+    end
+    for r <- pairLefts, (l1,l2) <- r.left do
+        rr2 = pairOpen.every(r.stride).truncL(l1,l2)
+        assert(dumpShow(r),dumpShow(rr2))
+    end
+    for r <- pairRights, (r1,r2) <- r.right do
+        rr = pairOpen.every(r.stride).truncR(r1,r2)
+        assert(dumpShow(r),dumpShow(rr))
+    end
+    for r <- pairFulls, (l1,l2) <- r.left, (r1,r2) <- r.right do
+        rr = pairOpen.every(r.stride).truncL(l1,l2).truncR(r1,r2)
+        assert(dumpShow(r),dumpShow(rr))
+    end
+
+    (* Then continue by testing 1D ranges. *)
     print("fullScalarRanges")
     fullScalarRanges = <|[\ScalarRange[\ZZ32\]\] fullScalarRange[\ZZ32\](0,-1,1), fullScalarRange[\ZZ32\](0,0,1), fullScalarRange[\ZZ32\](0,0,2), fullScalarRange[\ZZ32\](0,0,-3),
                  fullScalarRange[\ZZ32\](0,-1,2), fullScalarRange[\ZZ32\](0,1,-1), fullScalarRange[\ZZ32\](0,1,-4),
@@ -1002,6 +1327,8 @@ run(args:String...):() =
     print(" (" |fullScalarRanges| ")")
     for f <- fullScalarRanges do
         g = f.generate[\AnyMaybe\](StrideReduction(f),strideUnit[\ZZ32\](f))
+        gg = seq(f).generate[\AnyMaybe\](StrideReduction(f),strideUnit[\ZZ32\](f))
+        assert(g,gg,"Par and seq generation differ ",g,gg)
         if (l0,sz0,r0) <- g then
             if l <- f.left then
                 assert(l0,l,"Actual and generated left bound for ",f)
@@ -1088,7 +1415,7 @@ run(args:String...):() =
     testScalarRanges : List[\ScalarRange[\ZZ32\]\] = concat(testScalarRangess)
     println("\ntestScalarRanges (" |testScalarRanges| ")")
     print("\nspec match")
-    for i <- seq(testScalarRanges), j <- seq(testScalarRanges) do
+    for i <- testScalarRanges, j <- testScalarRanges do
         a = i INTERSECTNEW j
         b = i INTERSECTION j
         assert(dumpShow(a), dumpShow(b), "\n  (spec, curr) match for ",
