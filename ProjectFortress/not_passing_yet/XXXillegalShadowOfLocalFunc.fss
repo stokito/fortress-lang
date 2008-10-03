@@ -1,0 +1,24 @@
+component XXXillegalShadowOfLocalFunc
+export Executable
+
+trait T
+    callFoo(): String
+end
+
+foo(): String = "top level foo"
+
+topFunc(): T = do
+    (* This local function is illegally shadowing the outer one 
+       according to the spec *)
+    foo(): String = "Local foo in topFunc" 
+    object extends T
+        callFoo(): String = foo()
+    end
+end
+
+run(args:String ... ) = do
+    println topFunc().callFoo()
+end
+
+end
+
