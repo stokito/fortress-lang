@@ -21,6 +21,7 @@ export Executable
 
 run(args:String...) = do
     println (foobar 5, 6, 7)
+    println (goobar 5, 6, 7)
 end
 
 end

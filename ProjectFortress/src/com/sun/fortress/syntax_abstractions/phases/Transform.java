@@ -91,6 +91,7 @@ public class Transform extends TemplateUpdateVisitor {
         syntaxEnvironment = syntaxEnvironment.extend(from, to);
     }
 
+    /* generate a new unique id. a.k.a gensym */
     private Id generateId(Id original){
         return NodeFactory.makeId(original, FreshName.getFreshName(original.getText() + "-g"));
     }
@@ -136,7 +137,7 @@ public class Transform extends TemplateUpdateVisitor {
      * GeneratorClause - all the following nodes can contain GeneratorClause
      *    TestDecl
      *    For - done
-     *    While
+     *    While - done
      *    Accumulator 
      *    GeneratedExpr 
      *    ArrayComprehensionClause 
@@ -170,6 +171,19 @@ public class Transform extends TemplateUpdateVisitor {
             return forForOnly(that, exprType_result, gens_result, body_result);
         } else {
             return super.forFor(that);
+        }
+    }
+
+    public Node forWhile(While that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            GeneratorClause test_result = handleGeneratorClause(that.getTest());
+            Do body_result = (Do) recur(that.getBody());
+            setSyntaxEnvironment(save);
+            return forWhileOnly(that, exprType_result, test_result, body_result);
+        } else {
+            return super.forWhile(that);
         }
     }
 

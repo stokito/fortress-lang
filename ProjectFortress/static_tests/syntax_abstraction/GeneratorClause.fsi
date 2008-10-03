@@ -33,5 +33,17 @@ api GeneratorClause
                     end
                 ]>
             end
+       |  a:goobar {e:Expr ,? SPACE}* =>
+            case e of
+                Empty => <[ 1 ]>
+                Cons(fs,bs) =>
+                    <[
+                    do
+                        while x <- 0#fs do
+                            x + (goobar bs**)
+                        end
+                    end
+                ]>
+            end
     end
 end
