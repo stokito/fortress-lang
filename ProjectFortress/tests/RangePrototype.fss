@@ -302,6 +302,10 @@ run(args:String...):() =
         rr = pairOpen.every(r.stride).truncL(l1,l2).truncR(r1,r2)
         assert(dumpShow(r),dumpShow(rr))
     end
+    for r <- pairFulls, (i1,i2) <- r.bounds() do
+        assert(r[i1,i2] IN r, true, r,"[",i1,",",i2,"] = ",r[i1,i2]," not in")
+    end
+
 
     (* Then continue by testing 1D ranges. *)
     print("fullScalarRanges")
