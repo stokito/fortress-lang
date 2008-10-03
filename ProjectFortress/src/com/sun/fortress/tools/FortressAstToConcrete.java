@@ -78,7 +78,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     private String indent( String stuff ){
-        return getIndent() + stuff.replaceAll("\n", "\n" + getIndent() );
+        String r = getIndent() + stuff.replace("\n", "\n" + getIndent() );
+        r = r.replaceAll(" +\n", "\n");
+        r = r.replaceAll(" +$", "");
+        return r;
     }
 
     /* utility methods ********************************************************/
@@ -101,8 +104,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     /* returns a string beginning with 'kind' followed by a sequence of elements
        in 'list' separated by commas and  enclosed by '{' and '}'
      */
-    private String inCurlyBraces(String kind, List<String> list) {
-        StringBuilder s = new StringBuilder();
+    private StringBuilder inCurlyBraces(StringBuilder s, String kind, List<String> list) {
         s.append( kind );
         s.append( "{ " );
         for ( String elem : IterUtil.skipLast(list) ){
@@ -112,26 +114,52 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( IterUtil.last(list) );
         }
         s.append( " }" );
-        return s.toString();
+        return s;
+    }
+
+    /* as inCurlyBraces, except skips if empty, and drops curlies if singleton. */
+    private StringBuilder optCurlyBraces(StringBuilder s, String kind, List<String> list, String follow) {
+        if (list.isEmpty()) return s;
+        if (list.size() > 1) {
+            s = inCurlyBraces(s,kind,list);
+        } else {
+            s = s.append(kind).append(list.get(0));
+        }
+        return s.append(follow);
+    }
+
+    private StringBuilder optCurlyClause(StringBuilder s, String name, Option<List<String>> throwsClause_result) {
+        if ( throwsClause_result.isSome() ){
+            List<String> throws_ = throwsClause_result.unwrap();
+            optCurlyBraces(s, name, throws_, "");
+        }
+        return s;
+    }
+
+    private StringBuilder throwsClause(StringBuilder s, Option<List<String>> throwsClause_result) {
+        return optCurlyClause(s," throws ", throwsClause_result);
     }
 
     /* returns a string of a sequence of elements
        in 'list' separated by commas and  enclosed by '[\' and '\]'
      */
-    private String inOxfordBrackets(List<String> list) {
+    private StringBuilder inOxfordBrackets(StringBuilder s, List<String> list) {
         if ( list.isEmpty() ){
-            return "";
+            return s;
         }
-        StringBuilder s = new StringBuilder();
-        s.append( "[\\ " );
+        s.append( "[\\" );
         for ( String elem : IterUtil.skipLast(list) ){
             s.append( elem ).append( ", " );
         }
         if ( ! list.isEmpty() ){
                 s.append( IterUtil.last(list) );
         }
-        s.append( " \\]" );
-        return s.toString();
+        s.append( "\\]" );
+        return s;
+    }
+
+    private String inOxfordBrackets(List<String> list) {
+        return inOxfordBrackets(new StringBuilder(), list).toString();
     }
 
     /* returns a string of a sequence of elements
@@ -214,7 +242,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     private String handleType(String type) {
         if ( type.startsWith("(*") ) return "";
-        else return " : " + type;
+        else return ": " + type;
     }
 
     /* visit nodes ************************************************************/
@@ -235,7 +263,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( export_ ).append( "\n" );
         }
         for ( String decl_ : decls_result ){
-            s.append( decl_ ).append( "\n" );
+            s.append( decl_ ).append( "\n\n" );
         }
         s.append( "end" );
         return s.toString();
@@ -244,14 +272,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forApiOnly(Api that, String name_result,
                                        List<String> imports_result,
                                        List<String> decls_result) {
-        increaseIndent();
+        //increaseIndent();
         StringBuilder s = new StringBuilder();
         s.append( "api " ).append( name_result ).append( "\n" );
         s.append( join(imports_result, "\n") );
         s.append( "\n" );
-        s.append( indent(join(decls_result,"\n")) );
-        s.append ("\n" );
-        decreaseIndent();
+        s.append( indent(join(decls_result,"\n\n")) );
+        s.append ("\n\n" );
+        //decreaseIndent();
         s.append( "end" );
         return s.toString();
     }
@@ -261,9 +289,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               List<String> except_result) {
         StringBuilder s = new StringBuilder();
         s.append( "import " ).append( api_result ).append( ".{...}" );
-        if ( ! except_result.isEmpty() ) {
-            s.append(inCurlyBraces(" except ", except_result));
-        }
+        optCurlyBraces(s, " except ", except_result, "");
         return s.toString();
     }
 
@@ -275,7 +301,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( aliasedNames_result.isEmpty() ) {
             return bug(that, "Import statement should have at least one name.");
         } else {
-            s.append(inCurlyBraces(".", aliasedNames_result));
+            optCurlyBraces(s, ".", aliasedNames_result, "");
         }
         return s.toString();
     }
@@ -290,7 +316,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( apis_result.isEmpty() ) {
             return bug(that, "Import statement should have at least one name.");
         } else {
-            s.append(inCurlyBraces("import api ", apis_result));
+            optCurlyBraces(s, "import api ", apis_result, "");
         }
         return s.toString();
     }
@@ -326,7 +352,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if (apis_result.size() == 0)
             return bug(that, "An export statement should have at least one API name.");
         else
-            return inCurlyBraces("export ", apis_result);
+            return optCurlyBraces(s,"export ", apis_result, "").toString();
     }
 
     @Override public String forAbsTraitDeclOnly(AbsTraitDecl that,
@@ -346,32 +372,22 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " ");
         }
         s.append( "trait " ).append( name_result );
-        s.append( " " );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result) );
-            s.append( " " );
-        }
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( " " );
-        }
+        inOxfordBrackets(s, staticParams_result);
+        optCurlyBraces(s, " extends ", extendsClause_result, "");
         if ( where_result.isSome() )
-            s.append( where_result.unwrap() );
-        if ( ! excludes_result.isEmpty() ) {
-            s.append( inCurlyBraces("excludes ", excludes_result) );
-            s.append( " " );
-        }
+            s.append(" ").append( where_result.unwrap() );
+        optCurlyBraces(s, " excludes ", excludes_result, "");
         if ( comprises_result.isSome() ){
             List<String> throws_ = comprises_result.unwrap();
-            s.append("comprises ");
+            s.append(" comprises ");
             if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("", throws_) );
+                inCurlyBraces(s, "", throws_);
             else
                 s.append( "{ ... }" );
         }
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
-        s.append( "\nend" ).append( "\n" );
+        s.append( "\nend" );
 
         decreaseIndent();
 
@@ -395,29 +411,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( "trait " ).append( name_result );
-        s.append( " " );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result) );
-            s.append( " " );
-        }
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( " " );
-        }
+        inOxfordBrackets(s, staticParams_result);
+        optCurlyBraces(s, " extends ", extendsClause_result, "");
         if ( where_result.isSome() )
-            s.append( where_result.unwrap() );
-        if ( ! excludes_result.isEmpty() ) {
-            s.append( inCurlyBraces("excludes ", excludes_result) );
-            s.append( " " );
-        }
-        if ( comprises_result.isSome() ){
-            List<String> throws_ = comprises_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("comprises ", throws_) );
-        }
+            s.append(" ").append( where_result.unwrap() );
+        optCurlyBraces(s, " excludes ", excludes_result, "");
+        optCurlyClause(s, " comprises ", comprises_result);
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
-        s.append( "\nend" ).append( "\n" );
+        s.append( "\nend" );
 
         decreaseIndent();
 
@@ -443,34 +445,21 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( "object " ).append( name_result );
-        s.append( " " );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result) );
-            s.append( " " );
-        }
+        inOxfordBrackets(s, staticParams_result);
         if ( params_result.isSome() ){
             s.append( inParentheses(inParentheses(params_result.unwrap())) );
-            s.append( " " );
         }
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( " " );
-        }
-        if ( throwsClause_result.isSome() ){
-            List<String> throws_ = throwsClause_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("throws ", throws_) );
-            s.append( " " );
-        }
+        optCurlyBraces(s, " extends ", extendsClause_result, "");
+        throwsClause(s, throwsClause_result);
         if ( where_result.isSome() )
-             s.append( where_result.unwrap() );
+            s.append(" ").append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
         }
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
-        s.append( "\nend" ).append( "\n" );
+        s.append( "\nend" );
 
         decreaseIndent();
 
@@ -496,34 +485,21 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( "object " ).append( name_result );
-        s.append( " " );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result) );
-            s.append( " " );
-        }
+        inOxfordBrackets(s, staticParams_result);
         if ( params_result.isSome() ){
             s.append( inParentheses(inParentheses(params_result.unwrap())) );
-            s.append( " " );
         }
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( " " );
-        }
-        if ( throwsClause_result.isSome() ){
-            List<String> throws_ = throwsClause_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("throws ", throws_) );
-            s.append( " " );
-        }
+        optCurlyBraces(s, " extends ", extendsClause_result, "");
+        throwsClause(s, throwsClause_result);
         if ( where_result.isSome() )
-            s.append( where_result.unwrap() );
+            s.append(" ").append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
         }
         s.append( "\n" );
         s.append( indent(join(decls_result,"\n")) );
-        s.append( "\nend" ).append( "\n" );
+        s.append( "\nend" );
 
         decreaseIndent();
 
@@ -642,10 +618,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
-        final String sparams;
-        if ( ! staticParams_result.isEmpty() )
-            sparams = inOxfordBrackets(staticParams_result);
-        else sparams = "";
+        final String sparams = inOxfordBrackets(staticParams_result);
         final String vparams = inParentheses(params_result);
         s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
 
@@ -696,15 +669,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         if ( returnType_result.isSome() ) {
             s.append( handleType(returnType_result.unwrap()) );
-            s.append( " " );
         }
-        if ( throwsClause_result.isSome() ) {
-            List<String> throws_ = throwsClause_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("throws ", throws_) );
-        }
+        throwsClause(s, throwsClause_result);
         if ( where_result.isSome() )
-            s.append( where_result.unwrap() );
+            s.append( " " ).append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -728,10 +696,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
-        final String sparams;
-        if ( ! staticParams_result.isEmpty() )
-            sparams = inOxfordBrackets(staticParams_result);
-        else sparams = "";
+        final String sparams = inOxfordBrackets(staticParams_result);
         final String vparams = inParentheses(params_result);
         s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
 
@@ -782,15 +747,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         if ( returnType_result.isSome() ) {
             s.append( handleType(returnType_result.unwrap()) );
-            s.append( " " );
         }
-        if ( throwsClause_result.isSome() ) {
-            List<String> throws_ = throwsClause_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("throws ", throws_) );
-        }
+        throwsClause(s, throwsClause_result);
         if ( where_result.isSome() )
-            s.append( where_result.unwrap() );
+            s.append(" ").append( where_result.unwrap() );
         if ( contract_result.isSome() ) {
             s.append( " " );
             s.append( contract_result.unwrap() );
@@ -979,9 +939,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result );
-        if ( ! staticParams_result.isEmpty() ){
-            s.append( inOxfordBrackets( staticParams_result ) );
-        }
+        inOxfordBrackets(s,  staticParams_result );
         if ( type_result.isSome() ){
             s.append( handleType(type_result.unwrap()) );
         }
@@ -1358,10 +1316,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         increaseIndent();
         s.append( "object " );
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( "\n" );
-        }
+        optCurlyBraces(s, "extends ", extendsClause_result, "");
+        s.append( "\n" );
         s.append( indent(join(decls_result, "\n")) );
         s.append( "\nend" );
         decreaseIndent();
@@ -1380,10 +1336,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( "object " );
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces("extends ", extendsClause_result) );
-            s.append( "\n" );
-        }
+        optCurlyBraces(s, "extends ", extendsClause_result, "");
+        s.append( "\n" );
         s.append( join(decls_result, "\n") );
         s.append( "\nend" );
 
@@ -1404,9 +1358,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( catchClause_result.isSome() ) {
             s.append( catchClause_result.unwrap() ).append( "\n" );
         }
-        if ( ! forbid_result.isEmpty() ) {
-            s.append( inCurlyBraces("forbid ", forbid_result) ).append( "\n" );
-        }
+        optCurlyBraces(s, "forbid ", forbid_result, "\n");
         if ( finallyClause_result.isSome() ) {
             s.append( "finally " );
             s.append( finallyClause_result.unwrap() ).append( "\n" );
@@ -1535,7 +1487,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             } else {
                 s.append( opr_result );
             }
-            s.append( inOxfordBrackets(staticArgs_result) );
+            inOxfordBrackets(s, staticArgs_result);
             s.append( " " );
             if ( ! gens_result.isEmpty() ) {
                 s.append( "[" );
@@ -1561,9 +1513,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( "[" );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
         s.append( " " );
         s.append( indent(join(clauses_result, "\n")) );
         s.append( "]" );
@@ -1630,11 +1580,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( returnType_result.isSome() ) {
             s.append( handleType(returnType_result.unwrap()) );
         }
-        if ( throwsClause_result.isSome() ) {
-            List<String> throws_ = throwsClause_result.unwrap();
-            if ( ! throws_.isEmpty() )
-                s.append( inCurlyBraces("throws ", throws_) );
-        }
+        throwsClause(s, throwsClause_result);
         s.append( " => ").append(body_result);
 
         return handleParen( s.toString(),
@@ -1722,9 +1668,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             right = "]";
         }
         s.append( left );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
         s.append( " " );
         s.append( join(subs_result, ", ") );
         s.append( " " ).append( right );
@@ -1779,9 +1723,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( obj_result );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -1816,9 +1758,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( originalName_result );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -1830,9 +1770,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( fn_result );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -2072,9 +2010,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( type_result );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result) );
-        }
+        inOxfordBrackets(s, staticArgs_result);
         s.append( ".coercion" );
         s.append( inParentheses(arg_result) );
 
@@ -2090,9 +2026,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( obj_result ).append( "." ).append( method_result );
-        if ( ! staticArgs_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticArgs_result ) );
-        }
+        inOxfordBrackets(s, staticArgs_result );
         s.append( inParentheses(arg_result) );
 
         return handleParen( s.toString(),
@@ -2127,7 +2061,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         if ( that.isOutermost() ) {
             s.append( "[" );
-            s.append( inOxfordBrackets( staticArgs_result ) );
+            inOxfordBrackets(s,  staticArgs_result );
             s.append( " " );
         }
         String separator;
@@ -2242,9 +2176,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result );
-        if ( ! args_result.isEmpty() ) {
-            s.append( inOxfordBrackets(args_result ) );
-        }
+        inOxfordBrackets(s, args_result );
 
         return s.toString();
     }
@@ -2255,9 +2187,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result ) );
-        }
+        inOxfordBrackets(s, staticParams_result );
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
@@ -2383,9 +2313,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                             Option<String> where_result) {
         StringBuilder s = new StringBuilder();
 
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append( inOxfordBrackets(staticParams_result ) );
-        }
+        inOxfordBrackets(s, staticParams_result );
         s.append( domain_result );
         s.append( " -> " );
         s.append( range_result );
@@ -2472,9 +2400,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forEffectOnly(Effect that,
                                           Option<List<String>> throwsClause_result) {
-        if ( throwsClause_result.isSome() )
-            return inCurlyBraces(" throws ", throwsClause_result.unwrap());
-        else return "";
+        StringBuilder s = new StringBuilder();
+        throwsClause(s, throwsClause_result);
+        return s.toString();
     }
 
     @Override public String forTypeArgOnly(TypeArg that,
@@ -2630,10 +2558,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             return "";
         StringBuilder s = new StringBuilder();
         s.append( "where " );
-        if ( ! bindings_result.isEmpty() )
-            s.append( inOxfordBrackets(bindings_result) );
+        inOxfordBrackets(s, bindings_result);
         if ( ! constraints_result.isEmpty() )
-            s.append( inCurlyBraces("", constraints_result) );
+            inCurlyBraces(s, "", constraints_result);
         return s.toString();
     }
 
@@ -2642,9 +2569,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> supers_result) {
         StringBuilder s = new StringBuilder();
         s.append( name_result );
-        if ( ! supers_result.isEmpty() ) {
-            s.append( inCurlyBraces(" extends ", supers_result) );
-        }
+        optCurlyBraces(s, " extends ", supers_result, "");
         return s.toString();
     }
 
@@ -2677,7 +2602,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             return bug(that, "A type variable constraint declared in " +
                        "a where clause should have its bound.");
         } else {
-            s.append( inCurlyBraces(" extends ", supers_result) );
+            optCurlyBraces(s, " extends ", supers_result, "");
         }
         return s.toString();
     }
@@ -2688,9 +2613,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              String type_result) {
         StringBuilder s = new StringBuilder();
         s.append( "type " ).append( name_result );
-        if ( ! staticParams_result.isEmpty() ) {
-            s.append ( inOxfordBrackets(staticParams_result) );
-        }
+        inOxfordBrackets(s, staticParams_result);
         s.append( " = " ).append( type_result );
         return s.toString();
     }
@@ -2788,19 +2711,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if (requires_result.isSome()) {
             List<String> requires = requires_result.unwrap();
             if ( ! requires.isEmpty() )
-                s.append( inCurlyBraces("requires ", requires) ).append( "\n" );
+                inCurlyBraces(s, "requires ", requires).append( "\n" );
         }
 
         if (ensures_result.isSome()) {
             List<String> ensures = ensures_result.unwrap();
             if ( ! ensures.isEmpty() )
-                s.append( inCurlyBraces("ensures ", ensures) ).append( "\n" );
+                inCurlyBraces(s, "ensures ", ensures).append( "\n" );
         }
 
         if (invariants_result.isSome()) {
             List<String> invariants = invariants_result.unwrap();
             if ( ! invariants.isEmpty() )
-                s.append( inCurlyBraces("invariant ", invariants) ).append( "\n" );
+                inCurlyBraces(s, "invariant ", invariants).append( "\n" );
         }
 
         return s.toString();
@@ -2903,9 +2826,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> extendsClause_result) {
         StringBuilder s = new StringBuilder();
         s.append( name_result );
-        if ( ! extendsClause_result.isEmpty() ) {
-            s.append( inCurlyBraces(" extends ", extendsClause_result) );
-        }
+        optCurlyBraces(s, " extends ", extendsClause_result, "");
         if ( that.isAbsorbs() ) {
             s.append( " absorbs unit" );
         }
@@ -3179,7 +3100,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append( that.getOp().getOpen().getText() );
-        s.append( inOxfordBrackets( staticArgs_result ) );
+        inOxfordBrackets(s,  staticArgs_result );
         s.append( " " );
         s.append( join(exprs_result, ", ") );
         s.append( " " );
