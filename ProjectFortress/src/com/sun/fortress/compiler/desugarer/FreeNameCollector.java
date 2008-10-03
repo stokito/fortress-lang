@@ -53,6 +53,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	private ObjectDecl enclosingObjectDecl;
 
     private FreeNameCollection freeNames;
+    /* Map key: object expr, 
+       value: DecledNamesCollector ran on this * particular ObjExpr */
+    private Map<Span, DecledNamesCollector> objExprToDecledNames;
+
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
 
@@ -102,6 +106,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		this.scopeStack = new Stack<Node>();
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
+        this.objExprToDecledNames = new HashMap<Span, DecledNamesCollector>();
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
         this.declSiteToVarRefs = 
             new HashMap<Pair<String,Span>, List<Pair<VarRef,Node>>>();
@@ -222,6 +227,10 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	
 	@Override
     public void forObjectExpr(ObjectExpr that) {
+        DecledNamesCollector collector = new DecledNamesCollector(that);
+        that.accept(collector);
+        objExprToDecledNames.put(that.getSpan(), collector);
+
         scopeStack.push(that);
         objExprStack.push(that);
 
@@ -541,10 +550,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 	private boolean isDottedMethod(FnRef fnRef) {
 		
-		Option<TypeConsIndex> typeConsIndex = null;
-		TraitIndex traitIndex = null;
 		Span declSpan = null;
 		Id declId = null;
+        TraitIndex traitIndex = null;
 		
 		if( enclosingTraitDecl == null && enclosingObjectDecl == null ) {
 			return false;
@@ -557,21 +565,86 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		    declSpan = enclosingObjectDecl.getSpan();
 	        declId = enclosingObjectDecl.getName();
 		}
-		typeConsIndex = traitTable.typeCons(declId);
-
-		if(typeConsIndex.isNone()) {
-			throw new DesugarerError(declSpan, 
-			            "TypeConsIndex for " + declId + " is not found.");
-		} else if(typeConsIndex.unwrap() instanceof TraitIndex) {
-			traitIndex = (TraitIndex) typeConsIndex.unwrap();
-		} else {
-			throw new DesugarerError(declSpan, 
-					"TypeConsIndex for " + declId + " is not type TraitIndex.");
-		}
+        traitIndex = getTraitIndexForName(declId, declSpan);
 
 		return traitIndex.dottedMethods().containsFirst(fnRef.getOriginalName());
 	}
 	
+	private boolean isDeclaredInObjExpr(IdOrOpName name) {
+        Span objExprSpan = objExprStack.peek().getSpan();
+		TypeEnv objExprTypeEnv = 
+                typeCheckerOutput.getTypeEnv( objExprStack.peek() );
+		
+        if(objExprTypeEnv == null) {
+            throw new DesugarerError( objExprSpan, 
+                "TypeEnv corresponding to Object Expr at source " + 
+                objExprSpan + " is not found!" );
+        }
+		    
+        // FIXME: do I need to check for Op or Enclosing??
+        Option<BindingLookup> bindingOutside = Option.<BindingLookup>none();
+		if(name instanceof Id) {
+		    bindingOutside = objExprTypeEnv.binding((Id) name);
+		} else if(name instanceof OpName) {
+		    bindingOutside = objExprTypeEnv.binding((OpName)name);
+		} else {
+		    throw new DesugarerError("Querying binding from TypeEnv with" +
+		                " type " + name.getClass().toString() + 
+		                " is not supported.");
+		}
+		
+		// The objExprTypeEnv contains things visible outside of the object 
+        // expression.  Since we have already passed type checking, we don't 
+        // need to worry about undefined variable.  If the binding is not 
+        // found, the reference must be declared / inherited within the 
+        // object expression.  
+		if( bindingOutside.isNone() ) {
+			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, 
+					name, " is declared in object expr at ", objExprSpan);
+			return true;
+		} 
+
+        // If the binding is found, however, we still need to check for 
+        // name shadowing -- we can have object expression declares /
+        // inherites something that shadows the binding outside.  In which
+        // case, check if the same name exists within vars / methods /
+        // functions declared within or inherited by object expr. 
+        // If so, consider the name declared in the object expr.
+        DecledNamesCollector collector = objExprToDecledNames.get(objExprSpan);
+        if(collector == null) {
+            throw new DesugarerError( objExprSpan, 
+                "DecledNamesCollector corresponding to object expr " + 
+                "at source " + objExprSpan + " is not found!" );
+        }
+		    
+        List<Id> decledNames = collector.getDecledNames();
+        List<Id> extendedTypeNames = collector.getExtendedTypeNames();
+
+        if( decledNames.contains(name) ) {
+            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                " is declared in decl list of object expr at ", objExprSpan);
+            return true;
+        } else {
+            TraitIndex superTraitIndex;
+            for(Id superType : extendedTypeNames) {
+                superTraitIndex = getTraitIndexForName(superType, objExprSpan);
+                if( superTraitIndex.getters().containsKey(name) ||
+                    superTraitIndex.dottedMethods().containsFirst(name) ||
+                    superTraitIndex.functionalMethods().containsFirst(name) ) {
+                    Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                            " is inherited from supertype ", superType,
+                            " in objectExpr at ", objExprSpan);
+                    return true;
+                }
+            }
+            
+            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                        " is NOT declared in object expr at ", objExprSpan);
+            return false;
+        }
+	}
+
+    /*
 	private boolean isDeclaredInObjExpr(Node idOrOpOrEnclosing) { 
         ObjectExpr innerMostObjExpr = objExprStack.peek();
         Span objExprSpan =  innerMostObjExpr.getSpan();
@@ -587,35 +660,41 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         // because object expr can never declare static params of its own.
         // FIXME: check with Sukyoung - do I really need to check for Op or
         // Enclosing??
-		Option<BindingLookup> binding = Option.<BindingLookup>none();
-		if(idOrOpOrEnclosing instanceof Id) {    
-		    binding = objExprTypeEnv.binding( (Id)idOrOpOrEnclosing );
+		Option<BindingLookup> bindingOutside = Option.<BindingLookup>none();
+		if(idOrOpOrEnclosing instanceof Id) {
+		    bindingOutside = objExprTypeEnv.binding( (Id)idOrOpOrEnclosing );
 		} else if(idOrOpOrEnclosing instanceof Op) {
-		    binding = objExprTypeEnv.binding( (Op)idOrOpOrEnclosing );
+		    bindingOutside = objExprTypeEnv.binding( (Op)idOrOpOrEnclosing );
 		} else if(idOrOpOrEnclosing instanceof Enclosing) {
-            binding = objExprTypeEnv.binding( (Enclosing)idOrOpOrEnclosing );
+            bindingOutside = 
+                objExprTypeEnv.binding( (Enclosing)idOrOpOrEnclosing );
 		} else {
 		    throw new DesugarerError("Querying binding from TypeEnv with" +
 		                " type " + idOrOpOrEnclosing.getClass().toString() + 
 		                " is not supported.");
 		}
 		
-		// The typeEnv are things visible outside of object expression
-		// Since we have already passed type checking, we don't need to worry 
-		// about undefined variable.  If the binding is not found, the reference
-		// must be declared / inherited within the object expression.
-		if( binding.isNone() ) {
+		// The objExprTypeEnv contains things visible outside of the object 
+        // expression.  Since we have already passed type checking, we don't 
+        // need to worry about undefined variable.  If the binding is not 
+        // found, the reference must be declared / inherited within the 
+        // object expression.  If it's found, however, we need to be careful
+        // still -- sometimes we can have object expression declares /
+        // inherites something that shadows the binding outside.  In which
+        // case, check for binding within the object expression.  If a
+        // binding is found, then it's not free.
+		if( bindingOutside.isNone() ) {
 			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, 
 					idOrOpOrEnclosing, " is declared in ", innerMostObjExpr);
-			return true;  
-		}
+			return true;
+		} 
 
 		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, idOrOpOrEnclosing, 
 			        " is NOT declared in ", innerMostObjExpr);
 		return false;
-	}
+	} */
 
-	private boolean isDeclaredInTopLevel(Node idOrOpOrEnclosing) {
+	private boolean isDeclaredInTopLevel(IdOrOpName idOrOpName) {
 		// The first node in this stack must be declared at a top level
 		// Its corresponding environment must be the top level environment
 		Node topLevelNode = scopeStack.get(0);  
@@ -630,33 +709,37 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		if(topLevelEnv == null) {
 		    throw new DesugarerError("TypeEnv associated with " 
 		            + topLevelNode + " is not found when querying for " + 
-                    "type info for " + idOrOpOrEnclosing);
+                    "type info for " + idOrOpName);
 		}
 		
 	    Option<BindingLookup> binding = Option.<BindingLookup>none();
 	    Option<StaticParam> staticParam = Option.<StaticParam>none();
 	    
-	    if(idOrOpOrEnclosing instanceof Id) {
-	        binding = topLevelEnv.binding( (Id)idOrOpOrEnclosing );
-	        staticParam = topLevelEnv.staticParam( (Id)idOrOpOrEnclosing );
-	    } else if(idOrOpOrEnclosing instanceof Op) {
-	        binding = topLevelEnv.binding( (Op)idOrOpOrEnclosing );
-	    } else if(idOrOpOrEnclosing instanceof Enclosing) {
-	        binding = topLevelEnv.binding( (Enclosing)idOrOpOrEnclosing );
+	    if(idOrOpName instanceof Id) {
+	        binding = topLevelEnv.binding( (Id)idOrOpName );
+	        staticParam = topLevelEnv.staticParam( (Id)idOrOpName );
+	    } else if(idOrOpName instanceof OpName) {
+	        binding = topLevelEnv.binding( (OpName)idOrOpName );
 	    } else {
 	        throw new DesugarerError("Querying binding from TypeEnv with" +
-	                    " type " + idOrOpOrEnclosing.getClass().toString() + 
+	                    " type " + idOrOpName.getClass().toString() + 
 	                    " is not supported.");
 	    }
 
 		if( binding.isNone() && staticParam.isNone() ) {
 			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, 
-			        idOrOpOrEnclosing, " is NOT declared in top level env.");
+			        idOrOpName, " is NOT declared in top level env.");
 			return false;
 		}
 		
+        // Even if the binding is found, still need to check for shadowing
+        // -- the ObjectDecl or TraitDecl enclosing the object expr can
+        // possibly have field or method decl that shadows the top level one
+        // TODO: implement the checking for shadowing!
+        // DeclaredNamecollector collector = 
+
 		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, 
-		            idOrOpOrEnclosing, " is declared in top level env.");
+		            idOrOpName, " is declared in top level env.");
 		
 		return true;
 	}
@@ -685,6 +768,101 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         return freeMutableVarRefs;
     }
 
+    private TraitIndex getTraitIndexForName(Id traitId, Span spanForErrorMsg) {
+        TraitIndex traitIndex;
+        Option<TypeConsIndex> typeConsIndex = traitTable.typeCons(traitId);
+
+		if(typeConsIndex.isNone()) {
+			throw new DesugarerError(spanForErrorMsg, 
+			            "TypeConsIndex for " + traitId + " is not found.");
+		} else if(typeConsIndex.unwrap() instanceof TraitIndex) {
+			traitIndex = (TraitIndex) typeConsIndex.unwrap();
+		} else {
+			throw new DesugarerError(spanForErrorMsg, 
+        		"TypeConsIndex for " + traitId + " is not type TraitIndex.");
+		}
+
+        return traitIndex;
+    }
+
+    private class DecledNamesCollector extends NodeDepthFirstVisitor_void {
+        private ObjectExpr root;
+        private List<Id> decledNames;
+        private List<Id> extendedTypeNames; 
+        
+        private DecledNamesCollector(ObjectExpr root) {
+            this.root = root;
+            this.decledNames = new LinkedList<Id>();
+            this.extendedTypeNames = new LinkedList<Id>();
+        }
+        
+        public List<Id> getDecledNames() {
+            return decledNames;
+        }
+        
+        public List<Id> getExtendedTypeNames() {
+            return extendedTypeNames;
+        }
+        
+        @Override
+        public void forObjectExpr(ObjectExpr that) {
+            // we only want the names declared in the outer-most objExpr
+            // so skip the inner ones
+            if(root != that) return; 
+
+            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+            super.recurOnListOfDecl(that.getDecls());
+        }
+        
+        @Override
+        public void forTraitTypeWhere(TraitTypeWhere that) {
+            BaseType baseType = that.getType();
+            if( (baseType instanceof NamedType) == false ) {
+                throw new DesugarerError(that.getSpan(), 
+                        "Unexpected type found for TraitTypeWhere " + that +
+                        " when parsing extends clauses for object expr at " + 
+                        root.getSpan() );
+            }
+            Id typeName = ((NamedType) baseType).getName();
+            extendedTypeNames.add(typeName);
+        }
+        
+        @Override
+        public void forVarDecl(VarDecl that) {
+            recurOnListOfLValueBind(that.getLhs());
+        }
+        
+        @Override 
+        public void forLValueBind(LValueBind that) {
+            decledNames.add(that.getName());
+        }
+        
+        @Override 
+        public void forFnDef(FnDef that) {
+            IdOrOpOrAnonymousName name = that.getName();
+            if(name instanceof Id) {
+                decledNames.add((Id) name);  
+            } else {
+                throw new DesugarerError(that.getSpan(), "Unexpected type " +
+                        "for FnDef name " + that.getName() + " when " +
+                        "when parsing decls for object expr at " + 
+                        root.getSpan() );
+            }
+        }
+        
+        @Override 
+        public void forDimDecl(DimDecl that) {
+            decledNames.add(that.getDim());
+        }
+        
+        @Override
+        public void forUnitDecl(UnitDecl that) {
+            for(Id name : that.getUnits()) {
+                decledNames.add(name);   
+            }
+        }
+    }
+    
     /* Will no longer be needed once the getTypeEnv from 
        TypeCheckerResult is in place 
 	private void DebugTypeEnvAtNode(Node nodeToLookFor) {

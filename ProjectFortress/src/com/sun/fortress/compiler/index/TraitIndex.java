@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 
-import com.sun.fortress.useful.NI;
 
 /**
  * Wraps a trait or object declaration.  Comprises {@link ProperTraitIndex} and

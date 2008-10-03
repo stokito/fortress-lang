@@ -17,8 +17,6 @@
 
 package com.sun.fortress.compiler.desugarer;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +25,6 @@ import java.util.Stack;
 
 import com.sun.fortress.compiler.typechecker.TraitTable;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
-import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -205,7 +202,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );   
-                Pair<Id,Id> keyPair = new Pair( that.getName(), var.getVar() );
+                Pair<Id,Id> keyPair = new Pair<Id,Id>( that.getName(), var.getVar() );
                 // Use an empty span; the correct span will be filled in
                 // later at the use site
                 boxedRefMap.put( keyPair, 
