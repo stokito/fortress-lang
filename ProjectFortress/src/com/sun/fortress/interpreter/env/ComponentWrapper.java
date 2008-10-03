@@ -52,7 +52,7 @@ public class ComponentWrapper {
     private final static boolean loadCompiledEnvs =
         ProjectProperties.getBoolean("fortress.test.compiled.environments", false);
     
-    CompilationUnit p;
+    CompilationUnit comp_unit;
 
     HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
 
@@ -131,9 +131,9 @@ public class ComponentWrapper {
        this.implicitLibs = implicitLibs;
        if (comp == null)
             throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
-        p = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
+        comp_unit = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
         
-         String fortressFileName = p.getName().getText();
+         String fortressFileName = comp_unit.getName().getText();
         
          try {
             
@@ -162,9 +162,9 @@ public class ComponentWrapper {
         this.implicitLibs = implicitLibs;
         if (api == null)
             throw new NullPointerException("Null api (1st parameter to constructor) not allowed");
-        p = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
+        comp_unit = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
         
-         String fortressFileName = p.getName().getText();
+         String fortressFileName = comp_unit.getName().getText();
         
          try {
                 Environment e = loadCompiledEnvs ?
@@ -205,7 +205,7 @@ public class ComponentWrapper {
 
     @Override
     public String toString() {
-        return ("Wrapper for "+p.toString()+" exports: "+exports);
+        return ("Wrapper for "+comp_unit.toString()+" exports: "+exports);
     }
 
     public boolean populated() {
@@ -230,7 +230,11 @@ public class ComponentWrapper {
 
         visitState = IMPORTED;
 
-        desugarer = new DesugarerVisitor(suppressDebugDump);
+        if (comp_unit instanceof Component) {
+            desugarer = new DesugarerVisitor(suppressDebugDump, ((Component)comp_unit).getObjectExprs());
+        } else {
+            desugarer = new DesugarerVisitor(suppressDebugDump, null);
+        }
 
         for (ComponentWrapper api: exports.values()) {
             api.touchExports(suppressDebugDump);
@@ -239,7 +243,7 @@ public class ComponentWrapper {
 
     public void preloadTopLevel() {
 
-        desugarer.preloadTopLevel(p);
+        desugarer.preloadTopLevel(comp_unit);
         /* Need to capture these names early so that rewriter
          * name injection will follow the same no-duplicates
          * rules as other name visibility.
@@ -257,7 +261,7 @@ public class ComponentWrapper {
 
         visitState = POPULATED;
 
-        CompilationUnit cu = p;
+        CompilationUnit cu = comp_unit;
 
         cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
                                       // Caches information in dis!
@@ -267,7 +271,7 @@ public class ComponentWrapper {
         ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         be.getEnvironment().visit(nameCollector);
-        p = cu;
+        comp_unit = cu;
         topLevelUsesForDebugging = desugarer.topLevelUses.copy();
         topLevelUsesForDebugging.removeAll(ownNames);
         
@@ -294,7 +298,7 @@ public class ComponentWrapper {
 
          be.setExporterAndApi(exporter, this);
          
-         CompilationUnit cu = p;
+         CompilationUnit cu = comp_unit;
 
          cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
                                        // Caches information in dis!
@@ -304,7 +308,7 @@ public class ComponentWrapper {
          ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
          excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
          be.getEnvironment().visit(nameCollector);
-         p = cu;
+         comp_unit = cu;
          topLevelUsesForDebugging = desugarer.topLevelUses.copy();
          topLevelUsesForDebugging.removeAll(ownNames);
 
@@ -318,7 +322,7 @@ public class ComponentWrapper {
 
             be.secondPass();
 
-            be.visit(p);
+            be.visit(comp_unit);
 
         } else
             throw new IllegalStateException("Must be populated before init types");
@@ -330,7 +334,7 @@ public class ComponentWrapper {
 
             be.thirdPass();
 
-            be.visit(p);
+            be.visit(comp_unit);
 
         } else
             throw new IllegalStateException("Must be typed before init funcs");
@@ -341,7 +345,7 @@ public class ComponentWrapper {
             visitState = FINISHED;
 
             be.fourthPass();
-            be.visit(p);
+            be.visit(comp_unit);
 
                 /*
                  * TODO Need to figure out why this works (or seems to).
@@ -357,11 +361,11 @@ public class ComponentWrapper {
     }
 
     public CompilationUnit getCompilationUnit() {
-       return p;
+       return comp_unit;
     }
 
     public String name() {
-        return NodeUtil.nameString(p.getName());
+        return NodeUtil.nameString(comp_unit.getName());
     }
 
     /**
@@ -377,7 +381,7 @@ public class ComponentWrapper {
     }
 
     public List<Import> getImports() {
-        return p.getImports();
+        return comp_unit.getImports();
     }
 
 

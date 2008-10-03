@@ -1139,6 +1139,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      */
                     _RewriteObjectRef(Id obj, List<StaticArg> staticArgs);
                     /**
+                     * Temporarily, until closure conversion is always on-line,
+                     * object exprs are simply hoisted to top-level, but retain
+                     * access to their original lexical scope.
+                     */
+                    _RewriteObjectExprRef(String genSymName, List<StaticArg> staticArgs);
+                    /**
                      * field selection expression
                      * Primary ::= Primary . Id
                      */

@@ -146,6 +146,7 @@ import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes._RewriteObjectExprRef;
 import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -1003,7 +1004,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return paste;
     }
 
-    public FValue for_RewriteObjectExpr(_RewriteObjectExpr x) {
+    public FValue for_RewriteObjectExprRef(_RewriteObjectExprRef x) {
         String s = x.getGenSymName();
         // FType ft = e.getType(s);
         // System.out.println("for_RewriteObjectExpr "+s);
