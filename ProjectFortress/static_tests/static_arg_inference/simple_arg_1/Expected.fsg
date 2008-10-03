@@ -1,17 +1,20 @@
 component InSimple
-export { Executable }
-object Blank [\ T \] (t : T) extends { FortressBuiltin.Object } 
-    getT() : T  =
+export Executable
+object Blank[\T\](t: T) extends FortressBuiltin.Object
+    getT(): T =
     t
 end
 
-topLevelFn[\ T \](b : Blank[\ T \]) : T  =
+topLevelFn[\T\](b: Blank[\T\]): T =
 b.getT()
-callSiteFn() : FortressLibrary.String  =
+
+callSiteFn(): FortressLibrary.String =
 do
-    a : Blank[\ FortressLibrary.String \] = Blank[\ FortressLibrary.String \]("Some string")
-    topLevelFn[\ FortressLibrary.String \](a)
+    a: Blank[\FortressLibrary.String\] = Blank[\FortressLibrary.String\]("Some string")
+    topLevelFn[\FortressLibrary.String\](a)
 end
-run(args : FortressLibrary.String...) : ()  =
+
+run(args: FortressLibrary.String...): () =
 ()
+
 end

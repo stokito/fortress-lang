@@ -1,17 +1,20 @@
 component InOp
-export { Executable }
-object Blank [\ T \] (t : T) extends { FortressBuiltin.Object } 
-    getT() : T  =
+export Executable
+object Blank[\T\](t: T) extends FortressBuiltin.Object
+    getT(): T =
     t
 end
 
-opr +[\ T \](b1 : Blank[\ T \], b2 : Blank[\ T \]) : T  =
+opr +[\T\](b1: Blank[\T\], b2: Blank[\T\]): T =
 b1.getT()
-callSiteFn() : FortressLibrary.String  =
+
+callSiteFn(): FortressLibrary.String =
 do
-    a : Blank[\ FortressLibrary.String \] = Blank[\ FortressLibrary.String \]("Some string")
+    a: Blank[\FortressLibrary.String\] = Blank[\FortressLibrary.String\]("Some string")
     a + a
 end
-run(args : FortressLibrary.String...) : ()  =
+
+run(args: FortressLibrary.String...): () =
 ()
+
 end
