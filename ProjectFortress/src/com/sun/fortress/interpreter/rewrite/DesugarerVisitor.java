@@ -290,7 +290,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * top level.  The top level environment is available to the creator/caller
      * of Disambiguate.
      */
-    private ArrayList<_RewriteObjectExpr> objectExprs = new ArrayList<_RewriteObjectExpr>();
+    private List<_RewriteObjectExpr> objectExprs = new ArrayList<_RewriteObjectExpr>();
 
     DesugarerVisitor(BATree<String, Thing> initial,
               BATree<String, StaticParam> initialGenericScope,
@@ -310,8 +310,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * Returns a new DesugarerVisitor.
      * 
      * @param suppressDebugDump normally true for everything but files mentioned on the command line.
+     * @param list 
      */
-    public DesugarerVisitor(boolean suppressDebugDump) {
+    public DesugarerVisitor(boolean suppressDebugDump, List<_RewriteObjectExpr> objectExprs) {
         this(new BATree<String, Thing>(StringHashComparer.V),
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
@@ -671,9 +672,12 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             System.err.println("BEFORE\n" + NodeUtil.dump(com));
 
         AbstractNode nn = visitNode(com);
+        
+        ((Component) nn).getObjectExprs().addAll(objectExprs);
 
         if (debug && ! isLibrary)
             System.err.println("AFTER\n" + NodeUtil.dump(nn));
+        
        return nn;
     }
     @Override
@@ -874,11 +878,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         // Implicitly parameterized by either visibleGenericParameters,
         // or by usedGenericParameters.
         // Note the keys of a BATree are sorted.
-        n = ExprFactory.make_RewriteObjectExpr((ObjectExpr)n,
+        _RewriteObjectExpr rwoe = ExprFactory.make_RewriteObjectExpr((ObjectExpr)n,
                                               usedGenericParameters);
-        objectExprs.add((_RewriteObjectExpr)n);
+        objectExprs.add(rwoe);
 
-        return n;
+        return new _RewriteObjectExprRef(rwoe.getSpan(), rwoe.isParenthesized(), rwoe.getExprType(), rwoe.getGenSymName(), rwoe.getStaticArgs());
     }
 
     @Override
