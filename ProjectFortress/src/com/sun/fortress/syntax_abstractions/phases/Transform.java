@@ -141,7 +141,7 @@ public class Transform extends TemplateUpdateVisitor {
      *    Accumulator 
      *    GeneratedExpr 
      *    ArrayComprehensionClause 
-     *    IfClause
+     *    IfClause - done
      */
 
     /* this should only be called by a method that has a GeneratorClause */
@@ -155,6 +155,18 @@ public class Transform extends TemplateUpdateVisitor {
         });
         Expr init_result = (Expr) recur(that.getInit());
         return new GeneratorClause(newIds, init_result);
+    }
+
+    public Node forIfClause(IfClause that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            GeneratorClause test_result = handleGeneratorClause(that.getTest());
+            Block body_result = (Block) recur(that.getBody());
+            setSyntaxEnvironment(save);
+            return forIfClauseOnly(that, test_result, body_result);
+        } else {
+            return super.forIfClause(that);
+        }
     }
 
     public Node forFor(For that) {

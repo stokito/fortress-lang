@@ -45,5 +45,18 @@ api GeneratorClause
                     end
                 ]>
             end
+        |  a:moobar {e:Expr ,? SPACE}* =>
+            case e of
+                Empty => <[ 1 ]>
+                Cons(fs,bs) =>
+                    <[
+                    do
+                        if x <- fs then
+                            x + (moobar bs**)
+                        end
+                    end
+                ]>
+            end
+
     end
 end

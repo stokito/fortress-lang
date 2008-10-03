@@ -20,8 +20,12 @@ import GeneratorClause.{...}
 export Executable
 
 run(args:String...) = do
+    (* for loop *)
     println (foobar 5, 6, 7)
+    (* while loop *)
     println (goobar 5, 6, 7)
+    (* if *)
+    println (moobar 5, 6, 7)
 end
 
 end
