@@ -23,6 +23,8 @@ import com.sun.fortress.nodes.*;
  * A visitor that makes an api from a component.
  */
 public final class ApiMaker extends NodeUpdateVisitor {
+    private boolean inTrait = false;
+
     public static final ApiMaker ONLY = new ApiMaker();
 
     private ApiMaker() {}
@@ -86,6 +88,9 @@ public final class ApiMaker extends NodeUpdateVisitor {
     }
 
     public AbsTraitDecl forTraitDecl(TraitDecl that) {
+        inTrait = true;
+        List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+        inTrait = false;
         return new AbsTraitDecl(that.getSpan(),
                                 that.getMods(),
                                 that.getName(),
@@ -94,7 +99,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
                                 that.getWhere(),
                                 that.getExcludes(),
                                 that.getComprises(),
-                                declsToAbsDecls(that.getDecls()));
+                                absDecls);
     }
 
     public AbsObjectDecl forObjectDecl(ObjectDecl that) {
@@ -118,6 +123,23 @@ public final class ApiMaker extends NodeUpdateVisitor {
     public AbsFnDecl forFnDef(FnDef that) {
         return new AbsFnDecl(that.getSpan(),
                              that.getMods(),
+                             that.getName(),
+                             that.getStaticParams(),
+                             that.getParams(),
+                             that.getReturnType(),
+                             that.getThrowsClause(),
+                             that.getWhere(),
+                             that.getContract(),
+                             that.getSelfName());
+    }
+
+    public AbsFnDecl forAbsFnDecl(AbsFnDecl that) {
+        List<Modifier> mods = that.getMods();
+        if ( inTrait ) {
+            mods.add(0, new ModifierAbstract(that.getSpan()));
+        }
+        return new AbsFnDecl(that.getSpan(),
+                             mods,
                              that.getName(),
                              that.getStaticParams(),
                              that.getParams(),
