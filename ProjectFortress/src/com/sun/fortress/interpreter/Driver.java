@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import com.sun.fortress.repository.DerivedFiles;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;
@@ -116,6 +118,19 @@ public class Driver {
 
     static public void runTests() {
     }
+    
+    
+    private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
+        @Override
+        public String apply(APIName x) {
+            // TODO Auto-generated method stub
+            return null;
+        } 
+    };
+    private static IOAst componentReaderWriter = new IOAst(toCompFileName);
+    private static DerivedFiles<CompilationUnit> componentCache = 
+        new DerivedFiles<CompilationUnit>(componentReaderWriter);
+    
 
     /**
      * Native code sometimes needs access to the library component wrapper.

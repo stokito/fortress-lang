@@ -206,7 +206,7 @@ public class ProjectProperties {
         if (c == 'y' || c == 't' || c == '1') return true;
         if (c == 'n' || c == 'f' || c == '0') return false;
 
-        throw new Error("Unexpected definition of prop/env " + s + ", got " + result + ", need t/f/y/n/0/1[...]");
+        throw new Error("Unexpected definition of prop/env " + s + ", got " + result + ", need t/f/y/n/1/0[...]");
     }
 
     /**
