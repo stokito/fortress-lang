@@ -895,16 +895,16 @@ object CompactFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I)
         if r < l then
             red.empty()
         else
-            loop(lo:I,hi:I): T =
+            loop'(lo:I,hi:I): T =
                 if lo=hi then
                     body(lo)
                 else
                     (* Identify power-of-2 boundary in region, split there *)
                     split = partitionL((lo BITXOR hi)+1)
                     mid   = hi BITAND (BITNOT (split-1))
-                    red.join(loop(lo,mid-1),loop(mid,hi))
+                    red.join(loop'(lo,mid-1),loop'(mid,hi))
                 end
-            loop(l,r)
+            loop'(l,r)
         end
     loop(body: I->()): () =
         if r < l then
@@ -1043,7 +1043,7 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
             if r < l then
                 red.empty()
             else
-                loop(lo:I,hi:I): T =
+                loop'(lo:I,hi:I): T =
                     if lo=hi then
                         body(lo)
                     else
@@ -1054,16 +1054,16 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
                            WARNING?  Problem with negative lo here?  *)
                         midL = lo + str (midAmt DIV str)
                         midR = midL + str
-                        red.join(loop(lo,midL),loop(midR,hi))
+                        red.join(loop'(lo,midL),loop'(midR,hi))
                     end
-                loop(l,r)
+                loop'(l,r)
             end
         else (* str > 0 *)
             if l < r then
                 red.empty()
             else
                 str' = -str
-                loop(lo:I,hi:I): T =
+                loop'(lo:I,hi:I): T =
                     if lo=hi then
                         body(lo)
                     else
@@ -1074,9 +1074,9 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
                            WARNING?  Problem with negative lo here?  *)
                         midL = lo + str' (midAmt DIV str')
                         midR = midL + str'
-                        red.join(loop(midR,hi),loop(lo,midL))
+                        red.join(loop'(midR,hi),loop'(lo,midL))
                     end
-                loop(r,l)
+                loop'(r,l)
             end
         end
     loop(body: I->()): () =
