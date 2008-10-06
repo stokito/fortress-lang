@@ -64,11 +64,8 @@ public class ComponentWrapper {
      */
     private String[]  implicitLibs;
     
-    public BASet<String> ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-    public BASet<String> ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-    public BASet<String> importedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
 
     /**
      * If a variable/value/function name is missing when an API is initialized, 
@@ -99,11 +96,8 @@ public class ComponentWrapper {
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
     public void reset() {
-        ownNonFunctionNames = null;
         ownNames = null;
-        ownTypeNames = null;
         excludedImportNames = null;
-        importedNames = null;
         if (exports != null)
             for (ComponentWrapper cw : exports.values()) {
                 cw.reset();
@@ -116,12 +110,7 @@ public class ComponentWrapper {
 
         @Override
         public void visit(String t, Object u) {
-            if (! overloadable(u)) {
-                ownNonFunctionNames.add(t);
-            } 
-            if (u instanceof FType || u instanceof FTypeGeneric) {
-                ownTypeNames.add(t);
-            } 
+            
             ownNames.add(t);
         }
     };
@@ -267,8 +256,6 @@ public class ComponentWrapper {
                                       // Caches information in dis!
         be.visit(cu);
         // Reset the non-function names from the disambiguator.
-        ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-        ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         be.getEnvironment().visit(nameCollector);
         comp_unit = cu;
@@ -304,9 +291,8 @@ public class ComponentWrapper {
                                        // Caches information in dis!
          be.visit(cu);
          // Reset the non-function names from the disambiguator.
-         ownNonFunctionNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-         ownTypeNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
          excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+         
          be.getEnvironment().visit(nameCollector);
          comp_unit = cu;
          topLevelUsesForDebugging = desugarer.topLevelUses.copy();
