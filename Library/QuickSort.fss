@@ -19,11 +19,8 @@ component QuickSort
 export QuickSort
 
 (* http://en.wikipedia.org/wiki/Quicksort *)
-swap[\T\](arr:Array[\T,ZZ32\], x: ZZ32, y: ZZ32) =
-  do
-    tmp = arr[x]
-    arr[x] := arr[y]
-    arr[y] := tmp
+swap[\T\](arr:Array[\T,ZZ32\], x: ZZ32, y: ZZ32) = do
+    (arr[x],arr[y]) := (arr[y],arr[x])
   end
 mypartition[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32) =
   do
@@ -39,7 +36,7 @@ mypartition[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, 
     swap[\T\](arr, right, storeIndex)
     storeIndex
   end
-quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32) =
+quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32):() =
   if right > left
   then pivotIndex = left
        pivotNewIndex = mypartition(lt, arr, left, right, pivotIndex)
@@ -49,5 +46,9 @@ quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32) =
          quicksort(lt, arr, pivotNewIndex+1, right)
        end
   end
+quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\]):() =
+  quicksort[\T\](lt,arr,arr.bounds.lower, arr.bounds.upper)
+quicksort[\T extends StandardTotalOrder[\T\]\](arr:Array[\T,ZZ32\]):() =
+  quicksort[\T\](fn (a:T,b:T):Boolean => a < b, arr, arr.bounds.lower, arr.bounds.upper)
 
 end
