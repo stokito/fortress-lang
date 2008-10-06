@@ -133,8 +133,6 @@ import edu.rice.cs.plt.tuple.Triple;
  */
 public class ExprDisambiguator extends NodeUpdateVisitor {
 
-    private static final boolean CHECK_FOR_SHADOWING = true;
-
     private NameEnv _env;
     private Set<Id> _uninitializedNames;
     private List<StaticError> _errors;
@@ -162,20 +160,29 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * functions in scope.
      */
     private void checkForShadowingVar(Id var) {
-        if (CHECK_FOR_SHADOWING) {
-            if (! var.getText().equals("self") && ! var.getText().equals("_") &&
-                ! var.getText().equals("outcome") &&
-                ! _uninitializedNames.contains(var)) {
-                if( !_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty()) {
-                    error("Variable " + var + " is already declared.", var);
-                }
+        if (! var.getText().equals("self") && ! var.getText().equals("_") &&
+            ! var.getText().equals("outcome") &&
+            ! _uninitializedNames.contains(var)) {
+            if( !_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty()) {
+                error("Variable " + var + " is already declared.", var);
             }
         }
     }
 
     /**
-     * Check that the function corresponding to the given Id does not shadow any variables in
-     * scope.
+     * Check that the local function corresponding to the given Id does not shadow any variables
+     * or non-overloading functions in scope.
+     */
+    private void checkForShadowingLocalFunction(Id var, Set<Id> allowedShadowings) {
+        if ( (!_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty())
+             && !allowedShadowings.contains(var)) {
+            error("Variable " + var + " is already declared.", var);
+        }
+    }
+
+    /**
+     * Check that the function corresponding to the given Id does not shadow any variables
+     * in scope.
      */
     private void checkForShadowingFunction(Id var, Set<Id> allowedShadowings) {
         if ( !_env.explicitVariableNames(var).isEmpty() && !allowedShadowings.contains(var)) {
@@ -199,6 +206,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                         error("Variable " + _vars[i] + " is already declared at " + ((Id)_vars[j]).getSpan(), (Id)_vars[i]);
                     }
                 }
+            }
+        }
+    }
+
+    private void checkForShadowingLocalFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames) {
+        for (IdOrOpOrAnonymousName name : definedNames) {
+            if (name instanceof Id) {
+                checkForShadowingLocalFunction((Id)name, Collections.<Id>emptySet());
+            }
+        }
+    }
+
+    private void checkForShadowingLocalFunctions(Set<? extends IdOrOpOrAnonymousName> definedNames,
+                                            Set<Id> allowedShadowings) {
+        for (IdOrOpOrAnonymousName name : definedNames) {
+            if (name instanceof Id) {
+                checkForShadowingLocalFunction((Id)name, allowedShadowings);
             }
         }
     }
@@ -248,6 +272,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         NameEnv newEnv = new LocalVarEnv(_env, vars);
         uninitializedNames.addAll(_uninitializedNames);
         return new ExprDisambiguator(newEnv, uninitializedNames, _errors, this._innerMostLabel);
+    }
+
+    private ExprDisambiguator extendWithLocalFns(Set<? extends IdOrOpOrAnonymousName> definedNames) {
+        checkForShadowingLocalFunctions(definedNames);
+        return extendWithFnsNoCheck(definedNames);
+    }
+
+    private ExprDisambiguator extendWithLocalFns(Set<? extends IdOrOpOrAnonymousName> definedNames,
+                                            Set<Id> allowedShadowings)
+    {
+        checkForShadowingLocalFunctions(definedNames, allowedShadowings);
+        return extendWithFnsNoCheck(definedNames);
     }
 
     private ExprDisambiguator extendWithFns(Set<? extends IdOrOpOrAnonymousName> definedNames) {
@@ -1102,7 +1138,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     /** LetFns introduce local functions in scope within the body. */
     @Override public Node forLetFn(LetFn that) {
         Set<IdOrOpOrAnonymousName> definedNames = extractDefinedFnNames(that.getFns());
-        ExprDisambiguator v = extendWithFns(definedNames);
+        ExprDisambiguator v = extendWithLocalFns(definedNames);
         List<FnDef> fnsResult = v.recurOnListOfFnDef(that.getFns());
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());

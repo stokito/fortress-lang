@@ -281,10 +281,10 @@ end
 
 compileF(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     this(params) = do
-        getPlain(x) = x + 0.0
+        getPlain'(x) = x + 0.0
         (fn () => getWidth(params,
                   getDelimiter(params,
-                  getPlain(
+                  getPlain'(
                   getArg(params,args,allArgs)))))
     end
     params = parseParameters(front)
@@ -315,8 +315,8 @@ end
 
 compileB(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     this(params) = do
-        getPlain(arg) = if arg then "true" else "false" end
-        (fn () => getPlain(
+        getPlain'(arg) = if arg then "true" else "false" end
+        (fn () => getPlain'(
                   getArg(params,args,allArgs)))
     end
     params = parseParameters(front)
@@ -325,8 +325,8 @@ end
 
 compileM(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     this(params) = do
-        getPlain(arg) = if i <- arg then i else "" end
-        (fn () => getPlain(
+        getPlain'(arg) = if i <- arg then i else "" end
+        (fn () => getPlain'(
                   getArg(params,args,allArgs)))
     end
     params = parseParameters(front)
@@ -335,8 +335,8 @@ end
 
 compileE(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     this(params) = do
-        getPlain(arg) = scientific(arg)
-        (fn () => getPlain(
+        getPlain'(arg) = scientific(arg)
+        (fn () => getPlain'(
                   getArg(params,args,allArgs)))
     end
     params = parseParameters(front)
