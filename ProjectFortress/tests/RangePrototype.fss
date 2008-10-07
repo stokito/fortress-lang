@@ -43,9 +43,17 @@ intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:Scala
         (ExtentScalarRange[\I\], ScalarRange[\I\]) =>
             if NOT this.fromLeft then
                 exit intersection with
-                    intersectUnbounded(this.flip(),other.flip(),resultStride).flip()
+                    intersectUnbounded(extentScalarRange[\I\](this.extent.get, this.stride),
+                                       other.flip(), resultStride).flip()
             end
-            other.every(resultStride DIV other.stride).atMost(this.extent.get)
+            everyStride = resultStride DIV other.stride
+            res =
+                if everyStride > 0 then
+                    other.every(everyStride).atMost(this.extent.get)
+                else
+                    other.flip().every(everyStride).atMost(this.extent.get)
+                end
+            if this.stride < 0 then res.flip() else res end
         (ScalarRange[\I\], ExtentScalarRange[\I\]) =>
             intersectUnbounded(other,this,resultStride)
     end
@@ -200,7 +208,7 @@ opr INTERSECTNEW[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: Scalar
     end
   end intersection
 
-object dumpShow[\I\](r:Rng[\I\]) extends Equality[\dumpShow[\I\]\]
+object dumpShow[\I\](r:Range[\I\]) extends Equality[\dumpShow[\I\]\]
     getter toString(): String = r.dump() ":" r.toString()
     opr =(self, other:dumpShow[\I\]): Boolean = self.r = other.r
 end
@@ -231,12 +239,19 @@ run(args:String...):() =
     assert(StridedFullParScalarRange[\ZZ32\](1,1,-1),CompactFullParScalarRange[\ZZ32\](1,1),"Singleton equality 2")
     assert(CompactFullParScalarRange[\ZZ32\](0,23).every(-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward every")
     assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION OpenScalarRange[\ZZ32\](-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward intersection")
+    assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
+           StridedFullParScalarRange[\ZZ32\](17,23,3), "Right end intersection")
+    assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION extentScalarRange[\ZZ32\](-1,1),
+           CompactFullParScalarRange[\ZZ32\](23,23), "Right singleton intersection")
+    assert(StridedFullParScalarRange[\ZZ32\](23,0,-1) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
+           StridedFullParScalarRange[\ZZ32\](6,0,-3), "Right end of backwards range")
 
     strides = <|[\ZZ32\] 1,2,3,4,-1,-3|>
     lefts = <|[\ZZ32\] -2,0,1,2|>
     rights = <|[\ZZ32\] -3,-1,0,1,45,46,47|>
 
     (* Start by testing later implemented stuff: 2D ranges *)
+    println("2D ranges")
     pairOpen = combine2D(open[\ZZ32\](),open[\ZZ32\]())
     pairOpens = <|[\Range2D[\ZZ32,ZZ32\]\] pairOpen |>
     pairLefts = <|[\Range2D[\ZZ32,ZZ32\]\] LeftRange2D[\ZZ32,ZZ32\](-1,2,1,1),
@@ -266,7 +281,6 @@ run(args:String...):() =
         end
     end
     for r <- pairTestRanges do
-        println(dumpShow(r))
         assert(r,r,"Self equality")
         assert(combine2D(r.range1,r.range2),r,"combine2D identity")
         assert( <| s | s <- pairTestRanges, NOT s.isEmpty, r=s |>,
@@ -470,13 +484,13 @@ run(args:String...):() =
     compactScalarRanges = <| c | r <- fullScalarRanges,
                         c <- if r.stride()=1 then <|r,r.bounds()|> else <|r.bounds()|> end |>
     for i <- compactScalarRanges, i.isEmpty, j <- testScalarRanges do
-        s = i.selectIndices(j)
-        assert(s.isEmpty, true, "nonEmpty ",i,".selectIndices(",j,") = ",s)
+        s = i.narrowToRange(j)
+        assert(s.isEmpty, true, "nonEmpty ",i,".narrowToRange(",j,") = ",s)
     end
     print("\nnonempty indexed by empty")
     for i <- compactScalarRanges, NOT i.isEmpty, j <- fullScalarRanges, j.isEmpty do
-        s = i.selectIndices(j)
-        assert(s.isEmpty, true, "nonEmpty ",i,".selectIndices(",j,") = ",s)
+        s = i.narrowToRange(j)
+        assert(s.isEmpty, true, "nonEmpty ",i,".narrowToRange(",j,") = ",s)
     end
     print("\nintersection")
     print("\nempty intersection")
@@ -587,24 +601,18 @@ run(args:String...):() =
     end
     println("\nnonempty indexed")
     for i <- compactScalarRanges, NOT i.isEmpty, j <- testScalarRanges, NOT j.isEmpty do
-        jj = if j.stride < 0 then j.flip() else j end
+        jj = j.forward()
         shouldThrow = (jj.left.holds AND: jj.left.get < i.left.get) OR
                       (jj.right.holds AND: jj.right.get > i.right.get)
         try
-            f = i.selectIndices(j)
+            f = i.narrowToRange(j)
             assert(shouldThrow, false,
-                   "Missed IndexOutOfBounds on ",i,".selectIndices(",j,")")
-            if j.stride > 0 then
-                assert(dumpShow(f), dumpShow(i INTERSECTION j),
-                       "Doesn't match intersection ",i,".selectIndices(",j,")")
-            else
-                assert(dumpShow(f.flip()), dumpShow(i INTERSECTION jj),
-                       "Doesn't match flip ",i,".selectIndices(",j,")")
-            end
-            (* println(i ".selectIndices(" j ") = " f) *)
+                   "Missed IndexOutOfBounds on ",i,".narrowToRange(",j,") = ", f)
+            assert(dumpShow(f), dumpShow(i INTERSECTION j),
+                   "Doesn't match intersection ",i,".narrowToRange(",j,")")
         catch e IndexOutOfBounds[\ZZ32\] =>
             assert(shouldThrow, true,
-                   "Spurious IndexOutOfBounds on ",i,".selectIndices(",j,")")
+                   "Spurious IndexOutOfBounds on ",i,".narrowToRange(",j,")")
         end
     end
   end

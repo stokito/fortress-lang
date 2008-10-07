@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.List;
 
@@ -69,13 +70,22 @@ public class PrimImmutableArray extends NativeConstructor {
         }
 
         public FValue get(int i) {
-            return contents[i];
+            try {
+                return contents[i];
+            } catch (ArrayIndexOutOfBoundsException e) {
+                return bug(errorMsg("Array index ",i," out of bounds, length=",contents.length),e);
+            }
         }
 
         public boolean init(int i, FValue v) {
-            FValue old = contents[i];
-            contents[i] = v;
-            return (old==null);
+            try {
+                FValue old = contents[i];
+                contents[i] = v;
+                return (old==null);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                bug(errorMsg("Array index ",i," out of bounds, length=",contents.length),e);
+                return false;
+            }
         }
     }
 
