@@ -28,7 +28,7 @@ object SparseVector[\T extends Number, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
     get(i:ZZ32):T = do
       b = mem.bounds().lower()
       lo:ZZ32 := -1
-      hi:ZZ32 := mem.bounds().extent()
+      hi:ZZ32 := |mem|
       while lo + 1 < hi do
         mid = (lo+hi) DIV 2
         (ii,_) = mem[b+mid]

@@ -146,7 +146,7 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     opr |self| : ZZ32 = 0
     opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
-        rr = (bounds())[r]
+        rr = self.bounds.narrowToRange(r)
         self
     end
     indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
@@ -194,7 +194,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
                     else fail(self "[" i "] is out of bounds.") end
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
-        r' = (bounds())[r]
+        r' = self.bounds.narrowToRange(r)
         (lside,rside) = splitIndex( r'.lower() )
         (lside',rside') = rside.splitIndex( |r'| )
         lside'

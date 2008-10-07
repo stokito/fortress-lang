@@ -197,7 +197,7 @@ export CordedString
     get(i): Char = fail("Can't get characters from an empty string")
 
     opr[r: Range⟦ZZ32⟧] : String = do
-        rr = self.indices[r]     (* to raise a bounds error *)
+        rr = self.indices.narrowToRange(r)     (* to raise a bounds error *)
         EmptyString
     end
     

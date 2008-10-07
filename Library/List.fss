@@ -149,8 +149,12 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     drop(n:ZZ32): List[\E\]
     opr [n:ZZ32]: E
     opr [n:Range[\ZZ32\]]: List[\E\] = do
-        r = (0 # |self|)[n]
-        drop(r.lower).take(r.extent)
+        r = (0 # |self|).narrowToRange(n)
+        if r.stride = 1 then
+            drop(r.left.get).take(|r|)
+        else
+            <| self[i] | i <- r |>
+        end
       end
     (** %l.split(n)% is equivalent to %(l.take(n),l.drop(n))%.  Note in
         particular that appending its results yields the original

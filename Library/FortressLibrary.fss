@@ -19,7 +19,9 @@ component FortressLibrary
 import NativeArray.{...}
 import NatReflect.{...}
 import JavaString.{...}
+import RangeInternals.{...}
 import List.{AnyList}
+import TypeProxy.{...}
 
 export FortressLibrary
 
@@ -52,17 +54,6 @@ tuple[\T\](x:T):T = x
 
 (* Function composition *)
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
-
-(** Reflection of static type parameters for overloading purposes.
-    Works around shortcomings in the story on parametric overloading
-    (all overloadings must have the same parameters with the same
-    bounds).  Allows us to overload a function based on the parametric
-    type of an output. *)
-
-object __Proxy[\T extends (* U *) Any\]
-    (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-    getter toString() = "__Proxy object, should not be user-visible."
-end
 
 fail[\T\](s:String):T = do
     println("FAIL: " s)
@@ -149,7 +140,14 @@ trait Comparison
         comprises { Unordered, TotalComparison }
     getter toString(): String
     opr =(self, other:Comparison): Boolean = false
+    (** Lexicographic ordering.  First non-equal comparison dictates result. *)
     opr LEXICO(self, other:Comparison): Comparison = Unordered
+    (** Symmetric comparison (total orders only).  All comparisons
+        must be compatible, or Unordered results.  Compatible means
+        "all the same sense or EqualTo" in which case the sense is the
+        result (EqualTo if everything's EqualTo). *)
+    opr SYMMETRIC_PARTIAL(self, other:Comparison): Comparison = Unordered
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = self SYMMETRIC_PARTIAL other()
     opr INVERSE(self): Comparison
 end
 
@@ -159,6 +157,7 @@ object Unordered extends Comparison
     getter toString(): String = "Unordered"
     opr =(self, other:Unordered): Boolean = true
     opr <(self, other:Comparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = Unordered
     opr INVERSE(self): Comparison = Unordered
 end
 
@@ -186,6 +185,8 @@ object LessThan extends TotalComparison
     opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
     opr <(self, other:LessThan): Boolean = false
     opr <(self, other:TotalComparison): Boolean = true
+    opr SYMMETRIC_PARTIAL(self, other:LessThan): LessThan = LessThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): LessThan = LessThan
     opr INVERSE(self): TotalComparison = GreaterThan
 end
 
@@ -195,6 +196,8 @@ object GreaterThan extends TotalComparison
     opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = LessThan
     opr <(self, other:TotalComparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): GreaterThan = GreaterThan
     opr INVERSE(self): TotalComparison = LessThan
 end
 
@@ -206,6 +209,7 @@ object EqualTo extends TotalComparison
     opr <(self, other:TotalComparison): Boolean = false
     opr LEXICO(self, other:TotalComparison): TotalComparison = other
     opr LEXICO(self, other:()->TotalComparison): TotalComparison = other()
+    opr SYMMETRIC_PARTIAL(self, other: Comparison): Comparison = other
     opr INVERSE(self): TotalComparison = EqualTo
 end
 
@@ -751,7 +755,7 @@ trait ZZ extends Integral[\ZZ\]
         1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
     getter one(): ZZ = self.zero + 1
     numerator(self):ZZ = self
-    opr |self| : ZZ32 = if self>=0 then self else -self end
+    opr |self| : ZZ = if self>=0 then self else -self end
     opr =(self, b: ZZ):Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Eq")
     opr <(self, other:ZZ): Boolean = self.cmp(other) < 0
@@ -1083,18 +1087,18 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
     getter size(): ZZ32 = if self.holds then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
-    getter bounds(): FullRange[\ZZ32,true\] = 0 # |self|
-    getter indices(): FullRange[\ZZ32,true\] = self.bounds
+    getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
+    getter indices(): CompactFullRange[\ZZ32\] = self.bounds
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
     opr |self|: ZZ32 = if self.holds then 1 else 0 end
     opr [i:ZZ32]:E throws NotFound = if i=0 then self.get else throw NotFound end
     opr [r:Range[\ZZ32\]]: Condition[\E\] =
         cond[\E\](fn (e:E): Condition[\E\] => do
-                    r1 = (0#1)[r]
+                    r1 = (0#1).narrowToRange(r)
                     if r1.isEmpty then Nothing[\E\] else self end
                   end,
-                fn (): Condition[\E\] => do r1 = (0#0)[r]; self end)
+                fn (): Condition[\E\] => do r1 = (0#0).narrowToRange(r); self end)
     getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
     cond[\G\](t: E -> G, e: () -> G): G
     generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](body,fn () => r.empty())
@@ -1433,7 +1437,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
     getter size(): ZZ32 = |self|
     (** self.bounds yields a range of indices that are valid for the
         indexed generator. *)
-    getter bounds(): FullRange[\I,true\]
+    getter bounds(): CompactFullRange[\I\]
     (** self.indexValuePairs generates the elements of the indexed object
         (exactly those elements that are generated by the object itself),
         but each element is paired with its index.  When we obtain
@@ -1475,7 +1479,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         and obtain a closed range of indices on the underlying
         data. **)
     opr[r:Range[\I\]] : Indexed[\E,I\]
-    opr[_:OpenRange[\Any\]] : Indexed[\E,I\] = self[OpenRange[\I\]]
+    opr[_:TrivialOpenRange] : Indexed[\E,I\] = self[openRange[\I\]()]
 
     (** Roughly speaking, ivmap(f) is equivalent to
         indexValuePairs.map(f).  However ivmap function isn't merely a
@@ -1501,7 +1505,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
 end
 
 trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
-    getter bounds(): FullRange[\ZZ32,true\] = 0 # |self|
+    getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
     zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](self,g)
 end
@@ -1549,10 +1553,9 @@ toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
     type in runing code, but only as a supertype in lieu of Indexed.
 **)
 trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
-    getter generator(): Generator[\E\] =
+    getter generator(): Indexed[\E,I\] =
         self.indexValuePairs.map[\E\](fn (i:I, e:E): E => e)
-    getter size(): ZZ32 = |self.generator|
-    opr |self| : ZZ32 = |self.generator|
+    opr |self| : ZZ32 = |self.indices|
     generate[\R\](r: Reduction[\R\], body: E->R): R =
         self.generator.generate[\R\](r,body)
     seq(self): SequentialGenerator[\E\] = seq(self.generator)
@@ -1579,7 +1582,7 @@ trait MutableIndexed[\E, I\]
     (** For Ranged assignment, the extents of r and v.bounds must
         match, but the lower bounds need not. **)
     opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
-    opr[_:OpenRange[\Any\]]:=(v:Indexed[\E,I\]) : () =
+    opr[_:TrivialOpenRange]:=(v:Indexed[\E,I\]) : () =
         do self[self.bounds] := v end
 end
 
@@ -1616,7 +1619,7 @@ trait ReadableArray[\E,I\]
     (** 0-based non-bounds-checked indexing **)
     get(i:I): E
     init0(i:I, e:E): ()
-    zeroIndices(): FullRange[\I,true\]
+    zeroIndices(): CompactFullRange[\I\]
     (** Convert from base()-based indexing to 0-based indexing,
         performing bounds checking. **)
     offset(i:I): I
@@ -1625,7 +1628,7 @@ trait ReadableArray[\E,I\]
 
     (** Indexed functionality with more specific type information **)
     opr[r:Range[\I\]] : ReadableArray[\E,I\]
-    opr[_:OpenRange[\Any\]] : ReadableArray[\E,I\]
+    opr[_:TrivialOpenRange] : ReadableArray[\E,I\]
     ivmap[\R\](f:(I,E)->R): ReadableArray[\R, I\]
     map[\R\](f:E->R): ReadableArray[\R, I\]
 
@@ -1658,7 +1661,7 @@ end
 trait ImmutableArray[\E,I\] extends { ReadableArray[\E,I\] }
         excludes { Array[\E,I\] }
     opr[r:Range[\I\]] : ImmutableArray[\E,I\]
-    opr[_:OpenRange[\Any\]] : ImmutableArray[\E,I\]
+    opr[_:TrivialOpenRange] : ImmutableArray[\E,I\]
     ivmap[\R\](f:(I,E)->R): ImmutableArray[\R, I\]
     map[\R\](f:E->R): ImmutableArray[\R, I\]
     shift(newOrigin:I):ImmutableArray[\E,I\]
@@ -1677,7 +1680,7 @@ trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
     opr[i:I]:=(v:E):() = put(offset(i),v)
 
     opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):() = do
-        a0 = a[a.bounds]        (* Make a have 0 origin *)
+        a0 = a[#]        (* Make a have 0 origin *)
         s0 = self[r]            (* Make self have 0 origin *)
         if a0.bounds = s0.bounds then
             for (i,v) <- a0.indexValuePairs do
@@ -1691,7 +1694,7 @@ trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
 
     (** The following are repetition with better return type info. **)
     opr[r:Range[\I\]] : Array[\E,I\]
-    opr[_:OpenRange[\Any\]] : Array[\E,I\]
+    opr[_:TrivialOpenRange] : Array[\E,I\]
     ivmap[\R\](f:(I,E)->R): Array[\R, I\]
     map[\R\](f:E->R): Array[\R, I\]
     shift(newOrigin:I):Array[\E,I\]
@@ -1802,7 +1805,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
         extends { Indexed1[\s0\], Rank1, ReadableArray[\T,ZZ32\] }
         comprises { ImmutableArray1[\T,b0,s0\], Array1[\T,b0,s0\] }
     getter size():ZZ32 = s0
-    getter bounds():DoomedScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](b0,s0)
+    getter bounds():CompactFullRange[\ZZ32\] = sized1Range[\ZZ32\](0,b0,s0)
     getter mutability():String
     getter toString() = do
         r = "[" b0 "#" s0 "]" self.mutability "["
@@ -1828,7 +1831,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     end
     toIndex(i:ZZ32):ZZ32 = i + b0
 
-    zeroIndices(): DoomedScalarRange[\ZZ32,true\] = ParRange[\ZZ32,true\](0,s0)
+    zeroIndices(): CompactFullRange[\ZZ32\] = sized1Range[\ZZ32\](0,0,s0)
 end
 
 trait ImmutableArray1[\T, nat b0, nat s0\]
@@ -1843,7 +1846,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
-        r' = (self.bounds)[r]
+        r' = self.bounds.narrowToRange(r)
         z = N[\0\]
         s = reflect( |r'| )
         l = reflect(r'.lower)
@@ -1851,14 +1854,14 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
       end
     opr[_:OpenRange[\ZZ32\]] : ImmutableArray1[\T,0,s0\] =
         subarray[\0,s0,0\]()
-    opr[_:OpenRange[\Any\]] : ImmutableArray1[\T,0,s0\] =
+    opr[_:TrivialOpenRange] : ImmutableArray1[\T,0,s0\] =
         subarray[\0,s0,0\]()
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = (self.bounds)[o#s]
+        boundsCheck = self.bounds.narrowToRange(o#s)
         __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1895,7 +1898,7 @@ trait Array1[\T, nat b0, nat s0\]
         end
 
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
-        r' = (self.bounds)[r]
+        r' = self.bounds.narrowToRange(r)
         z = N[\0\]
         s = reflect( |r'| )
         l = reflect(r'.lower)
@@ -1903,14 +1906,14 @@ trait Array1[\T, nat b0, nat s0\]
       end
     opr[_:OpenRange[\ZZ32\]] : Array1[\T,0,s0\] =
         subarray[\0,s0,0\]()
-    opr[_:OpenRange[\Any\]] : Array1[\T,0,s0\] =
+    opr[_:TrivialOpenRange] : Array1[\T,0,s0\] =
         subarray[\0,s0,0\]()
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      boundsCheck = (self.bounds)[o#s]
+      boundsCheck = self.bounds.narrowToRange(o#s)
       __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
     end
 
@@ -1955,7 +1958,7 @@ object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-        boundsCheck = (self.bounds)[o#s]
+        boundsCheck = self.bounds.narrowToRange(o#s)
         o_n : ZZ32 = o - b0
         __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -1970,7 +1973,7 @@ object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
     subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = (self.bounds)[o#s]
+        boundsCheck = self.bounds.narrowToRange(o#s)
         o_n : ZZ32 = o - b0
         __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
       end
@@ -2084,7 +2087,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
               StandardMutableArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32 = s0 s1
-  getter bounds():Tuple2Range[\ZZ32,ZZ32,true\] = Tuple2Range[\ZZ32,ZZ32,true\](b0,b1,s0,s1)
+  getter bounds():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,b0,b1,s0,s1)
   getter toString() = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "]"
     row(i) =
@@ -2120,15 +2123,15 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   toIndex(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t1; (a0+b0,a1+b1) end
   opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
-      r' = (self.bounds)[r]
-      (z0,z1) = r'.extent
+      r' = self.bounds.narrowToRange(r)
+      (z0,z1) = r'.extent.get
       (l0,l1) = r'.lower
       __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
                  reflect(l0),reflect(l1))
     end
-  opr[_:OpenRange[\ZZ32\]] : Array2[\T,0,s0,0,s1\] =
+  opr[_:OpenRange[\(ZZ32,ZZ32)\]] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\]()
-  opr[_:OpenRange[\Any\]] : Array2[\T,0,s0,0,s1\] =
+  opr[_:TrivialOpenRange] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\]()
   shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1)=t1
@@ -2145,11 +2148,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
           (): Array2[\T,bo0,so0,bo1,so1\] = do
-      boundsCheck = (self.bounds)[ (o0,o1)#(so0,so1) ]
+      boundsCheck = self.bounds.narrowToRange( (o0,o1)#(so0,so1) )
       SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
     end
 
-  zeroIndices():Tuple2Range[\ZZ32,ZZ32,true\] = Tuple2Range[\ZZ32,ZZ32,true\](0,0,s0,s1)
+  zeroIndices():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,0,0,s0,s1)
 
   replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
       __builtinFactory2[\U,b0,s0,b1,s1\]()
@@ -2397,8 +2400,8 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     excludes { Number, String }
 
     getter size():ZZ32 = s0 s1 s2
-    getter bounds():Tuple3Range[\ZZ32,ZZ32,ZZ32,true\] =
-        Tuple3Range[\ZZ32,ZZ32,ZZ32,true\](b0,b1,b2,s0,s1,s2)
+    getter bounds():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
+        sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,b0,b1,b2,s0,s1,s2)
 
     getter toString():String = do
       r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "]"
@@ -2447,15 +2450,15 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
 
     opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T) = do self[ (i,j,k) ] := v end
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
-        r' = (self.bounds)[r]
-        (z0,z1,z2) = r'.extent
+        r' = self.bounds.narrowToRange(r)
+        (z0,z1,z2) = r'.extent.get
         (l0,l1,l2) = r'.lower
         __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
                    N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
       end
-    opr[_:OpenRange[\ZZ32\]] : Array3[\T,0,s0,0,s1,0,s2\] =
+    opr[_:OpenRange[\(ZZ32,ZZ32,ZZ32)\]] : Array3[\T,0,s0,0,s1,0,s2\] =
         subarray[\0,s0,0,s1,0,s2,0,0,0\]()
-    opr[_:OpenRange[\Any\]] : Array3[\T,0,s0,0,s1,0,s2\] =
+    opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\] =
         subarray[\0,s0,0,s1,0,s2,0,0,0\]()
     shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
         (o0,o1,o2)=t
@@ -2475,12 +2478,12 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
               nat o0, nat o1, nat o2\]
             (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
-        boundsCheck = (self.bounds)[ (o0,o1,o2)#(so0,so1,so2) ]
+        boundsCheck = self.bounds.narrowToRange( (o0,o1,o2)#(so0,so1,so2) )
         SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,1,o0,1,o1,1,o2)
       end
 
-    zeroIndices():Tuple3Range[\ZZ32,ZZ32,ZZ32,true\] =
-        Tuple3Range[\ZZ32,ZZ32,ZZ32,true\](0,0,0,s0,s1,s2)
+    zeroIndices():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
+        sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,0,0,0,s0,s1,s2)
 
     replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
         __DefaultArray3[\U,b0,s0,b1,s1,b2,s2\]()
@@ -3037,666 +3040,253 @@ end
     The partial order on ranges describes containment:
       a < b iff all points in a are strictly contained in b.
  **)
-trait Range[\T\]
-    extends { StandardPartialOrder[\Range[\T\]\], Contains[\T\] }
-    comprises { RangeWithLower[\T\], RangeWithUpper[\T\],
-                RangeWithExtent[\T\], PartialRange[\T\] }
-    excludes { Number }
+trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
+    getter stride(): I
+    getter left(): Maybe[\I\]
+    getter right(): Maybe[\I\]
+    getter extent(): Maybe[\I\]
+    getter isEmpty(): Boolean
+    getter isLeftBounded(): Boolean = self.left.holds
+    getter isAnyBounded(): Boolean = self.left.holds OR self.right.holds
+    getter toString(): String
+    truncL(l:I): RangeWithLeft[\I\]
+    truncR(r:I): RangeWithRight[\I\] = self.flip().truncL(r).flip()
+    flip(): Range[\I\]
+    forward(): Range[\I\]
+    every(s:I): Range[\I\]
+    atMost(n:I): Range[\I\]
+    opr INTERSECTION(self, other: Range[\I\]): Range[\I\]
 
-    opr[r:Range[\T\]]: Range[\T\] = fail("Unrecognized Range " r)
-    opr[_:OpenRange[\Any\]] : Range[\T\] = self
-    opr[other:LowerRange[\T\]] : Range[\T\]
-    opr[other:UpperRange[\T\]] : Range[\T\]
-    opr[other:ExtentRange[\T\]] : Range[\T\]
-    opr[other:CompleteRange[\T\]] : CompleteRange[\T\]
-    opr =(self,_:Range[\T\]): Boolean = false
+    (** %narrowToRange% is used to bounds check indexing by ranges.
+        It is assumed that %self% describes the bounds of some object;
+        %narrowToRange% yields the subset of this index space that lie
+        in %other%.  Unlike %INTERSECTION%, %narrowToRange% signals an
+        error if the result is empty, neither argument is, and:
+          * The minimum bound of %other% is less than the minimum
+            bound of %self%.
+          * The maximum bound of %other% is greater than the maximum
+            bound of %self%.
+
+        In previous versions of Fortress ranges we did more vigorous
+        checking, but this proved to be merely annoying (preventing or
+        requiring special kludges for eg. indexing with a lower bound
+        past the end of a collection to obtain the empty collection).
+
+     *)
+    narrowToRange(other:Range[\I\]): Range[\I\] =
+        checkSelection[\Range[\I\], I\](self, other, self INTERSECTION other)
+    narrowToRange(other:OpenRange[\I\]): Range[\I\] = self INTERSECTION other
+    opr =(self, b:Range[\I\]): Boolean = false
+    opr IN(n:I, self): Boolean
+    opr CMP(self, other:Range[\I\]): Comparison =
+        ((self.stride SCMP other.stride) SYMMETRIC_PARTIAL:
+         (self.forward() FORWARD_CMP other.forward()))
+    opr FORWARD_CMP(self, other:Range[\I\]): Comparison
+    dump(): String
+    check(): Range[\I\]
 end
 
-trait PartialRange[\T\] extends Range[\T\]
-    comprises { OpenRange[\T\],
-                LowerRange[\T\], UpperRange[\T\], ExtentRange[\T\] }
-    excludes { CompleteRange[\T\] }
+trait PartialRange[\I\] extends Range[\I\] end
+
+trait OpenRange[\I\] extends PartialRange[\I\]
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    narrowToRange(other:Range[\I\]): Range[\I\] = self INTERSECTION other
+    opr =(self, b:OpenScalarRange[\I\]): Boolean = self.stride = b.stride
+    opr FORWARD_CMP(self, other:OpenRange[\I\]): Comparison = EqualTo
+    opr FORWARD_CMP(self, other:Range[\I\]): Comparison = GreaterThan
+    opr IN(n:I, self): Boolean = true
+    forward(): OpenRange[\I\]
 end
 
-object OpenRange[\T\] extends { Range[\T\], PartialRange[\T\] }
-    getter toString():String = "#"
-    opr[_:OpenRange[\T\]] : OpenRange[\T\] = self
+object TrivialOpenRange extends OpenRange[\Any\]
+    getter toString(): String = ":"
+    getter stride(): () = ()
+    truncL(x:Any): RangeWithLeft[\Any\] = (x:)
+    truncR(x:Any): RangeWithRight[\Any\] = (:x)
+    flip(): TrivialOpenRange = self
+    forward(): TrivialOpenRange = self
+    every(x:Any): OpenRange[\Any\] = (::x)
+    atMost(k:Any): RangeWithExtent[\Any\] = (#k)
+    opr INTERSECTION(self, other:Range[\Any\]): TrivialOpenRange = other
+    opr =(self, other:Range[\Any\]): Boolean = instanceof[\TrivialOpenRange\](other)
+    opr IN(_:Any, self): Boolean = true
+    dump(): String = "#"
+    check(): TrivialOpenRange = self
+end
 
-    opr[other:LowerRange[\T\]] : LowerRange[\T\] = other
-    opr[other:UpperRange[\T\]] : UpperRange[\T\] = other
-    opr[other:ExtentRange[\T\]] : ExtentRange[\T\] = other
-    opr[other:CompleteRange[\T\]] : CompleteRange[\T\] = other
-    opr =(self,_:OpenRange[\T\]): Boolean = true
-    opr CMP(self,other:Range[\T\]): TotalComparison =
-        typecase other of
-            OpenRange[\T\] => EqualTo
-            else => GreaterThan
+trait RangeWithExtent[\I\] extends Range[\I\]
+    getter extent(): Just[\I\]
+end
+
+trait ExtentRange[\I\] extends { RangeWithExtent[\I\], PartialRange[\I\] }
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr IN(n:I, self): Boolean = true
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if ext <- other.extent then
+            ((self.extent.get PCMP ext) SYMMETRIC_PARTIAL:
+             (if other.left.holds then GreaterThan else EqualTo end))
+        elif other.left.holds OR other.right.holds then
+            Unordered
+        else
+            LessThan
         end
-    opr IN(t:T, self): Boolean = true
+(* This signature is more specific, but troublesome:
+    opr INTERSECTION(self, other: Range[\I\]): RangeWithExtent[\I\]
+*)
 end
 
-opr PARTIAL_LEXICO(a:Comparison, b:Comparison) =
-    typecase a of
-        Unordered => Unordered
-        EqualTo => b
-        else =>
-            typecase b of
+trait BoundedRange[\I\] extends Range[\I\]
+    getter leftOrRight(): I
+    every(s:I): BoundedRange[\I\]
+    atMost(n:I): FullRange[\I\]
+    opr INTERSECTION(self, other: Range[\I\]): BoundedRange[\I\]
+    narrowToRange(other:OpenRange[\I\]): BoundedRange[\I\] = self INTERSECTION other
+    narrowToRange(other:Range[\I\]): BoundedRange[\I\] =
+        checkSelection[\BoundedRange[\I\], I\](self, other, self INTERSECTION other)
+end
+
+trait RangeWithLeft[\I\] extends BoundedRange[\I\]
+    getter left(): Just[\I\]
+    getter leftOrRight(): I = self.left.get
+end
+
+trait LeftRange[\I\] extends { RangeWithLeft[\I\], PartialRange[\I\] }
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if l <- other.left then
+            sl = self.left.get
+            typecase _ = sl PCMP l of
                 Unordered => Unordered
-                else => a
+                LessThan => GreaterThan
+                EqualTo => if other.right.holds then GreaterThan else EqualTo end
+                GreaterThan => if other.right.holds then Unordered else LessThan end
             end
-    end
+        elif other.right.holds OR other.extent.holds then
+            Unordered
+        else
+            LessThan
+        end
+end
 
-opr PARTIAL_LEXICO(a:Comparison, b:()->Comparison) =
-    typecase a of
-        Unordered => Unordered
-        EqualTo => b()
-        else =>
-            typecase _ = b() of
+trait RangeWithRight[\I\] extends BoundedRange[\I\]
+    getter right(): Just[\I\]
+end
+
+trait RightRange[\I\] extends { RangeWithRight[\I\], PartialRange[\I\] }
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter leftOrRight(): Just[\I\] = self.right.get
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if r <- other.right then
+            sr = self.right.get
+            typecase _ = sr PCMP r of
                 Unordered => Unordered
-                else => a
+                LessThan => if other.left.holds then Unordered else LessThan end
+                EqualTo => if other.left.holds then GreaterThan else EqualTo end
+                GreaterThan => GreaterThan
             end
-    end
-
-(** Non-traditional partial ordering on tuples, CMP ordering elsewhere. **)
-opr PCMP[\A,B\](t1:(A,B), t2:(A,B)): Comparison = do
-    (a1,b1)=t1
-    (a2,b2)=t2
-    (a1 CMP a2) PARTIAL_LEXICO: (b1 CMP b2)
-  end
-
-opr PCMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
-    (a1,b1,c1)=t1
-    (a2,b2,c2)=t2
-    (a1 CMP a2) PARTIAL_LEXICO: (b1 CMP b2) PARTIAL_LEXICO (c1 CMP c2)
-  end
-
-opr PCMP(a:Number, b:Number): TotalComparison = a CMP b
-
-(** Non-traditional subtraction of bounds, elementwise on tuples **)
-opr SUBTR[\A,B\](t1:(A,B), t2:(A,B)): (A,B) = do
-    (a1,b1) = t1
-    (a2,b2) = t2
-    (a1 SUBTR a2, b1 SUBTR b2)
-  end
-
-opr SUBTR[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): (A,B,C) = do
-    (a1,b1,c1) = t1
-    (a2,b2,c2) = t2
-    (a1 SUBTR a2, b1 SUBTR b2, c1 SUBTR c2)
-  end
-
-opr SUBTR[\T extends MultiplicativeRing[\T\]\](a:T, b:T):T = a.one + a - b
-
-(** join upper and lower bounds comparisons (total or partial) to
-    yield partial containment. **)
-
-trait RangeWithLower[\T\] extends Range[\T\]
-        comprises { LowerRange[\T\], CompleteRange[\T\] }
-    getter lower():T
+        elif other.left.holds OR other.extent.holds then
+            Unordered
+        else
+            LessThan
+        end
 end
 
-rangeBoundError[\T\](r1:Range[\T\], r2: Range[\T\]): Range[\T\] =
-    fail(r1 "[" r2 "] does not contain bound of indexing range")
-
-object LowerRange[\T\](lo:T) extends { RangeWithLower[\T\], PartialRange[\T\] }
-    getter lower():T = lo
-    getter toString():String = self.lower "#"
-    opr[_:OpenRange[\T\]] : LowerRange[\T\] = self
-    opr[other:LowerRange[\T\]] : LowerRange[\T\] =
-        if (other.lower PCMP self.lower) >= EqualTo then
-            other
-        else
-            rangeBoundError[\T\](self,other)
+trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWithExtent[\I\], Indexed[\I,I\] }
+    getter extent(): Just[\I\] = Just[\I\](self.size)
+    narrowToRange(other:OpenRange[\I\]): FullRange[\I\] = self INTERSECTION other
+    narrowToRange(other:Range[\I\]): FullRange[\I\] =
+        typecase r = self INTERSECTION other of
+            FullRange[\I\] => checkSelection[\FullRange[\I\], I\](self, other, r)
+            else => fail("Library error: FullRange INTERSECTION didn't yield FullRange")
         end
-    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] = self.lower # other.extent
-    opr[other:UpperRange[\T\]] : FullRange[\T,true\] =
-        if (other.upper PCMP self.lower) >= EqualTo then
-            self.lower : other.upper
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if (other.lower PCMP self.lower) >= EqualTo then
-            other
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr =(self, x:LowerRange[\T\]): Boolean = self.lower = x.lower
-    opr CMP(self, other:Range[\T\]): Comparison =
-        typecase other of
-            OpenRange[\T\] => LessThan
-            LowerRange[\T\] => other.lower PCMP self.lower
-            CompleteRange[\T\] =>
-                typecase c = other.lower PCMP self.lower of
-                    EqualTo => GreaterThan
-                    LessThan => Unordered
-                    else => c
-                end
-            else => Unordered
-        end
-    opr IN(elt:T, self): Boolean = (elt PCMP self.lower) >= EqualTo
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison = INVERSE (other FORWARD_CMP self)
+    opr FORWARD_CMP(self, other: FullRange[\I\]): Comparison =
+        ((other.left.get PCMP self.left.get) SYMMETRIC_PARTIAL:
+         (self.right.get PCMP other.right.get))
 end
 
-trait RangeWithUpper[\T\] extends Range[\T\]
-        comprises { UpperRange[\T\], CompleteRange[\T\] }
-    getter upper():T
+trait CompactFullRange[\I\] extends FullRange[\I\]
+    getter lower(): I = self.left.get
+    getter upper(): I = self.right.get
+    forward(): CompactFullRange[\I\] = self
 end
 
-object UpperRange[\T\](up:T) extends { RangeWithUpper[\T\], PartialRange[\T\] }
-    getter upper():T = up
-    getter toString():String = ":" self.upper
-    opr[_:OpenRange[\T\]] : UpperRange[\T\] = self
-    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower:self:upper
-    opr[other:UpperRange[\T\]] : UpperRange[\T\] =
-        if (other.upper PCMP self.upper) <= EqualTo then
-            other
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr[other:ExtentRange[\T\]] : FullRange[\T,true\] =
-        (self.upper SUBTR other.extent) # other.extent
-    opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if (other.upper PCMP self.upper) <= EqualTo then
-            other
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr =(self,x:UpperRange[\T\]): Boolean = self.upper = x.upper
-    opr CMP(self, other:Range[\T\]): Comparison =
-        typecase other of
-            OpenRange[\T\]  => LessThan
-            UpperRange[\T\] => self.upper PCMP other.upper
-            CompleteRange[\T\]  =>
-                typecase c = self.upper PCMP other.upper of
-                    EqualTo => GreaterThan
-                    LessThan => Unordered
-                    else => c
-                end
-            else => Unordered
-        end
-    opr IN(elt:T, self): Boolean = (elt PCMP self.upper) <= EqualTo
-end
-
-trait RangeWithExtent[\T\] extends Range[\T\]
-        comprises { ExtentRange[\T\], CompleteRange[\T\] }
-    getter extent():T
-    getter toString():String = "#" self.extent
-end
-
-object ExtentRange[\T\](ex:T) extends { RangeWithExtent[\T\], PartialRange[\T\] }
-    getter extent():T = ex
-    opr[_:OpenRange[\T\]] : ExtentRange[\T\] = self
-    opr[other:LowerRange[\T\]] : FullRange[\T,true\] = other.lower # self.extent
-    opr[other:UpperRange[\T\]] : FullRange[\T,true\] =
-        (other.upper SUBTR self.extent) # self.extent
-    opr[other:ExtentRange[\T\]] : ExtentRange[\T\] =
-        if other.extent <= self.extent then
-            other
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr[other:CompleteRange[\T\]] : CompleteRange[\T\] =
-        if other.extent <= self.extent then
-            other
-        else
-            rangeBoundError[\T\](self,other)
-        end
-    opr =(self,x:ExtentRange[\T\]): Boolean = self.extent = x.extent
-    opr CMP(self, other:Range[\T\]): Comparison =
-        typecase other of
-            OpenRange[\T\]   => LessThan
-            ExtentRange[\T\] => self.extent PCMP other.extent
-            else => Unordered
-        end
-    opr IN(elt:T, self): Boolean = true
-end
-
-(** The type %CompleteRange[\T\]% is really just %FullRange[\T,flag\]% for
-    either setting of %flag%.  We need it for stuff like %typecase%
-    and %extends% clauses since we can't bind universally quantified
-    variables in those settings.  Since essentially all the methods are
-    independent of the setting of flag we include them here. **)
-trait CompleteRange[\T\]
-        extends { RangeWithLower[\T\], RangeWithUpper[\T\],
-                  RangeWithExtent[\T\], Indexed[\T,T\] }
-        comprises { FullRange[\T,true\], FullRange[\T,false\] }
-    getter indices(): FullRange[\T,true\] = self.bounds
-    getter isBounded(): Boolean
-    getter isSized(): Boolean
-    getter toString():String =
-        if self.isBounded then
-            self.lower ":" self.upper
-        else
-            self.lower "#" self.extent
-        end
-
-    (** The following two methods are used in bounds checking code to
-        permit ranges that are just outside the edge of the given
-        range.   Because they're intended for internal use we ignore
-        the setting of flag and return a CompleteRange. **)
-    widenUpper(): CompleteRange[\T\]
-    widenLower(): CompleteRange[\T\]
-
-    opr[r:Range[\T\]]: CompleteRange[\T\] = fail("Unrecognized Range " r)
-    opr[_:OpenRange[\T\]]: CompleteRange[\T\] = self
-    (** Square-bracket indexing on a FullRange restricts that range to
-         the range provided.  Restriction should behave as follows:
-            - Restriction to an OpenRange is the identity.
-            - An UpperRange or ExtentRange restrict the upper bound and
-              extent of the range.
-            - A LowerRange restricts the lower bound and extent of the range.
-        Note that this makes it compatible with the square-bracket
-        indexing of the Indexed trait. **)
-    opr[r:LowerRange[\T\]]: CompleteRange[\T\] =
-        if r.lower = self.lower then
-            (* Important, also handles empty range case. *)
-            self
-        elif r.lower IN widenUpper() then
-            r.lower:self.upper
-        else
-            rangeBoundError[\T\](self,r)
-        end
-    opr[r:UpperRange[\T\]]: CompleteRange[\T\] =
-        if r.upper = self.upper then
-            (* Important, also handles empty range case. *)
-            self
-        elif r.upper IN widenLower() then
-            self.lower:r.upper
-        else
-            rangeBoundError[\T\](self,r)
-        end
-    opr[r:ExtentRange[\T\]]: CompleteRange[\T\] =
-        if r.extent <= self.extent then
-            self.lower#r.extent
-        else
-            fail(self "[" r "] is too small in some dimension")
-        end
-    opr[r:CompleteRange[\T\]]: CompleteRange[\T\] =
-        if r.lower < self.lower then
-            rangeBoundError[\T\](self,r)
-        elif r.upper > self.upper then
-            rangeBoundError[\T\](self,r)
-        else
-            r
-        end
-
-    opr =(self, other:CompleteRange[\T\]): Boolean =
-    (*    self.isBounded=other.isBounded AND
-         APB 2008.08.20: this seems bogus: isBounded tells us only whether we were created
-         using an extent or an upper bound, and should not affect the comparison *)
-         self.lower=other.lower AND self.extent = other.extent
-
-    opr CMP(self, other:Range[\T\]): Comparison =
-        typecase other of
-            CompleteRange[\T\] =>
-                case (self.isEmpty, other.isEmpty) of
-                    (true, true) =>  EqualTo
-                    (true, false) => LessThan
-                    (false, true) => GreaterThan
-                    else => do
-                                a = self.lower PCMP other.lower
-                                b = self.upper PCMP other.upper
-                                typecase _ = (a,b) of
-                                        (Unordered,Comparison) => Unordered
-                                        (Comparison,Unordered) => Unordered
-                                        (LessThan,LessThan) => Unordered
-                                        (GreaterThan,GreaterThan) => Unordered
-    (*  This case seems unncessary; the (EqualTo,Comparison) case will cover us    --- APB  2008.08.20
-                    (EqualTo,EqualTo) => EqualTo
-                        if self.isBounded = other.isBounded then
-                            EqualTo
-                        else
-                            Unordered
-                        end
-   *)
-                                        (EqualTo,Comparison) => b
-                                        (GreaterThan,Comparison) => LessThan
-                                        else (* LessThan,Comparison *) => GreaterThan
-                                end (* typecase *)
-                         end (* do *)
-                end (* case *)
-            else => INVERSE (other CMP self)
-        end (* typecase *)
-end
-
-(** A %FullRange% is either bounded (generated from a lower and upper
-    bound, as in %l:u%) or sized (generated from a lower bound and a
-    size, as in %l#s%).  These two kinds of range behave identically
-    in most settings; the only time they behave differently is when we
-    construct a strided range: both %l:u:i% and %l#s:i% generate
-    elements %l, l+i, l+2i, ...%, but the former is bounded and
-    generates no element larger than %i% and the latter is sized and
-    generates exactly %s% elements.
-
-    Data structure bounds are always bounded. **)
-trait FullRange[\T, bool bounded\] extends CompleteRange[\T\]
-        comprises { DoomedScalarRange[\T,bounded\], TupleRange[\T,bounded\] }
-    getter isBounded(): Boolean = bounded
-    getter isSized(): Boolean = NOT bounded
-end
-
-rangeIndexFailure[\T\](r:CompleteRange[\T\],i:T): () =
-    fail(r "[" i "] out of range.")
-
-(** ParRanges and SeqRanges, the simplest and most basic of all
-    generators.  They generate |self| numbers, incrementing by 1,
-    starting with self.lower (that's the canonical ordering). *)
-trait DoomedScalarRange[\N extends Integral[\N\], bool bounded\]
-        extends { FullRange[\N, bounded\] }
-        comprises { ParRange[\N, bounded\], SeqRange[\N, bounded\] }
-    getter bounds():FullRange[\N,true\] = ParRange[\N,true\](0,self.extent)
-    getter upper():N = self.lower + self.extent - 1
-    getter size():ZZ32 = |self|
-    widenUpper(): DoomedScalarRange[\N,false\] = self.lower#(self.extent+1)
-    widenLower(): DoomedScalarRange[\N,false\] = (self.lower-1)#(self.extent+1)
-    opr |self| : ZZ32 = narrow(0 MAX self.extent)
-    opr[i:N]: N =
-        if 0 <= i < self.extent then
-            i + self.lower
-        else
-            rangeIndexFailure[\N\](self,i)
-        end
-    opr IN(a:N, self): Boolean = do
-        t = a - self.lower
-        0 <= t < self.extent
-      end
-end
-
-value object ParRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
-        extends DoomedScalarRange[\N,bounded\]
-    getter extent() = ex
-    getter lower() = lo
-    getter indexValuePairs() =
-        ParRange[\N,bounded\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
-
-    seq(self) = SeqRange[\N,bounded\](lo,ex)
-    generate[\R\](r: Reduction[\R\], m: N->R): R =
-        if ex < 1 then
-            r.empty()
-        else
-            gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(s)
-                           r.join(gen(l,s1),gen(l+s1,s2))
-                       else
-                           m(l)
-                       end
-            gen(lo,ex)
-        end
-    mapReduce[\R\](m: N->R, j:(R,R)->R, z:R): R =
-        if ex < 1 then
-            z
-        else
-            gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(s)
-                           j(gen(l,s1),gen(l+s1,s2))
-                       else
-                           m(l)
-                       end
-            gen(lo,ex)
-        end
-    reduce(j:(N,N)->N, z:N):N =
-        if ex < 1 then
-            z
-        else
-            gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(s)
-                           j(gen(l,s1),gen(l+s1,s2))
-                       else
-                           l
-                       end
-            gen(lo,ex)
-        end
-    reduce(r: Reduction[\N\]):N =
-        if ex < 1 then
-            r.empty()
-        else
-            gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(s)
-                           r.join(gen(l,s1),gen(l+s1,s2))
-                       else
-                           l
-                       end
-            gen(lo,ex)
-        end
-    loop(f:N->()): () =
-        if ex < 1 then
-            ()
-        else
-            gen(l,s) = if s>=2 then
-                           (s1,s2) = partition(s)
-                           (gen(l,s1),gen(l+s1,s2))
-                           ()
-                       else
-                           f(l)
-                       end
-            gen(lo,ex)
-        end
-end
-value object SeqRange[\N extends Integral[\N\], bool bounded\](lo:N, ex:N)
-        extends { DoomedScalarRange[\N,bounded\], SequentialGenerator[\N\] }
-    getter extent() = ex
-    getter lower() = lo
-    getter toString() =
-        ("seq(" lo (if bounded then ":" self.upper else "#" ex ")"))
-    getter indexValuePairs() =
-        SeqRange[\N,bounded\](0,ex).map[\(N,N)\](fn (n:N):(N,N) => (n,n+lo))
-    generate[\R\](r: Reduction[\R\], m: N->R): R = do
-        h = lo + ex
-        l : N := lo
-        acc : R = r.empty()
-        (* DON'T DEFINE THIS USING RECURSION!!! *)
-        while l < h do
-            b = m(l)
-            acc := r.join(acc, b)
-            l += 1
-        end
-        acc
-      end
-    loop(f: N->()): () = do
-        h = lo + ex
-        l : N := lo
-        (* DON'T DEFINE THIS USING RECURSION!!! *)
-        while l < h do
-            f(l)
-            l += 1
-        end
-      end
-end
-
-trait TupleRange[\T, bool bounded\] extends FullRange[\T,bounded\]
-end
-
-object Tuple2Range[\N extends Integral[\N\], M extends Integral[\M\], bool bounded\]
-                  (l1:N,l2:M,x1:N,x2:M)
-        extends { TupleRange[\(N,M),bounded\], DelegatedIndexed[\(N,M),(N,M)\] }
-    getter bounds():Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](0,0,x1,x2)
-    getter extent():(N,M) = (x1,x2)
-    getter lower():(N,M) = (l1,l2)
-    getter upper():(N,M) = (l1+x1-1, l2+x2-1)
-    getter size():(N,M) = |self|
-    getter generator():Generator[\(N,M)\] =
-        ParRange[\N,bounded\](l1,x1).cross[\M\](ParRange[\M,bounded\](l2,x2))
-    getter toString(): String =
-        ("(" l1 "," l2
-         (if bounded then
-             (u1,u2) = self.upper
-             "):(" u1 "," u2 ")"
-         else
-             ")#(" x1 "," x2 ")"
-         end))
-    getter indexValuePairs() =
-        self.bounds.map[\((N,M),(N,M))\](
-            fn (n:N,m:M):((N,M),(N,M)) => ((n,m),(n+l1,m+l2)))
-    widenUpper(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1,l2,x1+1,x2+1)
-    widenLower(): Tuple2Range[\N,M,true\] = Tuple2Range[\N,M,true\](l1-1,l2-1,x1+1,x2+1)
-    opr |self| : ZZ32 = narrow((0 MAX x1) (0 MAX x2))
-    opr[i:(N,M)]: (N,M) = do
-        (i1,i2) = i
-        if 0 <= i1 < x1 AND 0 <= i2 < x2 then
-            (i1+l1,i2+l2)
-        else
-            rangeIndexFailure[\(N,M)\](self,i)
-        end
-      end
-    opr IN(t:(N,M), self): Boolean = do
-        (v1,v2) = t
-        0 <= v1-l1 < x1 AND 0 <= v2-l2 < x2
-      end
-    opr =(self,r:Tuple2Range[\N,M,bounded\]): Boolean =
-        l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2
-end
-
-object Tuple3Range[\N1 extends Integral[\N1\], N2 extends Integral[\N2\], N3 extends Integral[\N3\],
-                   bool bounded\]
-                  (l1:N1,l2:N2,l3:N3,x1:N1,x2:N2,x3:N3)
-        extends { TupleRange[\(N1,N2,N3),bounded\],
-                  DelegatedIndexed[\(N1,N2,N3),(N1,N2,N3)\] }
-    getter bounds():Tuple3Range[\N1,N2,N3,true\] =
-        Tuple3Range[\N1,N2,N3,true\]((0,0,0),(x1,x2,x3))
-    getter extent():(N1,N2,N3) = (x1,x2,x3)
-    getter lower():(N1,N2,N3) = (l1,l2,l3)
-    getter upper():(N1,N2,N3) = (l1+x1-1,l2+x2-1,l3+x3-1)
-    getter size():(N1,N2,N3) = |self|
-    getter generator():Generator[\(N1,N2,N3)\] =
-        ParRange[\N1,bounded\](l1,x1).cross[\N2\](ParRange[\N2,bounded\](l2,x2)).cross[\N3\](
-            ParRange[\N3,bounded\](l3,x3)).map[\(N1,N2,N3)\](
-                fn (t:(N1,N2),n3:N3):(N1,N2,N3) => do (n1,n2)=t; (n1,n2,n3) end)
-    getter toString(): String =
-        ("(" l1 "," l2 "," l3
-         (if bounded then
-             (u1,u2,u3) = self.upper
-             "):(" u1 "," u2 "," u3 ")"
-         else
-             ")#(" x1 "," x2 "," x3 ")"
-         end))
-    getter indexValuePairs() =
-        (0#x1).cross(0#x2).cross(0#x3).map[\((N1,N2,N3),(N1,N2,N3))\](
-            fn (t:(N1,N2),n3:N3):((N1,N2,N3),(N1,N2,N3)) =>
-                do (n1,n2)=t; ((n1,n2,n3),(n1+l1,n2+l2,n3+l3)) end)
-    widenUpper(): Tuple3Range[\N1,N2,N3,true\] =
-        Tuple3Range[\N1,N2,N3,true\](l1,l2,l3,x1+1,x2+1,x3+1)
-    widenLower(): Tuple3Range[\N1,N2,N3,true\] =
-        Tuple3Range[\N1,N2,N3,true\](l1-1,l2-1,l3-1,x1+1,x2+1,x3+1)
-    opr |self| : (N1,N2,N3) = narrow((0 MAX x1) (0 MAX x2) (0 MAX x3))
-    opr[i:(N1,N2,N3)]: (N1,N2,N3) = do
-        (i1,i2,i3) = i
-        if 0 <= i1 < x1 AND 0 <= i2 < x2 AND 0 <= i3 < x3 then
-            (i1+l1,i2+l2,i3+l3)
-        else
-            rangeIndexFailure[\(N1,N2,N3)\](self,i)
-        end
-      end
-    opr IN(t:(N1,N2,N3), self): Boolean = do
-        (v1,v2,v3) = t
-        0 <= v1-l1 < x1 AND 0 <= v2-l2 < x2 AND 0 <= v3-l3 < x3
-      end
-    opr =(self,r:Tuple3Range[\N1,N2,N3,bounded\]): Boolean =
-        l1=r.l1 AND l2=r.l2 AND x1=r.x1 AND x2=r.x2 AND l3=r.l3 AND x3=r.x3
-end
-
-(** Helpers for # to get the type instantiation "right".  We pass in bogus ZZ32's to
-    ensure that the result type is at least ZZ32. **)
-sizedRange[\I extends AnyIntegral\](_:I,lo:I,ex:I): ParRange[\I,false\] = ParRange[\I,false\](lo,ex)
-sized2Range[\I extends AnyIntegral, J extends AnyIntegral\]
-           (_:I,_:J,l1:I,l2:J,ex1:I,ex2:J): Tuple2Range[\I,J,false\] =
-    Tuple2Range[\I,J,false\](l1,l2,ex1,ex2)
-sized3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-     (_:I,_:J,_:K,l1:I,l2:J,l3:K,ex1:I,ex2:J,ex3:K): Tuple3Range[\I,J,K,false\] =
-    Tuple3Range[\I,J,K,false\](l1,l2,l3,ex1,ex2,ex3)
+trait StridedFullRange[\I\] extends FullRange[\I\] end
 
 (** The # and : operators serve as factories for parallel ranges. **)
-opr #[\I extends AnyIntegral\](lo:I, ex:I): ParRange[\I,false\] = sizedRange(0 asif ZZ32,lo,ex)
-(*
-opr #(lo:IntLiteral, ex:IntLiteral): ParRange[\ZZ32\] = ParRange[\ZZ32,false\](lo,ex)
-*)
+opr #[\I extends AnyIntegral\](lo:I, ex:I): CompactFullParScalarRange[\I\] = sized1Range(0 asif ZZ32,lo,ex)
 opr #[\I extends AnyIntegral, J extends AnyIntegral\]
-     (lo:(I,J), ex:(I,J)): Tuple2Range[\I,J,false\] =
+     (lo:(I,J), ex:(I,J)): CompactFullRange2D[\I,J\] =
     do (l1,l2)=lo; (x1,x2)=ex; sized2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,x1,x2) end
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-     (lo:(I,J,K), ex:(I,J,K)): Tuple3Range[\I,J,K,false\] =
+     (lo:(I,J,K), ex:(I,J,K)): CompactFullRange3D[\I,J,K\] =
     do (l1,l2,l3)=lo; (x1,x2,x3)=ex
        sized3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,x1,x2,x3)
     end
 
-(** Helpers for : to get the type instantiation "right".  We pass in bogus ZZ32's to
-    ensure that the result type is at least ZZ32.  **)
-boundedRange[\I extends AnyIntegral\](_:I,lo:I,ex:I): ParRange[\I,true\] = ParRange[\I,true\](lo,ex)
-bounded2Range[\I extends AnyIntegral, J extends AnyIntegral\]
-           (_:I,_:J,l1:I,l2:J,ex1:I,ex2:J): Tuple2Range[\I,J,true\] =
-    Tuple2Range[\I,J,true\](l1,l2,ex1,ex2)
-bounded3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-     (_:I,_:J,_:K,l1:I,l2:J,l3:K,ex1:I,ex2:J,ex3:K): Tuple3Range[\I,J,K,true\] =
-    Tuple3Range[\I,J,K,true\](l1,l2,l3,ex1,ex2,ex3)
-
-opr :[\I extends AnyIntegral\](lo:I, hi:I): ParRange[\I,true\] =
-        boundedRange(0 asif ZZ32,lo,hi-lo+1)
-(*
-opr :(lo:IntLiteral, hi:IntLiteral): ParRange[\ZZ32,true\] =
-        ParRange[\ZZ32,true\](lo,hi-lo+1)
-*)
+opr :[\I extends AnyIntegral\](lo:I, hi:I): CompactFullParScalarRange[\I\] =
+        bounded1Range(0 asif ZZ32,lo,hi)
 opr :[\I extends AnyIntegral, J extends AnyIntegral\]
-     (lo:(I,J), hi:(I,J)): Tuple2Range[\I,J,true\] =
-    do (l1,l2)=lo; (h1,h2)=hi; bounded2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,h1-l1+1,h2-l2+1) end
+     (lo:(I,J), hi:(I,J)): CompactFullRange2D[\I,J\] =
+    do (l1,l2)=lo; (h1,h2)=hi; bounded2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,h1,h2) end
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-     (lo:(I,J,K), hi:(I,J,K)): Tuple3Range[\I,J,K,true\] = do
+     (lo:(I,J,K), hi:(I,J,K)): CompactFullRange3D[\I,J,K\] = do
     (l1,l2,l3)=lo; (h1,h2,h3)=hi
-    bounded3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,h1-l1+1,h2-l2+1,h3-l3+1)
+    bounded3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,h1,h2,h3)
   end
 
-lowerRange[\I extends AnyIntegral\](_:I,x:I):LowerRange[\I\] = LowerRange[\I\](x)
-lower2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
-    LowerRange[\(I,J)\] = LowerRange[\(I,J)\](x,y)
-lower3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-           (_:I,_:J,_:K,x:I,y:J,z:K): LowerRange[\(I,J,K)\] =
-    LowerRange[\(I,J,K)\](x,y,z)
-
-extentRange[\I extends AnyIntegral\](_:I,x:I):ExtentRange[\I\] = ExtentRange[\I\](x)
-extent2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
-    ExtentRange[\(I,J)\] = ExtentRange[\(I,J)\](x,y)
-extent3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-            (_:I,_:J,_:K,x:I,y:J,z:K): ExtentRange[\(I,J,K)\] =
-    ExtentRange[\(I,J,K)\](x,y,z)
-
-upperRange[\I extends AnyIntegral\](_:I,x:I):UpperRange[\I\] = UpperRange[\I\](x)
-upper2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):
-    UpperRange[\(I,J)\] = UpperRange[\(I,J)\](x,y)
-upper3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-           (_:I,_:J,_:K,x:I,y:J,z:K): UpperRange[\(I,J,K)\] =
-    UpperRange[\(I,J,K)\](x,y,z)
-
 (** Factories for incomplete ranges **)
-opr (x:I)#[\I extends AnyIntegral\] : LowerRange[\I\] = lowerRange(0 asif ZZ32, x)
-opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LowerRange[\(I,J)\] =
-    lower2Range(0 asif ZZ32,0 asif ZZ32, x,y)
+opr (x:I)#[\I extends AnyIntegral\] : LeftRange[\I\] = left1Range(0 asif ZZ32, x)
+opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\] =
+    left2Range(0 asif ZZ32,0 asif ZZ32, x,y)
 opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
-         LowerRange[\(I,J,K)\] = lower3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
-opr (x:I):[\I\] : LowerRange[\I\] = x#
-opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\] = extentRange(0 asif ZZ32, x)
+         LeftRange[\(I,J,K)\] = left3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+opr (x:I):[\I\] : LeftRange[\I\] = x#
+opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\] = extent1Range(0 asif ZZ32, x)
 opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\] =
     do (x,y) = xy; extent2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
          ExtentRange[\(I,J,K)\] =
     do (x,y,z) = xyz; extent3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
-opr :[\I extends AnyIntegral\](x:I) : UpperRange[\I\] = upperRange(0 asif ZZ32, x)
-opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : UpperRange[\(I,J)\] =
-    do (x,y) = xy; upper2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
+opr :[\I extends AnyIntegral\](x:I) : RightRange[\I\] = right1Range(0 asif ZZ32, x)
+opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : RightRange[\(I,J)\] =
+    do (x,y) = xy; right2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
-         UpperRange[\(I,J,K)\] =
-    do (x,y,z) = xyz; upper3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+         RightRange[\(I,J,K)\] =
+    do (x,y,z) = xyz; right3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+opr ::[\I extends AnyIntegral\](s:I) : OpenRange[\I\] = OpenScalarRange[\I\](s)
+opr ::[\I extends AnyIntegral, J extends AnyIntegral\](ij:(I,J)) : OpenRange[\(I,J)\] =
+    do (i,j) = ij; OpenRange2D[\I\](i,j) end
+opr ::[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](ijk:(I,J,K)) : OpenRange[\(I,J,K)\] =
+    do (i,j,k) = ijk; OpenRange3D[\I\](i,j,k) end
 (*
-opr (x:I)#[\I\] : LowerRange[\I\] = LowerRange[\I\](x)
-opr (x:I):[\I\] : LowerRange[\I\] = LowerRange[\I\](x)
+opr (x:I)#[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
+opr (x:I):[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
 opr #[\I\](x:I) : ExtentRange[\I\] = ExtentRange[\I\](x)
-opr :[\I\](x:I) : UpperRange[\I\] = UpperRange[\I\](x)
+opr :[\I\](x:I) : RightRange[\I\] = RightRange[\I\](x)
 *)
-opr #() : OpenRange[\Any\] = OpenRange[\Any\]
-opr :() : OpenRange[\Any\] = OpenRange[\Any\]
+opr #() : TrivialOpenRange = TrivialOpenRange
+opr :() : TrivialOpenRange = TrivialOpenRange
+openRange[\I\](): OpenRange[\I\] = openRangeHelper( __Proxy[\I\] )
+
+(************************************************************
+* STRINGS
+************************************************************)
 
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
              excludes {Number, Char, AnyMultiplicativeRing, AnyList}
     getter size() : ZZ32
     getter toString() : String = self
-    getter indices() : FullRange[\ZZ32,true\] = self.bounds
+    getter indices() : CompactFullRange[\ZZ32\] = self.bounds
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
@@ -3715,7 +3305,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
       ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|))
 
     opr [i:ZZ32]: Char =
-        (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        (** As a convenience, we permit LeftRange indexing to go 1 past the bounds
         of the String, returning the empty String, in order to permit some convenient
         String-trimming idioms. **)
         if 0 <= i < |self|

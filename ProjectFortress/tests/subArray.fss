@@ -45,7 +45,7 @@ eqToRange3(a:Array[\ZZ32,(ZZ32,ZZ32,ZZ32)\], b:Range[\(ZZ32,ZZ32,ZZ32)\]): () = 
   end
 
 run(args:String...):()=do
-    a : ZZ32[10] = [ 0 1 2 3 4 5 6 7 8 9 10 ]
+    a : ZZ32[11] = [ 0 1 2 3 4 5 6 7 8 9 10 ]
     eqToRange(a, 0:10)
     b = a[0#5]
     eqToRange(b, 0#5)
@@ -60,7 +60,6 @@ run(args:String...):()=do
     eqToRange(a[#3], 0#3)
     eqToRange(a[:3], 0:3)
     ash = a.shift(5)
-    assert(ash.bounds().lower(), 5, "a.shift(5) = ", ash)
     eqToRange(ash, 0:10)
     b[#] := c
     eqToRange(c, 6#5)
