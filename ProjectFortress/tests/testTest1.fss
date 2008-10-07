@@ -27,13 +27,11 @@ fib(n:ZZ32): ZZ32 =
 test testFib1() = do
    assert(fib(0) = 0)
    assert(fib(5) = 5)
-   println("testFib1 passed");
 end
 
 test testFib2() = do
   assert(fib(20),6765,"fib(20) wrong")
   assert(fib(25),75025,"fib(25) wrong")
-  println("testFib2 passed");
 end
 
 end

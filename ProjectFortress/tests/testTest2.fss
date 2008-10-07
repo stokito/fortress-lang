@@ -25,19 +25,16 @@ end
 test testFactorial1() = do
    assert(fact(0) = 1)
    assert(fact(5) = 120)
-   println("testFactorial1 passed");
 end
 
 test testFactorial2() = do
    assert(fact(0) = 1)
    assert(fact(5) = 120)
-   println("testFactorial2 passed");
 end
 
 test testFactorial3() = do
    assert(fact(0) = 1)
    assert(fact(5) = 120)
-   println("testFactorial3 passed");
 end
 
 end
