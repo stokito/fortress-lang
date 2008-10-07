@@ -104,6 +104,14 @@ public class NodeUtil {
                     public Boolean value(Boolean arg0, Boolean arg1) { return arg0 | arg1; }});
     }
 
+    public static boolean isVar(List<Modifier> mods) {
+        for (Modifier mod : mods) {
+            if ( mod instanceof ModifierVar )
+                return true;
+        }
+        return false;
+    }
+
     public static boolean isMutable(Param p) {
         for (Modifier m : p.getMods()) {
             if (m instanceof ModifierVar || m instanceof ModifierSettable) {

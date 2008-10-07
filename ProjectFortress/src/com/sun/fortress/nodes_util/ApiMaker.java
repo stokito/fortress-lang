@@ -17,6 +17,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.util.List;
+import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
 
 /**
@@ -24,6 +25,7 @@ import com.sun.fortress.nodes.*;
  */
 public final class ApiMaker extends NodeUpdateVisitor {
     private boolean inTrait = false;
+    private boolean inObject = false;
 
     public static final ApiMaker ONLY = new ApiMaker();
 
@@ -103,6 +105,9 @@ public final class ApiMaker extends NodeUpdateVisitor {
     }
 
     public AbsObjectDecl forObjectDecl(ObjectDecl that) {
+        inObject = true;
+        List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+        inObject = false;
         return new AbsObjectDecl(that.getSpan(),
                                  that.getMods(),
                                  that.getName(),
@@ -112,12 +117,27 @@ public final class ApiMaker extends NodeUpdateVisitor {
                                  that.getParams(),
                                  that.getThrowsClause(),
                                  that.getContract(),
-                                 declsToAbsDecls(that.getDecls()));
+                                 absDecls);
     }
 
+    /* For a field declaration with the "var" modifier in a component,
+       the APIMaker leaves the "var" modifier off in the generated API.
+     */
     public AbsVarDecl forVarDecl(VarDecl that) {
-        return new AbsVarDecl(that.getSpan(),
-                              that.getLhs());
+        List<LValueBind> lhs = new ArrayList<LValueBind>();
+        for (LValueBind lvb : that.getLhs()) {
+            if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
+                List<Modifier> mods = new ArrayList<Modifier>();
+                for (Modifier mod : lvb.getMods()) {
+                    if ( ! (mod instanceof ModifierVar) ) {
+                        mods.add( mod );
+                    }
+                }
+                lhs.add( NodeFactory.makeLValue(lvb, mods, false) );
+            } else
+                lhs.add( lvb );
+        }
+        return new AbsVarDecl(that.getSpan(), lhs);
     }
 
     public AbsFnDecl forFnDef(FnDef that) {
@@ -133,6 +153,9 @@ public final class ApiMaker extends NodeUpdateVisitor {
                              that.getSelfName());
     }
 
+    /* For an abstract method declaration in a component,
+       the APIMaker puts the "abstract" modifier in the generated API.
+     */
     public AbsFnDecl forAbsFnDecl(AbsFnDecl that) {
         List<Modifier> mods = that.getMods();
         if ( inTrait ) {
