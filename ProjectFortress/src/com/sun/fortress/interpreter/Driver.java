@@ -118,19 +118,19 @@ public class Driver {
 
     static public void runTests() {
     }
-    
-    
+
+
     private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
         @Override
         public String apply(APIName x) {
             // TODO Auto-generated method stub
             return null;
-        } 
+        }
     };
     private static IOAst componentReaderWriter = new IOAst(toCompFileName);
-    private static DerivedFiles<CompilationUnit> componentCache = 
+    private static DerivedFiles<CompilationUnit> componentCache =
         new DerivedFiles<CompilationUnit>(componentReaderWriter);
-    
+
 
     /**
      * Native code sometimes needs access to the library component wrapper.
@@ -159,10 +159,10 @@ public class Driver {
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
 
-        /* 
+        /*
          * This looks like gratuitous and useless error checking that
          * interferes with the "test" flag.
-         * 
+         *
         for(String defaultLib : WellKnownNames.defaultLibrary) {
             APIName libAPI = NodeFactory.makeAPIName(defaultLib);
             if (p.getName().equals(libAPI)) {
@@ -170,7 +170,7 @@ public class Driver {
             }
         }
         */
-       
+
         ComponentWrapper comp = commandLineComponent(fr, linker, pile, p);
 
         /*
@@ -207,7 +207,7 @@ public class Driver {
         ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
         builtins.getEnvironment().installPrimitives();
         linker.put(builtinsName, builtins);
-        
+
         ComponentWrapper lib = null;
 
         libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
@@ -262,7 +262,7 @@ public class Driver {
             // System.err.println("populating " + cw);
             cw.populateOne();
         }
-       
+
         for (ComponentWrapper cw : components) {
             cw.initTypes();
         }
@@ -288,7 +288,7 @@ public class Driver {
         return comp.getEnvironment();
     }
 
- 
+
     /**
      * Copies rewriting information (traits, what members they define) from apis into
      * components.  This scaffolding is necessary to get the simplification right
@@ -511,23 +511,23 @@ public class Driver {
         }
         return newwrapper;
     }
-    
+
     private static ComponentWrapper commandLineComponent(FortressRepository fr,
             HashMap<String, ComponentWrapper> linker,
             Stack<ComponentWrapper> pile, Component comp) throws IOException {
-        
+
             APIName name = comp.getName();
             String apiname = NodeUtil.nameString(name);
-            ComponentWrapper comp_wrapper; 
-            
+            ComponentWrapper comp_wrapper;
+
             List<ComponentWrapper> exports_list = new ArrayList<ComponentWrapper>(1);
-            for (Export ex : comp.getExports()) 
+            for (Export ex : comp.getExports())
                 for (APIName ex_apiname : ex.getApis()) {
                     String ex_name = NodeUtil.nameString(ex_apiname);
                     Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
                     exports_list.add( new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
                 }
-                         
+
             comp_wrapper = new ComponentWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
@@ -585,24 +585,28 @@ public class Driver {
     }
 
 
-    public static void runTests(FortressRepository fr, Component p) 
+    public static void runTests(FortressRepository fr, Component p, boolean verbose)
         throws Throwable {
 
         BuildTestEnvironments bte = new BuildTestEnvironments ();
         bte.visit(p);
         List<String> tests = BuildTestEnvironments.getTests();
-            
+
         if (group == null)
             group = new FortressTaskRunnerGroup(getNumThreads());
 
         for (String s : tests) {
             List<String> args = new ArrayList<String>();
+            if ( verbose )
+                System.err.print("starting " + s + " ...");
             EvaluatorTask evTask = new EvaluatorTask(fr, p, s, args);
             group.invoke(evTask);
             if (evTask.causedException()) {
                 throw evTask.taskException();
             }
-        }            
+            if ( verbose )
+                System.err.println("finishing " + s);
+        }
     }
 
     // This creates the parallel context
