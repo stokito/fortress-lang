@@ -115,12 +115,12 @@ public class FileTests {
                             args.add(dir + "/tennisGames");
                             Driver.runProgram(fr, p, args);
                         }
-                        // Test files requiring "-test" flag
+                        // Test files requiring "test" command
                         else if (name.equals("XXXTestTest") ||
                                  name.equals("natInference0") ||
                                  name.equals("testTest1") ||
                                  name.equals("testTest2")) {
-                            Driver.runTests(fr, p);
+                            Driver.runTests(fr, p, false);
                         }
                         else {
                             Driver.runProgram(fr, p, new ArrayList<String>());

@@ -75,7 +75,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             WireTappedPrintStream.make(System.out, true);
         System.setErr(wt_err);
         System.setOut(wt_out);
-        // System.out.println("Evaluating " + file + "...");
+        System.out.println("Evaluating " + file + "...");
         FValue original = Shell.eval(file);
         // Delete the cached file from evaluating the original file!!!
         ASTIO.deleteJavaAst( CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR,
@@ -85,12 +85,12 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         String tfs = name + ".tfs";
 
         String[] command = new String[]{ "desugar", "-out", tfs, file};
-        // System.out.println("Command: fortress desugar -out " + tfs + " " + file);
+        System.out.println("Command: fortress desugar -out " + tfs + " " + file);
         Shell.main( command );
         String generated = System.getProperty("java.io.tmpdir") + SEP + fileName;
 
         command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
-        // System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);
+        System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);
         Shell.main( command );
         ASTIO.deleteJavaAst( tfs );
 
@@ -98,7 +98,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         Shell.setTypeChecking(false);
         Shell.setObjExprDesugaring(false);
 
-        // System.out.println("Evaluating " + generated + "...");
+        System.out.println("Evaluating " + generated + "...");
         assertEquals(original, Shell.eval(generated));
         System.setErr(oldErr);
         System.setOut(oldOut);

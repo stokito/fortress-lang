@@ -103,17 +103,19 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private static void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" [run] [-debug [type]* [#]] somefile.fss arg...");
-        System.err.println(" test [-debug [type]* [#]] somefile.fss...");
-        System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
-        System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" typecheck [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" [run] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
+        System.err.println("");
+        System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
+        System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
+        System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
+        System.err.println("");
         System.err.println(" help");
     }
 
@@ -122,31 +124,8 @@ public final class Shell {
         ("Invoked as script: fortress args\n"+
          "Invoked by java: java ... com.sun.fortress.Shell args\n"+
          "\n"+
-         "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
-         "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
-         "\n"+
-         "fortress [run] [-debug [type]* [#]] somefile.fss arg ...\n"+
-         "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
-         "  run method of somefile.fss.\n"+
-         "\n"+
-         "fortress test [-debug [type]* [#]] somefile.fss ...\n"+
-         "  Runs the functions with the test modifier in the specified components \n"+
-         "\n"+
-         "fortress api [-out file] [-debug [type]* [#]] somefile.fss\n"+
-         "  Automatically generate an API from a component.\n"+
-         "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "\n"+
-         "fortress compare [-debug [type]* [#]] somefile.fss anotherfile.fss\n"+
-         "  Compare results of two components.\n"+
-         "\n"+
          "fortress parse [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
          "  Parses a file. If parsing succeeds the message \"Ok\" will be printed.\n"+
-         "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "\n"+
-         "fortress unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
-         "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
-         "  If -unqualified is given, identifiers are dumped without their API prefixes.\n"+
-         "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
          "\n"+
          "fortress disambiguate [-out file] [-debug [type]* [#]] somefile.fs{i,s}\n"+
@@ -163,6 +142,32 @@ public final class Shell {
          "\n"+
          "fortress typecheck [-out file] [-debug [#]] somefile.fs{i,s}\n"+
          "  Typechecks a file. If type checking succeeds no message will be printed.\n"+
+         "\n"+
+         "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
+         "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
+         "\n"+
+         "fortress [run] [-debug [type]* [#]] somefile.fss arg ...\n"+
+         "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
+         "  run method of somefile.fss.\n"+
+         "\n"+
+         "fortress test [-verbose] [-debug [type]* [#]] somefile.fss ...\n"+
+         "  Runs the functions with the test modifier in the specified components \n"+
+         "  If -verbose is set, the name of each test function is printed before and after running the function\n"+
+         "\n"+
+         "\n"+
+         "fortress api [-out file] [-debug [type]* [#]] somefile.fss\n"+
+         "  Automatically generate an API from a component.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "\n"+
+         "fortress compare [-debug [type]* [#]] somefile.fss anotherfile.fss\n"+
+         "  Compare results of two components.\n"+
+         "\n"+
+         "fortress unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "  Convert a parsed file back to Fortress source code. The output will be dumped to stdout if -out is not given.\n"+
+         "  If -unqualified is given, identifiers are dumped without their API prefixes.\n"+
+         "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
+         "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "\n"+
          "\n"+
          "More details on each flag:\n"+
          "   -out file : dumps the processed abstract syntax tree to a file.\n"+
@@ -225,7 +230,7 @@ public final class Shell {
             List<String> args = Arrays.asList(tokens).subList(1, tokens.length);
             if (what.equals("compile")) {
                 setPhase( PhaseOrder.CODEGEN );
-                compile(args, Option.<String>none());
+                compile(args, Option.<String>none(), what);
             } else if (what.equals("run")) {
                 setPhase( PhaseOrder.CODEGEN );
                 run(args);
@@ -239,23 +244,23 @@ public final class Shell {
                 unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
-                compile(args, Option.<String>none());
+                compile(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
                 setPhase( PhaseOrder.DESUGAR );
-                compile(args, Option.<String>none());
+                compile(args, Option.<String>none(), what);
             } else if ( what.equals( "grammar" ) ){
                 setPhase( PhaseOrder.GRAMMAR );
-                compile(args, Option.<String>none());
+                compile(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
-                compile(args, Option.<String>none());
+                compile(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
                 setPhase( PhaseOrder.CODEGEN );
-                runTests(args);
+                runTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
@@ -268,10 +273,17 @@ public final class Shell {
         }
         catch (UserError error) {
             System.err.println(error.getMessage());
+            System.exit(1);
         }
         catch (IOException error) {
             System.err.println(error.getMessage());
+            System.exit(2);
         }
+    }
+
+    private static void invalidFlag(String flag, String command)
+        throws UserError {
+        throw new UserError(flag + " is not a valid flag for `fortress " + command + "`");
     }
 
     /**
@@ -289,12 +301,12 @@ public final class Shell {
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-out") && ! rest.isEmpty() ){
+            else if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
-
+            else
+                invalidFlag(s, "api");
             api( rest, out );
         } else {
             api( s, out );
@@ -370,7 +382,8 @@ public final class Shell {
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-noPreparse")) setPreparse(false);;
+            else
+                invalidFlag(s, "compare");
 
             compare( rest );
         } else {
@@ -422,11 +435,12 @@ public final class Shell {
             if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-out") && ! rest.isEmpty() ){
+            else if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
+            else
+                invalidFlag(s, "parse");
 
             parse( rest, out );
         } else {
@@ -485,17 +499,18 @@ public final class Shell {
             if (s.equals("-unqualified")){
                 unqualified = true;
             }
-            if (s.equals("-unmangle")){
+            else if (s.equals("-unmangle")){
                 unmangle = true;
             }
-            if (s.equals("-debug")){
+            else if (s.equals("-debug")){
                 rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-out") && ! rest.isEmpty() ){
+            else if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
+            else
+                invalidFlag(s, "unparse");
 
             unparse( rest, out, unqualified, unmangle );
         } else {
@@ -557,7 +572,7 @@ public final class Shell {
      * Compile a file.
      * If you want a dump then give -out somefile.
      */
-    private static void compile(List<String> args, Option<String> out)
+    private static void compile(List<String> args, Option<String> out, String phase)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to compile");
@@ -569,12 +584,13 @@ public final class Shell {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-out") && ! rest.isEmpty() ){
+            else if (s.equals("-out") && ! rest.isEmpty() ){
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
-            compile(rest, out);
+            else
+                invalidFlag(s, phase);
+            compile(rest, out, phase);
         } else {
             try {
                 APIName name = trueApiName( s );
@@ -680,7 +696,8 @@ public final class Shell {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
+            else
+                invalidFlag(s, "run");
 
             run(rest);
         } else {
@@ -753,7 +770,7 @@ public final class Shell {
         return path;
     }
 
-    private static void runTests(List<String> args)
+    private static void runTests(List<String> args, boolean verbose)
         throws UserError, IOException, Throwable {
         if (args.size() == 0) {
             throw new UserError("Need a file to run");
@@ -765,8 +782,12 @@ public final class Shell {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
             }
-            if (s.equals("-noPreparse")) setPreparse(false);
-            runTests(rest);
+            else if (s.equals("-verbose")){
+                runTests(rest, true);
+            }
+            else
+                invalidFlag(s, "test");
+            runTests(rest, verbose);
         } else {
             for (String file : args) {
                 try {
@@ -778,7 +799,7 @@ public final class Shell {
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );
                         Component cu =  (Component) bcr.getLinkedComponent(name).ast();
-                        Driver.runTests(bcr, cu);
+                        Driver.runTests(bcr, cu, verbose);
                     } catch (Throwable th) {
                         // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                         if (th instanceof FortressException) {
