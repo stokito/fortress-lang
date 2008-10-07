@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionVisitor;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
@@ -88,6 +89,19 @@ public class NodeUtil {
             if (p instanceof VarargsParam) return true;
         }
         return (params.size() > 2);
+    }
+
+    public static boolean isSetterOrGetter(List<Modifier> mods) {
+        NodeDepthFirstVisitor<Boolean> mod_visitor =
+            new NodeDepthFirstVisitor<Boolean>() {
+            @Override public Boolean defaultCase(Node n) { return false; }
+            @Override public Boolean forModifierGetter(ModifierGetter that) { return true; }
+            @Override public Boolean forModifierSetter(ModifierSetter that) { return true; }
+        };
+
+        return
+            IterUtil.fold(mod_visitor.recurOnListOfModifier(mods), false, new Lambda2<Boolean,Boolean,Boolean>(){
+                    public Boolean value(Boolean arg0, Boolean arg1) { return arg0 | arg1; }});
     }
 
     public static boolean isMutable(Param p) {
