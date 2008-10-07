@@ -772,6 +772,7 @@ public final class Shell {
 
     private static void runTests(List<String> args, boolean verbose)
         throws UserError, IOException, Throwable {
+        boolean _verbose = verbose;
         if (args.size() == 0) {
             throw new UserError("Need a file to run");
         }
@@ -783,11 +784,11 @@ public final class Shell {
             	rest = Debug.parseOptions(rest);
             }
             else if (s.equals("-verbose")){
-                runTests(rest, true);
+                _verbose = true;
             }
             else
                 invalidFlag(s, "test");
-            runTests(rest, verbose);
+            runTests(rest, _verbose);
         } else {
             for (String file : args) {
                 try {
@@ -799,7 +800,7 @@ public final class Shell {
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );
                         Component cu =  (Component) bcr.getLinkedComponent(name).ast();
-                        Driver.runTests(bcr, cu, verbose);
+                        Driver.runTests(bcr, cu, _verbose);
                     } catch (Throwable th) {
                         // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                         if (th instanceof FortressException) {
