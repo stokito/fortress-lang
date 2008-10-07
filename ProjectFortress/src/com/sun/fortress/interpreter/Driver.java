@@ -598,7 +598,7 @@ public class Driver {
         for (String s : tests) {
             List<String> args = new ArrayList<String>();
             if ( verbose )
-                System.err.print("starting " + s + " ...");
+                System.err.print("starting " + s + "... ");
             EvaluatorTask evTask = new EvaluatorTask(fr, p, s, args);
             group.invoke(evTask);
             if (evTask.causedException()) {

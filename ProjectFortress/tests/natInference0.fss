@@ -30,14 +30,12 @@ g[\nat m\](x:T[\m\], y:T[\m\]) = do
   y.f();
 end
 
-run(args:String...) = do 
+run(args:String...) = do
   println "Hello, World!"
     g(O,O);
     g(P,P);
     (* g(O,P); this one is supposed to fail *)
   end
-test testHello() = do
-  println "Hello passed its test!"
-end
+test testHello() = assert(true)
 
 end
