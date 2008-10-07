@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Fn;
 import edu.rice.cs.plt.tuple.Option;
@@ -219,7 +220,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( index < all.size() - 1 ){
                 if ( s.length() > width && sep.equals(", ") )
                     s.append( sep + "\n        " );
-                else
+                else if ( !element.equals("\n") || !sep.equals("\n") )
                     s.append( sep );
             }
             index += 1;
@@ -419,6 +420,47 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
+    public List<String> myRecurOnListOfAbsDecl(List<AbsDecl> that) {
+        boolean sawField = false;
+        boolean sawGetterSetter = false;
+        List<String> accum = new java.util.ArrayList<String>(that.size());
+        for (AbsDecl elt : that) {
+            if ( elt instanceof AbsVarDecl ) {
+                sawField = true;
+            } else if ( elt instanceof AbsFnDecl ) {
+                if ( NodeUtil.isSetterOrGetter(((AbsFnDecl)elt).getMods()) ) {
+                    sawGetterSetter = true;
+                    if ( sawField ) {
+                        accum.add("\n");
+                        sawField = false;
+                    }
+                } else {
+                    if ( sawGetterSetter ) {
+                        accum.add("\n");
+                        sawGetterSetter = false;
+                    }
+                }
+            }
+            accum.add(recur(elt));
+        }
+        return accum;
+    }
+
+    @Override public String forAbsTraitDecl(AbsTraitDecl that) {
+        List<String> mods_result = recurOnListOfModifier(that.getMods());
+        String name_result = recur(that.getName());
+        List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
+        List<String> excludes_result = recurOnListOfBaseType(that.getExcludes());
+        Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
+        List<String> decls_result = myRecurOnListOfAbsDecl(that.getDecls());
+        return forAbsTraitDeclOnly(that, mods_result, name_result,
+                                   staticParams_result, extendsClause_result,
+                                   where_result, excludes_result, comprises_result,
+                                   decls_result);
+    }
+
     @Override public String forTraitDeclOnly(TraitDecl that,
                                              List<String> mods_result,
                                              String name_result,
@@ -493,6 +535,23 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         decreaseIndent();
 
         return s.toString();
+    }
+
+    public String forAbsObjectDecl(AbsObjectDecl that) {
+        List<String> mods_result = recurOnListOfModifier(that.getMods());
+        String name_result = recur(that.getName());
+        List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
+        Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
+        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+        Option<String> contract_result = recurOnOptionOfContract(that.getContract());
+        List<String> decls_result = myRecurOnListOfAbsDecl(that.getDecls());
+        return forAbsObjectDeclOnly(that, mods_result, name_result,
+                                    staticParams_result, extendsClause_result,
+                                    where_result, params_result,
+                                    throwsClause_result, contract_result,
+                                    decls_result);
     }
 
     @Override public String forObjectDeclOnly(ObjectDecl that,
@@ -1358,7 +1417,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return handleParen( s.toString(),
                             that.isParenthesized() );
     }
-
 
     @Override public String for_RewriteObjectExprOnly(_RewriteObjectExpr that, Option<String> exprType_result,
                                                       List<String> extendsClause_result,
