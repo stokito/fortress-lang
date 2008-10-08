@@ -167,8 +167,10 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
              */
             Component(boolean _native = false, APIName name, List<Import> imports,
                       List<Export> exports, List<Decl> decls,
-              List<_RewriteObjectExpr> objectExprs =
-                                        new ArrayList<_RewriteObjectExpr>());
+                      List<_RewriteObjectExpr> objectExprs =
+                           Collections.<_RewriteObjectExpr>emptyList(),
+                      List<String> functionalMethodNames =
+                           Collections.<String>emptyList());
             /* the list of object expressions is a temporary hack to allow
                progress towards earlier rewriting and caching of ASTs. -- DRC */
             /**

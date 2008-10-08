@@ -43,6 +43,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsDecl;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
@@ -64,6 +65,7 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.EnsuresClause;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ExtentRange;
@@ -78,6 +80,7 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LValueBind;
@@ -136,7 +139,7 @@ import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 
 public class DesugarerVisitor extends NodeUpdateVisitor {
 
-    private boolean isLibrary;
+    private boolean suppressDebugDump;
     private final static boolean debug = false;
 
     private class Thing {
@@ -227,7 +230,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return new _RewriteFieldRef(original.getSpan(), false,
                                         // Use this constructor
                                         // here because it is a
-                                        // com.sun.fortress.interpreter.rewrite.
+                                        // rewrite.
                                         dottedReference(original.getSpan(),
                                                         objectNestingDepth - objectNestedness),
                                         filterQID(original.getVar()));
@@ -268,21 +271,16 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private BATree<String, StaticParam> visibleGenericParameters;
     private BATree<String, StaticParam> usedGenericParameters;
-    public BASet<String> topLevelUses;
+    
     public BASet<String> functionals;
 
-    protected void noteUse(Thing t, String s) {
-        if (t.lexicalNestedness == 0 || functionals.contains(s))
-            topLevelUses.add(s);
-    }
     /**
      * Experimental -- when would this ever apply?
      * @param s
      */
     protected void noteUse(String s, VarRef vre) {
-        if (functionals.contains(s))
-            topLevelUses.add(s);
-        else Debug.debug( Debug.Type.INTERPRETER, 2, s, " used at ", vre.at());
+        if (! functionals.contains(s))
+          Debug.debug( Debug.Type.INTERPRETER, 2, s, " used at ", vre.at());
     }
     /**
      * All the object exprs (this may generalize to nested functions as well)
@@ -295,13 +293,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     DesugarerVisitor(BATree<String, Thing> initial,
               BATree<String, StaticParam> initialGenericScope,
               BASet<String> initialArrows,
-              BASet<String> initialTopLevelUses,
               BASet<String> initialFunctionals) {
         rewrites = initial;
         arrows = initialArrows;
         visibleGenericParameters = initialGenericScope;
         usedGenericParameters = new BATree<String, StaticParam>(StringHashComparer.V);
-        topLevelUses = initialTopLevelUses;
         functionals = initialFunctionals;
         // packages = new BASet<String>(StringHashComparer.V);
     }
@@ -312,14 +308,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * @param suppressDebugDump normally true for everything but files mentioned on the command line.
      * @param list 
      */
-    public DesugarerVisitor(boolean suppressDebugDump, List<_RewriteObjectExpr> objectExprs) {
+    public DesugarerVisitor(boolean suppressDebugDump) {
         this(new BATree<String, Thing>(StringHashComparer.V),
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
-             new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V)
              );
-        this.isLibrary = suppressDebugDump;
+        this.suppressDebugDump = suppressDebugDump;
     }
 
     /**
@@ -400,7 +395,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             noteUse(s, vre);
             return vre;
         } else {
-            noteUse(t,s);
             return t.replacement(vre);
         }
 
@@ -411,7 +405,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (t == null) {
             return vre;
         } else {
-            noteUse(t,s);
             return t.replacement(vre);
         }
 
@@ -422,7 +415,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (t == null) {
             return vre;
         } else {
-            noteUse(t,s);
         }
         return vre;
     }
@@ -433,7 +425,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (t == null) {
             return nt;
         } else {
-            noteUse(t,s);
             return t.replacement(nt);
         }
     }
@@ -444,7 +435,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
        if (t == null) {
            return nt;
        } else {
-           noteUse(t,s);
            return t.replacement(nt);
        }
    }
@@ -668,14 +658,21 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<? extends AbsDeclOrDecl> defs = com.getDecls();
         defsToLocals(defs);
 
-        if (debug && ! isLibrary)
+        if (debug && ! suppressDebugDump)
             System.err.println("BEFORE\n" + NodeUtil.dump(com));
 
-        AbstractNode nn = visitNode(com);
+        APIName name_result = (APIName) recur(com.getName());
+        List<Import> imports_result = recurOnListOfImport(com.getImports());
+        List<Export> exports_result = recurOnListOfExport(com.getExports());
+        List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
+                
+        AbstractNode nn = 
+         new Component(com.getSpan(), com.is_native(),
+                 name_result, imports_result,
+                 exports_result, decls_result,
+                 objectExprs, Useful.list(functionals));
         
-        ((Component) nn).getObjectExprs().addAll(objectExprs);
-
-        if (debug && ! isLibrary)
+        if (debug && ! suppressDebugDump)
             System.err.println("AFTER\n" + NodeUtil.dump(nn));
         
        return nn;

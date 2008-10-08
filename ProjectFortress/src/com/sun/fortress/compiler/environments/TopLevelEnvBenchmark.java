@@ -22,7 +22,7 @@ import java.util.HashMap;
 
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.interpreter.env.BetterEnvLevelZero;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
@@ -43,7 +43,7 @@ public class TopLevelEnvBenchmark {
             FortressRepository defaultRepository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
             ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName("FortressLibrary"));
             Environment betterEnv = new BetterEnvLevelZero(library.ast());
-            BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, ComponentWrapper>());
+            BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, CUWrapper>());
             be.visit(library.ast());
             //Set verboseDump to true
             //betterEnv.dump(System.out);

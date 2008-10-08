@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -46,7 +46,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
-    public BuildNativeEnvironment(Environment within, Map<String, ComponentWrapper> linker) {
+    public BuildNativeEnvironment(Environment within, Map<String, CUWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }

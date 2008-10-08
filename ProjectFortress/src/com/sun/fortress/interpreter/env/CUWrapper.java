@@ -36,6 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.DesugarerVisitor;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -43,18 +44,35 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.DerivedFiles;
+import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Visitor2;
 
-public class ComponentWrapper {
+public class CUWrapper {
+    
+    /* 
+     * Next three lines are for the "cache" of rewritten ASTs
+     */
+    private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
+        @Override
+        public String apply(APIName x) {
+            // TODO Auto-generated method stub
+            return null;
+        } 
+    };
+    private static IOAst componentReaderWriter = new IOAst(toCompFileName);
+    private static DerivedFiles<CompilationUnit> componentCache = 
+        new DerivedFiles<CompilationUnit>(componentReaderWriter);
     
     private final static boolean loadCompiledEnvs =
         ProjectProperties.getBoolean("fortress.test.compiled.environments", false);
     
     CompilationUnit comp_unit;
 
-    HashMap<String, ComponentWrapper> exports = new  HashMap<String, ComponentWrapper>();
+    HashMap<String, CUWrapper> exports = new  HashMap<String, CUWrapper>();
 
     public BuildTopLevelEnvironments be;
 
@@ -86,11 +104,8 @@ public class ComponentWrapper {
     //public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     
     public Set<AbstractNode> unresolvedExports = new HashSet<AbstractNode>();
-    
-    // For debugging use/def annotation
-    public BASet<String> topLevelUsesForDebugging;
-    
-    public DesugarerVisitor desugarer;
+       
+    private DesugarerVisitor desugarer;
 
     int visitState;
     private final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
@@ -99,7 +114,7 @@ public class ComponentWrapper {
         ownNames = null;
         excludedImportNames = null;
         if (exports != null)
-            for (ComponentWrapper cw : exports.values()) {
+            for (CUWrapper cw : exports.values()) {
                 cw.reset();
             }
         this.exports = null;
@@ -116,11 +131,12 @@ public class ComponentWrapper {
     };
 
 
-    public ComponentWrapper(Component comp, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, HashMap<String, CUWrapper> linker, String[] implicitLibs) {
        this.implicitLibs = implicitLibs;
        if (comp == null)
             throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
-        comp_unit = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
+       
+       comp_unit = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
         
          String fortressFileName = comp_unit.getName().getText();
         
@@ -147,11 +163,13 @@ public class ComponentWrapper {
         }
     }
 
-    public ComponentWrapper(Api api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Api api, HashMap<String, CUWrapper> linker, String[] implicitLibs) {
         this.implicitLibs = implicitLibs;
         if (api == null)
             throw new NullPointerException("Null api (1st parameter to constructor) not allowed");
-        comp_unit = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
+        
+         //comp_unit = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
+        comp_unit = api; // do nothing?
         
          String fortressFileName = comp_unit.getName().getText();
         
@@ -176,17 +194,30 @@ public class ComponentWrapper {
      * @param comp
      * @param api
      */
-    public ComponentWrapper(Component comp, ComponentWrapper api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, CUWrapper api, HashMap<String, CUWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
 
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
-    public ComponentWrapper(Component comp, List<ComponentWrapper> api_list, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, List<CUWrapper> api_list, HashMap<String, CUWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
-        for (ComponentWrapper api : api_list) 
+        for (CUWrapper api : api_list) 
             exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
+    
+    public boolean injectAtTopLevel(String putName, String getName, CUWrapper getFrom, Set<String>excluded) {
+        return desugarer.injectAtTopLevel(putName, getName, getFrom.desugarer, excluded);
+    }
+    
+    public Set<String> getTopLevelRewriteNames() {
+        return desugarer.getTopLevelRewriteNames();
+    }
+
+    public Set<String> getFunctionals() {
+        return desugarer.functionals;
+    }
+
 
     public static boolean overloadable(Object u) {
         return u instanceof Fcn || u instanceof GenericConstructor;
@@ -209,7 +240,7 @@ public class ComponentWrapper {
         return visitState == POPULATED;
     }
 
-    public Collection<ComponentWrapper> getExports() {
+    public Collection<CUWrapper> getExports() {
         return exports.values();
     }
     
@@ -220,12 +251,12 @@ public class ComponentWrapper {
         visitState = IMPORTED;
 
         if (comp_unit instanceof Component) {
-            desugarer = new DesugarerVisitor(suppressDebugDump, ((Component)comp_unit).getObjectExprs());
+            desugarer = new DesugarerVisitor(suppressDebugDump);
         } else {
-            desugarer = new DesugarerVisitor(suppressDebugDump, null);
+            desugarer = new DesugarerVisitor(suppressDebugDump);
         }
 
-        for (ComponentWrapper api: exports.values()) {
+        for (CUWrapper api: exports.values()) {
             api.touchExports(suppressDebugDump);
         }
     }
@@ -238,7 +269,7 @@ public class ComponentWrapper {
          * rules as other name visibility.
          */
         ownNames.addAll(desugarer.getTopLevelRewriteNames());
-        for (ComponentWrapper api: exports.values()) {
+        for (CUWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
 
@@ -252,6 +283,7 @@ public class ComponentWrapper {
 
         CompilationUnit cu = comp_unit;
 
+        if (! (cu instanceof Api))
         cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
                                       // Caches information in dis!
         be.visit(cu);
@@ -259,25 +291,23 @@ public class ComponentWrapper {
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         be.getEnvironment().visit(nameCollector);
         comp_unit = cu;
-        topLevelUsesForDebugging = desugarer.topLevelUses.copy();
-        topLevelUsesForDebugging.removeAll(ownNames);
-        
+         
         for (String implicitLibraryName : implicitLibs) {
             be.importAPIName(implicitLibraryName);
         }
         
-        for (ComponentWrapper api: exports.values()) {
+        for (CUWrapper api: exports.values()) {
             be.importAPIName(api.name());
         }
         
-        for (ComponentWrapper api: exports.values()) {
+        for (CUWrapper api: exports.values()) {
             api.populateOne(this);
         }
 
         return cu;
     }
 
-     public CompilationUnit populateOne(ComponentWrapper exporter) {
+     public CompilationUnit populateOne(CUWrapper exporter) {
          if (visitState != IMPORTED)
              return bug("Component wrapper in wrong visit state: " + visitState);
 
@@ -287,17 +317,15 @@ public class ComponentWrapper {
          
          CompilationUnit cu = comp_unit;
 
+         if (! (cu instanceof Api))
          cu = (CompilationUnit) desugarer.visit(cu); // Rewrites cu!
                                        // Caches information in dis!
          be.visit(cu);
          // Reset the non-function names from the disambiguator.
          excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-         
          be.getEnvironment().visit(nameCollector);
          comp_unit = cu;
-         topLevelUsesForDebugging = desugarer.topLevelUses.copy();
-         topLevelUsesForDebugging.removeAll(ownNames);
-
+ 
          return cu;
      }
 
@@ -358,7 +386,7 @@ public class ComponentWrapper {
      * Returns the component wrapper for the API apiname that this component
      * exports.
      */
-    public ComponentWrapper getExportedCW(String apiname) {
+    public CUWrapper getExportedCW(String apiname) {
         return exports.get(apiname);
     }
 
@@ -369,6 +397,7 @@ public class ComponentWrapper {
     public List<Import> getImports() {
         return comp_unit.getImports();
     }
+
 
 
 }

@@ -35,6 +35,7 @@ ProjectFortress/FortressLibrary.ast
 ProjectFortress/FortressLibrary.jst
 ProjectFortress/src/com/sun/fortress/parser_util/precedence_resolver/Operators.java
 ProjectFortress/src/com/sun/fortress/parser/preparser/PreFortress.java
+ProjectFortress/src/com/sun/fortress/parser/templateparser/TemplateParser.java
 build/
 tmp/
 test-tmp/

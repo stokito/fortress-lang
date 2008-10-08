@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -69,14 +69,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     /**
      * Used for mapping API Names to their environments
      */
-    Map<String, ComponentWrapper> linker;
+    Map<String, CUWrapper> linker;
 
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
      * with type parameters) until they can be instantiated.
      */
-    public BuildTopLevelEnvironments(Environment within, Map<String, ComponentWrapper> linker) {
+    public BuildTopLevelEnvironments(Environment within, Map<String, CUWrapper> linker) {
         super(within);
         this.linker = linker;
     }
@@ -111,7 +111,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     }
 
     public void importAPIName(String s) {
-        ComponentWrapper c = linker.get(s);
+        CUWrapper c = linker.get(s);
         if (c != null)
             bindInto.putApi(s, c.getEnvironment());
         else {
@@ -282,7 +282,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         }
     }
     
-    public void setExporterAndApi(ComponentWrapper exporter, ComponentWrapper api) {
+    public void setExporterAndApi(CUWrapper exporter, CUWrapper api) {
         bug("Can only set exporter of API environment builder.");
     }
     
