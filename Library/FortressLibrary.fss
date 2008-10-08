@@ -1088,7 +1088,7 @@ trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
     getter size(): ZZ32 = if self.holds then 1 else 0 end
     getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
     getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
-    getter indices(): CompactFullRange[\ZZ32\] = self.bounds
+    getter indices(): Generator[\ZZ32\] = self.bounds
     getter indexValuePairs(): Condition[\(ZZ32,E)\] =
         cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
     opr |self|: ZZ32 = if self.holds then 1 else 0 end
@@ -1455,7 +1455,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         valid indices represented by self.bounds.  This generator
         attempts to follow the structure of the underlying object as
         closely as possible. *)
-    getter indices(): Indexed[\I,I\] =
+    getter indices(): Generator[\I\] =
         self.indexValuePairs.map[\I\](fn (i:I, e:E): I => i)
 
     (** %|self|% indicates the number of distinct valid indices that may
@@ -1594,7 +1594,7 @@ trait ReadableArray[\E,I\]
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)
-    getter indices(): Indexed[\I,I\] = self.bounds
+    getter indices(): Generator[\I\] = self.bounds
     getter indexValuePairs(): Indexed[\(I,E),I\] =
         zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
     getter generator(): Indexed[\E,I\] =
@@ -2880,7 +2880,7 @@ object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
     getter bounds(): Range[\I\] = self.g.bounds
     getter indexValuePairs(): Indexed[\(I,F),I\] =
         self.g.indexValuePairs.map[\(I,F)\](fn (i:I, e:E): F => (i,(self.f)(e)))
-    getter indices(): Indexed[\I,I\] = self.g.indices
+    getter indices(): Generator[\I\] = self.g.indices
     opr |self| : ZZ32 = |self.g|
     opr[i:I] : F = (self.f)(self.g[i])
     opr[r:Range[\I\]] : Indexed[\F,I\] =

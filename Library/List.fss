@@ -280,7 +280,7 @@ object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
                                       firstUnused-1, noShot),
                        underlying.get(firstUnused-1))
         end
-    getter indices(): Generator[\ZZ32\] = 0 # |self|
+    getter indices(): ZeroIndexed[\ZZ32\] = 0 # |self|
     getter indexValuePairs(): Generator[\(ZZ32,E)\] =
         self.indices.map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) =>
                                         (i,underlying.get(firstUsed+i)))

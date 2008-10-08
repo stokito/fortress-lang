@@ -56,7 +56,7 @@ abstract public class Simple_fcn extends SingleFcn {
      }
 
    public String getString() {
-        return getFnName().toString() + Useful.listInParens(getDomain()) + ":" + getRange() + " declared at " + at();
+       return at()+": "+getFnName().toString() + Useful.listInParens(getDomain()) + ":" + getRange();
     }
 
    public FType getRange() {

@@ -986,10 +986,10 @@ object CompactFullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K e
     getter bounds(): CompactFullRange3D[\I,J,K\] =
         CompactFullRange3D[\I,J,K\](0,0,r_i-l_i,r_j-l_j)
     getter indices(): Generator[\(I,J,K)\] =
-        self.generator.map[\(I,J,K)\](fn (i,j,k) => (i-l_i, j-l_j))
+        self.generator.map[\(I,J,K)\](fn (i,j,k) => (i-l_i, j-l_j, k-l_k))
     getter indexValuePairs(): Generator[\((I,J,K),(I,J,K))\] =
-        self.generator.map[\(I,J,K)\](fn (i,j,k) => ((i-l_i, j-l_j),(i,j,k)))
-    getter stride(): (I,J,K) = (1,1)
+        self.generator.map[\(I,J,K)\](fn (i,j,k) => ((i-l_i, j-l_j, k-l_k),(i,j,k)))
+    getter stride(): (I,J,K) = (1,1,1)
     getter left(): Just[\(I,J,K)\] = Just[\(I,J,K)\]( l_i, l_j , l_k )
     getter right(): Just[\(I,J,K)\] = Just[\(I,J,K)\]( r_i, r_j , r_k )
     getter range1(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](l_i,r_i)
@@ -1177,7 +1177,7 @@ object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
         extends { StridedFullRange[\(I,J)\], FullRange2D[\I,J\],
                   ActualRange2D[\I,J,StridedFullRange2D[\I,J\],
                                 FullScalarRange[\I\],FullScalarRange[\J\]\] }
-    getter bounds(): StridedFullRange2D[\I,J\] =
+    getter bounds(): CompactFullRange2D[\I,J\] =
         CompactFullRange2D[\I,J\](0,0,(r_i-l_i) DIV str_i,(r_j-l_j) DIV str_j)
     getter indices(): Generator[\(I,J)\] =
         self.generator.map[\(I,J)\](fn (i,j) => ((i-l_i) DIV str_i, (j-l_j) DIV str_j))
@@ -1206,12 +1206,15 @@ object StridedFullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K e
         extends { StridedFullRange[\(I,J,K)\], FullRange3D[\I,J,K\],
                   ActualRange3D[\I,J,K,StridedFullRange3D[\I,J,K\],
                                 FullScalarRange[\I\],FullScalarRange[\J\],FullScalarRange[\K\]\] }
-    getter bounds(): StridedFullRange3D[\I,J,K\] =
-        CompactFullRange3D[\I,J,K\](0,0,(r_i-l_i) DIV str_i,(r_j-l_j) DIV str_j, (r_k-l_k) DIV str_k)
+    getter bounds(): CompactFullRange3D[\I,J,K\] =
+        CompactFullRange3D[\I,J,K\](0,0,0,
+            (r_i-l_i) DIV str_i,(r_j-l_j) DIV str_j, (r_k-l_k) DIV str_k)
     getter indices(): Generator[\(I,J,K)\] =
-        self.generator.map[\(I,J,K)\](fn (i,j,k) => ((i-l_i) DIV str_i, (j-l_j) DIV str_j, (k-l_k) DIV str_k))
+        self.generator.map[\(I,J,K)\](
+            fn (i,j,k) => ((i-l_i) DIV str_i, (j-l_j) DIV str_j, (k-l_k) DIV str_k))
     getter indexValuePairs(): Generator[\((I,J,K),(I,J,K))\] =
-        self.generator.map[\(I,J,K)\](fn (i,j,k) => (((i-l_i) DIV str_i, (j-l_j) DIV str_j, (k-l_k) DIV str_k),(i,j,k)))
+        self.generator.map[\(I,J,K)\](
+            fn (i,j,k) => (((i-l_i) DIV str_i, (j-l_j) DIV str_j, (k-l_k) DIV str_k),(i,j,k)))
     getter stride(): (I,J,K) = (str_i,str_j,str_k)
     getter left(): Just[\(I,J,K)\] = Just[\(I,J,K)\]( l_i, l_j , l_k )
     getter right(): Just[\(I,J,K)\] = Just[\(I,J,K)\]( r_i, r_j , r_k )

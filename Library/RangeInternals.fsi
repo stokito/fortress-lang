@@ -1,3 +1,20 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
 api RangeInternals
 import TypeProxy.{...}
 roundToStride[\I extends Integral[\I\]\](amt: I, stride: I)
@@ -379,18 +396,24 @@ trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     extends { FullRange[\(I, J)\], Range2D[\I, J\], DelegatedIndexed[\(I, J), (I, J)\] }
     getter extent(): Just[\(I, J)\]
     getter generator(): Generator[\(I, J)\]
+    getter indices(): Generator[\(I, J)\]
 
+    opr | self |: ZZ32
     flip(): FullRange2D[\I, J\]
     opr [ ij: (I, J) ]: (I, J)
     opr [ r: Range[\(I, J)\] ]: FullRange2D[\I, J\]
 end
+
+tupleFlatten[\I, J, K\](t: (I, J), k: K): (I, J, K)
 
 trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\]\]
     extends { FullRange[\(I, J, K)\], Range3D[\I, J, K\], DelegatedIndexed[\(I, J, K), (I, J, K)\] }
     getter extent(): Just[\(I, J, K)\]
     getter generator(): Generator[\(I, J, K)\]
+    getter indices(): Generator[\(I, J)\]
 
+    opr | self |: ZZ32
     flip(): FullRange3D[\I, J, K\]
     opr [ ij: (I, J, K) ]: (I, J, K)
     opr [ r: Range[\(I, J, K)\] ]: FullRange3D[\I, J, K\]
@@ -523,7 +546,7 @@ combine2D[\I extends Integral[\I\], J extends Integral[\J\]\](i: FullScalarRange
 object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_i: I, l_j: J, r_i: I, r_j: J, str_i: I, str_j: J)
     extends { StridedFullRange[\(I, J)\], FullRange2D[\I, J\], ActualRange2D[\I, J, StridedFullRange2D[\I, J\], FullScalarRange[\I\],
         FullScalarRange[\J\]\] }
-    getter bounds(): StridedFullRange2D[\I, J\]
+    getter bounds(): CompactFullRange2D[\I, J\]
     getter indices(): Generator[\(I, J)\]
     getter indexValuePairs(): Generator[\((I, J), (I, J))\]
     getter stride(): (I, J)
@@ -548,7 +571,7 @@ object StridedFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         FullScalarRange[\I\],
         FullScalarRange[\J\],
         FullScalarRange[\K\]\] }
-    getter bounds(): StridedFullRange3D[\I, J, K\]
+    getter bounds(): CompactFullRange3D[\I, J, K\]
     getter indices(): Generator[\(I, J, K)\]
     getter indexValuePairs(): Generator[\((I, J, K), (I, J, K))\]
     getter stride(): (I, J, K)
