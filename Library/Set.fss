@@ -129,7 +129,7 @@ end
 value object IndexValueSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[\E\])
         extends ZeroIndexed[\(ZZ32,E)\]
     getter size(): ZZ32 = |s|
-    getter indices(): ZZ32 = s.indices()
+    getter indices(): Generator[\ZZ32\] = s.indices()
     getter isEmpty(): Boolean = s.isEmpty()
     opr |self| : ZZ32 = |s|
     generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
@@ -141,7 +141,7 @@ end
 
 object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     getter size():ZZ32 = 0
-    getter bounds():Range[\ZZ32\] = 0#0
+    getter bounds():CompactFullRange[\ZZ32\] = 0#0
     getter isEmpty():Boolean = true
     opr |self| : ZZ32 = 0
     opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")

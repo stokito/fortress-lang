@@ -1025,7 +1025,7 @@ trait Indexed[\E, I\] extends Generator[\E\]
         valid indices represented by %bounds()%.  This generator
         attempts to follow the structure of the underlying object as
         closely as possible. *)
-    getter indices(): Indexed[\I,I\]
+    getter indices(): Generator[\I\]
     (** %|self|% indicates the number of distinct valid indices that may
         be passed to indexing operations. *)
     abstract opr |self| : ZZ32
@@ -1135,7 +1135,7 @@ trait ReadableArray[\E,I\]
     (** CONCRETE GETTERS
         Default implementations of getters based on abstract methods
         below. **)
-    getter indices(): Indexed[\I,I\]
+    getter indices(): Generator[\I\]
     getter indexValuePairs(): Indexed[\(I,E),I\]
     getter generator(): Indexed[\E,I\]
 

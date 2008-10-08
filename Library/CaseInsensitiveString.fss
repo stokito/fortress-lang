@@ -29,7 +29,7 @@ value object CaseInsensitiveString(s:String)
     getter size() = |s|
     (** %toString% returns the underlying non-case-insensitive %String%, %s%. **)
     getter toString() : String = s
-    getter indices() : FullRange[\ZZ32,true\] = s.indices()
+    getter indices() : CompactFullRange[\ZZ32\] = s.indices()
     getter generator() : Generator[\Char\] = s.generator()
     opr |self| : ZZ32 = |s|
     opr =(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) = 0

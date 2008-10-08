@@ -451,10 +451,16 @@ public class Constructor extends NonPrimitive {
             MethodClosure pdm = (MethodClosure) sf;
             Applicable a = pdm.getDef();
             if (a instanceof FnDef || a instanceof NativeApp) return;
-            error(cfn, errorMsg("Object ",cfn.stringName(),
-                  " does not define an abstract method declared in type ",
-                                too.getName(), ":\n  ", sf.getString(),
-                                "\n   instead found: ",a," class ",a.getClass()));
+            if (a.at().equals(sf.at())) {
+                error(cfn, errorMsg("Object ",cfn.stringName(),
+                      " does not define an abstract method declared in type ",
+                      too.getName(), ":\n", sf.getString()));
+            } else {
+                error(cfn, errorMsg("Object ",cfn.stringName(),
+                      " does not define an abstract method declared in type ",
+                      too.getName(), ":\n", sf.getString(),
+                      "\n Instead found: \n",a.at(), ": ", a));
+            }
         }
         bug(errorMsg("Unexpected symbolic method binding ", sf));
         return;
