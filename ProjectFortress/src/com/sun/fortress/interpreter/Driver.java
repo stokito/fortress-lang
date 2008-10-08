@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.CUWrapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -119,28 +119,15 @@ public class Driver {
     static public void runTests() {
     }
 
-
-    private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
-        @Override
-        public String apply(APIName x) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-    };
-    private static IOAst componentReaderWriter = new IOAst(toCompFileName);
-    private static DerivedFiles<CompilationUnit> componentCache =
-        new DerivedFiles<CompilationUnit>(componentReaderWriter);
-
-
     /**
      * Native code sometimes needs access to the library component wrapper.
      */
-    static ComponentWrapper libraryComponentWrapper = null;
+    static CUWrapper libraryComponentWrapper = null;
     public static Environment getFortressLibrary() {
         return libraryComponentWrapper.getEnvironment();
     }
 
-    public static ArrayList<ComponentWrapper> components;
+    public static ArrayList<CUWrapper> components;
 
     public static Environment evalComponent(Component p,
                                             FortressRepository fr)
@@ -153,11 +140,11 @@ public class Driver {
          * infrastructure is present.
          */
 
-        HashMap<String, ComponentWrapper> linker = new HashMap<String, ComponentWrapper>();
+        HashMap<String, CUWrapper> linker = new HashMap<String, CUWrapper>();
 
-        Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
+        Stack<CUWrapper> pile = new Stack<CUWrapper>();
         // ArrayList<ComponentWrapper>
-        components = new ArrayList<ComponentWrapper>();
+        components = new ArrayList<CUWrapper>();
 
         /*
          * This looks like gratuitous and useless error checking that
@@ -171,7 +158,7 @@ public class Driver {
         }
         */
 
-        ComponentWrapper comp = commandLineComponent(fr, linker, pile, p);
+        CUWrapper comp = commandLineComponent(fr, linker, pile, p);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -204,19 +191,19 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
+        CUWrapper builtins = new CUWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
         builtins.getEnvironment().installPrimitives();
         linker.put(builtinsName, builtins);
 
-        ComponentWrapper lib = null;
+        CUWrapper lib = null;
 
         libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
         lib = libraryComponentWrapper.getExportedCW(libraryName);
 
-        ComponentWrapper nativescomp =
+        CUWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
                                  NodeFactory.makeAPIName(nativesName));
-        ComponentWrapper natives = nativescomp.getExportedCW(nativesName);
+        CUWrapper natives = nativescomp.getExportedCW(nativesName);
 
         /*
          * This performs closure over APIs and components, ensuring that all are
@@ -224,7 +211,7 @@ public class Driver {
          */
         while (!pile.isEmpty()) {
 
-            ComponentWrapper cw = pile.pop();
+            CUWrapper cw = pile.pop();
             components.add(cw);
 
             CompilationUnit c = cw.getCompilationUnit();
@@ -234,7 +221,7 @@ public class Driver {
         }
 
         // Desugarer needs to know about trait members.
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             cw.preloadTopLevel();
         }
 
@@ -244,7 +231,7 @@ public class Driver {
         boolean change = true;
         while (change) {
             change = false;
-            for (ComponentWrapper cw : components) {
+            for (CUWrapper cw : components) {
                 change |= injectTraitMembersForDesugaring(linker, cw);
             }
 
@@ -258,30 +245,30 @@ public class Driver {
          * call to populate) the exported apis are populated.
          */
         for (int i = components.size() - 1; i >= 0; i--) {
-            ComponentWrapper cw = components.get(i);
+            CUWrapper cw = components.get(i);
             // System.err.println("populating " + cw);
             cw.populateOne();
         }
 
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             cw.initTypes();
         }
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             scanAllFunctionalMethods(cw.getEnvironment());
         }
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             cw.initFuncs();
         }
 
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             finishAllFunctionalMethods(cw.getEnvironment());
         }
 
-        for (ComponentWrapper cw : components) {
+        for (CUWrapper cw : components) {
             cw.reset();
         }
 
-         for (ComponentWrapper cw : components) {
+         for (CUWrapper cw : components) {
             cw.initVars();
         }
 
@@ -298,7 +285,7 @@ public class Driver {
      * @param cw
      */
     private static boolean injectTraitMembersForDesugaring(
-            HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
+            HashMap<String, CUWrapper> linker, CUWrapper cw) {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
         boolean change = false;
@@ -316,8 +303,8 @@ public class Driver {
                 APIName source = ix.getApi();
                 String from_apiname = NodeUtil.nameString(source);
 
-                ComponentWrapper from_cw = linker.get(from_apiname);
-                ComponentWrapper api_cw = from_cw.getExportedCW(from_apiname);
+                CUWrapper from_cw = linker.get(from_apiname);
+                CUWrapper api_cw = from_cw.getExportedCW(from_apiname);
 
                 /* Pull in names, UNqualified */
 
@@ -333,9 +320,9 @@ public class Driver {
                          * it with plain old name.
                          */
                         /* probable bug: need to insert into ownNonFunction names */
-                        change |= cw.desugarer.injectAtTopLevel(alias.unwrap(name).stringName(),
+                        change |= cw.injectAtTopLevel(alias.unwrap(name).stringName(),
                                                                 name.stringName(),
-                                                                api_cw.desugarer,
+                                                                api_cw,
                                                                 cw.excludedImportNames);
                     }
 
@@ -352,18 +339,17 @@ public class Driver {
                             },
                             new HashSet<String>());
 
-                    for (String s : api_cw.desugarer.getTopLevelRewriteNames()) {
+                    for (String s : api_cw.getTopLevelRewriteNames()) {
                         if (! except_names.contains(s) &&
                                 !cw.isOwnName(s) &&
                                 !cw.excludedImportNames.contains(s)) {
-                            change |= cw.desugarer.injectAtTopLevel(s, s, api_cw.desugarer, cw.excludedImportNames);
+                            change |= cw.injectAtTopLevel(s, s, api_cw, cw.excludedImportNames);
                         }
                     }
-                    for (String s : api_cw.desugarer.functionals) {
+                    for (String s : api_cw.getFunctionals()) {
                         if (! except_names.contains(s) &&
-                            //    !cw.isOwnName(s) &&
                                 !cw.excludedImportNames.contains(s)) {
-                            change |= cw.desugarer.injectAtTopLevel(s, s, api_cw.desugarer, cw.excludedImportNames);
+                            change |= cw.injectAtTopLevel(s, s, api_cw, cw.excludedImportNames);
                         }
                     }
                 }
@@ -376,21 +362,18 @@ public class Driver {
         return change;
     }
 
-    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
-            ComponentWrapper lib) {
+    private static boolean injectLibraryTraits(List<CUWrapper> components,
+            CUWrapper lib) {
         boolean change = false;
-        for (ComponentWrapper cw : components) {
-            for (String s : lib.desugarer.getTopLevelRewriteNames()) {
+        for (CUWrapper cw : components) {
+            for (String s : lib.getTopLevelRewriteNames()) {
                 if (cw.isOwnName(s)) {
                     continue;
                 }
-                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+                change |= cw.injectAtTopLevel(s, s, lib, cw.excludedImportNames);
             }
-            for (String s : lib.desugarer.functionals) {
-//                if (cw.isOwnName(s)) {
-//                    continue;
-//                }
-                change |= cw.desugarer.injectAtTopLevel(s, s, lib.desugarer, cw.excludedImportNames);
+            for (String s : lib.getFunctionals()) {
+                change |= cw.injectAtTopLevel(s, s, lib, cw.excludedImportNames);
             }
         }
         return change;
@@ -446,8 +429,8 @@ public class Driver {
      */
     private static void ensureImportsImplemented (
             FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile,
+            HashMap<String, CUWrapper> linker,
+            Stack<CUWrapper> pile,
             List<Import> imports
         )
         throws IOException
@@ -481,12 +464,12 @@ public class Driver {
      * @param pile
      * @param id
      */
-    private static ComponentWrapper ensureApiImplemented(
+    private static CUWrapper ensureApiImplemented(
             FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, APIName name) throws IOException {
+            HashMap<String, CUWrapper> linker,
+            Stack<CUWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
-        ComponentWrapper newwrapper = linker.get(apiname);
+        CUWrapper newwrapper = linker.get(apiname);
         if (newwrapper == null) {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming
@@ -500,8 +483,8 @@ public class Driver {
 
             newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
-            ComponentWrapper apicw = new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary);
-            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
+            CUWrapper apicw = new CUWrapper(newapi, linker, WellKnownNames.defaultLibrary);
+            newwrapper = new CUWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
             newwrapper.touchExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
@@ -512,28 +495,28 @@ public class Driver {
         return newwrapper;
     }
 
-    private static ComponentWrapper commandLineComponent(FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, Component comp) throws IOException {
+    private static CUWrapper commandLineComponent(FortressRepository fr,
+            HashMap<String, CUWrapper> linker,
+            Stack<CUWrapper> pile, Component comp) throws IOException {
 
             APIName name = comp.getName();
             String apiname = NodeUtil.nameString(name);
-            ComponentWrapper comp_wrapper;
+            CUWrapper comp_wrapper;
 
-            List<ComponentWrapper> exports_list = new ArrayList<ComponentWrapper>(1);
+            List<CUWrapper> exports_list = new ArrayList<CUWrapper>(1);
             for (Export ex : comp.getExports())
                 for (APIName ex_apiname : ex.getApis()) {
                     String ex_name = NodeUtil.nameString(ex_apiname);
                     Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
-                    exports_list.add( new ComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
+                    exports_list.add( new CUWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
                 }
 
-            comp_wrapper = new ComponentWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
+            comp_wrapper = new CUWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
             pile.push(comp_wrapper);
 
-            for (ComponentWrapper apicw : exports_list) {
+            for (CUWrapper apicw : exports_list) {
                 List<Import> imports  = apicw.getImports();
                 linker.put(apicw.name(), comp_wrapper);
                 ensureImportsImplemented(fr, linker, pile, imports);

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.evaluator;
 
 import java.util.List;
 import java.util.Map;
-import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
@@ -145,17 +145,17 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         return change;
     }
 
-    ComponentWrapper exporter;
-    ComponentWrapper api;
+    CUWrapper exporter;
+    CUWrapper api;
     
     @Override
-    public void setExporterAndApi(ComponentWrapper exporter, ComponentWrapper api) {
+    public void setExporterAndApi(CUWrapper exporter, CUWrapper api) {
         this.exporter = exporter;
         this.api = api;
     }
     
     public BuildApiEnvironment(Environment within,
-            Map<String, ComponentWrapper> linker) {
+            Map<String, CUWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }
