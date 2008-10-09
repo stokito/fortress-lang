@@ -1,20 +1,3 @@
-(*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
-
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
-
-    Use is subject to license terms.
-
-    This distribution may include materials developed by third parties.
-
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
-
 api RangeInternals
 import TypeProxy.{...}
 roundToStride[\I extends Integral[\I\]\](amt: I, stride: I)
@@ -84,6 +67,7 @@ trait ActualRange2D[\I extends Integral[\I\], J extends Integral[\J\],
     abstract getter range2(): Scalar2
 
     every(s_i: I, s_j: J): Self
+    imposeStride(s_i: I, s_j: J): Self
     abstract recombine(a: Scalar1, b: Scalar2): Self
 end
 
@@ -122,6 +106,7 @@ trait ActualRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     abstract getter range3(): Scalar3
 
     every(s_i: I, s_j: J, s_k: K): Self
+    imposeStride(s_i: I, s_j: J, s_k: K): Self
     abstract recombine(a: Scalar1, b: Scalar2, c: Scalar3): Self
 end
 
@@ -137,7 +122,8 @@ object OpenScalarRange[\I extends Integral[\I\]\](str: I)
     truncL(l: I): LeftScalarRange[\I\]
     flip(): OpenScalarRange[\I\]
     forward(): OpenScalarRange[\I\]
-    every(s: I): ScalarRange[\I\]
+    every(s: I): OpenScalarRange[\I\]
+    imposeStride(s: I): OpenScalarRange[\I\]
     atMost(n: I): ScalarRangeWithExtent[\I\]
     opr CAP(self, other: ScalarRange[\I\]): ScalarRange[\I\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
@@ -196,6 +182,7 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex: I, str: I)
     flip(): ExtentScalarRange[\I\]
     forward(): ExtentScalarRange[\I\]
     every(s: I): ExtentScalarRange[\I\]
+    imposeStride(s: I): ExtentScalarRange[\I\]
     atMost(n: I): ScalarRange[\I\]
     opr CAP(self, other: Range[\I\]): ScalarRangeWithExtent[\I\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
@@ -266,6 +253,7 @@ object LeftScalarRange[\I extends Integral[\I\]\](l: I, str: I)
     flip(): RightScalarRange[\I\]
     forward(): BoundedScalarRange[\I\]
     every(s: I): ScalarRange[\I\]
+    imposeStride(s: I): LeftScalarRange[\I\]
     atMost(n: I): ScalarRange[\I\]
     dump(): String
     opr =(self, b: LeftScalarRange[\I\]): Boolean
@@ -327,6 +315,7 @@ object RightScalarRange[\I\](r: I, str: I)
     flip(): LeftScalarRange[\I\]
     forward(): BoundedScalarRange[\I\]
     every(s: I): RightScalarRange[\I\]
+    imposeStride(s: I): RightScalarRange[\I\]
     atMost(n: I): ScalarRange[\I\]
     dump(): String
     opr =(self, b: RightScalarRange[\I\]): Boolean
@@ -384,6 +373,7 @@ trait FullScalarRange[\I extends Integral[\I\]\]
 
     flip(): FullScalarRange[\I\]
     every(s: I): FullScalarRange[\I\]
+    imposeStride(s: I): FullScalarRange[\I\]
     atMost(n: I): FullScalarRange[\I\]
     opr =(self, b: FullScalarRange[\I\]): Boolean
     forwardIntersection(other: BoundedScalarRange[\I\]): FullScalarRange[\I\]
@@ -631,5 +621,11 @@ openRangeHelper[\I extends AnyIntegral\](_: __Proxy[\I\]): OpenScalarRange[\I\]
 openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral\](_: __Proxy[\(I, J)\]): OpenRange2D[\I, J\]
 
 openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](_: __Proxy[\(I, J, K)\]): OpenRange3D[\I, J, K\]
+
+open1Range[\I extends AnyIntegral\](_: I, x: I): OpenRange[\I\]
+
+open2Range[\I extends AnyIntegral, J extends AnyIntegral\](_: I, _: J, x: I, y: J): OpenRange[\(I, J)\]
+
+open3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](_: I, _: J, _: K, x: I, y: J, z: K): OpenRange[\(I, J, K)\]
 
 end

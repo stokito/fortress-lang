@@ -24,7 +24,7 @@ export Executable
     This portion of the spec was causing a great deal of trouble,
     so it was pulled out so that ExtentScalarRange[\I\] could be added sensibly.
 **)
-intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:ScalarRange[\I\], resultStride:I): ScalarRange[\I\] =
+intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:ScalarRange[\I\], resultStride:I): ScalarRange[\I\] = do
     typecase (this,other) of
         (OpenScalarRange[\I\], ScalarRange[\I\]) =>
             other.every(resultStride DIV other.stride)
@@ -57,6 +57,7 @@ intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:Scala
         (ScalarRange[\I\], ExtentScalarRange[\I\]) =>
             intersectUnbounded(other,this,resultStride)
     end
+  end
 
 (** This is the old spec for intersection.  It's been replaced by INTERSECTNEW below. **)
 opr INTERSECTOLD[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: ScalarRange[\I\]): ScalarRange[\I\] = label intersection
@@ -232,19 +233,26 @@ run(args:String...):() =
   if false then ()
   else
     (* Spot-test failures first *)
-    assert(StridedFullParScalarRange[\ZZ32\](1,0,2).extent.get,0,"Emptiness 0")
-    assert(CompactFullParScalarRange[\ZZ32\](1,1).isEmpty,false,"Emptiness 1")
-    assert(StridedFullParScalarRange[\ZZ32\](1,1,-1).isEmpty,false,"Emptiness 2")
-    assert(CompactFullParScalarRange[\ZZ32\](1,1),StridedFullParScalarRange[\ZZ32\](1,1,-1),"Singleton equality 1")
-    assert(StridedFullParScalarRange[\ZZ32\](1,1,-1),CompactFullParScalarRange[\ZZ32\](1,1),"Singleton equality 2")
-    assert(CompactFullParScalarRange[\ZZ32\](0,23).every(-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward every")
-    assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION OpenScalarRange[\ZZ32\](-2), fullScalarRange[\ZZ32\](23,1,-2), "Backward intersection")
-    assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
-           StridedFullParScalarRange[\ZZ32\](17,23,3), "Right end intersection")
-    assert(CompactFullParScalarRange[\ZZ32\](0,23) INTERSECTION extentScalarRange[\ZZ32\](-1,1),
-           CompactFullParScalarRange[\ZZ32\](23,23), "Right singleton intersection")
-    assert(StridedFullParScalarRange[\ZZ32\](23,0,-1) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
-           StridedFullParScalarRange[\ZZ32\](6,0,-3), "Right end of backwards range")
+    assert(1:12:3, StridedFullParScalarRange[\ZZ32\](1,10,3),"Strided upward")
+    assert(1:12:1, CompactFullParScalarRange[\ZZ32\](1,12),"Unit stride")
+    assert(1:12:-1, StridedFullParScalarRange[\ZZ32\](1,12,-1),"Very empty")
+    assert(12:1:3, StridedFullParScalarRange[\ZZ32\](12,1,3),"Upward very empty")
+    assert(12:1:-1, StridedFullParScalarRange[\ZZ32\](12,1,-1),"Backward from 12")
+    assert(12:1:-3, StridedFullParScalarRange[\ZZ32\](12,3,-3),"Backward strided from 12")
+
+    assert((1:0:2).extent.get,0,"Emptiness 0")
+    assert((1:1).isEmpty,false,"Emptiness 1")
+    assert((1:1:-1).isEmpty,false,"Emptiness 2")
+    assert((1:1),(1:1:-1),"Singleton equality 1")
+    assert((1:1:-1),(1:1),"Singleton equality 2")
+    assert((0:23).every(-2), (23:1:-2), "Backward every")
+    assert((0:23) INTERSECTION (::-2), (23:1:-2), "Backward intersection")
+    assert((0:23) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
+           (17:23:3), "Right end intersection")
+    assert((0:23) INTERSECTION extentScalarRange[\ZZ32\](-1,1),
+           (23:23), "Right singleton intersection")
+    assert((23:0:-1) INTERSECTION extentScalarRange[\ZZ32\](-3,3),
+           (6:0:-3), "Right end of backwards range")
 
     strides = <|[\ZZ32\] 1,2,3,4,-1,-3|>
     lefts = <|[\ZZ32\] -2,0,1,2|>
@@ -254,14 +262,10 @@ run(args:String...):() =
     println("2D ranges")
     pairOpen = combine2D(open[\ZZ32\](),open[\ZZ32\]())
     pairOpens = <|[\Range2D[\ZZ32,ZZ32\]\] pairOpen |>
-    pairLefts = <|[\Range2D[\ZZ32,ZZ32\]\] LeftRange2D[\ZZ32,ZZ32\](-1,2,1,1),
-                                   LeftRange2D[\ZZ32,ZZ32\](0,25,2,-3) |>
-    pairRights = <|[\Range2D[\ZZ32,ZZ32\]\] RightRange2D[\ZZ32,ZZ32\](17,22,1,1),
-                                    RightRange2D[\ZZ32,ZZ32\](-3,19,-2,5) |>
-    pairExtents = <|[\Range2D[\ZZ32,ZZ32\]\] ExtentRange2D[\ZZ32,ZZ32\](5,4,1,1),
-                                     ExtentRange2D[\ZZ32,ZZ32\](-5,-7,2,-3) |>
-    pairFulls = <|[\Range2D[\ZZ32,ZZ32\]\] CompactFullRange2D[\ZZ32,ZZ32\](-1,1,34,17),
-                                   fullRange2D[\ZZ32,ZZ32\](17,0,1,39,-2,3) |>
+    pairLefts = <|[\Range2D[\ZZ32,ZZ32\]\] (-1,2):, (0,25)::(2,-3) |>
+    pairRights = <|[\Range2D[\ZZ32,ZZ32\]\] :(17,22), :(-3,19):(-2,5) |>
+    pairExtents = <|[\Range2D[\ZZ32,ZZ32\]\] #(5,4), (::(2,-3))#(-5,-7) |>
+    pairFulls = <|[\Range2D[\ZZ32,ZZ32\]\] (-1,1):(34,17), (17,0):(1,39):(-2,3) |>
     pairTestRanges = concat <|[\List[\Range2D[\ZZ32,ZZ32\]\]\] pairOpens,
                               pairLefts, pairRights, pairExtents, pairFulls |>
     for r <- seq(pairFulls) do
@@ -323,13 +327,16 @@ run(args:String...):() =
 
     (* Then continue by testing 1D ranges. *)
     print("fullScalarRanges")
-    fullScalarRanges = <|[\ScalarRange[\ZZ32\]\] fullScalarRange[\ZZ32\](0,-1,1), fullScalarRange[\ZZ32\](0,0,1), fullScalarRange[\ZZ32\](0,0,2), fullScalarRange[\ZZ32\](0,0,-3),
-                 fullScalarRange[\ZZ32\](0,-1,2), fullScalarRange[\ZZ32\](0,1,-1), fullScalarRange[\ZZ32\](0,1,-4),
-                 fullScalarRange[\ZZ32\](0,4,1), fullScalarRange[\ZZ32\](1,9,2), fullScalarRange[\ZZ32\](2,11,3),
-                 fullScalarRange[\ZZ32\](4,0,-1), fullScalarRange[\ZZ32\](9,1,-2), fullScalarRange[\ZZ32\](11,2,-3),
-                 fullScalarRange[\ZZ32\](-1,45,2), fullScalarRange[\ZZ32\](2,47,3), fullScalarRange[\ZZ32\](3,45,1) |>
+    fullScalarRanges = <|[\ScalarRange[\ZZ32\]\] (0:-1), (0:0), (0:0:2), (0:0:-3),
+                 (0:-1:2), (0:1:-1), (0:1:-4),
+                 (0:4), (1:9:2), (2:11:3),
+                 (4:0:-1), (9:1:-2), (11:2:-3),
+                 (-1:45:2), (2:47:3), (3:45) |>
     print(" (" |fullScalarRanges| ")")
     for f <- fullScalarRanges do
+(*
+        print("\n " dumpShow(f))
+*)
         g = f.generate[\AnyMaybe\](StrideReduction(f),strideUnit[\ZZ32\](f))
         gg = seq(f).generate[\AnyMaybe\](StrideReduction(f),strideUnit[\ZZ32\](f))
         assert(g,gg,"Par and seq generation differ ",g,gg)
@@ -365,12 +372,13 @@ run(args:String...):() =
         end
     end
     print("\nleftScalarRanges")
-    leftScalarRanges = <|[\ScalarRange[\ZZ32\]\] leftScalarRange[\ZZ32\](0,1), leftScalarRange[\ZZ32\](2,-1),
-                     leftScalarRange[\ZZ32\](45,-3), leftScalarRange[\ZZ32\](-2,1),
-                     leftScalarRange[\ZZ32\](-2,3), leftScalarRange[\ZZ32\](4,4) |>
+    leftScalarRanges = <|[\ScalarRange[\ZZ32\]\] 0:, 2::-1, 45::-3, (-2):, -2::3, 4::4 |>
     print(" (" |leftScalarRanges| ")")
+    (*
+    print("\n " dumpShow(l)), l <- leftScalarRanges
+    *)
     for l <- lefts, s <- strides do
-        rng = leftScalarRange[\ZZ32\](l,s)
+        rng = l::s
         assert(rng.isEmpty, false, "Empty left range ", rng)
         assert(rng.left.get,l,rng,".left")
         assert(rng.right.holds,false,rng,".right")
@@ -378,12 +386,13 @@ run(args:String...):() =
         assert(rng.stride,s,rng,".stride")
     end
     print("\nrightScalarRanges")
-    rightScalarRanges = <|[\ScalarRange[\ZZ32\]\] rightScalarRange[\ZZ32\](0,1), rightScalarRange[\ZZ32\](2,1),
-                     rightScalarRange[\ZZ32\](45,3), rightScalarRange[\ZZ32\](-2,-1),
-                     rightScalarRange[\ZZ32\](-2,-3), rightScalarRange[\ZZ32\](4,-4) |>
+    rightScalarRanges = <|[\ScalarRange[\ZZ32\]\] :0, :2, :45:3, :-2:-1, :-2:-3, :4:-4 |>
     print(" (" |rightScalarRanges| ")")
+    (*
+    print("\n " dumpShow(l)), l <- rightScalarRanges
+    *)
     for r <- lefts, s <- strides do
-        rng = rightScalarRange[\ZZ32\](r,s)
+        rng = :r:s
         assert(rng.isEmpty, false, "Empty right range ", rng)
         assert(rng.left.holds,false,rng,".left")
         assert(rng.right.get,r,rng,".right")
@@ -391,24 +400,28 @@ run(args:String...):() =
         assert(rng.stride,s,rng,".stride")
     end
     print("\nopenScalarRanges")
-    openScalarRanges = <|[\ScalarRange[\ZZ32\]\] OpenScalarRange[\ZZ32\](1), OpenScalarRange[\ZZ32\](-1), OpenScalarRange[\ZZ32\](3), OpenScalarRange[\ZZ32\](-2)|>
+    openScalarRanges = <|[\ScalarRange[\ZZ32\]\] ::1, ::-1, ::3, ::-2|>
     print(" (" |openScalarRanges| ")")
     for rng <- openScalarRanges do
+        (*
+        print("\n " dumpShow(rng))
+        *)
         _ = rng.check()
         s = rng.stride
         assert(rng.isEmpty, false, "Empty open range ", rng)
         assert(rng.left.holds,false,rng,".left")
         assert(rng.right.holds,false,rng,".right")
         assert(rng.extent.holds,false,rng,".extent")
-        assert(OpenScalarRange[\ZZ32\](s).stride,s,"Fresh range extent mismatch")
+        assert((::s).stride,s,"Fresh range extent mismatch")
     end
     boundedScalarRanges = leftScalarRanges || rightScalarRanges || fullScalarRanges
     print("\nextentScalarRanges")
-    extentScalarRanges = <|[\ScalarRange[\ZZ32\]\] extentScalarRange[\ZZ32\](1,1), extentScalarRange[\ZZ32\](-1,1),
-                       extentScalarRange[\ZZ32\](1,-3), extentScalarRange[\ZZ32\](3,-2),
-                       extentScalarRange[\ZZ32\](-2,1), extentScalarRange[\ZZ32\](5, 3) |>
+    extentScalarRanges = <|[\ScalarRange[\ZZ32\]\] #1, #-1, (::-3)#1, (::-2)#3, #-2, (::3)#5 |>
     print(" (" |extentScalarRanges| ")")
     for rng <- extentScalarRanges do
+        (*
+        print("\n " dumpShow(rng))
+        *)
         _ = rng.check()
         assert(rng.isEmpty, false, "Empty extent range ", rng)
         assert(rng.left.holds,false,rng,".left")
@@ -419,7 +432,7 @@ run(args:String...):() =
     testScalarRanges : List[\ScalarRange[\ZZ32\]\] = concat(testScalarRangess)
     println("\ntestScalarRanges (" |testScalarRanges| ")")
     print("\nspec match")
-    for i <- testScalarRanges, j <- testScalarRanges do
+    for i <- seq(testScalarRanges), j <- seq(testScalarRanges) do
         a = i INTERSECTNEW j
         b = i INTERSECTION j
         assert(dumpShow(a), dumpShow(b), "\n  (spec, curr) match for ",
@@ -495,21 +508,21 @@ run(args:String...):() =
     print("\nintersection")
     print("\nempty intersection")
     for i <- testScalarRanges, i.isEmpty, j <- testScalarRanges do
-        assert((i INTERSECTNEW j),emptyScalarRange[\ZZ32\](),"nonempty intersection of ",i," and ",j)
-        assert((j INTERSECTNEW i),emptyScalarRange[\ZZ32\](),"nonempty intersection of ",j," and ",i)
+        assert((i INTERSECTION j),emptyScalarRange[\ZZ32\](),"nonempty intersection of ",i," and ",j)
+        assert((j INTERSECTION i),emptyScalarRange[\ZZ32\](),"nonempty intersection of ",j," and ",i)
     end
     print("\nidentity intersection")
     for i <- testScalarRanges do
-        assert(open[\ZZ32\]() INTERSECTNEW i, i, " open not an identity when intersected.")
-        assert(i INTERSECTNEW open[\ZZ32\](), i, " open not an identity when intersected'.")
+        assert(open[\ZZ32\]() INTERSECTION i, i, " open not an identity when intersected.")
+        assert(i INTERSECTION open[\ZZ32\](), i, " open not an identity when intersected'.")
     end
     print("\nsingleton")
     for i <- testScalarRanges, i.extent.getDefault(3) = 1, l <- i.left, j <- testScalarRanges do
-        assert(i INTERSECTNEW j, if l IN j then i else emptyScalarRange[\ZZ32\]() end,
+        assert(i INTERSECTION j, if l IN j then i else emptyScalarRange[\ZZ32\]() end,
                " singleton intersection of ", dumpShow(i), " with ", dumpShow(j),
-               " namely ", dumpShow(i INTERSECTNEW j),
+               " namely ", dumpShow(i INTERSECTION j),
                " doesn't match membership test of ", l, " in ", j)
-        assert(j INTERSECTNEW i, if l IN j then i else emptyScalarRange[\ZZ32\]() end,
+        assert(j INTERSECTION i, if l IN j then i else emptyScalarRange[\ZZ32\]() end,
                " singleton intersection of ", j, " with ", i,
                " doesn't match membership test.")
     end
@@ -517,7 +530,7 @@ run(args:String...):() =
     for f <- fullScalarRanges, f.extent.get > 1,
         g <- testScalarRanges, f.extent.getDefault(3) > 1, f=/=g,
         g.left.holds OR g.right.holds do
-      i = f INTERSECTNEW g
+      i = f INTERSECTION g
       for a <- i do
           assert(a IN f, true," element ",a," of intersection ",i,
                  " of ",f," and ",g," not in first")
@@ -536,18 +549,18 @@ run(args:String...):() =
       end
     end
     for lr <- leftScalarRanges, rr <- rightScalarRanges do
-        i0 = lr INTERSECTNEW rr
-        i1 = rr INTERSECTNEW lr
+        i0 = lr INTERSECTION rr
+        i1 = rr INTERSECTION lr
         assert(i0,i1,"Commutativity of open range intersection of ",lr," and ",rr)
         l = lr.left.get
         r = rr.right.get
     end
     print("\nCommutativity, idempotence, partial associativity of intersection")
     for i <- testScalarRanges, j <- testScalarRanges do
-        n = i INTERSECTNEW j
-        m = j INTERSECTNEW i
+        n = i INTERSECTION j
+        m = j INTERSECTION i
         assert(dumpShow(n),dumpShow(m),
-               "Commutativity of ", dumpShow(i), " INTERSECTNEW ", dumpShow(j))
+               "Commutativity of ", dumpShow(i), " INTERSECTION ", dumpShow(j))
         if i=j then
             assert(dumpShow(n),dumpShow(i),
                    "Non-idempotent intersection of latter and the equal ",
@@ -555,7 +568,7 @@ run(args:String...):() =
         elif (i.left.holds OR i.right.holds) AND
              (j.left.holds OR j.right.holds) then
             for k <- boundedScalarRanges, k=/=j do
-                assert(n INTERSECTNEW k, i INTERSECTNEW (j INTERSECTNEW k),
+                assert(n INTERSECTION k, i INTERSECTION (j INTERSECTION k),
                        "Associativity of ",i,", ",j,", and ",k)
             end
         end
@@ -566,8 +579,8 @@ run(args:String...):() =
         tassert(p:Boolean, s:String): () =
             if NOT p then
                 println(s ": " dumpShow(r) ".truncL(" l ") = " dumpShow(t)
-                        "\nupInter = " dumpShow(t INTERSECTNEW leftScalarRange[\ZZ32\](l,1))
-                        "\ndnInter = " dumpShow(t INTERSECTNEW leftScalarRange[\ZZ32\](l,-1)))
+                        "\nupInter = " dumpShow(t INTERSECTION (l::1))
+                        "\ndnInter = " dumpShow(t INTERSECTION (l::-1)))
             end
         tassert(t.left.holds," didn't impose a lower bound!")
         lft = t.left.get
@@ -599,7 +612,7 @@ run(args:String...):() =
             end
         end
     end
-    println("\nnonempty indexed")
+    println("\nnonempty indexed; expect some printing here, will die if unexpected")
     for i <- compactScalarRanges, NOT i.isEmpty, j <- testScalarRanges, NOT j.isEmpty do
         jj = j.forward()
         shouldThrow = (jj.left.holds AND: jj.left.get < i.left.get) OR
@@ -615,6 +628,7 @@ run(args:String...):() =
                    "Spurious IndexOutOfBounds on ",i,".narrowToRange(",j,")")
         end
     end
+    println("SUCCESS!")
   end
 
 end

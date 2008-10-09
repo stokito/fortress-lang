@@ -541,11 +541,11 @@ public class  OverloadedFunction extends Fcn
                 exclDumpSkip();
                 String explanation;
                 if (sawSymbolic1 && sawSymbolic2)
-                    explanation = errorMsg("\nBecause ", o1, " and ", o2, " have parameters\n");
+                    explanation = errorMsg("\n", o1, " and\n", o2, " have parameters\n");
                 else if (sawSymbolic1)
-                    explanation = errorMsg("\nBecause ", o1, " has a parameter\n");
+                    explanation = errorMsg("\n", o1, " has a parameter\n");
                 else
-                    explanation = errorMsg("\nBecause ", o2, " has a parameter\n");
+                    explanation = errorMsg("\n", o2, " has a parameter\n");
                 explanation = explanation + "with generic type, at least one pair of parameters must have excluding types";
                 error(o1, o2, within, explanation);
             }

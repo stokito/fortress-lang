@@ -18,18 +18,113 @@
 component rangeOperators
 export Executable
 
-opr #(a:String, b: String) = "(" a "#" b ")"
-opr :(a: String, b: String) = "(" a ":" b ")"
-opr ::(a:String, b: String) = "(" a "::" b ")"
-run(args:String...) = do
-  assert("infix":"test"::"mine", "((infix:test)::mine)")
-  assert("infix"::"test":"mine", "(infix::(test:mine))")
-
-  assert("infix"#"test"::"mine", "((infix#test)::mine)")
-  assert("infix"::"test"#"mine", "(infix::(test#mine))")
-
-  assert("infix"#"test":"mine", "((infix#test):mine)")
-  assert("infix":"test"#"mine", "(infix:(test#mine))")
+object Op(s:String)
+    getter toString(): String = "(" s ")"
 end
+
+opr :(x:String, y:String): Op = Op(x ":" y)
+opr #(x:String, y:String): Op = Op(x "#" y)
+opr ::(x:String, y:String): Op = Op(x "::" y)
+
+opr :(x:Op, y:String): Op = Op(x ":" y)
+opr #(x:Op, y:String): Op = Op(x "#" y)
+opr ::(x:Op, y:String): Op = Op(x "::" y)
+
+opr :(x:String, y:Op): Op = Op(x ":" y)
+opr #(x:String, y:Op): Op = Op(x "#" y)
+opr ::(x:String, y:Op): Op = Op(x "::" y)
+
+opr :(x:String): Op = Op(":" x)
+opr #(x:String): Op = Op("#" x)
+opr ::(x:String): Op = Op("::" x)
+
+opr :(x:Op): Op = Op(x ":")
+opr #(x:Op): Op = Op(x "#")
+opr ::(x:Op): Op = Op(x "::")
+
+opr (x:String): : Op = Op(x ":")
+opr (x:String)# : Op = Op(x "#")
+opr (x:String):: : Op = Op(x "::")
+
+opr (x:Op): : Op = Op(x ":")
+opr (x:Op)# : Op = Op(x "#")
+opr (x:Op):: : Op = Op(x "::")
+
+(*
+((A:B):C)
+((A#B):C)
+((:A):B)
+((#A):B)
+((::A):B)
+
+(A:(B#C))
+(A:(B:))
+(A:(B#))
+(A:(B::))
+
+((A#B)#C)
+((:A)#B)
+((#A)#B)
+((::A)#B)
+
+(A#(B:))
+(A#(B#))
+(A#(B::))
+
+((A::B)::C)
+((A#B)::C)
+((A:B)::C)
+((:A)::B)
+((#A)::B)
+((::A)::B)
+
+(A::(B#C))
+(A::(B:C))
+(A::(B:))
+(A::(B#))
+(A::(B::))
+*)
+
+
+(* TODO: CHECK RESULTS! *)
+run(args: String...) = do
+    assert(("A":"B":"C").toString,  "((A:B):C)")
+    assert(("A"#"B":"C").toString,  "((A#B):C)")
+    assert(("A":"B"#"C").toString,  "(A:(B#C))")
+    assert(("A"#"B"#"C").toString,  "((A#B)#C)")
+(*
+    assert(("A"::"B"::"C").toString,"")
+    assert(("A"#"B"::"C").toString, "")
+    assert(("A"::"B"#"C").toString, "")
+    assert(("A"::"B":"C").toString, "")
+    assert(("A":"B"::"C").toString, "")
+*)
+    assert((:"A":"B").toString,     "((:A):B)")
+    assert((:"A"#"B").toString,     "((:A)#B)")
+(*
+    assert((:"A"::"B").toString,    "")
+*)
+    assert((#"A":"B").toString,     "((#A):B)")
+    assert((#"A"#"B").toString,     "((#A)#B)")
+(*
+    assert((#"A"::"B").toString,    "")
+*)
+    assert((::"A":"B").toString,    "((::A):B)")
+    assert((::"A"#"B").toString,    "((::A)#B)")
+    assert((::"A"::"B").toString,   "((::A)::B)")
+(*
+    assert(("A":"B":).toString,     "")
+    assert(("A"#"B":).toString,     "")
+    assert(("A"::"B":).toString,    "")
+*)
+    assert(("A":"B"#).toString,     "(A:(B#))")
+    assert(("A"#"B"#).toString,     "(A#(B#))")
+(*
+    assert(("A"::"B"#).toString,    "")
+    assert(("A":"B"::).toString,    "")
+    assert(("A"#"B"::).toString,    "")
+    assert(("A"::"B"::).toString,   "")
+*)
+  end
 
 end

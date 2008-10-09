@@ -1849,22 +1849,27 @@ end
       %a < b% if and only if all points in %a% are strictly contained in %b%.
  **)
 trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
-    getter stride(): I
-    getter left(): Maybe[\I\]
-    getter right(): Maybe[\I\]
-    getter extent(): Maybe[\I\]
-    getter isEmpty(): Boolean
+    abstract getter stride(): I
+    abstract getter left(): Maybe[\I\]
+    abstract getter right(): Maybe[\I\]
+    abstract getter extent(): Maybe[\I\]
+    abstract getter isEmpty(): Boolean
     getter isLeftBounded(): Boolean
     getter isAnyBounded(): Boolean
-    getter toString(): String
-    truncL(l: I): RangeWithLeft[\I\]
+    abstract truncL(l: I): RangeWithLeft[\I\]
     truncR(r: I): RangeWithRight[\I\]
-    flip(): Range[\I\]
-    every(s: I): Range[\I\]
-    atMost(n: I): Range[\I\]
-    opr INTERSECTION(self, other: Range[\I\]): Range[\I\]
+    abstract flip(): Range[\I\]
+    abstract forward(): Range[\I\]
+    abstract every(s: I): Range[\I\]
+    abstract imposeStride(s:I): Range[\I\]
+    abstract atMost(n: I): Range[\I\]
+    abstract opr INTERSECTION(self, other: Range[\I\]): Range[\I\]
+    narrowToRange(other:Range[\I\]): Range[\I\]
+    narrowToRange(other:OpenRange[\I\]): Range[\I\]
     opr =(self, b: Range[\I\]): Boolean
-    opr IN(n: I, self): Boolean
+    abstract opr IN(n: I, self): Boolean
+    opr CMP(self, other:Range[\I\]): Comparison
+    abstract opr FORWARD_CMP(self, other:Range[\I\]): Comparison
     dump(): String
     check(): Range[\I\]
 end
@@ -1876,10 +1881,16 @@ trait OpenRange[\I\] extends PartialRange[\I\]
     getter right(): Nothing[\I\]
     getter extent(): Nothing[\I\]
     getter isEmpty(): Boolean
+    narrowToRange(other:OpenRange[\I\]): OpenRange[\I\]
+    opr FORWARD_CMP(self, other:OpenRange[\I\]): Comparison
+    opr FORWARD_CMP(self, other:Range[\I\]): Comparison
     opr IN(n: I, self): Boolean
 end
 
 object TrivialOpenRange extends TrivialOpenRange
+    flip(): TrivialOpenRange
+    forward(): TrivialOpenRange
+    check(): TrivialOpenRange
 end
 
 trait RangeWithExtent[\I\] extends Range[\I\]
@@ -1891,6 +1902,7 @@ trait ExtentRange[\I\] extends { RangeWithExtent[\I\], PartialRange[\I\] }
     getter right(): Nothing[\I\]
     getter isEmpty(): Boolean
     opr IN(n: I, self): Boolean
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison
 end
 
 trait BoundedRange[\I\] extends Range[\I\]
@@ -1898,6 +1910,8 @@ trait BoundedRange[\I\] extends Range[\I\]
     every(s: I): BoundedRange[\I\]
     atMost(n: I): FullRange[\I\]
     opr INTERSECTION(self, other: Range[\I\]): BoundedRange[\I\]
+    narrowToRange(other:OpenRange[\I\]): BoundedRange[\I\]
+    narrowToRange(other:Range[\I\]): BoundedRange[\I\]
 end
 
 trait RangeWithLeft[\I\] extends BoundedRange[\I\]
@@ -1909,6 +1923,7 @@ trait LeftRange[\I\] extends { RangeWithLeft[\I\], PartialRange[\I\] }
     getter right(): Nothing[\I\]
     getter extent(): Nothing[\I\]
     getter isEmpty(): Boolean
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison
 end
 
 trait RangeWithRight[\I\] extends BoundedRange[\I\]
@@ -1920,30 +1935,33 @@ trait RightRange[\I\] extends { RangeWithRight[\I\], PartialRange[\I\] }
     getter leftOrRight(): Just[\I\]
     getter extent(): Nothing[\I\]
     getter isEmpty(): Boolean
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison
 end
 
 trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWithExtent[\I\], Indexed[\I, I\] }
     getter extent(): Just[\I\]
+    narrowToRange(other:OpenRange[\I\]): FullRange[\I\]
+    narrowToRange(other:Range[\I\]): FullRange[\I\]
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison
+    opr FORWARD_CMP(self, other: FullRange[\I\]): Comparison
 end
 
-trait CompactFullRange[\I\] extends FullRange[\I\] end
+trait CompactFullRange[\I\] extends FullRange[\I\]
+    getter lower(): I
+    getter upper(): I
+    forward(): CompactFullRange[\I\]
+end
 
 trait StridedFullRange[\I\] extends FullRange[\I\] end
 
 (** The %#% and %:% operators serve as factories for parallel ranges. **)
 opr #[\I extends AnyIntegral\](lo:I, ex:I): CompactFullRange[\I\]
-(*
-opr #(lo:IntLiteral, ex:IntLiteral): FullRange[\ZZ32\]
-*)
 opr #[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), ex:(I,J)): CompactFullRange[\(I,J)\]
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
      (lo:(I,J,K), ex:(I,J,K)): CompactFullRange[\(I,J,K)\]
 
 opr :[\I extends AnyIntegral\](lo:I, hi:I): CompactFullRange[\I\]
-(*
-opr :(lo:IntLiteral, ex:IntLiteral): FullRange[\ZZ32\]
-*)
 opr :[\I extends AnyIntegral, J extends AnyIntegral\]
      (lo:(I,J), hi:(I,J)): CompactFullRange[\(I,J)\]
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
@@ -1954,16 +1972,20 @@ opr (x:I)#[\I extends AnyIntegral\] : LeftRange[\I\]
 opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\]
 opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
          LeftRange[\(I,J,K)\]
+
 opr (x:I):[\I\] : LeftRange[\I\]
+
 opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\]
 opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\]
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
          ExtentRange[\(I,J,K)\]
+
 opr :[\I extends AnyIntegral\](x:I) : RightRange[\I\]
 opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : RightRange[\(I,J)\]
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
          RightRange[\(I,J,K)\]
-(*
+
+(* Actually want:
 opr (x:T)#[\T\] : LeftRange[\T\]
 opr (x:T):[\T\] : LeftRange[\T\]
 opr #[\T\](x:T) : ExtentRange[\T\]
@@ -1973,6 +1995,85 @@ opr :[\T\](x:T) : RightRange[\T\]
 opr #(): TrivialOpenRange
 opr :(): TrivialOpenRange
 openRange[\I\](): OpenRange[\I\]
+
+(** Factories for bare strided ranges.
+
+    The :: operator is used to construct strided ranges with information missing:
+    A:: is equivalent to A: or A#.
+    ::S takes every S'th element.
+    A::S is a range open to the right, starting with A and striding by S.
+
+*)
+
+opr (l:I)::[\I\] : LeftRange[\I\]
+
+opr ::[\I extends AnyIntegral\](s:I) : OpenRange[\I\]
+opr ::[\I extends AnyIntegral, J extends AnyIntegral\](ij:(I,J)) : OpenRange[\(I,J)\]
+opr ::[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+      (ijk:(I,J,K)) : OpenRange[\(I,J,K)\]
+
+opr ::[\I\](l:I,s:I): LeftRange[\I\]
+
+(** Operators on ranges.
+
+    Most of these build on an existing range; however, due to operator
+    associativity we can't always handle every case gracefully.  Here
+    are fully-parenthesized versions of tight uses of the range
+    construction operators.  We indicate which ones are handled:
+
+((A:B):C)
+((A#B):C)
+((:A):B)
+((#A):B)
+((::A):B)
+   All impose striding on the left-hand range.  Note that in the case of A#B this will
+   in general *decrease* the size of the range.  You might want to actually write (A::B)#C,
+   with the parentheses, if that's not what you want.
+
+(A:(B#C))  For now we reject this.
+(A:(B:))   Don't use these, just write A:B instead.
+(A:(B#))
+(A:(B::))
+
+((A#B)#C)  Reject for now.
+((:A)#B)   The remaining 3 are sized ranges specifying an upper bound.
+((#A)#B)
+((::A)#B)
+
+(A#(B:))   Use A#B instead.
+(A#(B#))
+(A#(B::))
+
+The following are rejected at present:
+((A::B)::C)
+((A#B)::C)
+((A:B)::C)
+((:A)::B)
+((#A)::B)
+((::A)::B)
+
+(A::(B#C))
+    Note that you probably wanted (A::B)#C (C elements, starting
+    from A and striding by B).  For the moment, parenthesize this.
+    In this form we can't distinguish it from the next line, and
+    the two should behave differently when written A::B#C and A::B:C.
+(A::(B:C))
+(A::(B:))
+(A::(B#))
+(A::(B::))
+
+*)
+
+opr :[\I\](r: Range[\I\], stride:I): Range[\I\]
+(* This doesn't obey the subtyping rule due to the genericity involved!
+opr :[\I\](r: FullRange[\I\], stride:I): FullRange[\I\] = r.imposeStride(stride)
+*)
+
+opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
+
+(************************************************************
+* STRINGS
+************************************************************)
 
 trait String extends { StandardTotalOrder[\String\],
                   ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
