@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.CUWrapper;
+import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -69,14 +70,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     /**
      * Used for mapping API Names to their environments
      */
-    Map<String, CUWrapper> linker;
+    Map<String, ComponentWrapper> linker;
 
     /**
      * Creates an environment builder that will inject bindings into 'within'.
      * The visit is suspended at generics (com.sun.fortress.interpreter.nodes
      * with type parameters) until they can be instantiated.
      */
-    public BuildTopLevelEnvironments(Environment within, Map<String, CUWrapper> linker) {
+    public BuildTopLevelEnvironments(Environment within, Map<String, ComponentWrapper> linker) {
         super(within);
         this.linker = linker;
     }

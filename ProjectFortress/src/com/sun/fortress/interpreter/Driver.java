@@ -20,7 +20,11 @@ package com.sun.fortress.interpreter;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+
+import com.sun.fortress.interpreter.env.APIWrapper;
 import com.sun.fortress.interpreter.env.CUWrapper;
+import com.sun.fortress.interpreter.env.ComponentWrapper;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,7 +131,7 @@ public class Driver {
         return libraryComponentWrapper.getEnvironment();
     }
 
-    public static ArrayList<CUWrapper> components;
+    public static ArrayList<ComponentWrapper> components;
 
     public static Environment evalComponent(Component p,
                                             FortressRepository fr)
@@ -140,11 +144,11 @@ public class Driver {
          * infrastructure is present.
          */
 
-        HashMap<String, CUWrapper> linker = new HashMap<String, CUWrapper>();
+        HashMap<String, ComponentWrapper> linker = new HashMap<String, ComponentWrapper>();
 
-        Stack<CUWrapper> pile = new Stack<CUWrapper>();
+        Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
         // ArrayList<ComponentWrapper>
-        components = new ArrayList<CUWrapper>();
+        components = new ArrayList<ComponentWrapper>();
 
         /*
          * This looks like gratuitous and useless error checking that
@@ -158,7 +162,7 @@ public class Driver {
         }
         */
 
-        CUWrapper comp = commandLineComponent(fr, linker, pile, p);
+        ComponentWrapper comp = commandLineComponent(fr, linker, pile, p);
 
         /*
          * This "linker" implements a one-to-one, same-name correspondence
@@ -191,7 +195,7 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        CUWrapper builtins = new CUWrapper(readTreeOrSourceApi(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
         builtins.getEnvironment().installPrimitives();
         linker.put(builtinsName, builtins);
 
@@ -211,7 +215,7 @@ public class Driver {
          */
         while (!pile.isEmpty()) {
 
-            CUWrapper cw = pile.pop();
+            ComponentWrapper cw = pile.pop();
             components.add(cw);
 
             CompilationUnit c = cw.getCompilationUnit();
@@ -231,7 +235,7 @@ public class Driver {
         boolean change = true;
         while (change) {
             change = false;
-            for (CUWrapper cw : components) {
+            for (ComponentWrapper cw : components) {
                 change |= injectTraitMembersForDesugaring(linker, cw);
             }
 
@@ -285,7 +289,7 @@ public class Driver {
      * @param cw
      */
     private static boolean injectTraitMembersForDesugaring(
-            HashMap<String, CUWrapper> linker, CUWrapper cw) {
+            HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
         boolean change = false;
@@ -362,7 +366,7 @@ public class Driver {
         return change;
     }
 
-    private static boolean injectLibraryTraits(List<CUWrapper> components,
+    private static boolean injectLibraryTraits(List<ComponentWrapper> components,
             CUWrapper lib) {
         boolean change = false;
         for (CUWrapper cw : components) {
@@ -429,8 +433,8 @@ public class Driver {
      */
     private static void ensureImportsImplemented (
             FortressRepository fr,
-            HashMap<String, CUWrapper> linker,
-            Stack<CUWrapper> pile,
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile,
             List<Import> imports
         )
         throws IOException
@@ -466,10 +470,10 @@ public class Driver {
      */
     private static CUWrapper ensureApiImplemented(
             FortressRepository fr,
-            HashMap<String, CUWrapper> linker,
-            Stack<CUWrapper> pile, APIName name) throws IOException {
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
-        CUWrapper newwrapper = linker.get(apiname);
+        ComponentWrapper newwrapper = linker.get(apiname);
         if (newwrapper == null) {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming
@@ -483,8 +487,8 @@ public class Driver {
 
             newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
-            CUWrapper apicw = new CUWrapper(newapi, linker, WellKnownNames.defaultLibrary);
-            newwrapper = new CUWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
+            APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary);
+            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
             newwrapper.touchExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
@@ -495,13 +499,13 @@ public class Driver {
         return newwrapper;
     }
 
-    private static CUWrapper commandLineComponent(FortressRepository fr,
-            HashMap<String, CUWrapper> linker,
-            Stack<CUWrapper> pile, Component comp) throws IOException {
+    private static ComponentWrapper commandLineComponent(FortressRepository fr,
+            HashMap<String, ComponentWrapper> linker,
+            Stack<ComponentWrapper> pile, Component comp) throws IOException {
 
             APIName name = comp.getName();
             String apiname = NodeUtil.nameString(name);
-            CUWrapper comp_wrapper;
+            ComponentWrapper comp_wrapper;
 
             List<CUWrapper> exports_list = new ArrayList<CUWrapper>(1);
             for (Export ex : comp.getExports())
@@ -511,7 +515,7 @@ public class Driver {
                     exports_list.add( new CUWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
                 }
 
-            comp_wrapper = new CUWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
+            comp_wrapper = new ComponentWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
             pile.push(comp_wrapper);
