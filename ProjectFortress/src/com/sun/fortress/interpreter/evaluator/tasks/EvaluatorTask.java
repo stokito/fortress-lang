@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -28,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 public class EvaluatorTask extends BaseTask {
 
-    final Component p;
+    final ComponentIndex p;
 
     final List<String> args;
 
@@ -38,7 +39,7 @@ public class EvaluatorTask extends BaseTask {
 
     FValue theResult;
 
-    public EvaluatorTask(FortressRepository fr, Component prog,
+    public EvaluatorTask(FortressRepository fr, ComponentIndex prog,
                          String toRun, List<String> args_) {
         super();
         p = prog;

@@ -113,17 +113,17 @@ public class FileTests {
                             args.add(dir + "/tennis050307");
                             args.add(dir + "/tennis051707");
                             args.add(dir + "/tennisGames");
-                            Driver.runProgram(fr, p, args);
+                            Driver.runProgram(fr, ci, args);
                         }
                         // Test files requiring "test" command
                         else if (name.equals("XXXTestTest") ||
                                  name.equals("natInference0") ||
                                  name.equals("testTest1") ||
                                  name.equals("testTest2")) {
-                            Driver.runTests(fr, p, false);
+                            Driver.runTests(fr, ci, false);
                         }
                         else {
-                            Driver.runProgram(fr, p, new ArrayList<String>());
+                            Driver.runProgram(fr, ci, new ArrayList<String>());
                         }
                     }
                 }

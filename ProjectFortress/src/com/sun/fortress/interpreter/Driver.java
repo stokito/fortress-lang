@@ -133,7 +133,7 @@ public class Driver {
 
     public static ArrayList<ComponentWrapper> components;
 
-    public static Environment evalComponent(Component p,
+    public static Environment evalComponent(ComponentIndex p,
                                             FortressRepository fr)
         throws IOException {
 
@@ -249,7 +249,7 @@ public class Driver {
          * call to populate) the exported apis are populated.
          */
         for (int i = components.size() - 1; i >= 0; i--) {
-            CUWrapper cw = components.get(i);
+            ComponentWrapper cw = components.get(i);
             // System.err.println("populating " + cw);
             cw.populateOne();
         }
@@ -482,10 +482,7 @@ public class Driver {
              * These few lines are what needs to be replaced by a real linker.
              */
             Api newapi = readTreeOrSourceApi(apiname, apiname, fr);
-            Component newcomp;
-            //boolean is_native = false;
-
-            newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
+            ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
             APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary);
             newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
@@ -501,21 +498,22 @@ public class Driver {
 
     private static ComponentWrapper commandLineComponent(FortressRepository fr,
             HashMap<String, ComponentWrapper> linker,
-            Stack<ComponentWrapper> pile, Component comp) throws IOException {
+            Stack<ComponentWrapper> pile, ComponentIndex comp_index) throws IOException {
 
+            Component comp = (Component) (comp_index.ast());
             APIName name = comp.getName();
             String apiname = NodeUtil.nameString(name);
             ComponentWrapper comp_wrapper;
 
-            List<CUWrapper> exports_list = new ArrayList<CUWrapper>(1);
+            List<APIWrapper> exports_list = new ArrayList<APIWrapper>(1);
             for (Export ex : comp.getExports())
                 for (APIName ex_apiname : ex.getApis()) {
                     String ex_name = NodeUtil.nameString(ex_apiname);
                     Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
-                    exports_list.add( new CUWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
+                    exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
                 }
 
-            comp_wrapper = new ComponentWrapper(comp, exports_list, linker, WellKnownNames.defaultLibrary);
+            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
             pile.push(comp_wrapper);
@@ -530,7 +528,7 @@ public class Driver {
 
     // This runs the program from inside a task.
     public static FValue
-        runProgramTask(Component p,
+        runProgramTask(ComponentIndex p,
                        List<String> args, String toBeRun,
                        FortressRepository fr)
         throws IOException
@@ -572,11 +570,11 @@ public class Driver {
     }
 
 
-    public static void runTests(FortressRepository fr, Component p, boolean verbose)
+    public static void runTests(FortressRepository fr, ComponentIndex p, boolean verbose)
         throws Throwable {
 
         BuildTestEnvironments bte = new BuildTestEnvironments ();
-        bte.visit(p);
+        bte.visit(p.ast());
         List<String> tests = BuildTestEnvironments.getTests();
 
         if (group == null)
@@ -597,7 +595,7 @@ public class Driver {
     }
 
     // This creates the parallel context
-    public static FValue runProgram(FortressRepository fr, Component p,
+    public static FValue runProgram(FortressRepository fr, ComponentIndex p,
                                     List<String> args)
         throws Throwable {
 
@@ -628,14 +626,13 @@ public class Driver {
         }
     }
 
-    private static Component readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
+    private static ComponentIndex readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
 
         String name  = key;
         APIName apiname = NodeFactory.makeAPIName(name);
 
         ComponentIndex ci = p.getComponent(apiname);
-        CompilationUnit c = ci.ast();
-        return (Component) c;
+        return ci;
 
     }
 
