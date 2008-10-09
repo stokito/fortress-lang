@@ -3041,6 +3041,7 @@ end
       a < b iff all points in a are strictly contained in b.
  **)
 trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
+        excludes Number (* Important or the strided factories can't overload! *)
     getter stride(): I
     getter left(): Maybe[\I\]
     getter right(): Maybe[\I\]
@@ -3054,6 +3055,7 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     flip(): Range[\I\]
     forward(): Range[\I\]
     every(s:I): Range[\I\]
+    imposeStride(s:I): Range[\I\]
     atMost(n:I): Range[\I\]
     opr INTERSECTION(self, other: Range[\I\]): Range[\I\]
 
@@ -3093,8 +3095,7 @@ trait OpenRange[\I\] extends PartialRange[\I\]
     getter right(): Nothing[\I\] = Nothing[\I\]
     getter extent(): Nothing[\I\] = Nothing[\I\]
     getter isEmpty(): Boolean = false
-    narrowToRange(other:Range[\I\]): Range[\I\] = self INTERSECTION other
-    opr =(self, b:OpenScalarRange[\I\]): Boolean = self.stride = b.stride
+    narrowToRange(other:OpenRange[\I\]): OpenRange[\I\] = self INTERSECTION other
     opr FORWARD_CMP(self, other:OpenRange[\I\]): Comparison = EqualTo
     opr FORWARD_CMP(self, other:Range[\I\]): Comparison = GreaterThan
     opr IN(n:I, self): Boolean = true
@@ -3104,13 +3105,14 @@ end
 object TrivialOpenRange extends OpenRange[\Any\]
     getter toString(): String = ":"
     getter stride(): () = ()
-    truncL(x:Any): RangeWithLeft[\Any\] = (x:)
+    truncL(x:Any): RangeWithLeft[\Any\] = (x#)
     truncR(x:Any): RangeWithRight[\Any\] = (:x)
     flip(): TrivialOpenRange = self
     forward(): TrivialOpenRange = self
     every(x:Any): OpenRange[\Any\] = (::x)
+    imposeStride(x:Any): OpenRange[\Any\] = (::x)
     atMost(k:Any): RangeWithExtent[\Any\] = (#k)
-    opr INTERSECTION(self, other:Range[\Any\]): TrivialOpenRange = other
+    opr INTERSECTION(self, other:Range[\Any\]): Range[\Any\] = other
     opr =(self, other:Range[\Any\]): Boolean = instanceof[\TrivialOpenRange\](other)
     opr IN(_:Any, self): Boolean = true
     dump(): String = "#"
@@ -3250,33 +3252,111 @@ opr (x:I,y:J)#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J
     left2Range(0 asif ZZ32,0 asif ZZ32, x,y)
 opr (x:I,y:J,z:K)#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
          LeftRange[\(I,J,K)\] = left3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+
 opr (x:I):[\I\] : LeftRange[\I\] = x#
+
 opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\] = extent1Range(0 asif ZZ32, x)
 opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\] =
     do (x,y) = xy; extent2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
 opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
          ExtentRange[\(I,J,K)\] =
     do (x,y,z) = xyz; extent3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+
 opr :[\I extends AnyIntegral\](x:I) : RightRange[\I\] = right1Range(0 asif ZZ32, x)
 opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : RightRange[\(I,J)\] =
     do (x,y) = xy; right2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
 opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
          RightRange[\(I,J,K)\] =
     do (x,y,z) = xyz; right3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
-opr ::[\I extends AnyIntegral\](s:I) : OpenRange[\I\] = OpenScalarRange[\I\](s)
-opr ::[\I extends AnyIntegral, J extends AnyIntegral\](ij:(I,J)) : OpenRange[\(I,J)\] =
-    do (i,j) = ij; OpenRange2D[\I\](i,j) end
-opr ::[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](ijk:(I,J,K)) : OpenRange[\(I,J,K)\] =
-    do (i,j,k) = ijk; OpenRange3D[\I\](i,j,k) end
-(*
+
+(* Actually want for above:
 opr (x:I)#[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
 opr (x:I):[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
 opr #[\I\](x:I) : ExtentRange[\I\] = ExtentRange[\I\](x)
 opr :[\I\](x:I) : RightRange[\I\] = RightRange[\I\](x)
 *)
+
 opr #() : TrivialOpenRange = TrivialOpenRange
 opr :() : TrivialOpenRange = TrivialOpenRange
 openRange[\I\](): OpenRange[\I\] = openRangeHelper( __Proxy[\I\] )
+
+(** Factories for bare strided ranges.
+
+    The :: operator is used to construct strided ranges with information missing:
+    A:: is equivalent to A: or A#.
+    ::S takes every S'th element.
+    A::S is a range open to the right, starting with A and striding by S.
+
+*)
+
+opr (l:I)::[\I\] : LeftRange[\I\] = l#
+
+opr ::[\I extends AnyIntegral\](s:I) : OpenRange[\I\] = open1Range(0 asif ZZ32, s)
+opr ::[\I extends AnyIntegral, J extends AnyIntegral\](ij:(I,J)) : OpenRange[\(I,J)\] =
+    do (i,j) = ij; open2Range(0 asif ZZ32, 0 asif ZZ32, i,j) end
+opr ::[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+      (ijk:(I,J,K)) : OpenRange[\(I,J,K)\] =
+    do (i,j,k) = ijk; open3Range(0 asif ZZ32, 0 asif ZZ32, 0 asif ZZ32, i,j,k) end
+
+opr ::[\I\](l:I,s:I): LeftRange[\I\] = (l:):s
+
+(** Operators on ranges.
+
+    Most of these build on an existing range; however, due to operator
+    associativity we can't always handle every case gracefully.  Here
+    are fully-parenthesized versions of tight uses of the range
+    construction operators.  We indicate which ones are handled:
+
+((A:B):C)
+((A#B):C)
+((:A):B)
+((#A):B)
+((::A):B)
+   All impose striding on the left-hand range.  Note that in the case
+   of A#B and #B this will in general *decrease* the size of the
+   range.  You might want to actually write (A::B)#C, with the
+   parentheses, if that's not what you want.
+
+(A:(B#C))  For now we reject this.
+(A:(B:))   Don't use these, just write A:B instead.
+(A:(B#))
+(A:(B::))
+
+((A#B)#C)  Reject for now.
+((:A)#B)   The remaining 3 are sized ranges specifying an upper bound.
+((#A)#B)
+((::A)#B)
+
+(A#(B:))   Use A#B instead.
+(A#(B#))
+(A#(B::))
+
+The following are rejected at present:
+((A::B)::C)
+((A#B)::C)
+((A:B)::C)
+((:A)::B)
+((#A)::B)
+((::A)::B)
+
+(A::(B#C))
+    Note that you probably wanted (A::B)#C (C elements, starting
+    from A and striding by B).  For the moment, parenthesize this.
+    In this form we can't distinguish it from the next line, and
+    the two should behave differently when written A::B#C and A::B:C.
+(A::(B:C))
+(A::(B:))
+(A::(B#))
+(A::(B::))
+
+*)
+
+opr :[\I\](r: Range[\I\], stride:I): Range[\I\] = r.imposeStride(stride)
+(* This doesn't obey the subtyping rule due to the genericity involved!
+opr :[\I\](r: FullRange[\I\], stride:I): FullRange[\I\] = r.imposeStride(stride)
+*)
+
+opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\] = r.atMost(size)
 
 (************************************************************
 * STRINGS

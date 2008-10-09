@@ -192,6 +192,26 @@
          (fortress-unicode ELEMENT-OF)
          nil))
 
+    `("\\<\\(INTERSECTION\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode INTERSECTION)
+         nil))
+
+    `("\\<\\(CAP\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode INTERSECTION)
+         nil))
+
+    `("\\<\\(UNION\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode UNION)
+         nil))
+
+    `("\\<\\(CUP\\)\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode UNION)
+         nil))
+
     `("\\<\\(SUM\\)\\>"
       1 (fortress-with-unicode-char
          (fortress-unicode N-ARY-SUMMATION)
@@ -442,6 +462,8 @@
     (DIVISION-SIGN . #x00f7)
     (MULTIPLICATION-SIGN . #x00d7)
     (ELEMENT-OF . #x2208)
+    (INTERSECTION . #x2229)
+    (UNION . #x222a)
     )
   "mapping from fortress name to ucs character number or nil for no replacement\nThis is used in a macro, so won't take effect until emacs is restarted."
   :group 'fortress :type 'alist)

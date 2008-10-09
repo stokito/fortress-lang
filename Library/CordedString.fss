@@ -110,7 +110,7 @@ export CordedString
         then
             left CMP other
         else
-            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
+            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|)#])
         end
         
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = 
@@ -118,7 +118,7 @@ export CordedString
         then
             left CASE_INSENSITIVE_CMP other
         else
-            (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
+            (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CMP other[(|left|)#])
         end
 
     get(i): Char = 
