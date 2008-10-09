@@ -37,6 +37,7 @@ import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.phases.PhaseOrder;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
@@ -361,9 +362,9 @@ public final class Shell {
         APIName name = trueApiName( file );
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
-        Component c = (Component) bcr.getLinkedComponent(name).ast();
+        ComponentIndex c =  bcr.getLinkedComponent(name);
         FValue result = Driver.runProgram(bcr, c, args);
-        bcr.deleteComponent(c.getName());
+        bcr.deleteComponent(c.ast().getName());
         return result;
     }
 
@@ -799,7 +800,7 @@ public final class Shell {
                         APIName name = trueApiName( file );
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );
-                        Component cu =  (Component) bcr.getLinkedComponent(name).ast();
+                        ComponentIndex cu =  bcr.getLinkedComponent(name);
                         Driver.runTests(bcr, cu, _verbose);
                     } catch (Throwable th) {
                         // TODO FIXME what is the proper treatment of errors/exceptions etc.?

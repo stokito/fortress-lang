@@ -16,36 +16,41 @@
  ******************************************************************************/
 package com.sun.fortress.interpreter.env;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import java.util.HashMap;
 import java.util.List;
 
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.useful.BASet;
 
 public class APIWrapper extends CUWrapper {
-
-    public APIWrapper(Component comp, HashMap<String, ComponentWrapper> linker,
-            String[] implicitLibs) {
-        super(comp, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
-    }
 
     public APIWrapper(Api api, HashMap<String, ComponentWrapper> linker,
             String[] implicitLibs) {
         super(api, linker, implicitLibs);
         // TODO Auto-generated constructor stub
     }
+    
+    public CompilationUnit populateOne(ComponentWrapper exporter) {
+        if (visitState != IMPORTED)
+            return bug("Component wrapper in wrong visit state: " + visitState);
 
-    public APIWrapper(Component comp, CUWrapper api,
-            HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
-        super(comp, api, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
+        visitState = POPULATED;
+
+        be.setExporterAndApi(exporter, this);
+        
+        CompilationUnit cu = comp_unit;
+
+                                      // Caches information in dis!
+        be.visit(cu);
+        // Reset the non-function names from the disambiguator.
+        excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
+        be.getEnvironment().visit(nameCollector);
+        comp_unit = cu;
+
+        return cu;
     }
-
-    public APIWrapper(Component comp, List<CUWrapper> api_list,
-            HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
-        super(comp, api_list, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
-    }
-
 }
