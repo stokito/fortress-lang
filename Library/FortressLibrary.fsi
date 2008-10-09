@@ -1998,10 +1998,10 @@ openRange[\I\](): OpenRange[\I\]
 
 (** Factories for bare strided ranges.
 
-    The :: operator is used to construct strided ranges with information missing:
-    A:: is equivalent to A: or A#.
-    ::S takes every S'th element.
-    A::S is a range open to the right, starting with A and striding by S.
+    The %::% operator is used to construct strided ranges with information missing:
+    %A::% is equivalent to %A:% or %A#%.
+    %::S% takes every %S%'th element.
+    %A::S% is a range open to the right, starting with %A% and striding by %S%.
 
 *)
 
@@ -2021,46 +2021,48 @@ opr ::[\I\](l:I,s:I): LeftRange[\I\]
     are fully-parenthesized versions of tight uses of the range
     construction operators.  We indicate which ones are handled:
 
-((A:B):C)
-((A#B):C)
-((:A):B)
-((#A):B)
-((::A):B)
-   All impose striding on the left-hand range.  Note that in the case of A#B this will
-   in general *decrease* the size of the range.  You might want to actually write (A::B)#C,
+%((A:B):C)%
+%((A#B):C)%
+%((:A):B)%
+%((#A):B)%
+%((::A):B)%
+
+   All impose striding on the left-hand range.  Note that in the case of %A#B% this will
+   in general *decrease* the size of the range.  You might want to actually write %(A::B)#C%,
    with the parentheses, if that's not what you want.
 
-(A:(B#C))  For now we reject this.
-(A:(B:))   Don't use these, just write A:B instead.
-(A:(B#))
-(A:(B::))
+%(A:(B#C))%  For now we reject this.
+%(A:(B:))%   Don't use these, just write %A:B% instead.
+%(A:(B#))%
+%(A:(B::))%
 
-((A#B)#C)  Reject for now.
-((:A)#B)   The remaining 3 are sized ranges specifying an upper bound.
-((#A)#B)
-((::A)#B)
+%((A#B)#C)%  Reject for now.
+%((:A)#B)%   The remaining 3 are sized ranges specifying an upper bound.
+%((#A)#B)%
+%((::A)#B)%
 
-(A#(B:))   Use A#B instead.
-(A#(B#))
-(A#(B::))
+%(A#(B:))%   Use %A#B% instead.
+%(A#(B#))%
+%(A#(B::))%
 
 The following are rejected at present:
-((A::B)::C)
-((A#B)::C)
-((A:B)::C)
-((:A)::B)
-((#A)::B)
-((::A)::B)
 
-(A::(B#C))
-    Note that you probably wanted (A::B)#C (C elements, starting
-    from A and striding by B).  For the moment, parenthesize this.
+%((A::B)::C)%
+%((A#B)::C)%
+%((A:B)::C)%
+%((:A)::B)%
+%((#A)::B)%
+%((::A)::B)%
+
+%(A::(B#C))%
+    Note that you probably wanted %(A::B)#C% (%C% elements, starting
+    from %A% and striding by %B%).  For the moment, parenthesize this.
     In this form we can't distinguish it from the next line, and
-    the two should behave differently when written A::B#C and A::B:C.
-(A::(B:C))
-(A::(B:))
-(A::(B#))
-(A::(B::))
+    the two should behave differently when written %A::B#C% and %A::B:C%.
+%(A::(B:C))%
+%(A::(B:))%
+%(A::(B#))%
+%(A::(B::))%
 
 *)
 
