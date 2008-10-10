@@ -114,14 +114,13 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Id var_result = syntaxEnvironment.lookup(that.getVar());
+        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVar() + " in hygiene environment = " + var_result);
         return forVarRefOnly(that, exprType_result, var_result);
     }
 
     /*
     public Node forTemplateGapVarRef(TemplateGapVarRef that) {
-        Id gapId_result = (Id) recur(that.getGapId());
-        List<Id> templateParams_result = recurOnListOfId(that.getTemplateParams());
-        return forTemplateGapOnly((TemplateGap) that, gapId_result, templateParams_result);
+        return forVarRef((VarRef) super.forTemplateGapVarRef(that));
     }
     */
 
@@ -138,7 +137,7 @@ public class Transform extends TemplateUpdateVisitor {
      *    TestDecl
      *    For - done
      *    While - done
-     *    Accumulator 
+     *    Accumulator - 
      *    GeneratedExpr 
      *    ArrayComprehensionClause 
      *    IfClause - done
@@ -284,20 +283,43 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    /* rename an id and extend the syntax environment only if the id was
+     * not a template parameter
+     */
+    private Id renameId(Id id){
+        return (Id) id.accept( new TemplateUpdateVisitor(){
+            public Node forTemplateGapId(TemplateGapId tid){
+                return tid.accept(Transform.this);
+            }
+
+            public Node forId(Id id){
+                Id old = (Id) id.accept(Transform.this);
+                Id generatedId = generateId(old);
+                Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                extendSyntaxEnvironment(old, generatedId);
+                return generatedId;
+            }
+        });
+    }
+
     private Fn<Param,Param> renameParam = new Fn<Param,Param>(){
         public Param apply(Param value){
+            final Transform transformer = Transform.this;
             return (Param) value.accept( new TemplateUpdateVisitor(){
                 public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
                     Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
-                    Id old = (Id) name_result.accept(this);
+                    Id generatedId = renameId(name_result);
+                    /*
+                    Id old = (Id) name_result.accept(transformer);
                     Id generatedId = generateId(old);
                     Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                     extendSyntaxEnvironment(old, generatedId);
+                    */
                     return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
                 }
                 public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Type type_result) {
                     Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
-                    Id old = (Id) name_result.accept(this);
+                    Id old = (Id) name_result.accept(transformer);
                     Id generatedId = generateId(old);
                     Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                     extendSyntaxEnvironment(old, generatedId);
@@ -480,7 +502,8 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
         // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).getObject()).accept(this);
         Node n = ((Node) lookupVariable(gapId_result, templateParams_result).getObject());
-        Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
+        // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result + " is " + n.getClass() + " " + n );
         return n;
     }
 
@@ -526,8 +549,8 @@ public class Transform extends TemplateUpdateVisitor {
         }
 
 	@Override public Node forNodeTransformer(NodeTransformer that) {
-	    // return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment));
 	    return that.getNode().accept(new Transform(transformers, variables, SyntaxEnvironment.identityEnvironment(), true));
+	    // return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment, true));
 	}
 
 	@Override public Node forCaseTransformer(CaseTransformer that) {
