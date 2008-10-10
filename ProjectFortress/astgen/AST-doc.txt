@@ -27,8 +27,6 @@ FORTRESS ABSTRACT SYNTAX TREE
  - DimUnitDecl          	: NYI
  - TestDecl             	: NYI
  - PropertyDecl         	: NYI
- - AbsExternalSyntax    	: NYI
- - ExternalSyntax       	: NYI
  - AsExpr                       : Evaluator
  - AsIfExpr                     : Evaluator
  - Assignment                   : Evaluator

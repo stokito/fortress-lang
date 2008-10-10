@@ -142,6 +142,7 @@ import edu.rice.cs.plt.collect.CollectUtil;
 import xtc.util.Action;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

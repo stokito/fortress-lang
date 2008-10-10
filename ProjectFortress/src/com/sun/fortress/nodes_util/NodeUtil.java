@@ -368,9 +368,6 @@ public class NodeUtil {
 
     public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {
         return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
-            public IterableOnce<String> forAbsExternalSyntax(AbsExternalSyntax d) {
-                return new UnitIterable<String>(d.getName().getText());
-            }
             public IterableOnce<String> forDimDecl(DimDecl d) {
                 return new UnitIterable<String>(d.getDim().getText());
             }
@@ -379,9 +376,6 @@ public class NodeUtil {
             if (ids.size() < 1)
                 return bug("Unit declarations should have a name.");
             else return new UnitIterable<String>(nameString(ids.get(0)));
-            }
-            public IterableOnce<String> forExternalSyntax(ExternalSyntax d) {
-                return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forFnExpr(FnExpr d) {
                 return new UnitIterable<String>(nameString(d.getName()));

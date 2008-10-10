@@ -25,7 +25,6 @@ import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.nodes.AbsExternalSyntax;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -61,7 +60,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     private NonterminalEnv _currentEnv;
     private GlobalEnvironment _globalEnv;
 
-    public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv, 
+    public NonterminalDisambiguator(NameEnv env, GlobalEnvironment globalEnv,
                                     List<StaticError> newErrs) {
         this._env = env;
         this._errors = newErrs;
@@ -87,7 +86,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     public Node forNonterminalDefOnly(NonterminalDef that,
                                       Id _name_result,
                                       List<SyntaxDecl> syntaxDefs_result,
-                                      NonterminalHeader header_result, 
+                                      NonterminalHeader header_result,
                                       Option<BaseType> astType_result) {
         if (astType_result.isNone()) {
             throw new RuntimeException("Type inference is not supported yet!");
@@ -106,14 +105,14 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forNonterminalHeaderOnly(NonterminalHeader that,
-                                         Option<ModifierPrivate> modifier_result, 
+                                         Option<ModifierPrivate> modifier_result,
                                          Id name_result,
                                          List<NonterminalParameter> params_result,
-                                         List<StaticParam> staticParams_result, 
+                                         List<StaticParam> staticParams_result,
                                          Option<Type> type_result,
                                          Option<WhereClause> whereClause_result) {
         Id name = disambiguateNonterminalName(name_result);
-        return super.forNonterminalHeaderOnly(that, modifier_result, name, params_result, 
+        return super.forNonterminalHeaderOnly(that, modifier_result, name, params_result,
                                               staticParams_result, type_result, whereClause_result);
     }
 

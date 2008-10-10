@@ -174,9 +174,6 @@ public class IndexBuilder {
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
             }
-            @Override public void forAbsExternalSyntax(AbsExternalSyntax d) {
-                NI.nyi();
-            }
             @Override public void forGrammarDef(GrammarDef d) {
                 buildGrammar(d, grammars);
             }
@@ -256,9 +253,6 @@ public class IndexBuilder {
                 NI.nyi();
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
-                NI.nyi();
-            }
-            @Override public void forAbsExternalSyntax(AbsExternalSyntax d) {
                 NI.nyi();
             }
         };

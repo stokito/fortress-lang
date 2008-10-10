@@ -33,10 +33,6 @@ import Unicode;
 import Header;
 import Type;
 
-header {
-  import java.util.LinkedList;
-}
-
 body {
   static {
     add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
