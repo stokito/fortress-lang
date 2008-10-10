@@ -42,7 +42,6 @@ end
 opr |  (x:ZZ32, y:ZZ32):Boolean  = x DIVIDES y
 coPrime(x:ZZ32, y:ZZ32):Boolean = (1 = x GCD y)
 even   (x:ZZ32):       Boolean =    2|x
-odd    (x:ZZ32):       Boolean = NOT (2|x)
 
 (* The specification defines a builtin symbol for DIVIDES. Until it's
 implemented, I define it myself along with some helper functions. *)
@@ -106,8 +105,8 @@ generators = <|
         coPrime (a,b) |>),
 
 (* This generator syntax is being considered: 3 <= a < b < c <= max !!!
-This will figure out that a <= max-2, which I missed for a while (I was
-using a <= max-1). *)
+This directly leads to the upper bound a <= max-2, which I missed for a
+while (I was using a <= max-1). *)
 
 (* Can I set up a global mutable collection of generators?
 var generators:Set[\generator\] = set()
@@ -148,18 +147,16 @@ square. *)
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 
-  generator ("Naive search: absorb 2 into b striding", 100, fn (max:ZZ32) =>
+  generator ("Naive search: absorb 2 divisibility into b striding", 100, fn (max:ZZ32) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if even a then 2 else 1 end),
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 
-(* it turns out that exactly one of a and b are even, so we can write:
-b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2
-*)
+(* Since exactly one of a and b is even, we can simply make b's stride 2. *)
 
-  generator ("Naive search: absorb 2 into b striding", 100, fn (max:ZZ32) =>
+  generator ("Naive search: more clever b striding", 100, fn (max:ZZ32) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
@@ -204,6 +201,8 @@ Then we simply merge upper bounds.
         (even n) XOR (even m), coPrime (n, m),
         m^2 + n^2 <= max |>),
 
+(* Again we can promote the XOR into b striding. *)
+
   generator ("Euclid's, bounds & filter promotion", 100000, fn (max:ZZ32) =>
     <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
         n<-  1:(narrow (|\SQRT(max DIV  2 )/|)),
@@ -244,8 +243,8 @@ allSame (xs):Boolean = do
 end
 
 compareTwo(ps,qs):Boolean = do
-    psMax =  if |ps| = 0 then 0 else BIG MAX [p<-ps] p.a MAX p.b MAX p.c end
-    qsMax =  if |qs| = 0 then 0 else BIG MAX [q<-qs] q.a MAX q.b MAX q.c end
+    psMax =  if |ps| = 0 then 0 else BIG MAX [p<-ps] (p.a MAX p.b MAX p.c) end
+    qsMax =  if |qs| = 0 then 0 else BIG MAX [q<-qs] (q.a MAX q.b MAX q.c) end
     truncatedMatch = (tripsTo (ps, qsMax) = tripsTo (qs, psMax))
     lengthMatch    = if (psMax = qsMax) then (|ps| = |qs|) else true end
     truncatedMatch AND lengthMatch
@@ -264,11 +263,13 @@ run(args:String...) = do
     if |args| = 0 then printUsage() end
     n = if |args| = 0 then 100 else strToInt args[0] end
     totalTime := 0
+
     println("Irreducible Pythagorean triples under " n " ...")
     tripsAndTime = <|runAndTime(g,n) | g<-generators, n<=g.max|>
     allSame <|trips | (trips,time) <- tripsAndTime,
         do atomic totalTime += time; true end |>
     println("... in " totalTime " ms")
+
     bestGenerator = generators[|generators| - 1]
     ts = bestGenerator.fun n
     println ("\nThe " |ts| " trips under " n " in generated order:")
