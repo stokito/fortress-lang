@@ -62,6 +62,11 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         runFile("objectCC_staticParams.fss");
     }
 
+    public void testObjectCC_Shadowing()
+        throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC_shadowTest.fss");
+    }
+
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
         String file = testsDir + SEP + fileName;
