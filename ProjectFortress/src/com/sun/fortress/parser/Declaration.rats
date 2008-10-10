@@ -45,7 +45,6 @@ List<Decl> Decls = a1:Decl a2s:(br Decl)*
    | TypeAlias
    | TestDecl
    | PropertyDecl
-   | ExternalSyntax
 */
 List<Decl> Decl =
      a1:TraitDecl      { yyValue = FortressUtil.mkList((Decl)a1); }
@@ -55,8 +54,7 @@ List<Decl> Decl =
    / DimUnitDecl
    / a1:TypeAlias      { yyValue = FortressUtil.mkList((Decl)a1); }
    / a1:TestDecl       { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:PropertyDecl   { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:ExternalSyntax { yyValue = FortressUtil.mkList((Decl)a1); };
+   / a1:PropertyDecl   { yyValue = FortressUtil.mkList((Decl)a1); };
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<AbsDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
@@ -75,7 +73,7 @@ List<AbsDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | TypeAlias
    | TestDecl
    | PropertyDecl
-   | AbsExternalSyntax
+   | GrammarDef
  */
 List<AbsDecl> AbsDecl =
      a1:AbsTraitDecl      { yyValue = FortressUtil.mkList((AbsDecl)a1); }
@@ -86,6 +84,5 @@ List<AbsDecl> AbsDecl =
    / a1:TypeAlias         { yyValue = FortressUtil.mkList((AbsDecl)a1); }
    / a1:TestDecl          { yyValue = FortressUtil.mkList((AbsDecl)a1); }
    / a1:PropertyDecl      { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:AbsExternalSyntax { yyValue = FortressUtil.mkList((AbsDecl)a1); }
    / a1:GrammarDef        { yyValue = FortressUtil.mkList((AbsDecl)a1); }
    ;

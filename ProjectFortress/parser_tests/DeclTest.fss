@@ -24,8 +24,6 @@ test fxLessThnFy[x <- E, y <- F] = assert(f(x) < f(y))
 
 property fIsMonotonic = FORALL(x: ZZ, y: ZZ) (x < y) IMPLIES (f(x) < f(y))
 
-syntax sql e end = parseSQL(e)
-
 run(args:String...) = ()
 
 end

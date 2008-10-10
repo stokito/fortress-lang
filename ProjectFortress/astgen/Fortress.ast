@@ -155,8 +155,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
          * CompilationUnit ::= Component | Api
          */
         abstract CompilationUnit(APIName name, List<Import> imports);
-            
-               
+
+
             /**
              * component declaration
              * Component ::= native? component APIName Imports? Exports Decls? end
@@ -530,36 +530,12 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
         PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
                      Expr expr) implements Decl, AbsDecl;
         /**
-         * syntax expanders declaration in components or APIs
-         * Names and expanders must be unqualified.
-         */
-        abstract ExternalSyntaxAbsDeclOrDecl(IdOrOpOrAnonymousName openExpander, Id name,
-                                             IdOrOpOrAnonymousName closeExpander)
-                                            implements AbsDeclOrDecl;
-            /**
-             * syntax expanders declaration in APIs
-             * AbsExternalSyntax ::= syntax OpenExpander Id CloseExpander
-             * OpenExpander ::= Id
-             *                | (LeftEncloser / Encloser)
-             * CloseExpander ::= Id
-             *                 | (RightEncloser / Encloser)
-             *                 | end
-             * e.g.) syntax sql e end
-             */
-            AbsExternalSyntax() implements AbsDecl;
-            /**
-             * syntax expanders declaration in APIs
-             * ExternalSyntax ::= syntax OpenExpander Id CloseExpander = Expr
-             * e.g.) syntax sql e end = parseSQL(e)
-             */
-            ExternalSyntax(Expr expr) implements Decl;
-        /**
          * grammar declaration
          * Names (but not extends elements) must be unqualified.
          */
         abstract GrammarDecl(Id name, List<Id> extends) implements AbsDecl;
             /**
-             * grammar definition in grammar declarations
+             * grammar definition
              */
             GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
 	               boolean native);

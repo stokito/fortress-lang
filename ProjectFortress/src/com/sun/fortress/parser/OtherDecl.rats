@@ -16,8 +16,8 @@
  ******************************************************************************/
 
 /*
- * Definition of Fortress dimension, unit, type alias, test, property, and
- * external syntax declarations.
+ * Definition of Fortress dimension, unit, type alias, test, and property
+ * declarations.
  */
 module com.sun.fortress.parser.OtherDecl(Param, Header, NoNewlineType,
                                          NoNewlineExpr, Identifier, Keyword,
@@ -180,29 +180,3 @@ PropertyDecl PropertyDecl =
                              "underscore, and contains at least two distinct " +
                              "letters is an operator name.");
      };
-
-/* ExternalSyntax ::=
-     syntax w OpenExpander w Id w CloseExpander w = w NoNewlineExpr
- */
-ExternalSyntax ExternalSyntax =
-     syntax w a1:OpenExpander w a2:Id w a3:CloseExpander w equals w
-     a4:NoNewlineExpr
-     { yyValue = new ExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3,a4); };
-
-/* OpenExpander ::= Id | LeftEncloser | Encloser */
-transient IdOrOpOrAnonymousName OpenExpander = Id / LeftEncloser / Encloser ;
-
-/* CloseExpander ::= Id | RightEncloser | Encloser | end */
-transient IdOrOpOrAnonymousName CloseExpander =
-     Id
-   / RightEncloser
-   / Encloser
-   / end
-     { Span span = createSpan(yyStart,yyCount);
-       yyValue = new Id(span, "end");
-     };
-
-/* AbsExternalSyntax ::= syntax w OpenExpander w Id w CloseExpander */
-AbsExternalSyntax AbsExternalSyntax =
-     syntax w a1:OpenExpander w a2:Id w a3:CloseExpander
-     { yyValue = new AbsExternalSyntax(createSpan(yyStart,yyCount),a1,a2,a3); };
