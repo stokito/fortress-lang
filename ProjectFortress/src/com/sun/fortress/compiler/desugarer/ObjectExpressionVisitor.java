@@ -420,7 +420,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     /* 
-     * Turns out that we do need pass all the static params from the outer
+     * Turns out that we do need to pass all the static params from the outer
      * enclosing Trait/ObjectDecl, but not just the ones being referenced, 
      * because otherwise some varRef captured by object expression may have 
      * types that's not recognized at top level.  Argh.  The old code is 

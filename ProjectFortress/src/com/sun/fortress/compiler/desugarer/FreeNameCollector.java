@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.desugarer;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +54,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	private ObjectDecl enclosingObjectDecl;
 
     private FreeNameCollection freeNames;
-    /* Map key: object expr, 
-       value: DecledNamesCollector ran on this * particular ObjExpr */
-    private Map<Span, DecledNamesCollector> objExprToDecledNames;
 
     /* Map key: object expr, value: free names captured by object expr */
     private Map<Span, FreeNameCollection> objExprToFreeNames;
@@ -106,7 +104,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		this.scopeStack = new Stack<Node>();
         this.objExprStack = new Stack<ObjectExpr>();
         this.freeNames = new FreeNameCollection();
-        this.objExprToDecledNames = new HashMap<Span, DecledNamesCollector>();
         this.objExprToFreeNames = new HashMap<Span, FreeNameCollection>();
         this.declSiteToVarRefs = 
             new HashMap<Pair<String,Span>, List<Pair<VarRef,Node>>>();
@@ -227,10 +224,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	
 	@Override
     public void forObjectExpr(ObjectExpr that) {
-        DecledNamesCollector collector = new DecledNamesCollector(that);
-        that.accept(collector);
-        objExprToDecledNames.put(that.getSpan(), collector);
-
         scopeStack.push(that);
         objExprStack.push(that);
 
@@ -338,8 +331,22 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL0, "FreeNameCollector visiting ", that);
 		
-		if( isDeclaredInObjExpr(that.getVar()) == false &&  
-            isDeclaredInTopLevel(that.getVar()) == false ) {
+        boolean isDecledInObjExpr = isDeclaredInObjExpr(that.getVar());
+        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(that.getVar());
+        boolean isShadowed = false;
+
+        if(enclosingTraitDecl != null) {
+            isShadowed = isShadowedInNode( enclosingTraitDecl, that.getVar() );
+        } else if(enclosingObjectDecl != null) {
+            isShadowed = isShadowedInNode( enclosingObjectDecl, that.getVar() );
+        }
+
+        // Even if the binding is found at top level, still need to check 
+        // for shadowing -- the ObjectDecl or TraitDecl enclosing the 
+        // object expr can possibly have field or method decl that shadows 
+        // the top level one
+        if( isDecledInObjExpr == false && 
+            (isDecledAtTopLevel == false || isShadowed == true) ) {
             freeNames.add(that);
         }
 
@@ -349,27 +356,51 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	@Override
 	public void forFnRef(FnRef that) {
 	    // Not in object expression; we are done.
-        if( objExprStack.isEmpty() ) { 
+        if( objExprStack.isEmpty() ) {
             super.forFnRef(that);
             return;
         }
-       
+  
+        Id name = that.getOriginalName();
         forFnRefDoFirst(that);
         recurOnOptionOfType(that.getExprType());
-        recur(that.getOriginalName());
+        recur(name);
         recurOnListOfId(that.getFns());
         recurOnListOfStaticArg(that.getStaticArgs());
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if( isDeclaredInObjExpr(that.getOriginalName()) == false && 
-            isDeclaredInTopLevel(that.getOriginalName()) == false ) {
-		    freeNames.add(that, isDottedMethod(that));
-		}
+
+        boolean isDottedMethod = isDottedMethod(that);
+        boolean isDecledInObjExpr = isDeclaredInObjExpr(name);
+        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(name);
+        boolean isShadowed = false; 
+
+        // Only a dotted method can shadow a top-level function declared with
+        // the same name.  It is not shadowing if this FnRef is NOT a dotted
+        // method -- functional methods (i.e. with 'self' param) are lifted
+        // to the top, so by default, it's considered as isDeclaredAtTopLevel. 
+        if( isDottedMethod ) { 
+            if(enclosingTraitDecl != null) {
+                isShadowed = isShadowedInNode(enclosingTraitDecl, name);
+            } else if(enclosingObjectDecl != null) {
+                isShadowed = isShadowedInNode(enclosingObjectDecl, name);
+            }
+        }
+
+        // Even if the binding is found at top level, still need to check 
+        // for shadowing -- the ObjectDecl or TraitDecl enclosing the 
+        // object expr can possibly have field or method decl that shadows 
+        // the top level one
+        if( isDecledInObjExpr == false && 
+            (isDecledAtTopLevel == false || isShadowed) ) {
+            freeNames.add(that, isDottedMethod);
+        }
 
         forFnRefOnly(that);
 	}
 
+    /* FIXME: Not handling Op param right now!
 	@Override
 	public void forOpRef(OpRef that) {
 	    // Not in object expression; we are done.
@@ -390,13 +421,28 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
             (op instanceof Enclosing) == false ) {
             throw new DesugarerError("Unexpected Op type for OpRef " + that);
         }
-		if( isDeclaredInObjExpr(op) == false && 
-		    isDeclaredInTopLevel(op) == false ) {
-		    freeNames.add(that);
-		}
+
+        boolean isDecledInObjExpr = isDeclaredInObjExpr(op);
+        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(op);
+        boolean isShadowed = false; 
+
+        if(enclosingTraitDecl != null) {
+            isShadowed = isShadowedInNode(enclosingTraitDecl, op);
+        } else if(enclosingObjectDecl != null) {
+            isShadowed = isShadowedInNode(enclosingObjectDecl, op);
+        }
+
+        // Even if the binding is found at top level, still need to check 
+        // for shadowing -- the ObjectDecl or TraitDecl enclosing the 
+        // object expr can possibly have field or method decl that shadows 
+        // the top level one
+        if( isDecledInObjExpr == false && 
+            (isDecledAtTopLevel == false || isShadowed) ) {
+            freeNames.add(that);
+        }
 
         forOpRefOnly(that);
-	}
+	} */
 	
 	@Override
 	public void forDimRef(DimRef that) {
@@ -411,12 +457,27 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
-		if( isDeclaredInObjExpr(that.getName()) == false && 
-            isDeclaredInTopLevel(that.getName()) == false ) {
+
+        boolean isDecledInObjExpr = isDeclaredInObjExpr(that.getName());
+        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(that.getName());
+        boolean isShadowed = false; 
+
+        if(enclosingTraitDecl != null) {
+            isShadowed = isShadowedInNode( enclosingTraitDecl, that.getName() );
+        } else if(enclosingObjectDecl != null) {
+            isShadowed = isShadowedInNode( enclosingObjectDecl, that.getName() );
+        }
+
+        // Even if the binding is found at top level, still need to check 
+        // for shadowing -- the ObjectDecl or TraitDecl enclosing the 
+        // object expr can possibly have field or method decl that shadows 
+        // the top level one
+        if( isDecledInObjExpr == false && 
+            (isDecledAtTopLevel == false || isShadowed) ) {
 			// FIXME: I put this in, but the TypeEnv doesn't actually 
             // contain DimRef
-		    freeNames.add(that);
-		}
+            freeNames.add(that);
+        }
 
         forDimRefOnly(that);
 	} 
@@ -424,7 +485,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	@Override
 	public void forIntRef(IntRef that) {
 	    // Not in object expression; we are done.
-        if( objExprStack.isEmpty() ) { 
+        if( objExprStack.isEmpty() ) {
             super.forIntRef(that);
             return;
         }
@@ -435,12 +496,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
 
-        // There is no sense checking for whether it is declared in
-        // ObjectExpr, because object expr can never declare 
-        // static params of its own.
-		if( isDeclaredInTopLevel(that.getName()) == false ) {
-		    freeNames.add(that);
-		}
+        // A reference to a static param must be free - static params cannot
+        // be declared at top level nor by object expression 
+		freeNames.add(that);
 
         forIntRefOnly(that);
 	}
@@ -459,12 +517,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
 
-        // There is no sense checking for whether it is declared in
-        // ObjectExpr, because object expr can never declare 
-        // static params of its own.
-		if( isDeclaredInTopLevel(that.getName()) == false ) {
-		    freeNames.add(that);
-		}
+        // A reference to a static param must be free - static params cannot
+        // be declared at top level nor by object expression 
+		freeNames.add(that);
 
         forBoolRefOnly(that);
 	}
@@ -485,43 +540,39 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		Debug.debug(Debug.Type.COMPILER, 
                     DEBUG_LEVEL, "FreeNameCollector visiting ", that);
 
-        // There is no sense checking for whether it is declared in
-        // ObjectExpr, because object expr can never declare 
-        // static params of its own.
-		if( isDeclaredInTopLevel(typeName) == false ) {
+        // A reference to a static param must be free - static params cannot
+        // be declared at top level nor by object expression 
+		freeNames.add(that);
 
-		    freeNames.add(that);
+        /*
+         * Don't need to do this now that we are passing all static
+         * params
+        ObjectExpr innerMostObjExpr = objExprStack.peek();
+		TypeEnv objExprTypeEnv = 
+                typeCheckerOutput.getTypeEnv(innerMostObjExpr);
 
-            /*
-             * Don't need to do this now that we are passing all static
-             * params
-            ObjectExpr innerMostObjExpr = objExprStack.peek();
-    		TypeEnv objExprTypeEnv = 
-                    typeCheckerOutput.getTypeEnv(innerMostObjExpr);
+        Id enclosingId = null; 
+        if(enclosingTraitDecl != null){
+            enclosingId = enclosingTraitDecl.getName();
+        } else if(enclosingObjectDecl != null) {
+            enclosingId = enclosingObjectDecl.getName();
+        } else {
+            throw new DesugarerError( that.getSpan(), "VarType " + 
+                    that + " found outside of Trait/ObjectDecl!" );
+        }
 
-            Id enclosingId = null; 
-            if(enclosingTraitDecl != null){
-                enclosingId = enclosingTraitDecl.getName();
-            } else if(enclosingObjectDecl != null) {
-                enclosingId = enclosingObjectDecl.getName();
-            } else {
-                throw new DesugarerError( that.getSpan(), "VarType " + 
-                        that + " found outside of Trait/ObjectDecl!" );
-            }
-
-            Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, typeName );
-            Option<StaticParam> spOp = objExprTypeEnv.staticParam(typeName);
-            if( spOp.isNone() ) {
-                throw new DesugarerError( that.getSpan(), "Cannot find the "
-                            + "decl site (StaticParam) of VarType " + that );
-            } else if( (spOp.unwrap() instanceof TypeParam) == false ) {
-                throw new DesugarerError( that.getSpan(), "Unexpected type "
-                         + "for decl site of VarType " + that + " found!  "
-                         + "Expected: TypeParam; found: " + spOp.unwrap() );
-            } else {
-                staticArgToTypeParam.put( key, (TypeParam) spOp.unwrap() );
-            } */
-		}
+        Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, typeName );
+        Option<StaticParam> spOp = objExprTypeEnv.staticParam(typeName);
+        if( spOp.isNone() ) {
+            throw new DesugarerError( that.getSpan(), "Cannot find the "
+                        + "decl site (StaticParam) of VarType " + that );
+        } else if( (spOp.unwrap() instanceof TypeParam) == false ) {
+            throw new DesugarerError( that.getSpan(), "Unexpected type "
+                     + "for decl site of VarType " + that + " found!  "
+                     + "Expected: TypeParam; found: " + spOp.unwrap() );
+        } else {
+            staticArgToTypeParam.put( key, (TypeParam) spOp.unwrap() );
+        } */
 
         forVarTypeDoFirst(that);
 	}
@@ -571,9 +622,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 	}
 	
 	private boolean isDeclaredInObjExpr(IdOrOpName name) {
-        Span objExprSpan = objExprStack.peek().getSpan();
-		TypeEnv objExprTypeEnv = 
-                typeCheckerOutput.getTypeEnv( objExprStack.peek() );
+        ObjectExpr innerMostObjExpr = objExprStack.peek();
+        Span objExprSpan = innerMostObjExpr.getSpan();
+		TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(innerMostObjExpr);
 		
         if(objExprTypeEnv == null) {
             throw new DesugarerError( objExprSpan, 
@@ -608,40 +659,9 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
         // name shadowing -- we can have object expression declares /
         // inherites something that shadows the binding outside.  In which
         // case, check if the same name exists within vars / methods /
-        // functions declared within or inherited by object expr. 
-        // If so, consider the name declared in the object expr.
-        DecledNamesCollector collector = objExprToDecledNames.get(objExprSpan);
-        if(collector == null) {
-            throw new DesugarerError( objExprSpan, 
-                "DecledNamesCollector corresponding to object expr " + 
-                "at source " + objExprSpan + " is not found!" );
-        }
-		    
-        List<Id> decledNames = collector.getDecledNames();
-        List<Id> extendedTypeNames = collector.getExtendedTypeNames();
-
-        if( decledNames.contains(name) ) {
-            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
-                " is declared in decl list of object expr at ", objExprSpan);
-            return true;
-        } else {
-            TraitIndex superTraitIndex;
-            for(Id superType : extendedTypeNames) {
-                superTraitIndex = getTraitIndexForName(superType, objExprSpan);
-                if( superTraitIndex.getters().containsKey(name) ||
-                    superTraitIndex.dottedMethods().containsFirst(name) ||
-                    superTraitIndex.functionalMethods().containsFirst(name) ) {
-                    Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
-                            " is inherited from supertype ", superType,
-                            " in objectExpr at ", objExprSpan);
-                    return true;
-                }
-            }
-            
-            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
-                        " is NOT declared in object expr at ", objExprSpan);
-            return false;
-        }
+        // functions declared within or inherited by object expr. (i.e.
+        // shadowed in object expr), consider the name declared in the object expr.
+        return isShadowedInNode(innerMostObjExpr, name);
 	}
 
     /*
@@ -694,7 +714,7 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 		return false;
 	} */
 
-	private boolean isDeclaredInTopLevel(IdOrOpName idOrOpName) {
+	private boolean isDeclaredAtTopLevel(IdOrOpName idOrOpName) {
 		// The first node in this stack must be declared at a top level
 		// Its corresponding environment must be the top level environment
 		Node topLevelNode = scopeStack.get(0);  
@@ -732,18 +752,53 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
 			return false;
 		}
 		
-        // Even if the binding is found, still need to check for shadowing
-        // -- the ObjectDecl or TraitDecl enclosing the object expr can
-        // possibly have field or method decl that shadows the top level one
-        // TODO: implement the checking for shadowing!
-        // DeclaredNamecollector collector = 
-
 		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, 
 		            idOrOpName, " is declared in top level env.");
 		
 		return true;
 	}
 	
+    private boolean isShadowedInNode(Node enclosing, IdOrOpName idOrOpName) {
+        Id name = null; 
+        if(idOrOpName instanceof Id) {
+            name = (Id) idOrOpName;
+        } else { // FIXME: Need to support Op name later ...
+            throw new DesugarerError("isShadowedInNode does not support " +
+                "checking name shadowing where the name is not an Id type: " +
+                idOrOpName);
+        }
+
+        DecledNamesCollector collector = new DecledNamesCollector(enclosing);
+        enclosing.accept(collector);
+
+        HashSet<Id> decledNames = collector.getDecledNames();
+        HashSet<Id> extendedTypeNames = collector.getExtendedTypeNames();
+
+        if( decledNames.contains(name) ) {
+            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                " is shadowed (decl found in decl list of node ", 
+                enclosing, ")");
+            return true;
+        } else {
+            TraitIndex superTraitIndex;
+            for(Id superType : extendedTypeNames) {
+                superTraitIndex = getTraitIndexForName(superType, name.getSpan());
+                if( superTraitIndex.getters().containsKey(name) ||
+                    superTraitIndex.dottedMethods().containsFirst(name) ||
+                    superTraitIndex.functionalMethods().containsFirst(name) ) {
+                    Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                            " is shadowed (inherited from supertype ", superType,
+                            " in node ", enclosing, ")");
+                    return true;
+                }
+            }
+            
+            Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL, name, 
+                        " is NOT shadowed in node ", enclosing);
+            return false;
+        }
+    }
+
     private List<VarRef> filterFreeMutableVarRefs(ObjectExpr objExpr,
                                                   List<VarRef> freeVarRefs) {
         List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
@@ -786,22 +841,52 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
     }
 
     private class DecledNamesCollector extends NodeDepthFirstVisitor_void {
-        private ObjectExpr root;
-        private List<Id> decledNames;
-        private List<Id> extendedTypeNames; 
+        private Node root;
+        private HashSet<Id> decledNames;
+        private HashSet<Id> extendedTypeNames; 
         
-        private DecledNamesCollector(ObjectExpr root) {
+        private DecledNamesCollector(Node root) {
+            if( (root instanceof TraitDecl == false) &&
+                (root instanceof ObjectDecl == false) &&
+                (root instanceof ObjectExpr == false) ) {
+                throw new DesugarerError(root.getSpan(), 
+                    "DecledNamesCollector does not accept node of type " +
+                    root.getClass() + " as root.");
+            }
+
             this.root = root;
-            this.decledNames = new LinkedList<Id>();
-            this.extendedTypeNames = new LinkedList<Id>();
+            this.decledNames = new HashSet<Id>();
+            this.extendedTypeNames = new HashSet<Id>();
         }
         
-        public List<Id> getDecledNames() {
+        public HashSet<Id> getDecledNames() {
             return decledNames;
         }
         
-        public List<Id> getExtendedTypeNames() {
+        public HashSet<Id> getExtendedTypeNames() {
             return extendedTypeNames;
+        }
+        
+        @Override
+        public void forTraitDecl(TraitDecl that) {
+            // this TraitDecl must be the root; if not, it's an error
+            if(root != that) {
+                throw new DesugarerError(root + " != " + that + 
+                    " in DecledNamesCollector.");
+            } 
+            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+            super.recurOnListOfDecl(that.getDecls());
+        }
+        
+        @Override
+        public void forObjectDecl(ObjectDecl that) {
+            // this ObjectDecl must be the root; if not, it's an error
+            if(root != that) {
+                throw new DesugarerError(root + " != " + that + 
+                    " in DecledNamesCollector.");
+            } 
+            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+            super.recurOnListOfDecl(that.getDecls());
         }
         
         @Override
@@ -809,7 +894,6 @@ FreeNameCollector extends NodeDepthFirstVisitor_void {
             // we only want the names declared in the outer-most objExpr
             // so skip the inner ones
             if(root != that) return; 
-
             super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
             super.recurOnListOfDecl(that.getDecls());
         }
