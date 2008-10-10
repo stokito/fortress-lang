@@ -148,13 +148,6 @@ square. *)
         c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
         coPrime (a,b) |>),
 
-  generator ("Naive search: promote 2 as a common factor - striding", 100, fn (max:ZZ32) =>
-    <| trip (a,b,cInt) |
-        a<-3:(max-2),
-        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if even a then 2 else 1 end),
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
-        coPrime (a,b) |>),
-
   generator ("Naive search: absorb 2 into b striding", 100, fn (max:ZZ32) =>
     <| trip(a,b,cInt) |
         a<-3:(max-2),
@@ -165,6 +158,13 @@ square. *)
 (* it turns out that exactly one of a and b are even, so we can write:
 b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2
 *)
+
+  generator ("Naive search: absorb 2 into b striding", 100, fn (max:ZZ32) =>
+    <| trip(a,b,cInt) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
+        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        coPrime (a,b) |>),
 
   generator ("Euclid's formula with naive upper bounds", 100, fn (max:ZZ32) =>
     <| orderedTrip(a, b, c) |
@@ -280,15 +280,12 @@ end
 test compareEmAll() = do
     (min,max,stride) = (3,150,3)
     println ("Comparing " min " to " max " with stride " stride)
-    var n:ZZ32 = min
-    while n<=max do
+    for  n <- seq(min:max:stride) do
         println ("\nGenerate triples under " n)
         tripsAndTime = <|runAndTime(g,n) | g<-generators, n<=g.max|>
         allSame <|trips | (trips,time) <- tripsAndTime,
             do atomic totalTime += time; true end |>
-        n += stride
     end
-(* once striding is implemented ... (will need to use seq) *)
 end
 
 end trips
