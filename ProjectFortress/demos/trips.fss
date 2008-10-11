@@ -115,24 +115,24 @@ I got around that issue by defining the generator directly as members
 of the generator list *)
 
   generator ("Naive search: Double loop, calculate c", 100, fn (max:ZZ32) =>
-    <| trip (a,b,cInt) |
+    <| trip (a,b,c) |
         a<-3:max, b<-3:max,
         a < b,
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        cFloat<-just(SQRT(a^2 + b^2)), c<-just(narrow |\cFloat/|), cFloat = c,
         c <= max,
         coPrime (a,b) |>),
 
 (* narrow will go away with automatic coercion. *)
 
   generator ("Naive search: fold a<b & c<max into range bounds", 100, fn (max:ZZ32) =>
-    <| trip (a,b,cInt) |
+    <| trip (a,b,c) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        cFloat<-just(SQRT(a^2 + b^2)), c<-just(narrow |\cFloat/|), cFloat = c,
         coPrime (a,b) |>),
 
   generator ("Naive search: promote 2 as a common factor", 100, fn (max:ZZ32) =>
-    <| trip (a,b,cInt) |
+    <| trip (a,b,c) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
         NOT ((even a) AND (even b)),
@@ -144,23 +144,23 @@ This code fires (when not commented out), and that led me to explore
 the stronger filter (even a) XOR (even b), which also must be
 true. Victor offered a simple proof which depended on c being a
 square. *)
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        cFloat<-just(SQRT(a^2 + b^2)), c<-just(narrow |\cFloat/|), cFloat = c,
         coPrime (a,b) |>),
 
   generator ("Naive search: absorb 2 divisibility into b striding", 100, fn (max:ZZ32) =>
-    <| trip(a,b,cInt) |
+    <| trip(a,b,c) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if even a then 2 else 1 end),
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        cFloat<-just(SQRT(a^2 + b^2)), c<-just(narrow |\cFloat/|), cFloat = c,
         coPrime (a,b) |>),
 
 (* Since exactly one of a and b is even, we can simply make b's stride 2. *)
 
   generator ("Naive search: more clever b striding", 100, fn (max:ZZ32) =>
-    <| trip(a,b,cInt) |
+    <| trip(a,b,c) |
         a<-3:(max-2),
         b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
-        c<-just(SQRT(a^2 + b^2)), cInt<-just(narrow |\c/|), c = cInt,
+        cFloat<-just(SQRT(a^2 + b^2)), c<-just(narrow |\cFloat/|), cFloat = c,
         coPrime (a,b) |>),
 
   generator ("Euclid's formula with naive upper bounds", 100, fn (max:ZZ32) =>
@@ -278,7 +278,7 @@ run(args:String...) = do
 end
 
 test compareEmAll() = do
-    (min,max,stride) = (101,300,7)
+    (min,max,stride) = (30,70,7)
     println ("Comparing " min " to " max " with stride " stride)
     for  n <- seq(min:max:stride) do
         println ("\nGenerate triples under " n)
