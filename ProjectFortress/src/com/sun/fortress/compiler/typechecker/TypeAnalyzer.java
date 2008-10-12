@@ -73,12 +73,12 @@ public class TypeAnalyzer {
     }
 
     public TypeAnalyzer(TypeAnalyzer enclosing, List<StaticParam> params, Option<WhereClause> whereClause) {
-        this(enclosing._table, 
+        this(enclosing._table,
              enclosing._typeEnv.extendWithStaticParams(params),
              enclosing._cache);
     }
 
-    private TypeAnalyzer(TraitTable table, TypeEnv typeEnv, 
+    private TypeAnalyzer(TraitTable table, TypeEnv typeEnv,
             SubtypeCache parentCache) {
         _table = table;
         _typeEnv = typeEnv;
@@ -686,11 +686,11 @@ public class TypeAnalyzer {
 
     private ConstraintFormula varSub(VarType s, final Type t, final SubtypeHistory h) {
         Option<StaticParam> param = _typeEnv.staticParam(s.getName());
-        
+
         if( param.isNone() )
-            return bug("We are being asked about some type that is not in scope.");
-        
-        return 
+            return bug("We are being asked about some type that is not in scope: " + s + " @ " + s.getSpan());
+
+        return
         param.unwrap().accept(new NodeAbstractVisitor<ConstraintFormula>() {
             @Override
             public ConstraintFormula defaultCase(Node that) {
@@ -707,7 +707,7 @@ public class TypeAnalyzer {
                 }
                 return result;
             }
-            
+
         });
     }
 
@@ -723,16 +723,16 @@ public class TypeAnalyzer {
         else {
             Option<StaticParam> t_param_ = _typeEnv.staticParam(t.getName());
             Option<StaticParam> s_param_ = _typeEnv.staticParam(s.getName());
-            
+
             if( t_param_.isNone() || s_param_.isNone() )
                 return bug("We are being asked about types that are not in scope.");
-            
+
             if( t_param_.unwrap() instanceof TypeParam && s_param_.unwrap() instanceof TypeParam ) {
                 TypeParam t_p = (TypeParam)t_param_.unwrap();
                 TypeParam s_p = (TypeParam)s_param_.unwrap();
-                
+
                 ConstraintFormula result = FALSE;
-                
+
                 for( BaseType t_ty : t_p.getExtendsClause() ) {
                     for( BaseType s_ty : s_p.getExtendsClause()) {
                         result = result.or(sub(t_ty,s_ty,h), h);
