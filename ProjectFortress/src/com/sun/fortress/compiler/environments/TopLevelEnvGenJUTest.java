@@ -24,12 +24,13 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.env.WorseEnv;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Path;
 
 public class TopLevelEnvGenJUTest extends TestCase {
@@ -219,7 +220,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	testCompiledEnv.dump(buffer);
     }
 
-    private void compileTestProgram(String testFileName) {
+    private void compileTestProgram(String testFileName) throws UserError {
         Path path = ProjectProperties.SOURCE_PATH;
         String s = ProjectProperties.BASEDIR + "tests" +
                    File.separator + testFileName;

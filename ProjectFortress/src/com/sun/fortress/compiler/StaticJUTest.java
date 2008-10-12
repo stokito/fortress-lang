@@ -19,7 +19,7 @@ package com.sun.fortress.compiler;
 
 import java.util.Arrays;
 import java.util.List;
-import junit.framework.TestCase;
+
 import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;

@@ -37,6 +37,7 @@ import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.TypeError;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.WrappedException;
+import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.repository.ProjectProperties;
 
 public final class StaticTestSuite extends TestSuite {
@@ -173,7 +174,7 @@ public final class StaticTestSuite extends TestSuite {
             }
         }
 
-        private void assertDisambiguatorFails(File f) throws IOException {
+        private void assertDisambiguatorFails(File f) throws IOException, UserError {
             Shell.setTypeChecking(false);
             Iterable<? extends StaticError> errors = compile(f);
             assertFalse("Source " + f + " was compiled without disambiguator errors",
@@ -184,7 +185,7 @@ public final class StaticTestSuite extends TestSuite {
             }
         }
 
-        private void assertSyntaxAbstractionFails(File f) throws IOException {
+        private void assertSyntaxAbstractionFails(File f) throws IOException, UserError {
             Shell.setTypeChecking(false);
             try{
                 Iterable<? extends StaticError> errors = compile(f);
@@ -223,7 +224,7 @@ public final class StaticTestSuite extends TestSuite {
             return Collections.emptyList();
         }
 
-        private void assertTypeCheckerFails(File f) throws IOException {
+        private void assertTypeCheckerFails(File f) throws IOException, UserError {
             List<TypeError> typeErrors = new ArrayList<TypeError>();
             String message = "";
             Iterable<? extends StaticError> allErrors = compile(f);
@@ -287,7 +288,8 @@ public final class StaticTestSuite extends TestSuite {
             }
         }
 
-        private void assertWellFormedProgram(File f) throws IOException {
+        private void assertWellFormedProgram(File f) 
+                throws IOException, UserError {
             Iterable<? extends StaticError> errors = compile(f);
             String message = "Source " + f + " produces static errors:";
             for (StaticError error : errors) {
@@ -302,7 +304,8 @@ public final class StaticTestSuite extends TestSuite {
             if (VERBOSE) { System.out.println(f + "  OK"); }
         }
 
-        private Iterable<? extends StaticError> compile(File f) throws IOException {
+        private Iterable<? extends StaticError> compile(File f) 
+                throws IOException, UserError {
             return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
                                  f.getName());
         }
