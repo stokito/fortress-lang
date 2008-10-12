@@ -274,11 +274,11 @@ public final class Shell {
         }
         catch (UserError error) {
             System.err.println(error.getMessage());
-            System.exit(1);
+            System.exit(-1);
         }
         catch (IOException error) {
             System.err.println(error.getMessage());
-            System.exit(2);
+            System.exit(-2);
         }
     }
 
@@ -293,7 +293,7 @@ public final class Shell {
     private static void api(List<String> args, Option<String> out)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
-            throw new UserError("Need a file to generatoe an API.");
+            throw new UserError("Need a file to generate an API.");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -314,35 +314,27 @@ public final class Shell {
         }
     }
 
-    private static void api( String file, Option<String> out ){
-        try{
-            if ( isApi(file) ) {
-                System.out.println( "Need a component file " +
-                                    "instead of an API file." );
-            } else if (isComponent(file)) {
-                Component c = (Component) Parser.parseFile(cuName(file), new File(file));
-                Api a = (Api) c.accept( ApiMaker.ONLY );
-                String code = a.accept( new FortressAstToConcrete() );
-                if ( out.isSome() ){
-                    try{
-                        BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
-                        writer.write(code);
-                        writer.close();
-                        System.out.println( "Dumped code to " + out.unwrap() );
-                    } catch ( IOException e ){
-                        System.err.println( "Error while writing " + out.unwrap() );
-                    }
-                } else {
-                    System.out.println( code );
-                }
-            } else {
-                System.out.println( "Don't know what kind of file " + file +
-                                    " is. Append .fsi or .fss." );
+    private static void api( String file, Option<String> out )
+        throws UserError, IOException{
+        if (! isComponent(file)) {
+            throw new UserError( "api command needs a Fortress component file ; filename " +
+                    file + " must end with .fss" );
+        }
+        Component c = (Component) Parser.parseFile(cuName(file), new File(file));
+        Api a = (Api) c.accept( ApiMaker.ONLY );
+        String code = a.accept( new FortressAstToConcrete() );
+        if ( out.isSome() ){
+            try{
+                BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
+                writer.write(code);
+                writer.close();
+                System.out.println( "Dumped code to " + out.unwrap() );
+            } catch ( IOException e ){
+                throw new IOException( "IOExcpetion " + e +
+                        " while writing " + out.unwrap() );
             }
-        } catch ( IOException i ){
-            i.printStackTrace();
-        } catch ( OptionUnwrapException o ){
-            o.printStackTrace();
+        } else {
+            System.out.println( code );
         }
     }
 
@@ -395,29 +387,19 @@ public final class Shell {
     }
 
     private static void compare( String first, String second )
-        throws Throwable {
-        try{
-            if ( isApi(first) || isApi(second) ) {
-                System.out.println( "Need component files " +
-                                    "instead of API files." );
-            } else if (isComponent(first) && isComponent(second)) {
-                FValue value1 = eval( first );
-                FValue value2 = eval( second );
-                if (value1 == value2)
-                    System.out.println( "Ok" );
-                else System.out.println( "Failed: " +
-                                         first + " evaluated to " + value1 +
-                                         " but " +
-                                         second + " evaluated to " + value2 );
-            } else {
-                System.out.println( "Don't know what kind of file is." +
-                                    "Append .fsi or .fss." );
-            }
-        } catch ( IOException i ){
-            i.printStackTrace();
-        } catch ( OptionUnwrapException o ){
-            o.printStackTrace();
+        throws Throwable, IOException  {
+        if ( ! (isComponent(first) && isComponent(second)) ) {
+            throw new UserError("compare command needs two component (.fss) files" +
+                     "found " + first + "and " + second);
         }
+
+        FValue value1 = eval( first );
+        FValue value2 = eval( second );
+        if (value1 == value2)
+            System.out.println( "Compare: values are equal" );
+        else System.out.println( "Compare failed: " +
+                first + " evaluated to " + value1 +
+                " but " + second + " evaluated to " + value2 );
     }
 
     /**
@@ -449,7 +431,7 @@ public final class Shell {
         }
     }
 
-    private static void parse( String file, Option<String> out){
+    private static void parse( String file, Option<String> out) throws UserError, IOException {
         try{
             CompilationUnit unit = Parser.parseFile(cuName(file), new File(file));
             System.out.println( "Ok" );
@@ -458,7 +440,8 @@ public final class Shell {
                     ASTIO.writeJavaAst(unit, out.unwrap());
                     System.out.println( "Dumped parse tree to " + out.unwrap() );
                 } catch ( IOException e ){
-                    System.err.println( "Error while writing " + out.unwrap() );
+                    throw new IOException("IOException " + e +
+                            "while writing " + out.unwrap() );
                 }
             }
         } catch (ProgramError e) {
@@ -467,15 +450,11 @@ public final class Shell {
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level error dump.");
+                System.err.println("Turn on -debug for Java-level stack trace.");
             }
             System.exit(1);
         } catch ( FileNotFoundException f ){
-            System.err.println( file + " not found" );
-        } catch ( IOException ie ){
-            System.err.println( "Error while reading " + file );
-        } catch ( StaticError s ){
-            System.err.println(s);
+            throw new UserError(file + " not found");
         }
     }
 
@@ -489,7 +468,7 @@ public final class Shell {
                                 boolean _unmangle)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
-            throw new UserError("Need a file to unparse");
+            throw new UserError("unparse command needs a file to unparse");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -520,53 +499,49 @@ public final class Shell {
     }
 
     private static void unparse( String file,
-                                 Option<String> out,
-                                 boolean unqualified,
-                                 boolean unmangle ){
-        try{
-            String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(unqualified,unmangle) );
-            if ( out.isSome() ){
-                try{
-                    BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
-                    writer.write(code);
-                    writer.close();
-                } catch ( IOException e ){
-                    System.err.println( "Error while writing " + out.unwrap() );
-                }
-            } else {
-                System.out.println( code );
+            Option<String> out,
+            boolean unqualified,
+            boolean unmangle )
+    throws IOException {
+        String code = ASTIO.readJavaAst( file ).unwrap().accept( new FortressAstToConcrete(unqualified,unmangle) );
+        if ( out.isSome() ){
+            try{
+                BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
+                writer.write(code);
+                writer.close();
+            } catch ( IOException e ){
+                throw new IOException("IOException " + e +
+                        "while writing " + out.unwrap() );
             }
-        } catch ( IOException i ){
-            i.printStackTrace();
-        } catch ( OptionUnwrapException o ){
-            o.printStackTrace();
+        } else {
+            System.out.println( code );
         }
     }
 
-    private static boolean isApi(String file){
-        return file.endsWith(ProjectProperties.API_SOURCE_SUFFIX);
+    private static boolean isApi(String fileName){
+        return fileName.endsWith(ProjectProperties.API_SOURCE_SUFFIX);
     }
 
-    private static boolean isComponent(String file){
-        return file.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX);
+    private static boolean isComponent(String fileName){
+        return fileName.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX);
     }
 
-    private static APIName cuName( String file ){
-        if ( file.endsWith( ProjectProperties.COMP_SOURCE_SUFFIX ) ||
-             file.endsWith( ProjectProperties.API_SOURCE_SUFFIX ) ){
-            return NodeFactory.makeAPIName(file.substring( 0, file.lastIndexOf(".") ));
+    private static APIName cuName( String fileName ){
+        if ( fileName.endsWith( ProjectProperties.COMP_SOURCE_SUFFIX ) ||
+             fileName.endsWith( ProjectProperties.API_SOURCE_SUFFIX ) ){
+            return NodeFactory.makeAPIName(fileName.substring( 0, fileName.lastIndexOf(".") ));
         }
-        return NodeFactory.makeAPIName(file);
+        return NodeFactory.makeAPIName(fileName);
     }
 
     public static boolean checkCompilationUnitName(String filename,
                                                    String cuname) {
-        String file = filename.substring( 0, filename.lastIndexOf(".") );
-        file = file.replace('/','.');
-        file = file.replace('\\','.');
+        String rootName = filename.substring( 0, filename.lastIndexOf(".") );
+        rootName = rootName.replace('/','.');
+        rootName = rootName.replace('\\','.');
         String regex = "(.*\\.)?" + cuname.replaceAll("\\.", "\\.") + "$";
-        Debug.debug( Debug.Type.REPOSITORY, 3, "Checking file name " + file + " vs cuname " + regex );
-        return file.matches( regex );
+        Debug.debug( Debug.Type.REPOSITORY, 3, "Checking file name " + rootName + " vs cuname " + regex );
+        return rootName.matches( regex );
     }
 
     /**
@@ -574,9 +549,9 @@ public final class Shell {
      * If you want a dump then give -out somefile.
      */
     private static void compile(List<String> args, Option<String> out, String phase)
-        throws UserError, InterruptedException, IOException {
+        throws UserError, InterruptedException, IOException, RepositoryError {
         if (args.size() == 0) {
-            throw new UserError("Need a file to compile");
+            throw new UserError("compile command needs a file to compile");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -593,43 +568,48 @@ public final class Shell {
                 invalidFlag(s, phase);
             compile(rest, out, phase);
         } else {
-            try {
-                APIName name = trueApiName( s );
-                Path path = sourcePath( s, name );
+            APIName name = trueApiName( s );
+            Path path = sourcePath( s, name );
 
-                String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-                Iterable<? extends StaticError> errors = compile(path, file_name, out );
-                int num_errors = IterUtil.sizeOf(errors);
-                if ( !IterUtil.isEmpty(errors) ) {
-                    for (StaticError error: errors) {
-                        System.err.println(error);
-                    }
-                    String err_string = "File " + file_name + " compiled with " + num_errors + " error" +
-                        (num_errors == 1 ? "." : "s.");
-                    System.err.println(err_string);
+            String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
+            Iterable<? extends StaticError> errors = compile(path, file_name, out );
+            int num_errors = IterUtil.sizeOf(errors);
+            if ( !IterUtil.isEmpty(errors) ) {
+                for (StaticError error: errors) {
+                    System.err.println(error);
                 }
-
-            } catch (RepositoryError error) {
-                System.err.println(error);
+                String err_string = "File " + file_name + " compiled with " + num_errors + " error" +
+                (num_errors == 1 ? "." : "s.");
+                System.err.println(err_string);
+                System.exit(-1);
             }
         }
     }
 
-    private static APIName trueApiName( String path ) throws IOException {
-        return PreParser.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
+    private static APIName trueApiName( String path ) throws UserError, IOException {
+        try {
+            return PreParser.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
+        } catch (FileNotFoundException ex) {
+            throw new UserError("Can't find file " + path);
+        }
     }
 
     /**
      * Compile a file.
      */
-    public static Iterable<? extends StaticError> compile(Path path, String file) {
+    public static Iterable<? extends StaticError> compile(
+            Path path,
+            String file)
+            throws UserError {
         return compile(path, file, Option.<String>none());
     }
 
-    private static Iterable<? extends StaticError> compile(Path path, String file,
-                                                           Option<String> out) {
+    private static Iterable<? extends StaticError> compile(
+            Path path,
+            String file,
+            Option<String> out)
+            throws UserError {
         GraphRepository bcr = specificRepository( path, defaultRepository );
-
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
         APIName name = cuName(file);
         try {
@@ -645,8 +625,8 @@ public final class Shell {
                     bcr.deleteComponent( name );
                 }
             } else {
-                System.out.println( "Don't know what kind of file " + file +
-                                    " is. Append .fsi or .fss." );
+                throw new UserError( "What kind of file is " + file +
+                                    "? Name should end with .fsi or .fss." );
             }
         } catch (ProgramError pe) {
             Iterable<? extends StaticError> se = pe.getStaticErrors();
@@ -658,19 +638,17 @@ public final class Shell {
             }
         } catch (RepositoryError ex) {
             throw ex;
-        } catch ( FileNotFoundException ex ){
+        } catch (FileNotFoundException ex) {
             throw new WrappedException(ex);
-        } catch ( IOException e ){
+        } catch (IOException e) {
             throw new WrappedException(e);
-        }
-        catch ( MultipleStaticError ex) {
+        } catch (MultipleStaticError ex) {
             List<StaticError> result = new LinkedList<StaticError>();
             for( StaticError err : ex ) {
                 result.add(new WrappedException(err, Debug.isOnMax()));
             }
             return result;
-        }
-        catch (StaticError ex) {
+        } catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
         } finally {
              bcr.deleteComponent(name);
@@ -726,8 +704,11 @@ public final class Shell {
                 throw new WrappedException(th, Debug.isOnMax());
             }
 
-            for (StaticError error: errors) {
-                System.err.println(error);
+            if ( !IterUtil.isEmpty(errors) ) {
+                for (StaticError error: errors) {
+                    System.err.println(error);
+                }
+                System.exit(-1);
             }
             // If there are no errors,
             // all components will have been written to disk
@@ -737,15 +718,16 @@ public final class Shell {
             if ( Debug.isOnMax() ){
                 e.printStackTrace();
             }
+            System.exit(-1);
         } catch (RepositoryError e) {
-            System.err.println(e.getMessage());
+            throw e;
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level error dump.");
+                System.err.println("Turn on -debug for Java-level stack trace.");
             }
             System.exit(1);
         }
@@ -835,7 +817,7 @@ public final class Shell {
                     if (Debug.isOnMax()) {
                         e.printStackTrace();
                     } else {
-                        System.err.println("Turn on -debug for Java-level error dump.");
+                        System.err.println("Turn on -debug for Java-level stack trace.");
                     }
                     System.exit(1);
                 }
