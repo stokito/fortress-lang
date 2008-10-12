@@ -31,7 +31,7 @@ isClosed2[\T\](s: Set[\T\], f: (T,T)->Set[\T\]): Boolean =
 isClosedN[\T\](set: Set[\T\], f: Array[\T\]->Set[\T\], n: ZZ32): Boolean =
   BIG AND[xs <- arraysFrom(set,n)] f(xs) SUBSETEQ set
 
-arraysFrom(set:Set[\T\], n: ZZ32): Generator[\Array[\T\]\] = 
+arraysFrom(set:Set[\T\], n: ZZ32): Generator[\Array[\T\]\] =
   if n = 0 then Just(array[\T\](0)) else ArraysFrom[\T\](set, arraysFrom[\T\](set, n-1)) end
 
 object ArraysFrom[\T\](set:Set[\T\], sub: Generator[\Array[\T\]\]) extends Generator[\Array[\T\]\]
@@ -53,7 +53,7 @@ end
 (* closure functions *)
 
 closure[\T\](start: Set[\T\], f: T->Set[\T\]): Set[\T\] = do
-  closureLoop[\T\](accResult: Set[\T\], working: Set[\T\]) =
+  closureLoop(accResult: Set[\T\], working: Set[\T\]) =
     if working.isEmpty() then accResult else
       newResult = accResult UNION working
       newOnes = BIG UNION[\T\][x <- working] f(x)
@@ -63,7 +63,7 @@ closure[\T\](start: Set[\T\], f: T->Set[\T\]): Set[\T\] = do
 end
 
 closure2[\T\](start: Set[\T\], f: (T,T)->Set[\T\]): Set[\T\] = do
-  closure2Loop[\T\](accResult: Set[\T\], working: Set[\T\]) =
+  closure2Loop(accResult: Set[\T\], working: Set[\T\]) =
     if working.isEmpty() then accResult else
       newResult = accResult UNION working
       newOnes = ((BIG UNION[\T\][x <- working, y <- accResult THEN working] f(x,y))
