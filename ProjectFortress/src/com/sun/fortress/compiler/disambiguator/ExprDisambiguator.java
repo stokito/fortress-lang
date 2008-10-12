@@ -83,6 +83,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
+import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnpastingBind;
@@ -163,7 +164,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (! var.getText().equals("self") && ! var.getText().equals("_") &&
             ! var.getText().equals("outcome") &&
             ! _uninitializedNames.contains(var)) {
-            if( !_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty()) {
+            if( !_env.explicitVariableNames(var).isEmpty() ||
+                !_env.explicitFunctionNames(var).isEmpty() ||
+                !_env.explicitTypeConsNames(var).isEmpty()) {
                 error("Variable " + var + " is already declared.", var);
             }
         }
@@ -174,7 +177,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * or non-overloading functions in scope.
      */
     private void checkForShadowingLocalFunction(Id var, Set<Id> allowedShadowings) {
-        if ( (!_env.explicitVariableNames(var).isEmpty() || !_env.explicitFunctionNames(var).isEmpty())
+        if ( (!_env.explicitVariableNames(var).isEmpty() ||
+              !_env.explicitFunctionNames(var).isEmpty() ||
+              !_env.explicitTypeConsNames(var).isEmpty())
              && !allowedShadowings.contains(var)) {
             error("Variable " + var + " is already declared.", var);
         }
@@ -371,7 +376,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Set<Id> extractStaticExprVars(List<StaticParam> staticParams) {
         Set<Id> result = new HashSet<Id>();
         for (StaticParam staticParam: staticParams) {
-            if (staticParam instanceof BoolParam ||
+            if (staticParam instanceof TypeParam ||
+                staticParam instanceof BoolParam ||
                 staticParam instanceof NatParam  ||
                 staticParam instanceof IntParam  ||
                 staticParam instanceof UnitParam)

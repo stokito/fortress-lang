@@ -17,8 +17,8 @@
 
 package com.sun.fortress.exceptions;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
 import com.sun.fortress.useful.HasAt;
@@ -31,12 +31,17 @@ public class MultipleStaticError extends StaticError implements Iterable<StaticE
      */
     private static final long serialVersionUID = -4970962399662866759L;
 
-    List<StaticError> errors;
+    Set<StaticError> errors;
+    Set<String> messages;
 
     public MultipleStaticError(Iterable<? extends StaticError> errors){
-        this.errors = new ArrayList<StaticError>();
+        this.errors = new HashSet<StaticError>();
+        this.messages = new HashSet<String>();
         for ( StaticError error : errors ){
-            this.errors.add( error );
+            if ( ! messages.contains(error.toString()) ) {
+                this.errors.add( error );
+                this.messages.add( error.toString() );
+            }
         }
     }
 
