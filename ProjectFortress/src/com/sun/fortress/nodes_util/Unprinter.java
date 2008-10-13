@@ -645,6 +645,8 @@ public class Unprinter extends NodeReflection {
             x = readPair();
         } else if ("Some".equals(s2)) {
             x = readOptionTail();
+        } else if ("Map".equals(s2)) {
+            x = readMap();
         } else if ( "Level".equals(s2) ){
             x = readLevel();
         } else {

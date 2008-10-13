@@ -238,10 +238,11 @@ public class Printer extends NodeReflection {
                 Object p = f.get(x);
                 if (skipEmpty
                         && skipThisEmpty
-                        && (p instanceof List && ((List) p).size() == 0
-                                || p instanceof Null<?> || p instanceof Integer
-                                && ((Integer) p).intValue() == 0 || p instanceof Boolean
-                                && ((Boolean) p).booleanValue() == false)) { /*
+                        && (p instanceof List && ((List) p).size() == 0 ||
+                                p instanceof Null<?> ||
+                                // AHA! A bug, because the default value for refs is a non-zero lexical depth.
+                                // p instanceof Integer && ((Integer) p).intValue() == 0 ||
+                                p instanceof Boolean && ((Boolean) p).booleanValue() == false)) { /*
                                                                                  * do
                                                                                  * nothing
                                                                                  */

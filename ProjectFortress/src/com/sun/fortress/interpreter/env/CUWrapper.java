@@ -53,8 +53,6 @@ import com.sun.fortress.useful.Visitor2;
 
 public class CUWrapper {
     
-    
-    
     private final static boolean loadCompiledEnvs =
         ProjectProperties.getBoolean("fortress.test.compiled.environments", false);
     
@@ -252,10 +250,6 @@ public class CUWrapper {
 
     }
 
-    public Set<String> getTopLevelRewriteNames() {
-        return desugarer.getTopLevelRewriteNames();
-    }
-
     public Set<String> getFunctionals() {
         return desugarer.functionals;
     }
@@ -301,10 +295,14 @@ public class CUWrapper {
                 /*
                  * TODO Need to figure out why this works (or seems to).
                  */
-            desugarer.registerObjectExprs(be.getEnvironment());
+            registerObjectExprs(be.getEnvironment());
 
         } else if (visitState == UNVISITED)
             throw new IllegalStateException("Must be populated, typed, and functioned before init vars");
+    }
+
+    protected void registerObjectExprs(Environment environment) {
+        
     }
 
     public Environment getEnvironment() {
@@ -323,7 +321,7 @@ public class CUWrapper {
      * Returns the component wrapper for the API apiname that this component
      * exports.
      */
-    public CUWrapper getExportedCW(String apiname) {
+    public APIWrapper getExportedCW(String apiname) {
         return exports.get(apiname);
     }
 

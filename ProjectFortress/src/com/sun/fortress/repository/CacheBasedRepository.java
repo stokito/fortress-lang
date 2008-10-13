@@ -151,20 +151,24 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));
     }
 
-    private static String deCase(APIName s) {
+    public static String deCase(APIName s) {
         return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
     }
 
+    public static String deCaseName(APIName s) {
+        return s + "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
+    }
+
     public static String cachedCompFileName(String passedPwd, APIName name) {
-        return passedPwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
+        return ProjectProperties.compFileName(passedPwd,  deCaseName(name));
     }
 
     private String compFileName(APIName name) {
-        return pwd + SEP + name + deCase(name) + DOT + ProjectProperties.COMP_TREE_SUFFIX;
+        return ProjectProperties.compFileName(pwd,  deCaseName(name));
     }
 
     private String apiFileName(APIName name) {
-        return pwd + SEP + name + deCase(name) +DOT + ProjectProperties.API_TREE_SUFFIX;
+        return ProjectProperties.apiFileName(pwd,  deCaseName(name));
     }
 
     private long dateFromFile(APIName name, String s, String tag)

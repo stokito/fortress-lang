@@ -125,7 +125,7 @@ public class Driver {
     /**
      * Native code sometimes needs access to the library component wrapper.
      */
-    static CUWrapper libraryComponentWrapper = null;
+    static ComponentWrapper libraryComponentWrapper = null;
     public static Environment getFortressLibrary() {
         return libraryComponentWrapper.getEnvironment();
     }
@@ -198,15 +198,15 @@ public class Driver {
         builtins.getEnvironment().installPrimitives();
         linker.put(builtinsName, builtins);
 
-        CUWrapper lib = null;
+        APIWrapper lib = null;
 
         libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
         lib = libraryComponentWrapper.getExportedCW(libraryName);
 
-        CUWrapper nativescomp =
+        ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
                                  NodeFactory.makeAPIName(nativesName));
-        CUWrapper natives = nativescomp.getExportedCW(nativesName);
+        APIWrapper natives = nativescomp.getExportedCW(nativesName);
 
         /*
          * This performs closure over APIs and components, ensuring that all are
@@ -306,8 +306,8 @@ public class Driver {
                 APIName source = ix.getApi();
                 String from_apiname = NodeUtil.nameString(source);
 
-                CUWrapper from_cw = linker.get(from_apiname);
-                CUWrapper api_cw = from_cw.getExportedCW(from_apiname);
+                ComponentWrapper from_cw = linker.get(from_apiname);
+                APIWrapper api_cw = from_cw.getExportedCW(from_apiname);
 
                 /* Pull in names, UNqualified */
 
@@ -366,9 +366,9 @@ public class Driver {
     }
 
     private static boolean injectLibraryTraits(List<ComponentWrapper> components,
-            CUWrapper lib) {
+            APIWrapper lib) {
         boolean change = false;
-        for (CUWrapper cw : components) {
+        for (ComponentWrapper cw : components) {
             for (String s : lib.getTopLevelRewriteNames()) {
                 if (cw.isOwnName(s)) {
                     continue;
@@ -467,7 +467,7 @@ public class Driver {
      * @param pile
      * @param id
      */
-    private static CUWrapper ensureApiImplemented(
+    private static ComponentWrapper ensureApiImplemented(
             FortressRepository fr,
             HashMap<String, ComponentWrapper> linker,
             Stack<ComponentWrapper> pile, APIName name) throws IOException {

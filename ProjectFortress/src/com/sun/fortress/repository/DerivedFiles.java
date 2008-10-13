@@ -35,7 +35,7 @@ public class DerivedFiles<T> {
         this.ioForAPINames = io;
     }
     
-    T get(APIName name, long mustBeNewerThan) {
+    public T get(APIName name, long mustBeNewerThan) {
         T x = cached.get(name);
         if (x == null) {
             try {
@@ -43,6 +43,7 @@ public class DerivedFiles<T> {
                 if (lastModified < mustBeNewerThan)
                     return null;
                 x = ioForAPINames.read(name);
+                cached.put(name, x);
             } catch (IOException e) {
                 /*
                  * This will probably never hit, because of the lastModified
@@ -55,7 +56,7 @@ public class DerivedFiles<T> {
         return x;
     }
     
-    void put(APIName name, T x) {
+    public void put(APIName name, T x) {
         cached.put(name, x);
         try {
             ioForAPINames.write(name, x);
