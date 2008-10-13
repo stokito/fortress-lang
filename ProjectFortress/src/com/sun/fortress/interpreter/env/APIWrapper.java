@@ -20,6 +20,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -53,4 +54,9 @@ public class APIWrapper extends CUWrapper {
 
         return cu;
     }
+    
+    public Set<String> getTopLevelRewriteNames() {
+        return desugarer.getTopLevelRewriteNames();
+    }
+    
 }

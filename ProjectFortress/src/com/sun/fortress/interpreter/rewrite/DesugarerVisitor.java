@@ -356,39 +356,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     BATree<String, Boolean> immediateDef = null;
 
-    /**
-     * Adds, to the supplied environment, constructors for any object
-     * expressions encountered in the tree(s) processed by this Disambiguator.
-     * @param env
-     */
-    public void registerObjectExprs(Environment env) {
-        for (_RewriteObjectExpr oe : objectExprs) {
-            String name = oe.getGenSymName();
-            List<StaticParam> params = oe.getStaticParams();
-            if (params.isEmpty()) {
-                // Regular constructor
-                FTypeObject fto = new FTypeObject(name, env, oe, oe.getParams(),
-                                                  oe.getDecls(), oe);
-                env.putType(name, fto);
-                BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
-                                                    null, null, fto, env, oe);
-                Constructor con = new Constructor(env, fto, oe,
-                                                  NodeFactory.makeId(name),
-                                                  oe.getDecls(),
-                                                  Option.<List<Param>>none());
-
-                env.putValue(name, con);
-                con.finishInitializing();
-            } else {
-                // Generic constructor
-                FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls(), oe);
-                env.putType(name, fto);
-                GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeId(name));
-                env.putValue(name, con);
-            }
-        }
-    }
-
     Expr newName(VarRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {

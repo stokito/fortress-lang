@@ -27,6 +27,7 @@ import java.io.PrintStream;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.Shell;
+import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.nodes_util.ASTIO;
@@ -69,44 +70,57 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
 
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
+        
         String file = testsDir + SEP + fileName;
 
         // do not print stuff to stdout for JUTests
         PrintStream oldOut = System.out;
         PrintStream oldErr = System.err;
-        WireTappedPrintStream wt_err =
-            WireTappedPrintStream.make(System.err, true);
-        WireTappedPrintStream wt_out =
-            WireTappedPrintStream.make(System.out, true);
-        System.setErr(wt_err);
-        System.setOut(wt_out);
-        System.out.println("Evaluating " + file + "...");
-        FValue original = Shell.eval(file);
-        // Delete the cached file from evaluating the original file!!!
-        ASTIO.deleteJavaAst( CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR,
-                                                                     PreParser.apiName( NodeFactory.makeAPIName(file),
-                                                                                        new File(file).getCanonicalFile() )) );
-        String name = file.substring( 0, file.lastIndexOf(".") );
-        String tfs = name + ".tfs";
 
-        String[] command = new String[]{ "desugar", "-out", tfs, file};
-        System.out.println("Command: fortress desugar -out " + tfs + " " + file);
-        Shell.main( command );
-        String generated = System.getProperty("java.io.tmpdir") + SEP + fileName;
+        try {
+            ComponentWrapper.noCache = true;
+            WireTappedPrintStream wt_err = WireTappedPrintStream.make(
+                    System.err, true);
+            WireTappedPrintStream wt_out = WireTappedPrintStream.make(
+                    System.out, true);
+            System.setErr(wt_err);
+            System.setOut(wt_out);
+            System.out.println("Evaluating " + file + "...");
+            FValue original = Shell.eval(file);
+            // Delete the cached file from evaluating the original file!!!
+            ASTIO.deleteJavaAst(CacheBasedRepository.cachedCompFileName(
+                    ProjectProperties.ANALYZED_CACHE_DIR, PreParser.apiName(
+                            NodeFactory.makeAPIName(file), new File(file)
+                                    .getCanonicalFile())));
+            String name = file.substring(0, file.lastIndexOf("."));
+            String tfs = name + ".tfs";
 
-        command = new String[]{ "unparse", "-unqualified", "-unmangle", "-out", generated, tfs};
-        System.out.println("Command: fortress unparse -unqualified -unmangle -out " + generated + " " + tfs);
-        Shell.main( command );
-        ASTIO.deleteJavaAst( tfs );
+            String[] command = new String[] { "desugar", "-out", tfs, file };
+            System.out.println("Command: fortress desugar -out " + tfs + " "
+                    + file);
+            Shell.main(command);
+            String generated = System.getProperty("java.io.tmpdir") + SEP
+                    + fileName;
 
-        // must turn these passes off
-        Shell.setTypeChecking(false);
-        Shell.setObjExprDesugaring(false);
+            command = new String[] { "unparse", "-unqualified", "-unmangle",
+                    "-out", generated, tfs };
+            System.out
+                    .println("Command: fortress unparse -unqualified -unmangle -out "
+                            + generated + " " + tfs);
+            Shell.main(command);
+            ASTIO.deleteJavaAst(tfs);
 
-        System.out.println("Evaluating " + generated + "...");
-        assertEquals(original, Shell.eval(generated));
+            // must turn these passes off
+            Shell.setTypeChecking(false);
+            Shell.setObjExprDesugaring(false);
+
+            System.out.println("Evaluating " + generated + "...");
+            assertEquals(original, Shell.eval(generated));
+        } finally {
+            ComponentWrapper.noCache = false;
         System.setErr(oldErr);
         System.setOut(oldOut);
+        }
     }
 
 }

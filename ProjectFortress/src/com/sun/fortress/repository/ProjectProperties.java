@@ -302,4 +302,16 @@ public class ProjectProperties {
 
         throw new Error("Unexpected suffix on Fortress(?) source file");
     }
+    
+    public static String fileName(String dir, String name, String suffix) {
+        return dir + "/" + name + "." + suffix;
+    }
+    
+    public static String compFileName(String dir, String name) {
+        return fileName(dir, name, ProjectProperties.COMP_TREE_SUFFIX);
+    }
+
+    public static String apiFileName(String dir, String name) {
+        return fileName(dir, name, ProjectProperties.API_TREE_SUFFIX);
+    }    
 }
