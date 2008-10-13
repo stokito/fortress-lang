@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
+import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -110,6 +111,7 @@ public class ComponentWrapper extends CUWrapper {
         CompilationUnit cu = comp_unit;
 
         if (transformed == null) {
+            cu = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp_unit);
             transformed = (Component) desugarer.visit(cu); // Rewrites cu!
             if (!cacheDisabled)
                 componentCache.put(transformed.getName(), transformed);
