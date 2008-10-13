@@ -122,7 +122,7 @@ public class CUWrapper {
        if (comp == null)
             throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
        
-       comp_unit = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp);
+         comp_unit = comp;
         
          String fortressFileName = comp_unit.getName().getText();
         
