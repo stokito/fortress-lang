@@ -3374,8 +3374,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     getter depth() = 0
     getter asJavaString(): String
 
-    showStructure() = showStructure(0)
-
+    getter showStructure(): String = do
+        showStructure(0)
+        self  
+      end  
+        
     opr |self| : ZZ32 = self.size
 
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
