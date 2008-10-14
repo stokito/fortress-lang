@@ -403,12 +403,12 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forUnionType(UnionType node) {
         // Could use U+2228 = OR if we supported Unicode output
-        return "AND" + Useful.listInParens(mapSelf(node.getElements()));
+        return "OR" + Useful.listInParens(mapSelf(node.getElements()));
     }
 
     public String forIntersectionType(IntersectionType node) {
         // Could use U+2227 = AND if we supported Unicode output
-        return "OR" + Useful.listInParens(mapSelf(node.getElements()));
+        return "AND" + Useful.listInParens(mapSelf(node.getElements()));
     }
 
     public String forItemSymbol(ItemSymbol item) {
