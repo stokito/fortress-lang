@@ -90,7 +90,7 @@ opr (x:Op):: : Op = Op(x "::")
 run(args: String...) = do
     assert(("A":"B":"C").toString,  "((A:B):C)")
     assert(("A"#"B":"C").toString,  "((A#B):C)")
-    assert(("A":"B"#"C").toString,  "(A:(B#C))")
+    assert(("A":"B"#"C").toString,  "((A:B)#C)")
     assert(("A"#"B"#"C").toString,  "((A#B)#C)")
 (*
     assert(("A"::"B"::"C").toString,"")
