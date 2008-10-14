@@ -22,22 +22,18 @@ component CordedStringTests
   import List.{...}
   export Executable
   
-  test testDepth(): () = do
-    print "Starting testDepth: "
+  testDepth(): () = do
     words = ⟨"Hello ", "world, ", "it's ", "a ", "bright ", "new ", "day."⟩
     var result: String = EmptyString
     for w ← seq(words) do result := CatString(result, w) end
     assert(result, "Hello world, it's a bright new day.")
     result.verify()
-(*    result.showStructure()  *)
     assert(result.depth, 7)
-    println "testDepth done"
   end  
   
-  test indexing(): () = do
+  testindexing(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
-    print "starting indexing: "
     for w ← seq(words) do testString := CatString(testString, w) end
     referenceString = "Thequickbrownfoxjumpedoverthelazydog."
     assert(testString, referenceString)
@@ -47,14 +43,12 @@ component CordedStringTests
     for i ← ⟨ -1, -5, 37, 38, 109 ⟩ do
         shouldRaise⟦IndexOutOfBounds[\ZZ32\]⟧ (fn() => testString[i])
     end
-    println("indexing done")
   end
  
 
-  test subString(): () = do
+  testSubString(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
-    print "starting subString: "
     for w ← seq(words) do testString := CatString(testString, w) end
     referenceString = "Thequickbrownfoxjumpedoverthelazydog."
     assert(testString, referenceString)
@@ -62,11 +56,9 @@ component CordedStringTests
             j ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do 
         assert(testString[i:j], referenceString[i:j]) 
     end
-    println("SubString done")
   end
   
-  test subStringSimplification():() = do
-    print "starting subStringSimplification: "
+  testSubStringSimplification():() = do
     testString = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     testString.verify()
     sub1 = testString[34:36]
@@ -75,11 +67,10 @@ component CordedStringTests
         String => do sub1.showStructure()
                             assert(false, "sub1=" sub1 " is not a JavaString") end
     end
-    println "subStringSimplification done"
   end
  
    
-  (* test *) validateSubdivision(subject: String, division): () = do
+  validateSubdivision(subject: String, division): () = do
     var len: ZZ32 = 0
     var accum: String = ""
     for (start, str) ← division do
@@ -91,17 +82,14 @@ component CordedStringTests
       assert(accum, subject)
   end
   
-  test testIlk() = do
-    print "starting testIlk: "
+  testIlk() = do
     hello = "Hello"
     assert(hello.ilkName, "JavaString")
     hw = CatString(hello, " World")
     assert(hw.ilkName, "CatString")
-    println "testIlk done"
   end
   
-  test javaStringification() = do
-    print "starting javaStringification: "
+  testJavaStringification() = do
     e = EmptyString
     assert(e.asJavaString, "", "EmptyString.javaString")
     c = CatString("abcd", "efgh")
@@ -112,29 +100,28 @@ component CordedStringTests
     assert(ss.asJavaString, "de", "Substring of SubString'.javaString")
     lss = s[0:1]
     assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
-    println "javaStringification done"
   end  
   
 
   test testSubdivide():() = do
-    print "starting testSubdivide: "
     subject = CatString("abcd", "efgh")
-(*
     substr1 = subject[2:6]
-
     validateSubdivision(substr1, seq(substr1.subdivide()))
     
     substr2 = subject[4:6]
     assert(substr2.subdivide().isEmpty, "subject[4:6].subdivide is not empty!")
- *)   
+
     substr3 = subject[0:5]
     validateSubdivision(substr3, seq(substr3.subdivide()))
-    println "testSubdivide done: "
+    
+    
+    subC = (CatString("@ab", "cdefg"))[2#4]
+    print "subC =";  subC.showStructure
+    validateSubdivision(subC, seq(subC.subdivide()))
   end 
 
   
-  test comparison():() = do
-    print "starting comparison: "
+  testComparison():() = do
     smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
     smallerFlat = smaller.asJavaString
@@ -154,7 +141,6 @@ component CordedStringTests
     b.verify
     assert(smaller[30#6], bigger[30:35], smaller[30:36] " is not = to " bigger[30:36])
     assert(smallerFlat[30#6], bigger[30:35], smallerFlat[30:36] " is not = to " bigger[30:36])
-    println "comparison done"
   end
  
   object CatStringReduction extends MonoidReduction[\String\]
@@ -163,11 +149,11 @@ component CordedStringTests
     join(a:String, b:String):String = CatString(a, b)
   end
   
- (* test *) catStringFrom(args: String...): String =
+  catStringFrom(args: String...): String =
     seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
-  
- 
-  test testNonEmptyConcat(): () =  do
+    
+   
+  testNonEmptyConcat(): () =  do
     print "starting testNonEmptyConcat: "
     stuff = "Hello "
     more = "World"
@@ -178,8 +164,7 @@ component CordedStringTests
     println "testNonEmptyConcat done"
   end
   
-  test testEmptyConcat(): () = do   
-    print "starting testEmptyConcat: "
+  testEmptyConcat(): () = do
     e = EmptyString
     assert(|e|, 0)
     assert(e.isEmpty)
@@ -188,42 +173,48 @@ component CordedStringTests
     h = CatString(stuff, e)
     assert(|h|, |stuff|)
     assert(stuff || e, stuff)
-    println "testEmptyConcat done"
   end 
 
   test testCharConcat(): () =  do
-    print "starting testCharConcat: " 
     var result: String = EmptyString
     hw = "Hello World"
     for c <- seq(hw) do
         result := result || c
     end
     assert(result, hw)
-    println "testCharConcat done"
   end 
   
-  test testParallelGenerator(): () = do
-    print "starting testParallelGenerator: " 
+  testParallelGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"
     var result: Set⟦Char⟧ = set⟦Char⟧()
     for c ← chars atomic do result := result.add(c) end
     assert(|result|, |chars|)
     for c ← result do assert(c ∈ chars) end
-    println "testParallelGenerator done"
   end  
   
-  test testSequentialGenerator(): () = do
-    print "starting testSequentialGenerator: " 
+  testSequentialGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"
     var result: List⟦Char⟧ = emptyList⟦Char⟧(26)
     for c ← seq(chars) do result := result.addRight(c) end
     assert(|result|, |chars|)
     for i ← result.bounds do assert(result[i] , chars[i]) end
-    println "testSequentialGenerator done"
   end  
   
   run(args:String...):() = do
-    println "Tests complete"
+    testDepth()
+    testindexing()
+    testSubString()
+    testSubStringSimplification()
+    testIlk()
+    testJavaStringification()
+    testSubdivide()
+    testComparison()
+    testNonEmptyConcat()
+    testEmptyConcat()
+    testCharConcat()
+    testParallelGenerator()
+    testSequentialGenerator()
   end
 
-end
+end CordedStringTests
+
