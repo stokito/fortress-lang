@@ -3203,7 +3203,7 @@ trait RightRange[\I\] extends { RangeWithRight[\I\], PartialRange[\I\] }
 end
 
 trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWithExtent[\I\], Indexed[\I,I\] }
-    getter extent(): Just[\I\] = Just[\I\](self.size)
+    getter extent(): Just[\I\]
     narrowToRange(other:OpenRange[\I\]): FullRange[\I\] = self INTERSECTION other
     narrowToRange(other:Range[\I\]): FullRange[\I\] =
         typecase r = self INTERSECTION other of

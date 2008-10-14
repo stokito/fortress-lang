@@ -721,6 +721,7 @@ end
 trait FullScalarRange[\I extends Integral[\I\]\]
         extends { ScalarRangeWithLeft[\I\], ScalarRangeWithRight[\I\],
                   ScalarRangeWithExtent[\I\], FullRange[\I\] }
+    getter extent(): Just[\I\] = Just[\I\](self.size)
     getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,size()-1)
     getter toString(): String =
         if self.isEmpty then
@@ -823,7 +824,7 @@ end
 trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
         extends { FullRange[\(I,J)\], Range2D[\I,J\], DelegatedIndexed[\(I,J),(I,J)\],
                   ActualRange2D[\I,J,FullRange2D[\I,J\], FullScalarRange[\I\],FullScalarRange[\J\]\] }
-    getter extent(): Just[\(I,J)\] = Just[\(I,J)\]( self.range1.extent.get, self.range2.extent.get )
+    getter extent(): Just[\(I,J)\] = Just[\(I,J)\]( |self.range1|, |self.range2| )
     getter generator(): Generator[\(I,J)\] = self.range1.cross[\J\](self.range2)
     getter indices(): Generator[\(I,J)\] = self.range1.indices.cross[\J\](self.range2.indices)
     opr |self|: ZZ32 = |self.range1| |self.range2|
@@ -853,7 +854,7 @@ trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends I
                   ActualRange3D[\I,J,K,FullRange3D[\I,J,K\],
                                 FullScalarRange[\I\],FullScalarRange[\J\],FullScalarRange[\K\]\] }
     getter extent(): Just[\(I,J,K)\] =
-        Just[\(I,J,K)\]( self.range1.extent.get, self.range2.extent.get, self.range3.extent.get )
+        Just[\(I,J,K)\]( |self.range1|, |self.range2| , |self.range3| )
     getter generator(): Generator[\(I,J,K)\] =
         self.range1.cross[\J\](self.range2).cross[\K\](self.range3).map[\(I,J,K)\](
             tupleFlatten[\I,J,K\])
@@ -882,12 +883,11 @@ end
 
 trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRange[\I\], CompactFullRange[\I\] }
     getter stride(): I = 1
-    getter extent(): Just[\I\] = Just[\I\]( self.size )
     getter size(): ZZ32 = do
         l = self.lower
         r = self.upper
         res = narrow(r-l+1)
-        if res <= 1 AND: r>l then 0 else res end
+        if res <= 1 AND: l>r then 0 else res end
       end
     getter isEmpty(): Boolean = self.lower > self.upper
     getter indexValuePairs(): Indexed[\(I,I),I\] = do
