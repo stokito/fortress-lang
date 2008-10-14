@@ -233,6 +233,7 @@ run(args:String...):() =
   if false then ()
   else
     (* Spot-test failures first *)
+    assert(|5:3|, 0, "Empty range should have 0 size.")
     assert(1:12:3, StridedFullParScalarRange[\ZZ32\](1,10,3),"Strided upward")
     assert(1:12:1, CompactFullParScalarRange[\ZZ32\](1,12),"Unit stride")
     assert(1:12:-1, StridedFullParScalarRange[\ZZ32\](1,12,-1),"Very empty")
@@ -442,8 +443,12 @@ run(args:String...):() =
     for t <- testScalarRanges do
         if t.check().isEmpty then
             assert(t.toString, "[]", "Empty self.toString")
+            assert(|t|, 0, "empty Range must have size 0")
         else
             deny(t.toString,"[]", true, "Nonempty self.toString not []")
+            if e <- t.extent then
+                assert(e > 0, true, "nonempty Range must have positive or infinite extent.")
+            end
         end
         assert(t,t, "Reflexivity of equality, ",t)
     end
