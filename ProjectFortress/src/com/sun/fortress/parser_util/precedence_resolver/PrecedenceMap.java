@@ -565,9 +565,7 @@ public class PrecedenceMap {
         return Useful.union( Operators.p_less_than_operators,
                              Operators.p_greater_than_operators,
                              Operators.p_plain_comparison,
-                             Useful.set(Operators.p_number_sign),
-                             Useful.set(Operators.p_single_colon),
-                             Useful.set(Operators.p_double_colon));
+                             Useful.set(Operators.p_range_opr));
     }
 
     static Set<String> c_3_3() {
@@ -606,7 +604,7 @@ public class PrecedenceMap {
     @SuppressWarnings("unchecked") // varargs of generic
     static Set<String> c_3() {
         return Useful.union(VarArgs.make( c_3_1(), c_3_2(),
-                                          Operators.p_double_colon,
+                                          Operators.p_range_opr,
                                           c_3_3(), c_3_4(),
                                           c_3_5(), c_3_6(), c_3_7(), c_3_8()));
     }
@@ -655,6 +653,7 @@ public class PrecedenceMap {
         eqPrec(Operators.p_tri_addition_and_subtraction);
         eqPrec(Operators.p_circled_addition_and_subtraction);
         eqPrec(Operators.p_squared_addition_and_subtraction);
+        eqPrec(Operators.p_range_opr);
 
         /* Each list is ordered from left to right, and is transitive
            There is no ordering between the lists. */
@@ -675,9 +674,6 @@ public class PrecedenceMap {
                 Operators.p_boolean_disjunction);
         ordPrec(c_2(), c_3_1());
         ordPrec(c_2_123(), c_3_2());
-        ordPrec(Operators.p_number_sign, Operators.p_single_colon);
-        ordPrec(Operators.p_number_sign, Operators.p_double_colon);
-        ordPrec(Operators.p_single_colon, Operators.p_double_colon);
         ordPrec(c_2_4(), c_3_3());
         ordPrec(c_2_5(), c_3_4());
         ordPrec(c_2_6(), c_3_5());
@@ -763,9 +759,7 @@ public class PrecedenceMap {
                              Operators.p_misc_set,
                              Operators.p_inequivalence_operators,
                              Operators.p_plain_comparison,
-                             Useful.set(Operators.p_number_sign),
-                             Useful.set(Operators.p_single_colon),
-                             Useful.set(Operators.p_double_colon),
+                             Useful.set(Operators.p_range_opr),
                              Operators.p_misc_set_comparison,
                              Operators.p_square_misc,
                              Operators.p_curly_misc,

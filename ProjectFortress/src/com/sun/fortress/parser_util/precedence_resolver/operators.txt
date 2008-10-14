@@ -313,13 +313,9 @@ plain_comparison
   greater-than overlapping less-than, \u2aa4
   greater-than beside less-than, \u2aa5
 
-number_sign
+range_opr
   number sign, #, \u0023
-
-single_colon
   colon, :, \u003a
-
-double_colon
   proportion, ::, \u2237
 
 subset_comparison_operators
