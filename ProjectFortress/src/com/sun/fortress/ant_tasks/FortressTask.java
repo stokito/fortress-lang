@@ -31,7 +31,7 @@ public class FortressTask extends BatchTask {
     public void setAst(boolean val) { addExecOption("-ast"); }
     public void setKeep(boolean val) { addExecOption("-keep"); }
     public void setPause(boolean val) { addExecOption("-pause"); }
-    public void setParseOnly(boolean val) { addExecOption("-parseOnly"); }
+    public void setParse(boolean val) { addExecOption("parse"); }
     public void setNolib(boolean val) { addExecOption("-nolib"); }
     public void setVerbose(boolean val) { addExecOption("-v"); }
     public void setTest(boolean val) { addExecOption("-test"); }
