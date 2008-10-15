@@ -82,7 +82,6 @@ package="com.sun.fortress.interpreter.glue.prim"
       
     verify() = do
         assert(self.depth, 0, self)
-        assert(self.size(), size, self)
     end
     
     showStructure(indent) = do

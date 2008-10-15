@@ -285,7 +285,7 @@ assert(flag: Boolean, failMsg: String): () =
 
 assert(x:Any, y:Any, failMsg: Any...): () =
     if x =/= y then
-        msg = x " =/= " y "; " (BIG || failMsg)
+        msg = x " =/= " y "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
         fail(msg)
     end
 

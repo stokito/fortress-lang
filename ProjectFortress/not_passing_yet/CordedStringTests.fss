@@ -93,12 +93,16 @@ component CordedStringTests
     e = EmptyString
     assert(e.asJavaString, "", "EmptyString.javaString")
     c = CatString("abcd", "efgh")
+    c.verify
     assert(c.asJavaString, "abcdefgh", "CatString.javaString")
     s = c[2:5]
+    s.verify()
     assert(s.asJavaString, "cdef", "SubString'.javaString")
     ss = s[1:2]
+    ss.verify()
     assert(ss.asJavaString, "de", "Substring of SubString'.javaString")
     lss = s[0:1]
+    lss.verify()
     assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
   end  
   
