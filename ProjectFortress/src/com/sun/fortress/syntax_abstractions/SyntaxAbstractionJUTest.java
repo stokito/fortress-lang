@@ -32,7 +32,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
 		String[] files = new String[]{
                     // List trimmed to keep testing time quick.
 
-                    // "CaseUse.fss",
+                    "CaseUse.fss",
                     "DoubleCaseUse.fss",
                     // "GrammarCompositionUseA.fss",
                     // "GrammarCompositionUseB.fss",
