@@ -149,14 +149,17 @@ export CordedString
         leftBounds' = r0 ∩ left.bounds
         r1 = (r0 ≪ left.size)
         rightBounds' = r1 ∩ right.bounds
-(*        atomic do 
+        if left = "wombat" then
+          atomic do 
             println "uncheckedSubstring " r0 " of "
             self.showStructure()
             println "==============="
+            println "r1 = " r1
             println "leftBounds' = " leftBounds' ( if leftBounds'.isEmpty then "(empty)" else "(non-empty)" end )
             println "rightBounds' = " rightBounds'  ( if rightBounds'.isEmpty then "(empty)" else "(non-empty)" end )
             println "==============="
-        end  *)
+          end
+        end 
         if leftBounds'.isEmpty then 
             right.uncheckedSubstring(rightBounds')
         elif rightBounds'.isEmpty then
@@ -298,7 +301,11 @@ export CordedString
                 "SubString (" range ") has range equal to or greater than that of baseString (" baseString.bounds ")")
         typecase s = baseString of
             CatString => do deny((s.left.indices ∩ range).isEmpty)  
-                            deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty)
+                            (* deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty) *)
+                            if ((s.right.indices ≫ s.left.size) ∩ range).isEmpty 
+                            then self.showStructure()
+                                 fail("SubString of CatString not pushed left") 
+                            end
                          end
             EmptyString => assert(false, "SubString of EmptyString")
             SubString' => assert(false, "SubString of SubString")  
@@ -323,7 +330,7 @@ export CordedString
         if r0.isEmpty then EmptyString
         elif r0 = self.bounds then self
         else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *) 
-            result = SubString'(baseString, r0≫range.lower)
+            result = baseString.uncheckedSubstring(r0≫range.lower)
             result.verify()
             result
         end
