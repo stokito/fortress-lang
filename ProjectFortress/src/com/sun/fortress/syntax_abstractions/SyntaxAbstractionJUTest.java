@@ -19,35 +19,33 @@ package com.sun.fortress.syntax_abstractions;
 
 import java.io.File;
 import junit.framework.TestSuite;
-
 import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class SyntaxAbstractionJUTest extends TestSuite {
 
-	private final static String STATIC_TESTS_DIR = 
-            ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
+    private final static String STATIC_TESTS_DIR =
+        ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
 
-	public static TestSuite suite() {
-		String[] files = new String[]{
-                    // List trimmed to keep testing time quick.
-
-                    "CaseUse.fss",
-                    "DoubleCaseUse.fss",
-                    "GrammarCompositionUseA.fss",
-                    "GrammarCompositionUseB.fss",
-                    "GrammarCompositionUseC.fss",
-                    "GrammarCompositionUseD.fss",
-                    "ForUse.fss",
-                    "OrUse.fss",
-                    "LabelUse.fss",
-                    "SyntaxNodesUse.fss",
-		};
-		TestSuite suite = new TestSuite();
-		for ( String filename : files ){
-			File f = new File(STATIC_TESTS_DIR + filename );
-			suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
-		}
-		return suite;
-	}
+    public static TestSuite suite() {
+        String[] files = new String[]{
+            // List trimmed to keep testing time quick.
+            "CaseUse.fss",
+            "DoubleCaseUse.fss",
+            "GrammarCompositionUseA.fss",
+            "GrammarCompositionUseB.fss",
+            "GrammarCompositionUseC.fss",
+            "GrammarCompositionUseD.fss",
+            "ForUse.fss",
+            "OrUse.fss",
+            "LabelUse.fss",
+            "SyntaxNodesUse.fss",
+        };
+        TestSuite suite = new TestSuite();
+        for ( String filename : files ){
+            File f = new File(STATIC_TESTS_DIR + filename );
+            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+        }
+        return suite;
+    }
 }
