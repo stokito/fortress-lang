@@ -15,21 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ProvokeTypecheckError
-import CordedString.{...}
-export Executable
+api String
 
-  run(args:String...):() = do
-    e = EmptyString
-    stuff = "Hello "
-    more = "World"
-    hw = CatString(stuff, more)
-    assert(|hw|, |stuff| + |more|)
-    assert(hw, "Hello World")
-    assert(hw, CatString("Hell", "o World"))
-    assert(hw[(2 as ZZ32):(7 as ZZ32)], "llo Wo")
-    assert(hw[(0 as ZZ32):(3 as ZZ32)], "Hell")
-    assert(hw[(5 as ZZ32):(2 as ZZ32)], "")
+  object CatString(left: String, right:String)  extends String
   end
+
+  value object EmptyString extends String
+  end
+  
+  trait SubString extends String
+    comprises {...}
+  end 
+  
+  margin(prefix: String, indent: ZZ32)
 
 end

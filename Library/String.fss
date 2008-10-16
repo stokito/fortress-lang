@@ -15,9 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component CordedString
+component String
 import List.{...}
-export CordedString
+export String
      
   test rangeIntersect() = do
         assert((0:5) ∩ (0:3), 0:3)
@@ -144,35 +144,35 @@ export CordedString
       end
  *)
             
-    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method 
         (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
+        if r0.isEmpty then exit method with EmptyString end
+        if r0 = self.bounds then exit method with self end
         leftBounds' = r0 ∩ left.bounds
-        r1 = (r0 ≪ left.size)
-        rightBounds' = r1 ∩ right.bounds
-        if left = "wombat" then
-          atomic do 
-            println "uncheckedSubstring " r0 " of "
-            self.showStructure()
-            println "==============="
-            println "r1 = " r1
-            println "leftBounds' = " leftBounds' ( if leftBounds'.isEmpty then "(empty)" else "(non-empty)" end )
-            println "rightBounds' = " rightBounds'  ( if rightBounds'.isEmpty then "(empty)" else "(non-empty)" end )
-            println "==============="
-          end
-        end 
+        rightBounds' = (r0 ≪ left.size) ∩ right.bounds
+            if left = "wombat" then
+              atomic do 
+                println "uncheckedSubstring " r0 " of "
+                self.showStructure()
+                println "==============="
+                println "leftBounds' = " leftBounds' ( if leftBounds'.isEmpty then "(empty)" else "(non-empty)" end )
+                println "rightBounds' = " rightBounds'  ( if rightBounds'.isEmpty then "(empty)" else "(non-empty)" end )
+                println "==============="
+              end (*do*)
+            end
         if leftBounds'.isEmpty then 
-            right.uncheckedSubstring(rightBounds')
-        elif rightBounds'.isEmpty then
-            left.uncheckedSubstring(leftBounds')
-        else
-            SubString'(self, r0)
-        end       
-    end  
+            exit method with right.uncheckedSubstring(rightBounds')
+        end
+        if rightBounds'.isEmpty then
+            exit method with left.uncheckedSubstring(leftBounds')
+        end
+        SubString'(self, r0)
+    end method
 
     println(self): () = do println(self.asJavaString) end  
     print(self): () = do print(self.asJavaString) end
     
-    subdivide(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
+    split(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
 
   end CatString
   
@@ -201,14 +201,15 @@ export CordedString
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
-    opr CMP(self, other: String) =
+    opr CMP(self, other: String): TotalComparison =
         |self| CMP |other|
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  |self| CMP |other|
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  
+        |self| CMP |other|
 
     get(i): Char = 
         throw IndexOutOfBounds("Can't get characters from an empty string")
 
-    opr[r: Range⟦ZZ32⟧] : String = do
+    opr[r: Range⟦ZZ32⟧]: String = do
         rr = self.indices[r]     (* to raise a bounds error *)
         EmptyString
     end
@@ -236,7 +237,7 @@ export CordedString
     print(self): () = do end
     println(self): () = println("")
     
-    subdivide() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
   
   end EmptyString
   
@@ -256,49 +257,37 @@ export CordedString
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
     
     opr CMP(self, other: String) ensures { outcome = (self.asJavaString CMP other.asJavaString) } = do
-        (* printlnWithThread (baseString.ilkName "[" self.range "]= " self " CMP " other.ilkName " " other).asJavaString *)
-        pieces = baseString.subdivide()
-        result = ((if pieces.nonEmpty  then
+        pieces = baseString.split()
+        (if pieces.nonEmpty  then
             BIG LEXICO [(start, str) ← pieces] (do
                     baseSubrange = (start#|str|) ∩ range
                     baseString.uncheckedSubstring(baseSubrange) CMP other.uncheckedSubstring(baseSubrange≪range.lower)
             end) 
         else 
-            do otherPieces = other.subdivide()
+            otherPieces = other.split()
             if otherPieces.nonEmpty then
-                println "doing backwards comparison ..."
+                (*) println "doing backwards comparison ... "
                 BIG LEXICO [(start, str) ← otherPieces] (do
                         baseSubrange = ((start#|str|) ∩ self.indices) ≫ range.lower 
                         baseString.uncheckedSubstring(baseSubrange) CMP str
                 end)
             else
-                  println "doing character-wise comparison of " self.asJavaString " with " other.asJavaString " ..."
-                  BIG LEXICO [i ← 0#(|self| MIN |other|)] ( 
-                    do
-                        println "comparing " self.get(i) " with " other.get(i) 
+                  (*) println "doing character-wise comparison of " self.asJavaString " with " other.asJavaString " ..."
+                  BIG LEXICO [i ← 0#(|self| MIN |other|)] (do
+                        (*) println "comparing " self.get(i) " with " other.get(i) 
                         self.get(i) CMP other.get(i)
-                    end )               
+                    end)               
             end             
-        end) LEXICO (|self| CMP |other|))
-        if (result) ≠ (self.asJavaString CMP other.asJavaString)
-        then
-            println "SubString' CMP fails!"
-            println "self (" self.asJavaString ")= "
-            self.showStructure()
-            println "other (" other.asJavaString ")= "
-            other.showStructure()
-            println "result = " result
-            println "JavaString CMP yields " (self.asJavaString CMP other.asJavaString)
-        end
-        result
+        end) LEXICO (|self| CMP |other|)
     end
     
     verify() = do
         baseString.verify()
         deny(baseString.isEmpty)
         deny(range.isEmpty, "SubString (" range ") has empty range")
-        assert(range < baseString.bounds, 
-                "SubString (" range ") has range equal to or greater than that of baseString (" baseString.bounds ")")
+        deny(range = baseString.bounds, true, "SubString ", baseString, range, " has range equal to that of baseString ", baseString.bounds)
+        assert(range < baseString.bounds, true,
+                "SubString ", baseString,  range, " has range greater than that of baseString ", baseString.bounds )
         typecase s = baseString of
             CatString => do deny((s.left.indices ∩ range).isEmpty)  
                             (* deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty) *)
@@ -339,11 +328,11 @@ export CordedString
     println(self): () = do println(self.asJavaString) end  
     print(self): () = do print(self.asJavaString) end
           
-    subdivide(): Generator⟦(ZZ32, String)⟧ = do
+    split(): Generator⟦(ZZ32, String)⟧ = do
     (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
       and str[0] || str [1] || ... || str[n] = self
     *)
-        pieces = baseString.subdivide()
+        pieces = baseString.split()
         offset = range.lower
         if  pieces.nonEmpty then
             <| if (start#piece.size) ≤ range then
@@ -365,9 +354,16 @@ export CordedString
   end
   
   test testSubstringGet() = do
-    subC = SubString'(CatString("@ab", "cdefg"), 2#4)
-    assert(subC.get(1), 'b')
-    assert(subC.get(4), 'e')
+    cat = CatString("@ab", "cdefg")
+    subC = cat[2#4]
+    assert(subC.ilkName, "SubString'", subC, " is not a SubString'")
+    subC.verify()
+    assert(cat[2], 'b')
+    assert(subC[0], 'b')
+    assert(subC[1], 'c')
+    assert(subC[2], 'd')
+    assert(subC[3], 'e')
+    shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() ⇒ subC[4])
   end
   
   margin(indent) = do

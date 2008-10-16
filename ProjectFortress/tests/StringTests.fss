@@ -15,8 +15,8 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component CordedStringTests
-  import CordedString.{...}
+component StringTests
+  import String.{...}
   import JavaString.{...}
   import Set.{...}
   import List.{...}
@@ -41,7 +41,7 @@ component CordedStringTests
         assert(testString[i], referenceString[i]) 
     end
     for i ← ⟨ -1, -5, 37, 38, 109 ⟩ do
-        shouldRaise⟦IndexOutOfBounds[\ZZ32\]⟧ (fn() => testString[i])
+        shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() => testString[i])
     end
   end
  
@@ -70,7 +70,7 @@ component CordedStringTests
   end
  
    
-  validateSubdivision(subject: String, division): () = do
+  validateSplit(subject: String, division): () = do
     var len: ZZ32 = 0
     var accum: String = ""
     for (start, str) ← division do
@@ -107,21 +107,20 @@ component CordedStringTests
   end  
   
 
-  test testSubdivide():() = do
+  test testSplit():() = do
     subject = CatString("abcd", "efgh")
     substr1 = subject[2:6]
-    validateSubdivision(substr1, seq(substr1.subdivide()))
+    validateSplit(substr1, seq(substr1.split()))
     
     substr2 = subject[4:6]
-    assert(substr2.subdivide().isEmpty, "subject[4:6].subdivide is not empty!")
+    assert(substr2.split().isEmpty, "subject[4:6].split is not empty!")
 
     substr3 = subject[0:5]
-    validateSubdivision(substr3, seq(substr3.subdivide()))
+    validateSplit(substr3, seq(substr3.split()))
     
     
     subC = (CatString("@ab", "cdefg"))[2#4]
-    print "subC =";  subC.showStructure
-    validateSubdivision(subC, seq(subC.subdivide()))
+    validateSplit(subC, seq(subC.split()))
   end 
 
   
@@ -158,14 +157,12 @@ component CordedStringTests
     
    
   testNonEmptyConcat(): () =  do
-    print "starting testNonEmptyConcat: "
     stuff = "Hello "
     more = "World"
     hw = CatString(stuff, more)
     assert(|hw|, |stuff| + |more|)
     assert(hw, "Hello World")
     assert(hw, CatString("Hell", "o World"))
-    println "testNonEmptyConcat done"
   end
   
   testEmptyConcat(): () = do
@@ -211,14 +208,15 @@ component CordedStringTests
     testSubStringSimplification()
     testIlk()
     testJavaStringification()
-    testSubdivide()
+    testSplit()
     testComparison()
     testNonEmptyConcat()
     testEmptyConcat()
     testCharConcat()
     testParallelGenerator()
     testSequentialGenerator()
+    println "run method finished"
   end
 
-end CordedStringTests
+end StringTests
 
