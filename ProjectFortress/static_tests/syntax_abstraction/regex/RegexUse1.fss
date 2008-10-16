@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component t1
+component RegexUse1
 
 import Regex.{...}
 import List.{...}
@@ -40,7 +40,7 @@ run(s:String...) = do
     println "/[^foo]/ = " (/[^foo]/)
 
     println "/a{1}/ = " (/a{1}/)
-    println "/a{1,}/ = " (/a{1,}/) 
+    println "/a{1,}/ = " (/a{1,}/)
     println "/a{1,2}/ = " (/a{1,2}/)
     println "/a{,2}/ = " (/a{,2}/)
 

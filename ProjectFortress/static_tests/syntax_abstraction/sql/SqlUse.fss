@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component t1
+component SqlUse
 import Sql.{...}
 import List.{...}
 export Executable

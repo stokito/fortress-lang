@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component testbasic
+component XmlUse
 
 import Xml.{...}
 import List.{...}
@@ -60,7 +60,7 @@ run(args:String...) = do
     println "Xml: " xml
 
     println "Xml: "
-    <note>It makes no sense to have an XML literal here remember Fortress 
+    <note>It makes no sense to have an XML literal here remember Fortress
      interprets this as a new declaration like (* Element("note", CData(...), "note") *) </note>
 
     xml2 = <note>
