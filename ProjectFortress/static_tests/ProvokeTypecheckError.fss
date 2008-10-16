@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component ProvokeTypecheckError
-import CordedString.{...}
+import String.{...}
 export Executable
 
   run(args:String...):() = do
