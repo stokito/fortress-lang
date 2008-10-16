@@ -45,16 +45,17 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         "UsingJavaIdentifiersAsPatternVariables.fss");
 
 //        "SyntaxTest.fss",
-//        "SyntaxGrammarImportsUse.fss",
-//        "SyntaxOptionUse.fss",
-//        "SyntaxHelloWorldUse.fss",
 //        "SyntaxTestUse.fss",
+//        "SyntaxOption.fss",
+//        "SyntaxOptionUse.fss",
+
+//        "SyntaxGrammarImportsUse.fss",
+//        "SyntaxHelloWorldUse.fss",
 //        "SyntaxGrammarImports.fss",
 //        "SyntaxGrammarImportsA.fss",
 //        "SyntaxGrammarImportsUse.fss",
 //        "SXXSyntaxMultipleNonterminalDefsWithSameName.fss",
 //        "SyntaxSymbolsUse.fss",
-//        "SyntaxOption.fss",
 //        "SyntaxHelloWorld.fss",
 //        "SyntaxExtendsUse.fss",
 //        "SyntaxExtends.fss",
