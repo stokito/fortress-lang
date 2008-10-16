@@ -2111,7 +2111,7 @@ trait String extends { StandardTotalOrder[\String\],
             start[i] = | str[0] || ... || str[i-1] |,       and
             str[0] || str [1] || ... || str[n] = self
     **)
-    subdivide(): Generator[\(ZZ32, String)\]
+    split(): Generator[\(ZZ32, String)\]
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)

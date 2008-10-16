@@ -3401,11 +3401,11 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr[r0:Range[\ZZ32\]] : String =  do
         r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
         self.uncheckedSubstring(r1)
-      end
+    end
 
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
 
-    subdivide(): Generator[\(ZZ32, String)\]
+    split(): Generator[\(ZZ32, String)\]
 
     (** The operator %||% with at least one String argument converts to String and
         appends **)

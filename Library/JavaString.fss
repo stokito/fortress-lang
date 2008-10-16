@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 native component JavaString
-import CordedString.{CatString, EmptyString, margin}
+import String.{CatString, EmptyString, margin}
 import FlatStringInfo.{...}
 export JavaString
 
@@ -116,7 +116,7 @@ package="com.sun.fortress.interpreter.glue.prim"
             javaAppend(self, b)
         end
         
-    subdivide() = Nothing[\Generator[\(ZZ32, String)\]\]
+    split() = Nothing[\Generator[\(ZZ32, String)\]\]
 
   end JavaString
   
