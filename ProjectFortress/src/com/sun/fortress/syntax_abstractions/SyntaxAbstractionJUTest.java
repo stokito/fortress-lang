@@ -39,6 +39,8 @@ public class SyntaxAbstractionJUTest extends TestSuite {
                     "GrammarCompositionUseC.fss",
                     "GrammarCompositionUseD.fss",
                     "ForUse.fss",
+                    "OrUse.fss",
+                    "LabelUse.fss",
                     "SyntaxNodesUse.fss",
 		};
 		TestSuite suite = new TestSuite();
