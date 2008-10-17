@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component LabelTest
+export Executable
+
+trait T
+    m():()
+end
+
+topFunc():T =
+    label quit
+        object extends T
+            m():() = exit quit
+        end
+    end quit
+
+run(args:String...):() =
+    try topFunc().m()
+    catch e
+        LabelException => println "Ok"
+    end
+
+end

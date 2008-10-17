@@ -39,7 +39,7 @@ public class WellKnownNames {
     public final static String fortressBuiltin = "FortressBuiltin";
     public final static String anyTypeLibrary = "AnyType";
     public final static String executableApi = "Executable";
-    
+
     public static final String[] defaultLibrary =
         { anyTypeLibrary,
           fortressLibrary,
@@ -53,9 +53,9 @@ public class WellKnownNames {
     public final static String arrayElementTypeName = "T";
     public final static String arrayGetter = "get";
     public final static String arrayPutter = "init";
-    
+
     public final static String matrix = "Matrix";
-    
+
     public static final String thread = "Thread";
 
     public final static String loop = "loop";
@@ -77,7 +77,8 @@ public class WellKnownNames {
     public final static String matchFailureException = "MatchFailure";
     public final static String callerViolationException = "CallerViolation";
     public final static String calleeViolationException = "CalleeViolation";
-    
+    public final static String labelException = "LabelException";
+
     public final static String obfuscatedSingletonConstructorName(String fname, HasAt x) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
@@ -93,5 +94,5 @@ public class WellKnownNames {
         // TODO Auto-generated method stub
         return "*underscore_"+id.at();
     }
- 
+
 }

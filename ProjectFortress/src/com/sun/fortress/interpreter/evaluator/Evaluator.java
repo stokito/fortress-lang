@@ -1543,6 +1543,47 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
+    private FValue handleException(Try x, FObject exc,
+                                   FortressException original) {
+        FType excType = exc.type();
+        Option<Catch> _catchClause = x.getCatchClause();
+        if (_catchClause.isSome()) {
+            Catch _catch = _catchClause.unwrap();
+            Id name = _catch.getName();
+            List<CatchClause> clauses = _catch.getClauses();
+            for (CatchClause clause : clauses) {
+                BaseType match = clause.getMatch();
+                Block catchBody = clause.getBody();
+                FType foo = EvalType.getFType(match, e);
+                if (excType.subtypeOf(foo)) {
+                    try {
+                        Evaluator evClause = new Evaluator(this, _catch);
+                        evClause.e.putValue(name.getText(), exc);
+                        return catchBody.accept(evClause);
+                    } catch (FortressException err) {
+                        throw err.setContext(x,e);
+                    }
+                }
+            }
+        }
+        for (BaseType forbidType : x.getForbid()) {
+            if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
+                Environment libE = Driver.getFortressLibrary();
+                FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException);
+                List<FValue> args = new ArrayList<FValue>();
+                args.add(exc);
+                Constructor c = (Constructor) libE.getValue(WellKnownNames.forbiddenException);
+                // Can we get a better HasAt?
+                HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
+                FObject f = (FObject) c.apply(args, at, e);
+                FortressError f_exc = new FortressError(x,e,f);
+                throw f_exc;
+            }
+        }
+        // Nothing has handled or excluded exc; re-throw!
+        throw original;
+    }
+
     public FValue forTry(Try x) {
         Evaluator ev = new Evaluator(this, x);
         Block body = x.getBody();
@@ -1550,44 +1591,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
         try {
             res = body.accept(this);
             return res;
+        } catch (LabelException exc) {
+            return handleException(x,
+                                   (FObject)Driver.getFortressLibrary().getValue(WellKnownNames.labelException),
+                                   exc);
         } catch (FortressError exc) {
-            FType excType = exc.getException().type();
-            Option<Catch> _catchClause = x.getCatchClause();
-            if (_catchClause.isSome()) {
-                Catch _catch = _catchClause.unwrap();
-                Id name = _catch.getName();
-                List<CatchClause> clauses = _catch.getClauses();
-                for (CatchClause clause : clauses) {
-                    BaseType match = clause.getMatch();
-                    Block catchBody = clause.getBody();
-                    FType foo = EvalType.getFType(match, e);
-                    if (excType.subtypeOf(foo)) {
-                        try {
-                            Evaluator evClause = new Evaluator(this, _catch);
-                            evClause.e.putValue(name.getText(), exc.getException());
-                            return catchBody.accept(evClause);
-                        } catch (FortressException err) {
-                            throw err.setContext(x,e);
-                        }
-                    }
-                }
-            }
-            for (BaseType forbidType : x.getForbid()) {
-                if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
-                    Environment libE = Driver.getFortressLibrary();
-                  FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException);
-                  List<FValue> args = new ArrayList<FValue>();
-                  args.add(exc.getException());
-                  Constructor c = (Constructor) libE.getValue(WellKnownNames.forbiddenException);
-                  // Can we get a better HasAt?
-                  HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
-                  FObject f = (FObject) c.apply(args, at, e);
-                  FortressError f_exc = new FortressError(x,e,f);
-                  throw f_exc;
-                }
-            }
-            // Nothing has handled or excluded exc; re-throw!
-            throw exc;
+            return handleException(x, exc.getException(), exc);
         } finally {
             Option<Block> finallyClause = x.getFinallyClause();
             if (finallyClause.isSome()) {

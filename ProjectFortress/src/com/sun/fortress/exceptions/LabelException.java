@@ -20,18 +20,22 @@ package com.sun.fortress.exceptions;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 
-public class LabelException extends RuntimeException {
+public class LabelException extends FortressException {
 
     /**
      * Make Eclipse happy
      */
     private static final long serialVersionUID = -8845405020352925483L;
-    
+
     final FValue res;
     final HasAt loc;
 
     public String toString() {
         return (loc.at()+": exit without enclosing label block");
+    }
+
+    public String getMessage() {
+        return toString();
     }
 
     public LabelException(HasAt loc, FValue r) {

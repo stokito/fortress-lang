@@ -1271,6 +1271,10 @@ object CalleeViolation extends UncheckedException
     getter toString(): String = "Callee violation"
 end
 
+object LabelException extends UncheckedException
+    getter toString(): String = "Exiting without an enclosing label block"
+end
+
 object TestFailure extends UncheckedException
     getter toString(): String = "Test failure"
 end
@@ -3376,9 +3380,9 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     getter showStructure(): String = do
         showStructure(0)
-        self  
-      end  
-        
+        self
+      end
+
     opr |self| : ZZ32 = self.size
 
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =

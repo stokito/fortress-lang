@@ -31,6 +31,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.exceptions.MultipleStaticError;
+import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.ProgramError;
@@ -721,6 +722,14 @@ public final class Shell {
             System.exit(-1);
         } catch (RepositoryError e) {
             throw e;
+        } catch (LabelException e) {
+            System.err.println(e.getMessage());
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println("Turn on -debug for Java-level stack trace.");
+            }
+            System.exit(1);
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
