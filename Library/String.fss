@@ -17,6 +17,7 @@
 
 component String
 import List.{...}
+import JavaString.{...}
 export String
      
   test rangeIntersect() = do
@@ -88,20 +89,20 @@ export String
   
   
   trait Balanceable 
-    isBlanced() = |self| = 0 OR: |self| ≥ fib(self.depth)
+    getter isBalanced() = |self| = 0 OR: |self| ≥ fib[self.depth]
   end Balanceable
   
 (*
 ==== CatString ====
 *)
 
-  object CatString(left: String, right:String)  extends {String, Concatenable}
+  object CatString(left: String, right:String)  extends {String, Concatenable, Balanceable}
     size = left.size + right.size
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
     getter bounds() = 0#size
     getter generator() = ConcatGenerator(left.generator, right.generator)     
-    getter asJavaString() = (left.asJavaString) || (right.asJavaString)
+    getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
     opr CMP(self, other: String) ensures {outcome = (self.asJavaString CMP other.asJavaString)} =
         if |left| ≥ |other|
         then

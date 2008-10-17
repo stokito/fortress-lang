@@ -16,8 +16,9 @@
  ******************************************************************************)
 
 api JavaString
-  object JavaString
-        extends { String }
+  object JavaString extends { String }
+  
+        javaAppend(self, JavaString): JavaString
         
   end
 end

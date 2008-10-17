@@ -350,7 +350,7 @@ public final class Shell {
         throws Throwable {
         setPhase( PhaseOrder.CODEGEN );
         if ( ! isComponent(file) )
-            throw new UserError("A component file is expected to evaluate.");
+            throw new UserError(file + " is not a component file.");
         APIName name = trueApiName( file );
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
@@ -778,7 +778,7 @@ public final class Shell {
                     Iterable<? extends StaticError> errors = IterUtil.empty();
                     try {
                         if ( ! isComponent(file) )
-                            throw new UserError("A component file is expected to evaluate.");
+                            throw new UserError(file + " is not a component file.");
                         APIName name = trueApiName( file );
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );

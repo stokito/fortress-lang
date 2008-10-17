@@ -142,8 +142,8 @@ component StringTests
     b = bigger[30:36]
     a.verify
     b.verify
-    assert(smaller[30#6], bigger[30:35], smaller[30:35] " is not = to " bigger[30:35])
-    assert(smallerFlat[30#6], bigger[30:35], smallerFlat[30:35] " is not = to " bigger[30:35])
+    assert(smaller[30#6], bigger[30:35], smaller[30#6] " is not = to " bigger[30:35])
+    assert(smallerFlat[30#6], bigger[30:35], smallerFlat[30#6] " is not = to " bigger[30:35])
   end
   
   
@@ -157,7 +157,7 @@ component StringTests
     assert(smaller CASE_INSENSITIVE_CMP bigger, LessThan)
     assert(smallerFlat CASE_INSENSITIVE_CMP bigger, LessThan)
     assert(smallerFlat CASE_INSENSITIVE_CMP biggerFlat, LessThan)
-    assert(bigger CASE_INSENSITIVE_CMP smaller, GreaterThan)
+    assert(bigger CASE_INSENSITIVE_CMP smaller, GreaterThan) 
     assert(smaller[10:] CASE_INSENSITIVE_CMP bigger[10:], LessThan)
     assert(bigger[12:] CASE_INSENSITIVE_CMP smaller[12:], GreaterThan)
     assert(biggerFlat[12:] CASE_INSENSITIVE_CMP smaller[12:], GreaterThan)
