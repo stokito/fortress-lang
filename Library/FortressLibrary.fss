@@ -2805,8 +2805,8 @@ opr BIG |||(): Comprehension[\Any,String,String,String\] =
     Comprehension[\Any,String,String,String\](
         identity[\String\],SpaceReduction,fn (x:Any)=> "" x)
 
-opr BIG |||(g: Generator[\Any\]) =
-    __bigOperatorSugar[\Any,String,String,String\](BIG |||(), g)
+opr BIG |||[\T\](g: Generator[\T\]): String =
+    __bigOperatorSugar[\Any,String,String,String\](BIG |||(), g.map[\Any\](identity[\Any\]))
 
 (** This operator performs string concatenation with newline
     separation, first converting its inputs (of type Any) to String if
