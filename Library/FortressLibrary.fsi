@@ -866,6 +866,9 @@ end
 object CalleeViolation extends UncheckedException
 end
 
+object LabelException extends UncheckedException
+end
+
 object TestFailure extends UncheckedException
 end
 
