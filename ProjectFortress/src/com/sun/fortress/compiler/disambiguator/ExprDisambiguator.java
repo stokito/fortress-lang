@@ -1369,7 +1369,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             returnExpr_result :
             wrap((Expr)new VoidLiteralExpr(that.getSpan()));
 
-        if (target.isNone()) {
+        if (target.isNone() || _innerMostLabel.isNone()) {
             error("Exit occurs outside of a label", that);
         }
         Exit newExit = new Exit(that.getSpan(), that.isParenthesized(), exprType_result, target, with);
