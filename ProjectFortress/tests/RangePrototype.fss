@@ -24,7 +24,7 @@ export Executable
     This portion of the spec was causing a great deal of trouble,
     so it was pulled out so that ExtentScalarRange[\I\] could be added sensibly.
 **)
-intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:ScalarRange[\I\], resultStride:I): ScalarRange[\I\] = do
+intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:ScalarRange[\I\], resultStride:I): ScalarRange[\I\] = label intersection
     typecase (this,other) of
         (OpenScalarRange[\I\], ScalarRange[\I\]) =>
             other.every(resultStride DIV other.stride)
@@ -57,7 +57,7 @@ intersectUnbounded[\I extends Integral[\I\]\](this:ScalarRange[\I\], other:Scala
         (ScalarRange[\I\], ExtentScalarRange[\I\]) =>
             intersectUnbounded(other,this,resultStride)
     end
-  end
+  end intersection
 
 (** This is the old spec for intersection.  It's been replaced by INTERSECTNEW below. **)
 opr INTERSECTOLD[\I extends Integral[\I\]\](this:ScalarRange[\I\], other: ScalarRange[\I\]): ScalarRange[\I\] = label intersection
