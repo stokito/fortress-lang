@@ -18,6 +18,9 @@
 component hello
 export Executable
 
-run(args:String...) = println "Hello, World!"
+run(args:String...) = do
+ println("Hello,"||" World!")
+ println("Hello, World"||'!')
+end
 
 end
