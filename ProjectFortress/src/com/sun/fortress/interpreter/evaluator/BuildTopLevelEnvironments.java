@@ -198,14 +198,15 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         switch (getPass()) {
         case 1: forComponent1(x); break;
 
-        case 2: doDefs(this, defs); {
+        case 2: doDefs(this, defs); 
+        break;
+        case 3: {
             ForceTraitFinish v = new ForceTraitFinish() ;
             for (AbsDeclOrDecl def : defs) {
                 v.visit(def);
             }
         }
-        break;
-        case 3: doDefs(this, defs);break;
+        doDefs(this, defs);break;
         case 4: doDefs(this, defs);break;
         }
         return null;
