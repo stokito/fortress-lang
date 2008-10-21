@@ -658,8 +658,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     // TypesUtil.applicationType...
     private Pair<List<Method>,List<TypeCheckerResult>> findMethodsInTraitHierarchy(final IdOrOpOrAnonymousName method_name, List<TraitType> supers,
             Type arg_type, List<StaticArg> in_static_args,
-            Node that) {
-        List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
+            final Node that) {
+        final List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
         List<Method> candidates=new ArrayList<Method>();
         List<TraitType> new_supers=new ArrayList<TraitType>();
         SubtypeHistory history = subtypeChecker.new SubtypeHistory();
@@ -686,17 +686,23 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if( m.staticParameters().size() > 0 && in_static_args.size() == 0 ) {
                     // we need to infer static arguments
 
-                    // TODO if parameters are anything but TypeParam, we don't know
-                    // how to infer it yet.
-                    for( StaticParam p : m.staticParameters() )
-                        if( !(p instanceof TypeParam) ) continue;
-                    // Otherwise, we've got all static parameters
                     List<StaticArg> static_inference_params =
                         CollectUtil.makeList(
                                 IterUtil.map(m.staticParameters(), new Lambda<StaticParam,StaticArg>(){
                                     public StaticArg value(StaticParam arg0) {
-                                        Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
-                                        return new TypeArg(ivt);
+                                    	// TODO if parameters are anything but TypeParam, we don't know
+                                        // how to infer it yet.
+                                        // Otherwise, we've got all static parameters
+                                    	if(arg0 instanceof TypeParam){
+                                    		Set<BaseType> bounds = CollectUtil.asSet(((TypeParam)arg0).getExtendsClause());
+                                    		Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());   
+                                        	ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));          
+                                            all_results.add(new TypeCheckerResult(that, Option.<Type>none(), constraint));
+                                        	return new TypeArg(ivt);
+                                    	}
+                                    	else{
+                                    		return NI.nyi();
+                                    	}
                                     }}));
                     static_args = static_inference_params;
                 }
@@ -720,7 +726,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             }
         }
-
+        //If you have a super type check it for overloadings
         if(!new_supers.isEmpty()){
 
             Pair<List<Method>, List<TypeCheckerResult>> temp = findMethodsInTraitHierarchy(method_name, new_supers, arg_type, in_static_args, that);
@@ -879,8 +885,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // Add constraints from the arguments, since they may affect overloading choice
             TypeCheckerResult fn_result = recur(that.getFunction());
             Iterable<ConstraintFormula> arg_constraint = Collections.singletonList(arg_result.getNodeConstraints());
+            //debugging
+            ConstraintFormula temp = ConstraintFormula.TRUE;
+            for(ConstraintFormula i: arg_constraint){
+            	temp.and(i, this.subtypeChecker.new SubtypeHistory());
+            }
+            Boolean blah = temp.isSatisfiable();
+            //end debugging
             return this.extendWithConstraints(arg_constraint).for_RewriteFnAppOnly(that,
-                    Option.<TypeCheckerResult>none(), fn_result, arg_result);
+            		Option.<TypeCheckerResult>none(), fn_result, arg_result);
         }
     }
 
@@ -935,7 +948,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 TypeCheckerResult obj_result,
 			 List<TypeCheckerResult> staticArgs_result) {
 	     Type t;
-		 if( obj_result.type().isNone() ) {
+	     ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+	     if( obj_result.type().isNone() ) {
 			 return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
 					 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
 		 }
@@ -945,11 +959,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		 else if( (obj_result.type().unwrap() instanceof _RewriteGenericSingletonType) ) {
 			 // instantiate with static parameters
 			 _RewriteGenericSingletonType uninstantiated_t = (_RewriteGenericSingletonType)obj_result.type().unwrap();
-			 boolean match = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams());
-			 if( match ) {
+			 Option<ConstraintFormula> constraint = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams(), this.subtypeChecker);
+			 if(constraint.isSome()) {
 				 // make a trait type that is GenericType instantiated
 				 t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(),
 						 uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs());
+				 accumulated_constraints = constraint.unwrap();
 			 }
 			 else {
 				 // error
@@ -965,7 +980,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		 Node new_node = new _RewriteObjectRef(that.getSpan(), that.isParenthesized(), Option.<Type>some(t), (Id) obj_result.ast(), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
 		 return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
-                 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+                 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
+                  new TypeCheckerResult(new_node,accumulated_constraints));
 	 }
 
 	 @Override
@@ -1056,14 +1072,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			 return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result);
 		 }
 		 else{
-			 if(StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters())){
+			 Option<ConstraintFormula> constraint = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters(), this.subtypeChecker);
+			 if(constraint.isSome()){
 				 TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
 						 ((TypeArg)that.getStaticArgs().get(0)).getType(), that,
 						 element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
 				 Type t=Types.makeArrayKType(1, that.getStaticArgs());
 				 Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
 				 return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result, res,
-						 TypeCheckerResult.compose(new_node,this.subtypeChecker,staticArgs_result));
+						 TypeCheckerResult.compose(new_node,this.subtypeChecker,staticArgs_result),
+						 new TypeCheckerResult(new_node, constraint.unwrap()));
 			 }
 			 else{
 				 String err = "Explicit static arguments do not match required arguments for Array1 (" + index.staticParameters() + ".)";
@@ -1075,7 +1093,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 }
 
 
-	 // This method is pretty long because we have to create a new visitor that visitis ArrayElements and ArrayElement
+	 // This method is pretty long because we have to create a new visitor that visits ArrayElements and ArrayElement
 	 // knowing that we are inside of another ArrayElement.
 
 	 private static Pair<Type,List<BigInteger>> getTypeAndBoundsFromArray(Type that){
@@ -1176,6 +1194,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 
 	     Type return_type;
+	     ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
          if(that.getStaticArgs().isEmpty()){
 	         if(failed || !same_size){
 	             return TypeCheckerResult.compose(that, subtypeChecker, all_results);
@@ -1199,12 +1218,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	     }
 	     else{
 	         List<StaticArg> sargs = that.getStaticArgs();
-             if( StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters()) ) {
+	         Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters(), this.subtypeChecker); 
+             if(constraints.isSome()) {
                  // First arg MUST BE a TypeArg, and it must be a supertype of the elements
                  Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
                  all_results.add(this.checkSubtype(array_type, declared_type, that, "Array elements must be a subtype of explicity declared type" + declared_type + "."));
                  //Check infered dims against explicit dims
                  return_type = Types.makeArrayKType(dim, sargs);
+                 accumulated_constraints=constraints.unwrap();
              }
              else {
                  // wrong args passed
@@ -1225,6 +1246,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
           };
           ArrayElements new_node=new ArrayElements(that.getSpan(), that.isParenthesized(), Option.some(return_type) , that.getStaticArgs(),
                   that.getDimension(), Useful.list(IterUtil.map(subarrays, get_expr)), that.isOutermost());
+          
+          all_results.add(new TypeCheckerResult(new_node, accumulated_constraints));
+ 
           return TypeCheckerResult.compose(new_node, Option.some(return_type) ,subtypeChecker, all_results);
 
 	 }
@@ -2443,6 +2467,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         Node new_node;
         Option<Type> type;
+        ConstraintFormula constraints=ConstraintFormula.TRUE;
 
         // if no static args are provided, and we have several overloadings, we
         // will create a _RewriteInstantiatedFnRef
@@ -2451,20 +2476,19 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // create a _FnInstantitedOverloading
             List<_RewriteFnRefOverloading> fn_overloadings = new ArrayList<_RewriteFnRefOverloading>();
             List<Type> arrow_types = new ArrayList<Type>();
-
+            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
             for( Type overloaded_type : overloaded_types ) {
                 for( Type overloading : TypesUtil.conjuncts(overloaded_type) ) {
                     // If type needs static args, create inference vars, and apply to the signature
-                    Option<Pair<Type,List<StaticArg>>> new_type_and_args_ =
-                        overloading.accept(new TypeAbstractVisitor<Option<Pair<Type,List<StaticArg>>>>() {
-
+                    Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>> new_type_and_args_ =
+                        overloading.accept(new TypeAbstractVisitor<Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>>>() {
                             @Override
-                            public Option<Pair<Type, List<StaticArg>>> for_RewriteGenericArrowType(
+                            public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> for_RewriteGenericArrowType(
                                     _RewriteGenericArrowType gen_arr_type) {
                                 // If the arrow type is generic, it needs static args, so make up inference variables
                                 List<StaticArg> new_args =
                                     TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
-                                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args);
+                                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args, TypeChecker.this.subtypeChecker);
 
                                 if( instantiated_type.isNone() )
                                     return none();
@@ -2473,19 +2497,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             }
 
                             @Override
-                            public Option<Pair<Type, List<StaticArg>>> forType(Type that) {
+                            public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forType(Type that) {
                                 // any other sort of Type does not get rewritten, and has no args
-                                return some(Pair.make(that, Collections.<StaticArg>emptyList()));
+                                return some(Pair.make(Pair.make(that, ConstraintFormula.TRUE), Collections.<StaticArg>emptyList()));
                             }
-
                     });
 
                     // For now, we don't consider overloadings that require inference of bools/nats/ints
                     if( new_type_and_args_.isNone() ) continue;
-
-                    Type new_type = new_type_and_args_.unwrap().first();
+                    Type new_type = new_type_and_args_.unwrap().first().first();
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
-
                     // create new FnRef for this application of static params
                     FnRef fn_ref = new FnRef(that.getSpan(),
                                              that.isParenthesized(),
@@ -2496,15 +2517,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              new_args);
                     fn_overloadings.add(new _RewriteFnRefOverloading(that.getSpan(), fn_ref, new_type));
                     arrow_types.add(new_type);
+                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
                 }
             }
 
             type = (arrow_types.isEmpty()) ?
                     Option.<Type>none() :
                         Option.<Type>some(new IntersectionType(arrow_types));
-
-                    //public _RewriteInstantiatedFnRefs(Span in_span, boolean in_parenthesized, Option<Type> in_exprType, int in_lexicalDepth, Id in_originalName, List<Id> in_fns, List<StaticArg> in_staticArgs, List<_RewriteFnRefOverloading> in_overloadings) {
-
+            constraints = accumulated_constraints;
             new_node = new _RewriteInstantiatedFnRefs(that.getSpan(),
                                                       that.isParenthesized(),
                                                       type,
@@ -2517,14 +2537,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         else {
             // otherwise, we just operate according to the normal procedure, apply args or none were necessary
             List<Type> arrow_types = new ArrayList<Type>();
-
+            ConstraintFormula accumulated_constraints=ConstraintFormula.TRUE;
             for( Type ty : overloaded_types ) {
-                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs());
-
-                if( instantiated_type.isSome() )
-                    arrow_types.add(instantiated_type.unwrap());
+                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(), this.subtypeChecker);
+                if( instantiated_type.isSome() ){
+                    arrow_types.add(instantiated_type.unwrap().first());
+                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(),this.subtypeChecker.new SubtypeHistory());
+                }
             }
-
             if (arrow_types.isEmpty()) {
                 type = Option.<Type>none();
             } else if (arrow_types.size() == 1) { // special case to allow for simpler types
@@ -2536,7 +2556,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             type = (arrow_types.isEmpty()) ?
                     Option.<Type>none() :
                         Option.<Type>some(new IntersectionType(arrow_types));
-
+            constraints = accumulated_constraints;
             new_node = new FnRef(that.getSpan(),
                                 that.isParenthesized(),
                                 type,
@@ -2548,7 +2568,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         return TypeCheckerResult.compose(new_node, type, subtypeChecker,
                 TypeCheckerResult.compose(new_node, subtypeChecker, fns_result),
-                TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result));
+                TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result),
+                new TypeCheckerResult(new_node, constraints));
     }
 
     @Override
@@ -3657,27 +3678,26 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         Node new_node;
         Option<Type> type;
-
+        ConstraintFormula constraints=ConstraintFormula.TRUE;
+        
         // If no static args are given, but overloadings require them, we'll create a
         // _RewriteInstantiatedOpRef.
         if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
             List<_RewriteOpRefOverloading> overloadings = new ArrayList<_RewriteOpRefOverloading>();
             List<Type> arrow_types = new ArrayList<Type>();
-
+            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
             for( Type overloaded_type : overloaded_types ) {
                 for( Type overloading : TypesUtil.conjuncts(overloaded_type) ) {
                     // If type needs static args, create inference vars, and apply to the signature
-                    Option<Pair<Type,List<StaticArg>>> new_type_and_args_ =
-                        overloading.accept(new TypeAbstractVisitor<Option<Pair<Type,List<StaticArg>>>>() {
-
+                    Option<Pair<Pair<Type, ConstraintFormula>, List<StaticArg>>> new_type_and_args_ =
+                        overloading.accept(new TypeAbstractVisitor<Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>>>() {
                             @Override
-                            public Option<Pair<Type, List<StaticArg>>> for_RewriteGenericArrowType(
+                            public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> for_RewriteGenericArrowType(
                                     _RewriteGenericArrowType gen_arr_type) {
                                 // If the arrow type is generic, it needs static args, so make up inference variables
                                 List<StaticArg> new_args =
                                     TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
-                                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args);
-
+                                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args,TypeChecker.this.subtypeChecker);
                                 if( instantiated_type.isNone() )
                                     return none();
                                 else
@@ -3685,9 +3705,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             }
 
                             @Override
-                            public Option<Pair<Type, List<StaticArg>>> forType(Type that) {
+                            public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forType(Type that) {
                                 // any other sort of Type does not get rewritten, and has no args
-                                return some(Pair.make(that, Collections.<StaticArg>emptyList()));
+                                return some(Pair.make(Pair.make(that,ConstraintFormula.TRUE), Collections.<StaticArg>emptyList()));
                             }
 
                     });
@@ -3695,7 +3715,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     // For now, we don't consider overloadings that require inference of bools/nats/ints
                     if( new_type_and_args_.isNone() ) continue;
 
-                    Type new_type = new_type_and_args_.unwrap().first();
+                    Type new_type = new_type_and_args_.unwrap().first().first();
+                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 
                     OpRef new_op_ref = new OpRef(that.getSpan(),
@@ -3721,21 +3742,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                       that.getOps(),
                                                       that.getStaticArgs(),
                                                       overloadings);
+            constraints = accumulated_constraints;
         }
         else {
             // otherwise we just do the normal thing
             List<Type> arrow_types = new ArrayList<Type>();
+            ConstraintFormula accumulated_constraints=ConstraintFormula.TRUE;
             for( Type ty : overloaded_types ) {
-                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs());
-
-                if( instantiated_type.isSome() )
-                    arrow_types.add(instantiated_type.unwrap());
+                Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(),this.subtypeChecker);
+                if( instantiated_type.isSome()){
+                    arrow_types.add(instantiated_type.unwrap().first());
+                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), this.subtypeChecker.new SubtypeHistory());
+                }
             }
 
             type = (arrow_types.isEmpty()) ?
                     Option.<Type>none() :
                     Option.<Type>some(new IntersectionType(arrow_types));
 
+            constraints = accumulated_constraints;        
             new_node = new OpRef(that.getSpan(),
                                  that.isParenthesized(),
                                  type,
@@ -3745,33 +3770,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                  (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result));
         }
 
-//        // Get intersection of overloaded operator types.
-//        List<Type> overloadedTypes = new ArrayList<Type>(ops_result.size());
-//        for (TypeCheckerResult op_result : ops_result) {
-//            if (op_result.type().isSome()) {
-//                // Apply static arguments. Like FnRef, there is no other location in the
-//                // AST where we are able to apply.
-//                Option<Type> instantiated_type = TypesUtil.applyStaticArgsIfPossible(op_result.type().unwrap(), that.getStaticArgs());
-//
-//                if( instantiated_type.isSome() )
-//                    overloadedTypes.add(instantiated_type.unwrap());
-//            }
-//        }
-//        Option<Type> type = (overloadedTypes.isEmpty()) ?
-//                Option.<Type>none() :
-//                    Option.<Type>some(new IntersectionType(overloadedTypes));
-//
-//        OpRef new_node = new OpRef(that.getSpan(),
-//                                   that.isParenthesized(),
-//                                   type,
-//                                   that.getLexicalDepth(),
-//                                   that.getOriginalName(),
-//                                   (List<OpName>)TypeCheckerResult.astFromResults(ops_result),
-//                                   (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result));
-
+        
+        
         return TypeCheckerResult.compose(new_node, type, subtypeChecker,
                 TypeCheckerResult.compose(new_node, subtypeChecker, ops_result),
-                TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result));
+                TypeCheckerResult.compose(new_node, subtypeChecker, staticArgs_result),
+                new TypeCheckerResult(new_node, constraints));
     }
 
 	 @Override

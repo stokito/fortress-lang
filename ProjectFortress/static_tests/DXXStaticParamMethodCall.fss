@@ -1,0 +1,17 @@
+ component DXXStaticParamMethodCall
+ export Executable
+ 
+   trait B
+   end
+   
+   object A
+   end
+   
+   object C
+     foo[\T extends B\](x:T):T = x
+   end
+   
+   run(args: String...):() = ignore(C.foo(A)) 
+ 
+ 
+ end

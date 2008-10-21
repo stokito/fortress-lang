@@ -403,45 +403,52 @@ public class TypesUtil {
      * @param static_args
      * @return
      */
-    public static Option<Type> applyStaticArgsIfPossible(Type type, final List<StaticArg> static_args) {
+    public static Option<Pair<Type,ConstraintFormula>> applyStaticArgsIfPossible(Type type, final List<StaticArg> static_args, final TypeAnalyzer subtype_checker) {
     	if( static_args.size() == 0 ) {
-    		return Option.some(type);
+    		return Option.some(Pair.make(type, ConstraintFormula.TRUE));
     	}
     	else {
-    		return type.accept(new NodeDepthFirstVisitor<Option<Type>>() {
+    		return type.accept(new NodeDepthFirstVisitor<Option<Pair<Type,ConstraintFormula>>>() {
     			@Override
-    			public Option<Type> defaultCase(Node that) {
+    			public Option<Pair<Type,ConstraintFormula>> defaultCase(Node that) {
     				return Option.none();
     			}
-    			public Option<Type> forIntersectionType(IntersectionType that) {
-    				List<Option<Type>> results = this.recurOnListOfType(that.getElements());
+    			
+    			@Override
+    			public Option<Pair<Type,ConstraintFormula>> forIntersectionType(IntersectionType that) {
+    				List<Option<Pair<Type,ConstraintFormula>>> results = this.recurOnListOfType(that.getElements());
     				List<Type> conjuncts = new ArrayList<Type>(results.size());
-    				for( Option<Type> t : results ) {
+    				ConstraintFormula accumulated_constraint=ConstraintFormula.TRUE;
+    				for( Option<Pair<Type,ConstraintFormula>> t : results ) {
     					if( t.isNone() ) {
     						return Option.none();
     					}
     					else {
-    						conjuncts.add(t.unwrap());
+    						conjuncts.add(t.unwrap().first());
+    						accumulated_constraint.and(t.unwrap().second(),subtype_checker.new SubtypeHistory());
     					}
     				}
-    				return Option.<Type>some(new IntersectionType(that.getSpan(),that.isParenthesized(),conjuncts));
+    				return Option.some(Pair.make((Type) new IntersectionType(that.getSpan(),that.isParenthesized(),conjuncts),accumulated_constraint));
     			}
 
     			@Override
-    			public Option<Type> for_RewriteGenericArrowType(
+    			public Option<Pair<Type,ConstraintFormula>> for_RewriteGenericArrowType(
     					_RewriteGenericArrowType that) {
-    				if( StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams()) ) {
+    				
+    				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams(), subtype_checker);
+    				
+    				if(constraints.isSome()) {
     					_RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
     					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
-    					return Option.some(new_type);
+    					return Option.some(Pair.make(new_type,constraints.unwrap()));
     				}
     				else {
     					return Option.none();
     				}
     			}
     			@Override
-    			public Option<Type> forArrowType(ArrowType that) {
-    				return Option.<Type>none();
+    			public Option<Pair<Type,ConstraintFormula>> forArrowType(ArrowType that) {
+    				return Option.none();
     			}
     		});
     	}
