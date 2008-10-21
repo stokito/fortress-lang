@@ -380,7 +380,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     abstract public  Number getNatNull(String str);
 
     public Closure getRunClosure() {
-        return (Closure) getValue("run");
+        return (Closure) getRootValue("run");
     }
 
     final public  FType getType(NamedType q)  {
@@ -442,7 +442,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 //            return x;
 //    }
 
-    final public  FValue getValue(String str) {
+    final public  FValue getLeafValue(String str) {
+        FValue x = getValueNull(str);
+        return getValueTail(str, x);
+    }
+
+    final public  FValue getRootValue(String str) {
         FValue x = getValueNull(str);
         return getValueTail(str, x);
     }
@@ -593,8 +598,9 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         putValue(NodeUtil.nameString(name), x);
     }
 
+    // TODO this needs to be level-disambiguated
     public Closure getClosure(String s) {
-        return (Closure) getValue(s);
+        return (Closure) getLeafValue(s);
     }
 
     public void putVariable(String str, FValue f2) {
@@ -743,11 +749,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             int negative_object_depth) {
         if (-negative_object_depth > 0) {
             negative_object_depth = -1 - negative_object_depth;
-            FObject obj = (FObject) e.getValue(WellKnownNames.secretSelfName);
+            FObject obj = (FObject) e.getLeafValue(WellKnownNames.secretSelfName);
             e = obj.getSelfEnv();
             while (negative_object_depth > 0) {
                 negative_object_depth--;
-                obj = (FObject) e.getValue(WellKnownNames.secretParentName);
+                obj = (FObject) e.getLeafValue(WellKnownNames.secretParentName);
                 e = obj.getSelfEnv();
             }
         } else if (negative_object_depth == 0)

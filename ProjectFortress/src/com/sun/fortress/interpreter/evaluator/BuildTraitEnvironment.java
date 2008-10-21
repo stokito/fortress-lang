@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.TraitMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
+import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
@@ -113,11 +114,75 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         } else {
             // NOT GENERIC
             {
-                Fcn fcn = (Fcn) containing.getValue(fname);
+                Fcn fcn = (Fcn) containing.getLeafValue(fname);
                 fcn.finishInitializing();
             }
         }
    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     */
+    @Override
+    public Boolean forAbsFnDecl(AbsFnDecl x) {
+        // This is called from BuildTraitEnvironment
+        switch (getPass()) {
+        case 1: forAbsFnDecl1(x); break;
+        case 2: forAbsFnDecl2(x); break;
+        case 3: forAbsFnDecl3(x); break;
+        case 4: forAbsFnDecl4(x); break;
+        }
+       return null;
+    }
+    private void forAbsFnDecl1(AbsFnDecl x) {
+
+
+        List<StaticParam> optStaticParams = x.getStaticParams();
+        String fname = NodeUtil.nameAsMethod(x);
+
+        if (!optStaticParams.isEmpty()) {
+            // GENERIC
+
+                // TODO same treatment as regular functions.
+                FValue cl = newGenericClosure(containing, x);
+                // LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
+                bindInto.putValue(fname, cl); // was "shadow"
+
+
+        } else {
+            // NOT GENERIC
+
+                Simple_fcn cl = newClosure(containing, x);
+                // LINKER putOrOverloadOrShadow(x, containing, name, cl);
+                bindInto.putValue(fname, cl); // was "shadow"
+
+        }
+
+    }
+    private void forAbsFnDecl2(AbsFnDecl x) {
+    }
+    private void forAbsFnDecl3(AbsFnDecl x) {
+
+
+        List<StaticParam> optStaticParams = x.getStaticParams();
+        String fname = NodeUtil.nameAsMethod(x);
+
+        if (!optStaticParams.isEmpty()) {
+            // GENERIC
+
+
+        } else {
+            // NOT GENERIC
+
+            Fcn fcn = (Fcn) containing.getLeafValue(fname);
+            fcn.finishInitializing();
+        }
+
+    }
+    private void forAbsFnDecl4(AbsFnDecl x) {
+    }
 
 
 }

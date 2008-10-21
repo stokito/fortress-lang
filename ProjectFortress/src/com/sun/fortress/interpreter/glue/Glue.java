@@ -138,7 +138,7 @@ public class Glue {
     }
 
     public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, int[] nats, HasAt x) {
-        FValue thingMakerValue = e.getValue(genericName);
+        FValue thingMakerValue = e.getRootValue(genericName);
         Factory1P<List<FType>, Simple_fcn, HasAt> thingMaker =
             (Factory1P<List<FType>, Simple_fcn, HasAt>) thingMakerValue;
         List<FType> l = parametersForGenericIndexed(T, nats);
@@ -147,7 +147,7 @@ public class Glue {
     }
 
     public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, HasAt x) {
-        FValue thingMakerValue = e.getValue(genericName);
+        FValue thingMakerValue = e.getRootValue(genericName);
         Factory1P<List<FType>, Simple_fcn, HasAt> thingMaker =
             (Factory1P<List<FType>, Simple_fcn, HasAt>) thingMakerValue;
         List<FType> l = Useful.list(T);

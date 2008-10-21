@@ -48,7 +48,7 @@ public class PrimitiveArray extends NativeConstructor {
 
     @Override
     protected void oneTimeInit(Environment self_env) {
-        s0 = self_env.getValue("s0").getInt();
+        s0 = self_env.getLeafValue("s0").getInt();
     }
 
     private static abstract class vi2O extends NativeMeth1 {

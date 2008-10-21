@@ -105,17 +105,24 @@ public interface Environment  {
     //public abstract FValue getValue(Id d);
 
     /**
-     * Get a value from this environment or a parent.
+     * Get a value from this environment (not a parent).
      * Throws an Error if not found.
      * @param str
      */
-    public abstract FValue getValue(String str);
+    public abstract FValue getLeafValue(String str); // 37 refs
+    
+    /**
+     * Get a value from top-level environment.
+     * Throws an Error if not found.
+     * @param str
+     */
+    public abstract FValue getRootValue(String str); // 37 refs
 
     /**
      * Be prepared for a null if the value is missing!
      * @param s
      */
-    public abstract FValue getValueNull(String s);
+    public abstract FValue getValueNull(String s); // 11 refs
     
     /**
      * Similar to the string version, but able to deal with
@@ -124,23 +131,23 @@ public interface Environment  {
      * @param vr
      * @return
      */
-    public abstract FValue getValueNull(VarRef vr);
+    public abstract FValue getValueNull(VarRef vr); // 2 refs
     
-    public abstract FValue getValueNull(OpRef vr);
+    public abstract FValue getValueNull(OpRef vr); // 2 refs
 
-    public abstract FValue getValueNull(Id name, int l);
+    public abstract FValue getValueNull(Id name, int l); // 3 refs
         
-    public abstract FValue getValueNull(OpName name, int l);
+    public abstract FValue getValueNull(OpName name, int l); // 2 refs
     
-    public abstract FValue getValue(Id name, int l);
+    public abstract FValue getValue(Id name, int l); // 0 refs
     
-    public abstract FValue getValue(OpName name, int l);
+    public abstract FValue getValue(OpName name, int l); // 1 ref
     
-    public abstract FValue getValue(VarRef vr);
+    public abstract FValue getValue(VarRef vr); // 0 refs
     
-    public abstract FValue getValue(OpRef vr);
+    public abstract FValue getValue(OpRef vr); // 2 refs
 
-    public abstract FValue getValueRaw(String s);
+    public abstract FValue getValueRaw(String s); // 20 refs
 
     /**
      * Get a value from this environment or a parent.

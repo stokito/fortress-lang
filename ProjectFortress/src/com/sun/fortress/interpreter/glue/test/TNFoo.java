@@ -35,7 +35,7 @@ public class TNFoo extends NativeConstructor {
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
-        return new Obj(args.get(0).getString(),getSelfEnv().getValue("n").getInt(),con);
+        return new Obj(args.get(0).getString(),getSelfEnv().getLeafValue("n").getInt(),con);
     }
 
     private static final class Obj extends FNativeObject {

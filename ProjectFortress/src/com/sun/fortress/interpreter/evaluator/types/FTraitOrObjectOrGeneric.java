@@ -179,7 +179,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // "+pass);
                     String fndodname = NodeUtil.nameString(fndod.getName());
 
-                    Fcn fcn = (Fcn) topLevel.getValue(fndodname);
+                    Fcn fcn = (Fcn) topLevel.getRootValue(fndodname);
 
                     fcn.finishInitializing();
                 }

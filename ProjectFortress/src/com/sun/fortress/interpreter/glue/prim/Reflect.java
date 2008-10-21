@@ -47,7 +47,7 @@ public class Reflect extends NativeConstructor {
 
     public Reflect(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
-        gcon = (GenericConstructor)env.getValue("Reflect");
+        gcon = (GenericConstructor)env.getLeafValue("Reflect");
     }
 
     protected FNativeObject makeNativeObject(List<FValue> args, NativeConstructor con) {
