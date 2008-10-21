@@ -331,7 +331,7 @@ public final class Shell {
                 writer.close();
                 System.out.println( "Dumped code to " + out.unwrap() );
             } catch ( IOException e ){
-                throw new IOException( "IOExcpetion " + e +
+                throw new IOException( "IOException " + e +
                         " while writing " + out.unwrap() );
             }
         } else {

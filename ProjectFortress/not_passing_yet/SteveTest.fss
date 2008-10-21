@@ -1,9 +1,0 @@
-component SteveTest (* trying out stuff *)
-import List.{...}
-import Set.{...}
-export Executable
-
-  generators = {[\ ZZ32,ZZ32 \] a | a<-3:10 }
-  run(args:String...) = do end
-
-end

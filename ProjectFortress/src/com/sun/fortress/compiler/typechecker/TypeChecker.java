@@ -919,7 +919,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             result_type = Option.none();
         }
 
-        _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(), that.isParenthesized(), result_type, (Expr) function_result.ast(), (Expr) argument_result.ast());
+        _RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(),
+                                                   that.isParenthesized(),
+                                                   result_type,
+                                                   (Expr) function_result.ast(),
+                                                   (Expr) argument_result.ast());
 
         // On the post-inference pass, an application could produce Inference vars
         TypeCheckerResult successful = new TypeCheckerResult(that);
@@ -3146,8 +3150,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					 }
 				 }
 				 // Otherwise, make a new MathPrimary that is one element shorter, and recur
-				 _RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(),arg.getSpan()), front, ((ExprMI)arg).getExpr());
-				 MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),fn,new_items);
+				 _RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
+				                                      front,
+				                                      ((ExprMI)arg).getExpr());
+				 MathPrimary new_primary = new MathPrimary(that.getSpan(),
+				                                           that.isParenthesized(),
+				                                           that.getMultiJuxt(),
+				                                           that.getInfixJuxt(),
+				                                           fn,
+				                                           new_items);
 				 return new_primary.accept(this);
 			 }
 		 }
@@ -3891,8 +3902,38 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 public TypeCheckerResult forTightJuxt(TightJuxt that) {
 		 // Just create a MathPrimary
 		 Expr front = IterUtil.first(that.getExprs());
-		 Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
+		 
+		 // If this juxt is actually a fn app, then rewrite to a fn app.
+		 if (that.isFnApp()) {
+		     
+		     // Make sure it is just two exprs.
+		     if (that.getExprs().size() != 2) {
+		         bug(String.format("TightJuxt denoted as function application but has %d (!= 2) exprs.", that.getExprs().size()));
+		     }
+             Expr arg = that.getExprs().get(1);
+             _RewriteFnApp fnApp = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
+                                                     front, arg);
+		     
+		     // Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
+		     Type freshArrow = NodeFactory.makeArrowType(new Span(),
+		                                                 NodeFactory.make_InferenceVarType(),
+		                                                 NodeFactory.make_InferenceVarType());
+		     TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);
+		     
+		     // Type check the other nodes and recur on the fn app.
+		     Option<TypeCheckerResult> exprType_result = this.recurOnOptionOfType(that.getExprType());
+		     TypeCheckerResult arg_result = arg.accept(this);
+             TypeCheckerResult fnApp_result = this.for_RewriteFnAppOnly(fnApp,
+                                                                        exprType_result,
+                                                                        front_result,
+                                                                        arg_result);
+		     return TypeCheckerResult.compose(that,
+		                                      fnApp_result.type(),
+		                                      subtypeChecker,
+		                                      fnApp_result);
+		 }
 
+         Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
 		 List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
 			 public MathItem value(Expr arg0) {
 				 if( arg0.isParenthesized() || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
