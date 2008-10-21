@@ -350,7 +350,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                     BetterEnv m = getMembers();
 
                     for (String s : m.youngestFrame()) {
-                        FValue fv = m.getValue(s);
+                        FValue fv = m.getLeafValue(s);
 
                         if (fv instanceof OverloadedFunction) {
                             // Treat the overloaded function as a bag of separate
@@ -417,7 +417,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
     private void addEnvToMultiMap(BetterEnv ps,
             MultiMap<String, Overload> mmap) {
         for (String s : ps.youngestFrame()) {
-            FValue fv = ps.getValue(s);
+            FValue fv = ps.getLeafValue(s);
 
             if (fv instanceof OverloadedFunction) {
                 // Treat the overloaded function as a bag of separate

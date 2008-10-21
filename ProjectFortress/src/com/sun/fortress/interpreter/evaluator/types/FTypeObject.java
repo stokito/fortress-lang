@@ -126,7 +126,7 @@ public class FTypeObject extends FTraitOrObject {
         for(AbsDeclOrDecl v : members) {
             if (v instanceof FnAbsDeclOrDecl) {
                 String s = NodeUtil.nameAsMethod((FnAbsDeclOrDecl)v);//.getName().stringName();
-                declaredMembersOf.putValueRaw(s,  methodEnv.getValue(s));
+                declaredMembersOf.putValueRaw(s,  methodEnv.getLeafValue(s));
             }
         }
 

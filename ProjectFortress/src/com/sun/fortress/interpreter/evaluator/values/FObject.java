@@ -29,11 +29,11 @@ public abstract class FObject extends FValue implements Selectable {
     public abstract Environment getLexicalEnv();
 
     public FValue select(String s) {
-        return getSelfEnv().getValue(s);
+        return getSelfEnv().getLeafValue(s);
     }
     
     public FValue selectField(String s) {
-        return getSelfEnv().getValue("$" + s);
+        return getSelfEnv().getLeafValue("$" + s);
     }
 
     public String getString() { return type().toString(); }

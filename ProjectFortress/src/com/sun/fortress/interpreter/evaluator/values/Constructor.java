@@ -484,7 +484,7 @@ public class Constructor extends NonPrimitive {
             MultiMap<String, GenericMethod> generics,
             Map<String, List<FType>> genericArgs, FTraitOrObject ft, Environment e) {
         for (String s : e.youngestFrame()) {
-            FValue fv = e.getValue(s);
+            FValue fv = e.getLeafValue(s);
             if (alreadyOverridden == null || ! alreadyOverridden.contains(s)) {
 
            // This has got to be wrong...
@@ -530,7 +530,7 @@ public class Constructor extends NonPrimitive {
             MultiMap<String, GenericMethod> generics,
             FTraitOrObject ft, Environment e) {
         for (String s : e.youngestFrame()) {
-            FValue fv = e.getValue(s);
+            FValue fv = e.getLeafValue(s);
             if (fv instanceof GenericMethod) {
                 // TODO This is VERY approximate
                 generics.putItem(s, (GenericMethod) fv);

@@ -53,8 +53,8 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
             error(at,errorMsg(" expected an array object, got ", fv));
         }
         array = (FObject) fv;
-        putter = (Method) array.getSelfEnv().getValue(WellKnownNames.arrayPutter);
-        getter = (Method) array.getSelfEnv().getValue(WellKnownNames.arrayGetter);
+        putter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayPutter);
+        getter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayGetter);
         rank = Glue.arrayRank(array);
         this.at = at;
         l = new ArrayList<FValue>(1+rank);

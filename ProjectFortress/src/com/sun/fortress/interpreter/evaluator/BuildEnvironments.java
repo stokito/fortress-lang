@@ -295,7 +295,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
    protected void forFnDef3(FnDef x) {
        List<StaticParam> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
-       Fcn fcn = (Fcn)containing.getValue(fname);
+       Fcn fcn = (Fcn)containing.getLeafValue(fname);
        fcn.finishInitializing();
    }
 
@@ -560,7 +560,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 // Do nothing.
             } else {
                 FTypeObject fto = (FTypeObject) containing.getType(fname);
-                FValue xxx = containing.getValue(fname);
+                FValue xxx = containing.getLeafValue(fname);
                 //Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
             }
@@ -591,14 +591,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             // Do nothing
         } else if (params.isSome()) {
             FTypeObject fto = (FTypeObject) ft;
-            Fcn cl = (Fcn) containing.getValue(fname);
+            Fcn cl = (Fcn) containing.getLeafValue(fname);
 //                List<Parameter> fparams = EvalType.paramsToParameters(
 //                        containing, params.unwrap());
 //                cl.setParams(fparams);
             cl.finishInitializing();
         } else {
             Constructor cl = (Constructor) containing
-                .getValue(WellKnownNames.obfuscatedSingletonConstructorName(fname, x));
+                .getLeafValue(WellKnownNames.obfuscatedSingletonConstructorName(fname, x));
             //  cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
         }
@@ -619,7 +619,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             // TODO - Blindly assuming a non-generic singleton.
             // TODO - Need to insert the name much, much, earlier; this is too late.
 
-            FValue value = bindInto.getValue(fname);
+            FValue value = bindInto.getLeafValue(fname);
 
 //            Constructor cl = (Constructor) containing
 //                    .getValue(obfuscated(fname));
@@ -772,7 +772,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                     bindInto.assignValue(x, sname, value);
                 } else {
                     // Force evaluation, snap the link, check the type!
-                    FValue value = bindInto.getValue(sname);
+                    FValue value = bindInto.getLeafValue(sname);
                     if (ft != null) {
                         if (!ft.typeMatch(value)) {
                             error(x, bindInto,
@@ -793,71 +793,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forAbsTraitDecl(AbsTraitDecl x) {
-        switch (getPass()) {
-        case 1: forAbsTraitDecl1(x); break;
-        case 2: forAbsTraitDecl2(x); break;
-        case 3: forAbsTraitDecl3(x); break;
-        case 4: forAbsTraitDecl4(x); break;
-        }
-       return null;
+        return bug("BuildEnvironments.forAbsTraitDecl should not be called");
     }
-    private void forAbsTraitDecl1(AbsTraitDecl x) {
-        // TODO Auto-generated method stub
-        List<StaticParam> staticParams = x.getStaticParams();
-        // List<Modifier> mods;
-        Id name = x.getName();
-        // List<Type> excludes;
-        // Option<List<Type>> bounds;
-        // List<WhereClause> where;
-        FTraitOrObjectOrGeneric ft;
-
-        String fname = NodeUtil.nameString(name);
-
-        if (!staticParams.isEmpty()) {
-
-                FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
-                guardedPutType(fname, ftg, x);
-                // scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
-           ft = ftg;
-        } else {
-
-                Environment interior = containing; // new BetterEnv(containing, x);
-                FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls(), x);
-                guardedPutType(fname, ftt, x);
-                // scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
-           ft = ftt;
-        }
-
-        scanForFunctionalMethodNames(ft, x.getDecls());
-    }
-    private void forAbsTraitDecl2(AbsTraitDecl x) {
-        // TODO Auto-generated method stub
-        List<StaticParam> staticParams = x.getStaticParams();
-        // List<Modifier> mods;
-        Id name = x.getName();
-        // List<Type> excludes;
-        // Option<List<Type>> bounds;
-        // List<WhereClause> where;
-
-        if (!staticParams.isEmpty()) {
-
-        } else {
-            FTypeTrait ftt =
-                (FTypeTrait)containing.getType(NodeUtil.nameString(name));
-            Environment interior = ftt.getWithin();
-            finishTrait(x, ftt, interior);
-        }
-    }
-    private void forAbsTraitDecl3(AbsTraitDecl x) {
-        Id name = x.getName();
-        FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(NodeUtil.nameString(name));
-        scanForFunctionalMethodNames(ft, x.getDecls());
-    }
-
-    private void forAbsTraitDecl4(AbsTraitDecl x) {
-    }
-
-
+    
     /*
      * (non-Javadoc)
      *
@@ -1148,34 +1086,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forAbsVarDecl(AbsVarDecl x) {
-        switch (getPass()) {
-        case 1: doAbsVarDecl(x); break;
-        case 2:
-        case 3:
-        case 4: break;
-        }
-        return null;
-    }
-
-    private void doAbsVarDecl(AbsVarDecl x) {
-        List<LValueBind> lhs = x.getLhs();
-
-        // List<Modifier> mods;
-        // Id name = x.getName();
-        // Option<Type> type = x.getType();
-        LValueBind lvb = lhs.get(0);
-
-        Id name = lvb.getName();
-        String sname = NodeUtil.nameString(name);
-
-        try {
-            /* Assumption: we only care for APIs, for which this
-             * is a placeholder. */
-            FValue init_val = new LazilyEvaluatedCell(null, null);
-            putValue(bindInto, sname, init_val);
-        } catch (FortressException pe) {
-            throw pe.setContext(x,bindInto);
-        }
+        return bug("BuildEnvironments.forAbsVarDecl should not be called");
     }
 
     /*
@@ -1185,62 +1096,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forAbsFnDecl(AbsFnDecl x) {
-        switch (getPass()) {
-        case 1: forAbsFnDecl1(x); break;
-        case 2: forAbsFnDecl2(x); break;
-        case 3: forAbsFnDecl3(x); break;
-        case 4: forAbsFnDecl4(x); break;
-        }
-       return null;
+        return bug("BuildEnvironments.forAbsFnDecl should not be called");
     }
-    private void forAbsFnDecl1(AbsFnDecl x) {
-
-
-        List<StaticParam> optStaticParams = x.getStaticParams();
-        String fname = NodeUtil.nameAsMethod(x);
-
-        if (!optStaticParams.isEmpty()) {
-            // GENERIC
-
-                // TODO same treatment as regular functions.
-                FValue cl = newGenericClosure(containing, x);
-                // LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
-                bindInto.putValue(fname, cl); // was "shadow"
-
-
-        } else {
-            // NOT GENERIC
-
-                Simple_fcn cl = newClosure(containing, x);
-                // LINKER putOrOverloadOrShadow(x, containing, name, cl);
-                bindInto.putValue(fname, cl); // was "shadow"
-
-        }
-
-    }
-    private void forAbsFnDecl2(AbsFnDecl x) {
-    }
-    private void forAbsFnDecl3(AbsFnDecl x) {
-
-
-        List<StaticParam> optStaticParams = x.getStaticParams();
-        String fname = NodeUtil.nameAsMethod(x);
-
-        if (!optStaticParams.isEmpty()) {
-            // GENERIC
-
-
-        } else {
-            // NOT GENERIC
-
-            Fcn fcn = (Fcn) containing.getValue(fname);
-            fcn.finishInitializing();
-        }
-
-    }
-    private void forAbsFnDecl4(AbsFnDecl x) {
-    }
-
+    
     /*
      * (non-Javadoc)
      *
@@ -1248,120 +1106,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forAbsObjectDecl(AbsObjectDecl x) {
-        switch (getPass()) {
-        case 1: forAbsObjectDecl1(x); break;
-        case 2: forAbsObjectDecl2(x); break;
-        case 3: forAbsObjectDecl3(x); break;
-        case 4: forAbsObjectDecl4(x); break;
-        }
-       return null;
-    }
-    private void forAbsObjectDecl1(AbsObjectDecl x) {
-        // List<Modifier> mods;
-
-        Id name = x.getName();
-
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
-
-        // List<Type> throws_;
-        // WhereClause where;
-        // Contract contract;
-        // List<Decl> defs = x.getDecls();
-        String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft;
-        ft = staticParams.isEmpty()
-                ? new FTypeObject(fname, containing, x, params, x.getDecls(), x)
-                : new FTypeGeneric(containing, x, x.getDecls(), x);
-
-        // Need to check for overloaded constructor.
-
-        guardedPutType(fname, ft, x);
-
-        if (params.isSome()) {
-            if (!staticParams.isEmpty()) {
-                // A generic, not yet a constructor
-                GenericConstructor gen = new GenericConstructor(containing, x, name);
-                guardedPutValue(containing, fname, gen, x);
-            } else {
-                // TODO need to deal with constructor overloading.
-
-                // If parameters are present, it is really a constructor
-                // BetterEnv interior = new SpineEnv(e, x);
-                Constructor cl = new Constructor(containing, (FTypeObject) ft,
-                        x);
-                guardedPutValue(containing, fname, cl, x);
-                // doDefs(interior, defs);
-            }
-
-        } else {
-            if (!staticParams.isEmpty()) {
-                // A parameterized singleton is a sort of generic value.
-                makeGenericSingleton(x, containing, name, fname, ft);
-
-            } else {
-                // Simply need to create a named value so that imports will work.
-                FValue init_value = FVoid.V;
-                putValue(bindInto, fname, init_value);
-            }
-        }
-
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        return bug("BuildEnvironments.forAbsObjectDecl should not be called");
 
     }
-
-    private void forAbsObjectDecl2(AbsObjectDecl x) {
-
-        Environment e = containing;
-        Id name = x.getName();
-
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
-
-        String fname = NodeUtil.nameString(name);
-        FType ft;
-
-        if (params.isSome()) {
-            if (!staticParams.isEmpty()) {
-                // Do nothing.
-            } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
-                finishObjectTrait(x, fto);
-            }
-        } else {
-            if (!staticParams.isEmpty()) {
-                // Do nothing.
-            } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
-
-                finishObjectTrait(x, fto);
-            }
-
-        }
-
-    }
-    private void forAbsObjectDecl3(AbsObjectDecl x) {
-        Id name = x.getName();
-        String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname);
-        scanForFunctionalMethodNames(ft, x.getDecls());
-    }
-    private void forAbsObjectDecl4(AbsObjectDecl x) {
-        Environment e = containing;
-        Id name = x.getName();
-
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
-
-        String fname = NodeUtil.nameString(name);
-        FType ft;
-
-        if (params.isSome()) {
-
-        } else {
-
-        }
-        }
 
     public Environment getBindingEnv() {
         return bindInto;

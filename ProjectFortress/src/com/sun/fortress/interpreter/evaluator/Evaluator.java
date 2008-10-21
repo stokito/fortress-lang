@@ -350,7 +350,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
                                               );
         } catch (AbortedException ae) {
-            FObject f = (FObject) Driver.getFortressLibrary().getValue(WellKnownNames.tryatomicFailureException);
+            FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.tryatomicFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
         } catch (Exception e) {
@@ -563,7 +563,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 vargs.add(match);
                 if (Glue.extendsGenericTrait(match.type(),
                                              WellKnownNames.containsTypeName)) {
-                    fcn = (Fcn) Driver.getFortressLibrary().getValue(WellKnownNames.containsMatchName);
+                    fcn = (Fcn) Driver.getFortressLibrary().getRootValue(WellKnownNames.containsMatchName);
                 }
                 FBool success = (FBool) functionInvocation(vargs, fcn, c);
                 if (success.getBool())
@@ -574,7 +574,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO need an Else node to hang a location on
                 return forBlock(_else.unwrap());
             }
-            FObject f = (FObject) Driver.getFortressLibrary().getValue(WellKnownNames.matchFailureException);
+            FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.matchFailureException);
             FortressError f_exc = new FortressError(f);
             throw f_exc;
         }
@@ -1008,7 +1008,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         String s = x.getGenSymName();
         // FType ft = e.getType(s);
         // System.out.println("for_RewriteObjectExpr "+s);
-        FValue v = e.getTopLevel().getValue(s);
+        FValue v = e.getTopLevel().getRootValue(s);
 
         if (v instanceof GenericConstructor) {
             GenericConstructor gc = (GenericConstructor) v;
@@ -1572,7 +1572,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException);
                 List<FValue> args = new ArrayList<FValue>();
                 args.add(exc);
-                Constructor c = (Constructor) libE.getValue(WellKnownNames.forbiddenException);
+                Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
                 // Can we get a better HasAt?
                 HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
                 FObject f = (FObject) c.apply(args, at, e);
@@ -1593,7 +1593,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return res;
         } catch (LabelException exc) {
             return handleException(x,
-                                   (FObject)Driver.getFortressLibrary().getValue(WellKnownNames.labelException),
+                                   (FObject)Driver.getFortressLibrary().getRootValue(WellKnownNames.labelException),
                                    exc);
         } catch (FortressError exc) {
             return handleException(x, exc.getException(), exc);

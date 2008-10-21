@@ -48,7 +48,7 @@ public class PrimImmutableArray extends NativeConstructor {
     }
 
     protected void oneTimeInit(Environment self_env) {
-        s0 = self_env.getValue("s0").getInt();
+        s0 = self_env.getLeafValue("s0").getInt();
     }
 
     public static final class PrimImmutableArrayObject extends FNativeObject {
