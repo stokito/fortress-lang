@@ -310,7 +310,7 @@ public class NodeFactory {
         return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
     }
 
-    public static IntersectionType makeIntersectionType(Set<Type> types){
+    public static IntersectionType makeIntersectionType(Set<? extends Type> types){
         return new IntersectionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
     }
 
@@ -318,7 +318,7 @@ public class NodeFactory {
         return new UnionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
     }
 
-    public static UnionType makeUnionType(Set<Type> types){
+    public static UnionType makeUnionType(Set<? extends Type> types){
         return new UnionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
     }
 

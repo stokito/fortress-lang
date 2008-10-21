@@ -1,0 +1,7 @@
+component XXXTypeArgUndefined
+ export Executable
+ object blah[\T\]
+  foo():() = ()
+ end
+ run(args: String ...): () = blah[\ZZZ32\].foo()
+end

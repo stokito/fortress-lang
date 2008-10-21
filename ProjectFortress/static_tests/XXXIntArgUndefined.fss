@@ -1,0 +1,12 @@
+component XXXIntArgUndefined
+  export Executable
+  object Blah[\int n\]
+   foo():ZZ32 = n
+  end
+
+  run(args:String ...):()=do
+    b = bar[\1\]()
+  end
+  bar[\int n\]():ZZ32 = Blah[\m\].foo()
+
+end

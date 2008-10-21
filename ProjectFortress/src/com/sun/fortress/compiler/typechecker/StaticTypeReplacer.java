@@ -58,6 +58,7 @@ import com.sun.fortress.nodes._RewriteGenericSingletonType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
 
+import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
@@ -170,89 +171,100 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
      * @param staticParams
      * @return
      */
-	public static boolean argsMatchParams(List<StaticArg> static_args,
-			List<StaticParam> static_params) {
+	public static Option<ConstraintFormula> argsMatchParams(List<StaticArg> static_args,
+			List<StaticParam> static_params, final TypeAnalyzer subtype_checker) {
 		if( static_args.size() != static_params.size() ) {
-			return false;
+			return Option.none();
 		}
 		else {
-			Boolean valid=true;
+			ConstraintFormula valid= ConstraintFormula.TRUE;
+			
 			Iterable<Pair<StaticParam,StaticArg>> zip = IterUtil.zip(static_params, static_args);
 			for(Pair<StaticParam,StaticArg> temp : zip){
 				final StaticParam  param = temp.first();
 				final StaticArg arg = temp.second(); 
-				NodeDepthFirstVisitor<Boolean> outer = new NodeDepthFirstVisitor<Boolean>() {
+				NodeDepthFirstVisitor<Option<ConstraintFormula>> outer = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
 					@Override
-					public Boolean defaultCase(Node that) {
+					public Option<ConstraintFormula> defaultCase(Node that) {
 						return InterpreterBug.bug("Static param has been extended since argMatchParams was written");
 					}
 	
 					@Override
-					public Boolean forBoolParam(BoolParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forBoolArg(BoolArg that) {return true;}
+					public Option<ConstraintFormula> forBoolParam(BoolParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forBoolArg(BoolArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 	
 					@Override
-					public Boolean forDimParam(DimParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forDimArg(DimArg that) {return true;}
+					public Option<ConstraintFormula> forDimParam(DimParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forDimArg(DimArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 	
 					@Override
-					public Boolean forIntParam(IntParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forIntArg(IntArg that) {return true;}
+					public Option<ConstraintFormula> forIntParam(IntParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 	
 					@Override
-					public Boolean forNatParam(NatParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forIntArg(IntArg that) {return true;}
+					public Option<ConstraintFormula> forNatParam(NatParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 	
 					@Override
-					public Boolean forTypeParam(TypeParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forTypeArg(TypeArg that) {return true;}
+					public Option<ConstraintFormula> forTypeParam(final TypeParam param) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forTypeArg(TypeArg arg) {
+								Type upperbound = NodeFactory.makeIntersectionType(CollectUtil.asSet(param.getExtendsClause()));
+								return Option.some(subtype_checker.subtype(arg.getType(),upperbound));
+							}
 						};
 						return arg.accept(inner);
 					}
 	
 					@Override
-					public Boolean forUnitParam(UnitParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forUnitArg(UnitArg that) {return true;}
+					public Option<ConstraintFormula> forUnitParam(UnitParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forUnitArg(UnitArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 					
 					@Override
-					public Boolean forOpParam(OpParam that) {
-						NodeDepthFirstVisitor<Boolean> inner = new NodeDepthFirstVisitor<Boolean>() {
-							@Override public Boolean defaultCase(Node that) {return false;}
-							@Override public Boolean forOpArg(OpArg that) {return true;}
+					public Option<ConstraintFormula> forOpParam(OpParam that) {
+						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+							@Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(ConstraintFormula.TRUE);}
 						};
 						return arg.accept(inner);
 					}
 				};
-				valid&=param.accept(outer);
+				
+				Option<ConstraintFormula> result = param.accept(outer);
+				if(result.isSome()){
+					valid = valid.and(result.unwrap(),subtype_checker.new SubtypeHistory());
+				}
+				else{
+					return Option.none();
+				}
 			}
-			return valid;
+			return Option.some(valid);
 		}
 	}
 }
