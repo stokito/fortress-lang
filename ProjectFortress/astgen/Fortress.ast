@@ -1224,11 +1224,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                              * e.g.) 3 5
                              */
                             LooseJuxt();
-                           /**
-                             * juxtaposition without intervening whitespace
+                            /**
+                             * juxtaposition without intervening whitespace. If fnApp is true,
+                             * then this juxtaposition should be type checked ONLY as a function
+                             * application. This should be the case for desugarings only.
                              * e.g.) f(3+5)
                              */
-                            TightJuxt();
+                            TightJuxt(boolean fnApp = false);
                         /**
                          * functional application
                          * Primary ::= Primary ArgExpr

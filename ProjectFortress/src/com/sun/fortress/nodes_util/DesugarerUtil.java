@@ -159,8 +159,12 @@ public class DesugarerUtil {
                 System.out.println(span+" and\n"+body.getSpan()+
                                    ": Generator of generator opportunity?");
             }
-            body = new TightJuxt(body.getSpan(), false,
-                                 Useful.list(unitVar, body));
+            // Wrap the body in parentheses (as a singleton tuple) so that it can be considered
+            // as the argument in a function application (denoted by the true argument).
+            body = new TightJuxt(body.getSpan(),
+                                 false,
+                                 Useful.list(unitVar, body),
+                                 true);
             for (i--; i>=0; i--) {
                 body = oneGenerator(gens.get(i), redVar, body);
             }
