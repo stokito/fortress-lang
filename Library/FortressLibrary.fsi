@@ -719,7 +719,7 @@ __cond[\E\](c:Condition[\E\], t:E->()): ()
 __whileCond[\E\](c:Condition[\E\], b:E->()): ()
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    seq(self)
+    seq(self): SequentialGenerator[\E\]
     map[\G\](f: E->G): SequentialGenerator[\G\]
     nest[\G\](f: E -> Generator[\G\]): Generator[\G\]
     cross[\F\](g:Generator[\F\]): Generator[\(E,F)\]
@@ -1838,7 +1838,7 @@ trait FilterGenerator[\E\] extends Generator[\E\]
     generate[\R\](r:Reduction[\R\], m: E->R): R
     reduce(r: Reduction[\E\]): E
     filter(p': E -> Condition[\()\]): FilterGenerator[\E\]  (* ' *)
-    seq(self)
+    seq(self): SequentialGenerator[\E\]
 end
 
 (************************************************************
