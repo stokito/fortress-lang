@@ -609,7 +609,8 @@ public class Constructor extends NonPrimitive {
         // Problem -- we need to detach self-env from other env.
         Environment self_env = methodsEnv.extendAt(loc);
 
-        FValue surroundSelf = lex_env.getValueNull(WellKnownNames.secretSelfName);
+        // TODO This is a problem -- the level is not determined
+        FValue surroundSelf = lex_env.getLeafValueNull(WellKnownNames.secretSelfName);
         if (surroundSelf != null)
             self_env.putValueRaw(WellKnownNames.secretParentName, surroundSelf);
 

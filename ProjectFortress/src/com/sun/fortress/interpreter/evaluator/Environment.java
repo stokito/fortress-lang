@@ -83,15 +83,15 @@ public interface Environment  {
     public abstract Closure getRunClosure();
 
     /* Type names take the form ID or Api.ID */
-    public abstract FType getType(Id d);
+    public abstract FType getType(Id d); // 3
     
-    public abstract FType getType(NamedType q);
+    public abstract FType getType(NamedType q); // 2
 
-    public abstract FType getType(String str);
+    public abstract FType getType(String str); // 13
 
-    public abstract FType getTypeNull(Id name);
+    public abstract FType getTypeNull(Id name); // 3
 
-    public abstract FType getTypeNull(String name);
+    public abstract FType getTypeNull(String name); // 21
 
     //public abstract FValue getValue(FValue f1);
 
@@ -109,20 +109,21 @@ public interface Environment  {
      * Throws an Error if not found.
      * @param str
      */
-    public abstract FValue getLeafValue(String str); // 37 refs
+    public abstract FValue getLeafValue(String str); // 25 refs
     
     /**
      * Get a value from top-level environment.
      * Throws an Error if not found.
      * @param str
      */
-    public abstract FValue getRootValue(String str); // 37 refs
+    public abstract FValue getRootValue(String str); // 12 refs
 
     /**
      * Be prepared for a null if the value is missing!
      * @param s
      */
-    public abstract FValue getValueNull(String s); // 11 refs
+    public abstract FValue getLeafValueNull(String s); // 6 refs
+    public abstract FValue getRootValueNull(String s); // 5 refs
     
     /**
      * Similar to the string version, but able to deal with
@@ -147,16 +148,11 @@ public interface Environment  {
     
     public abstract FValue getValue(OpRef vr); // 2 refs
 
+    // Reference from tests, BaseEnv, and BuildApiEnvironment
+    // BaseEnv accesses are internal-use-only, BAE references link snapping etc.
     public abstract FValue getValueRaw(String s); // 20 refs
 
-    /**
-     * Get a value from this environment or a parent.
-     * Throws an Error if not found.
-     * @param str
-     */
-    public abstract FType getVarType(String str);
-
-    public abstract FType getVarTypeNull(String str);
+    public abstract FType getVarTypeNull(String str); // 3 refs
 
     public abstract Environment installPrimitives();
 

@@ -43,7 +43,7 @@ public class BetterEnv extends BaseEnv
     private BATreeNode<String, Environment> api_env;
 
     /** (Lexical) ancestor environment */
-    BetterEnv parent;
+    Environment parent;
  
     private final static Comparator<String> comparator = StringHashComparer.V;
 

@@ -126,7 +126,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
         
         testLibraryEnv.putValue("false", val);        
         env.putValueRaw("A", val);
-        assertEquals(val, loadedEnv.getValueNull("A"));
+        assertEquals(val, loadedEnv.getRootValueNull("A"));
     }
 
     public void testGetPutApiInNestedDir() throws IOException,
@@ -152,8 +152,8 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	env1.putValueRaw("level1", level);
     	env2.putValueRaw("level2", level);
     	
-    	assertEquals(level, loadedLevel1Api.getValueNull("level1"));
-    	assertEquals(level, loadedLevel2Api.getValueNull("level2"));
+    	assertEquals(level, loadedLevel1Api.getRootValueNull("level1"));
+    	assertEquals(level, loadedLevel2Api.getRootValueNull("level2"));
     }
 
     public void testGetPutTypeRaw() {

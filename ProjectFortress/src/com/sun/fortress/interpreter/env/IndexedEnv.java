@@ -211,7 +211,12 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValueNull(String s) {
+    public FValue getLeafValueNull(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getRootValueNull(String s) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -242,11 +247,6 @@ public class IndexedEnv implements Environment {
     }
 
     public FValue getValueRaw(String s, int level) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FType getVarType(String str) {
         // TODO Auto-generated method stub
         return null;
     }
