@@ -443,12 +443,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 //    }
 
     final public  FValue getLeafValue(String str) {
-        FValue x = getValueNull(str);
+        FValue x = getLeafValueNull(str); // leaf
         return getValueTail(str, x);
     }
 
     final public  FValue getRootValue(String str) {
-        FValue x = getValueNull(str);
+        FValue x = getRootValueNull(str); // root
         return getValueTail(str, x);
     }
 
@@ -470,7 +470,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         }
     }
 
-    public FValue getValueNull(String s) {
+    public FValue getLeafValueNull(String s) {
+        FValue v = getValueRaw(s);
+        return getValueNullTail(s, v);
+    }
+
+    public FValue getRootValueNull(String s) {
         FValue v = getValueRaw(s);
         return getValueNullTail(s, v);
     }
@@ -540,7 +545,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
               APIName api = opt_api.unwrap();
               // Circular dependence etc will be signalled in API.
               Environment api_e = getApi(api);
-              return api_e.getValueNull(local);
+              return api_e.getRootValueNull(local); // root
           } else {
               FValue v = getValueRaw(local, l);
               return getValueNullTail(local, v);
@@ -561,14 +566,6 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
     return v;
 }
-
-   final public  FType getVarType(String str) {
-        FType x = getVarTypeNull(str);
-        if (x == null)
-            return error(errorMsg("Missing type of ", str));
-        else
-            return x;
-    }
 
    public FType getVarTypeNull(String str) {
        FValue v = getValueRaw(str);

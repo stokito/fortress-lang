@@ -70,7 +70,7 @@ public final class DottedMethodApplication extends Fcn {
         if (receiver instanceof FObject) {
             self = (FObject) receiver;
             selfEnv = self.getSelfEnv();
-            cl = selfEnv.getValueNull(mname);
+            cl = selfEnv.getLeafValueNull(mname); // leaf
         } else {
             // fobj instanceof FAsIf, nontrivial type().  Since
             // getMembers() on traits only returns the immediately
@@ -96,7 +96,7 @@ public final class DottedMethodApplication extends Fcn {
                 for (FType t : tr.getTransitiveExtends()) {
                     if (!(t instanceof FTypeTrait)) continue;
                     selfEnv = ((FTypeTrait)t).getMembers();
-                    cl = selfEnv.getValueNull(mname);
+                    cl = selfEnv.getLeafValueNull(mname); // leaf
                     if (cl != null) break;
                 }
                 if (cl == null) {
@@ -105,7 +105,7 @@ public final class DottedMethodApplication extends Fcn {
                 }
             } else {
                 selfEnv = self.getSelfEnv();
-                cl = selfEnv.getValueNull(mname);
+                cl = selfEnv.getLeafValueNull(mname); // leaf
             }
         }
         // Step 2: validate the closure we obtained.

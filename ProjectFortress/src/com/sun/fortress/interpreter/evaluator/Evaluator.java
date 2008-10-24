@@ -1497,7 +1497,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FObject fobject = (FObject) fobj;
             // TODO Need to distinguish between public/private methods/fields
             Environment se = fobject.getSelfEnv();
-            FValue cl = se.getValueNull(mname);
+            FValue cl = se.getLeafValueNull(mname); // leaf
             if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
                 // Ordinary closure, assigned to a field.
                 return functionInvocation(args,(Fcn)cl, x);
@@ -1719,19 +1719,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return FIntLiteral.make(x.getVal());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnRef(com.sun.fortress.interpreter.nodes.FnRef)
-     */
-    @Override
-    public FValue forFnRef(FnRef x) {
-        Id name = x.getFns().get(0); //x.getOriginalName();
-        FValue g = forIdOfRef(name);
-        bug("is this ever called?");
-        return applyToActualStaticArgs(g,x.getStaticArgs(),x);
-    }
-
     @Override
     public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
         Id name = that.getObj();
@@ -1741,15 +1728,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             return g;
         else
             return applyToActualStaticArgs(g,that.getStaticArgs(),that);
-    }
-
-    private FValue forIdOfRef(Id x) {
-        String s = x.getText();
-        FValue res = e.getValueNull(s);
-        if (res == null) {
-            error(x, e, errorMsg("undefined variable ", x));
-        }
-        return res;
     }
 
     private FValue forIdOfTLRef(Id x) {

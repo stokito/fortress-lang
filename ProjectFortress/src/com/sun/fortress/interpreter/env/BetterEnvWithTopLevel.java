@@ -45,6 +45,7 @@ public class BetterEnvWithTopLevel extends BetterEnv {
     
     public BetterEnvWithTopLevel(Environment topLevel, HasAt x) {
         super(x);
+        parent = topLevel;
         this.topLevel = topLevel;
     }
 

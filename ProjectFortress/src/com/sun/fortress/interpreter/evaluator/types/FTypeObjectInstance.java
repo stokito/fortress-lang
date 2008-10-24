@@ -32,20 +32,7 @@ import edu.rice.cs.plt.tuple.Option;
 public class FTypeObjectInstance extends FTypeObject implements
         GenericTypeInstance {
 
-    /**
-    @deprecated
-    */
-    public FTypeObjectInstance(String name, Environment interior,
-                               FTypeGeneric generic, List<FType> bind_args,
-                               List<FType> name_args, Option<List<Param>> params,
-                               List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
-        super(name, interior, interior.getAt(), params, members, generic.getDecl());
-        this.generic = generic;
-        this.bind_args = bind_args;
-        this.name_args = name_args;
-    }
-
-    public FTypeObjectInstance(String name, Environment interior,
+     public FTypeObjectInstance(String name, Environment interior,
                                FTypeGeneric generic,
                                List<FType> bind_args, List<FType> name_args,
                                Option<List<Param>> params,
