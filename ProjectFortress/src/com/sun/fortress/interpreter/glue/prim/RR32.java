@@ -212,6 +212,9 @@ public static final class ICeiling extends F2L {
 public static final class IFloor extends F2L {
     protected long f(float x) { return (long)Math.floor(x); }
 }
+public static final class Round extends F2L {
+    protected long f(float x) { return (long)Math.round((double)x); }
+}
 public static final class Truncate extends F2L {
     protected long f(float x) { return (long)x; }
 }

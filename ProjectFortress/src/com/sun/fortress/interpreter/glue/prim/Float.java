@@ -240,6 +240,9 @@ public static final class IFloor extends R2L {
 public static final class Truncate extends R2L {
     protected long f(double x) { return (long)x; }
 }
+public static final class Round extends R2L {
+    protected long f(double x) { return Math.round(x); }
+}
 public static final class Abs extends R2R {
     protected double f(double x) { return Math.abs(x); }
 }
