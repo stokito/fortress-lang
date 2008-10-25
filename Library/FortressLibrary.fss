@@ -402,10 +402,11 @@ trait Number
     log(self):RR64 = log(asFloat(self))
     exp(self):RR64 = exp(asFloat(self))
     floor(self):RR64 = floor(asFloat(self))
-    opr |\self/| : ZZ64 = |\asFloat(self)/|
+    opr |\self/| : ZZ = |\asFloat(self)/|
     ceiling(self):RR64 = ceiling(asFloat(self))
-    opr |/self\| : ZZ64 = |/asFloat(self)\|
-    truncate(self):ZZ64 = truncate(asFloat(self))
+    opr |/self\| : ZZ = |/asFloat(self)\|
+    truncate(self):RR64 = truncate(asFloat(self))
+    round(self): ZZ = round(asFloat(self))
 end
 
 trait RR64 extends Number comprises { Float, AnyIntegral, FloatLiteral }
@@ -567,6 +568,9 @@ trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], Any
     opr RSHIFT(self,b:AnyIntegral):I
     opr BITNOT(self):I
     opr ^(self, b:AnyIntegral):RR64
+    opr |\self/|: I = self
+    opr |/self\|: I = self
+    round(self): I = self
 end
 
 trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
@@ -1059,7 +1063,7 @@ __bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
   end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    seq(self) = self
+    seq(self): SequentialGenerator[\E\] = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
     (* TODO: make overloaded *)
@@ -2867,7 +2871,7 @@ trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
         self.g.generate[\F\](r, self.f)
     map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
         SimpleMappedGenerator[\E,G\](self.g, f' COMPOSE self.f)
-    seq(self) = SimpleMappedSeqGenerator[\E,F\](seq(self.g),self.f)
+    seq(self): SimpleMappedSeqGenerator[\E,F\] = SimpleMappedSeqGenerator[\E,F\](seq(self.g),self.f)
 end
 
 object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
@@ -2958,7 +2962,7 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
     getter g() = g0
     getter f() = f0
     getter toString() = self.g ".nest(f)"
-    seq(self) =
+    seq(self): SequentialGenerator[\E\] =
         typecase ff = self.f of
             (E -> SequentialGenerator[\F\]) =>
                 SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff)
@@ -2993,7 +2997,7 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
     getter e() = e0
     getter f() = f0
     getter toString()=(e0 ".cross(" f0 ")" )
-    seq(self) = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
+    seq(self): SequentialGenerator[\E\] = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
 end
 
 object SimplePairSeqGenerator[\E,F\]

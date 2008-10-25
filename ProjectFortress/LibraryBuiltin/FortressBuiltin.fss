@@ -177,6 +177,8 @@ value object Float extends RR64
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
     truncate(self):ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
+    round(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Round")
 end
 
 object FloatLiteral extends RR64
@@ -317,6 +319,8 @@ value object RR32 extends RR64
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$ICeiling")
     truncate(self):ZZ64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Truncate")
+    round(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Round")
 
     (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
         Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
