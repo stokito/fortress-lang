@@ -43,7 +43,7 @@ public class BetterEnv extends BaseEnv
     private BATreeNode<String, Environment> api_env;
 
     /** (Lexical) ancestor environment */
-    Environment parent;
+    protected Environment parent;
  
     private final static Comparator<String> comparator = StringHashComparer.V;
 
@@ -244,8 +244,8 @@ public class BetterEnv extends BaseEnv
             dumpOne(a, bool_env, "\nBools:\n  ");
             // Add api_env a little later.
             a.append("\n");
-        } else if (parent != null) {
-            parent.dump(a);
+        } else if (getParent() != null) {
+            getParent().dump(a);
         }
         return a;
     }
@@ -345,6 +345,14 @@ public class BetterEnv extends BaseEnv
     
     public Environment getTopLevel() {
         return bug("This should have been an environment with a Top Level");
+    }
+
+    public BATreeNode<String, Number> getNat_env() {
+        return nat_env;
+    }
+
+   public Environment getParent() {
+        return parent;
     }
 
 

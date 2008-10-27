@@ -873,7 +873,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, Environment interior) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
-        interior = interior.extendAt(x);
+        // TODO What if I don't 
+        // interior = interior.extendAt(x);
 
         EvalType et;
         if ( x.getWhere().isSome() )
