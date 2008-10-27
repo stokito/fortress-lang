@@ -55,6 +55,11 @@ genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: St
     end
     rss.close()
     shouldBeTheSame(s,ress,"Generated sequentially using ",desc)
+    println("************************* seq gen " desc)
+    rs3 = FileReadStream("testFile.txt")
+    res3 = BIG ||[l <- seq(gen(rs3))] l inter
+    rs3.close()
+    shouldBeTheSame(s,res3,"Generated sequentially via comprehension using ",desc)
   end
 
 run(args:String...) = do

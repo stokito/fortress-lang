@@ -227,7 +227,7 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> S)
         end
     generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
-        a:R = body.empty()
+        a:R := r.empty()
         while (NOT reader.eof()) do
             s = readOne(reader)
             if NOT (reader.eof()) then
