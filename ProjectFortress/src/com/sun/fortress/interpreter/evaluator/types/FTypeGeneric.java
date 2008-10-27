@@ -281,7 +281,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         if (gen.def instanceof TraitAbsDeclOrDecl) {
             TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) gen.def;
-            FTypeTrait ftt = new FTypeTraitInstance(td.getName().getText(),
+            FTypeTraitInstance ftt = new FTypeTraitInstance(td.getName().getText(),
                                                     clenv, gen, bind_args, key_args, gen.members);
             FTraitOrObject old = map.put(key_args, ftt); // Must put
                                                          // early to
@@ -299,7 +299,6 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             // be.scanForFunctionalMethodNames(ftt, td.getDecls(), true);
 
             pendingFunctionalMethodFinishes.add(ftt);
-
             rval = ftt;
         } else if (gen.def instanceof ObjectDecl) {
             ObjectDecl td = (ObjectDecl) gen.def;

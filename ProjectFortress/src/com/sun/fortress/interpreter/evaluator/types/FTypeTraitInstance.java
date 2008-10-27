@@ -36,25 +36,13 @@ public class FTypeTraitInstance extends FTypeTrait implements
 
 
     /**
-     * @deprecated
      * @param name
      * @param interior
      * @param generic
      * @param bind_args
      * @param name_args
      * @param members
-     * @param instantiation_type
      */
-    public FTypeTraitInstance(String name, Environment interior,
-            FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
-            List<? extends AbsDeclOrDecl> members, Type instantiation_type) {
-        super(name, interior, interior.getAt(), members, generic.getDecl());
-        this.generic = generic;
-        this.bind_args = bind_args;
-        this.name_args = name_args;
-        if (anyAreSymbolic(name_args))
-            isSymbolic = true;
-    }
 
     public FTypeTraitInstance(String name, Environment interior,
             FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
@@ -65,6 +53,21 @@ public class FTypeTraitInstance extends FTypeTrait implements
         this.name_args = name_args;
         if (anyAreSymbolic(name_args))
             isSymbolic = true;
+    }
+
+    public void dbg1() {
+        Environment interior = env;
+        if ((interior instanceof com.sun.fortress.interpreter.env.BetterEnvWithTopLevel) &&
+                ((com.sun.fortress.interpreter.env.BetterEnvWithTopLevel) interior).getNat_env() != null) {
+            com.sun.fortress.interpreter.env.BetterEnvWithTopLevel bewtl = (com.sun.fortress.interpreter.env.BetterEnvWithTopLevel) interior;
+            Environment parent = bewtl.getParent();
+            if ((parent instanceof com.sun.fortress.interpreter.env.BetterEnvWithTopLevel) &&
+            ((com.sun.fortress.interpreter.env.BetterEnvWithTopLevel) parent).getNat_env() != null) {
+                // Should not get here.
+                throw new Error("Badly layered environment");
+            }
+            
+        }
     }
 
 
