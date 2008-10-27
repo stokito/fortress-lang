@@ -716,6 +716,17 @@ run(args:String...):() = do
   assert((-2/3)^(-2), 9/4, "(-2/3)^(-2)")
   assert((2/3)^(-3), 27/8, "(2/3)^(-3)")
   assert((-2/3)^(-3), -27/8, "(-2/3)^(-3)")
+  assert(simplestRationalBetween(17/2,19/2), 9, "simplestRationalBetween(17/2,19/2)")
+  assert(simplestRationalBetween(19/2,17/2), 9, "simplestRationalBetween(19/2,17/2)")
+  assert(simplestRationalBetween(-17/2,19/2), 0, "simplestRationalBetween(-17/2,19/2)")
+  assert(simplestRationalBetween(-19/2,17/2), 0, "simplestRationalBetween(-19/2,17/2)")
+  assert(simplestRationalBetween(-17/2,-19/2),-9,"simplestRationalBetween(-17/2,-19/2)")
+  assert(simplestRationalBetween(-19/2,-17/2),-9,"simplestRationalBetween(-19/2,-17/2)")
+  assert(simplestRationalBetween(1/0,19/2), 10, "simplestRationalBetween(1/0,19/2)")
+  assert(simplestRationalBetween(-1/0,-19/2),-10,"simplestRationalBetween(-1/0,-19/2)")
+  assert(simplestRationalBetween(1/0,1/0), 1/0, "simplestRationalBetween(1/0,1/0)")
+  assert(simplestRationalBetween(5/16,7/16),1/3,"simplestRationalBetween(5/16,7/16)")
+  assert(simplestRationalBetween(1/5,1/3),1/3,"simplestRationalBetween(1/5,1/3)")
 end
 
 end
