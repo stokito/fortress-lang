@@ -28,7 +28,7 @@ case class DefFunction(name:String,
                        sparams:List[Pair[String, Type]],
                        params:List[Pair[String, Option[Type]]],
                        range:Option[Type],
-                       body:Expr) extends Definition
+                       body:Term) extends Definition
 
 /** A top-level trait definition. */
 case class DefTrait(name:String,
@@ -46,5 +46,5 @@ case class DefObject(name:String,
 /**
  * A full program in our language. Evaluate the body with the given definitions.
  */
-case class Program(defns:List[Definition], body:Expr)
+case class Program(defns:List[Definition], body:Term)
 
