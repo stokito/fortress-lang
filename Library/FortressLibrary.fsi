@@ -356,6 +356,10 @@ trait RR64 extends Number comprises { RR32, Float, AnyIntegral, FloatLiteral }
     narrow(self): RR32
 end
 
+(** Returns the rational p/q such that a <= p/q <= b such that
+    q is minimized, and for this minimal q, p is nearest 0.
+*)
+simplestRationalBetween(a:QQ, b:QQ): QQ
 
 trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
     getter isNaN(): Boolean
