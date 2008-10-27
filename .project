@@ -3,6 +3,7 @@
 	<name>Fortress</name>
 	<comment></comment>
 	<projects>
+		<project>scortress</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
