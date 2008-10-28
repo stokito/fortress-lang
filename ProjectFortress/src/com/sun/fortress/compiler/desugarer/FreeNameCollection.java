@@ -42,29 +42,29 @@ import edu.rice.cs.plt.tuple.Option;
 public final class FreeNameCollection {
 
     // variable references
-    private List<VarRef> freeVarRefs = new LinkedList<VarRef>();
+    private List<VarRef> freeVarRefs   = new LinkedList<VarRef>();
     // function references
-    private List<FnRef> freeFnRefs = new LinkedList<FnRef>();
+    private List<FnRef> freeFnRefs     = new LinkedList<FnRef>();
     // dotted method references
     private List<FnRef> freeMethodRefs = new LinkedList<FnRef>();
     // Functional method references are not captured
     // because they are available at top level.
     // operator references
-    private List<OpRef> freeOpRefs = new LinkedList<OpRef>();
-    private List<DimRef> freeDimRefs = new LinkedList<DimRef>();
+    private List<OpRef>   freeOpRefs   = new LinkedList<OpRef>();
+    private List<DimRef>  freeDimRefs  = new LinkedList<DimRef>();
     private List<UnitRef> freeUnitRefs = new LinkedList<UnitRef>();
-    private List<IntRef> freeIntRefs = new LinkedList<IntRef>();
+    private List<IntRef>  freeIntRefs  = new LinkedList<IntRef>();
     private List<BoolRef> freeBoolRefs = new LinkedList<BoolRef>();
     // type param
     private List<VarType> freeVarTypes = new LinkedList<VarType>();
 
     // free variable references that are mutable - subset of freeVarRefs
-    // This is set later via a call made by FreeNameCollector
+    // This is set later via a call made by FreeNameCollector.
     private List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
 
     // This is only set via a call made by FreeNameCollector;
     // The enclosingSelfType only exists if the corresponding objectExpr is
-    // enclosed by an ObjectDecl
+    // enclosed by an ObjectDecl.
     private Option<Type> enclosingSelfType = Option.<Type>none();
 
     private static final int DEBUG_LEVEL = 1;
@@ -84,9 +84,9 @@ public final class FreeNameCollection {
         this.freeVarTypes.addAll(other.freeVarTypes);
 
         this.freeMutableVarRefs.addAll(other.freeMutableVarRefs);
-        
+
         if( other.enclosingSelfType.isSome() ) {
-            this.enclosingSelfType = 
+            this.enclosingSelfType =
                 Option.<Type>some( other.enclosingSelfType.unwrap() );
         }
 
@@ -97,8 +97,8 @@ public final class FreeNameCollection {
         if( freeMutableVarRefs == null ) {
             throw new DesugarerError("The list freeMutableVarRefs is not set!");
         }
-        return freeMutableVarRefs.contains(var); 
-    } 
+        return freeMutableVarRefs.contains(var);
+    }
 
     public Option<Type> getEnclosingSelfType() {
         return enclosingSelfType;
@@ -108,13 +108,13 @@ public final class FreeNameCollection {
         this.enclosingSelfType = enclosingSelfType;
     }
 
-    /* 
-     * Sometimes static params can be used in a expr context, in which
+    /*
+     * Sometimes static params can be used in an expr context, in which
      * case, they are parsed as a VarRef.  As a result, redundant free
      * references are captured in the freeVarRefs list when they are already
-     * present in the freeBoolRefs / freeIntRefs list.  Since we are 
-     * already passing the static params with the StaticParam list in the 
-     * lifted ObjectDecl, we don't want to repeat them in its Param list.  
+     * present in the freeBoolRefs / freeIntRefs list.  Since we are
+     * already passing the static params with the StaticParam list in the
+     * lifted ObjectDecl, we don't want to repeat them in its Param list.
      * Hence, remove these redundant references from the freeVarRefs.
      */
     public void removeStaticRefsFromFreeVarRefs(TypeEnv typeEnv) {
@@ -127,11 +127,11 @@ public final class FreeNameCollection {
             if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
             } else if( spOp.unwrap() instanceof BoolParam ) {
-                this.add( new BoolRef(var.getSpan(), var.getVar()) ); 
+                this.add( new BoolRef(var.getSpan(), var.getVar()) );
             } else if( spOp.unwrap() instanceof IntParam ) {
-                this.add( new IntRef(var.getSpan(), var.getVar()) ); 
+                this.add( new IntRef(var.getSpan(), var.getVar()) );
             } else if( spOp.unwrap() instanceof NatParam ) {
-                this.add( new IntRef(var.getSpan(), var.getVar()) ); 
+                this.add( new IntRef(var.getSpan(), var.getVar()) );
             } else {
                 throw new DesugarerError( "Unexpected Static Param type " +
                     "found: " + spOp.unwrap() );
@@ -145,9 +145,9 @@ public final class FreeNameCollection {
         this.freeMutableVarRefs = freeMutableVarRefs;
     }
 
-    /* 
+    /*
      * Make copies of all the lists; only the lists themselves are
-     *  deep copied, but not the elements they contain 
+     * deep copied, but not the elements they contain.
      */
     public FreeNameCollection makeCopy() {
         FreeNameCollection copy = new FreeNameCollection();
@@ -201,15 +201,14 @@ public final class FreeNameCollection {
                 this.freeUnitRefs.equals( other.freeUnitRefs ) &&
                 this.freeIntRefs.equals( other.freeIntRefs ) &&
                 this.freeBoolRefs.equals( other.freeBoolRefs ) &&
-                this.freeVarTypes.equals( other.freeVarTypes ) && 
-                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) ); 
+                this.freeVarTypes.equals( other.freeVarTypes ) &&
+                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) );
     }
 
     public FreeNameCollection add(VarRef n) {
         if( freeVarRefs.contains(n) == false ) {
             freeVarRefs.add(n);
         }
-
         return this;
     }
 
@@ -316,4 +315,3 @@ public final class FreeNameCollection {
     }
 
 }
-
