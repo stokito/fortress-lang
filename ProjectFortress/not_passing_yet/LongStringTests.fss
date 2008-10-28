@@ -30,13 +30,20 @@ export Executable   (* No, we don't — we just define tests *)
         println (if fileContents.isBalanced then "balanced" else "unbalanced" end)
         println "contents is as follows:"
         fileContents.showStructure()
+        teardown()
     end
     
     setup(): () = do
         input = FileReadStream("ProjectFortress/not_passing_yet/poem.txt")
-        flatStringInfo.maxSize := 5
-        fileContents := BIG || [ c ← input.chunks(5,6) ] c
+        flatStringInfo.maxSize := 25
+        fileContents := BIG || [ c ← seq(input.chunks(5,6)) ] c
         input.close()
     end
-
+    
+    teardown(): () = do
+        output = FileWriteStream("ProjectFortress/not_passing_yet/poem.out")
+        output.write(fileContents)
+        output.close()
+    end
+    
 end LongStringTests

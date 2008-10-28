@@ -22,6 +22,7 @@ import JavaString.{...}
 import RangeInternals.{...}
 import List.{AnyList}
 import TypeProxy.{...}
+(* import File.{...} *)
 
 export FortressLibrary
 
@@ -3463,8 +3464,6 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
 
-    split(): Generator[\(ZZ32, String)\]
-
     (** The operator %||% with at least one String argument converts to String and
         appends **)
     opr ||(self, b:String):String
@@ -3521,6 +3520,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     print(self): ()
     println(self): ()
+    (* writeOn(s: FileWriteStream): () *)
 
   end String
 
@@ -3551,7 +3551,7 @@ char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Cha
 print(a:Any):() = print("" a)           (* These use concatenation rather than .toString because the formulation *)
 println(a:Any):() = println("" a)     (* with concat also works for tuples *)
 
-(* 0-argument versions handle passing of () to single-argument versions. *)
+(* 0-argument versions handle passing of the empty string to single-argument versions. *)
 print():() = print("")
 println():() = println("")
 

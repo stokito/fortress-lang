@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api File
+import JavaString.JavaString
 import FileSupport.{...}
 
 object FileReadStream(filename:String) extends { FileStream, ReadStream }
@@ -104,11 +105,13 @@ object FileWriteStream(fileName:String) extends { FileStream }
     getter fileName(): String
     getter toString(): String
 
-    (** %write(String)% is the primitive mechanism for writing
+    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms for writing
         characters to the end of a %FileWriteStream%. **)
-    write(x:String):()
+    write(x:JavaString):()
+    write(c:Char):()
     (** %write(Any)% converts its argument to a String using %toString%
         and appends the result to the stream. **)
+    write(s:String):()
     write(x:Any):()
 
     (** %writes% converts each of the generated elements to a string

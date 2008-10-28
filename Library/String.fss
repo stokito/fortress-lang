@@ -71,7 +71,8 @@ export String
                                     else => fibonacci(n-1) + fibonacci(n-2) 
                         end
     print "starting testFib: "
-    for i ← 0:20 do assert(fib[i], fibonacci i); print "." end  (* We really can't use the naive fibonacci function for large n *)
+    for i ← 0:20 do assert(fib[i], fibonacci i); print "." end  
+    (* We really can't use the naive fibonacci function for large n *)
     println "testFib done"
   end
 *)
@@ -80,7 +81,7 @@ export String
 ==== Shared Traits ====
 *)
 
-  trait Concatenable extends String
+  trait Concatenable
     opr || (self, other:String): String = 
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
@@ -89,7 +90,7 @@ export String
   
   
   trait Balanceable 
-    getter isBalanced() = |self| = 0 OR: |self| ≥ fib[self.depth]
+    getter isBalanced() = self.depth ≤ 46 AND: |self| ≥ fib[self.depth]
   end Balanceable
   
 (*
@@ -103,14 +104,21 @@ export String
     getter bounds() = 0#size
     getter generator() = ConcatGenerator(left.generator, right.generator)     
     getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
+    
+    (* copied from concatenable *)
+       opr || (self, other:String): String = 
+        if |other| = 0 then self else CatString(self, other) end
+    opr || (self, _:EmptyString): String = self
+    opr || (self, other:Char) = CatString(self, other.toString)
+    (* end copied *)
+    
     opr CMP(self, other: String) ensures {outcome = (self.asJavaString CMP other.asJavaString)} =
         if |left| ≥ |other|
         then
             left CMP other
         else
             (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
-        end
-        
+        end 
         
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison ensures {outcome = (self.asJavaString CASE_INSENSITIVE_CMP other.asJavaString)} = 
         if |left| ≥ |other|
@@ -120,8 +128,9 @@ export String
             (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CASE_INSENSITIVE_CMP other[(|left|):])
         end
 
+    (* get is, and should be, without bounds checks.  [ ] does the bounds checks, 
+        and then delegates to get *)   
     get(i): Char = 
-    (* get is, and should be, without bounds checks.  [ ] does the bounds checks, and then delegates to get *)   
         if i ∈ left.indices then left[i] else right[i - |left|] end
       
     verify() = do
@@ -137,14 +146,6 @@ export String
         right.showStructure(indent+8)
     end
 
-(* without SubString nodes: 
-      
-    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
-        r1 = (r0 ≪ left.size)
-        left.uncheckedSubstring(r0 ∩ left.bounds) || right.uncheckedSubstring(r1 ∩ right.bounds)            
-      end
- *)
-            
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method 
         (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
         if r0.isEmpty then exit method with EmptyString end
@@ -172,11 +173,69 @@ export String
 
     println(self): () = do println(self.asJavaString) end  
     print(self): () = do print(self.asJavaString) end
+    writeOn(stream): () = do
+        stream.write(left)
+        stream.write(right)
+    end  
     
     split(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
+    
+    balanced() = label method
+        if self.isBalanced then exit method with self end
+        forest = BalancingForest()
+        forest.add(self.left)
+        forest.add(self.right)
+        forest.contents
+    end method
 
   end CatString
   
+  object BalancingForest() 
+    var cumulativeSize: ZZ32 = 0
+    var sequence: Array1⟦String, 0, 47⟧ = array1⟦String, 47⟧(EmptyString)
+    (* invariant:  |sequence[i]| = 0 OR  fib[i] ≤ |sequence[i]| < fib[i+1] *)
+    
+    getter contents() = do
+        (* We could do this all with a BIG || of a sequential generator.
+            That would loose the possibility of a short-circuit evaluation.
+            We could also use a concurrent generator, which would balance
+            probabilisticly, depending on the whim of the scheduler ... 
+            Which is best? *)
+        var  i: ZZ32 = 1
+        var result: String = EmptyString
+        while result.size < cumulativeSize do
+            result := sequence[i] || result
+            i := i + 1
+        end
+        result
+    end
+    
+    add(s: String) =do
+        (* adds s to this BalancingForest, maintaining the invariant that the concatenation
+        of the elements of sequence is equal to the concatenation of the Strings s 
+        added to self *)
+        var i: ZZ32 = 0
+        var sum: String = EmptyString
+        while  |s| > fib[i] do
+            if sequence[i] ≠ EmptyString then
+                sum := sequence[i] || sum
+                sequence[i] := EmptyString
+            end
+            i := i + 1
+        end
+        sum := sum || s
+        while |sum| ≥ fib[i] do
+            if sequence[i] ≠ EmptyString then
+                sum := sequence[i] || sum
+                sequence[i] := EmptyString
+            end
+            i := i + 1
+        end
+        sequence[i-1] := sum
+    end                
+    
+  end BalancingForest
+    
   test testEquality() = do
     subJ = SubString'("bcdefg", 1#4)
     subC = SubString'(CatString("@ab", "cdefg"), 2#4)
@@ -202,6 +261,11 @@ export String
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
+    
+    (* copied from concatenable *)
+    opr || (self, _:EmptyString): String = self
+    (* end copied *)
+    
     opr CMP(self, other: String): TotalComparison =
         |self| CMP |other|
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  
@@ -237,6 +301,7 @@ export String
       
     print(self): () = do end
     println(self): () = println("")
+    writeOn(stream): () = do end
     
     split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
   
@@ -256,6 +321,13 @@ export String
     getter depth() = baseString.depth       (* Why not one more than the baseString?  Would this break the balancing invariant? *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString' *)
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
+    
+       (* copied from concatenable *)
+       opr || (self, other:String): String = 
+        if |other| = 0 then self else CatString(self, other) end
+    opr || (self, _:EmptyString): String = self
+    opr || (self, other:Char) = CatString(self, other.toString)
+    (* end copied *)
     
     opr CMP(self, other: String) ensures { outcome = (self.asJavaString CMP other.asJavaString) } = do
         pieces = baseString.split()
@@ -301,7 +373,7 @@ export String
             else
                   (*) println "doing character-wise comparison of " self.asJavaString " with " other.asJavaString " ..."
                   (* BIG LEXICO [i ← 0#(|self| MIN |other|)] 
-                        self.get(i) CMP other.get(i) *)
+                        self.get(i) CASE_INSENSITIVE_CMP other.get(i) *)
                   (self asif String) CASE_INSENSITIVE_CMP (other asif String)
             end             
         end) LEXICO (|self| CMP |other|)
@@ -353,7 +425,20 @@ export String
     
     println(self): () = do println(self.asJavaString) end  
     print(self): () = do print(self.asJavaString) end
-          
+    writeOn(stream) = do
+        pieces = baseString.split()
+        if pieces.nonEmpty  then
+            for (start, str) ← pieces do
+                    baseSubrange = (start#|str|) ∩ range
+                    baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
+            end
+        else 
+            for i ← range do
+                        stream.write baseString.get(i)
+            end
+        end
+    end
+              
     split(): Generator⟦(ZZ32, String)⟧ = do
     (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
       and str[0] || str [1] || ... || str[n] = self

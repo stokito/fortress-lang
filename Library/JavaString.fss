@@ -73,7 +73,9 @@ package="com.sun.fortress.interpreter.glue.prim"
         javaPrint(self)
     println(self): () = 
         javaPrintln(self)
-
+    writeOn(stream): () =
+        stream.write(self)
+        
 
     indexOf(c:Char): Maybe[\ZZ32\] = do
         i = javaIndexOf(c)
@@ -103,10 +105,13 @@ package="com.sun.fortress.interpreter.glue.prim"
         end
       end
 
-    opr ||(self, b:String):String =
-    (* It would be good to do something more sophisticated when b is short, such as copying
-       self and b into a StringBuffer and then turning the whole thing into a JavaString *)
-        if self.isEmpty then b else CatString(self, b) end
+    opr ||(self, b:String):String =label method
+        if self.isEmpty then exit method with b end
+        if b.isEmpty then exit method with self end
+        if |self| + |b| ≤ flatStringInfo.maxSize then 
+            exit method with javaAppend(self, b.asJavaString) end
+        CatString(self, b) 
+    end method
         
   
     opr ||(self, b:Char): String =

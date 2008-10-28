@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 native component File
+import JavaString.JavaString
 import FileSupport.{...}
 export File
 
@@ -71,15 +72,20 @@ object FileWriteStream(fileName:String) extends { FileStream }
     getter toString(): String =
       builtinPrimitive(
         "com.sun.fortress.interpreter.glue.prim.FileWriteStream$toString")
-    write(x:String):() =
+    write(s:JavaString):() =
       builtinPrimitive(
         "com.sun.fortress.interpreter.glue.prim.FileWriteStream$write")
+    write(c:Char):() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$write")
+    write(x:String):() = x.writeOn(self)
     write(x:Any): () = write("" x)
     writes(x:Generator[\Any\], r:String):() =
         write((BIG ||[e <- x]
                    typecase e of
-                        String => e
-                        else   => "" e
+                        JavaString => e
+                        String => e.asJavaString
+                        else   => ("" e).asJavaString
                    end) r)
     writes(x:Generator[\Any\]):() = writes(x,"")
     print(x:Any...):() = writes(x)
