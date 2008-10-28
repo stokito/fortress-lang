@@ -53,21 +53,11 @@ import edu.rice.cs.plt.tuple.Pair;
  */
 public class Desugarer {
 
-    /**
-     * These two fields are temporary switches used for testing.
-     *
-     * When getter_setter_desugar is true, the desugaring for getter and setter
-     * is called during static checking.
-     *
-     * When the objExpr_desugar is true,
-     * the closure conversion pass for object expressions is called.
-     * The closure conversion comes after the desugaring pass for getter / setter.
-     */
-
     public static class ApiResult extends StaticPhaseResult {
         Map<APIName, ApiIndex> _apis;
 
-        public ApiResult(Map<APIName, ApiIndex> apis, Iterable<? extends StaticError> errors) {
+        public ApiResult(Map<APIName, ApiIndex> apis,
+                         Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
         }
@@ -127,13 +117,20 @@ public class Desugarer {
                  components(), errors);
     }
 
-    public static Component desugarComponent(ComponentIndex component,
-        GlobalEnvironment env, Option<TypeCheckerOutput> typeCheckerOutputOp) {
+    public static Component
+        desugarComponent(ComponentIndex component,
+                         GlobalEnvironment env,
+                         Option<TypeCheckerOutput> typeCheckerOutputOp) {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
-                                    Option.<Map<Pair<Id,Id>,FieldRef>>none();
+            Option.<Map<Pair<Id,Id>,FieldRef>>none();
      	Component comp = (Component) component.ast();
 
+        /**
+         * When Shell.getObjExprDesugaring is true,
+         * the closure conversion pass for object expressions is called.
+         * The closure conversion comes before the getter/setter desugaring pass.
+         */
         if( Shell.getObjExprDesugaring() ) {
             if(typeCheckerOutputOp.isNone()) {
                 throw new DesugarerError("Expected TypeCheckerOutput from " +
@@ -141,12 +138,13 @@ public class Desugarer {
             }
             TypeCheckerOutput typeCheckerOutput = typeCheckerOutputOp.unwrap();
 
-        	TraitTable traitTable = new TraitTable(component, env);
-        	ObjectExpressionVisitor objExprVisitor =
-            		new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
-        	comp = (Component) comp.accept(objExprVisitor);
-        	boxedRefMap = objExprVisitor.getBoxedRefMap();
+            TraitTable traitTable = new TraitTable(component, env);
+            ObjectExpressionVisitor objExprVisitor =
+                new ObjectExpressionVisitor(traitTable, typeCheckerOutput);
+            comp = (Component) comp.accept(objExprVisitor);
+            boxedRefMap = objExprVisitor.getBoxedRefMap();
         }
+
         if( Shell.getGetterSetterDesugaring() ) {
             DesugaringVisitor desugaringVisitor = new DesugaringVisitor( boxedRefMap );
             comp = (Component) comp.accept(desugaringVisitor);

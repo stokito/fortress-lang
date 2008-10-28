@@ -673,7 +673,7 @@ public class ExprFactory {
      * Uses the Spans from e_1 and e_2.
      */
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
-     return new _RewriteFnApp(new Span(e_1.getSpan(), e_2.getSpan()), e_1, e_2);
+        return new _RewriteFnApp(FortressUtil.spanTwo(e_1, e_2), e_1, e_2);
     }
 
     public static Expr makeInParentheses(Expr expr) {
