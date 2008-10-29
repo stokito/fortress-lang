@@ -33,7 +33,7 @@ private printLimit = 5
     irritating). **)
 
 (* Round to nearest multiple of stride towards 0. *)
-roundToStride[\I extends Integral[\I\]\](amt:I, stride:I) =
+roundToStride[\I extends Integral[\I\]\](amt:I, stride:I): I =
     stride (amt DIV stride)
 
 (* Perform necessary arithmetic on strides to find starting points of
@@ -343,7 +343,7 @@ object OpenRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends 
     dump(): String = "OpenRange3D(" str_i "," str_j "," str_k ")"
 end
 
-open[\I extends Integral[\I\]\]() = OpenScalarRange[\I\](1)
+open[\I extends Integral[\I\]\](): OpenScalarRange[\I\] = OpenScalarRange[\I\](1)
 
 trait ScalarRangeWithExtent[\I extends Integral[\I\]\]
         extends { ScalarRange[\I\], RangeWithExtent[\I\] }

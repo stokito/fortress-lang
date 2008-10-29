@@ -44,6 +44,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
@@ -114,7 +115,7 @@ public final class Shell {
         System.err.println(" [run] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
-        System.err.println(" api [-out file] [-debug [type]* [#]] somefile.fss");
+        System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
         System.err.println("");
@@ -157,9 +158,10 @@ public final class Shell {
          "  If -verbose is set, the name of each test function is printed before and after running the function\n"+
          "\n"+
          "\n"+
-         "fortress api [-out file] [-debug [type]* [#]] somefile.fss\n"+
+         "fortress api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss\n"+
          "  Automatically generate an API from a component.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "  If -prepend prependFile is given, the prependFile is prepended to the generated API.\n"+
          "\n"+
          "fortress compare [-debug [type]* [#]] somefile.fss anotherfile.fss\n"+
          "  Compare results of two components.\n"+
@@ -237,7 +239,7 @@ public final class Shell {
                 setPhase( PhaseOrder.CODEGEN );
                 run(args);
             } else if ( what.equals("api" ) ){
-                api(args, Option.<String>none());
+                api(args, Option.<String>none(), Option.<String>none());
             } else if ( what.equals("compare" ) ){
                 compare(args);
             } else if ( what.equals("parse" ) ){
@@ -291,7 +293,7 @@ public final class Shell {
     /**
      * Automatically generate an API from a component.
      */
-    private static void api(List<String> args, Option<String> out)
+    private static void api(List<String> args, Option<String> out, Option<String> prepend)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to generate an API.");
@@ -307,26 +309,41 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
+            else if (s.equals("-prepend") && ! rest.isEmpty() ){
+                prepend = Option.<String>some(rest.get(0));
+                rest = rest.subList( 1, rest.size() );
+            }
             else
                 invalidFlag(s, "api");
-            api( rest, out );
+            api( rest, out, prepend );
         } else {
-            api( s, out );
+            api( s, out, prepend );
         }
     }
 
-    private static void api( String file, Option<String> out )
+    private static void api( String file, Option<String> out, Option<String> prepend )
         throws UserError, IOException{
         if (! isComponent(file)) {
             throw new UserError( "api command needs a Fortress component file ; filename " +
                     file + " must end with .fss" );
         }
         Component c = (Component) Parser.parseFile(cuName(file), new File(file));
-        Api a = (Api) c.accept( ApiMaker.ONLY );
+        Option<Node> result = c.accept( ApiMaker.ONLY );
+        if ( result.isNone() )
+            throw new UserError("api command needs a Fortress component file.");
+        Api a = (Api) result.unwrap();
         String code = a.accept( new FortressAstToConcrete() );
         if ( out.isSome() ){
             try{
                 BufferedWriter writer = Useful.filenameToBufferedWriter(out.unwrap());
+                if ( prepend.isSome() ) {
+                    BufferedReader reader = Useful.filenameToBufferedReader(prepend.unwrap());
+                    String line = reader.readLine();
+                    while ( line != null ) {
+                        writer.write( line + "\n" );
+                        line = reader.readLine();
+                    }
+                }
                 writer.write(code);
                 writer.close();
                 System.out.println( "Dumped code to " + out.unwrap() );

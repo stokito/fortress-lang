@@ -19,11 +19,13 @@ package com.sun.fortress.nodes_util;
 import java.util.List;
 import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
+import edu.rice.cs.plt.tuple.Option;
+import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * A visitor that makes an api from a component.
  */
-public final class ApiMaker extends NodeUpdateVisitor {
+public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     private boolean inTrait = false;
     private boolean inObject = false;
 
@@ -40,17 +42,17 @@ public final class ApiMaker extends NodeUpdateVisitor {
         return result;
     }
 
-    private Boolean isPrivate(AbsDecl decl) {
+    private Boolean isPrivate(Decl decl) {
         return decl.accept( new NodeDepthFirstVisitor<Boolean>() {
-                @Override public Boolean forAbsTraitDecl(AbsTraitDecl that) {
+                @Override public Boolean forTraitDecl(TraitDecl that) {
                     return new Boolean(containsPrivate(that.getMods()));
                 }
 
-                @Override public Boolean forAbsObjectDecl(AbsObjectDecl that) {
+                @Override public Boolean forObjectDecl(ObjectDecl that) {
                     return new Boolean(containsPrivate(that.getMods()));
                 }
 
-                @Override public Boolean forAbsVarDecl(AbsVarDecl that) {
+                @Override public Boolean forVarDecl(VarDecl that) {
                     List<LValueBind> lhs = that.getLhs();
                     boolean result = false;
                     for (LValueBind lv : lhs) {
@@ -60,7 +62,7 @@ public final class ApiMaker extends NodeUpdateVisitor {
                     return new Boolean(result);
                 }
 
-                @Override public Boolean forAbsFnDecl(AbsFnDecl that) {
+                @Override public Boolean forFnDef(FnDef that) {
                     return new Boolean(containsPrivate(that.getMods()));
                 }
 
@@ -74,102 +76,134 @@ public final class ApiMaker extends NodeUpdateVisitor {
         boolean changed = false;
         List<AbsDecl> result = new java.util.ArrayList<AbsDecl>(0);
         for (Decl elt : that) {
-            AbsDecl elt_result = (AbsDecl) elt.accept(this);
-            if ( ! isPrivate(elt_result) ) {
-                result.add(elt_result);
-            }
+            Option<Node> elt_result = elt.accept(this);
+            if ( elt_result.isSome() )
+                result.add((AbsDecl)elt_result.unwrap());
         }
         return result;
     }
 
-    public Api forComponent(Component that) {
-        return new Api(that.getSpan(),
-                       that.getName(),
-                       that.getImports(),
-                       declsToAbsDecls(that.getDecls()));
+    public Option<Node> forComponent(Component that) {
+        return Option.<Node>some(new Api(that.getSpan(),
+                                         that.getName(),
+                                         that.getImports(),
+                                         declsToAbsDecls(that.getDecls())));
     }
 
-    public AbsTraitDecl forTraitDecl(TraitDecl that) {
-        inTrait = true;
-        List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
-        inTrait = false;
-        return new AbsTraitDecl(that.getSpan(),
-                                that.getMods(),
-                                that.getName(),
-                                that.getStaticParams(),
-                                that.getExtendsClause(),
-                                that.getWhere(),
-                                that.getExcludes(),
-                                that.getComprises(),
-                                absDecls);
+    public Option<Node> forTraitDecl(TraitDecl that) {
+        if ( ! isPrivate(that) ) {
+            inTrait = true;
+            List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+            inTrait = false;
+            return Option.<Node>some(new AbsTraitDecl(that.getSpan(),
+                                                      that.getMods(),
+                                                      that.getName(),
+                                                      that.getStaticParams(),
+                                                      that.getExtendsClause(),
+                                                      that.getWhere(),
+                                                      that.getExcludes(),
+                                                      that.getComprises(),
+                                                      absDecls));
+        } else return Option.<Node>none();
     }
 
-    public AbsObjectDecl forObjectDecl(ObjectDecl that) {
-        inObject = true;
-        List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
-        inObject = false;
-        return new AbsObjectDecl(that.getSpan(),
-                                 that.getMods(),
-                                 that.getName(),
-                                 that.getStaticParams(),
-                                 that.getExtendsClause(),
-                                 that.getWhere(),
-                                 that.getParams(),
-                                 that.getThrowsClause(),
-                                 that.getContract(),
-                                 absDecls);
+    public Option<Node> forObjectDecl(ObjectDecl that) {
+        if ( ! isPrivate(that) ) {
+            inObject = true;
+            List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+            inObject = false;
+            return Option.<Node>some(new AbsObjectDecl(that.getSpan(),
+                                                       that.getMods(),
+                                                       that.getName(),
+                                                       that.getStaticParams(),
+                                                       that.getExtendsClause(),
+                                                       that.getWhere(),
+                                                       that.getParams(),
+                                                       that.getThrowsClause(),
+                                                       that.getContract(),
+                                                       absDecls));
+        } else return Option.<Node>none();
     }
 
     /* For a field declaration with the "var" modifier in a component,
        the APIMaker leaves the "var" modifier off in the generated API.
      */
-    public AbsVarDecl forVarDecl(VarDecl that) {
-        List<LValueBind> lhs = new ArrayList<LValueBind>();
-        for (LValueBind lvb : that.getLhs()) {
-            if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
-                List<Modifier> mods = new ArrayList<Modifier>();
-                for (Modifier mod : lvb.getMods()) {
-                    if ( ! (mod instanceof ModifierVar) ) {
-                        mods.add( mod );
+    public Option<Node> forVarDecl(VarDecl that) {
+        if ( ! isPrivate(that) ) {
+            List<LValueBind> lhs = new ArrayList<LValueBind>();
+            for (LValueBind lvb : that.getLhs()) {
+                if ( lvb.getType().isNone() )
+                    return error(lvb, "The type of " + lvb.getName() +
+                                 " is required to generate an API.");
+                if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
+                    List<Modifier> mods = new ArrayList<Modifier>();
+                    for (Modifier mod : lvb.getMods()) {
+                        if ( ! (mod instanceof ModifierVar) ) {
+                            mods.add( mod );
+                        }
                     }
-                }
-                lhs.add( NodeFactory.makeLValue(lvb, mods, false) );
-            } else
-                lhs.add( lvb );
-        }
-        return new AbsVarDecl(that.getSpan(), lhs);
+                    lhs.add( NodeFactory.makeLValue(lvb, mods, false) );
+                } else
+                    lhs.add( lvb );
+            }
+            return Option.<Node>some(new AbsVarDecl(that.getSpan(), lhs));
+        } else return Option.<Node>none();
     }
 
-    public AbsFnDecl forFnDef(FnDef that) {
-        return new AbsFnDecl(that.getSpan(),
-                             that.getMods(),
-                             that.getName(),
-                             that.getStaticParams(),
-                             that.getParams(),
-                             that.getReturnType(),
-                             that.getThrowsClause(),
-                             that.getWhere(),
-                             that.getContract(),
-                             that.getSelfName());
+    public Option<Node> forFnDef(FnDef that) {
+        if ( ! isPrivate(that) ) {
+            if ( that.getReturnType().isNone() )
+                return error(that, "The return type of " + that.getName() +
+                             " is required to generate an API.");
+            for ( Param p : that.getParams() ) {
+                if ( p instanceof NormalParam &&
+                     ((NormalParam)p).getType().isNone() &&
+                     ! p.getName().getText().equals("self") )
+                    return error(p, "The type of " + p.getName() +
+                                 " is required to generate an API.");
+            }
+            return Option.<Node>some(new AbsFnDecl(that.getSpan(),
+                                                   that.getMods(),
+                                                   that.getName(),
+                                                   that.getStaticParams(),
+                                                   that.getParams(),
+                                                   that.getReturnType(),
+                                                   that.getThrowsClause(),
+                                                   that.getWhere(),
+                                                   that.getContract(),
+                                                   that.getSelfName()));
+        } else return Option.<Node>none();
     }
 
     /* For an abstract method declaration in a component,
        the APIMaker puts the "abstract" modifier in the generated API.
      */
-    public AbsFnDecl forAbsFnDecl(AbsFnDecl that) {
-        List<Modifier> mods = that.getMods();
-        if ( inTrait ) {
-            mods.add(0, new ModifierAbstract(that.getSpan()));
-        }
-        return new AbsFnDecl(that.getSpan(),
-                             mods,
-                             that.getName(),
-                             that.getStaticParams(),
-                             that.getParams(),
-                             that.getReturnType(),
-                             that.getThrowsClause(),
-                             that.getWhere(),
-                             that.getContract(),
-                             that.getSelfName());
+    public Option<Node> forAbsFnDecl(AbsFnDecl that) {
+        if ( ! isPrivate(that) ) {
+            if ( that.getReturnType().isNone() )
+                return error(that, "The return type of " + that.getName() +
+                             " is required to generate an API.");
+            for ( Param p : that.getParams() ) {
+                if ( p instanceof NormalParam &&
+                     ((NormalParam)p).getType().isNone() &&
+                     ! p.getName().getText().equals("self") )
+                    return error(p, "The type of " + p.getName() +
+                                 " is required to generate an API.");
+            }
+            List<Modifier> mods = that.getMods();
+            if ( inTrait ) {
+                mods.add(0, new ModifierAbstract(that.getSpan()));
+            }
+            return Option.<Node>some(new AbsFnDecl(that.getSpan(),
+                                                   mods,
+                                                   that.getName(),
+                                                   that.getStaticParams(),
+                                                   that.getParams(),
+                                                   that.getReturnType(),
+                                                   that.getThrowsClause(),
+                                                   that.getWhere(),
+                                                   that.getContract(),
+                                                   that.getSelfName()));
+        } else return Option.<Node>none();
     }
 }
