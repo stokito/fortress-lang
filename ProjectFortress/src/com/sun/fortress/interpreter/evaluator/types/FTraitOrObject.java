@@ -297,7 +297,10 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         TraitType pt = (TraitType) val;
         // Use "e", not "env".
         EvalType eval_type = new EvalType(e.getTopLevel());
-        FType eval_val_generic = eval_type.evalType(pt.getName());
+        // The if this is a generic-in-opr generic type, check that
+        // the original (pre-partial-instantiation) type matches
+        // the name in this context.
+        FType eval_val_generic = eval_type.evalType(pt);
         if (getOriginal() != eval_val_generic) {
             if (DUMP_UNIFY)
                 System.out.println("   getOriginal "+getOriginal()+

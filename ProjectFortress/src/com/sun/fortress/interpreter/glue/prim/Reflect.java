@@ -70,7 +70,7 @@ public class Reflect extends NativeConstructor {
         }
 
         FType getTy() {
-            return getSelfEnv().getType("T");
+            return getSelfEnv().getType("T"); // leaf
         }
 
         public NativeConstructor getConstructor() {

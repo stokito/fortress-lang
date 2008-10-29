@@ -60,7 +60,7 @@ public class Glue {
 
                     String fttn = t.getName();
                     if (fttn.equals(trait)) {
-                        return  t.getWithin().getType(param);
+                        return  t.getWithin().getType(param); // leaf
                     }
 
             }
@@ -155,12 +155,6 @@ public class Glue {
         return f;
     }
 
-    public static FTraitOrObject instantiateGenericType(Environment e, String genericName, FType T, int[] nats, HasAt x) {
-        List<FType> l = parametersForGenericIndexed(T, nats);
-        FTraitOrObject f = instantiateGenericType(e, genericName, l, x);
-        return f;
-    }
-
     public static FTraitOrObject instantiateGenericType(Environment e, String genericName, FType T, List<TypeRange> nats, HasAt x) {
         List<FType> l = parametersForGenericIndexed(T, nats);
         FTraitOrObject f = instantiateGenericType(e, genericName, l, x);
@@ -168,7 +162,7 @@ public class Glue {
     }
 
     private static FTraitOrObject instantiateGenericType(Environment e, String genericName, List<FType> l, HasAt x) {
-        FType thingMakerValue = e.getType(genericName);
+        FType thingMakerValue = e.getType(genericName); // top level
         Factory1P<List<FType>, FTraitOrObject, HasAt> thingMaker =
             (Factory1P<List<FType>, FTraitOrObject, HasAt>) thingMakerValue;
         FTraitOrObject f = thingMaker.make(l, x);

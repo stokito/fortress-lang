@@ -559,7 +559,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                FTypeObject fto = (FTypeObject) containing.getType(fname); // top level
                 FValue xxx = containing.getLeafValue(fname);
                 //Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
@@ -570,7 +570,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname);
+                FTypeObject fto = (FTypeObject) containing.getType(fname); // top level
 
                 finishObjectTrait(x, fto);
             }
@@ -586,7 +586,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Option<List<Param>> params = x.getParams();
 
         String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname);
+        FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname); // toplevel
         if (!staticParams.isEmpty()) {
             // Do nothing
         } else if (params.isSome()) {
@@ -851,7 +851,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         if (staticParams.isEmpty()) {
             Id name = x.getName();
             FTypeTrait ftt =
-                (FTypeTrait) containing.getType(NodeUtil.nameString(name));
+                (FTypeTrait) containing.getType(NodeUtil.nameString(name)); // toplevel
             Environment interior = ftt.getWithin();
             finishTrait(x, ftt, interior);
         }
@@ -859,7 +859,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     private void forTraitDecl3(TraitDecl x) {
         Id name = x.getName();
         String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(fname);
+        FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(fname); // toplevel
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
 

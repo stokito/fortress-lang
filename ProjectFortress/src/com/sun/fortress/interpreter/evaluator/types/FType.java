@@ -497,7 +497,7 @@ abstract public class FType implements Comparable<FType> {
             if (DUMP_UNIFY) System.out.print("iso ");
             rc = true;
         } else {
-            other = env.getTypeNull(((VarType)val).getName());
+            other = env.getTypeNull(((VarType)val).getName()); // use index
             if (DUMP_UNIFY && other==null) System.out.print("undef second ");
         }
         if (!rc) {

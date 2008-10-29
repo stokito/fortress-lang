@@ -71,7 +71,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             valNames.add(fname);
             typeNames.add(fname);
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
-            FType ft = exporter.getEnvironment().getTypeNull(fname);
+            FType ft = exporter.getEnvironment().getTypeNull(fname); // toplevel
             
             // This is overloadable if the object is NOT a singleton.
             if (x.getParams().isSome()) {
@@ -109,7 +109,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         if (getPass() == 1) {
             String fname = NodeUtil.stringName(x.getName());
             typeNames.add(fname);
-            FType ft = exporter.getEnvironment().getTypeNull(fname);
+            FType ft = exporter.getEnvironment().getTypeNull(fname); // toplevel
             if (ft != null) {
                 bindInto.putType(fname, ft);
                 change = Boolean.TRUE;

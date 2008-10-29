@@ -87,9 +87,9 @@ public class TopLevelEnvGenJUTest extends TestCase {
     public void testRemoveMethods() {
         IntNat three = IntNat.make(3);
         testCompiledEnv.putTypeRaw("Empty", three);
-        assertEquals(testCompiledEnv.getTypeNull("Empty"), three);
+        assertEquals(testCompiledEnv.getTypeNull("Empty"), three); // leaf
         testCompiledEnv.removeType("Empty");
-        assertNull(testCompiledEnv.getTypeNull("Empty"));
+        assertNull(testCompiledEnv.getTypeNull("Empty")); // leaf
 
         FInt seven = FInt.make(7);
 
@@ -167,12 +167,12 @@ public class TopLevelEnvGenJUTest extends TestCase {
         testCompiledEnv.putTypeRaw("Empty" + '\u05D1', b);
         testCompiledEnv.putTypeRaw("Empty" + '\u05D2', c);
 
-        assertEquals(testCompiledEnv.getTypeNull("Empty"), three);
-        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D0'), a);
-        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D1'), b);
-        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D2'), c);
+        assertEquals(testCompiledEnv.getTypeNull("Empty"), three); // leaf
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D0'), a); // leaf
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D1'), b); // leaf
+        assertEquals(testCompiledEnv.getTypeNull("Empty" + '\u05D2'), c); // leaf
 
-        assertNull(testCompiledEnv.getTypeNull("Chupacabra"));
+        assertNull(testCompiledEnv.getTypeNull("Chupacabra")); // leaf
     }
 
     public void testGetPutValueRaw() {
