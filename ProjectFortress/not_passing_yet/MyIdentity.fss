@@ -1,3 +1,4 @@
+(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -14,12 +15,31 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
+(** END COPYRIGHT **)
 
-component hello
+(*
+If you fix this, please uncomment the changes in 
+SpecData/examples/basic/StatParam.Opr.MyIdentity.fss
+
+This will pass with the compiled environments turned off;
+it demonstrates a glitch in the set of top-level names
+computed in typechecking.
+
+component StatParam.Opr.MyIdentity.
+*)
+
+component MyIdentity
+
 export Executable
 
-run(args:String...) = do
- println("Hello, World!")
+trait IdentityOp[\T extends IdentityOp[\T,ODOT\], opr ODOT\]
+  opr ODOT(self):T = self
 end
+
+(** EXAMPLE **)
+object MyIdentity extends IdentityOp[\MyIdentity, IDENTITY\] end
+(** END EXAMPLE **)
+
+run(args:String...) = ()
 
 end
