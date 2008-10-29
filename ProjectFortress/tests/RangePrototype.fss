@@ -233,6 +233,7 @@ run(args:String...):() =
   if false then ()
   else
     (* Spot-test failures first *)
+    assert(0:9:3, (0:9).narrowToRange(::3), "narrowing 0:9 to ::3")
     assert(|5:3|, 0, "Empty range should have 0 size.")
     assert(1:12:3, StridedFullParScalarRange[\ZZ32\](1,10,3),"Strided upward")
     assert(1:12:1, CompactFullParScalarRange[\ZZ32\](1,12),"Unit stride")
