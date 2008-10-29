@@ -21,12 +21,16 @@ component StatParam.Opr.MyIdentity
 
 export Executable
 
+(*
 trait IdentityOp[\T extends IdentityOp[\T,ODOT\], opr ODOT\]
   opr ODOT(self):T = self
 end
+*)
 
 (** EXAMPLE **)
+(* BROKEN...
 object MyIdentity extends IdentityOp[\MyIdentity, IDENTITY\] end
+*)
 (** END EXAMPLE **)
 
 run(args:String...) = ()
