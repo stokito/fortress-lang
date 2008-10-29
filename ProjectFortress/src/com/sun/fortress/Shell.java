@@ -52,6 +52,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.nodes_util.ApiMaker;
@@ -328,7 +329,20 @@ public final class Shell {
                     file + " must end with .fss" );
         }
         Component c = (Component) Parser.parseFile(cuName(file), new File(file));
-        Option<Node> result = c.accept( ApiMaker.ONLY );
+        String logFile = file + ".api.log";
+        Option<Node> result = c.accept( new ApiMaker(logFile) );
+        File log = new File( logFile );
+        if ( log.length() != 0 ) {
+            System.err.println("To generate an API, the following types are required:");
+            BufferedReader reader = Useful.filenameToBufferedReader( logFile );
+            String line = reader.readLine();
+            while ( line != null ) {
+                System.err.println( line );
+                line = reader.readLine();
+            }
+            Files.rm( logFile );
+            throw new UserError("Missing types from the component.");
+        }
         if ( result.isNone() )
             throw new UserError("api command needs a Fortress component file.");
         Api a = (Api) result.unwrap();

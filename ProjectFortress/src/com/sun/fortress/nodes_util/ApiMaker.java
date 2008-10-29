@@ -16,9 +16,12 @@
  ******************************************************************************/
 package com.sun.fortress.nodes_util;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
@@ -28,10 +31,24 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     private boolean inTrait = false;
     private boolean inObject = false;
+    private BufferedWriter writer;
 
-    public static final ApiMaker ONLY = new ApiMaker();
+    public ApiMaker( String file ) {
+        try {
+            writer = Useful.filenameToBufferedWriter( file );
+        } catch (IOException error) {
+            error("Creating a log file for the api tool failed!");
+        }
+    }
 
-    private ApiMaker() {}
+    private Option<Node> log(Node that, String message) {
+        try {
+            writer.write( that.getSpan() + " : " + message + "\n" );
+        } catch (IOException error) {
+            error("Writing to a log file for the api tool failed!");
+        }
+        return Option.<Node>none();
+    }
 
     private boolean containsPrivate(List<Modifier> mods) {
         boolean result = false;
@@ -84,10 +101,16 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     }
 
     public Option<Node> forComponent(Component that) {
-        return Option.<Node>some(new Api(that.getSpan(),
-                                         that.getName(),
-                                         that.getImports(),
-                                         declsToAbsDecls(that.getDecls())));
+        Node result = new Api(that.getSpan(),
+                              that.getName(),
+                              that.getImports(),
+                              declsToAbsDecls(that.getDecls()));
+        try {
+            writer.close();
+        } catch (IOException error) {
+            error("Creating a log file for the api tool failed!");
+        }
+        return Option.<Node>some(result);
     }
 
     public Option<Node> forTraitDecl(TraitDecl that) {
@@ -133,8 +156,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             List<LValueBind> lhs = new ArrayList<LValueBind>();
             for (LValueBind lvb : that.getLhs()) {
                 if ( lvb.getType().isNone() )
-                    return error(lvb, "The type of " + lvb.getName() +
-                                 " is required to generate an API.");
+                    log(lvb, "The type of " + lvb.getName() + " is required.");
                 if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
                     List<Modifier> mods = new ArrayList<Modifier>();
                     for (Modifier mod : lvb.getMods()) {
@@ -153,14 +175,12 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     public Option<Node> forFnDef(FnDef that) {
         if ( ! isPrivate(that) ) {
             if ( that.getReturnType().isNone() )
-                return error(that, "The return type of " + that.getName() +
-                             " is required to generate an API.");
+                log(that, "The return type of " + that.getName() + " is required.");
             for ( Param p : that.getParams() ) {
                 if ( p instanceof NormalParam &&
                      ((NormalParam)p).getType().isNone() &&
                      ! p.getName().getText().equals("self") )
-                    return error(p, "The type of " + p.getName() +
-                                 " is required to generate an API.");
+                    log(p, "The type of " + p.getName() + " is required.");
             }
             return Option.<Node>some(new AbsFnDecl(that.getSpan(),
                                                    that.getMods(),
@@ -181,14 +201,12 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     public Option<Node> forAbsFnDecl(AbsFnDecl that) {
         if ( ! isPrivate(that) ) {
             if ( that.getReturnType().isNone() )
-                return error(that, "The return type of " + that.getName() +
-                             " is required to generate an API.");
+                log(that, "The return type of " + that.getName() + " is required.");
             for ( Param p : that.getParams() ) {
                 if ( p instanceof NormalParam &&
                      ((NormalParam)p).getType().isNone() &&
                      ! p.getName().getText().equals("self") )
-                    return error(p, "The type of " + p.getName() +
-                                 " is required to generate an API.");
+                    log(p, "The type of " + p.getName() + " is required.");
             }
             List<Modifier> mods = that.getMods();
             if ( inTrait ) {
