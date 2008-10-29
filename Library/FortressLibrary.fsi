@@ -1900,7 +1900,7 @@ trait OpenRange[\I\] extends PartialRange[\I\]
     opr IN(n: I, self): Boolean
 end
 
-object TrivialOpenRange extends TrivialOpenRange
+object TrivialOpenRange extends OpenRange[\Any\]
     flip(): TrivialOpenRange
     forward(): TrivialOpenRange
     check(): TrivialOpenRange

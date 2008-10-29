@@ -20,9 +20,10 @@ export Executable
 
 eqToRange(a:Array[\ZZ32,ZZ32\], b:Range[\ZZ32\]):() = do
     assert(|a|, |b|, "Size mismatch",a,b)
-    lo = b.lower() - a.bounds().lower()
+    lo = b.left.get - a.bounds.lower
+    s = b.stride
     for (i,v) <- a.indexValuePairs() do
-        assert(i+lo, v, "a[", i, "]")
+        assert(s i + lo, v, "a[", i, "]", a, b)
     end
   end
 
@@ -59,6 +60,8 @@ run(args:String...):()=do
     eqToRange(a[3#], 3:10)
     eqToRange(a[#3], 0#3)
     eqToRange(a[:3], 0:3)
+    eqToRange(a[0:9:3],0:9:3)
+    eqToRange(a[::3],0:9:3)
     ash = a.shift(5)
     eqToRange(ash, 0:10)
     b[#] := c
@@ -72,7 +75,10 @@ run(args:String...):()=do
     a2 : ZZ32[3,3] = [0 1 2 ; 3 4 5; 6 7 8]
     eqToRange2(a2,a2.indices())
     eqToRange2(a2[#],a2.indices())
-    eqToRange2(a2[(0,1)#(2,2)],(0,1)#(2,2))
+    a2' = a2[(0,1)#(2,2)] (*'*)
+    eqToRange2(a2',(0,1)#(2,2)) (*'*)
+    eqToRange2(a2'[(1,1):],(1,2)#(1,1)) (*'*)
+    eqToRange2(((a2.t())[(1,0)#(2,2)]).t(), (0,1)#(2,2))
     eqToRange2(a2[#(2,3)],(0,0)#(2,3))
     eqToRange2(a2[:(1,2)],(0,0):(1,2))
     eqToRange2(a2[(2,1):],(2,1):(2,2))

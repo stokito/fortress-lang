@@ -1571,6 +1571,8 @@ trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
     getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
     zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
         DefaultZip[\E,F\](self,g)
+    opr[r:Range[\ZZ32\]] : ZeroIndexed[\E\]
+    opr[_:TrivialOpenRange] : ZeroIndexed[\E\] = self
 end
 
 object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
@@ -1691,7 +1693,6 @@ trait ReadableArray[\E,I\]
 
     (** Indexed functionality with more specific type information **)
     opr[r:Range[\I\]] : ReadableArray[\E,I\]
-    opr[_:TrivialOpenRange] : ReadableArray[\E,I\]
     ivmap[\R\](f:(I,E)->R): ReadableArray[\R, I\]
     map[\R\](f:E->R): ReadableArray[\R, I\]
 
@@ -1912,10 +1913,9 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         r' = self.bounds.narrowToRange(r) (*'*)
         s = reflect( |r'| )
         l = reflect(r'.lower)
-        __subarrayI(self,N[\0\],s,l,1)
+        m = r'.stride (*'*)
+        __subarrayI(self,N[\0\],s,l,m)
       end
-    opr[_:OpenRange[\ZZ32\]] : ImmutableArray1[\T,0,s0\] =
-        subarray[\0,s0,0\](1)
     opr[_:TrivialOpenRange] : ImmutableArray1[\T,0,s0\] =
         subarray[\0,s0,0\](1)
 
@@ -1962,12 +1962,10 @@ trait Array1[\T, nat b0, nat s0\]
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
         r' = self.bounds.narrowToRange(r) (*'*)
         s = reflect( |r'| )   (*'*)
-        l = reflect(r'.lower) (*'*)
+        l = reflect(r'.left.get) (*'*)
         m = r'.stride         (*'*)
         __subarray(self,N[\0\],s,l,m)
       end
-    opr[_:OpenRange[\ZZ32\]] : Array1[\T,0,s0\] =
-        subarray[\0,s0,0\](1)
     opr[_:TrivialOpenRange] : Array1[\T,0,s0\] =
         subarray[\0,s0,0\](1)
 
@@ -2187,15 +2185,36 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
       r' = self.bounds.narrowToRange(r)
       (z0,z1) = r'.extent.get
-      (l0,l1) = r'.lower
+      (l0,l1) = r'.left.get
       (m0,m1) = r'.stride
       __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
                  reflect(l0),reflect(l1),m0,m1)
     end
-  opr[_:OpenRange[\(ZZ32,ZZ32)\]] : Array2[\T,0,s0,0,s1\] =
-      subarray[\0,s0,0,s1,0,0\](1,1)
   opr[_:TrivialOpenRange] : Array2[\T,0,s0,0,s1\] =
       subarray[\0,s0,0,s1,0,0\](1,1)
+  (** Indexing by pairs of ranges *)
+(*
+  opr[r0:Range[\ZZ32\], r1:Range[\ZZ32\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      (r0',r1') = ((b0#s0).narrowToRange(r0), (b1#s1).narrowToRange(r1))
+      (z0,z1) = (r0'.extent.get,r1'.extent.get)
+      (l0,l1) = (r0'.left.get,r1'.left.get)
+      (m0,m1) = (r0'.stride,r1'.stride)
+      __subarray(self, N[\0\], reflect(z0), N[\0\], reflect(z1),
+                 reflect(l0),reflect(l1),m0,m1)
+    end
+  opr[_:TrivialOpenRange, r1:Range[\ZZ32\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      self[b0#s0,r1]
+    end
+  opr[r0:Range[\ZZ32\], _:TrivialOpenRange]: Array[\T,(ZZ32,ZZ32)\] = do
+      self[r0,b1#s1]
+    end
+  opr[_:TrivialOpenRange, _:TrivialOpenRange]: Array[\T,(ZZ32,ZZ32)\] = self[:]
+*)
+  (** Row and column extraction *)
+  opr[_:TrivialOpenRange, i1:ZZ32]: Array[\T,ZZ32\] = Col(self[b0#s0, i1#1])
+  opr[r:Range[\ZZ32\], i1:ZZ32]: Array[\T,ZZ32\] =        Col(self[r, i1#1])
+  opr[i0:ZZ32, _:TrivialOpenRange]: Array[\T,ZZ32\] = Row(self[i0#1, b1#s1])
+  opr[i0:ZZ32, r:Range[\ZZ32\]]: Array[\T,ZZ32\] =        Row(self[i0#1, r])
   shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1)=t1
       if o0=0 AND o1=0 then
@@ -2263,6 +2282,14 @@ object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
   put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
   get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
   t() = mem
+  (** 2-D subarray given static subarray parameters.
+      (bo1,bo2)#(so1,so2) are output bounds.
+      The result is the subarray starting at (o0,o1) in the original array,
+      striding by (m0,m1).
+   **)
+  subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+          (m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] =
+      mem.subarray[\bo1,so1,bo0,so0,o1,o0\](m1,m0).t()
 end
 
 (** Simple 2-D subarray, used when we have no other knowledge of the
@@ -2281,6 +2308,39 @@ object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
     init0(t1:(ZZ32,ZZ32), v:T): () = mem.init0(index(t1),v)
     put(t1:(ZZ32,ZZ32), v:T): () = mem.put(index(t1),v)
     get(t1:(ZZ32,ZZ32)): T = mem.get(index(t1))
+    (** 2-D subarray given static subarray parameters.
+        (bo1,bo2)#(so1,so2) are output bounds.
+        The result is the subarray starting at (o0,o1) in the original array,
+        striding by (m0,m1).
+     **)
+    subarray[\nat bo0, nat so0, nat bo1, nat so1, nat on0, nat on1\]
+            (mn0:ZZ32,mn1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+        boundsCheck = self.bounds.narrowToRange( (on0,on1)::(mn0,mn1)#(so0,so1) )
+        (o0', o1') = index(on0 - bo0, on1 - bo1)
+        SubArray2[\T,bo0,so0,bo1,so1,bu0,su0,bu1,su1\](mem,mn0,o0',mn1,o1')
+      end
+end
+
+object Col[\T, nat b0, nat s0\](mem: Array2[\T,b0,s0,0,1\])
+        extends Array1[\T,b0,s0\]
+    get(i:ZZ32): T = mem.get(i,0)
+    put(i:ZZ32,v:T): () = mem.put((i,0),v)
+    init0(i:ZZ32,v:T): () = mem.init0((i,0),v)
+    offset(i:ZZ32): ZZ32 = mem.offset(i,0)
+    toIndex(i:ZZ32): ZZ32 = toIndex(i,0)
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
+        Col[\T,b,s\](mem.subarray[\b,s,0,1,o,0\](m,1))
+end
+
+object Row[\T, nat b1, nat s1\](mem: Array2[\T,0,1,b1,s1\])
+        extends Array1[\T,b1,s1\]
+    get(i:ZZ32): T = mem.get(0,i)
+    put(i:ZZ32,v:T): () = mem.put((0,i),v)
+    init0(i:ZZ32,v:T): () = mem.init0((0,i),v)
+    offset(i:ZZ32): ZZ32 = mem.offset(0,i)
+    toIndex(i:ZZ32): ZZ32 = toIndex(0,i)
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
+        Row[\T,b,s\](mem.subarray[\0,1,b,s,0,o\](1,m))
 end
 
 trait AnyMatrix end
@@ -2512,13 +2572,11 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
         r' = self.bounds.narrowToRange(r)
         (z0,z1,z2) = r'.extent.get
-        (l0,l1,l2) = r'.lower (*'*)
+        (l0,l1,l2) = r'.left.get (*'*)
         (m0,m1,m2) = r'.stride (*'*)
         __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
                    N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2),m0,m1,m2)
       end
-    opr[_:OpenRange[\(ZZ32,ZZ32,ZZ32)\]] : Array3[\T,0,s0,0,s1,0,s2\] =
-        subarray[\0,s0,0,s1,0,s2,0,0,0\](1,1,1)
     opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\] =
         subarray[\0,s0,0,s1,0,s2,0,0,0\](1,1,1)
     shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
