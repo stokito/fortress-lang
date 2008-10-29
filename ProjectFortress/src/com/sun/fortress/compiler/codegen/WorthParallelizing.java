@@ -1,4 +1,4 @@
-(*******************************************************************************
+/*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,13 +13,15 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
+ ******************************************************************************/
+package com.sun.fortress.compiler.codegen;
 
-component hello
-export Executable
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 
-run(args:String...) = do
- println("Hello, World!")
-end
-
-end
+public class WorthParallelizing extends NodeAbstractVisitor<Boolean> {
+    public Boolean defaultCase(Node that) {
+        return Boolean.FALSE;
+    }
+    
+}

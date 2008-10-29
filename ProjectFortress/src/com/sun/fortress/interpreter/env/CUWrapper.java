@@ -54,7 +54,7 @@ import com.sun.fortress.useful.Visitor2;
 public class CUWrapper {
     
     private final static boolean loadCompiledEnvs =
-        ProjectProperties.getBoolean("fortress.test.compiled.environments", false);
+        ProjectProperties.getBoolean("fortress.test.compiled.environments", true);
     
     CompilationUnit comp_unit;
 
