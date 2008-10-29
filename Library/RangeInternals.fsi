@@ -17,7 +17,7 @@
 
 api RangeInternals
 import TypeProxy.{...}
-roundToStride[\I extends Integral[\I\]\](amt: I, stride: I)
+roundToStride[\I extends Integral[\I\]\](amt: I, stride: I): I
 
 atOrAboveGoingUp[\I extends Integral[\I\]\](start: I, bound: I, stride: I): I
 
@@ -142,6 +142,7 @@ object OpenScalarRange[\I extends Integral[\I\]\](str: I)
     every(s: I): OpenScalarRange[\I\]
     imposeStride(s: I): OpenScalarRange[\I\]
     atMost(n: I): ScalarRangeWithExtent[\I\]
+    opr =(self, b: OpenRange[\I\]): Boolean
     opr CAP(self, other: ScalarRange[\I\]): ScalarRange[\I\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     openEveryParam(r: ScalarRange[\I\]): I
@@ -181,7 +182,7 @@ object OpenRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     dump(): String
 end
 
-open[\I extends Integral[\I\]\]()
+open[\I extends Integral[\I\]\](): OpenScalarRange[\I\]
 
 trait ScalarRangeWithExtent[\I extends Integral[\I\]\]
     extends { ScalarRange[\I\], RangeWithExtent[\I\] }
@@ -385,6 +386,7 @@ trait FullScalarRange[\I extends Integral[\I\]\]
     extends { ScalarRangeWithLeft[\I\], ScalarRangeWithRight[\I\],
         ScalarRangeWithExtent[\I\],
         FullRange[\I\] }
+    getter extent(): Just[\I\]
     getter bounds(): CompactFullScalarRange[\I\]
     getter toString(): String
 
@@ -400,7 +402,9 @@ trait FullScalarRange[\I extends Integral[\I\]\]
 end
 
 trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
-    extends { FullRange[\(I, J)\], Range2D[\I, J\], DelegatedIndexed[\(I, J), (I, J)\] }
+    extends { FullRange[\(I, J)\], Range2D[\I, J\], DelegatedIndexed[\(I, J), (I, J)\],
+        ActualRange2D[\I, J, FullRange2D[\I, J\], FullScalarRange[\I\],
+        FullScalarRange[\J\]\] }
     getter extent(): Just[\(I, J)\]
     getter generator(): Generator[\(I, J)\]
     getter indices(): Generator[\(I, J)\]
@@ -415,7 +419,10 @@ tupleFlatten[\I, J, K\](t: (I, J), k: K): (I, J, K)
 
 trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\]\]
-    extends { FullRange[\(I, J, K)\], Range3D[\I, J, K\], DelegatedIndexed[\(I, J, K), (I, J, K)\] }
+    extends { FullRange[\(I, J, K)\], Range3D[\I, J, K\], DelegatedIndexed[\(I, J, K), (I, J, K)\],
+        ActualRange3D[\I, J, K, FullRange3D[\I, J, K\], FullScalarRange[\I\],
+        FullScalarRange[\J\],
+        FullScalarRange[\K\]\] }
     getter extent(): Just[\(I, J, K)\]
     getter generator(): Generator[\(I, J, K)\]
     getter indices(): Generator[\(I, J)\]
@@ -429,7 +436,6 @@ end
 trait CompactFullScalarRange[\I extends Integral[\I\]\]
     extends { FullScalarRange[\I\], CompactFullRange[\I\] }
     getter stride(): I
-    getter extent(): Just[\I\]
     getter size(): ZZ32
     getter isEmpty(): Boolean
     getter indexValuePairs(): Indexed[\(I, I), I\]
@@ -467,8 +473,7 @@ end
 combine2D[\I extends Integral[\I\], J extends Integral[\J\]\](i: CompactFullScalarRange[\I\], j: CompactFullScalarRange[\J\]): CompactFullRange2D[\I, J\]
 
 object CompactFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_i: I, l_j: J, r_i: I, r_j: J)
-    extends { CompactFullRange[\(I, J)\], FullRange2D[\I, J\], ActualRange2D[\I, J, CompactFullRange2D[\I, J\], CompactFullScalarRange[\I\],
-        CompactFullScalarRange[\J\]\] }
+    extends { CompactFullRange[\(I, J)\], FullRange2D[\I, J\] }
     getter lower(): (I, J)
     getter upper(): (I, J)
     getter bounds(): CompactFullRange2D[\I, J\]
@@ -480,7 +485,7 @@ object CompactFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_
     getter range1(): CompactFullScalarRange[\I\]
     getter range2(): CompactFullScalarRange[\J\]
 
-    recombine(i: CompactFullScalarRange[\I\], j: CompactFullScalarRange[\J\]): CompactFullRange2D[\I, J\]
+    recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\]): FullRange2D[\I, J\]
     dump(): String
 end
 
@@ -489,11 +494,7 @@ combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[
 
 object CompactFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\]\](l_i: I, l_j: J, l_k: K, r_i: I, r_j: J, r_k: K)
-    extends { CompactFullRange[\(I, J, K)\], FullRange3D[\I, J, K\],
-        ActualRange3D[\I, J, K, CompactFullRange3D[\I, J, K\],
-        CompactFullScalarRange[\I\],
-        CompactFullScalarRange[\J\],
-        CompactFullScalarRange[\K\]\] }
+    extends { CompactFullRange[\(I, J, K)\], FullRange3D[\I, J, K\] }
     getter lower(): (I, J, K)
     getter upper(): (I, J, K)
     getter bounds(): CompactFullRange3D[\I, J, K\]
@@ -506,8 +507,7 @@ object CompactFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     getter range2(): CompactFullScalarRange[\J\]
     getter range3(): CompactFullScalarRange[\K\]
 
-    recombine(i: CompactFullScalarRange[\I\], j: CompactFullScalarRange[\J\],
-            k: CompactFullScalarRange[\K\]): CompactFullRange3D[\I, J, K\]
+    recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\], k: FullScalarRange[\K\]): FullRange3D[\I, J, K\]
     dump(): String
 end
 
@@ -551,8 +551,7 @@ end
 combine2D[\I extends Integral[\I\], J extends Integral[\J\]\](i: FullScalarRange[\I\], j: FullScalarRange[\J\]): FullRange2D[\I, J\]
 
 object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_i: I, l_j: J, r_i: I, r_j: J, str_i: I, str_j: J)
-    extends { StridedFullRange[\(I, J)\], FullRange2D[\I, J\], ActualRange2D[\I, J, StridedFullRange2D[\I, J\], FullScalarRange[\I\],
-        FullScalarRange[\J\]\] }
+    extends { StridedFullRange[\(I, J)\], FullRange2D[\I, J\] }
     getter bounds(): CompactFullRange2D[\I, J\]
     getter indices(): Generator[\(I, J)\]
     getter indexValuePairs(): Generator[\((I, J), (I, J))\]
@@ -573,11 +572,7 @@ object StridedFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\]\](l_i: I, l_j: J, l_k: K, r_i: I, r_j: J, r_k: K, str_i: I,
         str_j: J,
         str_k: K)
-    extends { StridedFullRange[\(I, J, K)\], FullRange3D[\I, J, K\],
-        ActualRange3D[\I, J, K, StridedFullRange3D[\I, J, K\],
-        FullScalarRange[\I\],
-        FullScalarRange[\J\],
-        FullScalarRange[\K\]\] }
+    extends { StridedFullRange[\(I, J, K)\], FullRange3D[\I, J, K\] }
     getter bounds(): CompactFullRange3D[\I, J, K\]
     getter indices(): Generator[\(I, J, K)\]
     getter indexValuePairs(): Generator[\((I, J, K), (I, J, K))\]

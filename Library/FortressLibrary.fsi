@@ -17,7 +17,9 @@
 
 api FortressLibrary
 
+(*
 import File.FileWriteStream
+*)
 
 (************************************************************
 * \subsection*{Simple Combinators}
@@ -2094,8 +2096,10 @@ trait String extends { StandardTotalOrder[\String\],
     getter generator() : Generator[\Char\]
     getter depth() : ZZ32
     getter asJavaString(): String
+(*
     getter isBalanced(): Boolean
-    
+*)
+
     verify() : ()       (* Verify the data structure invaraints of self *)
     showStructure() : ()        (* a debugging printout *)
     showStructure(indent: ZZ32) : ()         (* a debugging printout *)
@@ -2124,10 +2128,12 @@ trait String extends { StandardTotalOrder[\String\],
             str[0] || str [1] || ... || str[n] = self
     **)
     split(): Generator[\(ZZ32, String)\]
-    
+
+(*
     (**  A balanced version of the reciever  *)
     balanced(): String ensures {outcome.isBalanced AND outcome = self}
-    
+*)
+
     (** The operator %||% with at least one String argument converts to string and
         appends **)
     opr ||(self, b:String):String
@@ -2165,7 +2171,9 @@ trait String extends { StandardTotalOrder[\String\],
 
     print(self): ()
     println(self): ()
+(*
     writeOn(s: FileWriteStream): ()
+*)
 
 end String
 
