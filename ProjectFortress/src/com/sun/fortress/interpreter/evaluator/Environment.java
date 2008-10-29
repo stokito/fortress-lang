@@ -77,15 +77,21 @@ public interface Environment  {
     public abstract Number getIntNull(String s);
 
     public abstract Number getNat(String str);
+    // used only by natFromGeneric (applied to trait environments)
+    // which is used only by arrayRank and lengthAlongArrayAxis
 
     public abstract Number getNatNull(String s);
+    // used only by getNat (above)
 
     public abstract Closure getRunClosure();
+    // top-level environment reference
 
     /* Type names take the form ID or Api.ID */
     public abstract FType getType(Id d); // 3
+    // BoolRef, IntRef, and the TL name of a (generic) trait.
     
     public abstract FType getType(NamedType q); // 2
+    // forTraitType, forVarType (these have lexical depth)
 
     public abstract FType getType(String str); // 13
 

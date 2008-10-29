@@ -51,17 +51,17 @@ public class TopLevelEnvBenchmark {
             IntNat three = IntNat.make(3);
             compiled.putTypeRaw("LessThan", three);
             betterEnv.putTypeRaw("LessThan", three);
-            System.out.println(compiled.getTypeNull("LessThan"));
-            System.out.println(betterEnv.getTypeNull("LessThan"));
+            System.out.println(compiled.getTypeNull("LessThan")); // leaf
+            System.out.println(betterEnv.getTypeNull("LessThan")); // leaf
             long start = System.currentTimeMillis();
             for(int i = 0; i < iterations; i++) {
-                compiled.getTypeNull("LessThan");
+                compiled.getTypeNull("LessThan"); // leaf
             }
             long difference = System.currentTimeMillis() - start;
             System.out.println("Compiled environments get: " + (difference / (float) iterations) + " msec");
             start = System.currentTimeMillis();
             for(int i = 0; i < iterations; i++) {
-                betterEnv.getTypeNull("LessThan");
+                betterEnv.getTypeNull("LessThan"); // leaf
             }
             difference = System.currentTimeMillis() - start;
             System.out.println("BATree environments get: " + (difference / (float) iterations) + " msec");

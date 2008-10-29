@@ -1569,7 +1569,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         for (BaseType forbidType : x.getForbid()) {
             if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
                 Environment libE = Driver.getFortressLibrary();
-                FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException);
+                FType ftype = libE.getTypeNull(WellKnownNames.forbiddenException); // toplevel
                 List<FValue> args = new ArrayList<FValue>();
                 args.add(exc);
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);

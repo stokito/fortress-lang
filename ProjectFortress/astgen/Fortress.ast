@@ -1595,7 +1595,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * IntVal ::= QualifiedName
                      * e.g.) m
                      */
-                    IntRef(Id name);
+                    IntRef(Id name, int lexicalDepth=-2147483648);
                 /**
                  * integer expression with an operator
                  */
@@ -1646,7 +1646,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                      * BoolVal ::= QualifiedName
                      * e.g.) ninf
                      */
-                    BoolRef(Id name);
+                    BoolRef(Id name, int lexicalDepth=-2147483648);
                 /**
                  * boolean constraint
                  * BoolExpr ::= BoolConstraint

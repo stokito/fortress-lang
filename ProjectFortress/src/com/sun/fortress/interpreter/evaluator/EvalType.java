@@ -72,8 +72,17 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return t.accept(this);
     }
 
-    public FType evalType(Id t) {
-        return forId(t);
+    // Returns the type that has the same name as the trait, in this
+    // environment (used in unification).
+    // Done this way to ensure that getType is only applied to top-level names.
+    public FType evalType(TraitType t) {
+        Id q = t.getName();
+        try {
+            FType result = env.getType(q);
+            return result;
+        } catch (FortressException p) {
+            throw p.setContext(q,env);
+        }
     }
 
     public static FType getFTypeFromOption(Option<Type> t, final Environment e, final FType ifMissing) {
@@ -490,16 +499,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             pe.setWhere(x);
             throw pe;
         }
-    }
-
-    public FType forId(Id q) {
-        try {
-            FType result = env.getType(q);
-            return result;
-        } catch (FortressException p) {
-            throw p.setContext(q,env);
-        }
-
     }
 
     public FType forAnyType(AnyType a) {

@@ -255,7 +255,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt =
-                        (FTypeTrait) containing.getType(NodeUtil.nameString(name));
+                        (FTypeTrait) containing.getType(NodeUtil.nameString(name)); // top level
                     Environment interior = ftt.getWithin();
                     ftt.getMembers();
             }
@@ -272,7 +272,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing
-                            .getType(NodeUtil.nameString(name));
+                            .getType(NodeUtil.nameString(name)); // top level
                     Environment interior = ftt.getWithin();
                     ftt.getMembers();
             }
