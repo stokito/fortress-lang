@@ -935,7 +935,10 @@ opr NOTNI[\E\](this: Contains[\E\], x:E): Boolean = x NOTIN this
  * Minimal complete definition of a Generator is the generate(...) method.
  *)
 trait Generator[\E\] extends { Contains[\E\] }
-    excludes { Number }
+        excludes { Number }
+
+    getter toString(): String = (BIG ||[i <- self] "," i)[1:]
+
     (** generate is the core of Generator.  It generates elements of
         type E and passes them to the body function.  This generation
         can occur using any mixture of serial and parallel execution
@@ -1114,6 +1117,7 @@ __bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
   end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    getter toString(): String = "seq(" (self asif Generator[\E\]).toString ")"
     seq(self): SequentialGenerator[\E\] = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
@@ -1747,7 +1751,7 @@ trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
             end
         else
             fail("Can't assign indexed with bounds " a.bounds //
-                 " to differently-sized subarray " self.bounds)
+                 " to differently-sized subarray " s0.bounds)
         end
       end
 
@@ -1879,7 +1883,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
 
     opr |self| : ZZ32 = s0
 
-    subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\]
 
     (* Offset converts from b0 indexing to 0 indexing,
        bounds checking en route *)
@@ -1901,27 +1905,26 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
         if o=0 then
             self
         else
-            __subarrayI(self,reflect(o),N[\s0\],N[\b0\])
+            __subarrayI(self,reflect(o),N[\s0\],N[\b0\],1)
         end
 
     opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
-        r' = self.bounds.narrowToRange(r)
-        z = N[\0\]
+        r' = self.bounds.narrowToRange(r) (*'*)
         s = reflect( |r'| )
         l = reflect(r'.lower)
-        __subarrayI(self,z,s,l)
+        __subarrayI(self,N[\0\],s,l,1)
       end
     opr[_:OpenRange[\ZZ32\]] : ImmutableArray1[\T,0,s0\] =
-        subarray[\0,s0,0\]()
+        subarray[\0,s0,0\](1)
     opr[_:TrivialOpenRange] : ImmutableArray1[\T,0,s0\] =
-        subarray[\0,s0,0\]()
+        subarray[\0,s0,0\](1)
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
-    subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = self.bounds.narrowToRange(o#s)
-        __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):ImmutableArray1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
+        __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,m)
     end
 
     (* the replica method returns a replica of the array (similar layout
@@ -1953,27 +1956,27 @@ trait Array1[\T, nat b0, nat s0\]
         if o=0 then
             self
         else
-            __subarray(self,reflect(o),N[\s0\],N[\b0\])
+            __subarray(self,reflect(o),N[\s0\],N[\b0\],1)
         end
 
     opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
-        r' = self.bounds.narrowToRange(r)
-        z = N[\0\]
-        s = reflect( |r'| )
-        l = reflect(r'.lower)
-        __subarray(self,z,s,l)
+        r' = self.bounds.narrowToRange(r) (*'*)
+        s = reflect( |r'| )   (*'*)
+        l = reflect(r'.lower) (*'*)
+        m = r'.stride         (*'*)
+        __subarray(self,N[\0\],s,l,m)
       end
     opr[_:OpenRange[\ZZ32\]] : Array1[\T,0,s0\] =
-        subarray[\0,s0,0\]()
+        subarray[\0,s0,0\](1)
     opr[_:TrivialOpenRange] : Array1[\T,0,s0\] =
-        subarray[\0,s0,0\]()
+        subarray[\0,s0,0\](1)
 
     (** subarray selects a subarray of this array based on static parameters.
         b#s are the new bounds of the array; o is
         the index of the subarray within the current array. **)
-    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-      boundsCheck = self.bounds.narrowToRange(o#s)
-      __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,1)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):Array1[\T, b, s\] = do
+      boundsCheck = self.bounds.narrowToRange(o::m#s)
+      __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,m)
     end
 
     (* the replica method returns a replica of the array (similar layout
@@ -1995,31 +1998,31 @@ end
 (* WORK AROUND absence of type inference in method calls. *)
 __subarray[\T, nat b0, nat s0, nat b, nat s, nat o\]
           (it:Array1[\T,b0,s0\],
-           _:N[\b\],_:N[\s\],_:N[\o\]):Array1[\T,b,s\] =
-    it.subarray[\b,s,o\]()
+           _:N[\b\],_:N[\s\],_:N[\o\],m:ZZ32):Array1[\T,b,s\] =
+    it.subarray[\b,s,o\](m)
 
 __subarrayI[\T, nat b0, nat s0, nat b, nat s, nat o\]
           (it:ImmutableArray1[\T,b0,s0\],
-           _:N[\b\],_:N[\s\],_:N[\o\]):ImmutableArray1[\T,b,s\] =
-    it.subarray[\b,s,o\]()
+           _:N[\b\],_:N[\s\],_:N[\o\],m:ZZ32):ImmutableArray1[\T,b,s\] =
+    it.subarray[\b,s,o\](m)
 
 
 (** A 1-D subarray of an Array1.
     b_a#s_a is the underlying array's bounds; b0#s0 is the
     result bounds.  o0 is the starting offset in the underlying array,
-    defined in 0-indexed space.  m0 the stride within that array.
+    defined in 0-indexed space.  m0 is the stride within that array.
     Invariant: (s0-1) m0 + o0 - b_a) < s_a *)
 object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
        (arr:Array1[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
        extends Array1[\T, b0, s0\]
-    index(i:ZZ32):T = i m0 + o0
+    index(i:ZZ32):ZZ32 = i m0 + o0
     get(i:ZZ32):T = arr.get(index(i))
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
-    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\] = do
-        boundsCheck = self.bounds.narrowToRange(o#s)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):Array1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
         o_n : ZZ32 = o - b0
-        __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
+        __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m m0)
       end
 end
 
@@ -2027,14 +2030,14 @@ end
 object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
        (arr:ImmutableArray1[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
        extends ImmutableArray1[\T, b0, s0\]
-    index(i:ZZ32):T = i m0 + o0
+    index(i:ZZ32):ZZ32 = i m0 + o0
     get(i:ZZ32):T = arr.get(index(i))
     put(i:ZZ32,v:T): () = arr.put(index(i),v)
     init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
-    subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\] = do
-        boundsCheck = self.bounds.narrowToRange(o#s)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):ImmutableArray1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
         o_n : ZZ32 = o - b0
-        __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m0)
+        __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m m0)
       end
 end
 
@@ -2073,7 +2076,7 @@ __builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
     r = array1[\T,s0\]()
     typecase _ = N[\b0\] of
         N[\0\] => r
-        else => r.subarray[\b0,s0,0\]()
+        else => r.subarray[\b0,s0,0\](1)
     end
   end
 
@@ -2084,7 +2087,7 @@ __immutableFactory1[\T, nat b0, nat s0\]():ReadableArray1[\T,b0,s0\] = do
     r = immutableArray1[\T,s0\]()
     typecase _ = N[\b0\] of
         N[\0\] => r
-        else => r.subarray[\b0,s0,0\]()
+        else => r.subarray[\b0,s0,0\](1)
     end
   end
 
@@ -2185,30 +2188,32 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
       r' = self.bounds.narrowToRange(r)
       (z0,z1) = r'.extent.get
       (l0,l1) = r'.lower
+      (m0,m1) = r'.stride
       __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
-                 reflect(l0),reflect(l1))
+                 reflect(l0),reflect(l1),m0,m1)
     end
   opr[_:OpenRange[\(ZZ32,ZZ32)\]] : Array2[\T,0,s0,0,s1\] =
-      subarray[\0,s0,0,s1,0,0\]()
+      subarray[\0,s0,0,s1,0,0\](1,1)
   opr[_:TrivialOpenRange] : Array2[\T,0,s0,0,s1\] =
-      subarray[\0,s0,0,s1,0,0\]()
+      subarray[\0,s0,0,s1,0,0\](1,1)
   shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1)=t1
       if o0=0 AND o1=0 then
           self
       else
-          __subarray(self,reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\])
+          __subarray(self,reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\],1,1)
       end
     end
 
   (** 2-D subarray given static subarray parameters.
       (bo1,bo2)#(so1,so2) are output bounds.
-      The result is the subarray starting at (o0,o1) in the original array.
+      The result is the subarray starting at (o0,o1) in the original array,
+      striding by (m0,m1).
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
-          (): Array2[\T,bo0,so0,bo1,so1\] = do
-      boundsCheck = self.bounds.narrowToRange( (o0,o1)#(so0,so1) )
-      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,1,o0,1,o1)
+          (m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+      boundsCheck = self.bounds.narrowToRange( (o0,o1)::(m0,m1)#(so0,so1) )
+      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,m0,o0,m1,o1)
     end
 
   zeroIndices():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,0,0,s0,s1)
@@ -2234,12 +2239,8 @@ __subarray[\T, nat b0, nat s0, nat b1, nat s1,
            nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
         (this:Array2[\T,b0,s0,b1,s1\],
          _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
-         _:N[\o0\],_:N[\o1\]): Array2[\T,bo0,so0,bo1,so1\] = do
-(*
-    println("__subarray[\\" b0 "," s0 "," b1 "," s1 ", "
-            bo0 "," so0 "," bo1 "," so1 ", " o0 "," o1 "\\]()")
-*)
-    this.subarray[\bo0,so0,bo1,so1,o0,o1\]()
+         _:N[\o0\],_:N[\o1\],m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+    this.subarray[\bo0,so0,bo1,so1,o0,o1\](m0,m1)
   end
 
 (** Default array is column-major, but we could switch it. **)
@@ -2511,14 +2512,15 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
         r' = self.bounds.narrowToRange(r)
         (z0,z1,z2) = r'.extent.get
-        (l0,l1,l2) = r'.lower
+        (l0,l1,l2) = r'.lower (*'*)
+        (m0,m1,m2) = r'.stride (*'*)
         __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
-                   N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2))
+                   N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2),m0,m1,m2)
       end
     opr[_:OpenRange[\(ZZ32,ZZ32,ZZ32)\]] : Array3[\T,0,s0,0,s1,0,s2\] =
-        subarray[\0,s0,0,s1,0,s2,0,0,0\]()
+        subarray[\0,s0,0,s1,0,s2,0,0,0\](1,1,1)
     opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\] =
-        subarray[\0,s0,0,s1,0,s2,0,0,0\]()
+        subarray[\0,s0,0,s1,0,s2,0,0,0\](1,1,1)
     shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
         (o0,o1,o2)=t
         if o0=0 AND o1=0 AND o2=0 then
@@ -2526,19 +2528,20 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         else
             __subarray(self,
                        reflect(o0),N[\s0\], reflect(o1),N[\s1\],
-                       reflect(o2),N[\s2\], N[\b0\],N[\b1\],N[\b2\])
+                       reflect(o2),N[\s2\], N[\b0\],N[\b1\],N[\b2\],1,1,1)
         end
       end
 
     (** 3-D subarray given static subarray parameters.
-        (bo1,bo2)#(so1,so2) are output bounds.
-        The result is the subarray starting at (o0,o1) in the original array.
+        %(bo0,bo1,bo2)#(so0,so1,so2)% are output bounds.
+        The result is the subarray starting at %(o0,o1,o2)% in the original array,
+        striding by (m0,m1,m2).
      **)
     subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
               nat o0, nat o1, nat o2\]
-            (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
-        boundsCheck = self.bounds.narrowToRange( (o0,o1,o2)#(so0,so1,so2) )
-        SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,1,o0,1,o1,1,o2)
+            (m0:ZZ32,m1:ZZ32,m2:ZZ32): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
+        boundsCheck = self.bounds.narrowToRange( (o0,o1,o2)::(m0,m1,m2)#(so0,so1,so2) )
+        SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,m0,o0,m1,o1,m2,o2)
       end
 
     zeroIndices():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
@@ -2566,8 +2569,8 @@ __subarray[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
             nat o0, nat o1, nat o2\]
       (this:Array3[\T,b0,s0,b1,s1,b2,s2\],
        _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],_:N[\bo2\],_:N[\so2\],
-       _:N[\o0\],_:N[\o1\],_:N[\o2\]): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
-    this.subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\]()
+       _:N[\o0\],_:N[\o1\],_:N[\o2\], m0:ZZ32,m1:ZZ32,m2:ZZ32): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
+    this.subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\](m0,m1,m2)
 
 object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
                                         Array3[\T, b0, s0, b1, s1, b2, s2\]
@@ -2915,7 +2918,7 @@ trait SomeMappedGenerator[\F\] extends Generator[\F\] end
 trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
-    getter toString(): String = self.g ".map(f)"
+    getter toString(): String = "mapped(" (self asif Generator[\F\]).toString ")"
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r, m COMPOSE self.f)
     reduce(r: Reduction[\F\]): F =
@@ -2955,7 +2958,7 @@ object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
         extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = "seq(" g0 ".map(f))"
+    getter toString() = "mapped(" (self asif SequentialGenerator[\F\]).toString ")"
     seq(self): SimpleMappedSeqGenerator[\E,F\] = self
 end
 
