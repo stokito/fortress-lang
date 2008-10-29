@@ -1293,7 +1293,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter toString()
     opr |self| : ZZ32
 
-    subarray[\nat b, nat s, nat o\]():ReadableArray1[\T, b, s\]
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\]
 
     (** Offset converts from %b0%-indexing to 0-indexing,
         bounds checking en route. *)
@@ -1315,7 +1315,7 @@ trait ImmutableArray1[\T, nat b0, nat s0\]
     (** %subarray% selects a subarray of this array based on static parameters.
         %b#s% are the new bounds of the array; %o% is
         the index of the subarray within the current array. **)
-    subarray[\nat b, nat s, nat o\]():ImmutableArray1[\T, b, s\]
+    subarray[\nat b, nat s, nat o\](m:ZZ32):ImmutableArray1[\T, b, s\]
 
     (** The %replica% method returns a replica of the array (similar layout
         etc.) but with a different element type. *)
@@ -1343,7 +1343,7 @@ trait Array1[\T, nat b0, nat s0\]
     opr[_:OpenRange[\ZZ32\]] : Array1[\T,0,s0\]
     opr[_:TrivialOpenRange] : Array1[\T,0,s0\]
 
-    subarray[\nat b, nat s, nat o\]():Array1[\T, b, s\]
+    subarray[\nat b, nat s, nat o\](m:ZZ32):Array1[\T, b, s\]
 
     replica[\U\]():Array1[\U,b0,s0\]
 
@@ -1451,10 +1451,11 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
 
   (** 2-D subarray given static subarray parameters.
       %(bo1,bo2)#(so1,so2)% are output bounds.
-      The result is the subarray starting at %(o0,o1)% in the original array.
+      The result is the subarray starting at %(o0,o1)% in the original array,
+      striding by (m0,m1).
    **)
   subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
-          (): Array2[\T,bo0,so0,bo1,so1\]
+          (m0:ZZ32, m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\]
 
   zeroIndices():CompactFullRange[\(ZZ32,ZZ32)\]
 
@@ -1573,13 +1574,14 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\]
     shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\]
 
-    (** 2-D subarray given static subarray parameters.
-        %(bo1,bo2)#(so1,so2)% are output bounds.
-        The result is the subarray starting at %(o0,o1)% in the original array.
+    (** 3-D subarray given static subarray parameters.
+        %(bo0,bo1,bo2)#(so0,so1,so2)% are output bounds.
+        The result is the subarray starting at %(o0,o1,o2)% in the original array,
+        striding by (m0,m1,m2).
      **)
     subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
               nat o0, nat o1, nat o2\]
-            (): Array3[\T,bo0,so0,bo1,so1,bo2,so2\]
+            (m0:ZZ32,m1:ZZ32,m2:ZZ32): Array3[\T,bo0,so0,bo1,so1,bo2,so2\]
 
     zeroIndices():CompactFullRange[\(ZZ32,ZZ32,ZZ32)\]
 
