@@ -44,17 +44,21 @@ import edu.rice.cs.plt.tuple.Pair;
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // Type info passed down from the type checking phase
     private TypeCheckerOutput typeCheckerOutput;
-    // A list of newly created ObjectDecls (i.e. lifted obj expressions and
-    // objectDecls for boxed mutable var refs they capture)
+    /* 
+     * A list of newly created ObjectDecls (i.e. lifted obj expressions and
+     * objectDecls for boxed mutable var refs they capture)
+     */
     private List<ObjectDecl> newObjectDecls;
-    // A map mapping from mutable VarRef to its coresponding container
-    // info (i.e. its boxed ObjectDecl, the new VarDecl to create the
-    // boxed ObjectDecl instance, the VarRef to the new VarDecl ...  etc.)
-    // This map gets updated/reset when entering/leaving ObjectDecl and
-    // LocalVarDecl, which are the only places that can introduce new
-    // mutable vars captured by object expr.  When leaving ObjectDecl, it
-    // gets reset entirely.  When leaving LocalVarDecl, simply the VarRef
-    // corresponding to the LocalVarRef gets removed.
+    /*
+     * A map mapping from mutable VarRef to its coresponding container
+     * info (i.e. its boxed ObjectDecl, the new VarDecl to create the
+     * boxed ObjectDecl instance, the VarRef to the new VarDecl ...  etc.)
+     * This map gets updated/reset when entering/leaving ObjectDecl and
+     * LocalVarDecl, which are the only places that can introduce new
+     * mutable vars captured by object expr.  When leaving ObjectDecl, it
+     * gets reset entirely.  When leaving LocalVarDecl, simply the VarRef
+     * corresponding to the LocalVarRef gets removed.
+     */
     private Map<VarRef, VarRefContainer> mutableVarRefContainerMap;
 
     // a stack keeping track of all nodes that can create a new lexical scope
@@ -108,6 +112,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     public static final String MANGLE_CHAR = "$";
     private static final String ENCLOSING_PREFIX = "enclosing";
+    private static final String EXIT_FUNC_PREFIX = "exit_func";
+    private static final String EXIT_WITH_PREFIX = "exit_with";
 
 
     // Constructor
@@ -218,14 +224,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             returnValue = (ObjectDecl) that.accept(rewriter);
         }
 
-        // if rewriteList == null, returnValue = that; otherwise,
-        // returnValue is updated by the MutableVarRefRewriteVisitor.
-        // Note that we must update mutableVarRefContainerMap first
-        // before recursing on its subtree, because the info in the
-        // map is relevant to lifting object expr within this ObjectDecl
-        // In addition, we do the rewrite first before we recur on subtree,
-        // although I believe the order of these two visitors should not
-        // conflict.
+        /* 
+         * if rewriteList == null, returnValue = that; otherwise,
+         * returnValue is updated by the MutableVarRefRewriteVisitor.
+         * Note that we must update mutableVarRefContainerMap first
+         * before recursing on its subtree, because the info in the
+         * map is relevant to lifting object expr within this ObjectDecl
+         * In addition, we do the rewrite first before we recur on subtree,
+         * although I believe the order of these two visitors should not
+         * conflict.
+         */
         returnValue = (ObjectDecl) super.forObjectDecl(returnValue);
 
         // reset the mutableVarRefContainerMap
@@ -373,9 +381,59 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         FreeNameCollection freeNames = objExprToFreeNames.get(that.getSpan());
 
-       // System.err.println("Free names: " + freeNames);
+        /*
+         * A map mapping from Exit node to its corresponding exitFnParam info
+         * that we created when lifting the ObjectExpr - we need the param Id
+         * and type to make the FnRef in ExitRewriter 
+         * We use the Exit's span and target label id as the key instead of
+         * just the Exit node itself, because by this point, the Exit may 
+         * have been rewritten and may not be the same if its return 
+         * expression captured mutable variables (they would be boxed).
+         * We only store the function id and type pair as value because
+         * that's all we need.  If we store the NormalParam instead, we
+         * would have to dig those info out again.
+         */
+        final Map<Pair<Span,Id>, Pair<Id,Type>> 
+            exitFnParamMap = new HashMap<Pair<Span,Id>, Pair<Id,Type>>();
 
-        ObjectDecl lifted = liftObjectExpr(that, freeNames);
+        ObjectDecl lifted = liftObjectExpr(that, freeNames, exitFnParamMap);
+
+        final List<Exit> freeExitLabels = freeNames.getFreeExitLabels();
+
+        /*
+         * Anonymous inner class that rewrites the Exit node which captured
+         * the free label inside ObjectExpr into a call to the Exit function
+         * that passed into lifted ObjectDecl as a param 
+         */
+        NodeUpdateVisitor rewriter = new NodeUpdateVisitor() {
+                @Override 
+                public Node forExit(Exit that) {
+                    Span span = that.getSpan();
+                    Pair<Span,Id> exitKey = 
+                        new Pair<Span,Id>( span, that.getTarget().unwrap() );
+                    Pair<Id,Type> exitFnInfo = exitFnParamMap.get(exitKey);
+                    if(exitFnInfo != null) {
+                        List<Expr> exprs = new LinkedList<Expr>();
+                        Option<Expr> returnExpr = that.getReturnExpr();
+
+                        Id fnName = exitFnInfo.first();
+                        FnRef fnRef = ExprFactory.makeFnRef(fnName);
+                        exprs.add(fnRef); 
+                        
+                        if(returnExpr.isSome()) {
+                            exprs.add( returnExpr.unwrap() );
+                        } else {
+                            exprs.add( ExprFactory.makeVoidLiteralExpr(span) );
+                        }
+
+                        return ExprFactory.makeTightJuxt(span, false, exprs);
+                    } else {
+                        return that;
+                    }
+                }
+            };
+        lifted = (ObjectDecl) lifted.accept(rewriter);
+
         newObjectDecls.add(lifted);
         TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
 
@@ -453,6 +511,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             }
         }
 
+        // Handle static params from the enclosing nested FnDef
+        for(Node n : scopeStack) {
+            if(n instanceof FnDef) {
+                sParams = ((FnDef) n).getStaticParams();
+                for(StaticParam sp : sParams) {
+                    args.add( makeStaticArgFromStaticParam(sp) ); 
+                }
+            }
+        }
+
         return args;
     }
 
@@ -463,6 +531,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
+        List<Exit> freeExitLabels = freeNames.getFreeExitLabels();
         List<Expr> exprs = new LinkedList<Expr>();
 
         if(freeVarRefs != null) {
@@ -491,6 +560,51 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             }
         }
 
+        if(freeExitLabels != null) {
+            int exitIndex = 0;
+            FnExpr exitFnExpr;
+            List<Param> exitFnExprParams;
+            Id exitWithId;
+            Option<Expr> exitWithExpr;
+            Option<Type> exitWithTypeOp;
+            Option<Type> exitFnRetTypeOp;
+            Expr exitFnBody;
+
+            /* Make the argument for each exit label captured:
+             *     fn(e:exitWithType) : BottomType => exit foo with e  OR
+             *     fn() : BottomType => exit foo 
+             */
+            for(Exit exit : freeExitLabels) {
+                Span exitSpan = exit.getSpan(); 
+                exitFnExprParams = new LinkedList<Param>();
+                exitWithId = NodeFactory.makeId( exitSpan, 
+                                MANGLE_CHAR+EXIT_WITH_PREFIX+"_"+exitIndex );
+                exitWithExpr = exit.getReturnExpr();
+                if( exitWithExpr.isSome() ) {
+                    exitWithTypeOp = exitWithExpr.unwrap().getExprType();
+                    if( exitWithTypeOp.isSome() ) {
+                        VarRef var = ExprFactory.makeVarRef(exitSpan,
+                                            exitWithId, exitWithTypeOp);
+                        exitFnBody = ExprFactory.makeExit(exitSpan, 
+                            exit.getExprType(), exit.getTarget(), var);
+                        exitFnExprParams.add( 
+                            NodeFactory.makeNormalParam(exitSpan,
+                                exitWithId, exitWithTypeOp) );
+                    } else {
+                        throw new DesugarerError( exitSpan,
+                                    "Exit with expr of an unknown type!" );
+                    }
+                } else {
+                    exitFnBody = exit; 
+                } 
+                exitFnRetTypeOp = Option.<Type>some( new BottomType(exitSpan) );
+
+                exitFnExpr = ExprFactory.makeFnExpr( exitSpan, 
+                                exitFnExprParams, exitFnRetTypeOp, exitFnBody );
+                exprs.add(exitFnExpr);
+            }
+        }
+
         if(enclosingSelf != null) {
             exprs.add(enclosingSelf);
         }
@@ -508,7 +622,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     private ObjectDecl liftObjectExpr(ObjectExpr target,
-                                      FreeNameCollection freeNames) {
+                              FreeNameCollection freeNames,
+                              Map<Pair<Span,Id>,Pair<Id,Type>> exitFnParamMap) {
         String name = getMangledName(target);
         Span span = target.getSpan();
         Id liftedObjId = NodeFactory.makeId(span, name);
@@ -530,7 +645,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                         freeNames.getEnclosingSelfType() );
         }
 
-        params = makeParamsForLiftedObj(target, freeNames, enclosingSelf);
+        params = makeParamsForLiftedObj(target, freeNames, 
+                                        enclosingSelf, exitFnParamMap);
         /* Use default value for modifiers, where clauses,
            throw clauses, contract */
         ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams,
@@ -580,19 +696,29 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             sParamsCopy.addAll(sParams);
         }
 
+        // Handle static params from the enclosing nested FnDef
+        for(Node n : scopeStack) {
+            if(n instanceof FnDef) {
+                sParams = ((FnDef) n).getStaticParams();
+                sParamsCopy.addAll(sParams); 
+            }
+        }
+
         return sParamsCopy;
     }
 
     private Option<List<Param>>
     makeParamsForLiftedObj(ObjectExpr target,
                            FreeNameCollection freeNames,
-                           NormalParam enclosingSelfParam) {
+                           NormalParam enclosingSelfParam,
+                           Map<Pair<Span,Id>,Pair<Id,Type>> exitFnParamMap) {
 
         Option<Type> type = null;
         NormalParam param = null;
         List<Param> params = new LinkedList<Param>();
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
+        List<Exit> freeExitLabels = freeNames.getFreeExitLabels();
 
         if(freeVarRefs != null) {
             for(VarRef var : freeVarRefs) {
@@ -611,7 +737,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
                     type = var.getExprType();
-                    param = new NormalParam(var.getSpan(), var.getVar(), type);
+                    param = NodeFactory.makeNormalParam(var.getSpan(), 
+                                                        var.getVar(), type);
                     params.add(param);
                 }
             }
@@ -623,9 +750,52 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // FIXME: What if it has a type that's not visible at top level?
                 // FIXME: what span should I use?
                 type = fn.getExprType();
-                param = new NormalParam(fn.getSpan(),
-                                        fn.getOriginalName(), type);
+                param = NodeFactory.makeNormalParam(fn.getSpan(),
+                                                    fn.getOriginalName(), type);
                 params.add(param);
+            }
+        }
+
+        if(freeExitLabels != null) {
+            int exitIndex = 0;
+            for(Exit exit : freeExitLabels) {
+                Span exitSpan = exit.getSpan();
+                Option<Id> labelOp = exit.getTarget();
+                Id label = null;
+                if( labelOp.isSome() ) {
+                    label = labelOp.unwrap();
+                } else {
+                    throw new DesugarerError( exitSpan, 
+                                "Exit target label is not disambiguated!" );
+                }
+
+                Option<Expr> retExpr = exit.getReturnExpr();
+                Option<Type> retTypeOp = null; 
+                Type retType = null;
+                Type exitFnType = null;
+
+                if(retExpr.isSome()) {
+                    retTypeOp = retExpr.unwrap().getExprType();
+                    if( retTypeOp.isSome() ) {
+                        retType = retTypeOp.unwrap();
+                    } else {
+                        throw new DesugarerError( exitSpan,
+                                    "Exit with expr of an unknown type!" );
+                    }
+                } else { // exit with no expr
+                    retType = NodeFactory.makeVoidType(exitSpan);
+                }
+                exitFnType = NodeFactory.makeArrowType(
+                                exitSpan, retType, new BottomType(exitSpan) );
+                type = Option.<Type>some(exitFnType);
+                Id exitFnId = NodeFactory.makeId(exitSpan, 
+                        MANGLE_CHAR + EXIT_FUNC_PREFIX + "_" + exitIndex);
+                param = NodeFactory.makeNormalParam(exitSpan, exitFnId, type);
+                params.add(param);
+                Pair<Span, Id> exitKey = new Pair<Span,Id>(exitSpan, label);
+                Pair<Id, Type> exitFnInfo = new Pair<Id,Type>(exitFnId, exitFnType);
+                exitFnParamMap.put(exitKey, exitFnInfo);
+                exitIndex++;
             }
         }
 
@@ -650,15 +820,18 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // id of the newly created param for implicit self
         Id enclosingParamId = NodeFactory.makeId(paramSpan,
                 MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
-        param = new NormalParam(paramSpan, enclosingParamId, enclosingSelfType);
+        param = NodeFactory.makeNormalParam(paramSpan, 
+                                        enclosingParamId, enclosingSelfType);
 
         return param;
     }
 
-    // Generate a map mapping from mutable VarRef to its coresponding
-    // container info (i.e. its boxed ObjectDecl, the new VarDecl to create
-    // the boxed ObjectDecl instance, the VarRef to the new VarDecl, etc.)
-    // based on the info stored in the rewriteList
+    /* 
+     * Generate a map mapping from mutable VarRef to its coresponding
+     * container info (i.e. its boxed ObjectDecl, the new VarDecl to create
+     * the boxed ObjectDecl instance, the VarRef to the new VarDecl, etc.)
+     * based on the info stored in the rewriteList
+     */
     private List<VarRef>
     updateMutableVarRefContainerMap(String uniqueSuffix,
                                     List<Pair<VarRef,Node>> rewriteList) {

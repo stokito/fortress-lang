@@ -927,6 +927,10 @@ public class NodeFactory {
         return new NatParam(s, new Id(s, name));
     }
 
+    public static NormalParam makeNormalParam(Span span, Id name, Option<Type> type) {
+        return new NormalParam(span, name, type);
+    }
+
     public static TupleType makeTupleType(List<Type> elements) {
         return new TupleType(new Span(), elements);
     }
