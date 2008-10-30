@@ -91,6 +91,7 @@ export String
   
   trait Balanceable 
     getter isBalanced() = self.depth ≤ 46 AND: |self| ≥ fib[self.depth]
+    getter isAlmostBalanced() = self.depth ≤ 48 AND: |self| ≥ fib[self.depth-2]
   end Balanceable
   
 (*
@@ -141,10 +142,12 @@ export String
 
     showStructure(indent: ZZ32) = do
         margin(indent)
-        println  ("C" || |self| "/" self.depth || ":" )
+        println  (self.balanceIndicator() || "C" || |self| "/" self.depth || ":" )
         left.showStructure(indent+8)
         right.showStructure(indent+8)
     end
+    
+    balanceIndicator() = if self.isBalanced then "B" elif self.isAlmostBalanced then "b" else "u" end
 
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method 
         (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
@@ -180,26 +183,28 @@ export String
     
     split(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
     
-    balanced() = label method
+    balanced() ensures {outcome = self ∧ outcome.isAlmostBalanced} = 
+      label method
         if self.isBalanced then exit method with self end
         forest = BalancingForest()
         forest.add(self.left)
         forest.add(self.right)
         forest.contents
-    end method
+      end method
 
   end CatString
   
   object BalancingForest() 
-    var cumulativeSize: ZZ32 = 0
-    var sequence: Array1⟦String, 0, 47⟧ = array1⟦String, 47⟧(EmptyString)
+    balanceDebug = false
+    var cumulativeSize: ZZ32 := 0
+    var sequence: Array1⟦String, 0, 47⟧ := array1⟦String, 47⟧(EmptyString)
     (* invariant:  |sequence[i]| = 0 OR  fib[i] ≤ |sequence[i]| < fib[i+1] *)
     
-    getter contents() = do
+    getter contents() ensures { |outcome| = cumulativeSize } = do
         (* We could do this all with a BIG || of a sequential generator.
             That would loose the possibility of a short-circuit evaluation.
-            We could also use a concurrent generator, which would balance
-            probabilisticly, depending on the whim of the scheduler ... 
+            We could also use a concurrent generator, which would usually balance,
+            depending on the whim of the scheduler ... 
             Which is best? *)
         var  i: ZZ32 = 1
         var result: String = EmptyString
@@ -210,10 +215,22 @@ export String
         result
     end
     
-    add(s: String) =do
+    showSequence() = if balanceDebug then
+        for i ← seq(sequence.indices.flip) do
+            if sequence[i].nonEmpty then
+                print "sequence[" i "] = " 
+                sequence[i].showStructure()
+            end
+        end  
+      end
+    
+    addWholeSubtree(s: String) invariant { BIG ∧ [ i ← sequence.indices ]
+        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  } =  
+      do
         (* adds s to this BalancingForest, maintaining the invariant that the concatenation
-        of the elements of sequence is equal to the concatenation of the Strings s 
+        of the elements of sequence is equal to the concatenation of all of the Strings s 
         added to self *)
+        cumulativeSize := cumulativeSize + |s|
         var i: ZZ32 = 0
         var sum: String = EmptyString
         while  |s| > fib[i] do
@@ -232,7 +249,39 @@ export String
             i := i + 1
         end
         sequence[i-1] := sum
-    end                
+      end                
+    
+    add(s: JavaString) invariant { BIG ∧ [ i ← sequence.indices ]
+        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  }  =  
+      do
+        self.addWholeSubtree(s)
+        if balanceDebug then 
+            print "added J\"" s "\", "
+            self.showSequence()
+        end
+      end
+    
+    add(s: CatString) invariant { BIG ∧ [ i ← sequence.indices ]
+        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  }  =  
+      do
+        if s.isBalanced then 
+            self.addWholeSubtree(s)
+        else
+            self.add(s.left)
+            self.add(s.right)
+        end
+      
+        if balanceDebug then 
+            print "added C\"" s "\", "
+            self.showSequence()
+        end
+      end
+    
+    add(s: EmptyString) = 
+      do end
+    
+    add(s: SubString') = 
+        self.addWholeSubtree(s.balanced)
     
   end BalancingForest
     
@@ -321,9 +370,17 @@ export String
     getter depth() = baseString.depth       (* Why not one more than the baseString?  Would this break the balancing invariant? *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString' *)
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
+    getter isBalanced() = baseString.isBalanced
     
-       (* copied from concatenable *)
-       opr || (self, other:String): String = 
+    balanced() = 
+        if self.isBalanced then 
+            self 
+        else 
+            baseString.balanced.uncheckedSubstring(range) 
+        end
+    
+    (* copied from concatenable *)
+    opr || (self, other:String): String = 
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
