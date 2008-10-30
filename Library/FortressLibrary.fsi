@@ -2098,9 +2098,8 @@ trait String extends { StandardTotalOrder[\String\],
     getter generator() : Generator[\Char\]
     getter depth() : ZZ32
     getter asJavaString(): String
-(*
     getter isBalanced(): Boolean
-*)
+
 
     verify() : ()       (* Verify the data structure invaraints of self *)
     showStructure() : ()        (* a debugging printout *)
@@ -2119,6 +2118,8 @@ trait String extends { StandardTotalOrder[\String\],
          whatever optimizationms for empty ranges and trivial (whole string) ranges may be
          appropriate for the representation.*)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
+
+    rangeContains(r: Range[\ZZ32\], c: Char) : Boolean
 
     (** Answers a subdivision of self into substrings.  This method must take time
         proportional to the number of pairs generated.   If there is no such subdivision,

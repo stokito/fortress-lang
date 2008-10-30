@@ -106,6 +106,27 @@ component StringTests
     assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
   end  
   
+  test testIN() = do
+    e = EmptyString
+    deny('x' IN e)
+    c = CatString("abcd", "efgh")
+    assert('a' IN c)
+    assert('f' IN c)
+    deny('j' IN c)
+    s = c[2:5]
+    deny('a' IN s)
+    assert('d' IN s)
+    assert('f' IN s)
+    ss = s[1:2]
+    assert('e' IN ss)
+    assert('d' IN ss)
+    deny('f' IN ss)
+    lss = s[0:1]
+    assert('c' IN lss)
+    deny('e' IN lss)
+    assert('d' IN lss)
+  end
+  
 
   test testSplit():() = do
     subject = CatString("abcd", "efgh")
@@ -226,6 +247,7 @@ component StringTests
     testIlk()
     testJavaStringification()
     testSplit()
+    testIN()
     testComparison()
     testCIComparison()
     testNonEmptyConcat()
@@ -233,7 +255,6 @@ component StringTests
     testCharConcat()
     testParallelGenerator()
     testSequentialGenerator()
-    println "run method finished"
   end
 
 end StringTests

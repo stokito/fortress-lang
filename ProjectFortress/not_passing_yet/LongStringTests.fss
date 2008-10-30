@@ -20,16 +20,23 @@ import FlatStringInfo.{...}
 import File.{...}
 import String.{...}
 
-export Executable   (* No, we don't — we just define tests *)
+export Testable
 
     var fileContents: String:= ""
     
     test inputTest(): () = do
         setup()
+        println ""
         println "fileContents is a " fileContents.ilkName
         println "length = " fileContents.size
         println "depth = " fileContents.depth
-        println (if fileContents.isBalanced then "balanced" else "unbalanced" end)
+        println  ( if fileContents.isBalanced then 
+                            "balanced" 
+                        elif fileContents.isAlmostBalanced then 
+                            "almost balanced" 
+                        else 
+                            "unbalanced" 
+                        end  )
         (* println "contents is as follows:" *)
         (* fileContents.showStructure() *)
         balancedContents = fileContents.balanced()
@@ -37,7 +44,13 @@ export Executable   (* No, we don't — we just define tests *)
         println "balancedContents is a " balancedContents.ilkName
         println "length = " balancedContents.size
         println "depth = " balancedContents.depth
-        println (if balancedContents.isBalanced then "balanced" else "unbalanced" end)
+        println (  if balancedContents.isBalanced then 
+                            "balanced" 
+                        elif balancedContents.isAlmostBalanced then 
+                            "almost balanced" 
+                        else 
+                            "unbalanced" 
+                        end  )
         (* balancedContents.showStructure() *)
         output = FileWriteStream("ProjectFortress/not_passing_yet/poem.out")
         output.write(balancedContents)
@@ -47,7 +60,7 @@ export Executable   (* No, we don't — we just define tests *)
     setup(): () = do
         input = FileReadStream("ProjectFortress/not_passing_yet/poem.txt")
         flatStringInfo.maxSize := 25
-        fileContents := BIG || [ c ← seq(input.chunks(20,6)) ] c
+        fileContents := BIG || [ c ← seq(input.chunks(15,8)) ] c
         input.close()
     end
     
@@ -55,10 +68,10 @@ export Executable   (* No, we don't — we just define tests *)
         flatStringInfo.maxSize := 10
         abcdef = CatString("a", CatString("b", CatString("c", CatString("d", 
             CatString(EmptyString, CatString("e", "f"))))))
-        abcdef.showStructure()
+        (* abcdef.showStructure() *)
         assert(abcdef, "abcdef")
         balancedAbcdef = abcdef.balanced()
-        balancedAbcdef.showStructure()
+        (* balancedAbcdef.showStructure() *)
         assert(balancedAbcdef, "abcdef")
     end
     
