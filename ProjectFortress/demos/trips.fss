@@ -76,14 +76,17 @@ opr MAX(a:ZZ32,b:ZZ32):ZZ32 = if a>b then a else b end
 orderedTrip(a:ZZ32, b:ZZ32, c:ZZ32):trip =
     trip ((a MIN b), (a MAX b), c)
 
-(* generate the integer SQRT or nothing at all *)
+(* generate the integer square-root or nothing at all *)
 perfectSqrt(n:ZZ64):Maybe[\ZZ32\] = do
-    zTruncate : ZZ64 = |\ SQRT n /|
-    if n = zTruncate^2
-      then just(narrow(zTruncate))
+    approx : ZZ64 = |\ SQRT n /| 
+    while NOT ( approx^2 <= n < (approx+1)^2 ) do 
+        approx := approx + (n DIV approx) 
+    end 
+    if n = approx^2 
+      then just(narrow(approx)) 
       else Nothing[\ZZ32\]
     end
-  end
+end
 
 (* Generators: In this exercise, I define a number of triple
 generators. A generator object contains a doc string, a recommended
