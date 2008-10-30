@@ -106,6 +106,8 @@ export String
     getter generator() = ConcatGenerator(left.generator, right.generator)     
     getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
     
+    opr ∈ (c:Char, self): Boolean = (c IN left) OR (c IN right)
+    
     (* copied from concatenable *)
        opr || (self, other:String): String = 
         if |other| = 0 then self else CatString(self, other) end
@@ -198,7 +200,8 @@ export String
     balanceDebug = false
     var cumulativeSize: ZZ32 := 0
     var sequence: Array1⟦String, 0, 47⟧ := array1⟦String, 47⟧(EmptyString)
-    (* invariant:  |sequence[i]| = 0 OR  fib[i] ≤ |sequence[i]| < fib[i+1] *)
+    (* invariant { BIG ∧ [ i ← sequence.indices ]
+        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  } *)
     
     getter contents() ensures { |outcome| = cumulativeSize } = do
         (* We could do this all with a BIG || of a sequential generator.
@@ -224,8 +227,7 @@ export String
         end  
       end
     
-    addWholeSubtree(s: String) invariant { BIG ∧ [ i ← sequence.indices ]
-        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  } =  
+    addWholeSubtree(s: String) =  
       do
         (* adds s to this BalancingForest, maintaining the invariant that the concatenation
         of the elements of sequence is equal to the concatenation of all of the Strings s 
@@ -251,8 +253,7 @@ export String
         sequence[i-1] := sum
       end                
     
-    add(s: JavaString) invariant { BIG ∧ [ i ← sequence.indices ]
-        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  }  =  
+    add(s: JavaString) =  
       do
         self.addWholeSubtree(s)
         if balanceDebug then 
@@ -261,16 +262,14 @@ export String
         end
       end
     
-    add(s: CatString) invariant { BIG ∧ [ i ← sequence.indices ]
-        |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  }  =  
+    add(s: CatString)  =  
       do
         if s.isBalanced then 
             self.addWholeSubtree(s)
         else
             self.add(s.left)
             self.add(s.right)
-        end
-      
+        end   
         if balanceDebug then 
             print "added C\"" s "\", "
             self.showSequence()
@@ -292,7 +291,6 @@ export String
     assert(SubString'("abcdefg", 1#4), subC)
   end
   
-  
 
   object ConcatGenerator⟦T⟧(first:Generator⟦T⟧, second:Generator⟦T⟧)
         extends Generator⟦T⟧
@@ -311,6 +309,9 @@ export String
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
     
+    opr ∈ (c:Char, self): Boolean = false
+    rangeContains(r: Range⟦ZZ32⟧, c: Char) = false
+    
     (* copied from concatenable *)
     opr || (self, _:EmptyString): String = self
     (* end copied *)
@@ -324,7 +325,7 @@ export String
         throw IndexOutOfBounds("Can't get characters from an empty string")
 
     opr[r: Range⟦ZZ32⟧]: String = do
-        rr = self.indices[r]     (* to raise a bounds error *)
+        rr = self.bounds[r]     (* to raise a bounds error *)
         EmptyString
     end
     
@@ -367,7 +368,7 @@ export String
   
   object SubString'(baseString: String, range: Range⟦ZZ32⟧) extends SubString
     getter size() = range.size
-    getter depth() = baseString.depth       (* Why not one more than the baseString?  Would this break the balancing invariant? *)
+    getter depth() = baseString.depth    (* We pretend that substring nodes don't add depth *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString' *)
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
     getter isBalanced() = baseString.isBalanced
@@ -436,7 +437,24 @@ export String
         end) LEXICO (|self| CMP |other|)
     end
     
-    verify() = do
+    opr ∈ (c: Char, self): Boolean =  label inOpr
+        (* println "SubString IN: " c " IN " self " = " range " of " baseString *)
+        pieces = baseString.split()
+        if pieces.nonEmpty  then
+            BIG ∨ [(start, str) ← seq(pieces)] (do
+                    (* println "piece at " start " = " str "(" |str| ")" *)
+                    baseSubrange = (start#|str|) ∩ range
+                    baseSubrange.nonEmpty AND: str.rangeContains(baseSubrange ≪ start, c)  
+                end)
+        else
+            baseString.rangeContains(range, c)
+        end
+    end inOpr
+    
+    rangeContains(r: Range⟦ZZ32⟧, c: Char) = 
+        baseString.rangeContains((r ≫ range.lower) ∩ range, c)
+    
+    verify() = label methodVerify
         baseString.verify()
         deny(baseString.isEmpty)
         deny(range.isEmpty, "SubString (" range ") has empty range")
@@ -454,7 +472,7 @@ export String
             EmptyString => assert(false, "SubString of EmptyString")
             SubString' => assert(false, "SubString of SubString")  
         end     
-    end
+    end methodVerify
     
     showStructure(indent) = do
         margin(indent)
