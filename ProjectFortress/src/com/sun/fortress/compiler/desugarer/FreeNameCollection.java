@@ -25,6 +25,7 @@ import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
+import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
@@ -62,6 +63,9 @@ public final class FreeNameCollection {
     // This is set later via a call made by FreeNameCollector.
     private List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
 
+    // free exit labels 
+    private List<Exit> freeExitLabels = new LinkedList<Exit>();
+
     // This is only set via a call made by FreeNameCollector;
     // The enclosingSelfType only exists if the corresponding objectExpr is
     // enclosed by an ObjectDecl.
@@ -70,6 +74,7 @@ public final class FreeNameCollection {
     private static final int DEBUG_LEVEL = 1;
 
     public final static FreeNameCollection EMPTY = new FreeNameCollection();
+
 
     /* side effect on _this_ list but not the other list */
     public FreeNameCollection composeResult(FreeNameCollection other) {
@@ -82,9 +87,9 @@ public final class FreeNameCollection {
         this.freeIntRefs.addAll(other.freeIntRefs);
         this.freeBoolRefs.addAll(other.freeBoolRefs);
         this.freeVarTypes.addAll(other.freeVarTypes);
-
         this.freeMutableVarRefs.addAll(other.freeMutableVarRefs);
-
+        this.freeExitLabels.addAll(other.freeExitLabels);
+        
         if( other.enclosingSelfType.isSome() ) {
             this.enclosingSelfType =
                 Option.<Type>some( other.enclosingSelfType.unwrap() );
@@ -192,6 +197,10 @@ public final class FreeNameCollection {
         return freeVarTypes;
     }
 
+    public List<Exit> getFreeExitLabels() {
+        return freeExitLabels;
+    }
+
     public boolean equals(FreeNameCollection other) {
         return( this.freeVarRefs.equals( other.freeVarRefs ) &&
                 this.freeFnRefs.equals( other.freeFnRefs ) &&
@@ -201,8 +210,9 @@ public final class FreeNameCollection {
                 this.freeUnitRefs.equals( other.freeUnitRefs ) &&
                 this.freeIntRefs.equals( other.freeIntRefs ) &&
                 this.freeBoolRefs.equals( other.freeBoolRefs ) &&
-                this.freeVarTypes.equals( other.freeVarTypes ) &&
-                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) );
+                this.freeVarTypes.equals( other.freeVarTypes ) && 
+                this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) &&
+                this.freeExitLabels.equals( other.freeExitLabels) ); 
     }
 
     public FreeNameCollection add(VarRef n) {
@@ -268,6 +278,13 @@ public final class FreeNameCollection {
         return this;
     }
 
+    public FreeNameCollection add(Exit n) {
+        if(freeExitLabels.contains(n) == false) {
+            freeExitLabels.add(n);
+        }
+        return this;
+    }
+
     public static void printDebug(FreeNameCollection target) {
         debugList(target.freeVarRefs);
         debugList(target.freeFnRefs);
@@ -279,6 +296,7 @@ public final class FreeNameCollection {
         debugList(target.freeBoolRefs);
         debugList(target.freeVarTypes);
         debugList(target.freeMutableVarRefs);
+        debugList(target.freeExitLabels);
     }
 
     public String toString() {
@@ -303,6 +321,8 @@ public final class FreeNameCollection {
             retS += "freeVarTypes: " + freeVarTypes.toString() + "\n";
         if( freeMutableVarRefs.isEmpty() == false )
             retS += "freeMutableVarRefs: " + freeMutableVarRefs.toString();
+        if( freeExitLabels.isEmpty() == false )
+            retS += "freeExitLabels: " + freeExitLabels.toString();
 
         return retS;
     }

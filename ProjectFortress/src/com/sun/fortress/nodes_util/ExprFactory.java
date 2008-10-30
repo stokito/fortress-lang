@@ -42,6 +42,10 @@ public class ExprFactory {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
 
+    public static Exit makeExit(Span span, Option<Type> typeOp, Option<Id> targetOp, Expr retExpr) { 
+        return new Exit(span, typeOp, targetOp, Option.<Expr>some(retExpr));
+    } 
+
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
         BigInteger intPart;
         BigInteger numerator;
@@ -142,6 +146,11 @@ public class ExprFactory {
     public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
         return makeFnExpr(span, params, Option.<Type>none(),
                 Option.<List<BaseType>>none(), body);
+    }
+
+    public static FnExpr makeFnExpr(Span span, List<Param> params, 
+                                    Option<Type> returnType, Expr body) {
+        return new FnExpr(span, params, returnType, body);
     }
 
     public static FnExpr makeFnExpr(Span span, List<Param> params,
@@ -299,6 +308,11 @@ public class ExprFactory {
                                   List<Id> ids, List<StaticArg> sargs) {
         return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids,
                          sargs);
+    }
+
+    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
+                                  List<Id> ids) {
+        return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids);
     }
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {

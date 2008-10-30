@@ -317,7 +317,77 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     }
 
     @Override
-    public void forVarRef(VarRef that) {
+    public void forExit(Exit that) {
+	    // Not in object expression; we are done.
+	    if( objExprStack.isEmpty() ) { 
+	        super.forExit(that);
+	        return;
+	    }
+	   
+        forExitDoFirst(that);
+
+        // figure out the exit label name; 
+        // there should be one assigned in Exit._target by the
+        // ExprDisambiguator already; if it's not found, throw an error 
+        Option<Id> targetOp = that.getTarget();
+        Id target = null;
+        if( targetOp.isSome() ) {
+            target = targetOp.unwrap();
+        } else {
+            /*
+            Label innerMostLabel = null;
+            ObjectExpr innerMostObjExpr = null;
+            for(int i=scopeStack.size()-1; i>=0; i++) {
+                Node n = scopeStack.get(i); 
+                if(n instanceof Label) {
+                    innerMostLabel = (Label) n; 
+                    break;
+                } else if(n instanceof ObjectExpr) {
+                    innerMostObjExpr = (ObjectExpr) n; 
+                }
+            }
+
+            if(innerMostObjExpr == null) { 
+                // the label is not captured because it's defined within the
+                // inner-most object expr; no need to handle this.
+	            super.forExit(that);
+	            return;
+            } 
+
+            // this label _is_ captured
+            target = innerMostLabel.getName();  */
+            throw new DesugarerError( that.getSpan(), 
+                        "Exit target label is not disambiguated!" );
+        }
+        
+        // check wither the target label is declared within obj expr or free 
+        Label label = null;
+        ObjectExpr innerMostObjExpr = null;
+
+        for(int i=scopeStack.size()-1; i>=0; i--) {
+            Node n = scopeStack.get(i); 
+            if(n instanceof Label) {
+                label = (Label) n; 
+                if( label.getName().equals(target) ) {
+                    // label found before hitting the inner most obj
+                    // expr, so it is not free
+                    break; 
+                } 
+            } else if(n instanceof ObjectExpr) {
+                // found the obj expr before finding the label, so it's free
+                freeNames.add(that);
+                break;
+            }
+        }
+
+        recurOnOptionOfType(that.getExprType());
+        recurOnOptionOfId(that.getTarget());
+        recurOnOptionOfExpr(that.getReturnExpr());
+        forExitOnly(that);
+    }
+
+	@Override
+	public void forVarRef(VarRef that) {
 	    // Not in object expression; we are done.
 	    if( objExprStack.isEmpty() ) {
 	        super.forVarRef(that);
@@ -336,9 +406,11 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         boolean isShadowed = false;
 
         if(enclosingTraitDecl.isSome()) {
-            isShadowed = isShadowedInNode( enclosingTraitDecl.unwrap(), that.getVar() );
+            isShadowed = isShadowedInNode( enclosingTraitDecl.unwrap(), 
+                                           that.getVar() );
         } else if(enclosingObjectDecl.isSome()) {
-            isShadowed = isShadowedInNode( enclosingObjectDecl.unwrap(), that.getVar() );
+            isShadowed = isShadowedInNode( enclosingObjectDecl.unwrap(), 
+                                           that.getVar() );
         }
 
         // Even if the binding is found at top level, still need to check
