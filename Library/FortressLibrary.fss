@@ -22,7 +22,7 @@ import JavaString.{...}
 import RangeInternals.{...}
 import List.{AnyList}
 import TypeProxy.{...}
-(* import File.{...} *)
+import File.{...}
 
 export FortressLibrary
 
@@ -3579,9 +3579,10 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr ///(self, a:Any): String    = self||"\n\n"||a
     opr ///(a:Any, self): String    = a||"\n\n"||self
 
-    print(self): ()
-    println(self): ()
-    (* writeOn(s: FileWriteStream): () *)
+    
+    println(self): () =  println(self.asJavaString)   
+    print(self): () =  print(self.asJavaString) 
+    writeOn(s: FileWriteStream) = s.write(s.asJavaString)
 
   end String
 

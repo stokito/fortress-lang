@@ -111,13 +111,14 @@ package="com.sun.fortress.interpreter.glue.prim"
         end
       end
 
-    opr ||(self, b:String):String =label method
-        if self.isEmpty then exit method with b end
-        if b.isEmpty then exit method with self end
-        if |self| + |b| ≤ flatStringInfo.maxSize then 
-            exit method with javaAppend(self, b.asJavaString) end
-        CatString(self, b) 
-    end method
+    opr ||(self, b:String):String = do
+        if self.isEmpty then b
+        elif b.isEmpty then self
+        elif |self| + |b| ≤ flatStringInfo.maxSize then 
+            javaAppend(self, b.asJavaString)
+        else CatString(self, b)
+        end 
+    end
         
   
     opr ||(self, b:Char): String =
