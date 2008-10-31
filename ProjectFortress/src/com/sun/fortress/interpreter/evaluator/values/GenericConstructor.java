@@ -46,7 +46,7 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 
 public class GenericConstructor
-    extends SingleFcn
+    extends GenericFunctionOrConstructor
     implements Factory1P<List<FType>, Simple_fcn, HasAt>, GenericFunctionOrMethod {
 private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
 
@@ -95,8 +95,6 @@ public GenericConstructor(Environment env, GenericWithParams odefOrDecl, IdOrOpO
 Environment env;
 GenericWithParams odefOrDecl;
 IdOrOpOrAnonymousName cfn;
-volatile Simple_fcn symbolicInstantiation;
-
 
 public GenericWithParams getDefOrDecl() {
     return odefOrDecl;
@@ -153,13 +151,6 @@ public String at() {
 }
 
 @Override
-public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
-    // TODO Auto-generated method stub
-    Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
-    return foo.apply(args, loc, envForInference);
-}
-
-@Override
 public IdOrOpOrAnonymousName getFnName() {
     // TODO Auto-generated method stub
     return cfn;
@@ -185,7 +176,7 @@ public FType getRange() {
     return getSymbolic().getRange();
 }
 
-private Simple_fcn  getSymbolic() throws Error {
+protected Simple_fcn  getSymbolic() throws Error {
     if (symbolicInstantiation == null) {
         synchronized (this) {
             if (symbolicInstantiation == null) {

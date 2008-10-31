@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.Applicable;
 import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
@@ -45,30 +46,18 @@ import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class FGenericFunction extends SingleFcn
+public class FGenericFunction extends GenericFunctionOrConstructor
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
-
     FnAbsDeclOrDecl fndef;
 
-    volatile Simple_fcn symbolicInstantiation;
-    /* (non-Javadoc)
+ 
+     /* (non-Javadoc)
       * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
       */
-     @Override
-     public List<FType> getDomain() {
-         return getSymbolic().getDomain();
 
-     }
-
-     @Override
-     public FType getRange() {
-         return getSymbolic().getRange();
-
-     }
-
-     private Simple_fcn getSymbolic() throws Error, ProgramError {
+     protected Simple_fcn getSymbolic() throws Error, ProgramError {
          if (symbolicInstantiation == null) {
              synchronized (this) {
                  if (symbolicInstantiation == null) {
@@ -206,14 +195,7 @@ public class FGenericFunction extends SingleFcn
         return fndef.getWhere();
     }
 
-    @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
-        // TODO Auto-generated method stub
-        Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
-        return foo.apply(args, loc, envForInference);
-    }
-
-    @Override
+     @Override
     public IdOrOpOrAnonymousName getFnName() {
         return fndef.getName();
     }
