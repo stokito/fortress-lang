@@ -165,6 +165,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return NodeFactory.makeVarRef(original, lexicalNestedness);
         }
 
+        BoolRef replacement(BoolRef original) {
+            return NodeFactory.makeBoolRef(original, lexicalNestedness);
+        }
+
+        IntRef replacement(IntRef original) {
+            return NodeFactory.makeIntRef(original, lexicalNestedness);
+        }
+
         Expr replacement(FnRef original) {
             return NodeFactory.makeFnRef(original, lexicalNestedness);
         }
@@ -368,6 +376,26 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     Expr newName(OpRef vre, String s) {
+        Thing t = rewrites.get(s);
+        if (t == null) {
+            return vre;
+        } else {
+            return t.replacement(vre);
+        }
+
+    }
+    
+    BoolRef newName(BoolRef vre, String s) {
+        Thing t = rewrites.get(s);
+        if (t == null) {
+            return vre;
+        } else {
+            return t.replacement(vre);
+        }
+
+    }
+    
+    IntRef newName(IntRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {
             return vre;
@@ -667,6 +695,18 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forOpRef(OpRef vre) {
         String s = NodeUtil.stringName(vre.getOriginalName());
         Expr expr = newName(vre, s);
+        return visitNode(expr);
+    }
+    @Override
+    public Node forBoolRef(BoolRef vre) {
+        String s = NodeUtil.nameString(vre);
+        BoolRef expr = newName(vre, s);
+        return visitNode(expr);
+    }
+    @Override
+    public Node forIntRef(IntRef vre) {
+        String s = NodeUtil.nameString(vre);
+        IntRef expr = newName(vre, s);
         return visitNode(expr);
     }
     @Override

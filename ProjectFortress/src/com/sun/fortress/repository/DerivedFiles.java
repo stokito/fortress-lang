@@ -47,10 +47,12 @@ public class DerivedFiles<T> {
             } catch (IOException e) {
                 /*
                  * This will probably never hit, because of the lastModified
-                 * check above. 
+                 * check above.
+                 * 
+                 * It DOES hit, if a compilation is interrupted.
                  */ 
                 
-                InterpreterBug.bug("Failed to read " + name);
+                return null;
             }
         }
         return x;
