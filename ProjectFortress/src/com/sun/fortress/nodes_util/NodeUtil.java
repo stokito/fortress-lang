@@ -670,4 +670,11 @@ public class NodeUtil {
         }
         return true;
     }
+
+    public static String nameString(BoolRef vre) {
+        return nameString(vre.getName());
+    }
+    public static String nameString(IntRef vre) {
+        return nameString(vre.getName());
+    }
 }

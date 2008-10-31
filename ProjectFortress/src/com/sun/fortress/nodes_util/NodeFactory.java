@@ -1252,6 +1252,16 @@ public class NodeFactory {
     }
 
 
+    public static BoolRef makeBoolRef(BoolRef old, int depth) {
+        return new BoolRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
+    }
+
+
+    public static IntRef makeIntRef(IntRef old, int depth) {
+        return new IntRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
+    }
+
+
     public static Expr makeFnRef(Span span, Id name,
             List<StaticArg> staticArgs) {
         List<Id> ids = new LinkedList<Id>();
