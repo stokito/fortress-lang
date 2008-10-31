@@ -19,13 +19,16 @@ component LongStringTests
 import FlatStringInfo.{...}
 import File.{...}
 import String.{...}
+import Timing.{...}
+import List.{...}
 
 export Testable
 
-    var fileContents: String:= ""
+    var fileContents: String := ""
+    var flatContents: String := ""
     
     test inputTest(): () = do
-        setup()
+        readFile(10)
         println ""
         println "fileContents is a " fileContents.ilkName
         println "length = " fileContents.size
@@ -57,11 +60,17 @@ export Testable
         output.close()
     end
     
-    setup(): () = do
+    readFile(n: ZZ32): () = do
         input = FileReadStream("ProjectFortress/not_passing_yet/poem.txt")
-        flatStringInfo.maxSize := 25
-        fileContents := BIG || [ c ← seq(input.chunks(15,8)) ] c
+        flatStringInfo.maxSize := n
+        fileContents := BIG || [ c ← input.chunks(1) ] c
+        flatContents := fileContents.asJavaString
         input.close()
+    end
+    
+    buildString(n: ZZ32): () = do
+        flatStringInfo.maxSize := n
+        fileContents := BIG || [ i ← flatContents.indices ] flatContents[i]
     end
     
     test miniTest() = do
@@ -74,5 +83,14 @@ export Testable
         (* balancedAbcdef.showStructure() *)
         assert(balancedAbcdef, "abcdef")
     end
+    
+    run(args:String...):() = label runMethod
+        (* Warm the file cache *)
+        readFile(10)
+        for t ← seq(⟨1, 3, 5, 10, 15, 20, 25, 50, 100, 200⟩) do
+            ("MaxFlat = " || t || ": ") PRINTTIME: buildString(t)  
+            printStats(fileContents) 
+        end
+    end runMethod
     
 end LongStringTests

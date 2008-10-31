@@ -176,8 +176,6 @@ export String
         SubString'(self, r0)
     end method
 
-    println(self): () = do println(self.asJavaString) end  
-    print(self): () = do print(self.asJavaString) end
     writeOn(stream): () = do
         stream.write(left)
         stream.write(right)
@@ -193,8 +191,9 @@ export String
         forest.add(self.right)
         forest.contents
       end method
-
   end CatString
+  
+  
   
   object BalancingForest() 
     balanceDebug = false
@@ -480,40 +479,7 @@ export String
         baseString.showStructure(indent + 8)
         self
     end
-    
-    get(i:ZZ32) = do
-      assert(i < range.size, "getting char " i " from a substring of size " |range|)
-      baseString.get(range.lower+i)
-    end
-    
-    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
-        (* printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString *)
-        assert((r0≫range.lower) ≤ range, true, "asking for substring [",  r0, "] of S", self.size, " = ", self.asJavaString)
-        if r0.isEmpty then EmptyString
-        elif r0 = self.bounds then self
-        else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *) 
-            result = baseString.uncheckedSubstring(r0≫range.lower)
-            result.verify()
-            result
-        end
-    end
-    
-    println(self): () = do println(self.asJavaString) end  
-    print(self): () = do print(self.asJavaString) end
-    writeOn(stream) = do
-        pieces = baseString.split()
-        if pieces.nonEmpty  then
-            for (start, str) ← pieces do
-                    baseSubrange = (start#|str|) ∩ range
-                    baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
-            end
-        else 
-            for i ← range do
-                        stream.write baseString.get(i)
-            end
-        end
-    end
-              
+
     split(): Generator⟦(ZZ32, String)⟧ = do
     (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
       and str[0] || str [1] || ... || str[n] = self
@@ -531,7 +497,69 @@ export String
             Nothing⟦Generator⟦(ZZ32,String)⟧⟧
         end                    
     end
+    
+    get(i:ZZ32) = do
+        assert(i < range.size, "getting char " i " from a substring of size " |range|)
+        baseString.get(range.lower+i)
+    end
+    
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
+        (* printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString *)
+        assert((r0≫range.lower) ≤ range, true, "asking for substring [",  r0, "] of S", self.size, " = ", self.asJavaString)
+        if r0.isEmpty then EmptyString
+        elif r0 = self.bounds then self
+        else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *) 
+            result = baseString.uncheckedSubstring(r0≫range.lower)
+            result.verify()
+            result
+        end
+    end
+    
+    writeOn(stream) = do
+        pieces = baseString.split()
+        if pieces.nonEmpty  then
+            for (start, str) ← pieces do
+                    baseSubrange = (start#|str|) ∩ range
+                    baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
+            end
+        else 
+            for i ← range do
+                        stream.write baseString.get(i)
+            end
+        end
+    end
+    
   end SubString'
+  
+  object StringStats()
+            var minFlat: ZZ32 := 1000000
+            var maxFlat: ZZ32 := 0
+            var numFlat: ZZ32 := 0
+           
+        collectStatsFor(s: CatString) = do
+            self.collectStatsFor(s.left)
+            self.collectStatsFor(s.right)
+        end
+        
+        collectStatsFor(s: JavaString) = do
+            minFlat := |s| MIN minFlat
+            maxFlat := |s| MAX maxFlat
+            numFlat := numFlat + 1
+        end
+        
+        collectStatsFor(s: SubString') = do
+            self.collectStatsFor(s.baseString)
+        end
+        
+  end StringStats
+    
+  printStats(s: String) = label methodPrintStats
+        stats = StringStats()
+        stats.collectStatsFor(s)
+        print  "size = " |s| "; maxFlat = " stats.maxFlat 
+        print  "; minFlat = " stats.minFlat "; avFlat = " (|s| / (stats.numFlat asif Number))
+        println  "; numFlat = " stats.numFlat      
+  end methodPrintStats
   
   test testCatStringGet() = do
     cat = CatString("@ab", "cdef")

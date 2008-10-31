@@ -27,6 +27,8 @@ api String
     comprises {...}
   end 
   
+  printStats(s: String) 
+  
   margin(prefix: String, indent: ZZ32)
 
 end
