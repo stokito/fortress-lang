@@ -62,18 +62,23 @@ Expr DelimitedExpr =
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getText().equals(a3.getText()))
              syntaxError(a1.getSpan(),
-                         "Mismatched identifiers for label expressions.");
+                         "Mismatched identifiers for label expressions:\n'" +
+                         a1 + "' at " + a1.getSpan() + " and\n'" +
+                         a3 + "' at " + a3.getSpan());
        yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
      }
    / <ErrorProduction>
      label w a1:OpName w a2:BlockElems w end w a3:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid label name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       if (a1.equals("in"))
+           yyValue = syntaxError(span, "'in' is a reserved word, and cannot be used as a label.");
+       else
+           yyValue = syntaxError(span, a1 + " is not a valid label name.\n" +
+                                 "A non-reserved word that is made up of a mixture" +
+                                 " of uppercase letters and underscores (but no " +
+                                 "digits),\ndoes not begin or end with an " +
+                                 "underscore, and contains at least two distinct " +
+                                 "letters is an operator name.");
      }
    / while w a1:GeneratorClause w a2:Do
      { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
