@@ -101,6 +101,8 @@ trait Map[\Key,Val\]
     mapFilter[\Result\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\]
 end
 
+singleton[\Key,Val\](k:Key,v:Val): Map[\Key,Val\]
+
 mapping[\Key,Val\](): Map[\Key,Val\]
 mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]
 
