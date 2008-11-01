@@ -30,7 +30,7 @@ object Timing(desc:String, duration: ZZ64)
             (self.usecs) "us"
         elif duration < w10^8 then
             (self.msecs) "ms"
-        elif duration < w10^11 then
+        else
             (self.secs) "s"
         end
     getter secs(): RR64 = duration / 10.0^9

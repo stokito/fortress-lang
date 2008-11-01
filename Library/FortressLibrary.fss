@@ -2211,10 +2211,14 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
   opr[_:TrivialOpenRange, _:TrivialOpenRange]: Array[\T,(ZZ32,ZZ32)\] = self[:]
 *)
   (** Row and column extraction *)
-  opr[_:TrivialOpenRange, i1:ZZ32]: Array[\T,ZZ32\] = Col(self[b0#s0, i1#1])
+  opr[_:TrivialOpenRange, i1:ZZ32]: Array[\T,ZZ32\] = Col(self[(b0,i1)#(s0,1)])
+(*
   opr[r:Range[\ZZ32\], i1:ZZ32]: Array[\T,ZZ32\] =        Col(self[r, i1#1])
-  opr[i0:ZZ32, _:TrivialOpenRange]: Array[\T,ZZ32\] = Row(self[i0#1, b1#s1])
+*)
+  opr[i0:ZZ32, _:TrivialOpenRange]: Array[\T,ZZ32\] = Row(self[(i0,b1)#(1,s1)])
+(*
   opr[i0:ZZ32, r:Range[\ZZ32\]]: Array[\T,ZZ32\] =        Row(self[i0#1, r])
+*)
   shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
       (o0,o1)=t1
       if o0=0 AND o1=0 then
@@ -2326,8 +2330,8 @@ object Col[\T, nat b0, nat s0\](mem: Array2[\T,b0,s0,0,1\])
     get(i:ZZ32): T = mem.get(i,0)
     put(i:ZZ32,v:T): () = mem.put((i,0),v)
     init0(i:ZZ32,v:T): () = mem.init0((i,0),v)
-    offset(i:ZZ32): ZZ32 = mem.offset(i,0)
-    toIndex(i:ZZ32): ZZ32 = toIndex(i,0)
+    offset(i:ZZ32): ZZ32 = do (r,_) = mem.offset(i,0); r end
+    toIndex(i:ZZ32): ZZ32 = do (r,_) = mem.toIndex(i,0); r end
     subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
         Col[\T,b,s\](mem.subarray[\b,s,0,1,o,0\](m,1))
 end
@@ -2337,8 +2341,8 @@ object Row[\T, nat b1, nat s1\](mem: Array2[\T,0,1,b1,s1\])
     get(i:ZZ32): T = mem.get(0,i)
     put(i:ZZ32,v:T): () = mem.put((0,i),v)
     init0(i:ZZ32,v:T): () = mem.init0((0,i),v)
-    offset(i:ZZ32): ZZ32 = mem.offset(0,i)
-    toIndex(i:ZZ32): ZZ32 = toIndex(0,i)
+    offset(i:ZZ32): ZZ32 = do (_,r) = mem.offset(0,i); r end
+    toIndex(i:ZZ32): ZZ32 = do (_,r) = mem.toIndex(0,i); r end
     subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
         Row[\T,b,s\](mem.subarray[\0,1,b,s,0,o\](1,m))
 end
