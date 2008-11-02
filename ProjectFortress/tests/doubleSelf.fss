@@ -19,7 +19,7 @@ component doubleSelf
 export Executable
 
 trait U
-  f(self, _:U)
+  f(self, _:U):()
 end
 
 run(args:String...):()=()

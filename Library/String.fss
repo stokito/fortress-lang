@@ -19,7 +19,7 @@ component String
 import List.{...}
 import JavaString.{...}
 export String
-     
+
   test rangeIntersect() = do
         assert((0:5) ∩ (0:3), 0:3)
         assert((0:5) ∩ (3:7), 3:5)
@@ -29,28 +29,28 @@ export String
         assert( (5:3).isEmpty, "5:3 is not empty!")
         assert( (9:8).isEmpty, "9:8 is not empty!")
         assert( ((0:5) ∩ (7:10)).isEmpty, "0:5 has a non-empty intersection with 7:10 !")
-        assert( (7:9)≪7, (0#3), "7:9≪7 isn't 0#3" ) 
+        assert( (7:9)≪7, (0#3), "7:9≪7 isn't 0#3" )
   end
-  
+
     (* Shift a range left by the specified amount.  *)
     opr ≪(r: CompactFullRange⟦ZZ32⟧, leftShift: ZZ32) = (r.lower - leftShift)#r.size
     (* Shift a range right by the specified amount. *)
     opr ≫(r: CompactFullRange⟦ZZ32⟧, rightShift: ZZ32) = (r.lower + rightShift)#r.size
-    
+
   test testShiftLeft(): () = do
     assert( (10:12) ≪ 9, 1:3)
   end
-  
+
   test testShiftRight(): () = do
     assert( (2:3) ≫ 5, 7:8)
   end
-  
+
   test testRangeContainment = do
     assert( (2:3) ≤ (2:3), "(2:3) not less than or equal to (2:3)")
-    assert (2#2, 2:3) 
+    assert (2#2, 2:3)
     assert( (2#2) ≤ (2:3), "(2#2) not less than or equal to (2:3)")
   end
-  
+
 
   fib = do
     maxFib = 46         (* fib(47) > maximum ZZ32 *)
@@ -60,7 +60,7 @@ export String
     a[n] := a[n-2] + a[n-1], n ← seq(2:maxFib)
     a
   end
-  
+
 
 (*
   test testFib() = do
@@ -68,32 +68,32 @@ export String
                         case n of
                                     0 => 0
                                     1 => 1
-                                    else => fibonacci(n-1) + fibonacci(n-2) 
+                                    else => fibonacci(n-1) + fibonacci(n-2)
                         end
     print "starting testFib: "
-    for i ← 0:20 do assert(fib[i], fibonacci i); print "." end  
+    for i ← 0:20 do assert(fib[i], fibonacci i); print "." end
     (* We really can't use the naive fibonacci function for large n *)
     println "testFib done"
   end
 *)
-       
-(* 
+
+(*
 ==== Shared Traits ====
 *)
 
   trait Concatenable
-    opr || (self, other:String): String = 
+    opr || (self, other:String): String =
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
   end Concatenable
-  
-  
-  trait Balanceable 
+
+
+  trait Balanceable
     getter isBalanced() = self.depth ≤ 46 AND: |self| ≥ fib[self.depth]
     getter isAlmostBalanced() = self.depth ≤ 48 AND: |self| ≥ fib[self.depth-2]
   end Balanceable
-  
+
 (*
 ==== CatString ====
 *)
@@ -103,27 +103,27 @@ export String
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
     getter bounds() = 0#size
-    getter generator() = ConcatGenerator(left.generator, right.generator)     
+    getter generator() = ConcatGenerator(left.generator, right.generator)
     getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
-    
+
     opr ∈ (c:Char, self): Boolean = (c IN left) OR (c IN right)
-    
+
     (* copied from concatenable *)
-       opr || (self, other:String): String = 
+       opr || (self, other:String): String =
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
     (* end copied *)
-    
+
     opr CMP(self, other: String) ensures {outcome = (self.asJavaString CMP other.asJavaString)} =
         if |left| ≥ |other|
         then
             left CMP other
         else
             (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
-        end 
-        
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison ensures {outcome = (self.asJavaString CASE_INSENSITIVE_CMP other.asJavaString)} = 
+        end
+
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison ensures {outcome = (self.asJavaString CASE_INSENSITIVE_CMP other.asJavaString)} =
         if |left| ≥ |other|
         then
             left CASE_INSENSITIVE_CMP other
@@ -131,16 +131,16 @@ export String
             (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CASE_INSENSITIVE_CMP other[(|left|):])
         end
 
-    (* get is, and should be, without bounds checks.  [ ] does the bounds checks, 
-        and then delegates to get *)   
-    get(i): Char = 
+    (* get is, and should be, without bounds checks.  [ ] does the bounds checks,
+        and then delegates to get *)
+    get(i): Char =
         if i ∈ left.indices then left[i] else right[i - |left|] end
-      
+
     verify() = do
         assert(self.depth, (left.depth MAX right.depth) + 1, self)
         assert(self.size(), |left| + |right|, self)
-    end 
-        
+    end
+
 
     showStructure(indent: ZZ32) = do
         margin(indent)
@@ -148,17 +148,17 @@ export String
         left.showStructure(indent+8)
         right.showStructure(indent+8)
     end
-    
+
     balanceIndicator() = if self.isBalanced then "B" elif self.isAlmostBalanced then "b" else "u" end
 
-    uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method 
+    uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method
         (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
         if r0.isEmpty then exit method with EmptyString end
         if r0 = self.bounds then exit method with self end
         leftBounds' = r0 ∩ left.bounds
         rightBounds' = (r0 ≪ left.size) ∩ right.bounds
             if left = "wombat" then
-              atomic do 
+              atomic do
                 println "uncheckedSubstring " r0 " of "
                 self.showStructure()
                 println "==============="
@@ -167,7 +167,7 @@ export String
                 println "==============="
               end (*do*)
             end
-        if leftBounds'.isEmpty then 
+        if leftBounds'.isEmpty then
             exit method with right.uncheckedSubstring(rightBounds')
         end
         if rightBounds'.isEmpty then
@@ -179,11 +179,11 @@ export String
     writeOn(stream): () = do
         stream.write(left)
         stream.write(right)
-    end  
-    
+    end
+
     split(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
-    
-    balanced() ensures {outcome = self ∧ outcome.isAlmostBalanced} = 
+
+    balanced() ensures {outcome = self ∧ outcome.isAlmostBalanced} =
       label method
         if self.isBalanced then exit method with self end
         forest = BalancingForest()
@@ -192,21 +192,21 @@ export String
         forest.contents
       end method
   end CatString
-  
-  
-  
-  object BalancingForest() 
+
+
+
+  object BalancingForest()
     balanceDebug = false
     var cumulativeSize: ZZ32 := 0
     var sequence: Array1⟦String, 0, 47⟧ := array1⟦String, 47⟧(EmptyString)
     (* invariant { BIG ∧ [ i ← sequence.indices ]
         |sequence[i]| = 0 ∨  fib[i] ≤ |sequence[i]| < fib[i+1]  } *)
-    
+
     getter contents() ensures { |outcome| = cumulativeSize } = do
         (* We could do this all with a BIG || of a sequential generator.
             That would loose the possibility of a short-circuit evaluation.
             We could also use a concurrent generator, which would usually balance,
-            depending on the whim of the scheduler ... 
+            depending on the whim of the scheduler ...
             Which is best? *)
         var  i: ZZ32 = 1
         var result: String = EmptyString
@@ -216,20 +216,20 @@ export String
         end
         result
     end
-    
+
     showSequence() = if balanceDebug then
         for i ← seq(sequence.indices.flip) do
             if sequence[i].nonEmpty then
-                print "sequence[" i "] = " 
+                print "sequence[" i "] = "
                 sequence[i].showStructure()
             end
-        end  
+        end
       end
-    
-    addWholeSubtree(s: String) =  
+
+    addWholeSubtree(s: String) =
       do
         (* adds s to this BalancingForest, maintaining the invariant that the concatenation
-        of the elements of sequence is equal to the concatenation of all of the Strings s 
+        of the elements of sequence is equal to the concatenation of all of the Strings s
         added to self *)
         cumulativeSize := cumulativeSize + |s|
         var i: ZZ32 = 0
@@ -250,46 +250,46 @@ export String
             i := i + 1
         end
         sequence[i-1] := sum
-      end                
-    
-    add(s: JavaString) =  
+      end
+
+    add(s: JavaString) =
       do
         self.addWholeSubtree(s)
-        if balanceDebug then 
+        if balanceDebug then
             print "added J\"" s "\", "
             self.showSequence()
         end
       end
-    
-    add(s: CatString)  =  
+
+    add(s: CatString)  =
       do
-        if s.isBalanced then 
+        if s.isBalanced then
             self.addWholeSubtree(s)
         else
             self.add(s.left)
             self.add(s.right)
-        end   
-        if balanceDebug then 
+        end
+        if balanceDebug then
             print "added C\"" s "\", "
             self.showSequence()
         end
       end
-    
-    add(s: EmptyString) = 
+
+    add(s: EmptyString) =
       do end
-    
-    add(s: SubString') = 
+
+    add(s: SubString') =
         self.addWholeSubtree(s.balanced)
-    
+
   end BalancingForest
-    
+
   test testEquality() = do
     subJ = SubString'("bcdefg", 1#4)
     subC = SubString'(CatString("@ab", "cdefg"), 2#4)
     assert(subJ > subC, "cdef not > bcde")
     assert(SubString'("abcdefg", 1#4), subC)
   end
-  
+
 
   object ConcatGenerator⟦T⟧(first:Generator⟦T⟧, second:Generator⟦T⟧)
         extends Generator⟦T⟧
@@ -307,55 +307,55 @@ export String
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
-    
+
     opr ∈ (c:Char, self): Boolean = false
     rangeContains(r: Range⟦ZZ32⟧, c: Char) = false
-    
+
     (* copied from concatenable *)
     opr || (self, _:EmptyString): String = self
     (* end copied *)
-    
+
     opr CMP(self, other: String): TotalComparison =
         |self| CMP |other|
-    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =  
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
         |self| CMP |other|
 
-    get(i): Char = 
+    get(i): Char =
         throw IndexOutOfBounds("Can't get characters from an empty string")
 
     opr[r: Range⟦ZZ32⟧]: String = do
         rr = self.bounds[r]     (* to raise a bounds error *)
         EmptyString
     end
-    
+
     verify() = do
         assert(self.depth, 0, self)
         assert(self.size, 0, self)
     end
-          
+
     showStructure(indent) = do
         margin(indent)
-        println "E" |self| "/" self.depth 
+        println "E" |self| "/" self.depth
     end
-    
+
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
         (* This method should execute only after a bounds check has
         passed, so we know that r0 must be empty! *)
-        assert r0.isEmpty 
+        assert r0.isEmpty
         self
     end
 
     opr || (self, other:String): String = other
     opr || (self, other:Char) = other.toString
-      
+
     print(self): () = do end
     println(self): () = println("")
     writeOn(stream): () = do end
-    
+
     split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
-  
+
   end EmptyString
-  
+
 
 (*
 ==== SubString ====
@@ -363,79 +363,79 @@ export String
   trait SubString extends {String, Concatenable}
     comprises {SubString'}
   end SubString
-    
-  
+
+
   object SubString'(baseString: String, range: Range⟦ZZ32⟧) extends SubString
     getter size() = range.size
     getter depth() = baseString.depth    (* We pretend that substring nodes don't add depth *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString' *)
     getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
     getter isBalanced() = baseString.isBalanced
-    
-    balanced() = 
-        if self.isBalanced then 
-            self 
-        else 
-            baseString.balanced.uncheckedSubstring(range) 
+
+    balanced() =
+        if self.isBalanced then
+            self
+        else
+            baseString.balanced.uncheckedSubstring(range)
         end
-    
+
     (* copied from concatenable *)
-    opr || (self, other:String): String = 
+    opr || (self, other:String): String =
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
     (* end copied *)
-    
+
     opr CMP(self, other: String) ensures { outcome = (self.asJavaString CMP other.asJavaString) } = do
         pieces = baseString.split()
         (if pieces.nonEmpty  then
             BIG LEXICO [(start, str) ← pieces] (do
                     baseSubrange = (start#|str|) ∩ range
                     baseString.uncheckedSubstring(baseSubrange) CMP other.uncheckedSubstring(baseSubrange≪range.lower)
-            end) 
-        else 
+            end)
+        else
             otherPieces = other.split()
             if otherPieces.nonEmpty then
                 (*) println "doing backwards comparison ... "
                 BIG LEXICO [(start, str) ← otherPieces] (do
-                        baseSubrange = ((start#|str|) ∩ self.indices) ≫ range.lower 
+                        baseSubrange = ((start#|str|) ∩ self.indices) ≫ range.lower
                         baseString.uncheckedSubstring(baseSubrange) CMP str
                 end)
             else
                   (*) println "doing character-wise comparison of " self.asJavaString " with " other.asJavaString " ..."
-                  (* BIG LEXICO [i ← 0#(|self| MIN |other|)] 
+                  (* BIG LEXICO [i ← 0#(|self| MIN |other|)]
                         self.get(i) CMP other.get(i) *)
                   (self asif String) CMP (other asif String)
-            end             
+            end
         end) LEXICO (|self| CMP |other|)
     end
-    
+
     opr CASE_INSENSITIVE_CMP(self, other: String) ensures { outcome = (self.asJavaString CASE_INSENSITIVE_CMP other.asJavaString) } = do
         (*) println  self " CI_CMP " other "..."
         pieces = baseString.split()
         (if pieces.nonEmpty  then
             BIG LEXICO [(start, str) ← pieces] (do
                     baseSubrange = (start#|str|) ∩ range
-                    baseString.uncheckedSubstring(baseSubrange) CASE_INSENSITIVE_CMP 
+                    baseString.uncheckedSubstring(baseSubrange) CASE_INSENSITIVE_CMP
                         other.uncheckedSubstring((baseSubrange≪range.lower) ∩ other.indices)
-            end) 
-        else 
+            end)
+        else
             otherPieces = other.split()
             if otherPieces.nonEmpty then
                 (*) println "doing backwards comparison ... "
                 BIG LEXICO [(start, str) ← otherPieces] (do
-                        baseSubrange = ((start#|str|) ∩ self.indices) ≫ range.lower 
+                        baseSubrange = ((start#|str|) ∩ self.indices) ≫ range.lower
                         baseString.uncheckedSubstring(baseSubrange) CASE_INSENSITIVE_CMP str
                 end)
             else
                   (*) println "doing character-wise comparison of " self.asJavaString " with " other.asJavaString " ..."
-                  (* BIG LEXICO [i ← 0#(|self| MIN |other|)] 
+                  (* BIG LEXICO [i ← 0#(|self| MIN |other|)]
                         self.get(i) CASE_INSENSITIVE_CMP other.get(i) *)
                   (self asif String) CASE_INSENSITIVE_CMP (other asif String)
-            end             
+            end
         end) LEXICO (|self| CMP |other|)
     end
-    
+
     opr ∈ (c: Char, self): Boolean =  label inOpr
         (* println "SubString IN: " c " IN " self " = " range " of " baseString *)
         pieces = baseString.split()
@@ -443,16 +443,16 @@ export String
             BIG ∨ [(start, str) ← seq(pieces)] (do
                     (* println "piece at " start " = " str "(" |str| ")" *)
                     baseSubrange = (start#|str|) ∩ range
-                    baseSubrange.nonEmpty AND: str.rangeContains(baseSubrange ≪ start, c)  
+                    baseSubrange.nonEmpty AND: str.rangeContains(baseSubrange ≪ start, c)
                 end)
         else
             baseString.rangeContains(range, c)
         end
     end inOpr
-    
-    rangeContains(r: Range⟦ZZ32⟧, c: Char) = 
+
+    rangeContains(r: Range⟦ZZ32⟧, c: Char) =
         baseString.rangeContains((r ≫ range.lower) ∩ range, c)
-    
+
     verify() = label methodVerify
         baseString.verify()
         deny(baseString.isEmpty)
@@ -461,21 +461,21 @@ export String
         assert(range < baseString.bounds, true,
                 "SubString ", baseString,  range, " has range greater than that of baseString ", baseString.bounds )
         typecase s = baseString of
-            CatString => do deny((s.left.indices ∩ range).isEmpty)  
+            CatString => do deny((s.left.indices ∩ range).isEmpty)
                             (* deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty) *)
-                            if ((s.right.indices ≫ s.left.size) ∩ range).isEmpty 
+                            if ((s.right.indices ≫ s.left.size) ∩ range).isEmpty
                             then self.showStructure()
-                                 fail("SubString of CatString not pushed left") 
+                                 fail("SubString of CatString not pushed left")
                             end
                          end
             EmptyString => assert(false, "SubString of EmptyString")
-            SubString' => assert(false, "SubString of SubString")  
-        end     
+            SubString' => assert(false, "SubString of SubString")
+        end
     end methodVerify
-    
+
     showStructure(indent) = do
         margin(indent)
-        println "S" |self| "=[" range.toString "]" 
+        println "S" |self| "=[" range.toString "]"
         baseString.showStructure(indent + 8)
         self
     end
@@ -489,32 +489,32 @@ export String
         if  pieces.nonEmpty then
             <| if (start#piece.size) ≤ range then
                     (start-offset, piece)
-                else 
+                else
                     range' = range ∩ (start#piece.size)
                     (range'.lower-offset, SubString'(piece, range'≪start))
                 end | (start, piece) ← pieces,   (range ∩ (start#piece.size)).nonEmpty |>
         else
             Nothing⟦Generator⟦(ZZ32,String)⟧⟧
-        end                    
+        end
     end
-    
+
     get(i:ZZ32) = do
         assert(i < range.size, "getting char " i " from a substring of size " |range|)
         baseString.get(range.lower+i)
     end
-    
+
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
         (* printlnWithThread ("SubString.uncheckedSubstring  " self  "[" r0 "] " (r0.isEmpty  " "  (r0=self.bounds) " " (r0≫range.lower))).asJavaString *)
         assert((r0≫range.lower) ≤ range, true, "asking for substring [",  r0, "] of S", self.size, " = ", self.asJavaString)
         if r0.isEmpty then EmptyString
         elif r0 = self.bounds then self
-        else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *) 
+        else (* printlnWithThread "returning SS("  baseString.asJavaString  ", "  (r0≫range.lower) ")" *)
             result = baseString.uncheckedSubstring(r0≫range.lower)
             result.verify()
             result
         end
     end
-    
+
     writeOn(stream) = do
         pieces = baseString.split()
         if pieces.nonEmpty  then
@@ -522,51 +522,51 @@ export String
                     baseSubrange = (start#|str|) ∩ range
                     baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
             end
-        else 
+        else
             for i ← range do
                         stream.write baseString.get(i)
             end
         end
     end
-    
+
   end SubString'
-  
+
   object StringStats()
             var minFlat: ZZ32 := 1000000
             var maxFlat: ZZ32 := 0
             var numFlat: ZZ32 := 0
-           
+
         collectStatsFor(s: CatString) = do
             self.collectStatsFor(s.left)
             self.collectStatsFor(s.right)
         end
-        
+
         collectStatsFor(s: JavaString) = do
             minFlat := |s| MIN minFlat
             maxFlat := |s| MAX maxFlat
             numFlat := numFlat + 1
         end
-        
+
         collectStatsFor(s: SubString') = do
             self.collectStatsFor(s.baseString)
         end
-        
+
   end StringStats
-    
-  printStats(s: String) = label methodPrintStats
+
+  printStats(s: String): () = label methodPrintStats
         stats = StringStats()
         stats.collectStatsFor(s)
-        print  "size = " |s| "; maxFlat = " stats.maxFlat 
+        print  "size = " |s| "; maxFlat = " stats.maxFlat
         print  "; minFlat = " stats.minFlat "; avFlat = " (|s| / (stats.numFlat asif Number))
-        println  "; numFlat = " stats.numFlat      
+        println  "; numFlat = " stats.numFlat
   end methodPrintStats
-  
+
   test testCatStringGet() = do
     cat = CatString("@ab", "cdef")
     assert(cat.get(1), 'a')
     assert(cat.get(4), 'd')
   end
-  
+
   test testSubstringGet() = do
     cat = CatString("@ab", "cdefg")
     subC = cat[2#4]
@@ -579,8 +579,8 @@ export String
     assert(subC[3], 'e')
     shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() ⇒ subC[4])
   end
-  
-  margin(indent) = do
+
+  margin(indent): () = do
       for i ← 0#indent do print " " end
   end
 

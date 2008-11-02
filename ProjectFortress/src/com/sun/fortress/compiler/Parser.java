@@ -32,7 +32,9 @@ import xtc.parser.ParseError;
 //import xtc.parser.Result; // Not imported to prevent name clash.
 import com.sun.fortress.parser.Fortress; // Shadows Fortress in this package
 import com.sun.fortress.parser.preparser.PreFortress;
+import com.sun.fortress.parser_util.SyntaxChecker;
 
+import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
@@ -45,7 +47,7 @@ import com.sun.fortress.repository.ProjectProperties;
 
 /**
  * Methods for parsing files using base Fortress syntax.
- * For a parser that respects abstractions, use 
+ * For a parser that respects abstractions, use
  * com.sun.fortress.syntax_abstractions.parser.FortressParser.
  */
 public class Parser {
@@ -151,10 +153,32 @@ public class Parser {
      * Throws a StaticError if the filename has the wrong suffix.
      */
     public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
-                                         ParserBase parser,
-                                         String filename) {
+                                                ParserBase parser,
+                                                String filename) throws IOException {
         if (parseResult.hasValue()) {
-            Object cu = ((SemanticValue) parseResult).value;
+            CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
+            String logFile = filename + ".syntaxError.log";
+            cu.accept( new SyntaxChecker(logFile) );
+            File log = new File( logFile );
+            if ( log.length() != 0 ) {
+                BufferedReader reader = Useful.filenameToBufferedReader( logFile );
+                String line = reader.readLine();
+                String next = reader.readLine();
+                if ( next == null ) {
+                    System.err.println("The following syntax error is found:");
+                    System.err.println( line );
+                } else {
+                    System.err.println("The following syntax errors are found:");
+                    System.err.println( line );
+                    while ( next != null ) {
+                        System.err.println( next );
+                        next = reader.readLine();
+                    }
+                }
+                Files.rm( logFile );
+                throw new ParserError(new xtc.parser.ParseError("", 0), parser);
+            } else
+                Files.rm( logFile );
             if (cu instanceof Api) {
                 if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
                     return (Api)cu;

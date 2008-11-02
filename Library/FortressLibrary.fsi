@@ -1160,7 +1160,7 @@ trait ReadableArray[\E,I\]
         once, before any other access or assignment occurs to element
         i.  An error will be signaled if an uninitialized element is
         read or an initialized element is re-initialized. **)
-    init(i:I, v:E)
+    init(i:I, v:E): ()
 
     generate[\R\](r: Reduction[\R\], body: E->R): R
     seq(self): SequentialGenerator[\E\]
@@ -1290,7 +1290,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter size():ZZ32
     getter bounds():CompactFullRange[\ZZ32\]
     abstract getter mutability():String
-    getter toString()
+    getter toString(): String
     opr |self| : ZZ32
 
     subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\]
@@ -1438,7 +1438,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     excludes { Number, String }
   getter size():ZZ32
   getter bounds():CompactFullRange[\(ZZ32,ZZ32)\]
-  getter toString()
+  getter toString(): String
   opr |self| : ZZ32
   (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
   offset(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32)
@@ -1568,7 +1568,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     abstract put(t:(ZZ32,ZZ32,ZZ32), v:T) : ()
     abstract get(t:(ZZ32,ZZ32,ZZ32)):T
 
-    opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T)
+    opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T): ()
     opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\]
     opr[_:OpenRange[\ZZ32\]] : Array3[\T,0,s0,0,s1,0,s2\]
     opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\]
@@ -1609,7 +1609,7 @@ trait Reduction[\R\] end
     unlift(lift(x)) = x
  **)
 trait ActualReduction[\R,L\] extends Reduction[\R\]
-    abstract getter toString()
+    abstract getter toString(): String
     abstract empty(): L
     abstract join(a: L, b: L): L
     abstract lift(r:R): L
@@ -1695,14 +1695,14 @@ end
     distributing over void (that would change the number of effects in
     our program) but not void distributing over other things. **)
 object VoidReduction extends { CommutativeMonoidReduction[\()\] }
-    getter toString()
+    getter toString(): String
     empty(): ()
     join(a: (), b: ()): ()
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
 object SumReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString()
+    getter toString(): String
     empty(): Number
     join(a: Number, b: Number): Number
 end
@@ -1712,7 +1712,7 @@ opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 opr SUM[\T extends Number\](g: Generator[\T\]): Number
 
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString()
+    getter toString(): String
     empty(): Number
     join(a:Number, b:Number): Number
 end
@@ -1722,7 +1722,7 @@ opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 opr PROD[\T extends Number\](g: Generator[\T\]): Number
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
-    getter toString()
+    getter toString(): String
     simpleJoin(a:T, b:T): T
 end
 
@@ -1731,7 +1731,7 @@ opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\]
 opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]): T
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
-    getter toString()
+    getter toString(): String
     simpleJoin(a:T, b:T): T
 end
 
@@ -1751,7 +1751,7 @@ opr BIG MAXNUM(g: Generator[\RR64\]): RR64
 object AndReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString()
+    getter toString(): String
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
     isZero(a:Boolean): Boolean
@@ -1764,7 +1764,7 @@ opr BIG AND[\T\](g: Generator[\Boolean\]): Boolean
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString()
+    getter toString(): String
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
     isZero(a:Boolean): Boolean
@@ -1776,21 +1776,21 @@ opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
-    getter toString()
+    getter toString(): String
     empty(): String
     join(a:String, b:String): String
 end
 
 (** A reduction performing String concatenation with a space **)
 object SpaceReduction extends MonoidReduction[\String\]
-    getter toString()
+    getter toString(): String
     empty(): String
     join(a:String, b:String): String
 end
 
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
-    getter toString()
+    getter toString(): String
     simpleJoin(a:String, b:String): String
 end
 
@@ -1818,7 +1818,7 @@ opr BIG //(g: Generator[\Any\]): String
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
-    getter toString()
+    getter toString(): String
     empty(): R
     join(a:R, b:R): R
 end
@@ -1827,7 +1827,7 @@ end
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
-    getter toString()
+    getter toString(): String
     empty(): R
     join(a:Any, b:Any): R
 end

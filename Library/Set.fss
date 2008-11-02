@@ -63,7 +63,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\]
         left result has size < x and right result is empty. **)
     splitIndex(x:ZZ32):(Set[\E\],Set[\E\])
     splitAt(x:E):(Set[\E\],Boolean,Set[\E\])
-    concat3(v:E, t2:Set[\E\])
+    concat3(v:E, t2:Set[\E\]):Set[\E\]
     opr SUBSET(self, other:Set[\E\]): Boolean = (self SETCMP other) = LessThan
     opr SUBSETEQ(self, other:Set[\E\]): Boolean
     opr SUPSET(self, other:Set[\E\]): Boolean = other SUBSET self
@@ -174,7 +174,7 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     concat(t2:Set[\E\]):Set[\E\] = t2
     splitAt(x:E):(Set[\E\],Boolean,Set[\E\]) = (self, false, self)
     splitIndex(x:ZZ32):(Set[\E\],Set[\E\]) = (self,self)
-    concat3(v:E, t2:Set[\E\]) = t2.add(v)
+    concat3(v:E, t2:Set[\E\]):Set[\E\] = t2.add(v)
     opr =(self, other:Set[\E\]): Boolean = other.isEmpty()
     opr SUBSETEQ(self, other:Set[\E\]): Boolean = true
     opr SUBSET(self, other:Set[\E\]): Boolean = NOT (other.isEmpty())
