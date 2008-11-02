@@ -39,7 +39,7 @@ printUsage() = do
     println ""
 end
 
-opr |  (x:ZZ32, y:ZZ32):Boolean  = x DIVIDES y
+opr |  (x:ZZ32, y:ZZ32):Boolean =  x DIVIDES y
 coprime(x:ZZ32, y:ZZ32):Boolean = (1 = x GCD y)
 even   (x:ZZ32):       Boolean =    2|x
 
@@ -64,29 +64,36 @@ represent a triple than a tuple or a list, likely due to genericity.
 Perhaps that will always be so as data structures shoud be cheap.
 
 Note: CMP & toString follow canonical patterns. Perhaps they could be
-specified implicitly. *)
+specified implicitly or as defaults. *)
 
-(* These definitions work around problems that arose when I tried the
+(* The following definitions work around problems that arose when I tried the
 typechecker. *)
 
-
-opr MIN(a:ZZ32,b:ZZ32):ZZ32 = if a<b then a else b end
+opr MIN(a:ZZ32,b:ZZ32):ZZ32 = if a<=b then a else b end
 opr MAX(a:ZZ32,b:ZZ32):ZZ32 = if a>b then a else b end
 
 orderedTrip(a:ZZ32, b:ZZ32, c:ZZ32):trip =
     trip ((a MIN b), (a MAX b), c)
 
-(* generate the integer square-root or nothing at all *)
+(* integer square-root using Newton's method
+   Use the argument as the initial guess. *)
+isqrt(n:ZZ64):ZZ64 = do
+    approx:ZZ64 = n
+    while NOT ( approx^2 <= n < (approx+1)^2 ) do
+        approx -= (approx - (n DIV approx) + 1) DIV 2
+    end
+    approx
+end
+
+(* generate the isqrt for perfect squares, otherwise generate nothing *)
 perfectSqrt(n:ZZ64):Maybe[\ZZ32\] = do
-    approx : ZZ64 = |\ SQRT n /| 
-    while NOT ( approx^2 <= n < (approx+1)^2 ) do 
-        approx := approx + (n DIV approx) 
-    end 
-    if n = approx^2 
-      then just(narrow(approx)) 
+    approx:ZZ64 = isqrt n
+    if n = approx^2
+      then just(narrow(approx))
       else Nothing[\ZZ32\]
     end
 end
+
 
 (* Generators: In this exercise, I define a number of triple
 generators. A generator object contains a doc string, a recommended
