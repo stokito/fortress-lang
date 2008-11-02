@@ -20,7 +20,7 @@ export Executable
 
 trait T
   getshred():ZZ32
-  setshred(x:ZZ32)
+  setshred(x:ZZ32):()
   getSerial():ZZ32
 end
 

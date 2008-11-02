@@ -36,6 +36,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.FortressException;
+import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -476,6 +477,14 @@ public final class Shell {
                             "while writing " + out.unwrap() );
                 }
             }
+        } catch (ParserError e) {
+            System.err.println(e.getMessage());
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println("Turn on -debug for Java-level stack trace.");
+            }
+            System.exit(1);
         } catch (ProgramError e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);

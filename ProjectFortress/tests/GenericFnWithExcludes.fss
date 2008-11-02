@@ -21,7 +21,7 @@ export Executable
 x:ZZ32 := 0
 
 trait T
-  f()
+  f(): ()
 end
 
 trait X[\nat n\] extends {T} excludes {Y[\n+1\]} end

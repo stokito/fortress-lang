@@ -52,7 +52,7 @@ trait Set[\E\]
    opr SETCMP(self, other:Set[\E\]): Comparison
    (** Ordered concatenation; use only if you know what you are doing. **)
    concat(t2:Set[\E\]):Set[\E\]
-   concat3(v:E, t2:Set[\E\])
+   concat3(v:E, t2:Set[\E\]):Set[\E\]
 end
 
 singleton[\E\](x:E): Set[\E\]

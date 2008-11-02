@@ -22,13 +22,13 @@ api String
 
   value object EmptyString extends String
   end
-  
+
   trait SubString extends String
     comprises {...}
-  end 
-  
-  printStats(s: String) 
-  
-  margin(prefix: String, indent: ZZ32)
+  end
+
+  printStats(s: String): ()
+
+  margin(prefix: String, indent: ZZ32): ()
 
 end

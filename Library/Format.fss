@@ -439,7 +439,7 @@ compile(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
     end
 end
 
-format(string:String,args:Any...) = do
+format(string:String,args:Any...): String = do
     lst = <|[\Any\] i | i <- args |>
     BIG || [f<-compile(string,lst,lst)] f()
 end

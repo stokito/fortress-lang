@@ -27,7 +27,7 @@ public class ParserError extends StaticError {
      * Make Eclipse happy
      */
     private static final long serialVersionUID = 2055048497086874145L;
-    
+
     private final ParseError _parseError;
 	private final String _location;
 
@@ -48,7 +48,12 @@ public class ParserError extends StaticError {
 		int size = result.length();
 		if (size > 8 && result.substring(size-8,size).equals("expected"))
 			result = "Syntax Error";
-		else result = "Syntax Error: " + result;
+		else {
+                    if ( ! result.equals("") )
+                        result = "Syntax Error: " + result;
+                    else
+                        result = "Syntax Error";
+                }
 		// TODO: I don't know for sure whether this is allowed to be null
 		if (result == null || result.equals("")) { result = "Unspecified cause"; }
 		return result;
