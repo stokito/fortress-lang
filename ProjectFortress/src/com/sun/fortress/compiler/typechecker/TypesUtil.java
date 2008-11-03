@@ -195,7 +195,8 @@ public class TypesUtil {
                         return this.arrowTypeHelper(that, Collections.<StaticParam>emptyList());
                     }
                 });
-            if( pair.second().and(existingConstraint, checker.new SubtypeHistory()).isSatisfiable() ) {
+            ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory()); 
+            if(temp.isSatisfiable() ) {
                 matching_types.add(pair.first().unwrap());
                 result_constraint = result_constraint.and(pair.second(), checker.new SubtypeHistory());
             }
