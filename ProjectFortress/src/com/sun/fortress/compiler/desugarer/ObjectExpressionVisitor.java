@@ -409,8 +409,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 @Override 
                 public Node forExit(Exit that) {
                     Span span = that.getSpan();
-                    Pair<Span,Id> exitKey = 
-                        new Pair<Span,Id>( span, that.getTarget().unwrap() );
+                    Id labelId = unwrapIfSomeElseError( that.getTarget(),
+                                    that.getSpan(), 
+                                    "Exit target label is not disambiguated!" );
+                    Pair<Span,Id> exitKey = new Pair<Span,Id>(span, labelId);
                     Pair<Id,Type> exitFnInfo = exitFnParamMap.get(exitKey);
                     if(exitFnInfo != null) {
                         List<Expr> exprs = new LinkedList<Expr>();
@@ -419,12 +421,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                         Id fnName = exitFnInfo.first();
                         FnRef fnRef = ExprFactory.makeFnRef(fnName);
                         exprs.add(fnRef); 
-                        
-                        if(returnExpr.isSome()) {
-                            exprs.add( returnExpr.unwrap() );
-                        } else {
-                            exprs.add( ExprFactory.makeVoidLiteralExpr(span) );
-                        }
+                        exprs.add( unwrapIfSomeElseAlternative(returnExpr, 
+                                     ExprFactory.makeVoidLiteralExpr(span)) );
 
                         return ExprFactory.makeTightJuxt(span, false, exprs);
                     } else {
@@ -579,6 +577,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 exitFnExprParams = new LinkedList<Param>();
                 exitWithId = NodeFactory.makeId( exitSpan, 
                                 MANGLE_CHAR+EXIT_WITH_PREFIX+"_"+exitIndex );
+
                 exitWithExpr = exit.getReturnExpr();
                 if( exitWithExpr.isSome() ) {
                     exitWithTypeOp = exitWithExpr.unwrap().getExprType();
@@ -760,31 +759,21 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             int exitIndex = 0;
             for(Exit exit : freeExitLabels) {
                 Span exitSpan = exit.getSpan();
-                Option<Id> labelOp = exit.getTarget();
-                Id label = null;
-                if( labelOp.isSome() ) {
-                    label = labelOp.unwrap();
-                } else {
-                    throw new DesugarerError( exitSpan, 
-                                "Exit target label is not disambiguated!" );
-                }
-
                 Option<Expr> retExpr = exit.getReturnExpr();
-                Option<Type> retTypeOp = null; 
                 Type retType = null;
                 Type exitFnType = null;
 
+                Id label = unwrapIfSomeElseError(exit.getTarget(), exitSpan,
+                                    "Exit target label is not disambiguated!");
                 if(retExpr.isSome()) {
-                    retTypeOp = retExpr.unwrap().getExprType();
-                    if( retTypeOp.isSome() ) {
-                        retType = retTypeOp.unwrap();
-                    } else {
-                        throw new DesugarerError( exitSpan,
-                                    "Exit with expr of an unknown type!" );
-                    }
+                    retType = unwrapIfSomeElseError(
+                                retExpr.unwrap().getExprType(), 
+                                exitSpan, 
+                                "Exit with expr of an unknown type!" );
                 } else { // exit with no expr
                     retType = NodeFactory.makeVoidType(exitSpan);
                 }
+
                 exitFnType = NodeFactory.makeArrowType(
                                 exitSpan, retType, new BottomType(exitSpan) );
                 type = Option.<Type>some(exitFnType);
@@ -896,6 +885,28 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     private int nextUniqueId() {
         return uniqueId++;
+    }
+        
+    /* Static helper methods for handling Option<T> */
+    private static <T> T
+    unwrapIfSomeElseError(Option<T> option, Span span, String errMsg) {
+        T result;
+        if( option.isSome() ) {
+            result = option.unwrap();
+        } else {
+            throw new DesugarerError(span, errMsg);
+        }
+
+        return result;
+    }
+
+    private static <T> T
+    unwrapIfSomeElseAlternative(Option<T> option, T alternative) {
+        if( option.isSome() ) {
+            return option.unwrap();
+        } else {
+            return alternative;
+        }
     }
 
 
