@@ -497,7 +497,7 @@ trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
     getter maximum(): ZZ64
 
 
-    opr |x:ZZ64| : ZZ64
+    opr |self| : ZZ64
 
     opr =(self, b:ZZ64):Boolean
     opr <(self, b:ZZ64):Boolean

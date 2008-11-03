@@ -31,9 +31,14 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
  * A visitor that checks syntactic restrictions:
- * 1) Declarations in APIs should not have any missing types.
+ * 1) A declaration in an API should not have any missing types.
+ * 2) An operator method that is not a subscripting operator method
+ *    nor a subscripted assignment operator method
+ *    should have the self parameter.
  */
 public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
+    private boolean inTrait = false;
+    private boolean inObject = false;
     private BufferedWriter writer;
 
     public SyntaxChecker( String file ) {
@@ -68,6 +73,18 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
+    public void forTraitDecl(TraitDecl that) {
+        inTrait = true;
+        super.forTraitDecl( that );
+        inTrait = false;
+    }
+
+    public void forObjectDecl(ObjectDecl that) {
+        inObject = true;
+        super.forObjectDecl( that );
+        inObject = false;
+    }
+
     public void forAbsVarDeclOnly(AbsVarDecl that) {
         for (LValueBind lvb : that.getLhs()) {
             if ( lvb.getType().isNone() )
@@ -76,13 +93,44 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     }
 
     public void forAbsFnDeclOnly(AbsFnDecl that) {
+        boolean isOprMethod = false;
+        IdOrOpOrAnonymousName name = that.getName();
+        if ( (inTrait || inObject) &&
+             (that.getName() instanceof OpName) ) {
+            isOprMethod = (! (name instanceof Enclosing) ) ||
+                          ((Enclosing)name).getOpen().getText().equals("|");
+        }
+        boolean hasSelf = false;
         if ( that.getReturnType().isNone() )
-            log(that, "The return type of " + that.getName() + " is required.");
+            log(that, "The return type of " + name + " is required.");
         for ( Param p : that.getParams() ) {
+            if ( p.getName().getText().equals("self") )
+                hasSelf = true;
             if ( p instanceof NormalParam &&
                  ((NormalParam)p).getType().isNone() &&
                  ! p.getName().getText().equals("self") )
                 log(p, "The type of " + p.getName() + " is required.");
         }
+        if ( isOprMethod && ! hasSelf )
+            log(that, "An operator method " + name +
+                      " should have the self parameter.");
+    }
+
+    public void forFnDefOnly(FnDef that) {
+        boolean isOprMethod = false;
+        IdOrOpOrAnonymousName name = that.getName();
+        if ( (inTrait || inObject) &&
+             (name instanceof OpName) ) {
+            isOprMethod = (! (name instanceof Enclosing) ) ||
+                          ((Enclosing)name).getOpen().getText().equals("|");
+        }
+        boolean hasSelf = false;
+        for ( Param p : that.getParams() ) {
+            if ( p.getName().getText().equals("self") )
+                hasSelf = true;
+        }
+        if ( isOprMethod && ! hasSelf )
+            log(that, "An operator method " + name +
+                      " should have the self parameter.");
     }
 }

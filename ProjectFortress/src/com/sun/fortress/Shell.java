@@ -478,7 +478,6 @@ public final class Shell {
                 }
             }
         } catch (ParserError e) {
-            System.err.println(e.getMessage());
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
