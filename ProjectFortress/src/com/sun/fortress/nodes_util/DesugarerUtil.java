@@ -56,7 +56,7 @@ public class DesugarerUtil {
         ExprFactory.makeVarRef(WellKnownNames.bigOperator);
 
     public final static VarRef BIGOP2_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
+        ExprFactory.makeVarRef(WellKnownNames.bigOperator2);
 
     public final static VarRef FILTER_NAME =
         ExprFactory.makeVarRef(WellKnownNames.filter);
@@ -83,7 +83,7 @@ public class DesugarerUtil {
         ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.bigOperator);
 
     public final static VarRef Q_BIGOP2_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.bigOperator);
+        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.bigOperator2);
 
     public final static VarRef Q_FILTER_NAME =
         ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, WellKnownNames.filter);

@@ -17,25 +17,30 @@
 
 component quicksortTest
 import QuickSort.{...}
+import Timing.{...}
 export Executable
 
-arr:Array[\ZZ32,ZZ32\] := array[\ZZ32\](5)
+sorted(a:Array[\ZZ32,ZZ32\]): () =
+    for i <- a.indices, i > a.indices.lower, a[i-1] > a[i] do
+        println("FAIL: a[" (i-1) "]=" a[i-1] ", a[" i "]=" a[i] )
+    end
 
 run(args:String...) = do
+  arr:Array[\ZZ32,ZZ32\] := array[\ZZ32\](5)
   arr[0] := 5
   arr[1] := 29
   arr[2] := 10
   arr[3] := -3
   arr[4] := 8
+  expected : ZZ32[5] = [ -3 5 8 10 29 ]
   quicksort[\ZZ32\](fn (x:ZZ32, y:ZZ32) => x < y, arr, 0, 4)
-  for i <- arr.indices() do
-    if i > 0 then
-      if arr[i-1] > arr[i] then
-        println("FAIL: arr[" (i-1) "]=" arr[i-1] ", arr[" i "]=" arr[i] )
-      end
-    end
-  end
-  println(arr)
+  assert(arr, expected, " arr and expected don't match")
+  arr := array[\ZZ32\](1000)
+  "random fill" PRINTTIME: (do arr[i] := narrow(|\ random(|arr|) /|), i <- arr.indices end)
+  "sort" PRINTTIME: quicksort(arr)
+  sorted(arr)
+  "sort sorted" PRINTTIME: quicksort(arr)
+  sorted(arr)
 end
 
 end
