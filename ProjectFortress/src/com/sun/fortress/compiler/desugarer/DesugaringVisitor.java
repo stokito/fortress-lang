@@ -108,24 +108,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private boolean isGetter(FnAbsDeclOrDecl decl) {
-        for (Modifier mod : decl.getMods()) {
-            if (mod instanceof ModifierGetter) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isSetter(FnAbsDeclOrDecl decl) {
-        for (Modifier mod : decl.getMods()) {
-            if (mod instanceof ModifierSetter) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Takes an Id and a list of declarations and determines
      * whether the list of declarations contains an explicit getter with a name equal
@@ -135,7 +117,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (Decl decl: decls) {
             if (decl instanceof FnAbsDeclOrDecl) {
                 FnAbsDeclOrDecl _decl = (FnAbsDeclOrDecl) decl;
-                if (_decl.getName().equals(name) && isGetter(_decl)) {
+                if (_decl.getName().equals(name) && NodeUtil.isGetter(_decl)) {
                     return true;
                 }
             }
@@ -152,7 +134,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (Decl decl: decls) {
             if (decl instanceof FnAbsDeclOrDecl) {
                 FnAbsDeclOrDecl _decl = (FnAbsDeclOrDecl) decl;
-                if (_decl.getName().equals(name) && isSetter(_decl)) {
+                if (_decl.getName().equals(name) && NodeUtil.isSetter(_decl)) {
                     return true;
                 }
             }

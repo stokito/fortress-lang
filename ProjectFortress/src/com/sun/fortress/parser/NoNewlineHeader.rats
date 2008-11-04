@@ -236,96 +236,27 @@ private List<BaseType> MayTraitTypes =
    / TraitTypes ;
 
 /* Each modifier cannot appear more than once. */
-/* TraitMods ::= (TraitMod w)+ */
-transient List<Modifier> TraitMods = a1s:(TraitMod w)+
+/* Mods ::= (Mod w)+ */
+transient List<Modifier> Mods = a1s:(Mod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
        FortressUtil.noDuplicate(yyValue);
      };
 
-/* TraitMod ::= AbsTraitMod | private */
-transient private Modifier TraitMod =
-     AbsTraitMod
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+/* Mod ::=
+   atomic | hidden | io | override | private | settable | test | value | var | wrapped
+ */
+transient Modifier Mod =
+     atomic   { yyValue = new ModifierAtomic(createSpan(yyStart,yyCount)); }
+   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
+   / io       { yyValue = new ModifierIO(createSpan(yyStart,yyCount)); }
+   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); }
+   / private  { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); }
+   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
+   / test     { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); }
+   / value    { yyValue = new ModifierValue(createSpan(yyStart,yyCount)); }
+   / var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
+   / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
 
-/* Each modifier cannot appear more than once. */
-/* AbsTraitMods ::= (AbsTraitMod w)+ */
-transient List<Modifier> AbsTraitMods = a1s:(AbsTraitMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsTraitMod ::= value | test */
-transient private Modifier AbsTraitMod =
-     value { yyValue = new ModifierValue(createSpan(yyStart,yyCount)); }
-   / test  { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* ObjectMods ::= TraitMods */
-transient List<Modifier> ObjectMods = TraitMods ;
-
-/* Each modifier cannot appear more than once. */
-/* AbsObjectMods ::= AbsTraitMods */
-transient List<Modifier> AbsObjectMods = AbsTraitMods ;
-
-/* Each modifier cannot appear more than once. */
-/* MdMods ::= (MdMod w)+ */
-transient List<Modifier> MdMods = a1s:(MdMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* MdMod ::= FnMod | override */
-transient private Modifier MdMod =
-     FnMod
-   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* AbsMdMods ::= (AbsMdMod w)+ */
-transient List<Modifier> AbsMdMods = a1s:(AbsMdMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsMdMod ::= AbsMdMod | override */
-transient private Modifier AbsMdMod =
-     AbsFnMod
-   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* FnMods ::= (FnMod w)+ */
-transient List<Modifier> FnMods = a1s:(FnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* FnMod ::= AbsFnMod | private */
-transient private Modifier FnMod =
-     AbsFnMod
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* AbsFnMods ::= (AbsFnMod w)+ */
-transient List<Modifier> AbsFnMods = a1s:(AbsFnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* AbsFnMod ::= LocalFnMod | test */
-transient private Modifier AbsFnMod =
-     LocalFnMod
-   / test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
-
-/* Each modifier cannot appear more than once. */
-/* LocalFnMods ::= (LocalFnMod w)+ */
-transient List<Modifier> LocalFnMods = a1s:(LocalFnMod w)+
-     { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
-     };
-
-/* LocalFnMod ::= atomic | io */
-transient private Modifier LocalFnMod =
-     atomic { yyValue = new ModifierAtomic(createSpan(yyStart,yyCount)); }
-   / io     { yyValue = new ModifierIO(createSpan(yyStart,yyCount)); } ;
 
 /* Each modifier cannot appear more than once. */
 /* ParamFldMods ::= (ParamFldMod w)+ */
@@ -376,9 +307,9 @@ transient List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
 
 /* AbsFldMod ::= ApiFldMod | wrapped | private */
 transient private Modifier AbsFldMod =
-     ApiFldMod
-   / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+      ApiFldMod
+    / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
+    / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
 
 /* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= (ApiFldMod w)+ */
