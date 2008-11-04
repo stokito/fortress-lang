@@ -43,23 +43,13 @@ List<DimUnitDecl> DimUnitDecl =
      dim w a1:OpName a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
      a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid dimension name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a1 + " is not a valid dimension name.");
      }
    / <ErrorProduction2>
      dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
      a4:OpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a4 + " is not a valid unit name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a4 + " is not a valid unit name.");
      }
    / dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
      a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
@@ -79,22 +69,12 @@ List<DimUnitDecl> DimUnitDecl =
    / <ErrorProduction3>
      dim w a1:OpName a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid dimension name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a1 + " is not a valid dimension name.");
      }
    / <ErrorProduction4>
      dim w a1:Id a2:(w void:equals w NoNewlineType)? w default w a3:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a3 + " is not a valid unit name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a3 + " is not a valid unit name.");
      }
    / dim w a1:Id a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
      { DimDecl dim = new DimDecl(createSpan(yyStart,yyCount),
@@ -105,12 +85,7 @@ List<DimUnitDecl> DimUnitDecl =
      a1:(unit / SI_unit) w a2:OpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a2 + " is not a valid unit name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a2 + " is not a valid unit name.");
      }
    / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
@@ -134,12 +109,7 @@ TypeAlias TypeAlias =
    / <ErrorProduction>
      type w a1:OpName a2:(w StaticParams)? w equals w a3:NoNewlineType
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a2 + " is not a valid type name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a2 + " is not a valid type name.");
      };
 
 /* TestDecl ::= test w Id w [ w GeneratorClauseList w ] w = w NoNewlineExpr */
@@ -151,12 +121,7 @@ TestDecl TestDecl =
      test w a1:OpName w opensquare w a2:GeneratorClauseList w closesquare w equals w
      a3:NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a2 + " is not a valid test name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a2 + " is not a valid test name.");
      };
 
 /* PropertyDecl ::=
@@ -173,10 +138,5 @@ PropertyDecl PropertyDecl =
      property w a1:OpName w equals a2:(w FORALL w ValParam)? w
      a3:NoNewlineExpr
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a2 + " is not a valid property name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a2 + " is not a valid property name.");
      };
