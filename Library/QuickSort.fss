@@ -38,7 +38,7 @@ mypartition[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, 
   end
 quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32):() =
   if right > left
-  then pivotIndex = left
+  then pivotIndex = (left+right) DIV 2  (* Avoid blatant degeneration for sorted arrays *)
        pivotNewIndex = mypartition(lt, arr, left, right, pivotIndex)
        do
          quicksort(lt, arr, left, pivotNewIndex-1)
