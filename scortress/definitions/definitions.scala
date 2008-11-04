@@ -17,31 +17,39 @@
 
 package com.sun.fortress.scala.scortress.definitions
 
-import com.sun.fortress.scala.scortress.exprs._
+import com.sun.fortress.scala.scortress.terms._
 import com.sun.fortress.scala.scortress.types._
 
 /** Definitions for a program in our language. */
 abstract sealed class Definition
 
 /** Either a top-level function definition or a method definition. */
-case class DefFunction(name:String,
-                       sparams:List[Pair[String, Type]],
-                       params:List[Pair[String, Option[Type]]],
-                       range:Option[Type],
-                       body:Term) extends Definition
+case class DfFunction(name:String,
+                      sparams:List[Pair[String, Type]],
+                      params:List[Pair[String, Option[Type]]],
+                      range:Option[Type],
+                      body:Term) extends Definition
+
+abstract class DfType(val name:String,
+                      val sparams:List[Pair[String, Type]],
+                      val exts:List[TpTrait],
+                      val fns:List[DfFunction]) extends Definition
+
 
 /** A top-level trait definition. */
-case class DefTrait(name:String,
-                    sparams:List[Pair[String, Type]],
-                    exts:List[Type],
-                    fns:List[DefFunction]) extends Definition
+case class DfTrait(override val name:String,
+                   override val sparams:List[Pair[String, Type]],
+                   override val exts:List[TpTrait],
+                   override val fns:List[DfFunction])
+    extends DfType(name, sparams, exts, fns)
 
 /** A top-level object definition. */
-case class DefObject(name:String,
-                     sparams:List[Pair[String, Type]],
-                     params:List[Pair[String, Option[Type]]],
-                     exts:List[Type],
-                     fns:List[DefFunction]) extends Definition
+case class DfObject(override val name:String,
+                    override val sparams:List[Pair[String, Type]],
+                    params:List[Pair[String, Option[Type]]],
+                    override val exts:List[TpTrait],
+                    override val fns:List[DfFunction])
+    extends DfType(name, sparams, exts, fns)
 
 /**
  * A full program in our language. Evaluate the body with the given definitions.
