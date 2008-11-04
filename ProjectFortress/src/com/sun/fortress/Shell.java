@@ -479,6 +479,7 @@ public final class Shell {
             }
         } catch (ParserError e) {
             if (Debug.isOnMax()) {
+                System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
                 System.err.println("Turn on -debug for Java-level stack trace.");
