@@ -33,8 +33,18 @@ import Spacing;
    | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
    | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
-public CompilationUnit File =
-     w yyValue:CompilationUnit w EndOfFile
+public CompilationUnit File = initParser yyValue:Program closeParser ;
+void initParser  = w { initParser(); };
+void closeParser = w EndOfFile
+     { try {
+           writer.close();
+       } catch (IOException error) {
+           error("Closing a log file for the parser failed!");
+       }
+     };
+
+CompilationUnit Program =
+     yyValue:CompilationUnit
      { Span span = createSpan(yyStart,yyCount);
        String filename = span.getBegin().getFileName();
        String cuname = yyValue.getName().toString();
@@ -45,13 +55,13 @@ public CompilationUnit File =
                                  + filename+", from contents="+cuname);
      }
    / <ErrorProduction1>
-     w Exports w semicolon? w Imports w semicolon?
-     (w Decls w semicolon?)? w EndOfFile
+     Exports w semicolon? w Imports w semicolon?
+     (w Decls w semicolon?)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
-   / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w semicolon?
-     a3:(w yyValue:Decls w semicolon?)? w EndOfFile
+   / a1:(yyValue:Imports w semicolon? w)? a2:Exports w semicolon?
+     a3:(w yyValue:Decls w semicolon?)?
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -59,14 +69,14 @@ public CompilationUnit File =
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Component(span, name, a1, a2, a3);
      }
-   / w a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)? w EndOfFile
+   / a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)?
      { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Api(span, name, a1, a2);
      }
-   / a1:(w yyValue:Imports w semicolon?)? w a2:AbsDecls w semicolon? w EndOfFile
+   / a1:(yyValue:Imports w semicolon? w)? a2:AbsDecls w semicolon?
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
