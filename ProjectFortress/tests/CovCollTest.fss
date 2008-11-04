@@ -51,13 +51,21 @@ isTriangular(n:ZZ32): Boolean = do
   end
 
 run(args:String...):() = do
-    sz = if |args| = 1 then strToInt(args[0]) else 11 end
+    (sz, warm) = if |args| = 1 then (strToInt(args[0]),100) else (11,10) end
     c'n'p : String := ""
     for i <- seq(0:sz) do
         gensize = narrow(2^i)
         nlogn = (i+1) gensize
         outtime(t) =
             println(t "\tn: " |\t.usecs / gensize/| "\tn lg n: " |\t.usecs / nlogn/|)
+        for j <- seq(1 : (warm DIV gensize)) do
+            rs = ("Warmup " gensize " " j) PRINTTIME: (do
+                   cc = (0#gensize).generate[\AnyCovColl\](CVReduction[\ZZ32\], CVSingleton)
+                   (Empty[\ZZ32\] APPCOV cc).toImmutableArray()
+                 end)
+            rs' = ("Warm L " gensize " " j) PRINTTIME:
+                  (0#gensize).generate[\List[\ZZ32\]\](Concat[\ZZ32\], singleton[\ZZ32\])
+        end
         (rs', tc) = ("Via covariant collection " gensize) TIMING: (do (*'*)
             cc = ("CC " gensize) PRINTTIME:
                  (0#gensize).generate[\AnyCovColl\](CVReduction[\ZZ32\], CVSingleton)
@@ -70,14 +78,14 @@ run(args:String...):() = do
         (rs, tl) = ("List                     " gensize) TIMING:
                  (0#gensize).generate[\List[\ZZ32\]\](Concat[\ZZ32\], singleton[\ZZ32\])
         outtime(tl)
-        assert(rs,rs')
+        assert(rs,rs') (*'*)
         println("Ratio                    " gensize " = " (|\1000 tl.secs / tc.secs/| / 1000.0))
         ctime(t) = "\t" t.secs
         cdiv(t) =  "\t" (t.secs/gensize) "\t" (t.secs/nlogn)
         c'n'p //= gensize ctime(tl) ctime(tc) cdiv(tl) cdiv(tc)
     end
 (*
-    s = FileWriteStream("~/CovColl.dat")
+    s = FileWriteStream("/Users/jmaessen/CovColl.dat")
     s.write(c'n'p[1:])
     s.close()
 *)

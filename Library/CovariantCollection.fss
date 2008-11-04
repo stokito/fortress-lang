@@ -19,6 +19,8 @@ component CovariantCollection
 export CovariantCollection
 
 private upward[\R, I extends R, T extends R\]
+      (_: Empty[\I\], s: Empty[\T\]): Empty[\R\] = Empty[\R\]
+private upward[\R, I extends R, T extends R\]
       (_: Empty[\I\], s: NonEmpty[\T\]): Singleton[\R\] =
     fail("upward: NonEmpty but not Singleton/Append")
 private upward[\R, I extends R, T extends R\]
@@ -144,6 +146,6 @@ CVSingleton(a:Any): AnyCovColl = Singleton(a)
 
 covariantCompr[\T,R\](unwrap:AnyCovColl->R):Comprehension[\T,R,AnyCovColl,AnyCovColl\] =
     Comprehension[\T,R,AnyCovColl,AnyCovColl\](
-        fn xs => unwrap(xs || Empty[\T\]), CVReduction[\T\], Singleton)
+        fn xs => unwrap(upward(Empty[\T\],xs)), CVReduction[\T\], Singleton[\T\])
 
 end
