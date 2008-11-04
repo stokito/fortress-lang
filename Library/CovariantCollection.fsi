@@ -24,8 +24,8 @@ opr APPCOV(a: AnyCovColl, b: AnyCovColl): AnyCovColl
 trait AnyCovColl
 end
 
-trait CovariantCollection[\T\] extends AnyCovColl comprises
-   { Empty[\T\], NonEmpty[\T\] }
+trait CovariantCollection[\T\] extends AnyCovColl
+        comprises { Empty[\T\], NonEmpty[\T\] }
     toImmutableArray(): ImmutableArray[\T, ZZ32\]
     toArray(): Array[\T, ZZ32\]
     assignToArray(res: Array[\T, ZZ32\]): ()
@@ -55,6 +55,7 @@ end
 
 CVSingleton(a: Any): AnyCovColl
 
-covariantCompr[\T, R\](unwrap: (AnyCovColl -> R)): Comprehension[\T, R, AnyCovColl, AnyCovColl\]
+covariantCompr[\T, R\](unwrap: (AnyCovColl -> R)):
+    Comprehension[\T, R, AnyCovColl, AnyCovColl\]
 
 end
