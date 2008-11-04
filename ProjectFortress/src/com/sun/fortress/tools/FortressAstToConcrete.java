@@ -20,6 +20,8 @@ package com.sun.fortress.tools;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
@@ -47,6 +49,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     private boolean _unqualified;
     private boolean _unmangle;
     private int width = 50;
+    private Set<String> locals = new HashSet<String>();
 
     public FortressAstToConcrete() {
         _unqualified = false;
@@ -659,7 +662,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
         }
         s.append( name_result );
-        if ( type_result.isSome() ){
+        if ( (! locals.contains(that.getName().getText())) &&
+             type_result.isSome() ){
             s.append( handleType(type_result.unwrap()) );
         }
 
@@ -1299,6 +1303,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                   opr_result, rhs_result);
     }
 
+    @Override public String forBlock(Block that) {
+        Set<String> original = locals;
+        String result  = super.forBlock( that );
+        locals.clear();
+        locals.addAll(original);
+        return result;
+    }
+
     @Override public String forBlockOnly(Block that, Option<String> exprType_result,
                                          List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
@@ -1390,7 +1402,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          String body_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( "label " ).append( name_result ).append( " " );
+        s.append( "label " ).append( name_result ).append( "\n" );
         s.append( body_result );
         s.append( "\nend " ).append( name_result );
 
@@ -1693,6 +1705,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
+    }
+
+    @Override public String forLocalVarDecl(LocalVarDecl that) {
+        Option<String> exprType_result = recurOnOptionOfType(that.getExprType());
+        List<String> lhs_result = recurOnListOfLValue(that.getLhs());
+        Option<String> rhs_result = recurOnOptionOfExpr(that.getRhs());
+        for (LValue lv : that.getLhs()) {
+            if ( lv instanceof LValueBind )
+                locals.add(((LValueBind)lv).getName().getText());
+        }
+        List<String> body_result = recurOnListOfExpr(that.getBody());
+        return forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
     }
 
     @Override public String forLocalVarDeclOnly(LocalVarDecl that, Option<String> exprType_result,
