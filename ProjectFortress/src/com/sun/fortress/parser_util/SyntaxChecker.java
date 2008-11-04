@@ -70,7 +70,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         try {
             writer.close();
         } catch (IOException error) {
-            error("Creating a log file for the syntax checker failed!");
+            error("Closing a log file for the syntax checker failed!");
         }
     }
 
@@ -84,7 +84,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         try {
             writer.close();
         } catch (IOException error) {
-            error("Creating a log file for the syntax checker failed!");
+            error("Closing a log file for the syntax checker failed!");
         }
     }
 

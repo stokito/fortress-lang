@@ -125,12 +125,13 @@ public class Parser {
         throws FileNotFoundException, IOException {
         // Also throws StaticError, ParserError
         BufferedReader in = Useful.utf8BufferedFileReader(file);
+        String filename = file.getCanonicalPath();
         try {
-            String filename = file.getCanonicalPath();
             Fortress parser = new Fortress(in, filename);
             xtc.parser.Result parseResult = parser.pFile(0);
             return checkResultCU(parseResult, parser, filename);
         } finally {
+            Files.rm( filename + ".parserError.log" );
             in.close();
         }
     }
@@ -141,9 +142,13 @@ public class Parser {
     public static CompilationUnit parseString(APIName api_name, String buffer) throws IOException {
         // Also throws StaticError, ParserError
         BufferedReader in = Useful.bufferedStringReader(buffer);
-        Fortress parser = new Fortress(in, api_name.getText());
-        xtc.parser.Result parseResult = parser.pFile(0);
-        return checkResultCU(parseResult, parser, api_name.getText());
+        try {
+            Fortress parser = new Fortress(in, api_name.getText());
+            xtc.parser.Result parseResult = parser.pFile(0);
+            return checkResultCU(parseResult, parser, api_name.getText());
+        } finally {
+            in.close();
+        }
     }
 
     /**
@@ -155,11 +160,33 @@ public class Parser {
     public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
                                                 ParserBase parser,
                                                 String filename) throws IOException {
+        String logFile = filename + ".parserError.log";
+        File log = new File( logFile );
+        if ( log.length() != 0 ) {
+            BufferedReader reader = Useful.filenameToBufferedReader( logFile );
+            String line = reader.readLine();
+            String next = reader.readLine();
+            if ( next == null ) {
+                System.err.println("The following syntax error is found:");
+                System.err.println( line );
+            } else {
+                System.err.println("The following syntax errors are found:");
+                System.err.println( line );
+                while ( next != null ) {
+                    System.err.println( next );
+                    next = reader.readLine();
+                }
+            }
+            Files.rm( logFile );
+            throw new ParserError(new xtc.parser.ParseError("", 0), parser);
+        } else
+            Files.rm( logFile );
+
         if (parseResult.hasValue()) {
             CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
-            String logFile = filename + ".syntaxError.log";
+            logFile = filename + ".syntaxError.log";
             cu.accept( new SyntaxChecker(logFile) );
-            File log = new File( logFile );
+            log = new File( logFile );
             if ( log.length() != 0 ) {
                 BufferedReader reader = Useful.filenameToBufferedReader( logFile );
                 String line = reader.readLine();

@@ -90,7 +90,7 @@ transient private String leftEncloserMulti =
    ;
 
 transient private String rightEncloser =
-      rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
+     rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
    / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)} { yyValue = ""+c; }
    ;
 

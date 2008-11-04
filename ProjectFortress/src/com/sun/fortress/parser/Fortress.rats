@@ -140,6 +140,8 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.collect.CollectUtil;
 import xtc.util.Action;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -147,17 +149,36 @@ import java.util.List;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 }
 
 body {
-   Span createSpan(int start, int end) {
+    Span createSpan(int start, int end) {
         Column s = column(start);
         Column e = column(end-1);
         SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column-1, start);
         SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column-1, end);
         return new Span(slStart, slEnd);
-   }
+    }
+
+    private BufferedWriter writer;
+
+    void initParser() {
+        try {
+            writer = Useful.filenameToBufferedWriter( column(0).file + ".parserError.log" );
+        } catch (IOException error) {
+            error("Creating a log file for the parser failed!");
+        }
+    }
+
+    private void log(Span span, String message) {
+        try {
+            writer.write( span + " : " + message + "\n" );
+        } catch (IOException error) {
+            error("Writing to a log file for the parser failed!");
+        }
+    }
 
 }
 

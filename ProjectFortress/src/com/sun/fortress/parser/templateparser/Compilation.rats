@@ -29,3 +29,6 @@ import Spacing;
 
 
 modify com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+
+void initParser  := w;
+void closeParser := w EndOfFile;

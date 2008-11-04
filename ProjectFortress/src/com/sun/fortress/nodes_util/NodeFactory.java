@@ -155,6 +155,10 @@ public class NodeFactory {
         return new ArrayType(span, element, indices);
     }
 
+    public static DimDecl makeDimDecl(Span span, Id dim) {
+        return new DimDecl(span, dim);
+    }
+
     public static ExponentType makeExponentType(ExponentType t, Type s) {
         return new ExponentType(t.getSpan(), t.isParenthesized(), s,
                 t.getPower());
@@ -477,6 +481,10 @@ public class NodeFactory {
             ids.add(new Id(span, n));
         }
         return new APIName(span, ids);
+    }
+
+    public static Id bogusId(Span span) {
+        return new Id(span, Option.<APIName>none(), "_");
     }
 
     public static Id makeId(Id id, String newName) {
