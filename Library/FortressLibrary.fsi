@@ -312,7 +312,7 @@ trait Number
     opr IEEE_DOT_DOWN(self,b:Number):RR64
     opr IEEE_SLASH_DOWN(self,b:Number):RR64
     opr IEEE_SLASH_UP(self,b:Number):RR64
-    opr |a:RR64| : RR64
+    opr |self| : RR64
     opr ^(self, b:RR64):RR64
     sin(self):RR64
     cos(self):RR64

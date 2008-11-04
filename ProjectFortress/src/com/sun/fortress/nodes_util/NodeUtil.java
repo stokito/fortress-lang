@@ -469,6 +469,25 @@ public class NodeUtil {
             }
         };
 
+
+    public static boolean isGetter(FnAbsDeclOrDecl decl) {
+        for (Modifier mod : decl.getMods()) {
+            if (mod instanceof ModifierGetter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isSetter(FnAbsDeclOrDecl decl) {
+        for (Modifier mod : decl.getMods()) {
+            if (mod instanceof ModifierSetter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /* for APIName ******************************************************/
     public static List<String> toStrings(APIName n) {
         return Useful.applyToAll(n.getIds(), IdToStringFn);

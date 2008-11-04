@@ -32,16 +32,16 @@ import Symbol;
 import Spacing;
 
 /* FnDecl ::=
-     FnMods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
-   | FnMods? AbsFnHeaderFront FnHeaderClause
+     Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+   | Mods? AbsFnHeaderFront FnHeaderClause
    | FnSig
  */
 Decl FnDecl =
-     a1:FnMods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
      }
-   / a1:FnMods? a2:AbsFnHeaderFront a3:FnHeaderClause
+   / a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
@@ -80,11 +80,11 @@ AbsFnDecl FnSig =
      };
 
 /* AbsFnDecl ::=
-     AbsFnMods? AbsFnHeaderFront FnHeaderClause
+     Mods? AbsFnHeaderFront FnHeaderClause
    | FnSig
  */
 AbsFnDecl AbsFnDecl =
-     a1:AbsFnMods? a2:AbsFnHeaderFront a3:FnHeaderClause
+     a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }

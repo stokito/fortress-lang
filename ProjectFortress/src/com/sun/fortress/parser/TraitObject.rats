@@ -34,10 +34,10 @@ import Symbol;
 import Spacing;
 
 /* TraitDecl ::=
-     TraitMods? TraitHeaderFront TraitClauses (w GoInATrait)? w end ((s trait)? s Id)?
+     Mods? TraitHeaderFront TraitClauses (w GoInATrait)? w end ((s trait)? s Id)?
  */
 TraitDecl TraitDecl =
-     a1:TraitMods? a2:TraitHeaderFront a3:TraitClauses a4:(w GoInATrait)? w end
+     a1:Mods? a2:TraitHeaderFront a3:TraitClauses a4:(w GoInATrait)? w end
      a5:((s trait)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a5 != null && !a2.getName().getText().equals(a5.getText()))
@@ -163,10 +163,10 @@ private Decl GoesBackInATrait =
      MdDecl
    / PropertyDecl ;
 
-/* ObjectDecl ::= ObjectMods? ObjectHeader (w GoInAnObject)? w end ((s object)? s Id)?
+/* ObjectDecl ::= Mods? ObjectHeader (w GoInAnObject)? w end ((s object)? s Id)?
  */
 ObjectDecl ObjectDecl =
-     a1:ObjectMods? a2:ObjectHeader a3:(w GoInAnObject)? w end
+     a1:Mods? a2:ObjectHeader a3:(w GoInAnObject)? w end
      a4:((s object)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))
@@ -308,11 +308,11 @@ private Decl GoesBackInAnObject =
    / PropertyDecl ;
 
 /* AbsTraitDecl ::=
-     AbsTraitMods? TraitHeaderFront AbsTraitClauses (w AbsGoInATrait)? w end
+     Mods? TraitHeaderFront AbsTraitClauses (w AbsGoInATrait)? w end
      ((s trait)? s Id)?
  */
 AbsTraitDecl AbsTraitDecl =
-     a1:AbsTraitMods? a2:TraitHeaderFront a3:AbsTraitClauses
+     a1:Mods? a2:TraitHeaderFront a3:AbsTraitClauses
      a4:(w AbsGoInATrait)? w end a5:((s trait)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a5 != null && !a2.getName().getText().equals(a5.getText()))
@@ -420,11 +420,11 @@ private AbsDecl AbsGoesBackInATrait =
      AbsMdDecl
    / PropertyDecl ;
 
-/* AbsObjectDecl ::= AbsObjectMods? ObjectHeader (w AbsGoInAnObject)? w end
+/* AbsObjectDecl ::= Mods? ObjectHeader (w AbsGoInAnObject)? w end
                      ((s object)? s Id)?
  */
 AbsObjectDecl AbsObjectDecl =
-     a1:AbsObjectMods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
+     a1:Mods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
      a4:((s object)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))

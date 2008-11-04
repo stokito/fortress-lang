@@ -34,11 +34,11 @@ import Spacing;
 
 /* MdDecl ::=
      MdDef
-   | (abstract w)? MdMods? AbsMdHeaderFront FnHeaderClause
+   | (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause
  */
 FnAbsDeclOrDecl MdDecl =
      MdDef
-   / a1:(abstract w)? a2:MdMods? a3:AbsMdHeaderFront a4:FnHeaderClause
+   / a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
@@ -49,15 +49,15 @@ FnAbsDeclOrDecl MdDecl =
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
-     a1:MdMods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
                                        a2.getReceiver(), a2, a3, a4);
      };
 
-/* AbsMdDecl ::= (abstract w)? AbsMdMods? AbsMdHeaderFront FnHeaderClause */
+/* AbsMdDecl ::= (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause */
 AbsFnDecl AbsMdDecl =
-     a1:(abstract w)? a2:AbsMdMods? a3:AbsMdHeaderFront a4:FnHeaderClause
+     a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
@@ -98,11 +98,11 @@ FnHeaderFront AbsNamedMdHeaderFront =
 
 /* GetterSetterDecl ::=
      GetterSetterDef
-   | (abstract w) FnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
+   | (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
 FnAbsDeclOrDecl GetterSetterDecl =
      GetterSetterDef
-   / a1:(abstract w)? a2:FnMods? a3:GetterSetterMod a4:AbsMdHeaderFront
+   / a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
@@ -114,10 +114,10 @@ FnAbsDeclOrDecl GetterSetterDecl =
      };
 
 /* GetterSetterDef ::=
-     FnMods? GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
+     Mods? GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
 FnAbsDeclOrDecl GetterSetterDef =
-     a1:FnMods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
+     a1:Mods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
      a5:NoNewlineExpr
      { if (a1 == null) a1 = new ArrayList<Modifier>();
        a1.add(a2);
@@ -131,10 +131,10 @@ transient private Modifier GetterSetterMod =
    / a1:setter w { yyValue = new ModifierSetter(createSpan(yyStart,yyCount));};
 
 /* AbsGetterSetterDecl ::=
-     (abstract w) AbsFnMods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
+     (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
 AbsFnDecl AbsGetterSetterDecl =
-     a1:(abstract w)? a2:AbsFnMods? a3:GetterSetterMod a4:AbsMdHeaderFront
+     a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
