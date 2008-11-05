@@ -15,8 +15,11 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Foo
-  f(x':ZZ32): ZZ32
-  x:ZZ32
-  z:ZZ32
+component XXXMissingExport
+  export XXXMissingExport
+
+  x:ZZ32 = 3
+  y:ZZ32 = 1
+  z:ZZ32 = 99
+
 end
