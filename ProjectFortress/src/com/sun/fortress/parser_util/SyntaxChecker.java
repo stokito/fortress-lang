@@ -21,9 +21,8 @@ import java.io.IOException;
 import java.util.List;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.Useful;
 /*
-import edu.rice.cs.plt.tuple.Option;
+Import edu.rice.cs.plt.tuple.Option;
 */
 import static com.sun.fortress.exceptions.ProgramError.error;
 
@@ -44,12 +43,8 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     private boolean inBlock = false;
     private BufferedWriter writer;
 
-    public SyntaxChecker( String file ) {
-        try {
-            writer = Useful.filenameToBufferedWriter( file );
-        } catch (IOException error) {
-            error("Creating a log file for the syntax checker failed!");
-        }
+    public SyntaxChecker( BufferedWriter in_writer ) {
+        writer = in_writer;
     }
 
     private void log(Node that, String message) {

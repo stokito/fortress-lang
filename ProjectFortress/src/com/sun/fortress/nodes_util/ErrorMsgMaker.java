@@ -141,6 +141,21 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
 
+    public String forModifierAbstract(ModifierAbstract node) { return "abstract"; }
+    public String forModifierAtomic(ModifierAtomic node) { return "atomic"; }
+    public String forModifierGetter(ModifierGetter node) { return "getter"; }
+    public String forModifierHidden(ModifierHidden node) { return "hidden"; }
+    public String forModifierIO(ModifierIO node) { return "io"; }
+    public String forModifierOverride(ModifierOverride node) { return "override"; }
+    public String forModifierPrivate(ModifierPrivate node) { return "private"; }
+    public String forModifierSettable(ModifierSettable node) { return "settable"; }
+    public String forModifierSetter(ModifierSetter node) { return "setter"; }
+    public String forModifierTest(ModifierTest node) { return "test"; }
+    public String forModifierValue(ModifierValue node) { return "value"; }
+    public String forModifierVar(ModifierVar node) { return "var"; }
+    public String forModifierWidens(ModifierWidens node) { return "widens"; }
+    public String forModifierWrapped(ModifierWrapped node) { return "wrapped"; }
+
     public String forId(Id node) {
         return NodeUtil.nameString(node);
     }
@@ -184,7 +199,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forUnitRef(UnitRef node) {
         return NodeUtil.nameString(node.getName());
     }
-    
+
     private String forUnitOpExpr(UnitOpExpr node, String op) {
         return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
     }
@@ -192,15 +207,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forProductUnit(ProductUnit node) {
         return forUnitOpExpr(node, " ");
     }
-    
+
     public String forQuotientUnit(QuotientUnit node) {
         return forUnitOpExpr(node, "/");
     }
-    
+
     public String forExponentUnit(ExponentUnit node) {
         return forUnitOpExpr(node, "^");
     }
-    
+
     public String forIntRef(IntRef node) {
         return NodeUtil.nameString(node.getName());
     }
@@ -208,22 +223,22 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forBoolRef(BoolRef node) {
         return NodeUtil.nameString(node.getName());
     }
-    
+
     public String forNotConstraint(NotConstraint node) {
         return "NOT(" + node.getBool().accept(this) + ")";
     }
-    
+
     private String forBoolOpConstraint(BinaryBoolConstraint node, String op) {
-        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";        
+        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
     }
     public String forAndConstraint(AndConstraint node) {
         return forBoolOpConstraint(node, " AND ");
     }
-    
+
     public String forOrConstraint(OrConstraint node) {
         return forBoolOpConstraint(node, " OR ");
     }
-    
+
     public String forImpliesConstraint(ImpliesConstraint node) {
         return forBoolOpConstraint(node, " IMPLIES ");
     }
@@ -231,7 +246,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forBEConstraint(BEConstraint node) {
         return forBoolOpConstraint(node, " IFF ");
     }
-    
+
     public String forVarRef(VarRef node) {
         return NodeUtil.nameString(node.getVar());
     }
@@ -243,19 +258,19 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forSumConstraint(SumConstraint node) {
         return forOpConstraint(node, "+");
     }
-    
+
     public String forMinusConstraint(MinusConstraint node) {
         return forOpConstraint(node, "-");
     }
-    
+
     public String forProductConstraint(ProductConstraint node) {
         return forOpConstraint(node, " ");
     }
-    
+
     public String forExponentConstraint(ExponentConstraint node) {
         return forOpConstraint(node, "^");
     }
-    
+
     public String for_RewriteObjectRef(_RewriteObjectRef node) {
         List<StaticArg> sargs = node.getStaticArgs();
         return forId(node.getObj()) +
@@ -353,7 +368,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 Useful.listInOxfords(mapSelf(node.getArgs()));
         }
     }
-    
+
     public String forBoolConstant(BoolConstant node) {
         if (node.isBool()) { return "true"; }
         else { return "false"; }

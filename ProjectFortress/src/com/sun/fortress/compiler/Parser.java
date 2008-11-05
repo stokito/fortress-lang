@@ -160,52 +160,37 @@ public class Parser {
     public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
                                                 ParserBase parser,
                                                 String filename) throws IOException {
-        String logFile = filename + ".parserError.log";
-        File log = new File( logFile );
-        if ( log.length() != 0 ) {
-            BufferedReader reader = Useful.filenameToBufferedReader( logFile );
-            String line = reader.readLine();
-            String next = reader.readLine();
-            if ( next == null ) {
-                System.err.println("The following syntax error is found:");
-                System.err.println( line );
-            } else {
-                System.err.println("The following syntax errors are found:");
-                System.err.println( line );
-                while ( next != null ) {
-                    System.err.println( next );
-                    next = reader.readLine();
-                }
-            }
-            Files.rm( logFile );
-            throw new ParserError(new xtc.parser.ParseError("", 0), parser);
-        } else
-            Files.rm( logFile );
+        String parserLogFile = filename + ".parserError.log";
+        File parserLog = new File( parserLogFile );
 
         if (parseResult.hasValue()) {
             CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
-            logFile = filename + ".syntaxError.log";
-            cu.accept( new SyntaxChecker(logFile) );
-            log = new File( logFile );
-            if ( log.length() != 0 ) {
-                BufferedReader reader = Useful.filenameToBufferedReader( logFile );
+            String syntaxLogFile = filename + ".syntaxError.log";
+            cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
+            File syntaxLog = new File( syntaxLogFile );
+
+            if ( parserLog.length() + syntaxLog.length() != 0 ) {
+                System.err.println("Syntax error(s):");
+                BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
                 String line = reader.readLine();
-                String next = reader.readLine();
-                if ( next == null ) {
-                    System.err.println("The following syntax error is found:");
+                while ( line != null ) {
                     System.err.println( line );
-                } else {
-                    System.err.println("The following syntax errors are found:");
-                    System.err.println( line );
-                    while ( next != null ) {
-                        System.err.println( next );
-                        next = reader.readLine();
-                    }
+                    line = reader.readLine();
                 }
-                Files.rm( logFile );
+                reader = Useful.filenameToBufferedReader( syntaxLogFile );
+                line = reader.readLine();
+                while ( line != null ) {
+                    System.err.println( line );
+                    line = reader.readLine();
+                }
+                Files.rm( parserLogFile );
+                Files.rm( syntaxLogFile );
                 throw new ParserError(new xtc.parser.ParseError("", 0), parser);
-            } else
-                Files.rm( logFile );
+            } else {
+                Files.rm( parserLogFile );
+                Files.rm( syntaxLogFile );
+            }
+
             if (cu instanceof Api) {
                 if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
                     return (Api)cu;
@@ -226,6 +211,19 @@ public class Parser {
                 throw new RuntimeException("Unexpected parse result: " + cu);
             }
         } else {
+            if ( parserLog.length() != 0 ) {
+                System.err.println("Syntax error(s):");
+                BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
+                String line = reader.readLine();
+                while ( line != null ) {
+                    System.err.println( line );
+                    line = reader.readLine();
+                }
+                Files.rm( parserLogFile );
+                throw new ParserError(new xtc.parser.ParseError("", 0), parser);
+            } else {
+                Files.rm( parserLogFile );
+            }
             throw new ParserError((ParseError) parseResult, parser);
         }
     }
