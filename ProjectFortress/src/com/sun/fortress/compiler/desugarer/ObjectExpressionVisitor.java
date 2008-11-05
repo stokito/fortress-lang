@@ -113,7 +113,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     public static final String MANGLE_CHAR = "$";
     private static final String ENCLOSING_PREFIX = "enclosing";
     private static final String EXIT_FUNC_PREFIX = "exit_func";
-    private static final String EXIT_WITH_PREFIX = "exit_with";
+    private static final String EXIT_WITH_PARAM = "exit_with";
 
 
     // Constructor
@@ -569,14 +569,18 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             Expr exitFnBody;
 
             /* Make the argument for each exit label captured:
-             *     fn(e:exitWithType) : BottomType => exit foo with e  OR
-             *     fn() : BottomType => exit foo 
+             *     fn(e:exitWithType) : exitWithType => exit foo with e  OR
+             *     fn() : () => exit foo 
+             * Actually, this is a "cheat".  The fn should really have
+             * BottomType as its return type, but since BottomType cannot be
+             * named, we use a more loose type that would work with the use
+             * site.
              */
             for(Exit exit : freeExitLabels) {
                 Span exitSpan = exit.getSpan(); 
                 exitFnExprParams = new LinkedList<Param>();
                 exitWithId = NodeFactory.makeId( exitSpan, 
-                                MANGLE_CHAR+EXIT_WITH_PREFIX+"_"+exitIndex );
+                                MANGLE_CHAR+EXIT_WITH_PARAM );
 
                 exitWithExpr = exit.getReturnExpr();
                 if( exitWithExpr.isSome() ) {
@@ -593,10 +597,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                         throw new DesugarerError( exitSpan,
                                     "Exit with expr of an unknown type!" );
                     }
+                    exitFnRetTypeOp = exitWithTypeOp; 
                 } else {
                     exitFnBody = exit; 
+                    exitFnRetTypeOp = Option.<Type>some( 
+                                        NodeFactory.makeVoidType(exitSpan) );
                 } 
-                exitFnRetTypeOp = Option.<Type>some( new BottomType(exitSpan) );
 
                 exitFnExpr = ExprFactory.makeFnExpr( exitSpan, 
                                 exitFnExprParams, exitFnRetTypeOp, exitFnBody );
@@ -774,8 +780,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     retType = NodeFactory.makeVoidType(exitSpan);
                 }
 
-                exitFnType = NodeFactory.makeArrowType(
-                                exitSpan, retType, new BottomType(exitSpan) );
+                exitFnType = NodeFactory.makeArrowType( exitSpan, retType, retType );
                 type = Option.<Type>some(exitFnType);
                 Id exitFnId = NodeFactory.makeId(exitSpan, 
                         MANGLE_CHAR + EXIT_FUNC_PREFIX + "_" + exitIndex);
