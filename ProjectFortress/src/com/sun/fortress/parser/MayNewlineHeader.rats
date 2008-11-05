@@ -56,13 +56,10 @@ transient WhereConstraint WhereConstraint =
      a1:Id w a2:Extends
      { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / <ErrorProduction> a1:OpName w a2:Extends
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid type parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid type parameter name.");
+       Id id = NodeFactory.bogusId(span);
+       yyValue = new WhereExtends(span, id, a2);
      }
    / TypeAlias
    / a1:Type w coerces w a2:Type
@@ -86,22 +83,16 @@ transient UnitConstraint UnitConstraint =
    / a1:Id w equals w "dimensionless"
      { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
    / <ErrorProduction1> "dimensionless" w equals w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid unit name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid unit name.");
+       Id id = NodeFactory.bogusId(span);
+       yyValue = new UnitConstraint(span, id);
      }
    / <ErrorProduction2> a1:OpName w equals w "dimensionless"
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid unit name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid unit name.");
+       Id id = NodeFactory.bogusId(span);
+       yyValue = new UnitConstraint(span, id);
      };
 
 /* IntConstraint ::=
@@ -189,13 +180,13 @@ private constant inline Action<IntExpr> ExponentIntExpr =
      caret a1:IntVal
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
-               if (NodeUtil.isExponentiation((IntExpr)base))
-                   return syntaxError(((IntExpr)base).getSpan(),
-                                      "Syntax Error: an " +
-                                      "exponentiation should not be immediately followed " +
-                                      "by an exponentiation.");
-               return new ExponentConstraint(createSpan(yyStart,yyCount),
-                                             (IntExpr)base, a1);
+               Span span = createSpan(yyStart,yyCount);
+               if (NodeUtil.isExponentiation((IntExpr)base)) {
+                   log(((IntExpr)base).getSpan(),
+                       "An exponentiation should not be immediately followed " +
+                       "by an exponentiation.");
+                   return new ExponentConstraint(span, (IntExpr)base, a1);
+               } return new ExponentConstraint(span, (IntExpr)base, a1);
            }};
      };
 

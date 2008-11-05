@@ -75,7 +75,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
 
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
-        
+
         String file = testsDir + SEP + fileName;
 
         // do not print stuff to stdout for JUTests
@@ -102,16 +102,15 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
 
             String[] command = new String[] { "desugar", "-out", tfs, file };
             System.out.println("Command: fortress desugar -out " + tfs + " "
-                    + file);
+                               + file);
             Shell.main(command);
             String generated = System.getProperty("java.io.tmpdir") + SEP
-                    + fileName;
+                + fileName;
 
             command = new String[] { "unparse", "-unqualified", "-unmangle",
                     "-out", generated, tfs };
-            System.out
-                    .println("Command: fortress unparse -unqualified -unmangle -out "
-                            + generated + " " + tfs);
+            System.out.println("Command: fortress unparse -unqualified -unmangle -out "
+                               + generated + " " + tfs);
             Shell.main(command);
             ASTIO.deleteJavaAst(tfs);
 

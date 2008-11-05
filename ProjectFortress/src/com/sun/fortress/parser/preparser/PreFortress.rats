@@ -65,6 +65,9 @@ body {
         SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
         return new Span(slStart, slEnd);
    }
+
+   private void log(Span span, String message) {}
+
 }
 
 option parser(com.sun.fortress.parser.preparser.PreFortress);
