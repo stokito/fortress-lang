@@ -54,7 +54,7 @@ private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 Id Id =
      <FIRST> a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
-/* BindId ::= Id / _ */
+/* BindId ::= Id | _ */
 Id BindId =
      Id
    / a1:"_" { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
@@ -73,7 +73,7 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* SimpleName ::= Id | opr w (Encloser / Op) | opr w EncloserPair */
+/* SimpleName ::= Id | opr w (Encloser | Op) | opr w EncloserPair */
 IdOrOpOrAnonymousName SimpleName =
      Id
    / opr big:(w BIG)? w a1:(Encloser / Op)
@@ -92,38 +92,38 @@ private String idOrKeyword = s:(idstart idrest*) &{ true };
 APIName APIName =
      a1:idOrKeyword &(w ellipses)
      { Span span = createSpan(yyStart,yyCount);
-       if (FORTRESS_KEYWORDS.contains(a1))
-           yyValue = syntaxError(span, a1 + " is a Fortress keyword.\n");
-       else if (FortressUtil.validId(a1))
+       Id bogusId = NodeFactory.bogusId(span);
+       if (FORTRESS_KEYWORDS.contains(a1)) {
+           log(span, a1 + " is a Fortress keyword.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       } else if (FortressUtil.validId(a1))
            yyValue = NodeFactory.makeAPIName(span, new Id(span, a1));
-       else if (FortressUtil.validOp(a1))
-           yyValue = syntaxError(span,
-                                 a1 + " is not a valid Fortress identifier.\n" +
-                                 "A non-reserved word that is made up of a mixture" +
-                                 " of uppercase letters and underscores (but no " +
-                                 "digits), does not begin or end with an " +
-                                 "underscore, and contains at least two distinct " +
-                                 "letters is an operator name.");
-       else yyValue = syntaxError(span, a1 + " is not a valid Fortress identifier.\n");
+       else if (FortressUtil.validOp(a1)) {
+           log(span, a1 + " is not a valid Fortress identifier.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       } else {
+           log(span, a1 + " is not a valid Fortress identifier.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       }
      }
    / a1:idOrKeyword a2s:(dot idOrKeyword)* &(w ellipses)
      { Span span = createSpan(yyStart,yyCount);
        List<Id> ids = CollectUtil.makeList(IterUtil.compose(new Id(span, a1),
                                                        IterUtil.map(a2s.list(),
                                                                     NodeUtil.StringToIdFn)));
+       Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();
-           if (FORTRESS_KEYWORDS.contains(id))
-               syntaxError(span, id + " is a Fortress keyword.\n");
-           else if (FortressUtil.validOp(id))
-               syntaxError(span, id + " is not a valid Fortress identifier.\n" +
-                           "A non-reserved word that is made up of a mixture" +
-                           " of uppercase letters and underscores (but no " +
-                           "digits), does not begin or end with an " +
-                           "underscore, and contains at least two distinct " +
-                           "letters is an operator name.");
-           else if (!FortressUtil.validId(id))
-               syntaxError(span, id + " is not a valid Fortress identifier.\n");
+           if (FORTRESS_KEYWORDS.contains(id)) {
+               log(span, id + " is a Fortress keyword.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           } else if (FortressUtil.validOp(id)) {
+               log(span, id + " is not a valid Fortress identifier.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           } else if (!FortressUtil.validId(id)) {
+               log(span, id + " is not a valid Fortress identifier.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           }
        }
        yyValue = NodeFactory.makeAPIName(span, ids);
      }
@@ -132,19 +132,19 @@ APIName APIName =
        List<Id> ids = CollectUtil.makeList(IterUtil.compose(new Id(span, a1),
                                                        IterUtil.map(a2s.list(),
                                                                     NodeUtil.StringToIdFn)));
+       Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();
-           if (FORTRESS_KEYWORDS.contains(id))
-               syntaxError(span, id + " is a Fortress keyword.\n");
-           else if (FortressUtil.validOp(id))
-               syntaxError(span, id + " is not a valid Fortress identifier.\n" +
-                           "A non-reserved word that is made up of a mixture" +
-                           " of uppercase letters and underscores (but no " +
-                           "digits), does not begin or end with an " +
-                           "underscore, and contains at least two distinct " +
-                           "letters is an operator name.");
-           else if (!FortressUtil.validId(id))
-               syntaxError(span, id + " is not a valid Fortress identifier.\n");
+           if (FORTRESS_KEYWORDS.contains(id)) {
+               log(span, id + " is a Fortress keyword.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           } else if (FortressUtil.validOp(id)) {
+               log(span, id + " is not a valid Fortress identifier.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           } else if (!FortressUtil.validId(id)) {
+               log(span, id + " is not a valid Fortress identifier.");
+               yyValue = NodeFactory.makeAPIName(span, bogusId);
+           }
        }
        yyValue = NodeFactory.makeAPIName(span, ids);
      };

@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
@@ -28,6 +29,7 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.TestCaseWrapper;
+import com.sun.fortress.useful.WireTappedPrintStream;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.exceptions.StaticError;
 
@@ -105,6 +107,17 @@ public class ParserJUTest extends TestCaseWrapper {
             protected void runTest() throws Throwable {
                 String name = file.getName();
                 String parent = file.getParent();
+
+                // do not print stuff to stdout for JUTests
+                PrintStream oldOut = System.out;
+                PrintStream oldErr = System.err;
+                WireTappedPrintStream wt_err = WireTappedPrintStream.make(
+                    System.err, true);
+                WireTappedPrintStream wt_out = WireTappedPrintStream.make(
+                    System.out, true);
+                System.setErr(wt_err);
+                System.setOut(wt_out);
+
                 if (!isNYI(parent)) {
                     if (name.contains("XXX")) assertParserFails(file);
                     else assertParserSucceeds(file);
@@ -114,6 +127,8 @@ public class ParserJUTest extends TestCaseWrapper {
                     error("Unexpected file in the parser_test directory: " +
                           name);
                 }
+                System.setErr(oldErr);
+                System.setOut(oldOut);
             }
 
             private void assertParserFails(File f) throws IOException {
