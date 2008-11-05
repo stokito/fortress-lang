@@ -18,6 +18,8 @@
 component Map
 import List.{...}
 import Set.{Set, set}
+import CovariantCollection.{...}
+import QuickSort.{quicksort}
 export Map
 
 weight:ZZ32 = 4
@@ -153,15 +155,56 @@ mapping[\Key,Val\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
 mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
     g.generate[\Map[\Key,Val\]\](DisjointMapUnion[\Key,Val\],
                                  singleton[\Key,Val\])
+mapping[\Key,Val\](g: ReadableArray[\(Key,Val),ZZ32\]): Map[\Key,Val\] = do
+    a = array[\(Key,Val)\](|g|)
+    a.init0(i,g.get(i)), i <- a.indices
+    fromCopiedArray(a)
+  end
+
+fromCopiedArray[\Key,Val\](a: Array[\(Key,Val),ZZ32\]): Map[\Key,Val\] = do
+    lt(kv1, kv2): Boolean =
+        do (k1,_) = kv1; (k2,_) = kv2; k1 < k2 end
+    quicksort[\(Key,Val)\](lt,a)
+    (* Complain about duplicates. *)
+    for i <- seq(a.indices), i > 0 do
+        (pk,pv) = a[i-1]
+        (ck,cv) = a[i]
+        if pk = ck then
+            throw KeyOverlap[\Key,Val\](pk,pv,cv)
+        end
+    end
+    fromSortedArrayFragment[\Key,Val\](a, a.bounds.lower, a.bounds.upper)
+  end
+
+fromCovariantCollection[\Key,Val\](cc: CovariantCollection[\(Key,Val)\]): Map[\Key,Val\] =
+    fromCopiedArray[\Key,Val\](cc.toArray())
+
+fromSortedArrayFragment[\Key,Val\](a: Array[\(Key,Val),ZZ32\], lo:ZZ32, hi:ZZ32): Map[\Key,Val\] =
+    if hi < lo then
+        EmptyMap[\Key,Val\]
+    else
+        mid = (hi+lo) DIV 2
+        (l,r) = (fromSortedArrayFragment[\Key,Val\](a,lo,mid-1),
+                 fromSortedArrayFragment[\Key,Val\](a,mid+1,hi))
+        (k,v) = a[mid]
+        NodeMap[\Key,Val\](k,v,l,r)
+    end
 
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\] =
     mapping[\Key,Val\](xs)
 
+(*
 opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\] =
     covariantComprehension[\(Key,Val),Map[\Key,Val\]\](fn g => mapping(g))
+*)
+opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\(Key,Val),Map[\Key,Val\]\](fn cc => fromCovariantCollection(cc))
 
 opr BIG {|->[\Key,Val\] g: Generator[\(Key,Val)\] } =
+(*
     __bigOperatorSugar[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\](BIG {|->[\Key,Val\]}(), g)
+*)
+    __bigOperatorSugar[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\](BIG {|->[\Key,Val\]}(), g)
 
 opr BIG UNION[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\] =
     embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\])
