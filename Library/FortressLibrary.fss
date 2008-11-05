@@ -3210,6 +3210,10 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     opr FORWARD_CMP(self, other:Range[\I\]): Comparison
     dump(): String
     check(): Range[\I\]
+    abstract shiftLeft(shift: I): Range[\I\] ensures { |outcome| = |self| }
+    abstract shiftRight(shift: I): Range[\I\] ensures { |outcome| = |self| }
+    opr << (self, shift: I): Range[\I\] = self.shiftLeft(shift)
+    opr >> (self, shift: I): Range[\I\] = self.shiftRight(shift)
 end
 
 trait PartialRange[\I\] extends Range[\I\] end
@@ -3224,6 +3228,8 @@ trait OpenRange[\I\] extends PartialRange[\I\]
     opr FORWARD_CMP(self, other:Range[\I\]): Comparison = GreaterThan
     opr IN(n:I, self): Boolean = true
     forward(): OpenRange[\I\]
+    shiftLeft(shift: I) = self
+    shiftRight(shift: I) = self
 end
 
 object TrivialOpenRange extends OpenRange[\Any\]
@@ -3586,7 +3592,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
 
     println(self): () =  println(self.asJavaString)
     print(self): () =  print(self.asJavaString)
-    writeOn(s: FileWriteStream) = s.write(s.asJavaString)
+    writeOn(s: FileWriteStream) = s.write(self.asJavaString)
 
   end String
 

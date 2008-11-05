@@ -97,6 +97,36 @@ run(args:String...):() = do
     mm  : Range[\ZZ32\] = 6:7
     mh  : Range[\ZZ32\] = 6:10
     hh  : Range[\ZZ32\] = 8:10
+    assert(mt >> 7, mt)
+    assert(llo >> 7, 7:)
+    assert(hlo >> 7, 12#)
+    assert(lsz >> 7, lsz)
+    assert(hsz >> 5, hsz)
+    assert(lhi >> 7, :11)
+    assert(hhi >> 7, :15)
+    assert(ll >> 7, 7#4)
+    assert(lm  >> 6,  6:13)
+    assert(lh  >> 7, 7#10)
+    assert(lh' >> 7, 7:16)
+    assert(mm  >> 5, 11:12)
+    assert(mh  >> 7,  13:17)
+    assert(hh  >> 7, 15:17)
+    
+    assert(mt << 5, mt)
+    assert(llo << 5, (-5):)
+    assert(hlo << 5, 0#)
+    assert(lsz << 5, lsz)
+    assert(hsz << 5, hsz)
+    assert(lhi << 5, :-1)
+    assert(hhi << 5, :3)
+    assert(ll  << 5, -5#4)
+    assert(lm  << 5,  (-5):2)
+    assert(lh  << -5, lh >> 5)
+    assert(lh' << -5, lh' >> 5)
+    assert(mm  << 5, 1:2)
+    assert(mh  << 5,  1:5)
+    assert(hh  << 5, 3:5)
+    
     chkOrder(mt,mt,EqualTo)
     for i <- <|llo, hlo, lsz, hsz, lhi, hhi, ll, lm, lh', lh, mm, mh, hh|> do
         chkOrder(mt,i,GreaterThan)

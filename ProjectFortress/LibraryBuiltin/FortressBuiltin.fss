@@ -43,8 +43,18 @@ builtinPrimitive[\T\](javaClass:String):T =
 trait Object extends Any
     getter ilkName(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ClassName")
-    toString(): String =
+    getter asString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ToString")
+    getter asDebugString(): String  = do  (* for debugging; may contain more information *)
+        ilk = self.ilkName
+        first = ilk[0]
+        article = if first = 'a' OR: first = 'e' OR: first = 'i' OR: first = 'o' then "an " else "a " end
+        article ilk ": " self.asString
+      end
+    getter asExprString(): String       (* when considered as a Fortress expression, will be = to self *)
+        = "no expression for "  self.asString
+        
+    toString(): String                (* deprecated *) = self.asString()
 end
 
 value object Float extends RR64
