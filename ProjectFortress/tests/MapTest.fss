@@ -57,7 +57,7 @@ run(args:String...):() = do
     check(db')
     db : Map[\JavaString,ZZ32\] = {[\JavaString,ZZ32\] expect[i]|->i  |  i <- perm }
     check(db)
-    db0 = db UNION db'
+    db0 = db UNION db' (*'*)
     check(db0)
     db1 = BIG UNION [(v,k) <- expect.indexValuePairs()] { k |-> v asif ZZ32 }
     check(db1)
