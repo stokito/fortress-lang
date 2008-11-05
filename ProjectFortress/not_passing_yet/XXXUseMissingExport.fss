@@ -15,8 +15,19 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Foo
-  f(x':ZZ32): ZZ32
-  x:ZZ32
-  z:ZZ32
+component XXXUseMissingExport
+import XXXMissingExport.{...}
+export Executable
+
+g(u) = f(u)
+
+run(args:String...):() = do
+    if (17^2 < 25^3) then
+        println("Should have caught missing f (which is even sorta used).")
+    else
+        println(g(17))
+        println("Unreachable!  Should not succeed.")
+    end
+  end
+
 end

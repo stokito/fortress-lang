@@ -22,6 +22,6 @@ component Foo
   y:ZZ32 = 1
   z:ZZ32 = 99
 
-  f(a:ZZ32) = a + y
+  f(a:ZZ32): ZZ32 = a + y
 
 end
