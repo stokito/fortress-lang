@@ -1304,7 +1304,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forBlock(Block that) {
-        Set<String> original = locals;
+        Set<String> original = new HashSet<String>();
+        original.addAll(locals);
         String result  = super.forBlock( that );
         locals.clear();
         locals.addAll(original);
