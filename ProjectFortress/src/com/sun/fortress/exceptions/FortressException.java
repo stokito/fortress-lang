@@ -121,7 +121,6 @@ public abstract class FortressException extends RuntimeException {
                 if (msg.length() > 0) {
                     msg = msg + "\n";
                 }
-                
                 msg = msg + se.getMessage();
             }
         }
@@ -206,7 +205,7 @@ public abstract class FortressException extends RuntimeException {
         super.printStackTrace(arg0);
         printInterpreterStackTrace(arg0);
     }
-    
+
     public Iterable<? extends StaticError> getStaticErrors() {
         return staticErrors;
     }

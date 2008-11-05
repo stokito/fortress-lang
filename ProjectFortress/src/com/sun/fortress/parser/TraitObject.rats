@@ -41,8 +41,8 @@ TraitDecl TraitDecl =
      a5:((s trait)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a5 != null && !a2.getName().getText().equals(a5.getText()))
-           yyValue = syntaxError(span, "A trait declaration of " + a2.getName() +
-                                 " has the different name " + a5 + " at the end.");
+           log(span, "A trait declaration of " + a2.getName() +
+                     " has the different name " + a5 + " at the end.");
        if (a1 == null) a1 = FortressUtil.emptyModifiers();
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue =
@@ -56,12 +56,7 @@ private TraitHeader TraitHeaderFront =
      <ErrorProduction>
      trait w a1:OpName a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid trait name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+                             a1 + " is not a valid trait name.");
      }
    / trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();

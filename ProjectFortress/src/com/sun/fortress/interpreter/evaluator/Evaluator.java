@@ -351,7 +351,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                               );
         } catch (AbortedException ae) {
             FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.tryatomicFailureException);
-            FortressError f_exc = new FortressError(f);
+            FortressError f_exc = new FortressError(x,e,f);
             throw f_exc;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -575,7 +575,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return forBlock(_else.unwrap());
             }
             FObject f = (FObject) Driver.getFortressLibrary().getRootValue(WellKnownNames.matchFailureException);
-            FortressError f_exc = new FortressError(f);
+            FortressError f_exc = new FortressError(x,e,f);
             throw f_exc;
         }
     }
