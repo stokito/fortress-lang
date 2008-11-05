@@ -37,7 +37,11 @@ builtinPrimitive[\T\](javaClass:String):T
 
 trait Object extends Any
     getter ilkName(): String
-    toString(): String
+    getter asString(): String                (* for normal use *)
+    getter asDebugString(): String    (* for debugging; may contain more information *)
+    getter asExprString(): String       (* when considered as Fortress expression, will be = to self *)
+    
+    toString(): String                (* deprecated *)
 end
 
 value object Float extends RR64

@@ -206,6 +206,8 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex: I, str: I)
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     opr =(self, b: ExtentScalarRange[\I\]): Boolean
     dump(): String
+    shiftLeft(shift: I): ExtentScalarRange[\I\]
+    shiftRight(shift: I): ExtentScalarRange[\I\]
 end
 
 extentScalarRange[\I extends Integral[\I\]\](ex: I, str: I): ScalarRangeWithExtent[\I\]
@@ -277,6 +279,8 @@ object LeftScalarRange[\I extends Integral[\I\]\](l: I, str: I)
     opr =(self, b: LeftScalarRange[\I\]): Boolean
     opr IN(n: I, self): Boolean
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): ScalarRangeWithLeft[\I\]
+    shiftLeft(shift: I): LeftScalarRange[\I\]
+    shiftRight(shift: I): LeftScalarRange[\I\]
 end
 
 leftScalarRange[\I extends Integral[\I\]\](l: I, str: I): LeftScalarRange[\I\]
@@ -339,6 +343,8 @@ object RightScalarRange[\I\](r: I, str: I)
     opr =(self, b: RightScalarRange[\I\]): Boolean
     opr IN(n: I, self): Boolean
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): ScalarRangeWithRight[\I\]
+    shiftLeft(shift: I): RightScalarRange[\I\]
+    shiftRight(shift: I): RightScalarRange[\I\]
 end
 
 rightScalarRange[\I extends Integral[\I\]\](r: I, str: I): RightScalarRange[\I\]
@@ -443,6 +449,8 @@ trait CompactFullScalarRange[\I extends Integral[\I\]\]
 
     opr [ i: I ]: I
     opr IN(n: I, self): Boolean
+    shiftLeft(shift: I): CompactFullScalarRange[\I\]
+    shiftRight(shift: I): CompactFullScalarRange[\I\]
 end
 
 object CompactFullParScalarRange[\I extends Integral[\I\]\](l: I, r: I)

@@ -1885,6 +1885,10 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     abstract opr FORWARD_CMP(self, other:Range[\I\]): Comparison
     dump(): String
     check(): Range[\I\]
+    shiftLeft(shift: I): Range[\I\]
+    shiftRight(shift: I): Range[\I\]
+    opr << (self, shift: I): Range[\I\]
+    opr >> (self, shift: I): Range[\I\] 
 end
 
 trait PartialRange[\I\] extends Range[\I\] end
