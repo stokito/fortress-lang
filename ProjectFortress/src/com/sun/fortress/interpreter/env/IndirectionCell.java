@@ -59,7 +59,7 @@ public class IndirectionCell extends FValue {
 
     public FType type() {
         if (theValue == null) {
-            error("Attempt to find type of uninitialized variable");
+            error("Attempt to find type of uninitialized variable: " + this);
         }
         return theValue.type();
     }

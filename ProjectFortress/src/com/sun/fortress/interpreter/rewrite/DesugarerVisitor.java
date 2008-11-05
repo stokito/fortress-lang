@@ -162,7 +162,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         /** May assume {@code original} has a non-zero length. */
         Expr replacement(VarRef original) {
-            return NodeFactory.makeVarRef(original, lexicalNestedness);
+            return ExprFactory.makeVarRef(original, lexicalNestedness);
         }
 
         BoolRef replacement(BoolRef original) {
@@ -174,7 +174,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
 
         Expr replacement(FnRef original) {
-            return NodeFactory.makeFnRef(original, lexicalNestedness);
+            return ExprFactory.makeFnRef(original, lexicalNestedness);
         }
         Expr replacement(OpRef original) {
             return NodeFactory.makeOpRef(original, lexicalNestedness);

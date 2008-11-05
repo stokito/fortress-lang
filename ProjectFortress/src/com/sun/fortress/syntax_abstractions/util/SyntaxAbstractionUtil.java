@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
@@ -106,7 +107,7 @@ public class SyntaxAbstractionUtil {
             String objectName, List<Expr> args, List<StaticArg> staticArgs) {
         List<Expr> exprs = new LinkedList<Expr>();
         Id name = NodeFactory.makeId(apiName, objectName);
-        exprs.add(NodeFactory.makeFnRef(span, name, staticArgs));
+        exprs.add(ExprFactory.makeFnRef(span, name, staticArgs));
         if (args.isEmpty()) {
             exprs.add(new VoidLiteralExpr());
         }
@@ -118,7 +119,7 @@ public class SyntaxAbstractionUtil {
 
     public static Expr makeNoParamObjectInstantiation(Span span, String apiName, String objectName, List<StaticArg> staticArgs) {
         Id name = NodeFactory.makeId(apiName, objectName);
-        return NodeFactory.makeFnRef(span, name, staticArgs);
+        return ExprFactory.makeFnRef(span, name, staticArgs);
     }
 
     public static Expr makeVoidObjectInstantiation(Span span, String apiName, String objectName, List<Expr> args) {

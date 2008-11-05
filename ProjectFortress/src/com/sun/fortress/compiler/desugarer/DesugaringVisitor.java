@@ -518,7 +518,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     public Node forFieldRefOnly(FieldRef that, Option<Type> exprType_result,
                                 Expr obj_result, Id field_result) {
         return ExprFactory.makeMethodInvocation(that, obj_result, field_result,
-                                                NodeFactory.makeVoidLiteralExpr());
+                                                ExprFactory.makeVoidLiteralExpr());
     }
 
     @Override
@@ -547,7 +547,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                         Expr obj_result, Name field_result) {
         if ( field_result instanceof Id)
             return ExprFactory.makeMethodInvocation(that, obj_result, (Id)field_result,
-                                                    NodeFactory.makeVoidLiteralExpr());
+                                                    ExprFactory.makeVoidLiteralExpr());
         else
             return ExprFactory.make_RewriteFieldRef(that, obj_result,
                                                     field_result);

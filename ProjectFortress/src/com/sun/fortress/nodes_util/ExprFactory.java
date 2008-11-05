@@ -38,6 +38,15 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
     /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */
+    /*
+     *  Right now this doesn't do the right thing if char is outside
+     *  of range (i.e. more than 16 bits).   This should get fixed when
+     *  the Fortress String handles character with more than 16 bits.
+     */
+    public static CharLiteralExpr makeCharLiteralExpr(int c) {
+        return new CharLiteralExpr(""+ (char)c);
+    }
+
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
@@ -164,6 +173,14 @@ public class ExprFactory {
     }
 
     /** Alternatively, you can invoke the IntLiteralExpr constructor without parenthesized or text */
+    public static IntLiteralExpr makeIntLiteralExpr(int i) {
+        return new IntLiteralExpr(BigInteger.valueOf(i));
+    }
+
+    public static Expr makeIntLiteralExpr(long i) {
+        return new IntLiteralExpr(BigInteger.valueOf(i));
+    }
+
     public static IntLiteralExpr makeIntLiteralExpr(Span span, BigInteger val) {
         return new IntLiteralExpr(span, false, val.toString(), val);
     }
@@ -304,6 +321,15 @@ public class ExprFactory {
      return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
 
+    public static FnRef makeFnRef(Span span, Id name) {
+        List<Id> names = Collections.singletonList(name);
+        return new FnRef(span, name, names);
+    }
+
+    public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
+        return new FnRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getFns(), original.getStaticArgs());
+    }
+
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
                                   List<Id> ids, List<StaticArg> sargs) {
         return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids,
@@ -350,6 +376,14 @@ public class ExprFactory {
 
     public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
      return new FnRef(span, paren, original_fn, fns, sargs);
+    }
+
+    public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
+        return new StringLiteralExpr(span, s);
+    }
+
+    public static StringLiteralExpr makeStringLiteralExpr(String s) {
+        return new StringLiteralExpr(s);
     }
 
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
@@ -415,6 +449,10 @@ public class ExprFactory {
                                                         Expr expr) {
         return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj,
                                     field, expr);
+    }
+
+    public static VarRef makeVarRef(VarRef old, int depth) {
+        return new VarRef(old.getSpan(), old.isParenthesized(), old.getVar(), depth);
     }
 
     public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
@@ -508,6 +546,10 @@ public class ExprFactory {
     }
 
     /** Alternatively, you can invoke the VoidLiteralExpr constructor without parenthesized or text */
+    public static VoidLiteralExpr makeVoidLiteralExpr() {
+        return new VoidLiteralExpr();
+    }
+
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
         return new VoidLiteralExpr(span, false, "");
     }

@@ -68,6 +68,11 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
         runFile("objectCC_shadowTest.fss");
     }
 
+    public void testObjectCC_Label()
+        throws FileNotFoundException, IOException, Throwable {
+        runFile("objectCC_label.fss");
+    }
+
     private void runFile(String fileName)
         throws FileNotFoundException, IOException, Throwable {
         

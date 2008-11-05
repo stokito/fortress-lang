@@ -1200,65 +1200,18 @@ public class NodeFactory {
         return new SuperSyntaxDef(s, modifier, nonterminal, grammar);
     }
 
-    public static IntLiteralExpr makeIntLiteralExpr(int i) {
-        return new IntLiteralExpr(BigInteger.valueOf(i));
-    }
-
-    public static Expr makeIntLiteralExpr(long i) {
-        return new IntLiteralExpr(BigInteger.valueOf(i));
-    }
-
-    public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
-        return new StringLiteralExpr(span, s);
-    }
-
-    public static StringLiteralExpr makeStringLiteralExpr(String s) {
-        return new StringLiteralExpr(s);
-    }
-
-        /*
-         *  Right now this doesn't do the right thing if char is outside
-         *  of range (i.e. more than 16 bits).   This should get fixed when
-         *  the Fortress String handles character with more than 16 bits.
-         */
-        public static CharLiteralExpr makeCharLiteralExpr(int c) {
-                return new CharLiteralExpr(""+ (char)c);
-        }
-
-        public static VoidLiteralExpr makeVoidLiteralExpr() {
-            return new VoidLiteralExpr();
-    }
-
     public static Import makeImportStar(APIName api, List<IdOrOpOrAnonymousName> excepts) {
              return new ImportStar(api, excepts);
-    }
-
-    public static Expr makeFnRef(FnRef original, int lexicalNestedness) {
-        return new FnRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getFns(), original.getStaticArgs());
     }
 
     public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
             return new OpRef(original.getSpan(), original.isParenthesized(), lexicalNestedness, original.getOriginalName(), original.getOps(), original.getStaticArgs());
 
     }
-    public static FnRef makeFnRef(Span span, Id name) {
-        List<Id> ids = new LinkedList<Id>();
-        ids.add(name);
-        return new FnRef(span, name, ids);
-    }
 
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
         return new TightJuxt(span, exprs);
     }
-
-    public static VarRef makeVarRef(Span span, Id name) {
-        return new VarRef(span, true, name);
-    }
-
-    public static VarRef makeVarRef(VarRef old, int depth) {
-        return new VarRef(old.getSpan(), old.isParenthesized(), old.getVar(), depth);
-    }
-
 
     public static BoolRef makeBoolRef(BoolRef old, int depth) {
         return new BoolRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
@@ -1267,14 +1220,6 @@ public class NodeFactory {
 
     public static IntRef makeIntRef(IntRef old, int depth) {
         return new IntRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
-    }
-
-
-    public static Expr makeFnRef(Span span, Id name,
-            List<StaticArg> staticArgs) {
-        List<Id> ids = new LinkedList<Id>();
-        ids.add(name);
-        return new FnRef(span, name, ids, staticArgs);
     }
 
     public static OpName makeListOpName(Span span) {
