@@ -193,17 +193,10 @@ fromSortedArrayFragment[\Key,Val\](a: Array[\(Key,Val),ZZ32\], lo:ZZ32, hi:ZZ32)
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\] =
     mapping[\Key,Val\](xs)
 
-(*
-opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\] =
-    covariantComprehension[\(Key,Val),Map[\Key,Val\]\](fn g => mapping(g))
-*)
 opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\(Key,Val),Map[\Key,Val\]\](fn cc => fromCovariantCollection(cc))
 
 opr BIG {|->[\Key,Val\] g: Generator[\(Key,Val)\] } =
-(*
-    __bigOperatorSugar[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\](BIG {|->[\Key,Val\]}(), g)
-*)
     __bigOperatorSugar[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\](BIG {|->[\Key,Val\]}(), g)
 
 opr BIG UNION[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\] =
