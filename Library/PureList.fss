@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component PureList
-import List.{AnyList,covariantComprehension}
+import CovariantCollection.{...}
 export PureList
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article, JFP
@@ -105,15 +105,42 @@ end
 
 (** Vararg factory for lists; provides aggregate list constants **)
 opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
-opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\] =
-    covariantComprehension[\T,List[\T\]\](fn x => list(x))
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\T,List[\T\]\](fn cc => list(cc.toImmutableArray()))
 opr BIG <|[\T\] g:Generator[\T\]|> =
-    __bigOperatorSugar[\T,List[\T\],AnyList,AnyList\](BIG <|[\T\]|>(), g)
+    __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
 
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =
     g.generate[\List[\E\]\](Concat[\E\], singleton[\E\])
+list[\E\](g:ReadableArray[\E,ZZ32\]): List[\E\] =
+    PureList[\E\](arrayToFingerTree[\E\](g))
+
+arrayToFingerTree[\E\](g:ReadableArray[\E,ZZ32\]): FingerTree[\E\] = do
+    l = g.bounds.lower
+    case |g| of
+        0 => D0[\E\]
+        1 => D1[\E\](g[l])
+        2 => Deep[\E\](D1[\E\](g[l]),D0[\D23[\E\]\],D1[\E\](g[l+1]))
+        3 => Deep[\E\](D1[\E\](g[l]),D0[\D23[\E\]\],D2[\E\](g[l+1],g[l+2]))
+        else =>
+            u = g.bounds.upper
+            n = (|g| + 2) DIV 3 - 2
+            (start, left, right) =
+                case |g| MOD 3 of
+                    0 => (3, D3[\E\](g[l],g[l+1],g[l+2]), D3[\E\](g[u-2],g[u-1],g[u]))
+                    1 => (2, D2[\E\](g[l],g[l+1]),        D2[\E\](       g[u-1],g[u]))
+                    2 => (3, D3[\E\](g[l],g[l+1],g[l+2]), D2[\E\](       g[u-1],g[u]))
+                end
+            arr = immutableArray[\D23[\E\]\](n)
+            for i <- arr.indices do
+                offset = start + 3 i
+                arr.init(i, D3[\E\](g[offset],g[offset+1],g[offset+2]))
+            end
+            Deep[\E\](left,arrayToFingerTree[\D23[\E\]\](arr),right)
+    end
+  end
 
 (** Flatten a list of lists *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
