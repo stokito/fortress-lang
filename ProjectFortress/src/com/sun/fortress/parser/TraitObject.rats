@@ -55,8 +55,10 @@ TraitDecl TraitDecl =
 private TraitHeader TraitHeaderFront =
      <ErrorProduction>
      trait w a1:OpName a2:(w StaticParams)? a3:(w ExtendsWhere)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid trait name.");
+      { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid trait name.");
+       Id id = NodeFactory.bogusId(span);
+       yyValue = new TraitHeader(id, a2, a3);
      }
    / trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { if (a2 == null) a2 = FortressUtil.emptyStaticParams();

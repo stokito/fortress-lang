@@ -50,8 +50,10 @@ Enclosing EncloserPair =
      a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
-       else
-           yyValue = syntaxError(a2.getSpan(), "Mismatched Enclosers.");
+       else {
+           log(a2.getSpan(), "Mismatched Enclosers: " + a1 + " and " + a2);
+           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
+       }
      };
 
 transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
@@ -133,8 +135,9 @@ transient private String compOp =
 
 private String condOp =
      <ErrorProduction> ":::"
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Three or more colons are not valid operators in Fortress.");
+     { log(createSpan(yyStart,yyCount),
+           "Three or more colons are not valid operators in Fortress.");
+       yyValue = "";
      }
    / a1:":" a2:(encloser / op) a3:colon { yyValue = a1+a2+a3; }
    / a1:(encloser / op) a2:colon        { yyValue = a1+a2; };
