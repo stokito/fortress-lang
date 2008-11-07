@@ -39,9 +39,9 @@ trait Object extends Any
     getter ilkName(): String
     getter asString(): String                (* for normal use *)
     getter asDebugString(): String    (* for debugging; may contain more information *)
-    getter asExprString(): String       (* when considered as Fortress expression, will be = to self *)
+    getter asExprString(): String       (* when considered as Fortress expression, will = self *)
     
-    toString(): String                (* deprecated *)
+    getter toString(): String                (* deprecated *)
 end
 
 value object Float extends RR64

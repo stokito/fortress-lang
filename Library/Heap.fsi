@@ -79,7 +79,6 @@ end
 
 trait Pairing[\K,V\] extends Heap[\K,V\]
         comprises { ... }
-    dump(): String
 end
 
 emptyPairing[\K,V\](): Pairing[\K,V\]
@@ -88,12 +87,11 @@ singletonPairing[\K,V\](k:K, v:V): Pairing[\K,V\]
 pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\]
 
 (************************************************************
- * Not actually lazy pairing heaps; these are actuallly more
+ * Not actually lazy pairing heaps; these are actually more
  * eager in that they merge siblings incrementally on insertion.
  *)
 trait LazyPairing[\K,V\] extends Heap[\K,V\]
         comprises { ... }
-    dump(): String
 end
 
 emptyLazy[\K,V\](): LazyPairing[\K,V\]

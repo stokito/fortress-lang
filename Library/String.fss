@@ -35,24 +35,28 @@ export String
 ==== Shared Traits ====
 *)
 
-  trait Concatenable
+  trait Concatenable extends String
     opr || (self, other:String): String =
         if |other| = 0 then self else CatString(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = CatString(self, other.toString)
   end Concatenable
 
-
-  trait Balanceable
+  trait Balanceable extends String
     getter isBalanced() = self.depth ≤ 46 AND: |self| ≥ fib[self.depth]
     getter isAlmostBalanced() = self.depth ≤ 48 AND: |self| ≥ fib[self.depth-2]
   end Balanceable
+  
+  trait StringDebug extends String
+    getter asDebugString(): String = asDebugStringIndented(0)
+    abstract asDebugStringIndented(indent: ZZ32): String
+  end
 
 (*
 ==== CatString ====
 *)
 
-  object CatString(left: String, right:String)  extends {String, Concatenable, Balanceable}
+  object CatString(left: String, right:String)  extends {Concatenable, Balanceable, StringDebug}
     size = left.size + right.size
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
@@ -96,12 +100,10 @@ export String
     end
 
 
-    showStructure(indent: ZZ32) = do
-        margin(indent)
-        println  (self.balanceIndicator() || "C" || |self| "/" self.depth || ":" )
-        left.showStructure(indent+8)
-        right.showStructure(indent+8)
-    end
+    asDebugStringIndented(indent: ZZ32): String = 
+        (spaces(indent) || self.balanceIndicator() || "C" || self.size "/" self.depth || ":")  //
+        left.asDebugStringIndented(indent+8) //
+        right.asDebugStringIndented(indent+8)
 
     balanceIndicator() = if self.isBalanced then "B" elif self.isAlmostBalanced then "b" else "u" end
 
@@ -111,16 +113,6 @@ export String
         if r0 = self.bounds then exit method with self end
         leftBounds' = r0 ∩ left.bounds
         rightBounds' = (r0 ≪ left.size) ∩ right.bounds
-            if left = "wombat" then
-              atomic do
-                println "uncheckedSubstring " r0 " of "
-                self.showStructure()
-                println "==============="
-                println "leftBounds' = " leftBounds' ( if leftBounds'.isEmpty then "(empty)" else "(non-empty)" end )
-                println "rightBounds' = " rightBounds'  ( if rightBounds'.isEmpty then "(empty)" else "(non-empty)" end )
-                println "==============="
-              end (*do*)
-            end
         if leftBounds'.isEmpty then
             exit method with right.uncheckedSubstring(rightBounds')
         end
@@ -135,7 +127,7 @@ export String
         stream.write(right)
     end
 
-    split(): Generator⟦(ZZ32, String)⟧ = ⟨ (0, left), (|left|, right) ⟩
+    split(): Generator⟦(ZZ32, String)⟧ = ⟨⟦(ZZ32, String)⟧ (0, left), (|left|, right) ⟩
 
     balanced() ensures {outcome = self ∧ outcome.isAlmostBalanced} =
       label method
@@ -174,8 +166,7 @@ export String
     showSequence() = if balanceDebug then
         for i ← seq(sequence.indices.flip) do
             if sequence[i].nonEmpty then
-                print "sequence[" i "] = "
-                sequence[i].showStructure()
+                println "sequence[" i "] ="  sequence[i].asDebugString
             end
         end
       end
@@ -255,12 +246,16 @@ export String
 ==== EmptyString ====
 *)
 
-  value object EmptyString extends {String, Concatenable}
+  value object EmptyString extends {String, Concatenable, StringDebug}
     getter size() = 0
     getter bounds() = 0#0
+    getter depth() = 0
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
+    getter asExprString() = "EmptyString()"
+    
+    asDebugStringIndented(indent: ZZ32) = spaces(indent) "E" |self| "/" self.depth
 
     opr ∈ (c:Char, self): Boolean = false
     rangeContains(r: Range⟦ZZ32⟧, c: Char) = false
@@ -287,11 +282,6 @@ export String
         assert(self.size, 0, self)
     end
 
-    showStructure(indent) = do
-        margin(indent)
-        println "E" |self| "/" self.depth
-    end
-
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = do
         (* This method should execute only after a bounds check has
         passed, so we know that r0 must be empty! *)
@@ -314,7 +304,7 @@ export String
 (*
 ==== SubString ====
 *)
-  trait SubString extends {String, Concatenable}
+  trait SubString extends {Concatenable, StringDebug}
     comprises {SubString'}
   end SubString
 
@@ -327,10 +317,8 @@ export String
     getter isBalanced() = baseString.isBalanced
 
     balanced() =
-        if self.isBalanced then
-            self
-        else
-            baseString.balanced.uncheckedSubstring(range)
+        if self.isBalanced then self
+        else baseString.balanced.uncheckedSubstring(range)
         end
 
     (* copied from concatenable *)
@@ -415,24 +403,20 @@ export String
         assert(range < baseString.bounds, true,
                 "SubString ", baseString,  range, " has range greater than that of baseString ", baseString.bounds )
         typecase s = baseString of
-            CatString => do deny((s.left.indices ∩ range).isEmpty)
-                            (* deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty) *)
-                            if ((s.right.indices ≫ s.left.size) ∩ range).isEmpty
-                            then self.showStructure()
-                                 fail("SubString of CatString not pushed left")
-                            end
-                         end
-            EmptyString => assert(false, "SubString of EmptyString")
-            SubString' => assert(false, "SubString of SubString")
+            CatString ⇒ do 
+                            deny((s.left.indices ∩ range).isEmpty, 
+                                        "SubString of CatString not pushed right")
+                            deny(((s.right.indices ≫ s.left.size) ∩ range).isEmpty, 
+                                        "SubString of CatString not pushed left")
+                end
+            EmptyString ⇒ fail "SubString of EmptyString"
+            SubString' ⇒ fail "SubString of SubString"
         end
     end methodVerify
 
-    showStructure(indent) = do
-        margin(indent)
-        println "S" |self| "=[" range.toString "]"
-        baseString.showStructure(indent + 8)
-        self
-    end
+    asDebugStringIndented(indent: ZZ32) : String = 
+        (spaces(indent) ||  "S" |self| "= [" range.asExprString "]") //
+        baseString.asDebugStringIndented(indent + 8)
 
     split(): Generator⟦(ZZ32, String)⟧ = do
     (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
@@ -441,12 +425,12 @@ export String
         pieces = baseString.split()
         offset = range.lower
         if  pieces.nonEmpty then
-            <| if (start#piece.size) ≤ range then
-                    (start-offset, piece)
+            ⟨⟦(ZZ32, String)⟧ if (start#piece.size) ≤ range then
+                    (start-offset, piece) asif (ZZ32, String)
                 else
                     range' = range ∩ (start#piece.size)
-                    (range'.lower-offset, SubString'(piece, range'≪start))
-                end | (start, piece) ← pieces,   (range ∩ (start#piece.size)).nonEmpty |>
+                    (range'.lower-offset, SubString'(piece, range'≪start)) asif (ZZ32, String)
+                end | (start, piece) ← pieces,   (range ∩ (start#piece.size)).nonEmpty ⟩
         else
             Nothing⟦Generator⟦(ZZ32,String)⟧⟧
         end
@@ -534,8 +518,20 @@ export String
     shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() ⇒ subC[4])
   end
 
-  margin(indent): () = do
-      for i ← 0#indent do print " " end
+  spaces(indent: ZZ32): String ensures { |outcome| = indent} = do
+      spaceString = "                    "
+      var result: String := EmptyString
+      remainder: ZZ32  := indent
+      while remainder > 0 do
+        if remainder ≤ |spaceString| then
+            result := result || spaceString[#remainder]
+            remainder := 0
+        else
+            result := result || spaceString
+            remainder := remainder - |spaceString| 
+        end
+      end (* do *)
+      result
   end
 
 end

@@ -26,9 +26,17 @@ api String
   trait SubString extends String
     comprises {...}
   end
-
+    
+  trait StringDebug
+    getter asDebugString(): String
+    abstract asDebugStringIndented(indent: ZZ32): String
+  end
+  
   printStats(s: String): ()
-
-  margin(prefix: String, indent: ZZ32): ()
+ 
+  (** A string containing n spaces **)
+  spaces(n: ZZ32): String
 
 end
+
+

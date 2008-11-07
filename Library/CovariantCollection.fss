@@ -40,8 +40,11 @@ opr APPCOV[\T, A extends T, B extends T\]
         (NonEmpty[\A\], Empty[\B\]) => upward(Empty[\T\], a)
         (NonEmpty[\A\], NonEmpty[\B\]) => Append[\T,A,B\](a,b)
     end
+    
+ 
 opr APPCOV(a: AnyCovColl, b: AnyCovColl): AnyCovColl =
     fail("AnyCovColl but not CovariantCollection!")
+
 
 private initArrayFrom[\R, T extends R\]
                  (a: ReadableArray[\R,ZZ32\], i:ZZ32, c:CovariantCollection[\T\]): () =
@@ -49,7 +52,7 @@ private initArrayFrom[\R, T extends R\]
         Empty[\T\] => ()
         Singleton[\T\] => a.init(i,c.x)
         else => iaf(a,i,c)
-    end
+    end 
 private iaf[\R, T extends R, A extends T, B extends T\]
            (a: ReadableArray[\R,ZZ32\], i:ZZ32, c: Append[\T,A,B\]): () = do
         initArrayFrom[\R,A\](a, i, c.a)

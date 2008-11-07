@@ -22,7 +22,7 @@ component StringTests
   import List.{...}
   export Executable
   
-  testDepth(): () = do
+  test testDepth(): () = do
     words = ⟨"Hello ", "world, ", "it's ", "a ", "bright ", "new ", "day."⟩
     var result: String = EmptyString
     for w ← seq(words) do result := CatString(result, w) end
@@ -31,7 +31,7 @@ component StringTests
     assert(result.depth, 7)
   end  
   
-  testindexing(): () = do
+  test testindexing(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
     for w ← seq(words) do testString := CatString(testString, w) end
@@ -46,7 +46,7 @@ component StringTests
   end
  
 
-  testSubString(): () = do
+  test testSubString(): () = do
     words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
     var testString: String = EmptyString
     for w ← seq(words) do testString := CatString(testString, w) end
@@ -58,14 +58,16 @@ component StringTests
     end
   end
   
-  testSubStringSimplification():() = do
+  test testSubStringSimplification():() = do
     testString = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     testString.verify()
     sub1 = testString[34:36]
     typecase sub1 of
         JavaString => assert(true)
-        String => do sub1.showStructure()
-                            assert(false, "sub1=" sub1 " is not a JavaString") end
+        String => do 
+                            println sub1.asDebugString
+                            fail "sub1=" sub1 " is not a JavaString"
+                          end
     end
   end
  
@@ -82,14 +84,14 @@ component StringTests
       assert(accum, subject)
   end
   
-  testIlk() = do
+  test testIlk() = do
     hello = "Hello"
     assert(hello.ilkName, "JavaString")
     hw = CatString(hello, " World")
     assert(hw.ilkName, "CatString")
   end
   
-  testJavaStringification() = do
+  test testJavaStringification() = do
     e = EmptyString
     assert(e.asJavaString, "", "EmptyString.javaString")
     c = CatString("abcd", "efgh")
@@ -101,8 +103,10 @@ component StringTests
     ss = s[1:2]
     ss.verify()
     assert(ss.asJavaString, "de", "Substring of SubString'.javaString")
+    println(ss.ilkName ": " ss.asDebugString)
     lss = s[0:1]
     lss.verify()
+    assert(lss.asDebugString, "J2/0:cd")
     assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
   end  
   
@@ -145,7 +149,7 @@ component StringTests
   end 
 
   
-  testComparison():() = do
+  test testComparison():() = do
     smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
     bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
     smallerFlat = smaller.asJavaString
@@ -168,7 +172,7 @@ component StringTests
   end
   
   
-  testCIComparison():() = do
+  test testCIComparison():() = do
     smaller = catStringFrom("The", "quick", "BROWN", "fox", "jumped", "over", "the", "lazy", "dog.")
     bigger = catStringFrom("The", "QUICK", "brown", "JUMPED", "fox", "over", "the", "lazy", "doggie.")
     smallerFlat = smaller.asJavaString
@@ -194,7 +198,7 @@ component StringTests
     seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
     
    
-  testNonEmptyConcat(): () =  do
+  test testNonEmptyConcat(): () =  do
     stuff = "Hello "
     more = "World"
     hw = CatString(stuff, more)
@@ -203,7 +207,7 @@ component StringTests
     assert(hw, CatString("Hell", "o World"))
   end
   
-  testEmptyConcat(): () = do
+  test testEmptyConcat(): () = do
     e = EmptyString
     assert(|e|, 0)
     assert(e.isEmpty)
@@ -223,7 +227,7 @@ component StringTests
     assert(result, hw)
   end 
   
-  testParallelGenerator(): () = do
+  test testParallelGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"
     var result: Set⟦Char⟧ = set⟦Char⟧()
     for c ← chars atomic do result := result.add(c) end
@@ -231,7 +235,7 @@ component StringTests
     for c ← result do assert(c ∈ chars) end
   end  
   
-  testSequentialGenerator(): () = do
+  test testSequentialGenerator(): () = do
     chars = "abcdefghijklmnopqrstuvwxyz"
     var result: List⟦Char⟧ = emptyList⟦Char⟧(26)
     for c ← seq(chars) do result := result.addRight(c) end

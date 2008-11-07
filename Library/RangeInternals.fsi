@@ -50,7 +50,7 @@ checkSelection[\R extends Range[\I\], I\](this: Range[\I\], other: Range[\I\], r
 trait ScalarRange[\I extends Integral[\I\]\] extends Range[\I\]
     truncL(l: I): ScalarRangeWithLeft[\I\]
     opr CAP(self, other: Range[\I\]): Range[\I\]
-    abstract intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
+    intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     check(): ScalarRange[\I\]
 end
 
@@ -58,13 +58,11 @@ combine2D[\I extends Integral[\I\], J extends Integral[\J\]\](i: ScalarRange[\I\
 
 trait Range2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     extends Range[\(I, J)\]
-    abstract getter range1(): ScalarRange[\I\]
-    abstract getter range2(): ScalarRange[\J\]
+    getter range1(): ScalarRange[\I\]
+    getter range2(): ScalarRange[\J\]
     getter stride(): (I, J)
-    getter isEmpty(): Boolean
-    getter toString(): String
 
-    abstract every(s_i: I, s_j: J): Range2D[\I, J\]
+    every(s_i: I, s_j: J): Range2D[\I, J\]
     atMost(n_i: I, n_j: J): Range2D[\I, J\]
     truncL(l_i: I, l_j: J): RangeWithLeft[\(I, J)\]
     truncR(r_i: I, r_j: J): RangeWithRight[\(I, J)\]
@@ -80,12 +78,12 @@ trait ActualRange2D[\I extends Integral[\I\], J extends Integral[\J\],
         Scalar1 extends ScalarRange[\I\],
         Scalar2 extends ScalarRange[\J\]\]
     extends Range2D[\I, J\]
-    abstract getter range1(): Scalar1
-    abstract getter range2(): Scalar2
+    getter range1(): Scalar1
+    getter range2(): Scalar2
 
     every(s_i: I, s_j: J): Self
     imposeStride(s_i: I, s_j: J): Self
-    abstract recombine(a: Scalar1, b: Scalar2): Self
+    recombine(a: Scalar1, b: Scalar2): Self
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: ScalarRange[\I\], j: ScalarRange[\J\], k: ScalarRange[\K\]): Range3D[\I, J, K\]
@@ -93,14 +91,13 @@ combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[
 trait Range3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\]\]
     extends Range[\(I, J, K)\]
-    abstract getter range1(): ScalarRange[\I\]
-    abstract getter range2(): ScalarRange[\J\]
-    abstract getter range3(): ScalarRange[\K\]
+    getter range1(): ScalarRange[\I\]
+    getter range2(): ScalarRange[\J\]
+    getter range3(): ScalarRange[\K\]
     getter stride(): (I, J, K)
     getter isEmpty(): Boolean
-    getter toString(): String
 
-    abstract every(s_i: I, s_j: J, s_k: K): Range3D[\I, J, K\]
+    every(s_i: I, s_j: J, s_k: K): Range3D[\I, J, K\]
     atMost(n_i: I, n_j: J, n_k: K): Range3D[\I, J, K\]
     truncL(l_i: I, l_j: J, l_k: K): RangeWithLeft[\(I, J, K)\]
     truncR(r_i: I, r_j: J, r_k: K): RangeWithRight[\(I, J, K)\]
@@ -118,13 +115,13 @@ trait ActualRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         Scalar2 extends ScalarRange[\J\],
         Scalar3 extends ScalarRange[\K\]\]
     extends Range3D[\I, J, K\]
-    abstract getter range1(): Scalar1
-    abstract getter range2(): Scalar2
-    abstract getter range3(): Scalar3
+    getter range1(): Scalar1
+    getter range2(): Scalar2
+    getter range3(): Scalar3
 
     every(s_i: I, s_j: J, s_k: K): Self
     imposeStride(s_i: I, s_j: J, s_k: K): Self
-    abstract recombine(a: Scalar1, b: Scalar2, c: Scalar3): Self
+    recombine(a: Scalar1, b: Scalar2, c: Scalar3): Self
 end
 
 trait PartialScalarRange[\I extends Integral[\I\]\]
@@ -134,7 +131,6 @@ end
 object OpenScalarRange[\I extends Integral[\I\]\](str: I)
     extends { PartialScalarRange[\I\], OpenRange[\I\] }
     getter stride(): I
-    getter toString(): String
 
     truncL(l: I): LeftScalarRange[\I\]
     flip(): OpenScalarRange[\I\]
@@ -146,7 +142,6 @@ object OpenScalarRange[\I extends Integral[\I\]\](str: I)
     opr CAP(self, other: ScalarRange[\I\]): ScalarRange[\I\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     openEveryParam(r: ScalarRange[\I\]): I
-    dump(): String
 end
 
 combine2D[\I extends Integral[\I\], J extends Integral[\J\]\](i: OpenScalarRange[\I\], j: OpenScalarRange[\J\]): OpenRange2D[\I, J\]
@@ -161,7 +156,6 @@ object OpenRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](str_i: I,
     flip(): OpenRange2D[\I, J\]
     forward(): OpenRange2D[\I, J\]
     recombine(i: OpenScalarRange[\I\], j: OpenScalarRange[\J\]): OpenRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: OpenScalarRange[\I\], j: OpenScalarRange[\J\], k: OpenScalarRange[\K\]): OpenRange3D[\I, J, K\]
@@ -179,7 +173,6 @@ object OpenRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     flip(): OpenRange3D[\I, J, K\]
     forward(): OpenRange3D[\I, J, K\]
     recombine(i: OpenScalarRange[\I\], j: OpenScalarRange[\J\], k: OpenScalarRange[\K\]): OpenRange3D[\I, J, K\]
-    dump(): String
 end
 
 open[\I extends Integral[\I\]\](): OpenScalarRange[\I\]
@@ -194,7 +187,6 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex: I, str: I)
     getter stride(): I
     getter extent(): Just[\I\]
     getter fromLeft(): Boolean
-    getter toString(): String
 
     truncL(s: I): FullScalarRange[\I\]
     flip(): ExtentScalarRange[\I\]
@@ -205,7 +197,6 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex: I, str: I)
     opr CAP(self, other: Range[\I\]): ScalarRangeWithExtent[\I\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     opr =(self, b: ExtentScalarRange[\I\]): Boolean
-    dump(): String
     shiftLeft(shift: I): ExtentScalarRange[\I\]
     shiftRight(shift: I): ExtentScalarRange[\I\]
 end
@@ -225,7 +216,6 @@ object ExtentRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](ex_i: I
     flip(): ExtentRange2D[\I, J\]
     forward(): ExtentRange2D[\I, J\]
     recombine(i: ExtentScalarRange[\I\], j: ExtentScalarRange[\J\]): ExtentRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: ExtentScalarRange[\I\], j: ExtentScalarRange[\J\],
@@ -246,7 +236,6 @@ object ExtentRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     forward(): ExtentRange3D[\I, J, K\]
     recombine(i: ExtentScalarRange[\I\], j: ExtentScalarRange[\J\],
             k: ExtentScalarRange[\K\]): ExtentRange3D[\I, J, K\]
-    dump(): String
 end
 
 trait BoundedScalarRange[\I extends Integral[\I\]\]
@@ -255,7 +244,7 @@ trait BoundedScalarRange[\I extends Integral[\I\]\]
     intersectWithExtent(e: ExtentScalarRange[\I\]): FullScalarRange[\I\]
     forwardIntersection(other: BoundedScalarRange[\I\]): BoundedScalarRange[\I\]
     nonemptyUpwardIntersection(other: BoundedScalarRange[\I\], resultStride: I): BoundedScalarRange[\I\]
-    abstract nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): BoundedScalarRange[\I\]
+    nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): BoundedScalarRange[\I\]
 end
 
 trait ScalarRangeWithLeft[\I extends Integral[\I\]\]
@@ -268,14 +257,12 @@ object LeftScalarRange[\I extends Integral[\I\]\](l: I, str: I)
         LeftRange[\I\] }
     getter stride(): I
     getter left(): Just[\I\]
-    getter toString(): String
 
     flip(): RightScalarRange[\I\]
     forward(): BoundedScalarRange[\I\]
     every(s: I): ScalarRange[\I\]
     imposeStride(s: I): LeftScalarRange[\I\]
     atMost(n: I): ScalarRange[\I\]
-    dump(): String
     opr =(self, b: LeftScalarRange[\I\]): Boolean
     opr IN(n: I, self): Boolean
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): ScalarRangeWithLeft[\I\]
@@ -300,7 +287,6 @@ object LeftRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_i: I, l
     flip(): RightRange2D[\I, J\]
     forward(): BoundedRange[\(I, J)\]
     recombine(i: LeftScalarRange[\I\], j: LeftScalarRange[\J\]): LeftRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: LeftScalarRange[\I\], j: LeftScalarRange[\J\], k: LeftScalarRange[\K\]): LeftRange3D[\I, J, K\]
@@ -319,7 +305,6 @@ object LeftRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     flip(): RightRange3D[\I, J, K\]
     forward(): BoundedRange[\(I, J, K)\]
     recombine(i: LeftScalarRange[\I\], j: LeftScalarRange[\J\], k: LeftScalarRange[\K\]): LeftRange3D[\I, J, K\]
-    dump(): String
 end
 
 trait ScalarRangeWithRight[\I extends Integral[\I\]\]
@@ -332,14 +317,12 @@ object RightScalarRange[\I\](r: I, str: I)
         RightRange[\I\] }
     getter stride(): I
     getter right(): Just[\I\]
-    getter toString(): String
 
     flip(): LeftScalarRange[\I\]
     forward(): BoundedScalarRange[\I\]
     every(s: I): RightScalarRange[\I\]
     imposeStride(s: I): RightScalarRange[\I\]
     atMost(n: I): ScalarRange[\I\]
-    dump(): String
     opr =(self, b: RightScalarRange[\I\]): Boolean
     opr IN(n: I, self): Boolean
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): ScalarRangeWithRight[\I\]
@@ -364,7 +347,6 @@ object RightRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](r_i: I, 
     flip(): LeftRange2D[\I, J\]
     forward(): BoundedRange[\(I, J)\]
     recombine(i: RightScalarRange[\I\], j: RightScalarRange[\J\]): RightRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: RightScalarRange[\I\], j: RightScalarRange[\J\],
@@ -385,7 +367,6 @@ object RightRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     forward(): BoundedRange[\(I, J, K)\]
     recombine(i: RightScalarRange[\I\], j: RightScalarRange[\J\],
             k: RightScalarRange[\K\]): RightRange3D[\I, J, K\]
-    dump(): String
 end
 
 trait FullScalarRange[\I extends Integral[\I\]\]
@@ -394,7 +375,6 @@ trait FullScalarRange[\I extends Integral[\I\]\]
         FullRange[\I\] }
     getter extent(): Just[\I\]
     getter bounds(): CompactFullScalarRange[\I\]
-    getter toString(): String
 
     flip(): FullScalarRange[\I\]
     every(s: I): FullScalarRange[\I\]
@@ -461,7 +441,6 @@ object CompactFullParScalarRange[\I extends Integral[\I\]\](l: I, r: I)
     getter right(): Just[\I\]
 
     seq(self): CompactFullSeqScalarRange[\I\]
-    dump(): String
     generate[\T\](red: Reduction[\T\], body: (I -> T)): T
     loop(body: (I -> ())): ()
 end
@@ -473,7 +452,6 @@ object CompactFullSeqScalarRange[\I extends Integral[\I\]\](l: I, r: I)
     getter left(): Just[\I\]
     getter right(): Just[\I\]
 
-    dump(): String
     generate[\T\](red: Reduction[\T\], body: (I -> T)): T
     loop(body: (I -> ())): ()
 end
@@ -494,7 +472,6 @@ object CompactFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_
     getter range2(): CompactFullScalarRange[\J\]
 
     recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\]): FullRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: CompactFullScalarRange[\I\], j: CompactFullScalarRange[\J\],
@@ -516,7 +493,6 @@ object CompactFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     getter range3(): CompactFullScalarRange[\K\]
 
     recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\], k: FullScalarRange[\K\]): FullRange3D[\I, J, K\]
-    dump(): String
 end
 
 trait StridedFullScalarRange[\I extends Integral[\I\]\]
@@ -527,7 +503,6 @@ trait StridedFullScalarRange[\I extends Integral[\I\]\]
     getter indices(): Indexed[\I, I\]
 
     opr [ i: I ]: I
-    dump(): String
     opr IN(n: I, self): Boolean
     forward(): FullScalarRange[\I\]
 end
@@ -539,7 +514,6 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l: I, r: I, str: I)
     getter right(): Just[\I\]
 
     seq(self): StridedFullSeqScalarRange[\I\]
-    dump(): String
     generate[\T\](red: Reduction[\T\], body: (I -> T)): T
     loop(body: (I -> ())): ()
 end
@@ -551,7 +525,6 @@ object StridedFullSeqScalarRange[\I extends Integral[\I\]\](l: I, r: I, str: I)
     getter right(): Just[\I\]
 
     seq(self): StridedFullSeqScalarRange[\I\]
-    dump(): String
     generate[\T\](red: Reduction[\T\], body: (I -> T)): T
     loop(body: (I -> ())): ()
 end
@@ -571,7 +544,6 @@ object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_
 
     forward(): FullRange2D[\I, J\]
     recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\]): StridedFullRange2D[\I, J\]
-    dump(): String
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: FullScalarRange[\I\], j: FullScalarRange[\J\], k: FullScalarRange[\K\]): FullRange3D[\I, J, K\]
@@ -593,7 +565,6 @@ object StridedFullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
 
     forward(): FullRange3D[\I, J, K\]
     recombine(i: FullScalarRange[\I\], j: FullScalarRange[\J\], k: FullScalarRange[\K\]): StridedFullRange3D[\I, J, K\]
-    dump(): String
 end
 
 fullScalarRange[\I extends Integral[\I\]\](l: I, r: I, str: I): FullScalarRange[\I\]
