@@ -54,6 +54,9 @@ private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
 Id Id =
      <FIRST> a1:IdText { yyValue = new Id(createSpan(yyStart,yyCount), a1); };
 
+/* IdOrOpName ::= Id | OpName */
+IdOrOpName IdOrOpName = Id / OpName ;
+
 /* BindId ::= Id | _ */
 Id BindId =
      Id

@@ -39,102 +39,101 @@ import Spacing;
    | (unit | SI_unit) w Id (wr Id)* (w : w NoNewlineType)? (w = w NoNewlineExpr)?
  */
 List<DimUnitDecl> DimUnitDecl =
-     <ErrorProduction1>
-     dim w a1:OpName a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
-     a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
+     dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
+     a4:IdOrOpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid dimension name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = FortressUtil.mkList((DimUnitDecl)NodeFactory.makeDimDecl(span, id));
-     }
-   / <ErrorProduction2>
-     dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
-     a4:OpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a4 + " is not a valid unit name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = FortressUtil.mkList((DimUnitDecl)NodeFactory.makeDimDecl(span, id));
-     }
-   / dim w a1:Id a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
-     a4:Id a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
-     { Span span = createSpan(yyStart,yyCount);
-       DimDecl dim = new DimDecl(span, a1, Option.wrap(a2));
+       DimDecl dim;
+       Type ty;
        boolean si_unit;
        if (a3.equals("SI_unit")) si_unit = true;
        else                      si_unit = false;
        List<Id> ids = new ArrayList<Id>();
-       ids.add(a4);
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
-       Type ty = new VarType(a1.getSpan(), a1);
+       if ( a1 instanceof Id ) {
+           dim = new DimDecl(span, (Id)a1, Option.wrap(a2));
+           ty = new VarType(a1.getSpan(), (Id)a1);
+       } else {
+           log(span, a1 + " is not a valid dimension name.");
+           Id id = NodeFactory.bogusId(span);
+           dim = new DimDecl(span, id, Option.wrap(a2));
+           ty = new VarType(a1.getSpan(), id);
+       }
+       if ( a4 instanceof Id ) {
+           ids.add((Id)a4);
+       } else {
+           log(span, a4 + " is not a valid unit name.");
+           ids.add(NodeFactory.bogusId(span));
+       }
        UnitDecl unit = new UnitDecl(span, si_unit, ids, Option.some(ty),
                                     Option.wrap(a6));
        yyValue = FortressUtil.mkList(dim, unit);
      }
-   / <ErrorProduction3>
-     dim w a1:OpName a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
+   / dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)? a3:(w default w IdOrOpName)?
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid dimension name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = FortressUtil.mkList((DimUnitDecl)NodeFactory.makeDimDecl(span, id));
-     }
-   / <ErrorProduction4>
-     dim w a1:Id a2:(w void:equals w NoNewlineType)? w default w a3:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a3 + " is not a valid unit name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = FortressUtil.mkList((DimUnitDecl)NodeFactory.makeDimDecl(span, id));
-     }
-   / dim w a1:Id a2:(w void:equals w NoNewlineType)? a3:(w default w Id)?
-     { DimDecl dim = new DimDecl(createSpan(yyStart,yyCount),
-                                 a1, Option.wrap(a2), Option.wrap(a3));
+       DimDecl dim;
+       Id dimId;
+       Id unitId;
+       if ( a1 instanceof Id ) {
+           dimId = (Id)a1;
+       } else {
+           log(span, a1 + " is not a valid dimension name.");
+           dimId = NodeFactory.bogusId(span);
+       }
+       if ( a3 instanceof Id ) {
+           unitId = (Id)a3;
+       } else {
+           log(span, a3 + " is not a valid unit name.");
+           unitId = NodeFactory.bogusId(span);
+       }
+       dim = new DimDecl(span, dimId, Option.wrap(a2), Option.wrap(unitId));
        yyValue = FortressUtil.mkList((DimUnitDecl)dim);
      }
-   / <ErrorProduction5>
-     a1:(unit / SI_unit) w a2:OpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
+   / a1:(unit / SI_unit) w a2:IdOrOpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a2 + " is not a valid unit name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = FortressUtil.mkList((DimUnitDecl)NodeFactory.makeDimDecl(span, id));
-     }
-   / a1:(unit / SI_unit) w a2:Id a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
-     a5:(w void:equals w NoNewlineExpr)?
-     { boolean si_unit;
+       boolean si_unit;
        if (a1.equals("SI_unit")) si_unit = true;
        else                      si_unit = false;
        List<Id> ids = new ArrayList<Id>();
-       ids.add(a2);
+       if ( a2 instanceof Id )
+           ids.add((Id)a2);
+       else {
+           log(span, a2 + " is not a valid unit name.");
+           ids.add(NodeFactory.bogusId(span));
+       }
        for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
-       UnitDecl unit = new UnitDecl(createSpan(yyStart,yyCount), si_unit,
+       UnitDecl unit = new UnitDecl(span, si_unit,
                                     ids, Option.wrap(a4), Option.wrap(a5));
        yyValue = FortressUtil.mkList((DimUnitDecl)unit);
      };
 
 /* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
 TypeAlias TypeAlias =
-     type w a1:Id a2:(w StaticParams)? w equals w a3:NoNewlineType
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       yyValue = new TypeAlias(createSpan(yyStart,yyCount), a1, a2, a3);
-     }
-   / <ErrorProduction>
-     type w a1:OpName a2:(w StaticParams)? w equals w a3:NoNewlineType
+     type w a1:IdOrOpName a2:(w StaticParams)? w equals w a3:NoNewlineType
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid type name.");
-       Id id = NodeFactory.bogusId(span);
+       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       Id id;
+       if ( a1 instanceof Id )
+           id = (Id)a1;
+       else {
+           log(span, a1 + " is not a valid type name.");
+           id = NodeFactory.bogusId(span);
+       }
        yyValue = new TypeAlias(span, id, a2, a3);
      };
 
 /* TestDecl ::= test w Id w [ w GeneratorClauseList w ] w = w NoNewlineExpr */
 TestDecl TestDecl =
-     test w a1:Id w opensquare w a2:GeneratorClauseList w closesquare w equals w
-     a3:NoNewlineExpr
-     { yyValue = new TestDecl(createSpan(yyStart,yyCount), a1, a2, a3); }
-   / <ErrorProduction>
-     test w a1:OpName w opensquare w a2:GeneratorClauseList w closesquare w equals w
+     test w a1:IdOrOpName w opensquare w a2:GeneratorClauseList w closesquare w equals w
      a3:NoNewlineExpr
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid test name.");
-       Id id = NodeFactory.bogusId(span);
+       Id id;
+       if ( a1 instanceof Id )
+           id = (Id)a1;
+       else {
+           log(span, a1 + " is not a valid test name.");
+           id = NodeFactory.bogusId(span);
+       }
        yyValue = new TestDecl(span, id, a2, a3);
      };
 
@@ -142,16 +141,20 @@ TestDecl TestDecl =
      property (w Id w =)? (w FORALL w ValParam)? w NoNewlineExpr
  */
 PropertyDecl PropertyDecl =
-     property a1:(w Id w void:equals)? a2:(w FORALL w ValParam)? w
-     a3:NoNewlineExpr
-     { Option<Id> id = (a1 == null) ? Option.<Id>none() : Option.some(a1);
-       if (a2 == null) a2 = FortressUtil.emptyParams();
-       yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
-     }
-   / <ErrorProduction>
-     property w a1:OpName w equals a2:(w FORALL w ValParam)? w
+     property a1:(w IdOrOpName w void:equals)? a2:(w FORALL w ValParam)? w
      a3:NoNewlineExpr
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid test name.");
-       yyValue = new PropertyDecl(span, Option.<Id>none(), a2, a3);
+       Option<Id> id;
+       if ( a1 == null )
+           id = Option.<Id>none();
+       else {
+           if ( a1 instanceof Id )
+               id = Option.some((Id)a1);
+           else {
+               log(span, a1 + " is not a valid test name.");
+               id = Option.<Id>none();
+           }
+       }
+       if (a2 == null) a2 = FortressUtil.emptyParams();
+       yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
      };
