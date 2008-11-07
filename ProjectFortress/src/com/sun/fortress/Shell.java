@@ -49,6 +49,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
@@ -230,6 +231,8 @@ public final class Shell {
             System.exit(-1);
         }
 
+        int return_code = 0;
+            
         // Now match the assembled string.
         try {
             String what = tokens[0];
@@ -276,15 +279,20 @@ public final class Shell {
                 printHelpMessage();
 
             } else { printUsageMessage(); }
-        }
-        catch (UserError error) {
+        } catch (UserError error) {
             System.err.println(error.getMessage());
-            System.exit(-1);
+            return_code = -1;
         }
         catch (IOException error) {
             System.err.println(error.getMessage());
-            System.exit(-2);
+            return_code = -2;
         }
+        
+        Init.allowForLeakChecks();
+        
+        
+        if (return_code != 0)
+            System.exit(return_code);
     }
 
     private static void invalidFlag(String flag, String command)

@@ -77,7 +77,7 @@ public class NodeFactory {
     }
 
     public static APIName makeAPINameSkipLast(Id first, Id rest) {
-        List<Id> ids = new ArrayList<Id>();
+        ArrayList<Id> ids = new ArrayList<Id>();
         Id last = first;
         ids.add(first);
         if (rest.getApi().isSome()) {
@@ -85,16 +85,18 @@ public class NodeFactory {
             ids.addAll(apiNames);
             if (!IterUtil.isEmpty(apiNames)) last = IterUtil.last(apiNames);
         }
+        ids.trimToSize();
         return new APIName(FortressUtil.spanTwo(first, last), ids);
     }
 
     public static APIName makeAPIName(Id first, Id rest) {
-        List<Id> ids = new ArrayList<Id>();
+        ArrayList<Id> ids = new ArrayList<Id>();
         ids.add(first);
         if (rest.getApi().isSome()) {
             ids.addAll(rest.getApi().unwrap().getIds());
         }
         ids.add(new Id(rest.getSpan(), rest.getText()));
+        ids.trimToSize();
         return new APIName(FortressUtil.spanTwo(first, rest), ids);
     }
 
@@ -430,13 +432,14 @@ public class NodeFactory {
     }
 
     private static List<Id> stringToIds(String path) {
-        List<Id> ids = new ArrayList<Id>();
+        ArrayList<Id> ids = new ArrayList<Id>();
 
         StringTokenizer st = new StringTokenizer(path, ".");
         while (st.hasMoreTokens()) {
             String e = st.nextToken();
             ids.add(makeId(e));
         }
+        ids.trimToSize();
         return ids;
     }
 
@@ -472,7 +475,7 @@ public class NodeFactory {
      */
 
     public static APIName makeAPINameFromPath(Span span, String path, String delimiter) {
-        List<Id> ids = new ArrayList<Id>();
+        ArrayList<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
         if (file.length() <= 4) {
             return error(new Id(span, "_"), "Invalid file name.");
@@ -480,6 +483,7 @@ public class NodeFactory {
         for (String n : file.substring(0, file.length()-4).split(delimiter)) {
             ids.add(new Id(span, n));
         }
+        ids.trimToSize();
         return new APIName(span, ids);
     }
 
@@ -515,8 +519,9 @@ public class NodeFactory {
     }
 
     public static Id makeId(Span span, String api, String name) {
-        List<Id> apis = new ArrayList<Id>();
+        ArrayList<Id> apis = new ArrayList<Id>();
         apis.add(makeId(span, api));
+        apis.trimToSize();
         return new Id(span, Option.some(new APIName(span, apis)), name);
     }
 
@@ -635,7 +640,7 @@ public class NodeFactory {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
                               name,
                               Option.some((Type)makeVarType(type.getSpan(),type)),
-                              new ArrayList<Modifier>(),
+                              Collections.<Modifier>emptyList(),
                               false);
     }
 
@@ -643,7 +648,7 @@ public class NodeFactory {
         return new LValueBind(new Span(name.getSpan(), type.getSpan()),
                 name,
                 Option.some(type),
-                new ArrayList<Modifier>(),
+                Collections.<Modifier>emptyList(),
                 false);
     }
 
@@ -651,13 +656,13 @@ public class NodeFactory {
         return new LValueBind(name.getSpan(),
                 name,
                 type,
-                new ArrayList<Modifier>(),
+                Collections.<Modifier>emptyList(),
                 false);
     }
 
     public static LValueBind makeLValue(String name, Type type) {
         return new LValueBind(type.getSpan(), makeId(name), Option.some(type),
-                new ArrayList<Modifier>(), false);
+                Collections.<Modifier>emptyList(), false);
     }
 
     public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
@@ -721,17 +726,19 @@ public class NodeFactory {
 
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension) {
-        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        ArrayList<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
+        dims.trimToSize();
         return new MatrixType(span, element, dims);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {
-        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        ArrayList<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
         dims.addAll(dimensions);
+        dims.trimToSize();
         return new MatrixType(span, element, dims);
     }
 

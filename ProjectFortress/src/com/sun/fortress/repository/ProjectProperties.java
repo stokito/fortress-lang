@@ -287,6 +287,8 @@ public class ProjectProperties {
 
     public final static String API_TREE_SUFFIX = "tfi";
 
+    public final static boolean leakCheck = getBoolean("fortress.test.leaks", false);
+
 
     /** Creates a new instance of ProjectProperties */
     private ProjectProperties() {

@@ -1660,7 +1660,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forVarRef(VarRef x) {
-
+//        Id id = x.getVar();
+//        String s= id.getText();
+//        if (s.contains("$self")) {
+//            id = x.getVar();
+//        }
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
             Iterable<Id> names = NodeUtil.getIds(x.getVar());

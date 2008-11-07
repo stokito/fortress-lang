@@ -25,11 +25,13 @@ import java.util.Arrays;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
+import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
@@ -202,10 +204,14 @@ public class FileTests {
         junit.textui.TestRunner.run(FileTests.suite("not_passing_yet", false, true));
     }
 
-    public static Test suite(String dirname, boolean failsOnly, boolean expect_failure) throws IOException {
-        TestSuite suite = new TestSuite("Test for default package");
-        // $JUnit-BEGIN$
-        dirname = ProjectProperties.backslashToSlash(dirname);
+    public static TestSuite suite(String dir_name, boolean failsOnly, boolean expect_failure) throws IOException {
+        TestSuite suite = new TestSuite("Runs all tests in " + dir_name) {
+            public void run(TestResult result) {
+                super.run(result);
+                Init.allowForLeakChecks();
+            }
+        };
+        String dirname = ProjectProperties.backslashToSlash(dir_name);
         File dir = new File(dirname);
         String[] files = dir.list();
         System.err.println(dir);

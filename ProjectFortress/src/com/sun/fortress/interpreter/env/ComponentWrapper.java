@@ -94,12 +94,19 @@ public class ComponentWrapper extends CUWrapper {
         // TODO Auto-generated constructor stub
     }
 
+    /**
+     * Reads a "command line" component; do not leave in the cache.
+     * @param comp
+     * @param api_list
+     * @param linker
+     * @param implicitLibs
+     */
     public ComponentWrapper(ComponentIndex comp, List<APIWrapper> api_list,
             HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
         super((Component) comp.ast(), api_list, linker, implicitLibs);
         cacheDisabled = noCache;
         transformed = getCached(comp);
-        // TODO Auto-generated constructor stub
+        componentCache.forget(comp.ast().getName());
     }
 
     public CompilationUnit populateOne() {

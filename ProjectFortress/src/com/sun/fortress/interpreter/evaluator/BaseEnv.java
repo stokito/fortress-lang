@@ -745,6 +745,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     static Environment toContainingObjectEnv(Environment e,
             int negative_object_depth) {
         if (-negative_object_depth > 0) {
+            // This assumes $self can be found in the current environment.
+            // Next statement maps -1 to zero, -2 to one, -3 to two, etc.
             negative_object_depth = -1 - negative_object_depth;
             FObject obj = (FObject) e.getLeafValue(WellKnownNames.secretSelfName);
             e = obj.getSelfEnv();
@@ -753,8 +755,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                 obj = (FObject) e.getLeafValue(WellKnownNames.secretParentName);
                 e = obj.getSelfEnv();
             }
-        } else if (negative_object_depth == 0)
-            e = e.getTopLevel();
+        } else if (negative_object_depth == 0) {
+            e = e.getTopLevel(); 
+        } else if (negative_object_depth < 0) {
+            // True only for MIN_VALUE
+            return e;
+        }
         return e;
     }
 
