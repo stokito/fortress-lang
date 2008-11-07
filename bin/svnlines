@@ -7,7 +7,7 @@ cd $FORTRESS_HOME
 if [ $# -lt 2 ] ; then
   echo svnlines beginning-revision ending-revision
   echo 'Calculates number of lines added or removed in the included revisions'
-  echo 'Records results in FORTRESS_HOME/Stats/<revision number>.lines'
+  echo 'Records results in FORTRESS_HOME/SvnStats/<revision number>.lines'
   echo "Use this before calculating metrics"
   exit 1
 fi
