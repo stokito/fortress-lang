@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component gauntlet2
+export Executable
+
+(* Check that root is the integer square-root of x *)
+inrange(x:ZZ64, root:ZZ64):Boolean = root^2 <= x < (root+1)^2
+
+(* isqrt using Newton's method; use the argument as the initial guess *)
+isqrt(x:ZZ64):ZZ64 = do
+   approx:ZZ64 := x
+   while NOT inrange (x, approx) do
+       approx -= (approx - (x DIV approx) + 1) DIV 2
+   end
+   approx
+end
+
+timeIt (whatToTime:()->() ): ZZ64 = do
+   getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
+   start = getTimeMS()
+     whatToTime()
+   getTimeMS() - start
+end
+
+run(args:String...) = do
+   n = if |args| = 1 then strToInt args[0] else 5 end
+   println ("Time [0, 10^" n "] in parallel:  "
+     (timeIt (fn () =>
+      for x <- 0:10^n do assert (inrange (x, isqrt (widen (x)))) end))
+     " ms")
+
+   println ("Time [0, 10^" n "] sequentially: "
+     (timeIt (fn () =>
+      for x <- seq(0:10^n) do assert (inrange (x, isqrt (widen (x)))) end))
+     " ms" )
+end
+
+end gauntlet2
+
+
