@@ -188,10 +188,6 @@ opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
 opr BIG <|[\T\] g:Generator[\T\]|> =
     __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
 
-covariantComprehension[\T,R\](unwrap:AnyList->R): Comprehension[\T,R,AnyList,AnyList\] =
-    Comprehension[\T,R,AnyList,AnyList\](
-        fn xs => unwrap(xs || emptyList[\T\]()), CVConcat[\T\], cvSingleton)
-
 (** Convert generator into list; can be used to desugar list
     comprehensions *)
 list[\E\](g:Generator[\E\]):List[\E\] =

@@ -139,8 +139,4 @@ object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
-(** Utility for cooking up covariant comprehensions of other
-    (non-covariant) types. **)
-covariantComprehension[\T,R\](unwrap:List[\T\]->R): Comprehension[\T,R,List[\T\],List[\T\]\]
-
 end

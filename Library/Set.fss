@@ -16,7 +16,8 @@
  ******************************************************************************)
 
 component Set
-import List.{AnyList,covariantComprehension}
+import CovariantCollection.{...}
+import QuickSort.{...}
 export Set
 
 (** Thrown when taking big intersection of no sets. **)
@@ -80,15 +81,41 @@ end
 set[\E extends StandardTotalOrder[\E\]\](): Set[\E\] = EmptySet[\E\]
 set[\E extends StandardTotalOrder[\E\], T extends E\](g: Generator[\T\]): Set[\E\] =
     g.generate[\Set[\E\]\](Union[\E\], singleton[\E\])
+set[\E extends StandardTotalOrder[\E\], T extends E\](g: ReadableArray[\T,ZZ32\]): Set[\E\] = do
+    a = array[\E\](|g|)
+    a.init0(i,g.get(i)), i <- a.indices
+    fromCopiedArray(a)
+  end
+
+fromCopiedArray[\E extends StandardTotalOrder[\E\], T extends E\](a: Array[\T,ZZ32\]): Set[\E\] = do
+    quicksort[\T\](a)
+    j : ZZ32 := 1
+    for i <- seq(a.indices), i > 0, a[i-1]=/=a[i] do
+        a[j] := a[i]
+        j += 1
+    end
+    fromSortedArrayFragment[\E,T\](a,0,(j MIN |a|) - 1)
+  end
+
+fromSortedArrayFragment[\E extends StandardTotalOrder[\E\], T extends E\]
+                       (a: Array[\T,ZZ32\], lo:ZZ32, hi:ZZ32): Set[\E\] =
+    if hi < lo then
+        EmptySet[\E\]
+    else
+        mid = (hi+lo) DIV 2
+        (l,r) = (fromSortedArrayFragment[\E,T\](a,lo,mid-1),
+                 fromSortedArrayFragment[\E,T\](a,mid+1,hi))
+        NodeSet[\E\](a[mid],l,r)
+    end
 
 opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: Set[\E\] =
     es.generate[\Set[\E\]\](Union[\E\], fn (e:E): Set[\E\] => singleton[\E\](e))
 
-opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyList,AnyList\] =
-    covariantComprehension[\T,Set[\T\]\](fn x => set(x))
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\T,Set[\T\]\](fn cc => fromCopiedArray(cc.toArray()))
 
 opr BIG {[\T extends StandardTotalOrder[\T\]\] g:Generator[\T\]} =
-    __bigOperatorSugar[\T,Set[\T\],AnyList,AnyList\](BIG {[\T\]}(), g)
+    __bigOperatorSugar[\T,Set[\T\],AnyCovColl,AnyCovColl\](BIG {[\T\]}(), g)
 
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =
     BigReduction[\Set[\R\],Set[\R\]\](Union[\R\])

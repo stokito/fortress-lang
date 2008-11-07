@@ -166,14 +166,14 @@ fromCopiedArray[\Key,Val\](a: Array[\(Key,Val),ZZ32\]): Map[\Key,Val\] = do
         do (k1,_) = kv1; (k2,_) = kv2; k1 < k2 end
     quicksort[\(Key,Val)\](lt,a)
     (* Complain about duplicates. *)
-    for i <- seq(a.indices), i > 0 do
+    for i <- a.indices, i > 0 do
         (pk,pv) = a[i-1]
         (ck,cv) = a[i]
         if pk = ck then
             throw KeyOverlap[\Key,Val\](pk,pv,cv)
         end
     end
-    fromSortedArrayFragment[\Key,Val\](a, a.bounds.lower, a.bounds.upper)
+    fromSortedArrayFragment[\Key,Val\](a, 0, |a| - 1)
   end
 
 fromCovariantCollection[\Key,Val\](cc: CovariantCollection[\(Key,Val)\]): Map[\Key,Val\] =
