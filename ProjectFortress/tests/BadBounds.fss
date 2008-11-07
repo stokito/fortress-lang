@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -24,12 +24,12 @@ run(args:String...) :() = do
   println ("b lower bounds " b.bounds().lower() )
   println ("b upper bounds " b.bounds().upper() )
   println ("b.bounds = " b.bounds())
-  
+
   bShifted = b.bounds ≫ (2,5)
   assert(b.bounds.extent, bShifted.extent)
   println b.bounds.ilkName
   assert(bShifted.lower, (2, 5))
-  
+
   assert(bShifted ≪ (2,5), b.bounds)
 
   for (i,j) <- b.indices() do
@@ -45,14 +45,14 @@ run(args:String...) :() = do
                      9 10 11 12;; 13 14 15 16
                                   17 18 19 20
                                   21 22 23 24 ]
-                                  
+
   cShifted = c.bounds ≫ (2,5,8)
   assert(c.bounds.extent, cShifted.extent)
   println c.bounds.ilkName
   assert(cShifted.lower, (2, 5, 8))
-  
+
   assert(cShifted ≪ (2, 5, 8), c.bounds)
-  
+
   for (i,j,k) <- c.indices() do
             println ("c[" i "," j "," k "] = " c[i,j,k] )
   end

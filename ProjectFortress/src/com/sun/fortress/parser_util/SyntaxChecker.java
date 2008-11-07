@@ -32,7 +32,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
  * 2) An operator method that is not a subscripting operator method
  *    nor a subscripted assignment operator method
  *    should have the self parameter.
- * 3) Valid modifiers for traits, objects
+ * 3) Valid modifiers for traits, objects, functionals, variables
  *    in components and APIs.
  */
 public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
