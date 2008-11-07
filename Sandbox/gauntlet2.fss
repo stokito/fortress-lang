@@ -23,33 +23,29 @@ inrange(x:ZZ64, root:ZZ64):Boolean = root^2 <= x < (root+1)^2
 
 (* isqrt using Newton's method; use the argument as the initial guess *)
 isqrt(x:ZZ64):ZZ64 = do
-   approx:ZZ64 := x
-   while NOT inrange (x, approx) do
-       approx -= (approx - (x DIV approx) + 1) DIV 2
-   end
-   approx
+    approx:ZZ64 := x
+    while NOT inrange (x, approx)
+      do approx -= (approx - (x DIV approx) + 1) DIV 2 end
+    approx
 end
 
-timeIt (whatToTime:()->() ): ZZ64 = do
-   getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
-   start = getTimeMS()
-     whatToTime()
-   getTimeMS() - start
+getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
+timingRuns = 5
+timeIt (whatToTime) = do
+    averageTime = (SUM [jj <- seq(1:timingRuns)] do
+      t = getTimeMS(); whatToTime(); getTimeMS() - t end) DIV timingRuns
+    "average of "timingRuns" runs (ms) = " averageTime
 end
 
 run(args:String...) = do
-   n = if |args| = 1 then strToInt args[0] else 5 end
-   println ("Time [0, 10^" n "] in parallel:  "
-     (timeIt (fn () =>
-      for x <- 0:10^n do assert (inrange (x, isqrt (widen (x)))) end))
-     " ms")
+    max = if |args| = 1 then strToInt args[0] else 100 TIMES 1000 end
+    check (x) = assert (inrange (x, isqrt (widen x)))
 
-   println ("Time [0, 10^" n "] sequentially: "
-     (timeIt (fn () =>
-      for x <- seq(0:10^n) do assert (inrange (x, isqrt (widen (x)))) end))
-     " ms" )
+    println ("[0, "max"] in parallel, "
+      timeIt (fn () => for x<-    0:max  do check x end))
+
+    println ("[0, "max"] sequentially, "
+      timeIt (fn () => for x<-seq(0:max) do check x end))
 end
 
 end gauntlet2
-
-
