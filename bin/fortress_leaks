@@ -1,0 +1,40 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+################################################################################
+
+FORTRESS_HOME="`${0%fortress_leaks}fortress_home`"
+
+if (uname | egrep CYGWIN > /dev/null) ; then
+  SEP=";"
+else
+  SEP=":"
+fi
+
+CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/astgen/astgen.jar${SEP}$CP"
+
+if [ -z "$JAVA_HOME" ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+# -agentlib:hprof=doe=y,format=b,heap=dump 
+
+"$JAVACMD" $JAVA_FLAGS -cp "$CP" \
+ -Dfortress.test.leaks=t \
+com.sun.fortress.Shell "$@"

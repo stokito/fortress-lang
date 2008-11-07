@@ -1,6 +1,7 @@
 syntax: glob
 .svn
 *.class
+*.hprof
 *.orig
 *.o
 *.d
