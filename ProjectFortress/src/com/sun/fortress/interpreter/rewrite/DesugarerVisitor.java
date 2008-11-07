@@ -721,12 +721,20 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
     @Override
     public Node forVarType(VarType vre) {
-        String s = NodeUtil.nameString(vre.getName());
-        StaticParam tp = visibleGenericParameters.get(s);
-        if (tp != null) {
-            usedGenericParameters.put(s, tp);
+        Id id = vre.getName();
+        Node node = vre;
+        if (id.getApi().isNone()) {
+            String s = NodeUtil.nameString(id);
+            StaticParam tp = visibleGenericParameters.get(s);
+            if (tp != null) {
+                usedGenericParameters.put(s, tp);
+            }
+            node = newType(vre, s);
+        } else {
+            // Rewrite lexical nesting depth to zero if api-qualified.
+            node = NodeFactory.makeVarType(vre, 0);
         }
-        Node node = newType(vre, s);
+        
         return visitNode(node);
 
     }
@@ -1121,7 +1129,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         String s = IterUtil.last(ids).getText();
         return s;
     }
-
+   
     /**
      * Given List<Id>, generate tuple of corresponding VarRef
      */

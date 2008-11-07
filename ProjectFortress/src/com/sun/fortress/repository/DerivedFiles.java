@@ -66,5 +66,9 @@ public class DerivedFiles<T> {
             InterpreterBug.bug("Failed to write " + name);
         }
     }
+    
+    public void forget(APIName name) {
+        cached.remove(name);
+    }
 
 }

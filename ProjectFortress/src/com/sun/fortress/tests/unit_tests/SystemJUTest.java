@@ -37,11 +37,11 @@ public class SystemJUTest {
         if (s != null) {
             testDir = s;
         }
-        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
+       // TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, failsOnly, false));
+       // suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
-        return suite;
+        return FileTests.suite(testDir, failsOnly, false);
     }
 
 }

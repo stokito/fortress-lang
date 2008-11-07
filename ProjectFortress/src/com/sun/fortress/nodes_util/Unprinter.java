@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -322,7 +323,7 @@ public class Unprinter extends NodeReflection {
                 if (!fcl.isPrimitive() && f.get(node) == null) {
                     if (fcl == List.class) {
                         // empty list
-                        f.set(node, new ArrayList());
+                        f.set(node, Collections.EMPTY_LIST);
                     } else if (fcl == String.class) {
                         // empty string
                         f.set(node, "");
@@ -629,6 +630,7 @@ public class Unprinter extends NodeReflection {
             } else if (s.startsWith("\"")) {
                 x = deQuote(s).intern(); // Intermediate form is quoted.
             } else if (s.startsWith("]")) {
+                a.trimToSize();
                 return a;
             } else {
                 return bug("List of unknown element beginning " + s);
