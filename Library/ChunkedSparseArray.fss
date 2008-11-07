@@ -75,9 +75,9 @@ object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
                     (0#64).nest[\ZZ32\](present)
                 end
               end)
-    getter toString(): String =
+    getter asString(): String =
         "[" bounds() "] = [" (BIG ||[(i,v) <- indexValuePairs()] " " i "|->" v) " ]"
-    dump(): String = data.toString()
+    getter asDebugStriing(): String = data.toString()
     indexAndMask(i:ZZ32) : (ZZ32,ZZ64) = (i RSHIFT 6, widen(1) LSHIFT (i BITAND 63))
     secondaryIndex(fe:ZZ64, mask:ZZ64) = popCount((mask-1) BITAND fe)
     isSet(i:ZZ32): Boolean = isSet0(offset(i))

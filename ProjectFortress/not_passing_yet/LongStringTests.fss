@@ -40,8 +40,7 @@ export Testable
                         else 
                             "unbalanced" 
                         end  )
-        (* println "contents is as follows:" *)
-        (* fileContents.showStructure() *)
+
         balancedContents = fileContents.balanced()
         assert(balancedContents, fileContents)
         println "balancedContents is a " balancedContents.ilkName
@@ -54,7 +53,6 @@ export Testable
                         else 
                             "unbalanced" 
                         end  )
-        (* balancedContents.showStructure() *)
         output = FileWriteStream("ProjectFortress/not_passing_yet/poem.out")
         output.write(balancedContents)
         output.close()
@@ -77,11 +75,10 @@ export Testable
         flatStringInfo.maxSize := 10
         abcdef = CatString("a", CatString("b", CatString("c", CatString("d", 
             CatString(EmptyString, CatString("e", "f"))))))
-        (* abcdef.showStructure() *)
         assert(abcdef, "abcdef")
         balancedAbcdef = abcdef.balanced()
-        (* balancedAbcdef.showStructure() *)
         assert(balancedAbcdef, "abcdef")
+        println abcdef.asDebugString
     end
     
     run(args:String...):() = label runMethod

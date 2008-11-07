@@ -56,7 +56,6 @@ export Heap
      merge(Heap[\K,V\])
  **)
 trait Heap[\K,V\] extends Generator[\(K,V)\]
-    getter isEmpty(): Boolean
     (** Given an instance of Heap[\K,V\], get the empty Heap[\K,V\] **)
     getter empty(): Heap[\K,V\]
     (** Get the (key,value) pair with minimal associated key **)
@@ -65,11 +64,9 @@ trait Heap[\K,V\] extends Generator[\(K,V)\]
             Just[\(K,V)\](k,v)
         else
             Nothing[\(K,V)\]
-        end
+        end    
     (** Check the invariants on the heap. **)
     check(): Heap[\K,V\]
-    (** Produce string representation of internal structure for debugging **)
-    dump(): String
     (** Given an instance of Heap[\K,V\], generate a singleton Heap[\K,V\] **)
     singleton(k:K, v:V): Heap[\K,V\]
     (** Return a heap that contains the key-value pairings in both of
@@ -119,7 +116,7 @@ hm[\K,V\](boiler: Heap[\K,V\]):HeapMerge[\K,V\] = HeapMerge[\K,V\](boiler)
 trait Pairing[\K,V\] extends Heap[\K,V\]
         comprises { EmptyP[\K,V\], NodeP[\K,V\] }
     getter empty(): Pairing[\K,V\] = EmptyP[\K,V\]
-    dump(): String
+    getter asDebugString(): String
     singleton(k:K, v:V): Pairing[\K,V\] = do
         e = empty()
         NodeP[\K,V\](k,v,e,e)
@@ -134,7 +131,7 @@ end
 object EmptyP[\K,V\] extends Pairing[\K,V\]
     getter isEmpty(): Boolean = true
     getter minimum(): Nothing[\(K,V)\] = Nothing[\(K,V)\]
-    dump(): String = "E"
+    getter asDebugString(): String = "E"
     check(): EmptyP[\K,V\] = self
     check(pk:K):Boolean = true
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
@@ -150,14 +147,14 @@ object NodeP[\K,V\](k:K, v:V, sibs: Pairing[\K,V\], kids: Pairing[\K,V\])
         extends Pairing[\K,V\]
     getter isEmpty(): Boolean = false
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
-    dump():String = "N(" k "," v "," sibs.dump() "," kids.dump() ")"
+    getter asDebugString():String = "N(" k "," v "," sibs.asDebugString "," kids.asDebugString ")"
     check() = do
         if NOT sibs.isEmpty() then
-            println( //"FAIL: Non-empty sibs in:" // dump()// )
+            println( //"FAIL: Non-empty sibs in:" // self.asDebugString// )
             fail("dying")
         end
         if NOT kids.check(k) then
-            println( //"FAIL: heap structure violation in:" // dump()// )
+            println( //"FAIL: heap structure violation in:" // self.asDebugString// )
         end
         self
       end
@@ -223,7 +220,7 @@ pairing[\K,V\](g:Generator[\(K,V)\]): Pairing[\K,V\] = do
 trait LazyPairing[\K,V\] extends Heap[\K,V\]
         comprises { EmptyLP[\K,V\], NodeLP[\K,V\] }
     getter empty(): LazyPairing[\K,V\] = EmptyLP[\K,V\]
-    dump(): String
+    getter asDebugString(): String
     singleton(k:K, v:V): LazyPairing[\K,V\] = do
         e = empty()
         NodeLP[\K,V\](k,v,e,e)
@@ -235,9 +232,9 @@ end
 object EmptyLP[\K,V\] extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = true
     getter minimum(): Nothing[\(K,V)\] = Nothing[\(K,V)\]
+    getter asDebugString(): String = "EL"
     check() = self
     check(pk:K):Boolean = true
-    dump(): String = "EL"
     merge(h:Heap[\K,V\]): Heap[\K,V\] = h
     merge(h:LazyPairing[\K,V\]): LazyPairing[\K,V\] = h
     insert(k:K, v:V): LazyPairing[\K,V\] = NodeLP[\K,V\](k,v,self,self)
@@ -251,14 +248,14 @@ object NodeLP[\K,V\](k:K, v:V, pending: LazyPairing[\K,V\], kids: LazyPairing[\K
         extends LazyPairing[\K,V\]
     getter isEmpty(): Boolean = false
     getter minimum(): Just[\(K,V)\] = Just[\(K,V)\](k,v)
+    getter asDebugString():String = "NL(" k "," v "," pending.asDebugString "," kids.asDebugString ")"
     check() = do
         if NOT kids.check(k) then
-            println( //"FAIL: heap structure violation in:" // dump()// )
+            println( //"FAIL: heap structure violation in:" // self.asDebugString// )
         end
         self
       end
     check(pk:K):Boolean = pk <= k AND pending.check(k) AND kids.check(k)
-    dump():String = "NL(" k "," v "," pending.dump() "," kids.dump() ")"
     merge(other:Heap[\K,V\]): Heap[\K,V\] = merge(lazy[\K,V\](other))
     merge(_:LazyPairing[\K,V\]): LazyPairing[\K,V\] =
         fail("LazyPairing but not NodeLP/EmptyLP")

@@ -22,11 +22,11 @@ export Executable
 trait Avl[\K extends StandardTotalOrder[\K\],V\]
         comprises { AvlEmpty[\K,V\], AvlNode[\K,V\] }
     getter depth() : ZZ32
+    getter asDebugStriing(): AvlDump[\K,V\] = AvlDump[\K,V\](self)
     check(root:Avl[\K,V\]): ZZ32
     check(mn:K,root:Avl[\K,V\]): ZZ32
     check(root:Avl[\K,V\],mx:K): ZZ32
     check(mn:K,root:Avl[\K,V\],mx:K): ZZ32
-    dump(): AvlDump[\K,V\] = AvlDump[\K,V\](self)
     opr |self| : ZZ32
     (** left subtree, value (if any) at kk, right subtree, original depth *)
     splitAt(kk:K):(AvlWithDepth[\K,V\],Maybe[\V\],AvlWithDepth[\K,V\],ZZ32)
@@ -65,11 +65,11 @@ end
 value object AvlWithDepth[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\], d: ZZ32)
     getter depth() : ZZ32 = d
     getter tree(): ZZ32 = t
-    getter toString(): String = t.dump()
+    getter asDebugString(): String = t.asDebugStriing
     opr |self| : ZZ32 = |t|
     check(): () = do
         dd = t.check(t)
-        assert(dd,d,"AvlWithDepth depths don't match for ",t.dump())
+        assert(dd,d,"AvlWithDepth depths don't match for ",t.asDebugStriing)
       end
 end
 
@@ -100,8 +100,8 @@ trait AvlNode[\K extends StandardTotalOrder[\K\],V\] extends Avl[\K,V\]
     getter key(): K
     getter val(): V
     chk(root:Avl[\K,V\], ld:ZZ32, rd:ZZ32): ZZ32 = do
-        assert(ld2rd(ld),rd,"Mismatched depth and skew in ",dump(),
-               "\nroot ",root.dump())
+        assert(ld2rd(ld),rd,"Mismatched depth and skew in ",asDebugStriing,
+               "\nroot ",root.asDebugStriing)
         ld2d(ld)
       end
     check(root:Avl[\K,V\]): ZZ32 =

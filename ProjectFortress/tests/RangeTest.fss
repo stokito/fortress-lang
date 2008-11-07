@@ -126,7 +126,16 @@ run(args:String...):() = do
     assert(mm  << 5, 1:2)
     assert(mh  << 5,  1:5)
     assert(hh  << 5, 3:5)
-    
+(*    TODO: write the Expr String methods
+    assert((0:).asExprString, "0:")    
+    assert((5#).asExprString, "5#")    
+    assert((#3).asExprString, "#3")    
+    assert((:4).asExprString, ":4")    
+    assert((0#4).asExprString, "0#4")    
+    assert((2:5).asExprString, "2:5")    
+    assert((1:10:2).asExprString, "(1:10):2")    
+    assert((::4).asExprString, "::4") 
+*)    
     chkOrder(mt,mt,EqualTo)
     for i <- <|llo, hlo, lsz, hsz, lhi, hhi, ll, lm, lh', lh, mm, mh, hh|> do
         chkOrder(mt,i,GreaterThan)

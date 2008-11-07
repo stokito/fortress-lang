@@ -19,7 +19,7 @@ component rangeOperators
 export Executable
 
 object Op(s:String)
-    getter toString(): String = "(" s ")"
+    getter asString(): String = "(" s ")"
 end
 
 opr :(x:String, y:String): Op = Op(x ":" y)

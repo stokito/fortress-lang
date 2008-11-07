@@ -62,7 +62,6 @@ copy[\T extends Any\](x:T): T
 *)
 
 trait Region extends Equality[\Region\]
-    getter toString(): String
     isLocalTo(r: Region): Boolean
 end
 
@@ -110,7 +109,6 @@ opr BIG LEXICO(g: Generator[\TotalComparison\]): TotalComparison
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
         comprises { Unordered, TotalComparison }
-    abstract getter toString(): String
     opr =(self, other:Comparison): Boolean
     opr LEXICO(self, other:Comparison): Comparison
     opr SYMMETRIC_PARTIAL(self, other:Comparison): Comparison
@@ -120,7 +118,6 @@ end
 (** Unordered is the outcome of %a CMP b% when %a% and %b% are partially
     ordered and no ordering relationship exists between them. **)
 object Unordered extends Comparison
-    getter toString(): String
     opr =(self, other:Unordered): Boolean
     opr <(self, other:Comparison): Boolean
     opr INVERSE(self): Comparison
@@ -142,7 +139,6 @@ trait TotalComparison
 end
 
 object LessThan extends TotalComparison
-    getter toString(): String
     opr =(self, other:LessThan): Boolean
     opr CMP(self, other:LessThan): Comparison
     opr CMP(self, other:TotalComparison): TotalComparison
@@ -154,7 +150,6 @@ object LessThan extends TotalComparison
 end
 
 object GreaterThan extends TotalComparison
-    getter toString(): String
     opr =(self, other:GreaterThan): Boolean
     opr CMP(self, other:GreaterThan): Comparison
     opr CMP(self, other:TotalComparison): TotalComparison
@@ -165,7 +160,6 @@ object GreaterThan extends TotalComparison
 end
 
 object EqualTo extends TotalComparison
-    getter toString(): String
     opr =(self, other:EqualTo): Boolean
     opr CMP(self, other:TotalComparison): TotalComparison
     opr <(self, other:LessThan): Boolean
@@ -805,7 +799,6 @@ end
 
 value object Just[\T\](x:T) extends Maybe[\T\]
     getter size(): ZZ32
-    getter toString():String
     getter holds(): Boolean
     getter get(): T
     opr |self| : ZZ32
@@ -829,7 +822,6 @@ value object Nothing[\T\] extends Maybe[\T\]
     getter size(): ZZ32
     getter holds(): Boolean
     getter get(): T
-    getter toString():String
     opr |self| : ZZ32
     getDefault(t:T):T
     cond[\R\](t:T->R, _:()->R): R
@@ -859,7 +851,6 @@ trait UncheckedException extends Exception excludes CheckedException
 end
 
 object FailCalled(s:String) extends UncheckedException
-  toString(): String
 end
 
 object DivisionByZero extends UncheckedException
@@ -1290,7 +1281,6 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter size():ZZ32
     getter bounds():CompactFullRange[\ZZ32\]
     abstract getter mutability():String
-    getter toString(): String
     opr |self| : ZZ32
 
     subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\]
@@ -1438,7 +1428,6 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     excludes { Number, String }
   getter size():ZZ32
   getter bounds():CompactFullRange[\(ZZ32,ZZ32)\]
-  getter toString(): String
   opr |self| : ZZ32
   (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
   offset(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32)
@@ -1556,7 +1545,6 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     getter size():ZZ32
     getter bounds():CompactFullRange[\(ZZ32,ZZ32,ZZ32)\]
 
-    getter toString():String
 
     opr |self| : ZZ32
 
@@ -1609,7 +1597,6 @@ trait Reduction[\R\] end
     unlift(lift(x)) = x
  **)
 trait ActualReduction[\R,L\] extends Reduction[\R\]
-    abstract getter toString(): String
     abstract empty(): L
     abstract join(a: L, b: L): L
     abstract lift(r:R): L
@@ -1695,14 +1682,12 @@ end
     distributing over void (that would change the number of effects in
     our program) but not void distributing over other things. **)
 object VoidReduction extends { CommutativeMonoidReduction[\()\] }
-    getter toString(): String
     empty(): ()
     join(a: (), b: ()): ()
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
 object SumReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString(): String
     empty(): Number
     join(a: Number, b: Number): Number
 end
@@ -1712,7 +1697,6 @@ opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 opr SUM[\T extends Number\](g: Generator[\T\]): Number
 
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString(): String
     empty(): Number
     join(a:Number, b:Number): Number
 end
@@ -1722,7 +1706,6 @@ opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 opr PROD[\T extends Number\](g: Generator[\T\]): Number
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
-    getter toString(): String
     simpleJoin(a:T, b:T): T
 end
 
@@ -1731,7 +1714,6 @@ opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\]
 opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]): T
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
-    getter toString(): String
     simpleJoin(a:T, b:T): T
 end
 
@@ -1751,7 +1733,6 @@ opr BIG MAXNUM(g: Generator[\RR64\]): RR64
 object AndReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString(): String
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
     isZero(a:Boolean): Boolean
@@ -1764,7 +1745,6 @@ opr BIG AND[\T\](g: Generator[\Boolean\]): Boolean
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString(): String
     empty(): Boolean
     join(a: Boolean, b: Boolean): Boolean
     isZero(a:Boolean): Boolean
@@ -1776,21 +1756,18 @@ opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
-    getter toString(): String
     empty(): String
     join(a:String, b:String): String
 end
 
 (** A reduction performing String concatenation with a space **)
 object SpaceReduction extends MonoidReduction[\String\]
-    getter toString(): String
     empty(): String
     join(a:String, b:String): String
 end
 
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
-    getter toString(): String
     simpleJoin(a:String, b:String): String
 end
 
@@ -1818,7 +1795,6 @@ opr BIG //(g: Generator[\Any\]): String
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
-    getter toString(): String
     empty(): R
     join(a:R, b:R): R
 end
@@ -1827,7 +1803,6 @@ end
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
-    getter toString(): String
     empty(): R
     join(a:Any, b:Any): R
 end
@@ -1844,7 +1819,6 @@ embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\]
 trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
-    getter toString(): String
     generate[\R\](r:Reduction[\R\], m: E->R): R
     reduce(r: Reduction[\E\]): E
     filter(p': E -> Condition[\()\]): FilterGenerator[\E\]  (* ' *)
@@ -1883,7 +1857,7 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     abstract opr IN(n: I, self): Boolean
     opr CMP(self, other:Range[\I\]): Comparison
     abstract opr FORWARD_CMP(self, other:Range[\I\]): Comparison
-    dump(): String
+    asDebugStriing(): String
     check(): Range[\I\]
     shiftLeft(shift: I): Range[\I\]
     shiftRight(shift: I): Range[\I\]
@@ -2097,7 +2071,6 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
 trait String extends { StandardTotalOrder[\String\],
                   ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
     getter size() : ZZ32
-    getter toString() : String
     getter indices() : CompactFullRange[\ZZ32\]
     getter generator() : Generator[\Char\]
     getter depth() : ZZ32
@@ -2106,8 +2079,6 @@ trait String extends { StandardTotalOrder[\String\],
 
 
     verify() : ()       (* Verify the data structure invaraints of self *)
-    showStructure() : ()        (* a debugging printout *)
-    showStructure(indent: ZZ32) : ()         (* a debugging printout *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison
 
@@ -2136,10 +2107,8 @@ trait String extends { StandardTotalOrder[\String\],
     **)
     split(): Generator[\(ZZ32, String)\]
 
-(*
-    (**  A balanced version of the reciever  *)
-    balanced(): String ensures {outcome.isBalanced AND outcome = self}
-*)
+    (**  A balanced version of the reciever  **)
+    balanced(): String ensures {outcome.isAlmostBalanced AND outcome = self}
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)

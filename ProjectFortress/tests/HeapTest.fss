@@ -53,11 +53,11 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
         if failed then
             h := h0
             expected := 0
-            println(h.dump())
+            println(h.asDebugString)
             while NOT h.isEmpty() AND expected <= n do
                 (k,v,h) := h.extractMinimum().get()
                 println(expected ": min = (" k "," v ")")
-                println(h.dump())
+                println(h.asDebugString)
                 expected += 1
             end
         end

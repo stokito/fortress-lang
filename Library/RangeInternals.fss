@@ -159,10 +159,10 @@ trait ScalarRange[\I extends Integral[\I\]\] extends { Range[\I\] }
     intersectWithExtent(e:ExtentScalarRange[\I\]): ScalarRangeWithExtent[\I\]
     check(): ScalarRange[\I\] = do
         str = self.stride
-        if str = 0 then fail(dump() ": Zero stride") end
+        if str = 0 then fail(self.asDebugString() ": Zero stride") end
         for l <- self.left, r <- self.right do
             if (l-r) MOD str =/= 0 AND NOT self.isEmpty then
-                fail(dump() ": Bounds don't match stride.")
+                fail(self.asDebugString() ": Bounds don't match stride.")
             end
         end
         self
@@ -178,7 +178,7 @@ trait Range2D[\I extends Integral[\I\], J extends Integral[\J\]\] extends Range[
     getter range2(): ScalarRange[\J\]
     getter stride(): (I,J) = (self.range1.stride, self.range2.stride)
     getter isEmpty(): Boolean = self.range1.isEmpty OR self.range2.isEmpty
-    getter toString(): String = "(" self.range1 " BY " self.range2 ")"
+    getter asString(): String = "(" self.range1 " BY " self.range2 ")"
     every(s_i:I, s_j:J): Range2D[\I,J\]
     atMost(n_i:I, n_j:J): Range2D[\I,J\] =
         combine2D(self.range1.atMost(n_i), self.range2.atMost(n_j))
@@ -229,7 +229,7 @@ trait Range3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integ
         (self.range1.stride, self.range2.stride, self.range3.stride)
     getter isEmpty(): Boolean =
         self.range1.isEmpty OR self.range2.isEmpty OR self.range3.isEmpty
-    getter toString(): String = "(" self.range1 " BY " self.range2 " BY " self.range3 ")"
+    getter asString(): String = "(" self.range1 " BY " self.range2 " BY " self.range3 ")"
     every(s_i:I, s_j:J, s_k:K): Range3D[\I,J,K\]
     atMost(n_i:I, n_j:J, n_k:K): Range3D[\I,J,K\] =
         combine3D(self.range1.atMost(n_i), self.range2.atMost(n_j), self.range3.atMost(n_k))
@@ -283,12 +283,13 @@ end
 object OpenScalarRange[\I extends Integral[\I\]\](str: I)
         extends { PartialScalarRange[\I\], OpenRange[\I\] }
     getter stride(): I = str
-    getter toString(): String =
+    getter asString(): String =
         if str > 0 then
             "...o,o+" str "..."
         else
             "...o,o" str "..."
         end
+    getter asDebugString(): String = "OpenScalarRange(" str ")"
     truncL(l:I): LeftScalarRange[\I\] = leftScalarRange[\I\](l,str)
     flip(): OpenScalarRange[\I\] = OpenScalarRange[\I\](-str)
     forward(): OpenScalarRange[\I\] = OpenScalarRange[\I\](|str|)
@@ -304,7 +305,6 @@ object OpenScalarRange[\I extends Integral[\I\]\](str: I)
         gcd = str GCD r.stride
         str DIV gcd
       end
-    dump(): String = "OpenScalarRange(" str ")"
 end
 
 combine2D[\I extends Integral[\I\], J extends Integral[\J\]\]
@@ -317,11 +317,11 @@ object OpenRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](str_i:I, 
     getter stride(): (I,J) = (str_i,str_j)
     getter range1(): OpenScalarRange[\I\] = OpenScalarRange[\I\](str_i)
     getter range2(): OpenScalarRange[\J\] = OpenScalarRange[\J\](str_j)
+    getter asDebugString(): String = "OpenRange2D(" str_i "," str_j ")"
     flip(): OpenRange2D[\I,J\] = OpenRange2D[\ZZ32,ZZ32\](-str_i,-str_j)
     forward(): OpenRange2D[\I,J\] = OpenRange2D[\ZZ32,ZZ32\](|str_i|,|str_j|)
     recombine(i:OpenScalarRange[\I\], j:OpenScalarRange[\J\]): OpenRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = "OpenRange2D(" str_i "," str_j ")"
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\]
@@ -336,11 +336,11 @@ object OpenRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends 
     getter range1(): OpenScalarRange[\I\] = OpenScalarRange[\I\](str_i)
     getter range2(): OpenScalarRange[\J\] = OpenScalarRange[\J\](str_j)
     getter range3(): OpenScalarRange[\K\] = OpenScalarRange[\K\](str_k)
+    getter asDebugString(): String = "OpenRange3D(" str_i "," str_j "," str_k ")"
     flip(): OpenRange3D[\I,J,K\] = OpenRange3D[\ZZ32,ZZ32\](-str_i,-str_j,-str_k)
     forward(): OpenRange3D[\I,J,K\] = OpenRange3D[\ZZ32,ZZ32\](|str_i|,|str_j|,|str_k|)
     recombine(i:OpenScalarRange[\I\], j:OpenScalarRange[\J\], k:OpenScalarRange[\K\]): OpenRange3D[\I,J,K\] =
         combine3D[\I,J,K\](i, j, k)
-    dump(): String = "OpenRange3D(" str_i "," str_j "," str_k ")"
 end
 
 open[\I extends Integral[\I\]\](): OpenScalarRange[\I\] = OpenScalarRange[\I\](1)
@@ -357,7 +357,7 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
     getter stride(): I = str
     getter extent(): Just[\I\] = Just[\I\]( |ex| )
     getter fromLeft(): Boolean = ex > 0
-    getter toString(): String =
+    getter asString(): String =
         case ex of
             1 => "l"
             -1 => "r"
@@ -376,6 +376,7 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
                     else "r+" (-f) "...,r+" (-str) ",r" end
                 end
         end
+    getter asDebugString(): String = "ExtentScalarRange(" ex "," str ")"
     truncL(s:I): FullScalarRange[\I\] =
         if ex > 0 then
             fullScalarRange[\I\](s, s + (ex-1) str, str)
@@ -425,8 +426,8 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
             extentScalarRange[\I\](-x,s)
         end
       end
-    opr =(self, b:ExtentScalarRange[\I\]): Boolean = ex = b.ex AND (str = b.str OR ex=1 OR ex=-1)
-    dump(): String = "ExtentScalarRange(" ex "," str ")"
+    opr =(self, b:ExtentScalarRange[\I\]): Boolean = 
+        ex = b.ex AND (str = b.str OR ex=1 OR ex=-1)
     shiftLeft(shift: I): ExtentScalarRange[\I\] = self
     shiftRight(shift: I): ExtentScalarRange[\I\] = self
 end
@@ -447,12 +448,12 @@ object ExtentRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter extent(): Just[\(I,J)\] = Just[\(I,J)\]( |ex_i|, |ex_j| )
     getter range1(): ExtentScalarRange[\I\] = ExtentScalarRange[\I\](ex_i,str_i)
     getter range2(): ExtentScalarRange[\J\] = ExtentScalarRange[\J\](ex_j,str_j)
+    getter asDebugString(): String = "ExtentRange2D(" ex_i "," ex_j ", " str_i "," str_j ")"
     flip(): ExtentRange2D[\I,J\] = ExtentRange2D[\ZZ32,ZZ32\](-ex_i,-ex_j,-str_i,-str_j)
     forward(): ExtentRange2D[\I,J\] =
         self.recombine(self.range1.forward(), self.range2.forward())
     recombine(i:ExtentScalarRange[\I\], j:ExtentScalarRange[\J\]): ExtentRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = "ExtentRange2D(" ex_i "," ex_j ", " str_i "," str_j ")"
     shiftLeft(shift: (I, J)): ExtentRange2D[\I, J\] = self
     shiftRight(shift: (I, J)): ExtentRange2D[\I, J\] = self
 end
@@ -471,12 +472,12 @@ object ExtentRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extend
     getter range1(): ExtentScalarRange[\I\] = ExtentScalarRange[\I\](ex_i,str_i)
     getter range2(): ExtentScalarRange[\J\] = ExtentScalarRange[\J\](ex_j,str_j)
     getter range3(): ExtentScalarRange[\K\] = ExtentScalarRange[\K\](ex_k,str_k)
+    getter asDebugString(): String = "ExtentRange3D(" ex_i "," ex_j "," ex_k ", " str_i "," str_j "," str_k ")"
     flip(): ExtentRange3D[\I,J,K\] = ExtentRange3D[\ZZ32,ZZ32\](-ex_i,-ex_j,-ex_k,-str_i,-str_j,-str_k)
     forward(): ExtentRange3D[\I,J,K\] =
         self.recombine(self.range1.forward(), self.range2.forward(), self.range3.forward())
     recombine(i:ExtentScalarRange[\I\], j:ExtentScalarRange[\J\], k:ExtentScalarRange[\K\]): ExtentRange3D[\I,J,K\] =
         combine3D[\I,J,K\](i, j, k)
-    dump(): String = "ExtentRange3D(" ex_i "," ex_j "," ex_k ", " str_i "," str_j "," str_k ")"
     shiftLeft(shift: (I, J, K)) = self
     shiftRight(shift: (I, J, K)) = self
 end
@@ -539,7 +540,7 @@ object LeftScalarRange[\I extends Integral[\I\]\](l:I, str:I)
         extends { ScalarRangeWithLeft[\I\], PartialScalarRange[\I\], LeftRange[\I\] }
     getter stride(): I = str
     getter left(): Just[\I\] = Just[\I\](l)
-    getter toString(): String = do
+    getter asString(): String = do
         t : I := l
         v : String := "["
         n : I := 1
@@ -551,6 +552,7 @@ object LeftScalarRange[\I extends Integral[\I\]\](l:I, str:I)
         end
         v || t "..."
       end
+    getter asDebugString(): String = "LeftScalarRange(" l "," str ")"
     flip(): RightScalarRange[\I\] = rightScalarRange[\I\](l, -str)
     forward(): BoundedScalarRange[\I\] =
         if str < 0 then self.flip() else self end
@@ -564,7 +566,6 @@ object LeftScalarRange[\I extends Integral[\I\]\](l:I, str:I)
         leftScalarRange[\I\](l, s str)
     atMost(n:I): ScalarRange[\I\] =
         fullScalarRange[\I\](l, l + ( |n| - 1 ) str, str)
-    dump(): String = "leftScalarRange(" l "," str ")"
     opr =(self, b:LeftScalarRange[\I\]): Boolean = l = b.l AND str = b.str
     opr IN(n:I, self): Boolean =
         (if self.stride > 0 then l <= n else n <= l) AND: (self.stride DIVIDES (n-l))
@@ -596,12 +597,12 @@ object LeftRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter left(): Just[\(I,J)\] = Just[\(I,J)\]( l_i, l_j )
     getter range1(): LeftScalarRange[\I\] = LeftScalarRange[\I\](l_i,str_i)
     getter range2(): LeftScalarRange[\J\] = LeftScalarRange[\J\](l_j,str_j)
+    getter asDebugString(): String = "LeftRange2D(" l_i "," l_j ", " str_i "," str_j ")"
     flip(): RightRange2D[\I,J\] = RightRange2D[\ZZ32,ZZ32\](l_i,l_j,-str_i,-str_j)
     forward(): BoundedRange[\(I,J)\] =
         self.recombine(self.range1.forward(), self.range2.forward())
     recombine(i:LeftScalarRange[\I\], j:LeftScalarRange[\J\]): LeftRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = "LeftRange2D(" l_i "," l_j ", " str_i "," str_j ")"
     shiftLeft(shift: (I,J)) = do
         (shift_i, shift_j) = shift
         LeftRange2D[\I\](l_i-shift_i, l_j-shift_j, str_i, str_j)
@@ -621,17 +622,17 @@ object LeftRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends 
         extends { LeftRange[\(I,J,K)\],
                   ActualRange3D[\I,J,K,LeftRange3D[\I,J,K\],
                                 LeftScalarRange[\I\],LeftScalarRange[\J\],LeftScalarRange[\K\]\] }
-    getter stride(): (I,J,K) = (str_i,str_j,str_k)
+    getter stride(): (I,J,K) = (str_i, str_j, str_k)
     getter left(): Just[\(I,J,K)\] = Just[\(I,J,K)\]( l_i, l_j , l_k )
     getter range1(): LeftScalarRange[\I\] = LeftScalarRange[\I\](l_i,str_i)
     getter range2(): LeftScalarRange[\J\] = LeftScalarRange[\J\](l_j,str_j)
     getter range3(): LeftScalarRange[\K\] = LeftScalarRange[\K\](l_k,str_k)
+    getter asDebugString(): String = "LeftRange3D(" l_i "," l_j "," l_k ", " str_i "," str_j "," str_k ")"    
     flip(): RightRange3D[\I,J,K\] = RightRange3D[\ZZ32,ZZ32\](l_i,l_j,l_k,-str_i,-str_j,-str_k)
     forward(): BoundedRange[\(I,J,K)\] =
         self.recombine(self.range1.forward(), self.range2.forward(), self.range3.forward())
     recombine(i:LeftScalarRange[\I\], j:LeftScalarRange[\J\], k:LeftScalarRange[\K\]): LeftRange3D[\I,J,K\] =
         combine3D[\I,J,K\](i, j, k)
-    dump(): String = "LeftRange3D(" l_i "," l_j "," l_k ", " str_i "," str_j "," str_k ")"    
     shiftLeft(shift: (I, J, K)) = do
         (shift_i, shift_j, shift_k) = shift
         LeftRange3D[\I\](l_i-shift_i, l_j-shift_j, l_k-shift, str_i, str_j, str_k)
@@ -656,7 +657,7 @@ object RightScalarRange[\I\](r:I, str:I)
         extends { ScalarRangeWithRight[\I\], PartialScalarRange[\I\], RightRange[\I\] }
     getter stride(): I = str
     getter right(): Just[\I\] = Just[\I\](r)
-    getter toString(): String = do
+    getter asString(): String = do
         t : I := r
         v : String := "]"
         n : I := 1
@@ -668,6 +669,7 @@ object RightScalarRange[\I\](r:I, str:I)
         end
         "..." t || v
       end
+    getter asDebugString(): String = "RightScalarRange(" r "," str ")"
     flip(): LeftScalarRange[\I\] = leftScalarRange[\I\](r, -str)
     forward(): BoundedScalarRange[\I\] =
         if str < 0 then self.flip() else self end
@@ -681,7 +683,6 @@ object RightScalarRange[\I\](r:I, str:I)
         rightScalarRange[\I\](r, s str)
     atMost(n:I): ScalarRange[\I\] =
         fullScalarRange[\I\](r - ( |n| - 1 ) str, r, str)
-    dump(): String = "rightScalarRange(" r "," str ")"
     opr =(self, b:RightScalarRange[\I\]): Boolean = r = b.r AND str = b.str
     opr IN(n:I, self): Boolean =
         (if self.stride > 0 then n <= r else r <= n) AND: (self.stride DIVIDES (r-n))
@@ -696,7 +697,8 @@ object RightScalarRange[\I\](r:I, str:I)
     shiftRight(shift: I): RightScalarRange[\I\] = rightScalarRange[\I\](r + shift, str)  
 end
 
-rightScalarRange[\I extends Integral[\I\]\](r:I, str:I): RightScalarRange[\I\] = RightScalarRange[\I\](r,str).check()
+rightScalarRange[\I extends Integral[\I\]\](r:I, str:I): RightScalarRange[\I\] = 
+        RightScalarRange[\I\](r,str).check()
 
 rightScalarRangeInter[\I extends Integral[\I\]\](r:I, str:I, p:I): RightScalarRange[\I\] =
     rightScalarRange[\I\](atOrBelow(p,r,str),str)
@@ -714,12 +716,12 @@ object RightRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
     getter range1(): RightScalarRange[\I\] = RightScalarRange[\I\](r_i,str_i)
     getter range2(): RightScalarRange[\J\] = RightScalarRange[\J\](r_j,str_j)
+    getter asDebugString(): String = "RightRange2D(" r_i "," r_j ", " str_i "," str_j ")"
     flip(): LeftRange2D[\I,J\] = LeftRange2D[\ZZ32,ZZ32\](r_i,r_j,-str_i,-str_j)
     forward(): BoundedRange[\(I,J)\] =
         self.recombine(self.range1.forward(), self.range2.forward())
     recombine(i:RightScalarRange[\I\], j:RightScalarRange[\J\]): RightRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = "RightRange2D(" r_i "," r_j ", " str_i "," str_j ")"
     shiftLeft(shift: (I,J)) = do
         (shift_i, shift_j) = shift
         LeftRange2D[\I\](r_i-shift_i, r_j-shift_j, str_i, str_j)
@@ -744,12 +746,12 @@ object RightRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends
     getter range1(): RightScalarRange[\I\] = RightScalarRange[\I\](r_i,str_i)
     getter range2(): RightScalarRange[\J\] = RightScalarRange[\J\](r_j,str_j)
     getter range3(): RightScalarRange[\K\] = RightScalarRange[\K\](r_k,str_k)
+    getter asDebugString(): String = "RightRange3D(" r_i "," r_j "," r_k ", " str_i "," str_j "," str_k ")"  
     flip(): LeftRange3D[\I,J,K\] = LeftRange3D[\ZZ32,ZZ32\](r_i,r_j,r_k,-str_i,-str_j,-str_k)
     forward(): BoundedRange[\(I,J,K)\] =
         self.recombine(self.range1.forward(), self.range2.forward(), self.range3.forward())
     recombine(i:RightScalarRange[\I\], j:RightScalarRange[\J\], k:RightScalarRange[\K\]): RightRange3D[\I,J,K\] =
         combine3D[\I,J,K\](i, j, k)
-    dump(): String = "RightRange3D(" r_i "," r_j "," r_k ", " str_i "," str_j "," str_k ")"  
     shiftLeft(shift: (I, J, K)) = do
         (shift_i, shift_j, shift_k) = shift
         RightRange3D[\I\](r_i-shift_i, r_j-shift_j, r_k-shift, str_i, str_j, str_k)
@@ -765,7 +767,7 @@ trait FullScalarRange[\I extends Integral[\I\]\]
                   ScalarRangeWithExtent[\I\], FullRange[\I\] }
     getter extent(): Just[\I\] = Just[\I\](self.size)
     getter bounds(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,size()-1)
-    getter toString(): String =
+    getter asString(): String =
         if self.isEmpty then
             "[]"
         else
@@ -956,8 +958,8 @@ object CompactFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I)
     getter upper(): I = r
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
+    getter asDebugString(): String = "CompactFullParScalarRange(" l "," r ")"
     seq(self): CompactFullSeqScalarRange[\I\] = CompactFullSeqScalarRange[\I\](l,r)
-    dump(): String = "CompactFullParScalarRange(" l "," r ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T =
         if r < l then
             red.empty()
@@ -1002,7 +1004,7 @@ object CompactFullSeqScalarRange[\I extends Integral[\I\]\](l:I, r:I)
     getter upper(): I = r
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
-    dump(): String = "CompactFullSeqScalarRange(" l "," r ")"
+    getter asDebugString(): String = "CompactFullSeqScalarRange(" l "," r ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T = do
         result : T := red.empty()
         i : I := l
@@ -1042,9 +1044,9 @@ object CompactFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
     getter range1(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](l_i,r_i)
     getter range2(): CompactFullScalarRange[\J\] = CompactFullParScalarRange[\J\](l_j,r_j)
+    getter asDebugString(): String = "CompactFullRange2D(" l_i "," l_j ", " r_i "," r_j ")"    
     recombine(i:FullScalarRange[\I\], j:FullScalarRange[\J\]): FullRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = "CompactFullRange2D(" l_i "," l_j ", " r_i "," r_j ")"    
     shiftLeft(shift: (I,J)) = do
         (shift_i, shift_j) = shift
         CompactFullRange2D[\I, J\](l_i-shift_i, l_j-shift_j, r_i-shift_i, r_j-shift_j)
@@ -1076,9 +1078,9 @@ object CompactFullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K e
     getter range1(): CompactFullScalarRange[\I\] = CompactFullParScalarRange[\I\](l_i,r_i)
     getter range2(): CompactFullScalarRange[\J\] = CompactFullParScalarRange[\J\](l_j,r_j)
     getter range3(): CompactFullScalarRange[\K\] = CompactFullParScalarRange[\K\](l_k,r_k)
+    getter asDebugString(): String = "CompactFullRange3D(" l_i "," l_j "," l_k ", " r_i "," r_j "," r_k ")"
     recombine(i:FullScalarRange[\I\], j:FullScalarRange[\J\], k:FullScalarRange[\K\]):
              FullRange3D[\I,J,K\] = combine3D[\I,J,K\](i, j, k)
-    dump(): String = "CompactFullRange3D(" l_i "," l_j "," l_k ", " r_i "," r_j "," r_k ")"
     shiftLeft(shift: (I, J, K)) = do
         (shift_i, shift_j, shift_k) = shift
         CompactFullRange3D[\I, J, K\](l_i-shift_i, l_j-shift_j, l_k-shift_k, 
@@ -1105,10 +1107,10 @@ trait StridedFullScalarRange[\I extends Integral[\I\]\]
         self.map[\(I,I)\](fn (i:I):(I,I) => ((i-self.left.get) DIV self.stride,i))
     getter indices(): Indexed[\I,I\] =
         self.map[\I\](fn (i:I):(I,I) => (i-self.left.get) DIV self.stride)
+    getter asDebugString(): String = "StridedFullScalarRange(" self.left.get "," self.right.get "," self.stride ")"
     opr[i:I]: I =
         if i NOTIN self.bounds then throw IndexOutOfBounds[\I\](self.bounds,i)
         else i self.stride + self.left.get end
-    dump(): String = "StridedFullScalarRange(" self.left.get "," self.right.get "," self.stride ")"
     opr IN(n:I, self): Boolean = do
         l = self.left.get
         r = self.right.get
@@ -1122,8 +1124,8 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
     getter stride(): I = str
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
+    getter asDebugString(): String = "StridedFullParScalarRange(" l "," r "," str ")"
     seq(self): StridedFullSeqScalarRange[\I\] = StridedFullSeqScalarRange[\I\](l,r,str)
-    dump(): String = "StridedFullParScalarRange(" l "," r "," str ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T =
         if str > 0 then
             if r < l then
@@ -1223,8 +1225,8 @@ object StridedFullSeqScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I)
     getter stride(): I = str
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
+    getter asDebugString(): String = "StridedFullSeqScalarRange(" l "," r "," str ")"
     seq(self): StridedFullSeqScalarRange[\I\] = StridedFullSeqScalarRange[\I\](l,r)
-    dump(): String = "StridedFullSeqScalarRange(" l "," r "," str ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T = do
         result : T := red.empty()
         i : I := l
@@ -1281,12 +1283,12 @@ object StridedFullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter right(): Just[\(I,J)\] = Just[\(I,J)\]( r_i, r_j )
     getter range1(): FullScalarRange[\I\] = StridedFullParScalarRange[\I\](l_i,r_i,str_i)
     getter range2(): FullScalarRange[\J\] = StridedFullParScalarRange[\J\](l_j,r_j,str_j)
+    getter asDebugString(): String = ("StridedFullRange2D(" l_i "," l_j ", " r_i "," r_j ", "
+                                          str_i "," str_j ")" )
     forward(): FullRange2D[\I,J\] =
         self.recombine(self.range1.forward(), self.range2.forward())
     recombine(i:FullScalarRange[\I\], j:FullScalarRange[\J\]): StridedFullRange2D[\I,J\] =
         combine2D[\I,J\](i, j)
-    dump(): String = ("StridedFullRange2D(" l_i "," l_j ", " r_i "," r_j ", "
-                                          str_i "," str_j ")" )
     shiftLeft(shift: (I, J)): StridedFullRange2D[\I, J\] = do
         (shift_i, shift_j) = shift
         StridedFullRange2D[\I, J\](l_i-shift_i, l_j-shift_j, r_i-shift, r_j-shift, str_i, str_j)
@@ -1320,13 +1322,13 @@ object StridedFullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K e
     getter range1(): FullScalarRange[\I\] = StridedFullParScalarRange[\I\](l_i,r_i,str_i)
     getter range2(): FullScalarRange[\J\] = StridedFullParScalarRange[\J\](l_j,r_j,str_j)
     getter range3(): FullScalarRange[\K\] = StridedFullParScalarRange[\K\](l_k,r_k,str_k)
+    getter asDebugString(): String = ("StridedFullRange3D(" l_i "," l_j "," l_k ", " r_i "," r_j "," r_k ", "
+                                              str_i "," str_j "," str_k ")" )
     forward(): FullRange3D[\I,J,K\] =
         self.recombine(self.range1.forward(), self.range2.forward(), self.range3.forward())
     recombine(i:FullScalarRange[\I\], j:FullScalarRange[\J\], k:FullScalarRange[\K\]):
             StridedFullRange3D[\I,J,K\] = combine3D[\I,J,K\](i, j, k)
-    dump(): String = ("StridedFullRange3D(" l_i "," l_j "," l_k ", " r_i "," r_j "," r_k ", "
-                                          str_i "," str_j "," str_k ")" )
-end
+  end
 
 
 fullScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I): FullScalarRange[\I\] =

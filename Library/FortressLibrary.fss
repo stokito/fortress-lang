@@ -79,13 +79,12 @@ copy[\T extends Any\](x:T): T =
 *)
 
 trait Region extends Equality[\Region\]
-    getter toString(): String
     isLocalTo(r: Region): Boolean = false
     opr =(self, other:Region): Boolean = self SEQV other
 end
 
 object Global extends Region
-    getter toString(): String = "Global"
+    getter asString(): String = "Global"
     isLocalTo(_: Region): Boolean = true
 end
 
@@ -113,7 +112,7 @@ end
 object LexicographicPartialReduction
         extends { MonoidReduction[\Comparison\],
                   ReductionWithZeroes[\Comparison, Comparison\] }
-    getter toString():String = "Lexicographic reduction on partial order"
+    getter asString():String = "Lexicographic reduction on partial order"
     empty(): Comparison = EqualTo
     join(a:Comparison, b:Comparison):Comparison = a LEXICO b
     isZero(_:Unordered): Boolean = true
@@ -123,7 +122,7 @@ end
 object LexicographicReduction
         extends { MonoidReduction[\TotalComparison\],
                   ReductionWithZeroes[\TotalComparison, TotalComparison\] }
-    getter toString():String = "Lexicographic reduction on total order"
+    getter asString():String = "Lexicographic reduction on total order"
     empty(): TotalComparison = EqualTo
     join(a:TotalComparison, b:TotalComparison):TotalComparison = a LEXICO b
     isLeftZero(_:EqualTo): Boolean = false
@@ -139,7 +138,7 @@ opr BIG LEXICO(g: Generator[\TotalComparison\]) =
 trait Comparison
         extends { StandardPartialOrder[\Comparison\] }
         comprises { Unordered, TotalComparison }
-    getter toString(): String
+    getter asString(): String
     opr =(self, other:Comparison): Boolean = false
     (** Lexicographic ordering.  First non-equal comparison dictates result. *)
     opr LEXICO(self, other:Comparison): Comparison = Unordered
@@ -155,7 +154,7 @@ end
 (** Unordered is the outcome of a CMP b when a and b are partially
     ordered and no ordering relationship exists between them. **)
 object Unordered extends Comparison
-    getter toString(): String = "Unordered"
+    getter asString(): String = "Unordered"
     opr =(self, other:Unordered): Boolean = true
     opr <(self, other:Comparison): Boolean = false
     opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = Unordered
@@ -180,7 +179,7 @@ trait TotalComparison
 end
 
 object LessThan extends TotalComparison
-    getter toString(): String = "LessThan"
+    getter asString(): String = "LessThan"
     opr =(self, other:LessThan): Boolean = true
     opr CMP(self, other:LessThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
@@ -192,7 +191,7 @@ object LessThan extends TotalComparison
 end
 
 object GreaterThan extends TotalComparison
-    getter toString(): String = "GreaterThan"
+    getter asString(): String = "GreaterThan"
     opr =(self, other:GreaterThan): Boolean = true
     opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = LessThan
@@ -203,7 +202,7 @@ object GreaterThan extends TotalComparison
 end
 
 object EqualTo extends TotalComparison
-    getter toString(): String = "EqualTo"
+    getter asString(): String = "EqualTo"
     opr =(self, other:EqualTo): Boolean = true
     opr CMP(self, other:TotalComparison): TotalComparison = INVERSE other
     opr <(self, other:GreaterThan): Boolean = true
@@ -343,7 +342,6 @@ trait Number
         comprises { RR64 }
     getter zero(): Number = 0.0
     getter one(): Number = 1.0
-    getter toString(): String
     asFloat(self): RR64
     opr |self| : Number = |asFloat(self)|
     opr =(self, b:Number):Boolean = asFloat(self) = asFloat(b)
@@ -579,7 +577,7 @@ trait QQ extends { RR64, StandardPartialOrder[\QQ\] }
 end
 
 object Ratio(num: ZZ, den: ZZ) extends { QQ }
-    getter toString(): String = num.toString || "/" || den.toString
+    getter asString(): String = num.asString || "/" || den.asString
     getter isNaN(): Boolean = (numerator(self) = 0 AND denominator(self) = 0)
     getter isInfinite(): Boolean = (numerator(self) =/= 0 AND denominator(self) = 0)
     (* note: The following will be wrong if num is very large but
@@ -937,7 +935,7 @@ opr NOTNI[\E\](this: Contains[\E\], x:E): Boolean = x NOTIN this
 trait Generator[\E\] extends { Contains[\E\] }
         excludes { Number }
 
-    getter toString(): String = (BIG ||[i <- self] "," i)[1:]
+    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
 
     (** generate is the core of Generator.  It generates elements of
         type E and passes them to the body function.  This generation
@@ -1117,7 +1115,7 @@ __bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
   end
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    getter toString(): String = "seq(" (self asif Generator[\E\]).toString ")"
+    getter asString(): String = "seq(" (self asif Generator[\E\]).asString ")"
     seq(self): SequentialGenerator[\E\] = self
     map[\G\](f: E->G): SequentialGenerator[\G\] =
         SimpleMappedSeqGenerator[\E,G\](self,f)
@@ -1253,7 +1251,7 @@ end
 
 value object Just[\T\](x:T) extends Maybe[\T\]
     getter size()=1
-    getter toString():String = "Just(" x ")"
+    getter asString():String = "Just(" x ")"
     getter holds() = true
     getter get() = x
     opr |self| : ZZ32 = 1
@@ -1280,7 +1278,7 @@ value object Nothing[\T\] extends Maybe[\T\]
     getter size()=0
     getter holds() = false
     getter get() = throw NotFound
-    getter toString():String = "Nothing"
+    getter asString():String = "Nothing"
     opr |self| : ZZ32 = 0
     getDefault(t:T):T = t
     cond[\R\](_:T->R, e:()->R): R = e()
@@ -1311,76 +1309,76 @@ trait UncheckedException extends Exception excludes CheckedException
 end
 
 object FailCalled(s:String) extends UncheckedException
-    getter toString(): String = "FAIL: " s
+    getter asString(): String = "FAIL: " s
 end
 
 object DivisionByZero extends UncheckedException
-    getter toString(): String = "Division by zero"
+    getter asString(): String = "Division by zero"
 end
 
 object UnpastingError extends UncheckedException
-    getter toString(): String = "Unpasting error"
+    getter asString(): String = "Unpasting error"
 end
 
 object CallerViolation extends UncheckedException
-    getter toString(): String = "Caller violation"
+    getter asString(): String = "Caller violation"
 end
 
 object CalleeViolation extends UncheckedException
-    getter toString(): String = "Callee violation"
+    getter asString(): String = "Callee violation"
 end
 
 object LabelException extends UncheckedException
-    getter toString(): String = "Exiting without an enclosing label block"
+    getter asString(): String = "Exiting without an enclosing label block"
 end
 
 object TestFailure extends UncheckedException
-    getter toString(): String = "Test failure"
+    getter asString(): String = "Test failure"
 end
 
 object ContractHierarchyViolation extends UncheckedException
-    getter toString(): String = "Contract hierarchy violation"
+    getter asString(): String = "Contract hierarchy violation"
 end
 
 object NoEqualityOnFunctions extends UncheckedException
-    getter toString(): String = "No equality on functions"
+    getter asString(): String = "No equality on functions"
 end
 
 object InvalidRange extends UncheckedException
-    getter toString(): String = "Invalid range"
+    getter asString(): String = "Invalid range"
 end
 
 object ForbiddenException(chain : Exception) extends UncheckedException
-    getter toString(): String = "Forbidden exception"
+    getter asString(): String = "Forbidden exception"
 end
 
 (* Should this be called "IndexNotFound" instead? *)
 object NotFound extends UncheckedException
-    getter toString(): String = "Not found"
+    getter asString(): String = "Not found"
 end
 
 object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
-    getter toString(): String = index " is outside the range " range
+    getter asString(): String = index " is outside the range " range
 end
 
 object EmptyReduction extends UncheckedException
-    getter toString(): String = "EmptyReduction: no identity, no elements"
+    getter asString(): String = "EmptyReduction: no identity, no elements"
 end
 
 object NegativeLength extends UncheckedException
-    getter toString(): String = "Negative length"
+    getter asString(): String = "Negative length"
 end
 
 object IntegerOverflow extends UncheckedException
-    getter toString(): String = "Integer Overflow"
+    getter asString(): String = "Integer Overflow"
 end
 
 object RationalComparisonError extends UncheckedException
-    getter toString(): String = "Rational comparison error"
+    getter asString(): String = "Rational comparison error"
 end
 
 object FloatingComparisonError extends UncheckedException
-    getter toString(): String = "Floating comparison error"
+    getter asString(): String = "Floating comparison error"
 end
 
 (* Checked Exceptions *)
@@ -1389,45 +1387,45 @@ trait CheckedException extends Exception excludes UncheckedException
 end
 
 object CastError extends CheckedException
-    getter toString(): String = "Cast error"
+    getter asString(): String = "Cast error"
 end
 
 object IOFailure extends CheckedException
-    getter toString(): String = "I/O error"
+    getter asString(): String = "I/O error"
 end
 
 object MatchFailure extends CheckedException
-    getter toString(): String = "Match failure"
+    getter asString(): String = "Match failure"
 end
 
 (* SetsNotDisjoint? *)
 object DisjointUnionError extends CheckedException
-    getter toString(): String = "Disjoint union error"
+    getter asString(): String = "Disjoint union error"
 end
 
 object APIMissing extends CheckedException
-    getter toString(): String = "Api is missing"
+    getter asString(): String = "Api is missing"
 end
 
 object APINameCollision extends CheckedException
-    getter toString(): String = "Api name collides with another"
+    getter asString(): String = "Api name collides with another"
 end
 
 object ExportedAPIMissing extends CheckedException
-    getter toString(): String = "Exported api is missing"
+    getter asString(): String = "Exported api is missing"
 end
 
 object HiddenAPIMissing extends CheckedException
-    getter toString(): String = "Hidden api is missing"
+    getter asString(): String = "Hidden api is missing"
 end
 
 object TryAtomicFailure extends CheckedException
-    getter toString(): String = "Try/atomic failure"
+    getter asString(): String = "Try/atomic failure"
 end
 
 (* Should take a spawned thread as an argument *)
 object AtomicSpawnSynchronization extends {UncheckedException}
-    getter toString(): String = "Atomic spawn synchronization"
+    getter asString(): String = "Atomic spawn synchronization"
 end
 
 (************************************************************
@@ -1871,7 +1869,7 @@ trait ReadableArray1[\T, nat b0, nat s0\]
     getter size():ZZ32 = s0
     getter bounds():CompactFullRange[\ZZ32\] = sized1Range[\ZZ32\](0,b0,s0)
     getter mutability():String
-    getter toString(): String = do
+    getter asString(): String = do
         r = "[" b0 "#" s0 "]" self.mutability "["
         if s0=0 then
             r "]"
@@ -2148,7 +2146,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     excludes { Number, String }
   getter size():ZZ32 = s0 s1
   getter bounds():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,b0,b1,s0,s1)
-  getter toString(): String = do
+  getter asString(): String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "]"
     row(i) =
       for j <- seq(0#s1) do
@@ -2527,7 +2525,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     getter bounds():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
         sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,b0,b1,b2,s0,s1,s2)
 
-    getter toString():String = do
+    getter asString():String = do
       r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "]"
       row(i,k) =
           for j <- seq(0#s1) do
@@ -2695,7 +2693,6 @@ end
     unlift(lift(x)) = x
  **)
 trait ActualReduction[\R,L\] extends Reduction[\L\]
-    getter toString():String
     lift(r: Any): L
     unlift(l:L): R
     (** If this reduction left-distributes over r, return a pair of
@@ -2796,14 +2793,14 @@ end
     distributing over void (that would change the number of effects in
     our program) but not void distributing over other things. **)
 object VoidReduction extends { CommutativeMonoidReduction[\()\] }
-    getter toString(): String = "VoidReduction"
+    getter asString(): String = "VoidReduction"
     empty(): () = ()
     join(a: (), b: ()): () = ()
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
 object SumReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString(): String = "SumReduction"
+    getter asString(): String = "SumReduction"
     empty(): Number = 0
     join(a: Number, b: Number): Number = a+b
 end
@@ -2815,7 +2812,7 @@ opr SUM[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](SUM[\T\](), g)
 
 object ProdReduction extends CommutativeMonoidReduction[\Number\]
-    getter toString(): String = "ProdReduction"
+    getter asString(): String = "ProdReduction"
     empty(): Number = 1
     join(a:Number, b:Number): Number = a b
 end
@@ -2827,7 +2824,7 @@ opr PROD[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](PROD[\T\](), g)
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
-    getter toString(): String = "MinReduction"
+    getter asString(): String = "MinReduction"
     simpleJoin(a, b) = a MIN b
 end
 
@@ -2838,7 +2835,7 @@ opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MIN[\T\](), g)
 
 object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
-    getter toString(): String = "MaxReduction"
+    getter asString(): String = "MaxReduction"
     simpleJoin(a, b) = a MAX b
 end
 
@@ -2866,7 +2863,7 @@ opr BIG MAXNUM(g: Generator[\RR64\]) =
 object AndReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString(): String = "AndReduction"
+    getter asString(): String = "AndReduction"
     empty(): Boolean = true
     join(a: Boolean, b: Boolean): Boolean = a AND b
     isZero(a:Boolean): Boolean = NOT a
@@ -2881,7 +2878,7 @@ opr BIG AND[\T\](g: Generator[\Boolean\]) =
 object OrReduction
         extends { CommutativeMonoidReduction[\Boolean\],
                   ReductionWithZeroes[\Boolean,Boolean\] }
-    getter toString(): String = "OrReduction"
+    getter asString(): String = "OrReduction"
     empty(): Boolean = false
     join(a: Boolean, b: Boolean): Boolean = a OR b
     isZero(a:Boolean): Boolean = a
@@ -2895,21 +2892,21 @@ opr BIG OR[\T\](g: Generator[\Boolean\]) =
 
 (** A reduction performing String concatenation **)
 object StringReduction extends MonoidReduction[\String\]
-    getter toString(): String = "StringReduction"
+    getter asString(): String = "StringReduction"
     empty(): String = ""
     join(a:String, b:String): String = a || b
 end
 
 (** A reduction performing String concatenation with a space **)
 object SpaceReduction extends MonoidReduction[\String\]
-    getter toString(): String = "StringReduction"
+    getter asString(): String = "StringReduction"
     empty(): String = ""
     join(a:String, b:String): String = a ||| b
 end
 
 (** A reduction performing String concatenation with newline separation **)
 object NewlineReduction extends AssociativeReduction[\String\]
-    getter toString(): String = "NewlineReduction"
+    getter asString(): String = "NewlineReduction"
     simpleJoin(a, b) = a // b
 end
 
@@ -2946,7 +2943,7 @@ opr BIG //(g: Generator[\Any\]) =
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
-    getter toString(): String = "mapReduceReduction"
+    getter asString(): String = "mapReduceReduction"
     empty(): R = z
     join(a:R, b:R): R = (j)(a,b)
 end
@@ -2955,7 +2952,7 @@ end
     arguments of type %R%, and the identity of that function %z%, and
     returns the corresponding reduction. **)
 object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
-    getter toString():String="MIMapReduceReduction from embiggen"
+    getter asString():String="MIMapReduceReduction from embiggen"
     empty(): R = z
     join(a:Any, b:Any): R = (j)(a,b)
 end
@@ -2980,7 +2977,7 @@ trait SomeMappedGenerator[\F\] extends Generator[\F\] end
 trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> F
-    getter toString(): String = "mapped(" (self asif Generator[\F\]).toString ")"
+    getter asString(): String = "mapped(" (self asif Generator[\F\]).asString ")"
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r, m COMPOSE self.f)
     reduce(r: Reduction[\F\]): F =
@@ -3020,14 +3017,14 @@ object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
         extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = "mapped(" (self asif SequentialGenerator[\F\]).toString ")"
+    getter asString() = "mapped(" (self asif SequentialGenerator[\F\]).asString ")"
     seq(self): SimpleMappedSeqGenerator[\E,F\] = self
 end
 
 trait FilterGenerator[\E\] extends Generator[\E\]
     getter g(): Generator[\E\]
     getter p(): E -> Condition[\()\]
-    getter toString(): String = self.g ".filter(p)"
+    getter asString(): String = self.g ".filter(p)"
     generate[\R\](r:Reduction[\R\], m: E->R): R =
         self.g.generate[\R\](r, fn(e:E):R => if (self.p)(e).holds then m(e) else r.empty() end)
     reduce(r: Reduction[\E\]): E =
@@ -3047,14 +3044,14 @@ object SimpleSeqFilterGenerator[\E\](g0: SequentialGenerator[\E\], p0: E->Condit
         extends { FilterGenerator[\E\], SequentialGenerator[\E\] }
     getter g(): Generator[\E\]       = g0
     getter p(): E -> Condition[\()\]  = p0
-    getter toString() = "seq(" g0 ".filter(p))"
+    getter asString() = "seq(" g0 ".filter(p))"
     seq(self): SimpleSeqFilterGenerator[\E\] = self
 end
 
 trait NestedGenerator[\E,F\] extends Generator[\F\]
     getter g(): Generator[\E\]
     getter f(): E -> Generator[\F\]
-    getter toString(): String
+    getter asString(): String
     generate[\R\](r: Reduction[\R\], m: F->R): R =
         self.g.generate[\R\](r,fn (e:E):R => (self.f)(e).generate[\R\](r,m))
     mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
@@ -3077,7 +3074,7 @@ object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
         extends { NestedGenerator[\E,F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = self.g ".nest(f)"
+    getter asString() = self.g ".nest(f)"
     seq(self): SequentialGenerator[\E\] =
         typecase ff = self.f of
             (E -> SequentialGenerator[\F\]) =>
@@ -3093,14 +3090,14 @@ object SimpleNestedSeqGenerator[\E,F\]
         extends { NestedGenerator[\E,F\], SequentialGenerator[\F\] }
     getter g() = g0
     getter f() = f0
-    getter toString() = "seq(" self.g ".nest(f))"
+    getter asString() = "seq(" self.g ".nest(f))"
 end
 
 trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
   comprises { SimplePairGenerator[\E,F\], SimplePairSeqGenerator[\E,F\] }
     getter e(): Generator[\E\]
     getter f(): Generator[\F\]
-    getter toString(): String
+    getter asString(): String
     getter size():ZZ32 = |self|
     opr |self| : ZZ32 = |self.e| |self.f|
     generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
@@ -3112,7 +3109,7 @@ object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
         extends PairGenerator[\E,F\]
     getter e() = e0
     getter f() = f0
-    getter toString()=(e0 ".cross(" f0 ")" )
+    getter asString()=(e0 ".cross(" f0 ")" )
     seq(self): SequentialGenerator[\E\] = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
 end
 
@@ -3121,7 +3118,7 @@ object SimplePairSeqGenerator[\E,F\]
         extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
     getter e() = e0
     getter f() = f0
-    getter toString()=("seq(" e ".cross(" f "))" )
+    getter asString()=("seq(" e ".cross(" f "))" )
 end
 
 (** Helper for serializing generators naively.  This code should make
@@ -3142,7 +3139,7 @@ end
 object NaiveSeqGenerator[\E\](g: Generator[\E\])
         extends SequentialGenerator[\E\]
     getter size() = |g|
-    getter toString():String = "naive seq(" g.toString ")"
+    getter asString():String = "naive seq(" g.asString ")"
     opr |self| : ZZ32 = |g|
     generate[\R\](r: Reduction[\R\], m:E->R): R = do
       rcompose(f:R->R, f':R->R): R->R = fn (x:R):R => f'(f(x))
@@ -3170,10 +3167,8 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     getter left(): Maybe[\I\]
     getter right(): Maybe[\I\]
     getter extent(): Maybe[\I\]
-    getter isEmpty(): Boolean
     getter isLeftBounded(): Boolean = self.left.holds
     getter isAnyBounded(): Boolean = self.left.holds OR self.right.holds
-    getter toString(): String
     truncL(l:I): RangeWithLeft[\I\]
     truncR(r:I): RangeWithRight[\I\] = self.flip().truncL(r).flip()
     flip(): Range[\I\]
@@ -3208,7 +3203,6 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
         ((self.stride SCMP other.stride) SYMMETRIC_PARTIAL:
          (self.forward() FORWARD_CMP other.forward()))
     opr FORWARD_CMP(self, other:Range[\I\]): Comparison
-    dump(): String
     check(): Range[\I\]
     abstract shiftLeft(shift: I): Range[\I\] ensures { |outcome| = |self| }
     abstract shiftRight(shift: I): Range[\I\] ensures { |outcome| = |self| }
@@ -3233,7 +3227,8 @@ trait OpenRange[\I\] extends PartialRange[\I\]
 end
 
 object TrivialOpenRange extends OpenRange[\Any\]
-    getter toString(): String = ":"
+    getter asString(): String = ":"
+    getter asDebugString(): String = "TrivialOpenRange()"
     getter stride(): () = ()
     truncL(x:Any): RangeWithLeft[\Any\] = (x#)
     truncR(x:Any): RangeWithRight[\Any\] = (:x)
@@ -3245,7 +3240,6 @@ object TrivialOpenRange extends OpenRange[\Any\]
     opr INTERSECTION(self, other:Range[\Any\]): Range[\Any\] = other
     opr =(self, other:Range[\Any\]): Boolean = instanceof[\TrivialOpenRange\](other)
     opr IN(_:Any, self): Boolean = true
-    dump(): String = "#"
     check(): TrivialOpenRange = self
 end
 
@@ -3495,19 +3489,13 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\] = r.atMost(size)
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
              excludes {Number, Char, AnyMultiplicativeRing, AnyList}
     getter size() : ZZ32
-    getter toString() : String = self
+    getter asString() : String = self
     getter indices() : CompactFullRange[\ZZ32\] = self.bounds
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
        CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
     getter generator() : Generator[\Char\] =
         self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
-    getter depth() = 0
     getter asJavaString(): String
-
-    getter showStructure(): String = do
-        showStructure(0)
-        self
-      end
 
     opr |self| : ZZ32 = self.size
 
@@ -3538,7 +3526,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     (** The operator %||% with at least one String argument converts to String and
         appends **)
     opr ||(self, b:String):String
-    opr ||(self, b:Number):String = self || b.toString
+    opr ||(self, b:Number):String = self || b.asString
     opr ||(self, c:Char):String
     opr ||(self, b:()):String = self || "()"
     opr ||(self, b:(Any,Any)):String = do (i,j) = b; self || "(" || i || "," j || ")" end
@@ -3550,8 +3538,8 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         do (i,j,k,l,m) = b; self || "(" || i || "," j || "," k || "," l || "," m || ")" end
     opr ||(self, b:(Any,Any,Any,Any,Any,Any)):String =
         do (i,j,k,l,m,n) = b; self || "(" || i || "," j || "," k || "," l || "," m || "," n || ")" end
-    opr ||(a:Any, self):String = a.toString || self
-    opr ||(self, b:Any):String = self || b.toString
+    opr ||(a:Any, self):String = a.asString || self
+    opr ||(self, b:Any):String = self || b.asString
 
     (** The operator %|||% with at least one String argument converts to string,
         then appends with a whitespace separator unless one of the two arguments is
@@ -3620,7 +3608,7 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
 
-print(a:Any):() = print("" a)           (* These use concatenation rather than .toString because the formulation *)
+print(a:Any):() = print("" a)           (* These use concatenation rather than .asString because the formulation *)
 println(a:Any):() = println("" a)     (* with concat also works for tuples *)
 
 (* 0-argument versions handle passing of the empty string to single-argument versions. *)
@@ -3664,7 +3652,7 @@ strToInt(s: String, radix: ZZ32): ZZ32 = do
     r = SUM[ i <- i0:n] if d <- digit(s[i], radix) then
                           d radix^(n-i)
                       else
-                          fail("strToInt(" s.toString "," radix "): non-digit " s[i].toString)
+                          fail("strToInt(" s.asString "," radix "): non-digit " s[i].asString)
                       end
     if neg then -r else r end
   end

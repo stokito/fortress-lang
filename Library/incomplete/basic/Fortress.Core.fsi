@@ -17,11 +17,11 @@
 
 trait Any
   getter hashCode(): NN64
+  getter toString(): String
   opr ===(self, other: Any): Boolean
   opr IDENTITY(self): Any
   hash(maxval: NN64): NN64
   hash(maxval: NN32): NN32
-  toString(): String
   property FORALL (x, y, n: NN64) x === y IMPLIES x.hash(n) === y.hash(n)
   property FORALL (x, y, n: NN32) x === y IMPLIES x.hash(n) === y.hash(n)
   property FORALL (x) x.hashCode === x.hash(2^64-1)
