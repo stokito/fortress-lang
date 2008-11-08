@@ -645,6 +645,16 @@ public class Useful {
     public static <T> List<T> list() {
         return Collections.emptyList();
       }
+    
+    public static <T> List<T> immutableTrimmedList(List<T> x) {
+        int l = x.size();
+        if (l == 0)
+            return Collections.<T>emptyList();
+        if (l == 1)
+            return Collections.<T>singletonList(x.get(0));
+        return new ArrayList<T>(x);
+        
+    }
 
     /**
      * Calls {@ prepend}

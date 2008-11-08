@@ -80,7 +80,9 @@ public class Init {
                 String pid = Useful.getPid();
                 if (pid == null)
                     pid = "<this process id>";
-                System.err.println("Now is a good time to attach to this process with \"jmap -heap:format=b " + pid + "\"\n" +
+                System.err.println(
+                        "Now is a good time to attach to this process with \"jmap -heap:format=b " + pid + "\"\n" +
+                        "After that, you can run \"hat heap.bin\" and browse the heap at http://localhost:7000 \n" +
                         "Now sleeping for a very long time...");
                  Thread.sleep(1000000000);
              } catch (InterruptedException ex) {

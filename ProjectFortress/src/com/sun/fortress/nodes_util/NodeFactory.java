@@ -77,7 +77,7 @@ public class NodeFactory {
     }
 
     public static APIName makeAPINameSkipLast(Id first, Id rest) {
-        ArrayList<Id> ids = new ArrayList<Id>();
+        List<Id> ids = new ArrayList<Id>();
         Id last = first;
         ids.add(first);
         if (rest.getApi().isSome()) {
@@ -85,18 +85,18 @@ public class NodeFactory {
             ids.addAll(apiNames);
             if (!IterUtil.isEmpty(apiNames)) last = IterUtil.last(apiNames);
         }
-        ids.trimToSize();
+        ids = Useful.immutableTrimmedList(ids);
         return new APIName(FortressUtil.spanTwo(first, last), ids);
     }
 
     public static APIName makeAPIName(Id first, Id rest) {
-        ArrayList<Id> ids = new ArrayList<Id>();
+        List<Id> ids = new ArrayList<Id>();
         ids.add(first);
         if (rest.getApi().isSome()) {
             ids.addAll(rest.getApi().unwrap().getIds());
         }
         ids.add(new Id(rest.getSpan(), rest.getText()));
-        ids.trimToSize();
+        ids = Useful.immutableTrimmedList(ids);
         return new APIName(FortressUtil.spanTwo(first, rest), ids);
     }
 
@@ -432,14 +432,14 @@ public class NodeFactory {
     }
 
     private static List<Id> stringToIds(String path) {
-        ArrayList<Id> ids = new ArrayList<Id>();
+        List<Id> ids = new ArrayList<Id>();
 
         StringTokenizer st = new StringTokenizer(path, ".");
         while (st.hasMoreTokens()) {
             String e = st.nextToken();
             ids.add(makeId(e));
         }
-        ids.trimToSize();
+        ids = Useful.immutableTrimmedList(ids);
         return ids;
     }
 
@@ -475,7 +475,7 @@ public class NodeFactory {
      */
 
     public static APIName makeAPINameFromPath(Span span, String path, String delimiter) {
-        ArrayList<Id> ids = new ArrayList<Id>();
+        List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
         if (file.length() <= 4) {
             return error(new Id(span, "_"), "Invalid file name.");
@@ -483,7 +483,7 @@ public class NodeFactory {
         for (String n : file.substring(0, file.length()-4).split(delimiter)) {
             ids.add(new Id(span, n));
         }
-        ids.trimToSize();
+        ids = Useful.immutableTrimmedList(ids);
         return new APIName(span, ids);
     }
 
@@ -519,9 +519,9 @@ public class NodeFactory {
     }
 
     public static Id makeId(Span span, String api, String name) {
-        ArrayList<Id> apis = new ArrayList<Id>();
+        List<Id> apis = new ArrayList<Id>();
         apis.add(makeId(span, api));
-        apis.trimToSize();
+        apis = Useful.immutableTrimmedList(apis);
         return new Id(span, Option.some(new APIName(span, apis)), name);
     }
 
@@ -726,19 +726,19 @@ public class NodeFactory {
 
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension) {
-        ArrayList<ExtentRange> dims = new ArrayList<ExtentRange>();
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
-        dims.trimToSize();
+        dims = Useful.immutableTrimmedList(dims);
         return new MatrixType(span, element, dims);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension,
                                             List<ExtentRange> dimensions) {
-        ArrayList<ExtentRange> dims = new ArrayList<ExtentRange>();
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
         dims.add(dimension);
         dims.addAll(dimensions);
-        dims.trimToSize();
+        dims = Useful.immutableTrimmedList(dims);
         return new MatrixType(span, element, dims);
     }
 

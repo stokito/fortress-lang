@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.Level;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -630,8 +631,7 @@ public class Unprinter extends NodeReflection {
             } else if (s.startsWith("\"")) {
                 x = deQuote(s).intern(); // Intermediate form is quoted.
             } else if (s.startsWith("]")) {
-                a.trimToSize();
-                return a;
+                return Useful.immutableTrimmedList(a);
             } else {
                 return bug("List of unknown element beginning " + s);
             }
