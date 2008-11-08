@@ -233,4 +233,10 @@ private static BigInteger choose(BigInteger n, BigInteger k) {
     return accum;
 }
 
+@Override
+protected void unregister() {
+    FIntLiteral.resetConstructor();
+    
+}
+
 }

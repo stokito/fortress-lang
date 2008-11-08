@@ -16,6 +16,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator;
+import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.types.BottomType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
@@ -60,9 +61,7 @@ public class Init {
         FTypeRange.ONLY.resetState();
 
         NativeApp.reset();
-
-        
-
+        Driver.reset();
     }
 
     public static void allowForLeakChecks() {

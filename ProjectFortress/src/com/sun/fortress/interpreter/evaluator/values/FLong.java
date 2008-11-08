@@ -177,4 +177,8 @@ public class FLong extends NativeConstructor.FNativeObject implements HasIntValu
     public NativeConstructor getConstructor() {
         return FLong.con;
     }
+
+    public static void resetConstructor() {
+        FLong.con = null;        
+    }
 }

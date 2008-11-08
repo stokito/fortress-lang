@@ -220,4 +220,10 @@ public class FileReadStream extends NativeConstructor {
             return FVoid.V;
         }
     }
+
+    @Override
+    protected void unregister() {
+        con = null;
+        
+    }
 }

@@ -40,4 +40,9 @@ public class Boolean extends NativeConstructor {
         return FBool.TRUE;
     }
 
+    @Override
+    protected void unregister() {
+        FBool.resetConstructor();        
+    }
+
 }

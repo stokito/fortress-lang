@@ -79,4 +79,8 @@ public class FBigNum extends NativeConstructor.FNativeObject
     public NativeConstructor getConstructor() {
         return FBigNum.con;
     }
+
+    public static void resetConstructor() {
+        FBigNum.con = null;
+    }
 }

@@ -137,4 +137,8 @@ public class FChar extends NativeConstructor.FNativeObject {
         if (!(v instanceof FChar)) return false;
         return getChar()==((FChar)v).getChar();
     }
+
+    public static void resetConstructor() {
+        FChar.con = null;        
+    }
 }

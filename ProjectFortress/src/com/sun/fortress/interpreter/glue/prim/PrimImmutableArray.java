@@ -124,4 +124,11 @@ public class PrimImmutableArray extends NativeConstructor {
         }
     }
 
+    @Override
+    protected void unregister() {
+        // Apparently not necessary for this class; on the other hand,
+        // perhaps it's wrong to cache the "con" with each and every
+        // allocated object.  See other PrimImmutableArray types, also.
+    }
+
 }

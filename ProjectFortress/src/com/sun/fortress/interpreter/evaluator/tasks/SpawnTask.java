@@ -41,6 +41,8 @@ public class SpawnTask extends BaseTask {
         Environment e = eval.e;
         val = fcn.apply(args, loc, e);
         resultIsReady = true;
+        fcn = null;
+        eval = null;
     }
 
     public SpawnTask(SingleFcn sf, Evaluator e) {

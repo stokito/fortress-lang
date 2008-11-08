@@ -251,5 +251,10 @@ public static final class ToString extends F2S {
 public static final class AsFloat extends F2R {
     protected double f(float x) { return (double)x; }
 }
+@Override
+protected void unregister() {
+    FRR32.resetConstructor();
+    
+}
 
 }

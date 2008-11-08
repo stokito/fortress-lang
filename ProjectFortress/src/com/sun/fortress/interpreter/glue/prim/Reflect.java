@@ -116,4 +116,10 @@ public class Reflect extends NativeConstructor {
             return FString.make("Reflect[\\"+ty.toString()+"\\]");
         }
     }
+
+    @Override
+    protected void unregister() {
+        gcon = null;
+        
+    }
 }

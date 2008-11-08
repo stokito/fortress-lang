@@ -216,4 +216,10 @@ public static int rc(long i) {
     return (int)i;
 }
 
+@Override
+protected void unregister() {
+    FNN32.resetConstructor();
+    
+}
+
 }
