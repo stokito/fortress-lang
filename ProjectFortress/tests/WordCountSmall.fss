@@ -112,8 +112,8 @@ processFile(name:String):() = do
     end
     assert(|invDatabase|, 0, "Still entries in invDatabase ", invDatabase)
     finish = nanoTime()
-    time("Outputted",inv,finish)
-    time("Total run",start,finish)
+    time("Output", inv, finish)
+    time("Total run", start, finish)
 end
 
 
