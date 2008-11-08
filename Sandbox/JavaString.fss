@@ -1,0 +1,144 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+native component JavaString
+import String.{CatString, EmptyString, StringDebug, spaces}
+import FlatStringInfo.{...}
+export JavaString
+
+
+language="java"
+package="com.sun.fortress.interpreter.glue.prim"
+
+  object JavaString extends {String,  StringDebug}
+    getter size() : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+    getter toString() : String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
+    getter asJavaString(): String = self
+    getter depth() = 0
+    getter isBalanced() = true
+    getter isAlmostBalanced() = true
+    
+    opr |self| : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
+        
+    uncheckedSubstring(r1: Range[\ZZ32\]) : String = do
+    (* We could build a subString node here, but not until everything is working, 
+        because that will introduce 
+       SubString objects into code that may still expect JavaStrings.
+       In any case,  JavaString object supports substring without copying*)
+        assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty, 
+            "\nSubstring out of bounds: r1 = ", r1.asString, " = " r1.asDebugString, 
+            "; r1 isEmpty = ", r1.isEmpty, 
+            "\nself = ", self.asDebugString)
+        if r1.isEmpty then ""
+        else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
+        end
+    end
+        
+    opr =(self, other: JavaString): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")
+    opr <(self, other: JavaString): Boolean = self.cmp(other) < 0
+    opr <=(self, other: JavaString): Boolean = self.cmp(other) <= 0
+    opr >(self, other: JavaString): Boolean = self.cmp(other) > 0
+    opr >=(self, other: JavaString): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other: JavaString): TotalComparison =  self.cmp(other) CMP 0
+    opr CMP(self, other:String):TotalComparison = INVERSE (other CMP self)
+    opr CASE_INSENSITIVE_CMP(self, other:JavaString): TotalComparison =
+      self.cicmp(other) CMP 0
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = INVERSE (other CASE_INSENSITIVE_CMP self)
+
+    (** get skips bounds checking. **)
+    get(i:ZZ32): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Index")
+    cmp(other:JavaString): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Cmp")
+    cicmp(other:JavaString): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$CICmp")
+    javaSubstr(lo:ZZ32,hi:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Substr")
+    javaIndexOf(c:Char): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$IndexOf")
+    javaAppend(self, b:JavaString):String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+    javaAppend(self, b:Char):String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$App")
+
+    print(self): () = 
+        javaPrint(self)
+    println(self): () = 
+        javaPrintln(self)
+    writeOn(stream): () =
+        stream.write(self)
+        
+
+    indexOf(c:Char): Maybe[\ZZ32\] = do
+        i = javaIndexOf(c)
+        if i = -1 then Nothing[\ZZ32\] else Just[\ZZ32\](i) end
+      end
+      
+    verify() = do
+        assert(self.depth, 0, self)
+    end
+    
+    asDebugStringIndented(indent: ZZ32): String =
+        spaces(indent) || "J" |self| "/" self.depth ":" self
+         
+    opr IN(c:Char, self): Boolean = self.javaIndexOf(c) =/= -1
+    
+    rangeContains(r: Range[\ZZ32\], c: Char) = self.javaIndexOf(c) ∈ self.bounds[r]
+
+    (** The operator %||% with at least one String argument converts to string and
+        appends **)
+    opr ||(self, b:JavaString): String = do
+        bSize = |b|
+        if bSize = 0 then self
+        elif self.size + bSize > flatStringInfo.maxSize then
+            CatString(self, b)
+        else
+            javaAppend(self, b)
+        end
+      end
+
+    opr ||(self, b:String):String = do
+        if self.isEmpty then b
+        elif b.isEmpty then self
+        elif |self| + |b| ≤ flatStringInfo.maxSize then 
+            javaAppend(self, b.asJavaString)
+        else CatString(self, b)
+        end 
+    end
+        
+  
+    opr ||(self, b:Char): String =
+        if |self| ≥ flatStringInfo.maxSize then
+            CatString(self, b.toString)
+        else
+            javaAppend(self, b)
+        end
+        
+    split() = Nothing[\Generator[\(ZZ32, String)\]\]
+
+  end JavaString
+  
+    javaPrint(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
+    javaPrintln(a: JavaString): () = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
+ 
+end
