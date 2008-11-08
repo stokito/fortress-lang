@@ -23,13 +23,15 @@ export File
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-object FileReadStream(filename:String)
+FileReadStream(filename: String): FileReadStream = FileReadStream(filename.asJavaString)
+
+object FileReadStream(filename: JavaString)
         extends { ReadStream, FileStream }
     getter fileName():String =
       builtinPrimitive(
         "com.sun.fortress.interpreter.glue.prim.FileReadStream$fileName")
 
-    getter toString():String =
+    getter asString():String =
       builtinPrimitive(
         "com.sun.fortress.interpreter.glue.prim.FileReadStream$toString")
 
@@ -65,7 +67,9 @@ object FileReadStream(filename:String)
         "com.sun.fortress.interpreter.glue.prim.FileReadStream$close")
 end
 
-object FileWriteStream(fileName:String) extends { FileStream }
+FileWriteStream(fileName:String) = FileWriteStream(fileName.asJavaString)
+
+object FileWriteStream(fileName:JavaString) extends { FileStream }
     getter fileName(): String =
       builtinPrimitive(
         "com.sun.fortress.interpreter.glue.prim.FileWriteStream$fileName")

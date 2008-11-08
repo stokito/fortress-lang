@@ -31,18 +31,22 @@ tst_fail(a1:String,a2:String) =
     end
 
 run(args:String...) = do
+print "padleft ..."
     tst(padLeft("foo",' ',1),"foo")
     tst(padLeft("foo",' ',4)," foo")
     tst(padLeft("foo",' ',10),"       foo")
+print "\npadRight ..."
     tst(padRight("foo",' ',4), "foo ")
     tst(padRight("foo",' ',1), "foo")
     tst(padRight("foo",' ',10), "foo       ")
+print "\nRadix"
     tst(radix(16, 15),"f")
     tst(radix(16, 1),"1")
     tst(radix(16, -1),"-1")
     tst(radix(16, 32),"20")
     tst(radix(8, 10),"12")
     tst(radix(10, (-2) DOT 1024 DOT 1024 DOT 1024),"-2147483648")
+print "\ndigitSeparator"
     tst(digitSeparator("1000",3,","),"1,000")
     tst(digitSeparator("1000",10,","),"1000")
     tst(digitSeparator("1000",1,","),"1,0,0,0")
@@ -51,6 +55,7 @@ run(args:String...) = do
     tst(digitSeparator("1234.56789",3,",",'.'),"1,234.567,89")
     tst(digitSeparator("123456789.5678912345",3,",",'.'),"123,456,789.567,891,234,5")
     tst(digitSeparator("-123456789.5678912345",3,",",'.'),"-123,456,789.567,891,234,5")
+print "\nscientific"
     tst(scientific(0),"0.000000e+00")
 (*
     tst(scientific(1),"1.000000e+00")
@@ -62,13 +67,13 @@ run(args:String...) = do
     (*
     tst(scientific(0.000345),"3.450000e-04")
     *)
-
+print "\nExceptions"
     try
         tst(format("hello"),"hello")
     catch e
         Exception => fail("Test failed for 'hello'. " e)
     end
-
+print "\nHello 5"
     try
         tst(format("hello %d", 5), "hello 5")
     catch e
@@ -92,43 +97,45 @@ run(args:String...) = do
     catch e
         Exception => fail("Test failed for 'hello     2'. " e)
     end
-    
+print "\nHello 11"
     try
         tst(format("hello %r=2d", 3), "hello 11")
     catch e
         Exception => fail("Test failed for 'hello 11'. " e)
     end
-    
+print  "\nHello 2"    
     try
         tst(format("hello %ww=5d", 2), "hello 2    ")
     catch e
         Exception => fail("Test failed for 'hello 2    '. " e)
     end
-    
+ print "\nHello 007"   
     try
         tst(format("hello %w=3&p=0d", 7), "hello 007")
     catch e
         Exception => fail("Test failed for 'hello 007'. " e)
     end
-    
+ print "\nHello 1,024"   
+
     try
         tst(format("hello %n=3d", 1024), "hello 1,024")
     catch e
         Exception => fail("Test failed for 'hello 1,024'. " e)
     end
-    
+print "\nHello 1 024"    
     try
-        tst(format("hello %n=3&nn= d", 1024), "hello 1 024")
+6
+(*)        tst(format("hello %n=3&nn= d", 1024), "hello 1 024")
     catch e
         Exception => fail("Test failed for 'hello 1 024'. " e)
     end
-    
+print "\nhello 1'024"       
     try
         tst(format("hello %n=3&nn=\\'d", 1024), "hello 1'024")
     catch e
         Exception => fail("Test failed for 'hello 1'024'. " e)
     end
-    
+print "\nhello f/afa"    
     try
         tst(format("hello %n=3&nn=\\'x", 64250), "hello f'afa")
     catch e
@@ -182,7 +189,7 @@ run(args:String...) = do
     catch e
         Exception => fail("Test failed for 'hello false'. " e)
     end
-    
+print "\nHello 12"
     try
         tst(format("hello %m", Just[\ZZ32\](12)), "hello 12")
     catch e

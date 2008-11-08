@@ -19,9 +19,10 @@ api File
 import JavaString.JavaString
 import FileSupport.{...}
 
+FileReadStream(filename: String): FileReadStream
+
 object FileReadStream(filename:String) extends { FileStream, ReadStream }
     getter fileName():String
-    getter toString():String
 
     (** %eof% returns true if an end-of-file (EOF) condition has been
         encountered on the stream. **)
@@ -99,9 +100,12 @@ object FileReadStream(filename:String) extends { FileStream, ReadStream }
     chunks(): Generator[\String\]
 end
 
-(** A %FileWriteStream% represents a writeable stream backed by a file
+(** A %FileWriteStream% represents a writable stream backed by a file
     named %fileName%. **)
-object FileWriteStream(fileName:String) extends { FileStream }
+    
+FileWriteStream(fileName:String):  FileWriteStream
+    
+object FileWriteStream(fileName:JavaString) extends { FileStream }
     getter fileName(): String
     getter toString(): String
 

@@ -27,7 +27,6 @@ end
 
 trait FileStream extends Closeable
     getter fileName():String
-    getter toString():String
 end
 
 trait Consumable
