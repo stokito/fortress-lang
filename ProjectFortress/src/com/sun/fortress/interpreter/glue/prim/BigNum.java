@@ -48,6 +48,11 @@ protected FNativeObject makeNativeObject(List<FValue> args,
     return FBigNum.ZERO;
 }
 
+@Override
+protected void unregister() {
+    FBigNum.resetConstructor();
+}
+
 private static BigInteger toB(FValue x) {
     if (x instanceof FBigNum) {
         return ((FBigNum)x).getBigInteger();

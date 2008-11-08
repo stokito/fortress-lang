@@ -273,5 +273,10 @@ public static final class isNaN extends R2B {
 public static final class ToString extends R2S {
     protected java.lang.String f(double x) { return Double.toString(x); }
 }
+@Override
+protected void unregister() {
+    FFloat.resetConstructor();
+    
+}
 
 }

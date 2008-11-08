@@ -26,6 +26,7 @@ import java.util.Map;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.Id;
@@ -186,6 +187,7 @@ public abstract class NativeApp implements Applicable {
     }
     static public void reset() {
         cache = new Hashtable<Pair<String, Applicable>, NativeApp>();
+        NativeConstructor.unregisterAllConstructors();
     }
     static Map<Pair<String, Applicable>, NativeApp> cache;
 }

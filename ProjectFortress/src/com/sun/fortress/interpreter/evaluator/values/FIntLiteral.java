@@ -99,4 +99,8 @@ public class FIntLiteral extends NativeConstructor.FNativeObject
     public NativeConstructor getConstructor() {
         return FIntLiteral.con;
     }
+
+    public static void resetConstructor() {
+        FIntLiteral.con = null;;        
+    }
 }

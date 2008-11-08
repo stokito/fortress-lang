@@ -47,6 +47,11 @@ public class Char extends NativeConstructor {
         FChar.setConstructor(this);
         return FChar.ZERO;
     }
+    
+    @Override
+    protected void unregister() {
+        FChar.resetConstructor();        
+    }
 
     private static abstract class s2B extends NativeMeth0 {
         protected abstract boolean f(int self);
@@ -323,6 +328,4 @@ public class Char extends NativeConstructor {
     public static final class ToUpperCase extends s2C {
        protected int f(int x) { return Character.toUpperCase(x); }
     }
-
-
 }

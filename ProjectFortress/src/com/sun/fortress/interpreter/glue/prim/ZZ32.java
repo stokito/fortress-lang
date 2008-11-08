@@ -198,4 +198,9 @@ public static int rc(long i) {
     return r;
 }
 
+@Override
+protected void unregister() {
+    FInt.resetConstructor();
+}
+
 }

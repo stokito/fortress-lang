@@ -294,4 +294,10 @@ public static long pow(long x, long y) {
     return r;
 }
 
+@Override
+protected void unregister() {
+    FInt.resetConstructor();
+    
+}
+
 }

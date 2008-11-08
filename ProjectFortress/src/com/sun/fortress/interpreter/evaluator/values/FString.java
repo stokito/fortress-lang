@@ -57,4 +57,8 @@ public class FString extends NativeConstructor.FNativeObject {
     public NativeConstructor getConstructor() {
         return FString.con;
     }
+
+    public static void resetConstructor() {
+        FString.con = null;        
+    }
 }

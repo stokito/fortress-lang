@@ -124,4 +124,10 @@ public class Thread extends NativeConstructor {
         }
     }
 
+    @Override
+    protected void unregister() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -140,4 +140,9 @@ public class FNN32 extends NativeConstructor.FNativeObject implements HasIntValu
     public NativeConstructor getConstructor() {
         return FNN32.con;
     }
+
+    public static void resetConstructor() {
+        FNN32.con = null;
+        
+    }
 }

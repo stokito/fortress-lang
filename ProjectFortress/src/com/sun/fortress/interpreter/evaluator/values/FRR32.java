@@ -60,4 +60,8 @@ public class FRR32 extends NativeConstructor.FNativeObject {
     public NativeConstructor getConstructor() {
         return FRR32.con;
     }
+
+    public static void resetConstructor() {
+        FRR32.con = null;
+    }
 }

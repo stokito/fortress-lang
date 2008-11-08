@@ -60,5 +60,10 @@ public static final class ToString extends Rlit2S {
 public static final class AsFloat extends Rlit2R {
     protected double f(double x) { return x; }
 }
+@Override
+protected void unregister() {
+    FFloatLiteral.resetConstructor();
+    
+}
 
 }

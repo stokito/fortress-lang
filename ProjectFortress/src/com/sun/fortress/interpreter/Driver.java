@@ -131,7 +131,12 @@ public class Driver {
     }
 
     public static ArrayList<ComponentWrapper> components;
-
+ 
+    public static void reset() {
+        components = null;
+        libraryComponentWrapper = null;
+    }
+    
     public static Environment evalComponent(ComponentIndex p,
                                             FortressRepository fr)
         throws IOException {

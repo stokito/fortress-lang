@@ -74,4 +74,8 @@ public class FFloatLiteral extends NativeConstructor.FNativeObject {
         return FFloatLiteral.con;
     }
 
+    public static void resetConstructor() {
+        FFloatLiteral.con = null;        
+    }
+
 }

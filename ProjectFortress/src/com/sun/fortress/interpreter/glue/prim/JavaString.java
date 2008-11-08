@@ -48,6 +48,11 @@ public class JavaString extends NativeConstructor {
         return FString.EMPTY;
     }
 
+    @Override
+    protected void unregister() {
+        FString.resetConstructor();
+    }
+
     private static abstract class ss2S extends NativeMeth1 {
         protected abstract java.lang.String f(java.lang.String s, java.lang.String o);
         protected final FString act(FObject self, FValue other) {
@@ -164,4 +169,4 @@ public class JavaString extends NativeConstructor {
         }
     }
 
-}
+ }

@@ -145,4 +145,9 @@ public class FileWriteStream extends NativeConstructor {
             w.close();
         }
     }
+
+    @Override
+    protected void unregister() {
+        con = null;
+    }
 }

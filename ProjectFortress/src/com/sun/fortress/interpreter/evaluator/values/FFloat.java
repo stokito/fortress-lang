@@ -60,4 +60,8 @@ public class FFloat extends NativeConstructor.FNativeObject {
     public NativeConstructor getConstructor() {
         return FFloat.con;
     }
+
+    public static void resetConstructor() {
+        FFloat.con = null;
+    }
 }

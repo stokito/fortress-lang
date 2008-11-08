@@ -174,4 +174,8 @@ public class FInt extends NativeConstructor.FNativeObject implements HasIntValue
     public NativeConstructor getConstructor() {
         return FInt.con;
     }
+
+    public static void resetConstructor() {
+        FInt.con = null;        
+    }
 }

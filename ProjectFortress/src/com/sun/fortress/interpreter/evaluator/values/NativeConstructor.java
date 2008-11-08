@@ -19,7 +19,9 @@ package com.sun.fortress.interpreter.evaluator.values;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
@@ -32,12 +34,23 @@ public abstract class NativeConstructor extends Constructor {
 
     private volatile Environment selfEnv;
     private volatile Environment lexEnv;
+    
+    private static List<NativeConstructor> nativeConstructors = new Vector<NativeConstructor>();
 
     public NativeConstructor(Environment env,
                              FTypeObject selfType,
                              GenericWithParams def) {
         super(env,selfType,def);
+        nativeConstructors.add(this);
     }
+
+    public static void unregisterAllConstructors() {
+        for (NativeConstructor n : nativeConstructors)
+            n.unregister();
+        nativeConstructors.clear();
+    }
+    
+    abstract protected void unregister();
 
     public Environment getSelfEnv() {
         return selfEnv;
