@@ -58,6 +58,13 @@ public interface FortressRepository {
      * Delete a compiled/processed component from the repository.
      */
     public void deleteComponent(APIName name);
+    
+    
+    /**
+     * "Forget" a compiled/processed component -- allow later
+     * rereading from disk, if necessary.
+     */
+    public void forgetComponent(APIName name);
 
     /**
      * Retrieve an api from the repository given a name.

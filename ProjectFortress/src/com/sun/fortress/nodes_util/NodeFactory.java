@@ -1217,7 +1217,7 @@ public class NodeFactory {
     }
 
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
-        return new TightJuxt(span, exprs);
+        return new TightJuxt(span, Useful.immutableTrimmedList(exprs));
     }
 
     public static BoolRef makeBoolRef(BoolRef old, int depth) {

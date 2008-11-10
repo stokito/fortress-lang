@@ -304,10 +304,13 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	}
 	
 	public static List<? extends Node> astFromResults(List<TypeCheckerResult> results) {
-		return CollectUtil.makeList(IterUtil.map(results, new Lambda<TypeCheckerResult, Node>(){
-			public Node value(TypeCheckerResult arg0) {
-				return arg0.ast();
-			}}));
+		return Useful.immutableTrimmedList(
+		        CollectUtil.makeList(IterUtil.map(results,
+		                new Lambda<TypeCheckerResult, Node>(){
+		                  public Node value(TypeCheckerResult arg0) {
+				    return arg0.ast();
+		                }}
+		        )));
 	}
 	
 	public TypeCheckerResult(Node _ast, Type _type,

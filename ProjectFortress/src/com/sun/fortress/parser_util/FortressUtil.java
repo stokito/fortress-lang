@@ -39,6 +39,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.exceptions.ProgramError;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -192,7 +193,7 @@ public final class FortressUtil {
         Expr arr = buildPrimary((PureList<Expr>)base);
         List<Expr> es;
         if (args == null) es = FortressUtil.emptyExprs();
-        else              es = args;
+        else              es = Useful.immutableTrimmedList(args);
         return new SubscriptExpr(span, false, arr, es, Option.some(op), sargs);
     }
 
@@ -933,7 +934,7 @@ public final class FortressUtil {
         if (exprs.size() == 1) return ((Cons<Expr>)exprs).getFirst();
         else {
             exprs = exprs.reverse();
-            List<Expr> javaList = exprs.toJavaList();
+            List<Expr> javaList = Useful.immutableTrimmedList(exprs);
             return new TightJuxt(spanAll(javaList.toArray(new AbstractNode[0]),
                                          javaList.size()), false, javaList);
         }

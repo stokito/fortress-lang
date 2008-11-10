@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes._RewriteObjectExpr;
@@ -106,7 +107,6 @@ public class ComponentWrapper extends CUWrapper {
         super((Component) comp.ast(), api_list, linker, implicitLibs);
         cacheDisabled = noCache;
         transformed = getCached(comp);
-        componentCache.forget(comp.ast().getName());
     }
 
     public CompilationUnit populateOne() {
@@ -120,8 +120,14 @@ public class ComponentWrapper extends CUWrapper {
         if (transformed == null) {
             cu = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp_unit);
             transformed = (Component) desugarer.visit(cu); // Rewrites cu!
-            if (!cacheDisabled)
+            if (!cacheDisabled) {
                 componentCache.put(transformed.getName(), transformed);
+            }
+        }
+        
+        if (!cacheDisabled && exportsMain(transformed)) {
+            // It's not a library, no point keeping this copy in memory.
+            componentCache.forget(transformed.getName());
         }
         cu = transformed;
         be.visit(cu);
@@ -145,6 +151,17 @@ public class ComponentWrapper extends CUWrapper {
         return cu;
     }
     
+    private boolean exportsMain(Component transformed2) {
+        List<Export> exports = transformed2.getExports();
+        for (Export e : exports) {
+            List<APIName> apis = e.getApis();
+            for (APIName a : apis)
+                if (a.getText().equals("Executable"))
+                    return true;
+        }
+        return false;
+    }
+
     /**
      * Adds, to the supplied environment, constructors for any object
      * expressions encountered in the tree(s) processed by this Disambiguator.

@@ -518,6 +518,7 @@ public class Driver {
                 }
 
             comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary);
+            fr.forgetComponent(name);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
             pile.push(comp_wrapper);

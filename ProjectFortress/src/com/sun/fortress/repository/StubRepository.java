@@ -25,6 +25,10 @@ import com.sun.fortress.nodes.APIName;
 
 public class StubRepository implements FortressRepository {
 
+    public void forgetComponent(APIName name) {
+        deleteComponent(name);
+    }
+
     private boolean verbose;
 
     /**
