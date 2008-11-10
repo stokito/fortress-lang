@@ -37,12 +37,19 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
         
-    uncheckedSubstring(r1: Range[\ZZ32\]) : String =
-    (* We could build a subString node here, but not until everything is working, because that will introduce 
-       SubString objects into code that may still expect JavaStrings *)
+    uncheckedSubstring(r1: Range[\ZZ32\]) : String = do
+    (* We could build a subString node here, but not until everything is working, 
+        because that will introduce 
+       SubString objects into code that may still expect JavaStrings.
+       In any case,  JavaString object supports substring without copying*)
+        assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty, 
+            "\nSubstring out of bounds: r1 = ", r1.asString, " = " r1.asDebugString, 
+            "; r1 isEmpty = ", r1.isEmpty, 
+            "\nself = ", self.asDebugString)
         if r1.isEmpty then ""
         else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
         end
+    end
         
     opr =(self, other: JavaString): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")

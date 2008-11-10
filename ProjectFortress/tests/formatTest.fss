@@ -20,216 +20,200 @@ component formatTest
 import Format.{...}
 export Executable
 
-tst(a1:String,a2:String) =
-    if a1 =/= a2 then
-        println "Test failed '" a1 "' != '" a2 "'"
-    end
-
-tst_fail(a1:String,a2:String) =
-    if a1 = a2 then
-        println "Test succeeded when it should have failed '" a1 "' != '" a2 "'"
-    end
-
 run(args:String...) = do
-print "padleft ..."
-    tst(padLeft("foo",' ',1),"foo")
-    tst(padLeft("foo",' ',4)," foo")
-    tst(padLeft("foo",' ',10),"       foo")
-print "\npadRight ..."
-    tst(padRight("foo",' ',4), "foo ")
-    tst(padRight("foo",' ',1), "foo")
-    tst(padRight("foo",' ',10), "foo       ")
-print "\nRadix"
-    tst(radix(16, 15),"f")
-    tst(radix(16, 1),"1")
-    tst(radix(16, -1),"-1")
-    tst(radix(16, 32),"20")
-    tst(radix(8, 10),"12")
-    tst(radix(10, (-2) DOT 1024 DOT 1024 DOT 1024),"-2147483648")
-print "\ndigitSeparator"
-    tst(digitSeparator("1000",3,","),"1,000")
-    tst(digitSeparator("1000",10,","),"1000")
-    tst(digitSeparator("1000",1,","),"1,0,0,0")
-    tst(digitSeparator("1234567",3,","),"1,234,567")
-    tst(digitSeparator("12.34567",3,",",'.'),"12.345,67")
-    tst(digitSeparator("1234.56789",3,",",'.'),"1,234.567,89")
-    tst(digitSeparator("123456789.5678912345",3,",",'.'),"123,456,789.567,891,234,5")
-    tst(digitSeparator("-123456789.5678912345",3,",",'.'),"-123,456,789.567,891,234,5")
-print "\nscientific"
-    tst(scientific(0),"0.000000e+00")
+    assert(padLeft("foo",' ',1),"foo")
+    assert(padLeft("foo",' ',4)," foo")
+    assert(padLeft("foo",' ',10),"       foo")
+    assert(padRight("foo",' ',4), "foo ")
+    assert(padRight("foo",' ',1), "foo")
+    assert(padRight("foo",' ',10), "foo       ")
+    assert(radix(16, 15),"f")
+    assert(radix(16, 1),"1")
+    assert(radix(16, -1),"-1")
+    assert(radix(16, 32),"20")
+    assert(radix(8, 10),"12")
+    assert(radix(10, (-2) DOT 1024 DOT 1024 DOT 1024),"-2147483648")
+    assert(digitSeparator("1000",3,","),"1,000")
+    assert(digitSeparator("1000",10,","),"1000")
+    assert(digitSeparator("1000",1,","),"1,0,0,0")
+    assert(digitSeparator("1234567",3,","),"1,234,567")
+    assert(digitSeparator("12.34567",3,",",'.'),"12.345,67")
+    assert(digitSeparator("1234.56789",3,",",'.'),"1,234.567,89")
+    assert(digitSeparator("123456789.5678912345",3,",",'.'),"123,456,789.567,891,234,5")
+    assert(digitSeparator("-123456789.5678912345",3,",",'.'),"-123,456,789.567,891,234,5")
+    assert(scientific(0),"0.000000e+00")
 (*
-    tst(scientific(1),"1.000000e+00")
-    tst(scientific(-1),"-1.000000e+00")
+    assert(scientific(1),"1.000000e+00")
+    assert(scientific(-1),"-1.000000e+00")
 *)
-    tst(scientific(1.0),"1.000000e+00")
-    tst(scientific(10.0),"1.000000e+01")
-    tst(scientific(2835.235235),"2.835235e+03")
+    assert(scientific(1.0),"1.000000e+00")
+    assert(scientific(10.0),"1.000000e+01")
+    assert(scientific(2835.235235),"2.835235e+03")
     (*
-    tst(scientific(0.000345),"3.450000e-04")
+    assert(scientific(0.000345),"3.450000e-04")
     *)
-print "\nExceptions"
+
     try
-        tst(format("hello"),"hello")
+        assert(format("hello"),"hello")
     catch e
-        Exception => fail("Test failed for 'hello'. " e)
-    end
-print "\nHello 5"
-    try
-        tst(format("hello %d", 5), "hello 5")
-    catch e
-        Exception => fail("Test failed for 'hello 5'. " e)
-    end
-    
-    try
-        tst(format("hello %%"), "hello %")
-    catch e
-        Exception => fail("Test failed for 'hello %'. " e)
+        Exception => fail("Test error for 'hello'. " e)
     end
 
     try
-        tst(format("hello %d %d %d", 5, 6, 7 ), "hello 5 6 7")
+        assert(format("hello %d", 5), "hello 5")
     catch e
-        Exception => fail("Test failed for 'hello 5 6 7'. " e)
+        Exception => fail("Test error for 'hello 5'. " e)
     end
     
     try
-        tst(format("hello %w=5d", 2), "hello     2")
+        assert(format("hello %%"), "hello %")
     catch e
-        Exception => fail("Test failed for 'hello     2'. " e)
-    end
-print "\nHello 11"
-    try
-        tst(format("hello %r=2d", 3), "hello 11")
-    catch e
-        Exception => fail("Test failed for 'hello 11'. " e)
-    end
-print  "\nHello 2"    
-    try
-        tst(format("hello %ww=5d", 2), "hello 2    ")
-    catch e
-        Exception => fail("Test failed for 'hello 2    '. " e)
-    end
- print "\nHello 007"   
-    try
-        tst(format("hello %w=3&p=0d", 7), "hello 007")
-    catch e
-        Exception => fail("Test failed for 'hello 007'. " e)
-    end
- print "\nHello 1,024"   
-
-    try
-        tst(format("hello %n=3d", 1024), "hello 1,024")
-    catch e
-        Exception => fail("Test failed for 'hello 1,024'. " e)
-    end
-print "\nHello 1 024"    
-    try
-6
-(*)        tst(format("hello %n=3&nn= d", 1024), "hello 1 024")
-    catch e
-        Exception => fail("Test failed for 'hello 1 024'. " e)
-    end
-print "\nhello 1'024"       
-    try
-        tst(format("hello %n=3&nn=\\'d", 1024), "hello 1'024")
-    catch e
-        Exception => fail("Test failed for 'hello 1'024'. " e)
-    end
-print "\nhello f/afa"    
-    try
-        tst(format("hello %n=3&nn=\\'x", 64250), "hello f'afa")
-    catch e
-        Exception => fail("Test failed for 'hello f'afa'. " e)
+        Exception => fail("Test error for 'hello %'. " e)
     end
 
     try
-        tst(format("hello %s", 5),"hello 5")
+        assert(format("hello %d %d %d", 5, 6, 7 ), "hello 5 6 7")
     catch e
-        Exception => fail("Test failed for 'hello 5'. " e)
+        Exception => fail("Test error for 'hello 5 6 7'. " e)
+    end
+    
+    try
+        assert(format("hello %w=5d", 2), "hello     2")
+    catch e
+        Exception => fail("Test error for 'hello     2'. " e)
+    end
+    
+    try
+        assert(format("hello %r=2d", 3), "hello 11")
+    catch e
+        Exception => fail("Test error for 'hello 11'. " e)
+    end
+
+    assert(format("hello %ww=5d", 2), "hello 2    ")    
+    try
+        assert(format("hello %ww=5d", 2), "hello 2    ")
+    catch e
+        Exception => fail("Test error for 'hello 2    '. " e)
+    end
+    
+    try
+        assert(format("hello %w=3&p=0d", 7), "hello 007")
+    catch e
+        Exception => fail("Test error for 'hello 007'. " e)
+    end
+    
+    try
+        assert(format("hello %n=3d", 1024), "hello 1,024")
+    catch e
+        Exception => fail("Test error for 'hello 1,024'. " e)
+    end
+    
+    try
+        assert(format("hello %n=3&nn= d", 1024), "hello 1 024")
+    catch e
+        Exception => fail("Test error for 'hello 1 024'. " e)
+    end
+    
+    try
+        assert(format("hello %n=3&nn=\\'d", 1024), "hello 1'024")
+    catch e
+        Exception => fail("Test error for 'hello 1'024'. " e)
+    end
+    
+    try
+        assert(format("hello %n=3&nn=\\'x", 64250), "hello f'afa")
+    catch e
+        Exception => fail("Test error for 'hello f'afa'. " e)
     end
 
     try
-        tst(format("hello %s", "hi"),"hello hi")
+        assert(format("hello %s", 5),"hello 5")
     catch e
-        Exception => fail("Test failed for 'hello hi'. " e)
+        Exception => fail("Test error for 'hello 5'. " e)
     end
 
     try
-        tst(format("hello %i=2d %i=1d", 1, 2),"hello 2 1")
+        assert(format("hello %s", "hi"),"hello hi")
     catch e
-        Exception => fail("Test failed for 'hello 2 1'. " e)
-    end
-    
-    try
-        tst(format("hello %i=2d %i=1d %d", 1, 2),"hello 2 1 1")
-    catch e
-        Exception => fail("Test failed for 'hello 2 1'. " e)
-    end
-    
-    try
-        tst(format("hello %i=2d %i=1d %d %d", 1, 2),"hello 2 1 1 2")
-    catch e
-        Exception => fail("Test failed for 'hello 2 1 1 2'. " e)
-    end
-    
-    try
-        tst(format("hello %w=5s", "hi"), "hello    hi")
-    catch e
-        Exception => fail("Test failed for 'hello    hi'. " e)
-    end
-    
-    try
-        tst(format("hello %b", true), "hello true")
-    catch e
-        Exception => fail("Test failed for 'hello true'. " e)
-    end
-    
-    try
-        tst(format("hello %b", 1 > 2), "hello false")
-    catch e
-        Exception => fail("Test failed for 'hello false'. " e)
-    end
-print "\nHello 12"
-    try
-        tst(format("hello %m", Just[\ZZ32\](12)), "hello 12")
-    catch e
-        Exception => fail("Test failed for 'hello 12'. " e)
-    end
-    
-    try
-        tst(format("hello %m", Nothing[\ZZ32\]), "hello ")
-    catch e
-        Exception => fail("Test failed for 'hello '. " e)
-    end
-    
-    try
-        tst(format("hello %e", 345.123), "hello 3.451230e+02")
-    catch e
-        Exception => fail("Test failed for 'hello 3.451230+e02'. " e)
-    end
-    
-    try
-        tst(format("hello %x", 23545), "hello 5bf9")
-    catch e
-        Exception => fail("Test failed for 'hello 5bf9'. " e)
-    end
-    
-    try
-        tst(format("hello %x", fab3_16), "hello fab3")
-    catch e
-        Exception => fail("Test failed for 'hello fab3_16'. " e)
+        Exception => fail("Test error for 'hello hi'. " e)
     end
 
     try
-        tst(format("hello %f", 1), "hello 1.0")
+        assert(format("hello %i=2d %i=1d", 1, 2),"hello 2 1")
     catch e
-        Exception => fail("Test failed for 'hello 1.0'. " e)
+        Exception => fail("Test error for 'hello 2 1'. " e)
+    end
+    
+    try
+        assert(format("hello %i=2d %i=1d %d", 1, 2),"hello 2 1 1")
+    catch e
+        Exception => fail("Test error for 'hello 2 1'. " e)
+    end
+    
+    try
+        assert(format("hello %i=2d %i=1d %d %d", 1, 2),"hello 2 1 1 2")
+    catch e
+        Exception => fail("Test error for 'hello 2 1 1 2'. " e)
+    end
+    
+    try
+        assert(format("hello %w=5s", "hi"), "hello    hi")
+    catch e
+        Exception => fail("Test error for 'hello    hi'. " e)
+    end
+    
+    try
+        assert(format("hello %b", true), "hello true")
+    catch e
+        Exception => fail("Test error for 'hello true'. " e)
+    end
+    
+    try
+        assert(format("hello %b", 1 > 2), "hello false")
+    catch e
+        Exception => fail("Test error for 'hello false'. " e)
+    end
+    
+    try
+        assert(format("hello %m", Just[\ZZ32\](12)), "hello 12")
+    catch e
+        Exception => fail("Test error for 'hello 12'. " e)
+    end
+    
+    try
+        assert(format("hello %m", Nothing[\ZZ32\]), "hello ")
+    catch e
+        Exception => fail("Test error for 'hello '. " e)
+    end
+    
+    try
+        assert(format("hello %e", 345.123), "hello 3.451230e+02")
+    catch e
+        Exception => fail("Test error for 'hello 3.451230+e02'. " e)
+    end
+    
+    try
+        assert(format("hello %x", 23545), "hello 5bf9")
+    catch e
+        Exception => fail("Test error for 'hello 5bf9'. " e)
+    end
+    
+    try
+        assert(format("hello %x", fab3_16), "hello fab3")
+    catch e
+        Exception => fail("Test error for 'hello fab3_16'. " e)
     end
 
     try
-        tst(format("hello %ww=4&p=0f", 1), "hello 1.00")
+        assert(format("hello %f", 1), "hello 1.0")
     catch e
-        Exception => fail("Test failed for 'hello 1.00'. " e)
+        Exception => fail("Test error for 'hello 1.0'. " e)
+    end
+
+    try
+        assert(format("hello %ww=4&p=0f", 1), "hello 1.00")
+    catch e
+        Exception => fail("Test error for 'hello 1.00'. " e)
     end
 end
 
