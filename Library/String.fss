@@ -73,13 +73,21 @@ export String
     opr || (self, other:Char) = CatString(self, other.toString)
     (* end copied *)
 
-    opr CMP(self, other: String) ensures {outcome = (self.asJavaString CMP other.asJavaString)} =
+    opr CMP(self, other: String) 
+    ensures {outcome = (self.asJavaString CMP other.asJavaString)} = do
+      result =
         if |left| ≥ |other|
         then
-            left CMP other
+            (left CMP other) LEXICO: (|self| CMP |other|)
         else
-            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):])
+            (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):]) LEXICO: (|self| CMP |other|)
         end
+      if result ≠ (self.asJavaString CMP other.asJavaString) then
+        println "Callee Failure, self = " self.asDebugString ", CMP other = " other.asDebugString
+        println "result = " result
+      end
+      result
+    end
 
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison ensures {outcome = (self.asJavaString CASE_INSENSITIVE_CMP other.asJavaString)} =
         if |left| ≥ |other|
@@ -333,7 +341,8 @@ export String
         (if pieces.nonEmpty  then
             BIG LEXICO [(start, str) ← pieces] (do
                     baseSubrange = (start#|str|) ∩ range
-                    baseString.uncheckedSubstring(baseSubrange) CMP other.uncheckedSubstring(baseSubrange≪range.lower)
+                    baseString.uncheckedSubstring(baseSubrange) CMP 
+                        other.uncheckedSubstring((baseSubrange≪range.lower) ∩ other.indices)
             end)
         else
             otherPieces = other.split()
