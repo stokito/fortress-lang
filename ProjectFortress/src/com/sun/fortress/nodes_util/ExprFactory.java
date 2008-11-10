@@ -398,7 +398,7 @@ public class ExprFactory {
             List<Expr> subs,
             Option<Enclosing> op,
             List<StaticArg> sargs) {
-        return new SubscriptExpr(span, false, obj, subs, op, sargs);
+        return new SubscriptExpr(span, false, obj, Useful.immutableTrimmedList(subs), op, sargs);
     }
 
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
@@ -413,11 +413,11 @@ public class ExprFactory {
     }
 
     public static TightJuxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
-        return new TightJuxt(span, isParenthesized, exprs);
+        return new TightJuxt(span, isParenthesized, Useful.immutableTrimmedList(exprs));
     }
 
     public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, OpRef infixJuxt, OpRef multiJuxt){
-     return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,exprs);
+     return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,Useful.immutableTrimmedList(exprs));
     }
 
     /**
@@ -426,7 +426,7 @@ public class ExprFactory {
      */
     public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
      return new TightJuxt(that.getSpan(), that.isParenthesized(),
-                          that.getMultiJuxt(), that.getInfixJuxt(), exprs);
+                          that.getMultiJuxt(), that.getInfixJuxt(), Useful.immutableTrimmedList(exprs));
     }
 
     public static MethodInvocation makeMethodInvocation(Span span,
@@ -555,32 +555,26 @@ public class ExprFactory {
     }
 
     public static If makeIf(IfClause _if, Expr _else) {
-        List<IfClause> ifclauses = new ArrayList<IfClause>();
-        ifclauses.add(_if);
-        List<Expr> elseBlock = new ArrayList<Expr>();
-        elseBlock.add(_else);
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        List<Expr> elseBlock = Collections.singletonList(_else);
         Block _elseClause = new Block( elseBlock);
         return new If(ifclauses, Option.some(_elseClause));
     }
 
     public static If makeIf(Span sp, IfClause _if, Expr _else) {
-        List<IfClause> ifclauses = new ArrayList<IfClause>();
-        ifclauses.add(_if);
-        List<Expr> elseBlock = new ArrayList<Expr>();
-        elseBlock.add(_else);
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        List<Expr> elseBlock = Collections.singletonList(_else);
         Block _elseClause = new Block(sp, elseBlock);
         return new If(sp, ifclauses, Option.some(_elseClause));
     }
 
     public static If makeIf(IfClause _if) {
-        List<IfClause> ifclauses = new ArrayList<IfClause>();
-        ifclauses.add(_if);
+        List<IfClause> ifclauses = Collections.singletonList(_if);
         return new If(ifclauses, Option.<Block>none());
     }
 
     public static If makeIf(Span sp, IfClause _if) {
-        List<IfClause> ifclauses = new ArrayList<IfClause>();
-        ifclauses.add(_if);
+        List<IfClause> ifclauses = Collections.singletonList(_if);
         return new If(sp, ifclauses, Option.<Block>none());
     }
 
@@ -607,34 +601,31 @@ public class ExprFactory {
     }
 
     public static Block makeBlock(Expr e) {
-        List<Expr> b = new ArrayList<Expr>(1);
-        b.add(e);
+        List<Expr> b = Collections.singletonList(e);
         return new Block(e.getSpan(), e.getExprType(), b);
     }
 
     public static Block makeBlock(Span sp, Expr e) {
-        List<Expr> b = new ArrayList<Expr>(1);
-        b.add(e);
+        List<Expr> b = Collections.singletonList(e);
         return new Block(sp, e.getExprType(), b);
     }
 
     public static Do makeDo(Span sp, Option<Type> t, Expr e) {
-        List<Expr> b = new ArrayList<Expr>(1);
-        b.add(e);
-        List<DoFront> body = new ArrayList<DoFront>();
+        List<Expr> b = Collections.singletonList(e);
+        List<DoFront> body = new ArrayList<DoFront>(1);
         body.add(new DoFront(sp, new Block(sp, t, b)));
         return new Do(sp, t, body);
     }
 
     public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
-        List<DoFront> body = new ArrayList<DoFront>();
+        List<DoFront> body = new ArrayList<DoFront>(1);
         body.add(new DoFront(sp, new Block(sp, t, exprs)));
         return new Do(sp, t, body);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>();
-        List<LValue> _lhs = new ArrayList<LValue>();
+        List<Expr> _body = new ArrayList<Expr>(1);
+        List<LValue> _lhs = new ArrayList<LValue>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
         _lhs.add(new LValueBind(p,false));
@@ -642,8 +633,8 @@ public class ExprFactory {
     }
 
     public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>();
-        List<LValue> _lhs = new ArrayList<LValue>();
+        List<Expr> _body = new ArrayList<Expr>(1);
+        List<LValue> _lhs = new ArrayList<LValue>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
         _lhs.add(new LValueBind(sp, p,false));
@@ -651,7 +642,7 @@ public class ExprFactory {
     }
 
     public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>();
+        List<Expr> _body = new ArrayList<Expr>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
         return new LocalVarDecl(sp, _body, lhs, _rhs);
@@ -664,14 +655,14 @@ public class ExprFactory {
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<Link>(1);
         Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-     List<Link> links = new ArrayList<Link>();
+     List<Link> links = new ArrayList<Link>(1);
         Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);

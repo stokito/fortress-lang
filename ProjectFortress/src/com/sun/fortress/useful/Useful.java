@@ -656,6 +656,19 @@ public class Useful {
         
     }
 
+    public static <T> List<T> immutableTrimmedList(PureList<T> x) {
+        int l = x.size();
+        if (l == 0)
+            return Collections.<T>emptyList();
+        if (l == 1)
+            return Collections.<T>singletonList(x.iterator().next());
+        ArrayList<T> a = new ArrayList<T>(l);
+        for (T y : x)
+            a.add(y);
+        return a;
+        
+    }
+
     /**
      * Calls {@ prepend}
      */

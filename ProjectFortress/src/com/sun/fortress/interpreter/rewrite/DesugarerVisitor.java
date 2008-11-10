@@ -1082,9 +1082,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 
-        List<Param> params = new ArrayList<Param>();
+        List<Param> params = Collections.emptyList();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
-        List<Expr> exprs = new ArrayList<Expr>();
+        List<Expr> exprs = new ArrayList<Expr>(2);
         exprs.add(fn);
 
         exprs.add(fnExpr);

@@ -98,7 +98,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         return ci;
 
     }
-
+    
     public void addApi(APIName name, ApiIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
