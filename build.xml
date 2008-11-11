@@ -6,6 +6,7 @@
         basedir="ProjectFortress">
     <target name="compile">
         <ant target="compile"/>
+    	<ant dir="../scala" target="compile"/>
     </target>
     <target name="blas">
 	<ant target="blas"/>
@@ -15,6 +16,7 @@
     </target>
     <target name="clean">
         <ant target="clean"/>
+        <ant dir="../scala" target="clean"/>
     </target>
     <target name="cleanCache">
         <ant target="cleanCache"/>
