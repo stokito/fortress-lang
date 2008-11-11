@@ -21,6 +21,7 @@ ProjectFortress/TEST-RESULTS/*
 *~
 *.jst
 *.out
+*.bin
 SvnStats/
 ProjectFortress/*.tfs
 ProjectFortress/*.tfi
