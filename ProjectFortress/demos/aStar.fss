@@ -158,7 +158,7 @@ object Sudoku(var cands : ZZ32, var props : ZZ32,
                                  elif state[i,j,k].cand() then "" (k+1)
                                  else " " end) "|")
              )) // "Remaining: " cands " Fixed: " props
-    getter toString(): String =
+    getter asString(): String =
         (BIG ||[i<-0#9] (
              BIG ||[j<-0#9] do
                  str : String := "X"
@@ -348,7 +348,7 @@ value object NanoInterval(i:ZZ64)
     getter ms(): RR64 = i / 10.0^6
     getter us(): RR64 = i / 10.0^3
     getter ns(): RR64 = 1.0 i
-    getter toString(): String =
+    getter asString(): String =
         if i = 0 then "0"
         elif i >= 10^9 then sec() "s"
         elif i >= 10^6 then ms() "ms"
