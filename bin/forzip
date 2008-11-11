@@ -37,6 +37,7 @@ ln -s `pwd` ../${ourname}
            -name test-tmp -o \
            -name SvnStats -o \
            -name "*.log" -o \
+           -name "*.bin" -o \
            -name "*~" -o \
            -name .dependencies -o \
            -name "TEST-RESULTS" \) -prune -o -print | \
