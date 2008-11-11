@@ -405,14 +405,25 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         else
             return x;
     }
-    final public  FType getType(String str)  {
+    final public  FType getRootType(String str)  {
         FType x = getTypeNull(str);
         if (x == null)
             return error(errorMsg("Missing type ", str));
         else
             return x;
     }
+    final public  FType getLeafType(String str)  {
+        return getRootType(str); // temp hack
+    }
 
+    public FType getLeafTypeNull(String name) {
+        return getTypeNull(name); // temp hack
+    }
+    
+    public FType getRootTypeNull(String name) {
+        return getTypeNull(name); // temp hack
+    }
+    
     final public FType getTypeNull(Id name) {
         String local = NodeUtil.nameSuffixString(name);
         Option<APIName> opt_api = name.getApi();
@@ -421,9 +432,9 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             APIName api = opt_api.unwrap();
             // Circular dependence etc will be signalled in API.
             Environment api_e = getApi(api);
-            return api_e.getTypeNull(local);
+            return api_e.getRootTypeNull(local);
         } else {
-            FType v = getTypeNull(local);
+            FType v = getTypeNull(local); // TODO A PROBLEM
             return v;
         }
     }

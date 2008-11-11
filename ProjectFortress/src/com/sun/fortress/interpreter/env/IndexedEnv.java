@@ -76,17 +76,17 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public Environment getApi(String s) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     public Environment getApi(APIName s) {
         // TODO Auto-generated method stub
         return null;
     }
 
     public Environment getApi(List<Id> s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Environment getApi(String s) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -131,12 +131,52 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
+    public FType getLeafType(String str) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FType getLeafTypeNull(String name) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getLeafValue(String str) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getLeafValueNull(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     public Number getNat(String str) {
         // TODO Auto-generated method stub
         return null;
     }
 
     public Number getNatNull(String s) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FType getRootType(String str) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FType getRootTypeNull(String name) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getRootValue(String str) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getRootValueNull(String s) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -161,17 +201,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FType getType(String str) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     public FType getTypeNull(Id name) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FType getTypeNull(String name) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -181,12 +211,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getLeafValue(String str) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FValue getRootValue(String str) {
+    public FType getTypeNull(String name) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -201,32 +226,12 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValue(VarRef vr) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     public FValue getValue(OpRef vr) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public FValue getLeafValueNull(String s) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FValue getRootValueNull(String s) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FValue getValueNull(VarRef vr) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FValue getValueNull(OpRef vr) {
+    public FValue getValue(VarRef vr) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -237,6 +242,16 @@ public class IndexedEnv implements Environment {
     }
 
     public FValue getValueNull(OpName name, int l) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getValueNull(OpRef vr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FValue getValueNull(VarRef vr) {
         // TODO Auto-generated method stub
         return null;
     }

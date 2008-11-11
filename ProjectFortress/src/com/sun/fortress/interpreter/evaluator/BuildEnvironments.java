@@ -559,7 +559,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname); // top level
+                FTypeObject fto = (FTypeObject) containing.getRootType(fname); // top level
                 FValue xxx = containing.getLeafValue(fname);
                 //Constructor cl = (Constructor) containing.getValue(fname);
                 finishObjectTrait(x, fto);
@@ -570,7 +570,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             if (!staticParams.isEmpty()) {
                 // Do nothing.
             } else {
-                FTypeObject fto = (FTypeObject) containing.getType(fname); // top level
+                FTypeObject fto = (FTypeObject) containing.getRootType(fname); // top level
 
                 finishObjectTrait(x, fto);
             }
@@ -586,7 +586,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Option<List<Param>> params = x.getParams();
 
         String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getType(fname); // toplevel
+        FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getRootType(fname); // toplevel
         if (!staticParams.isEmpty()) {
             // Do nothing
         } else if (params.isSome()) {
@@ -851,7 +851,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         if (staticParams.isEmpty()) {
             Id name = x.getName();
             FTypeTrait ftt =
-                (FTypeTrait) containing.getType(NodeUtil.nameString(name)); // toplevel
+                (FTypeTrait) containing.getRootType(NodeUtil.nameString(name)); // toplevel
             Environment interior = ftt.getWithin();
             finishTrait(x, ftt, interior);
         }
@@ -859,7 +859,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     private void forTraitDecl3(TraitDecl x) {
         Id name = x.getName();
         String fname = NodeUtil.nameString(name);
-        FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getType(fname); // toplevel
+        FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getRootType(fname); // toplevel
         scanForFunctionalMethodNames(ft, x.getDecls());
     }
 
@@ -916,7 +916,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                     Id name = we.getName();
                     String string_name = NodeUtil.nameString(name);
                     // List<Type> types = we.getSupers();
-                    FType ft = interior.getTypeNull(string_name);
+                    FType ft = interior.getLeafTypeNull(string_name); // leaf
                     if (ft == null) {
                         ft = new SymbolicWhereType(string_name, interior, we);
                         interior.putType(string_name, ft);
@@ -943,7 +943,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                     Id name = we.getName();
                     String string_name = NodeUtil.nameString(name);
                     List<BaseType> types = we.getSupers();
-                    FType ft = interior.getTypeNull(string_name);
+                    FType ft = interior.getLeafTypeNull(string_name); // leaf
                     for (Type t : types) {
                         FType st = et.evalType(t); // t.visit(et);
                         if (ft instanceof SymbolicType) {
