@@ -72,7 +72,7 @@ component StringTests
   end
  
    
-  validateSplit(subject: String, division): () = do
+  validatesplitWithOffsets(subject: String, division): () = do
     var len: ZZ32 = 0
     var accum: String = ""
     for (start, str) ← division do
@@ -91,6 +91,26 @@ component StringTests
     assert(hw.ilkName, "CatString")
   end
   
+  
+  test testCatStringGet() = do
+    cat = CatString("@ab", "cdef")
+    assert(cat.get(1), 'a')
+    assert(cat.get(4), 'd')
+  end
+
+  test testSubstringGet() = do
+    cat = CatString("@ab", "cdefg")
+    subC = cat[2#4]
+    assert(subC.ilkName, "SubString", subC, " is not a SubString")
+    subC.verify()
+    assert(cat[2], 'b')
+    assert(subC[0], 'b')
+    assert(subC[1], 'c')
+    assert(subC[2], 'd')
+    assert(subC[3], 'e')
+    shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() ⇒ subC[4])
+  end
+  
   test testJavaStringification() = do
     e = EmptyString
     assert(e.asJavaString, "", "EmptyString.javaString")
@@ -99,15 +119,14 @@ component StringTests
     assert(c.asJavaString, "abcdefgh", "CatString.javaString")
     s = c[2:5]
     s.verify()
-    assert(s.asJavaString, "cdef", "SubString'.javaString")
+    assert(s.asJavaString, "cdef", "SubString.javaString")
     ss = s[1:2]
     ss.verify()
-    assert(ss.asJavaString, "de", "Substring of SubString'.javaString")
-    println(ss.ilkName ": " ss.asDebugString)
+    assert(ss.asJavaString, "de", "Substring of SubString.javaString")
     lss = s[0:1]
     lss.verify()
     assert(lss.asDebugString, "J2/0:cd")
-    assert(lss.asJavaString, "cd", "left Substring of SubString'.javaString")
+    assert(lss.asJavaString, "cd", "left Substring of SubString.javaString")
   end  
   
   test testIN() = do
@@ -132,20 +151,20 @@ component StringTests
   end
   
 
-  test testSplit():() = do
+  test testsplitWithOffsets():() = do
     subject = CatString("abcd", "efgh")
     substr1 = subject[2:6]
-    validateSplit(substr1, seq(substr1.split()))
+    validatesplitWithOffsets(substr1, seq(substr1.splitWithOffsets()))
     
     substr2 = subject[4:6]
-    assert(substr2.split().isEmpty, "subject[4:6].split is not empty!")
+    assert(substr2.splitWithOffsets().isEmpty, "subject[4:6].splitWithOffsets is not empty!")
 
     substr3 = subject[0:5]
-    validateSplit(substr3, seq(substr3.split()))
+    validatesplitWithOffsets(substr3, seq(substr3.splitWithOffsets()))
     
     
     subC = (CatString("@ab", "cdefg"))[2#4]
-    validateSplit(subC, seq(subC.split()))
+    validatesplitWithOffsets(subC, seq(subC.splitWithOffsets()))
   end 
 
   
@@ -243,6 +262,13 @@ component StringTests
     for i ← result.bounds do assert(result[i] , chars[i]) end
   end  
   
+  test testEquality() = do
+    subJ = "bcdefg"[1#4]
+    subC = (CatString("@ab", "cdefg"))[2#4]
+    assert(subJ > subC, "cdef not > bcde")
+    assert("abcdefg"[1#4], subC)
+  end
+  
   run(args:String...):() = do
     testDepth()
     testindexing()
@@ -250,7 +276,7 @@ component StringTests
     testSubStringSimplification()
     testIlk()
     testJavaStringification()
-    testSplit()
+    testsplitWithOffsets()
     testIN()
     testComparison()
     testCIComparison()
@@ -259,7 +285,9 @@ component StringTests
     testCharConcat()
     testParallelGenerator()
     testSequentialGenerator()
+    testCatStringGet()
+    testSubstringGet()
+    testEquality()
   end
 
 end StringTests
-

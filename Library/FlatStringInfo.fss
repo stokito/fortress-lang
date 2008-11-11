@@ -19,6 +19,6 @@ component FlatStringInfo
 export FlatStringInfo
 
   object flatStringInfo
-     var maxSize: ZZ32 =   (* 2147483647  *) 25
+     var maxSize: ZZ32 =   (* 2147483647  *) 32
   end
 end

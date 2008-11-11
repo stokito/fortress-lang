@@ -16,8 +16,10 @@
  ******************************************************************************)
 
 native component JavaString
-import String.{CatString, EmptyString, StringDebug, spaces}
+
+import String.{...}
 import FlatStringInfo.{...}
+
 export JavaString
 
 
@@ -33,6 +35,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     getter depth() = 0
     getter isBalanced() = true
     getter isAlmostBalanced() = true
+    getter isExtremelyUnbalanced() = false
     
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
@@ -43,7 +46,7 @@ package="com.sun.fortress.interpreter.glue.prim"
        SubString objects into code that may still expect JavaStrings.
        In any case,  JavaString object supports substring without copying*)
         assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty, 
-            "\nSubstring out of bounds: r1 = ", r1.asString, " = " r1.asDebugString, 
+            "\nSubstring out of bounds: r1 = ", r1.asString, " = ", r1.asDebugString, 
             "; r1 isEmpty = ", r1.isEmpty, 
             "\nself = ", self.asDebugString)
         if r1.isEmpty then ""
@@ -106,10 +109,10 @@ package="com.sun.fortress.interpreter.glue.prim"
     (** The operator %||% with at least one String argument converts to string and
         appends **)
     opr ||(self, b:JavaString): String = do
-        bSize = |b|
-        if bSize = 0 then self
-        elif self.size + bSize > flatStringInfo.maxSize then
-            CatString(self, b)
+        if b.isEmpty then self
+        elif self.size + b.size > flatStringInfo.maxSize then
+             (* Since both self and b have depth 0, balancing can't be necessary *)
+            CatString(self, b)     
         else
             javaAppend(self, b)
         end
@@ -118,21 +121,21 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr ||(self, b:String):String = do
         if self.isEmpty then b
         elif b.isEmpty then self
-        elif |self| + |b| ≤ flatStringInfo.maxSize then 
+        elif self.size + b.size > flatStringInfo.maxSize then 
+            concatAndBalanceIfNecessary(self, b)
+        else 
             javaAppend(self, b.asJavaString)
-        else CatString(self, b)
         end 
     end
-        
-  
+
     opr ||(self, b:Char): String =
         if |self| ≥ flatStringInfo.maxSize then
-            CatString(self, b.toString)
+            concatAndBalanceIfNecessary(self, b.toString)
         else
             javaAppend(self, b)
         end
         
-    split() = Nothing[\Generator[\(ZZ32, String)\]\]
+    splitWithOffsets() = Nothing[\Generator[\(ZZ32, String)\]\]
 
   end JavaString
   

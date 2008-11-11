@@ -361,7 +361,7 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
         case ex of
             1 => "l"
             -1 => "r"
-            2 => if str > 0 then "l,l+" str else "l,l" str end
+            2 => if str > 0 then "l,l+" str else "l,l-" str end
             -2 => if str > 0 then "r-" str ",r" else "r+" (-str) ",r" end
             else =>
                 if ex > 0 then
@@ -377,6 +377,7 @@ object ExtentScalarRange[\I extends Integral[\I\]\](ex:I, str:I)
                 end
         end
     getter asDebugString(): String = "ExtentScalarRange(" ex "," str ")"
+    getter asExprString(): String = "(#" ex "):" str
     truncL(s:I): FullScalarRange[\I\] =
         if ex > 0 then
             fullScalarRange[\I\](s, s + (ex-1) str, str)
@@ -449,6 +450,7 @@ object ExtentRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     getter range1(): ExtentScalarRange[\I\] = ExtentScalarRange[\I\](ex_i,str_i)
     getter range2(): ExtentScalarRange[\J\] = ExtentScalarRange[\J\](ex_j,str_j)
     getter asDebugString(): String = "ExtentRange2D(" ex_i "," ex_j ", " str_i "," str_j ")"
+    getter asExprString(): String = "(#" self.extent "):" self.stride
     flip(): ExtentRange2D[\I,J\] = ExtentRange2D[\ZZ32,ZZ32\](-ex_i,-ex_j,-str_i,-str_j)
     forward(): ExtentRange2D[\I,J\] =
         self.recombine(self.range1.forward(), self.range2.forward())
@@ -942,6 +944,7 @@ trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRang
         l = self.lower
         self.map[\I\](fn (i:I):(I,I) => (i-l))
       end
+    getter asExprString() = self.lower ":" self.upper
       
     opr[i:I]: I =
         if i NOTIN self.bounds then throw IndexOutOfBounds(self.bounds,i)
@@ -1005,6 +1008,7 @@ object CompactFullSeqScalarRange[\I extends Integral[\I\]\](l:I, r:I)
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
     getter asDebugString(): String = "CompactFullSeqScalarRange(" l "," r ")"
+    getter asExprString(): String = "seq(" (self asif CompactFullScalarRange[\I\]).asExprString ")"
     generate[\T\](red:Reduction[\T\], body: I->T): T = do
         result : T := red.empty()
         i : I := l
