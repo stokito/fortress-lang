@@ -15,9 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala.scortress.constraints
+package scortress.constraints
 
-import com.sun.fortress.scala.scortress.types._
+import scortress.types._
 
 /** A static constraint for the validity of the program. */
 abstract sealed class Constraint

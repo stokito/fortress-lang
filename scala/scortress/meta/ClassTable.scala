@@ -15,9 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala.scortress.meta
+package scortress.meta
 
-import com.sun.fortress.scala.scortress.types._
+import scortress.types._
 
 import scala.collection.immutable.HashMap
 
@@ -27,11 +27,12 @@ import scala.collection.immutable.HashMap
 object ClassTable {
 
   /** The inner table that stores a mapping from type names to definitions. */
-  private val table:HashMap[String, DfType] = new HashMap()
+  private var table:HashMap[String, DfType] = new HashMap
 
-  def initialize(prog:Program):Unit = for (defn <- prog.defns) {
-    defn match { case typeDefn:DfType => table ++ (typeDefn.name, typeDefn) }
-  }
+  /**  */
+  def initialize(prog:Program):Unit =
+    table = new HashMap ++ prog.defns.filter(defn =>
+        defn.isInstanceOf[DfType]).map(defn => (defn.name, defn))
 
   /**
    * Get all matching method types from the class table. This will return a list

@@ -15,10 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala.scortress.definitions
+package scortress.definitions
 
-import com.sun.fortress.scala.scortress.terms._
-import com.sun.fortress.scala.scortress.types._
+import scortress.terms._
+import scortress.types._
 
 /** Definitions for a program in our language. */
 abstract sealed class Definition

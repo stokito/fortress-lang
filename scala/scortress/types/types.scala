@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.scala.scortress.types
+package scortress.types
 
 /** A type in our language. */
 abstract sealed class Type
