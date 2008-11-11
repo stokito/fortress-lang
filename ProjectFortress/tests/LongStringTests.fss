@@ -26,19 +26,19 @@ export Testable
 
     var fileContents: String := ""
     var longSourceString: String := ""
-    
+
     test inputTest(): () = do
         readFile(10)
         println ""
         println "fileContents is a " fileContents.ilkName
         println "length = " fileContents.size
         println "depth = " fileContents.depth
-        println  ( if fileContents.isBalanced then 
-                            "balanced" 
-                        elif fileContents.isAlmostBalanced then 
-                            "almost balanced" 
-                        else 
-                            "unbalanced" 
+        println  ( if fileContents.isBalanced then
+                            "balanced"
+                        elif fileContents.isAlmostBalanced then
+                            "almost balanced"
+                        else
+                            "unbalanced"
                         end  )
 
         balancedContents = fileContents.balanced()
@@ -46,20 +46,20 @@ export Testable
         println "balancedContents is a " balancedContents.ilkName
         println "length = " balancedContents.size
         println "depth = " balancedContents.depth
-        println (  if balancedContents.isBalanced then 
-                            "balanced" 
-                        elif balancedContents.isAlmostBalanced then 
-                            "almost balanced" 
-                        else 
-                            "unbalanced" 
+        println (  if balancedContents.isBalanced then
+                            "balanced"
+                        elif balancedContents.isAlmostBalanced then
+                            "almost balanced"
+                        else
+                            "unbalanced"
                         end  )
-        output = FileWriteStream("ProjectFortress/not_passing_yet/poem.out")
+        output = FileWriteStream(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/poem.out")
         output.write(balancedContents)
         output.close()
     end
-    
+
     readFile(n: ZZ32): () = do
-        input = FileReadStream("ProjectFortress/not_passing_yet/poem.txt")
+        input = FileReadStream(getEnvironment("fortress.autohome", ".") "/ProjectFortress/tests/poem.txt")
         flatStringInfo.maxSize := n
         fileContents := BIG || [ c ← seq(input.chunks(n)) ] c
         input.close()
@@ -69,29 +69,29 @@ export Testable
         end
         longSourceString := longSourceString.asJavaString *)
     end
-    
+
     buildString(n: ZZ32): () = do
         flatStringInfo.maxSize := n
         fileContents := BIG || [ i ← longSourceString.indices ] longSourceString[i]
     end
-    
+
     test miniTest() = do
         flatStringInfo.maxSize := 10
-        abcdef = CatString("a", CatString("b", CatString("c", CatString("d", 
+        abcdef = CatString("a", CatString("b", CatString("c", CatString("d",
             CatString(EmptyString, CatString("e", "f"))))))
         assert(abcdef, "abcdef")
         balancedAbcdef = abcdef.balanced()
         assert(balancedAbcdef, "abcdef")
         println abcdef.asDebugString
     end
-    
+
     run(args:String...):() = label runMethod
         (* Warm the file cache *)
         readFile(32)
         for t ← seq(⟨8, 16, 32, 64 (*, 128, 256, 512, 1024 *)⟩) do
-            ("MaxFlat = " || t || ": ") PRINTTIME: buildString(t)  
-            printStats(fileContents) 
+            ("MaxFlat = " || t || ": ") PRINTTIME: buildString(t)
+            printStats(fileContents)
         end
     end runMethod
-    
+
 end LongStringTests
