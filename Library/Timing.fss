@@ -22,7 +22,7 @@ w10 : ZZ64 = widen(10)
 
 (** A Timing represents the duration of a computation. **)
 object Timing(desc:String, duration: ZZ64)
-    getter toString(): String = desc ||| self.durationString
+    getter asString(): String = desc ||| self.durationString
     getter durationString(): String =
         if duration < w10^2 then
             duration "ns"

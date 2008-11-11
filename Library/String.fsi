@@ -17,20 +17,33 @@
 
 api String
 
-  object CatString(left: String, right:String)  extends String
+  concatAndBalanceIfNecessary(s1: String, s2: String): String
+
+  object CatString(left: String, right:String) extends String
   end
 
   value object EmptyString extends String
   end
 
-  trait SubString extends String
-    comprises {...}
+  object SubString extends String
   end
     
   trait StringDebug
     getter asDebugString(): String
     abstract asDebugStringIndented(indent: ZZ32): String
   end
+  
+  trait Concatenable 
+    opr || (self, other: String): String
+    opr || (self, other: EmptyString): String
+    opr || (self, other: Char): String
+  end Concatenable
+
+  trait Balanceable 
+    getter isBalanced(): Boolean
+    getter isAlmostBalanced(): Boolean
+    getter isExtremelyUnbalanced(): Boolean
+  end Balanceable
   
   printStats(s: String): ()
  
