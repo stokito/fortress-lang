@@ -34,6 +34,7 @@ ln -s `pwd` ../${ourname}
 ( cd .. ; find -L ${ourname} \( -name .svn -o \
            -name "fortress_*.zip" -o \
            -name .hg -o \
+           -name tmp -o \
            -name test-tmp -o \
            -name SvnStats -o \
            -name "*.log" -o \

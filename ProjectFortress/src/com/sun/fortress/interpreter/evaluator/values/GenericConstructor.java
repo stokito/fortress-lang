@@ -55,7 +55,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         String name = odefOrDecl.stringName();
 
         FTypeGeneric.startPendingTraitFMs();
-        FTypeGeneric gt = (FTypeGeneric) env.getType(name); // toplevel
+        FTypeGeneric gt = (FTypeGeneric) env.getRootType(name); // toplevel
 
         /*
          * Necessary to fake an instantiation expression.

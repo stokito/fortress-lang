@@ -66,15 +66,15 @@ public interface Environment  {
 
     public boolean getBlessed() ;
 
-    public abstract Boolean getBool(String str);
+    public abstract Boolean getBool(String str); // 0 refs
 
-    public abstract Boolean getBoolNull(String s);
+    public abstract Boolean getBoolNull(String s); // 2 trivial refs
 
     //public boolean hasType(String str);
 
     public abstract Closure getClosure(String toBeRun);
 
-    public abstract Number getIntNull(String s);
+    public abstract Number getIntNull(String s); // 1 trivial ref
 
     public abstract Number getNat(String str);
     // used only by natFromGeneric (applied to trait environments)
@@ -93,12 +93,16 @@ public interface Environment  {
     public abstract FType getType(NamedType q); // 2
     // forTraitType, forVarType (these have lexical depth)
 
-    public abstract FType getType(String str); // 13
+    public abstract FType getRootType(String str); // 10 refs
+    public abstract FType getLeafType(String str); // 4 refs
 
     public abstract FType getTypeNull(Id name); // 3
+    // two can easily be converted to use index.
 
-    public abstract FType getTypeNull(String name); // 21
-
+    public abstract FType getLeafTypeNull(String name); // 16 refs
+    public abstract FType getRootTypeNull(String name); // 4 refs
+    public FType getTypeNull(String name); // 3 refs -- keep this name because of compiled code.
+    
     //public abstract FValue getValue(FValue f1);
 
     /* Variables/values -- these are more complex.
@@ -158,8 +162,10 @@ public interface Environment  {
     // BaseEnv accesses are internal-use-only, BAE references link snapping etc.
     public abstract FValue getValueRaw(String s); // 20 refs
 
-    public abstract FType getVarTypeNull(String str); // 3 refs
-
+    public abstract FType getVarTypeNull(String str); // 2 refs
+    // Leaf in baseenv, 
+    // Can be level-indexed in LHSEvaluator
+    
     public abstract Environment installPrimitives();
 
     public boolean isTopLevel();

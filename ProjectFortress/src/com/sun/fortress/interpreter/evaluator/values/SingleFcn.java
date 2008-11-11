@@ -210,7 +210,9 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                     WhereExtends we = (WhereExtends) wc;
                     String we_name = we.getName().getText();
                     // List<Type> we_supers = we.getSupers();
-                    if (ge.getTypeNull(we_name) == null) {
+                    if (ge.getLeafTypeNull(we_name) == null) { // leaf
+                        // The we_name is in the static parameters environment
+                        // thus it is a leaf reference.
                         // Add name
                         SymbolicInstantiatedType st = new SymbolicInstantiatedType(we_name, ge, we);
                         ge.putType(we_name, st);
@@ -227,7 +229,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
             if (tp instanceof TypeParam) {
                 TypeParam stp = (TypeParam) tp;
                 String stp_name = NodeUtil.getName(stp);
-                SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(stp_name); // leaf
+                SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(stp_name); // leaf
                 List<BaseType> oext = stp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
@@ -251,7 +253,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                     WhereExtends we = (WhereExtends) wc;
                     String we_name = we.getName().getText();
                     List<BaseType> we_supers = we.getSupers();
-                    SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getType(we_name); // leaf
+                    SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(we_name); // leaf
                     st.addExtends(eval_type.getFTypeListFromList(we_supers));
                 }
             }
