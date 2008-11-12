@@ -208,7 +208,7 @@ component StringTests
   end
  
   object CatStringReduction extends MonoidReduction[\String\]
-    getter toString() = "CatStringReduction"
+    getter asString() = "CatString Reduction"
     empty(): String = EmptyString
     join(a:String, b:String):String = CatString(a, b)
   end
@@ -270,6 +270,8 @@ component StringTests
   end
   
   run(args:String...):() = do
+    println "This's a \"test\"".asExprString
+    println "This's a \"test\""
     testDepth()
     testindexing()
     testSubString()

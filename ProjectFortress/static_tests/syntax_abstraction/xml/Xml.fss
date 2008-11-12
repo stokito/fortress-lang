@@ -74,7 +74,7 @@ component Xml
   object Attribute(key:String, val:String)
     getter getKey():String = key
     getter getValue():String = val
-    getter toString():String = " " getKey() "='" getValue() "'"
+    getter asString():String = " " getKey() "= '" ||  getValue() || "'"
   end
 
   object CData(v:String) extends Content

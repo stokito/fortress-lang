@@ -24,7 +24,7 @@ export Executable
 d[\bool b\]() = b
 
 object Thing[\bool b\]
-  getter toString() = "thing " b
+  getter asString() = "thing " b
   (* this is not ok *)
   g[\bool a\]() = b
 

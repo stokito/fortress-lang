@@ -29,12 +29,11 @@ export NatReflect
 trait NatParam
   (* comprises { N[\n\] } where [\ nat n \] *)
   getter toZZ() : ZZ32
-  getter toString(): String
 end
 
 value object N[\nat n\] extends { NatParam }
-  toZZ() = n
-  toString() = "" n
+  getter toZZ() = n
+  getter asString() = n.asString
 end
 
 (* Inner loop of reflect, hoisted to top level because of incomplete

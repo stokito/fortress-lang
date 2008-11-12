@@ -29,7 +29,6 @@ api Xml
   end
 
   object Element(info:Header, content_:List[\Content\], endTag:String) extends Content 
-    getter toString():String
     getter tag():String
     getter hasElements():Boolean
     getter children():List[\Element\]
@@ -43,14 +42,12 @@ api Xml
   object Attribute(key:String, val:String) extends Content
     getter getKey():String
     getter getValue():String
-    getter toString():String
   end
   
   object Header(startTag:String, _attributes:List[\Attribute\])
   end
 
   object CData(v:String) extends Content
-    getter toString():String
   end
 
   grammar xml extends {Expression, Symbols}
