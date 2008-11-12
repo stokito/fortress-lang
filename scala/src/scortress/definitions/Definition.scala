@@ -55,4 +55,3 @@ case class DfObject(override val name:String,
  * A full program in our language. Evaluate the body with the given definitions.
  */
 case class Program(defns:List[Definition], body:Term)
-
