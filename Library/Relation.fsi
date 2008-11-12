@@ -32,7 +32,6 @@ trait Relation[\T\] extends Equality[\Relation[\T\]\] comprises {...}
   opr DIFFERENCE(self, other:Relation[\T\]): Relation[\T\]
   opr =(self, other: Relation[\T\]): Boolean
   opr IN(p:(T,T), self): Boolean
-  toString(): String
 
   (* Relation predicates *)
   opr SUBSETEQ(self, other:Relation[\T\]): Boolean

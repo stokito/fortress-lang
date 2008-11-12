@@ -26,12 +26,13 @@ export JavaString
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-  object JavaString extends {String,  StringDebug}
+  object JavaString extends {StringDebug}
     getter size() : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
-    getter toString() : String =
+    getter asExprString() : String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
     getter asJavaString(): String = self
+    getter asStriing(): String = self
     getter depth() = 0
     getter isBalanced() = true
     getter isAlmostBalanced() = true
@@ -130,7 +131,7 @@ package="com.sun.fortress.interpreter.glue.prim"
 
     opr ||(self, b:Char): String =
         if |self| ≥ flatStringInfo.maxSize then
-            concatAndBalanceIfNecessary(self, b.toString)
+            concatAndBalanceIfNecessary(self, b.asString)
         else
             javaAppend(self, b)
         end

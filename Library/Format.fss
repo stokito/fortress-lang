@@ -33,7 +33,7 @@ export Format
  *  e - format in scientific notation. keys = w, ww
  *  b - format as a boolean( true/false ). keys =
  *  m - format for Maybe types, only print object if a Just is given. keys =
- *  s - format using toString() of the object. keys = w, ww
+ *  s - format using asString of the object. keys = w, ww
  *  x - format as hex. keys = w, ww, i, n, nn
  *
  * Possible keys:
@@ -165,14 +165,15 @@ end
  * %g - scientific notation with all the digits
  * %a - hexidecimal floating point
  * %% - %
- * %s - string, toString()
+ * %s - string, asString
  * %1$s
  *)
 
  (* %w=1&d='&d *)
 
 object FormatException(reason:String) extends Exception
-    toString():String = "Format exception: " reason
+    getter asString(): String = "Format exception: " reason
+    getter asExprString(): String = "FormatException(" reason.asEvalString ")"
 end
 
 object Parameters(widthLeft:Maybe[\ZZ32\],

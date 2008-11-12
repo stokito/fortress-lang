@@ -106,7 +106,7 @@ end
 
 object HeapMerge[\K,V\](boiler: Heap[\K,V\])
         extends CommutativeMonoidReduction[\Heap[\K,V\]\]
-    getter toString():String = "Heap merge reduction"
+    getter asString():String = "Heap merge reduction"
     empty(): Heap[\K,V\] = boiler.empty()
     join(a:Heap[\K,V\], b:Heap[\K,V\]): Heap[\K,V\] = a.merge(b)
 end

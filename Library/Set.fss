@@ -32,6 +32,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\]
         comprises {NodeSet[\E\], EmptySet[\E\]}
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
+    getter asDebugString() = "Set: " || self.showTree()
     seqgen[\R\](r: Reduction[\R\], body: E->R): R
     ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
     seq(self): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
@@ -39,7 +40,6 @@ trait Set[\E extends StandardTotalOrder[\E\]\]
     getLeftChild():Set[\E\]
     getRightChild():Set[\E\]
     showTree():String
-    toString():String
     opr IN(x:E, self):Boolean
     indexOf(x:E): Maybe[\ZZ32\] = self.indexOfI(0,x)
     indexOfI(i:ZZ32, x:E): Maybe[\ZZ32\]
@@ -124,7 +124,7 @@ opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]) =
     __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],Set[\R\]\](BIG UNION[\R\](), g)
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduction[\Set[\E\]\]
-    getter toString(): String = "Union reduction"
+    getter asString(): String = "Union reduction"
     empty():Set[\E\] = EmptySet[\E\]
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
@@ -139,7 +139,7 @@ opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]
 object Intersection[\E extends StandardTotalOrder[\E\]\]
         extends { CommutativeReduction[\Set[\E\]\],
                   ReductionWithZeroes[\Set[\E\],Maybe[\Set[\E\]\]\] }
-    getter toString(): String = "Intersection reduction"
+    getter asString(): String = "Intersection reduction"
     simpleJoin(a:Set[\E\], b:Set[\E\]):Set[\E\] = a INTERSECTION b
     isZero(s:Set[\E\]): Boolean = s.isEmpty()
 end
@@ -170,6 +170,7 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     getter size():ZZ32 = 0
     getter bounds():CompactFullRange[\ZZ32\] = 0#0
     getter isEmpty():Boolean = true
+    getter asString(): String = "{}"
     opr |self| : ZZ32 = 0
     opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
@@ -184,7 +185,6 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     getLeftChild():Set[\E\] = self
     getRightChild():Set[\E\] = self
     showTree():String = "ε"
-    toString():String = "{}"
     opr IN(x:E, self):Boolean = false
     minimum():Nothing[\E\] = Nothing[\E\]
     extractMinimum():Nothing[\(E, Set[\E\])\] = Nothing[\(E, Set[\E\])\]
@@ -214,6 +214,12 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     sz:ZZ32 = 1 + |left| + |right|
     getter size():ZZ32 = sz
     getter isEmpty():Boolean = false
+    getter asString():String = do
+        (h,t) = extractMinimum().get()
+        "{" h t.generate[\String\](StringReduction,
+                                    fn (e:E)=>"," e) "}"
+      end
+    
     opr |self| : ZZ32 = sz
     subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
        elif i = |left| then val
@@ -253,12 +259,6 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
 
     showTree():String =
        "(" left.showTree() " " val " " right.showTree() ")"
-
-    toString():String = do
-        (h,t) = extractMinimum().get()
-        "{" h t.generate[\String\](StringReduction,
-                                    fn (e:E)=>"," e) "}"
-      end
 
     opr IN(z:E, self):Boolean =
         typecase _ = z CMP val of

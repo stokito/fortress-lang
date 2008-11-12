@@ -80,7 +80,6 @@ trait List[\E\] extends { Equality[\E\], ZeroIndexed[\E\] }
   reverse(): List[\E\]
   zip[\F\](other: List[\F\]): Generator[\(E,F)\]
   filter(p: E -> Boolean): List[\E\]
-  toString():String
   (** %concatMap% is an in-place version of the %nest% method from
       %Generator%; it flattens the result into an actual list, rather than
       returning an abstract %Generator%. *)

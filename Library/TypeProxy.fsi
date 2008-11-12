@@ -25,7 +25,6 @@ api TypeProxy
 
 object __Proxy[\T extends (* U *) Any\]
     (* extends { __Proxy[\U\], Object } where { U extends Any } *)
-    getter toString(): String
 end
 
 end

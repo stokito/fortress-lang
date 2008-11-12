@@ -22,11 +22,12 @@ api CaseInsensitiveString
     useful when using strings in a data structure that expects them to
     extend StandardTotalOrder, for example as keys in a map or
     elements of a set. **)
+    
 value object CaseInsensitiveString(s:String)
         extends { StandardTotalOrder[\CaseInsensitiveString\],
                   ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
-    (** %toString% returns the underlying non-case-insensitive %String%, %s%. **)
-    getter toString() : String
+    (** %asString% returns the underlying non-case-insensitive %String%, %s%. **)
+ 
     opr juxtaposition(self, other:CaseInsensitiveString): CaseInsensitiveString
 end
 

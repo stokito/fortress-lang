@@ -27,18 +27,19 @@ value object CaseInsensitiveString(s:String)
         extends { StandardTotalOrder[\CaseInsensitiveString\],
                   ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
     getter size() = |s|
-    (** %toString% returns the underlying non-case-insensitive %String%, %s%. **)
-    getter toString() : String = s
+    (** %asString% returns the underlying non-case-insensitive %String%, %s%. **)
+    getter asString() : String = s
+    getter asDebugString() : String = "CaseInsensitive " s
     getter indices() : CompactFullRange[\ZZ32\] = s.indices()
     getter generator() : Generator[\Char\] = s.generator()
     opr |self| : ZZ32 = |s|
-    opr =(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) = 0
-    opr <(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) < 0
-    opr <=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) <= 0
-    opr >(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) > 0
-    opr >=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.toString()) >= 0
+    opr =(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) = 0
+    opr <(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) < 0
+    opr <=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) <= 0
+    opr >(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) > 0
+    opr >=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) >= 0
     opr CMP(self, other:CaseInsensitiveString): TotalComparison =
-        s.cicmp(other.toString()) CMP 0
+        s.cicmp(other.asString) CMP 0
     opr [i:ZZ32]: Char = s[i]
     (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
         of the string, returning the empty string, in order to permit some convenient

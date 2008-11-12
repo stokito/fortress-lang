@@ -140,7 +140,7 @@ private object Append[\T,A extends T, B extends T\](a:NonEmpty[\A\], b:NonEmpty[
 end
 
 object CVReduction[\T\] extends MonoidReduction[\AnyCovColl\]
-    getter toString():String = "CVReduction"
+    getter asString():String = "CV Reduction"
     empty(): AnyCovColl = Empty[\T\]
     join(a:AnyCovColl, b:AnyCovColl): AnyCovColl = a APPCOV b
 end

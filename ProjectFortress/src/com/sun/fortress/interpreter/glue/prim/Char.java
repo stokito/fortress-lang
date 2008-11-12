@@ -177,6 +177,12 @@ public class Char extends NativeConstructor {
         }
     }
 
+    public static final class ToExprString extends NativeMeth0 {
+        protected FValue act(FObject self) {
+            return FString.make(((FChar)self).toString());
+        }
+    }
+    
     /* Returns the Unicode directionality property for the given character (Unicode code point). */
     public static final class GetDirectionality extends s2I {
        protected int f(int x) { return Character.getDirectionality(x); }

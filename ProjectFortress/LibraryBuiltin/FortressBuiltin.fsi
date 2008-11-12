@@ -163,7 +163,7 @@ value object Char extends { StandardTotalOrder[\Char\] }
         actually a good idea, and we solicit feedback on the subject. **)
     opr |self| : ZZ32
 
-    (** Ordering resepects %codePoint%. **)
+    (** Ordering respects %codePoint%. **)
     opr =(self, other:Char): Boolean
     opr <(self, other:Char): Boolean
     opr SIMEQ(self, other:Char): Boolean

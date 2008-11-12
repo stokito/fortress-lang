@@ -21,7 +21,6 @@ import Set.{Set}
 
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
-    getter toString(): String
 end
 
 (** Note that the map interface is purely functional; methods return a
@@ -33,7 +32,6 @@ trait Map[\Key,Val\]
       comprises { ... }
     getter isEmpty():Boolean
     getter showTree():String
-    getter toString():String
     dom(self):Set[\Key\]
     opr | self | : ZZ32
     opr[k:Key]: Val throws NotFound
