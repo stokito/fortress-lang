@@ -30,7 +30,6 @@ trait Set[\E\]
       extends { ZeroIndexed[\E\], Equality[\Set[\E\]\] }
       comprises { ... }
    printTree():()
-   toString():String
    minimum():Maybe[\E\]
    maximum():Maybe[\E\]
    deleteMinimum():Set[\E\]

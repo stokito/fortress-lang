@@ -572,7 +572,7 @@ value object Char extends { StandardTotalOrder[\Char\] }
     getter asString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
     getter asExprString(): String =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToExprString") 
     getter codePoint(): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$CodePoint")
     opr |self| : ZZ32 = self.codePoint

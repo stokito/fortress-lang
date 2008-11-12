@@ -17,7 +17,9 @@
 
 trait Any
   getter hashCode(): NN64
-  getter toString(): String
+  getter asString(): String
+  getter asDebugString(): String
+  getter asExprString(): String
   opr ===(self, other: Any): Boolean
   opr IDENTITY(self): Any
   hash(maxval: NN64): NN64
@@ -25,7 +27,7 @@ trait Any
   property FORALL (x, y, n: NN64) x === y IMPLIES x.hash(n) === y.hash(n)
   property FORALL (x, y, n: NN32) x === y IMPLIES x.hash(n) === y.hash(n)
   property FORALL (x) x.hashCode === x.hash(2^64-1)
-  property FORALL (x, y) x === y IMPLIES x.toString() = y.toString()
+  property FORALL (x, y) x === y IMPLIES x.asString = y.asString
   property FORALL (a) (IDENTITY a) === a
   property FORALL (a) a===a
   property FORALL (a,b) a===b IFF b===a
@@ -38,7 +40,6 @@ end
 
 trait Tuple extends { Any, EquivalenceRelation[\Tuple,===\], IdentityOperator[\Tuple\] }
     excludes { Object }
-  toString(): String
 end
 
 trait Boolean
@@ -93,7 +94,7 @@ trait Boolean
   opr NOR(self, other: Boolean):  Boolean
   opr ===(self, other: Boolean): Boolean
   majority(self, other1: Boolean, other2: Boolean)
-  toString(): String
+  
   property FORALL (a, b) a b = (a AND b)
   property FORALL (a, b) (a XOR b) = (a OPLUS b)
   property FORALL (a, b) (a EQV b) = (a IFF b) = (a = b) = (a === b)

@@ -22,10 +22,8 @@ import PureList.{...}
 export SkipTree
 
 trait SkipTree[\Key,Value\]
-
-    getter toString():String
-    
-    getter toDotString(name:String):String
+  
+    getter asDotString(name:String):String
     
     getter count():ZZ32
 
@@ -71,9 +69,9 @@ end
 
 object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
 
-    getter toString():String = "(EMPTY)"
+    getter asString():String = "(EMPTY)"
 
-    getter toDotString(name:String):String = "digraph " || name || " {}"
+    getter asDotString(name:String):String = "digraph " || name || " {}"
 
     getter count():ZZ32 = 0
 
@@ -96,10 +94,10 @@ end
 
 object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTree[\Key,Value\] }
 
-    getter toString():String = root.toString()
+    getter asString():String = root.asString()
 
-    getter toDotString(name:String):String =  "digraph " || name  || (" {" // 
-        "node [shape=record];" // "ordering=out;"  //  root.toDotString() ) || "}" 
+    getter asDotString(name:String):String =  "digraph " || name  || (" {" // 
+        "node [shape=record];" // "ordering=out;"  //  root.asDotString() ) || "}" 
 
     getter count():ZZ32 = root.count()
 
@@ -130,13 +128,13 @@ object Node[\Key,Value\](keys     : List[\Key\],
                          height   : ZZ32)
 
 
-    getter toString() : String = keys "" values "" children " h" height
+    getter asString() : String = keys "" values "" children " h" height
 
-    getter toDotString() : String = do
+    getter asDotString() : String = do
         name = keys[0]
         s1 = "node" || name || " [label=\"" || childrenDotString() || "\"];"//
         s2 = children.generate[\String\](StringReduction,fn (child) => typecase child of
-                Just[\Node[\Key,Value\]\] => child.get().toDotString()
+                Just[\Node[\Key,Value\]\] => child.get().asDotString()
                 else => "" end) 
         s3 = children.indexValuePairs().generate[\String\](StringReduction, 
             fn (i,child) => typecase child of
@@ -343,24 +341,24 @@ object Node[\Key,Value\](keys     : List[\Key\],
      **)        
     verify():() = do
         if height <= 0 then
-            fail(toString() " : All nodes must have a height that is a positive integer")
+            fail(self.asString " : All nodes must have a height that is a positive integer")
         end
         if |keys| =/= |values| then
-            fail(toString() " : Size of keys is not equal to size of values")
+            fail(self.asString " : Size of keys is not equal to size of values")
         end
         if |keys| + 1 =/= |children| then
-            fail(toString() " : Size of children is not equal to size of keys plus one")
+            fail(self.asString " : Size of children is not equal to size of keys plus one")
         end
         for i <- 0 # (|keys| - 1) do
             if keys[i] >= keys[i + 1] then
-                fail(toString() " : Keys " keys[i] " and " keys[i + 1] " are not in sorted order")
+                fail(self.asString " : Keys " keys[i] " and " keys[i + 1] " are not in sorted order")
             end
         end
         for i <- 0 # |keys| do        
             typecase child = children[i] of    
                 Just[\Node[\Key,Value\]\] => do
                     if child.get().largestKey() > keys[i] then
-                        fail(toString() " : " child.get().largestKey() " > " keys[i])
+                        fail(self.asString " : " child.get().largestKey() " > " keys[i])
                     end
                 end
                 else => ()
@@ -368,7 +366,7 @@ object Node[\Key,Value\](keys     : List[\Key\],
             typecase child = children[i + 1] of    
                 Just[\Node[\Key,Value\]\] => do
                     if child.get().smallestKey() < keys[i] then
-                        fail(toString() " : " child.get().smallestKey() " < " keys[i])
+                        fail(self.asString " : " child.get().smallestKey() " < " keys[i])
                     end
                 end
                 else => ()

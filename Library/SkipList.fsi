@@ -25,8 +25,6 @@ import PureList.{...}
 trait SkipList[\Key,Val,nat pInverse\]
     comprises { ... }
 
-  getter toString():String
-
   (** Depracated.  Use %|self|% instead. *)
   getter size():ZZ32
 

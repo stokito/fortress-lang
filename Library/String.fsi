@@ -27,24 +27,24 @@ api String
 
   object SubString extends String
   end
-    
-  trait StringDebug
+ 
+  trait StringDebug extends String
     getter asDebugString(): String
     abstract asDebugStringIndented(indent: ZZ32): String
   end
-  
-  trait Concatenable 
+(*  
+  trait Concatenable  extends String
     opr || (self, other: String): String
     opr || (self, other: EmptyString): String
     opr || (self, other: Char): String
   end Concatenable
 
-  trait Balanceable 
+  trait Balanceable extends String
     getter isBalanced(): Boolean
     getter isAlmostBalanced(): Boolean
     getter isExtremelyUnbalanced(): Boolean
   end Balanceable
-  
+  *)
   printStats(s: String): ()
  
   (** A string containing n spaces **)

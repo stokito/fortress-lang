@@ -23,7 +23,12 @@ trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = v[#l].copy()
 (** Sparse vector, represented as ordered sequence of index/value pairs.
     Absent entries are 0. *)
 object SparseVector[\T extends Number, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
-        extends Vector[\T,n\]
+        extends Vector[\T,n\]   
+    getter asString():String = do
+        elt(t:ZZ32,v:T):String = " " t "->" v
+        join(a:String,b:String):String = a b
+        "Sparse[" n "] = [" indexValuePairs().mapReduce[\String\](elt,join,"") "]"
+      end
     (* Indexing proceeds by binary search *)
     get(i:ZZ32):T = do
       b = mem.bounds().lower()
@@ -91,11 +96,6 @@ object SparseVector[\T extends Number, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
             newMem.init(position,(index,newVal))
         end
         SparseVector[\T,n\](newMem)
-      end
-    toString():String = do
-        elt(t:ZZ32,v:T):String = " " t "->" v
-        join(a:String,b:String):String = a b
-        "Sparse[" n "] = [" indexValuePairs().mapReduce[\String\](elt,join,"") "]"
       end
     (** vector * vector multiply.  Again uses a specialized serial algorithm if both
         arguments are sparse, and otherwise follows the sparse argument structure. *)

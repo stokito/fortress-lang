@@ -19,7 +19,6 @@ api Timing
 
 (** A Timing represents the duration of a computation. **)
 object Timing(desc:String, duration: ZZ64)
-    getter toString(): String
     getter durationString(): String
     getter secs(): RR64
     getter msecs(): RR64

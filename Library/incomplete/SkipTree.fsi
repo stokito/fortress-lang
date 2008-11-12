@@ -20,8 +20,6 @@ import List.{...}
 
 trait SkipTree[\Key,Value\]
 
-    getter toString():String
-
     getter count():ZZ32
 
     opr |self| : ZZ32

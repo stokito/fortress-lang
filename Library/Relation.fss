@@ -27,6 +27,7 @@ export Relation
 
 object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
 
+  getter asString(): String = "Relation " || rel.asString()
   dom(self): Set[\T\] = dom(rel)
 
   range(self): Set[\T\] = BIG UNION[\T\][(k,v) <- rel] v
@@ -66,8 +67,6 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
     (k,v) = p
     if values <- rel.member(k) then v IN values else false end
   end
-
-  toString(): String = "Relation " || rel.toString()
 
   (* Relation predicates *)
 
@@ -148,7 +147,7 @@ opr BIG RELATION[\T\](g: Generator[\(T,T)\]) =
   __bigOperatorSugar[\(T,T),Relation[\T\],Map[\T,Set[\T\]\],Map[\T,Set[\T\]\]\](BIG RELATION[\T\](), g)
 
 object RelationReduction[\T\] extends CommutativeMonoidReduction[\Map[\T,Set[\T\]\]\]
-  getter toString() = "Relation reduction"
+  getter asString() = "Relation reduction"
   empty() = mapping[\T,Set[\T\]\]()
   join(left: Map[\T,Set[\T\]\], right: Map[\T,Set[\T\]\]) =
     relationUnion(left, right)

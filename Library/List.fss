@@ -126,7 +126,7 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     getter right():Maybe[\E\] = self.extractRight.map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
-    getter toString():String =
+    getter asString():String =
       "<|" (if (h,t) <- self.extractLeft then
                 h (BIG ||[e<-t] ", " e)
             else " " end) "|>"
@@ -233,21 +233,21 @@ concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
 
 (** A reduction object for concatenating lists. *)
 private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
-  getter toString():String = "List concatenation"
+  getter asString():String = "List concatenation reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a || b
 end
 
 (** A reduction object for concatenating lists covariantly. *)
 private object CVConcat[\T\] extends MonoidReduction[\AnyList\]
-  getter toString():String = "Covariant list concatenation"
+  getter asString():String = "Covariant list concatenation reduction"
   empty(): AnyList = emptyList[\T\]()
   join(a:AnyList, b:AnyList): AnyList = a || b
 end
 
 (** The same for reverse concatenation *)
 private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
-  getter toString():String = "List reversal concatenation"
+  getter asString():String = "List reversal concatenation reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b || a
 end

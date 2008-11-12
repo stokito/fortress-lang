@@ -49,7 +49,7 @@ trait Avl[\K extends StandardTotalOrder[\K\],V\]
 end
 
 value object AvlDump[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\])
-    getter toString(): String = d(t)
+    getter asString(): String = d(t)
     d(t:Avl[\K,V\]): String =
         typecase t of
             AvlEmpty[\K,V\] => "."

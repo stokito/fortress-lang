@@ -47,12 +47,10 @@ object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
 
   p:RR64 = 1.0 / pInverse
 
-  getter toString():String = root.toString()
+  getter asString():String = root.asString
 
-  (* Depracated.  Use |self| instead. *)
+  (* The number of values stored. *)
   getter size():ZZ32 = |root|
-
-  (* The number of values stores. *)
   opr |self| : ZZ32 = |root|
 
   (* Given a key, try to return a value that matches that key. *)
@@ -128,7 +126,6 @@ trait Node[\Key,Val\]
   (* given a search key, try to return a value that matches that key *)
   search(k:Key):Maybe[\Val\]
 
-  toString():String
   (* toGraphViz():String   wait until hashCode() is implemented*)
 
   (* the add method will grow the tree if level > root height *)
@@ -183,12 +180,11 @@ trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
   getter child():ChildType
   getter size():ZZ32 = |self.child|
   getter height():ZZ32 = self.child.height() + 1
+  getter asString():String = "{ [], [" self.child.asString "] }"
 
   opr |self| : ZZ32 = |self.child|
 
   search(k:Key):Maybe[\Val\] = self.child.search(k)
-
-  toString():String = "{ [], [" self.child.toString() "] }"
 
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
     tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - height())
@@ -727,12 +723,11 @@ object EmptyNode[\Key,Val\] extends Node[\Key,Val\]
 
   getter height():ZZ32 = fail("Cannot get height of an empty tree")
   getter size():ZZ32 = 0
+  getter asString():String = "{}"
 
   opr |self| : ZZ32 = 0
 
   search(k:Key):Maybe[\Val\] = Nothing[\Val\]
-
-  toString():String = "{}"
 
   remove(k:Key):Node[\Key,Val\] = self
 
@@ -758,6 +753,7 @@ object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\])
        extends Node[\Key,Val\]
 
   getter size():ZZ32 = |values|
+  getter asString():String = "<<" key ">>"
   getKey():Key = key
   getValues():Array[\Val,ZZ32\] = values
   height():ZZ32 = 0
@@ -774,7 +770,6 @@ object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\])
 
   getLeaves():List[\LeafNode[\Key,Val\]\] = singleton[\LeafNode[\Key,Val\]\](self)
 
-  toString():String = "<<" key ">>"
 
 end
 

@@ -54,7 +54,6 @@ trait BooleanInterval
   necessarily(self): Boolean
   certainly(self): Boolean
   opr ===(self, other: BooleanInterval): Boolean
-  toString(): String
   property true IN True AND false NOTIN True
   property true NOTIN False AND false IN False
   property true IN Uncertain AND false IN Uncertain

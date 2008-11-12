@@ -107,7 +107,6 @@ FileWriteStream(fileName:String):  FileWriteStream
     
 object FileWriteStream(fileName:JavaString) extends { FileStream }
     getter fileName(): String
-    getter toString(): String
 
     (** %write(JavaString)% and %write(Char)% are the primitive mechanisms for writing
         characters to the end of a %FileWriteStream%. **)
@@ -119,7 +118,7 @@ object FileWriteStream(fileName:JavaString) extends { FileStream }
     write(x:Any):()
 
     (** %writes% converts each of the generated elements to a string
-        using %toString% unless the element is already a %String% in
+        using %asString% unless the element is already a %String% in
         which case it is left alone.  The resulting strings are
         appended together to the end of the stream.  To avoid
         interleaving with concurrent output to the same stream, this

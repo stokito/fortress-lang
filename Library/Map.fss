@@ -26,7 +26,7 @@ weight:ZZ32 = 4
 
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
-    getter toString(): String =
+    getter asString(): String =
         "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
 end
 
@@ -39,7 +39,6 @@ trait Map[\Key,Val\]
       comprises {NodeMap[\Key,Val\], EmptyMap[\Key,Val\]}
     getter isEmpty():Boolean
     getter showTree():String
-    getter toString():String
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
     seq(self): SequentialGenerator[\(Key,Val)\] =
         SeqMapGenerator[\Key,Val\](self)
@@ -217,7 +216,7 @@ object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
 end
 
 object DisjointMapUnion[\Key,Val\] extends MonoidReduction[\Map[\Key,Val\]\]
-    toString(): String = "Disjoint map union reduction"
+    getter asString(): String = "Disjoint map union reduction"
     empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b
@@ -227,7 +226,7 @@ object EmptyMap[\Key,Val\] extends Map[\Key,Val\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
     getter showTree():String = "[]"
-    getter toString():String = "{}"
+    getter asString():String = "{}"
     opr |self| : ZZ32 = 0
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
@@ -281,10 +280,10 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
     getter size():ZZ32 = sz
     getter showTree():String =
       "[" left.showTree() " (" key "," val ") " right.showTree() "]"
-    getter toString():String = do
+    getter asString():String = do
       (km, vm, delmin) = extractMinimum().get()
       ("{" km "|->" vm
-           (BIG ||[(k,v)<-delmin] ", " k "|->" v) "}")
+           (BIG || [(k,v)<-delmin] ", " k "|->" v) "}")
     end
 
     opr |self| : ZZ32 = sz

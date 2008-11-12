@@ -55,6 +55,10 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     getter right():Maybe[\E\] = extractRight().map[\E\](fn (_,v:E):E => v)
     getter extractLeft(): Maybe[\(E,List[\E\])\]
     getter extractRight(): Maybe[\(List[\E\],E)\]
+    getter asString(): String =
+      "<|" (if (h,t) <- extractLeft() then
+                h (BIG ||[e<-t] ", " e)
+            else " " end) "|>"
     opr ||(self, other:List[\E\]): List[\E\]
     (** %addLeft% and %addRight% add an element to the left or right of
         the list, respectively *)
@@ -87,10 +91,6 @@ trait List[\E\] extends { LexicographicOrder[\List[\E\],E\] }
     filter(p: E -> Boolean): List[\E\] =
         concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
                                              else emptyList[\E\]() end)
-    toString():String =
-      "<|" (if (h,t) <- extractLeft() then
-                h (BIG ||[e<-t] ", " e)
-            else " " end) "|>"
     (** %concatMap% is an in-place version of the %nest% method from
         %Generator%; it flattens the result into an actual list, rather than
         returning an abstract %Generator%. *)
@@ -147,21 +147,21 @@ concat[\E\](x:List[\List[\E\]\]):List[\E\] = x.concatMap[\E\](identity[\E\])
 
 (** A reduction object for concatenating lists. *)
 private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
-  getter toString(): String = "List concatenation reduction"
+  getter asString(): String = "List concatenation reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = a || b
 end
 
 (** The same for reverse concatenation *)
 private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
-  getter toString(): String = "List reversal reduction"
+  getter asString(): String = "List reversal reduction"
   empty(): List[\E\] = emptyList[\E\]()
   join(a:List[\E\], b:List[\E\]): List[\E\] = b || a
 end
 
 (** A reduction object for concatenating specifically PureLists. *)
 private object PLConcat[\E\] extends MonoidReduction[\ PureList[\E\] \]
-  getter toString(): String = "PureList concatenation reduction"
+  getter asString(): String = "PureList concatenation reduction"
   empty(): PureList[\E\] = D0[\E\]
   join(a:PureList[\E\], b:PureList[\E\]): PureList[\E\] = a || b
 end
@@ -420,6 +420,7 @@ end
 
 private object D0[\E\] extends { D01[\E\] }
   getter isEmpty():Boolean = true
+  getter asString() = "#"
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
   ivgen[\R\](_: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.empty()
@@ -433,7 +434,6 @@ private object D0[\E\] extends { D01[\E\] }
   addRightD(e:D14[\E\]): FingerTree[\E\] = e.toFinger()
   append3(e:D04[\E\], f:Deep[\E\]):FingerTree[\E\] = f.addLeftD(e)
   leafSize(self):ZZ32 = 0
-  toString() = "#"
   take(_:ZZ32): D0[\E\] = self
   drop(_:ZZ32): D0[\E\] = self
   index(_:ZZ32): (ZZ32, E) = fail("D0[] should never be called.")
@@ -452,6 +452,7 @@ private object D1[\E\](a:E)
   getter unsnoc():(D0[\E\],E) = (D0[\E\],a)
   getter car() = a
   getter rac() = a
+  getter asString()= "{" || a || "}"
   leafSize(self):ZZ32 = leafSize(a)
   generate[\R\](r: Reduction[\R\], body: E->R): R = body(a)
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = body(a)
@@ -478,7 +479,6 @@ private object D1[\E\](a:E)
   nodes2(x:D4[\E\]):D2[\D23[\E\]\] =
     D2[\D23[\E\]\](D3[\E\](a,x.a,x.b),D2[\E\](x.c,x.d))
   nodes2(x:D13[\E\]):D12[\D23[\E\]\] = x.cons(a).nodes1()
-  toString()="{" a "}"
   take(n:ZZ32): D1[\E\] = if n<=0 then fail("D1.take <= 0") else self end
   drop(n:ZZ32): D1[\E\] =
       if n < leafSize(a) then
@@ -504,6 +504,7 @@ private object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
   getter rac() = b
   getter uncons():(E,D1[\E\]) = (a,D1[\E\](b))
   getter unsnoc():(D1[\E\],E) = (D1[\E\](a),b)
+  getter asString()= "(" || a || ", " || b || ")"
   leafSize(self):ZZ32 = ls
   generate[\R\](r: Reduction[\R\], body: E->R): R = r.join(body(a),body(b))
   seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
@@ -542,7 +543,6 @@ private object D2[\E\](a:E, b:E) extends { D12[\E\], D23[\E\] }
     end
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
   toFinger()=Deep[\E\](D1[\E\](a),D0[\D23[\E\]\],D1[\E\](b))
-  toString()="(" a "," b ")"
   take(n:ZZ32): D12[\E\] =
       if n <= 0 then
           fail("D2.take <= 0")
@@ -588,6 +588,7 @@ private object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
   getter rac() = c
   getter uncons():(E,D2[\E\]) = (a,D2[\E\](b,c))
   getter unsnoc():(D2[\E\],E) = (D2[\E\](a,b),c)
+  getter asString() = "(" || a || ", " ||  b || ", " || c || ")"
   leafSize(self):ZZ32 = ls
   generate[\R\](r: Reduction[\R\], body: E->R): R =
     r.join(body(a),r.join(body(b),body(c)))
@@ -624,7 +625,6 @@ private object D3[\E\](a:E, b:E, c:E) extends { D23[\E\], D34[\E\] }
     x.nodes1().cons(self)
   nodes1():D1[\D23[\E\]\] = D1[\D23[\E\]\](self)
   toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\],D1[\E\](c))
-  toString()="(" a "," b "," c ")"
   take(n:ZZ32): D13[\E\] =
       if n <= 0 then
           fail("D3.take <= 0")
@@ -689,7 +689,8 @@ private object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
   getter car() = a
   getter rac() = d
   getter uncons():(E,D3[\E\]) = (a,D3[\E\](b,c,d))
-  getter unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)
+  getter unsnoc():(D3[\E\],E) = (D3[\E\](a,b,c),d)  
+  getter asString() = "{" || a || ", " || b || ", " || c || ", " || d || "}"
   leafSize(self):ZZ32 = ls
   generate[\R\](r: Reduction[\R\], body: E->R): R =
     r.join(r.join(body(a),body(b)),r.join(body(c),body(d)))
@@ -727,7 +728,6 @@ private object D4[\E\](a:E, b:E, c:E, d:E) extends { D34[\E\] }
     D1[\E\](d).nodes2(x).cons(D3[\E\](a,b,c))
   nodes1():D2[\D23[\E\]\] = D2[\D23[\E\]\](D2[\E\](a,b),D2[\E\](c,d))
   toFinger()=Deep[\E\](D2[\E\](a,b),D0[\D23[\E\]\],D2[\E\](c,d))
-  toString()="{" a "," b "," c "," d "}"
   take(n:ZZ32): D14[\E\] =
       if n <= 0 then
           fail("D4.take <= 0")
@@ -815,6 +815,8 @@ private object Deep[\E\]
   getter right():Just[\E\] = r.rac()
   getter extractLeft():(E,FingerTree[\E\]) = extractLeft1(l,m)
   getter extractRight():(FingerTree[\E\],E) = extractRight1(r,m)
+  getter asString() = "[" l.asString() ";" m.asString() ";" r.asString() "]"
+  
   leafSize(self):ZZ32 = ls
   generate[\R\](j: Reduction[\R\], body: E->R): R = do
       j.join(
@@ -893,7 +895,6 @@ private object Deep[\E\]
   append3(e:D04[\E\], f:Deep[\E\]):FingerTree[\E\] =
       Deep[\E\](l,m.append3(r.nodes3(e,f.l),f.m),f.r)
 
-  toString() = "[" l.toString() ";" m.toString() ";" r.toString() "]"
   take(n:ZZ32): FingerTree[\E\] =
       if n <= 0 then
           fail("Deep.take " n " <= 0")
