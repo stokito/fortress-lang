@@ -30,11 +30,18 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
 public class IndexedEnv implements Environment {
+
+    public FType getTypeNull(VarType q) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     public void assignValue(HasAt loc, String str, FValue f2) {
         // TODO Auto-generated method stub
@@ -196,7 +203,12 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FType getType(NamedType q) {
+    public FType getType(VarType q) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public FType getType(TraitType q) {
         // TODO Auto-generated method stub
         return null;
     }

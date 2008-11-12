@@ -1271,8 +1271,8 @@ public class NodeFactory {
         return new VarType(original.getSpan(), original.isParenthesized(), original.getName(), lexicalNestedness);
     }
 
-    public static TraitType makeTraitType(TraitType original, int lexicalNestedness) {
-        return new TraitType(original.getSpan(), original.isParenthesized(), original.getName(), lexicalNestedness, original.getArgs());
+    public static TraitType makeTraitType(TraitType original) {
+        return new TraitType(original.getSpan(), original.isParenthesized(), original.getName(), original.getArgs());
 
     }
 

@@ -1149,6 +1149,14 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                          */
                         _RewriteFieldRef(Name field);
                     /**
+                     * The rewriting to explicitly name self and parent
+                     * pre-interpretation may generalize the dotted
+                     * list from a FnRef into something else.
+                     */
+                    _RewriteFnRef(Expr fn,
+                                      List<StaticArg> staticArgs
+                                          = Collections.<StaticArg>emptyList());
+                    /**
                      * named functional in functional applications
                      */
                     abstract FunctionalRef(List<StaticArg> staticArgs
@@ -1170,14 +1178,6 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                              */
                             _RewriteInstantiatedFnRefs(List<_RewriteFnRefOverloading> overloadings
                                                            = Collections.<_RewriteFnRefOverloading>emptyList());
-                        /**
-                         * The rewriting to explicitly name self and parent
-                         * pre-interpretation may generalize the dotted
-                         * list from a FnRef into something else.
-                         */
-                        _RewriteFnRef(Expr fn,
-                                      List<StaticArg> staticArgs
-                                          = Collections.<StaticArg>emptyList());
                         /**
                          * operator name with (inferred) static instantiations
                          * list of operators allows cross-API overloading
@@ -1394,13 +1394,13 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                 /**
                  * named type
                  */
-                abstract NamedType(Id name, int lexicalDepth=-2147483648);
+                abstract NamedType(Id name);
                     /**
                      * a type variable
                      * TraitType ::= QualifiedName
                      * e.g.) T
                      */
-                    VarType();
+                    VarType(int lexicalDepth=-2147483648);
                     /**
                      * a trait (object, alias, or proper trait) type; traits
                      * without params are referenced with an empty arg list
