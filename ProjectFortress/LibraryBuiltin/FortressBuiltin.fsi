@@ -39,7 +39,7 @@ trait Object extends Any
     getter ilkName(): String
     getter asString(): String                (* for normal use *)
     getter asDebugString(): String    (* for debugging; may contain more information *)
-    getter asExprString(): String       (* when considered as Fortress expression, will = self *)
+    getter asExprString(): String       (* when considered as Fortress expression, will equal self *)
     
     getter toString(): String                (* deprecated *)
 end
