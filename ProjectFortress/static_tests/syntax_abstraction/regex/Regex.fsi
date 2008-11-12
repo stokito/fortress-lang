@@ -23,7 +23,6 @@ api Regex
     import List.{...}
 
     trait Element
-        getter toString():String
     end
 
     object Regexp( elements : List[\Element\] )

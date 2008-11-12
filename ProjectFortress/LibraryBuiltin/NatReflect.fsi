@@ -28,7 +28,6 @@ api NatReflect
 trait NatParam
   (* comprises { N[\n\] } where [\ nat n \] *)
   abstract getter toZZ() : ZZ32
-  abstract getter toString(): String
 end
 
 value object N[\nat n\] extends { NatParam }

@@ -19,14 +19,14 @@ component simplify1
 export Executable
 
 trait Red[\ R \]
-    getter toString() = "A Reduction without a toString() of its own"
+    getter asString() = "A Reduction without an asString() of its own"
     empty(): R
     join(a: R, b: R): R
 end
 
 
 object Mrr[\R\](j:(R,R)->R, z:R) extends Red[\R\]
-    getter toString()="mapReduce.Reduction"
+    getter asString()="mapReduce.Reduction"
     empty() = z
     join(a:R, b:R): R = j(a,b)
 end

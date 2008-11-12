@@ -21,12 +21,11 @@ component getterUsedNotApplied
   object o
     getter size(): ZZ32 = 2
 
-    getter toString() = "o(2)"
+    getter asString() = "o(2)"
 
     verify() = do
         println "o.verify: " self
         println "self.size = " self.size "; ilk = " self.size.ilkName
-        (* println "size = " size "; ilk = " size.ilkName *)
         assert(self.size, size, "Size inconsistency in o.verify ", self)
       end
   end o

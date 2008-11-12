@@ -64,7 +64,7 @@ checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
     end
 
 object TestReduction extends AssociativeReduction[\(ZZ32,ZZ32,ZZ32)\]
-    getter toString(): String = "HeapTest.TestReduction"
+    getter asString(): String = "HeapTest.TestReduction"
     simpleJoin(a:Any, b:Any): Any = fail("Bogus non-tuple data in TestReduction")
     simpleJoin(a:(ZZ32,ZZ32,ZZ32), b:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
         (mn_a,sz_a,mx_a) = a

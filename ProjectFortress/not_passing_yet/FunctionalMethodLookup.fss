@@ -21,7 +21,6 @@ export Executable
 trait Comp
         extends { StdPartialOrder[\Comp\] }
         comprises { Unord, TotalComp }
-    getter toString(): String
     opr EQL(self, other:Comp): Boolean = do
         println("Comp " self " EQL " other)
         false

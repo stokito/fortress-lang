@@ -47,7 +47,7 @@ rounds : ZZ32 = 10
 
 (** Represents m / 2^n and 2 - (m / 2^n) **)
 value object Frac(m : ZZ32, n : ZZ32)
-    getter toString(): String =
+    getter asString(): String = 
         if n > 1 then
             m "/2^" n
         elif n = 1 then
