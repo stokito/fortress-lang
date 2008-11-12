@@ -182,9 +182,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         VarType replacement(VarType original) {
              return NodeFactory.makeVarType(original, lexicalNestedness);
         }
-        TraitType replacement(TraitType original) {
-            return NodeFactory.makeTraitType(original, lexicalNestedness);
-        }
+//        TraitType replacement(TraitType original) {
+//            return NodeFactory.makeTraitType(original);
+//        }
         public String toString() { return "Thing@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
@@ -424,15 +424,15 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
     }
 
-   NamedType newType(TraitType nt, String s) {
-
-       Thing t = rewrites.get(s);
-       if (t == null) {
-           return nt;
-       } else {
-           return t.replacement(nt);
-       }
-   }
+//   NamedType newType(TraitType nt, String s) {
+//
+//       Thing t = rewrites.get(s);
+//       if (t == null) {
+//           return nt;
+//       } else {
+//           return t.replacement(nt);
+//       }
+//   }
 
 //    Iterable<Id> newName(Iterable<Id> ids, String s) {
 //        Thing t = e.get(s);
@@ -453,7 +453,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     Expr dottedReference(Span s, int i) {
         if (i == 0) {
-            return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName);
+            return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName, -1);
         }
         if (i > 0) {
             return new _RewriteFieldRef(s, false, dottedReference(s, i - 1),
@@ -777,12 +777,12 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         else
             return visitNode(node);
     }
-    @Override
-    public Node forTraitType(TraitType vre) {
-        String s = NodeUtil.nameString(vre.getName());
-        Node node = newType(vre, s);
-        return visitNode(node);
-    }
+//    @Override
+//    public Node forTraitType(TraitType vre) {
+//        String s = NodeUtil.nameString(vre.getName());
+//        Node node = newType(vre, s);
+//        return visitNode(node);
+//    }
 
 
     @Override

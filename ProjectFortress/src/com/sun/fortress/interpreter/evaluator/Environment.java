@@ -29,7 +29,9 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Visitor2;
 
@@ -90,9 +92,11 @@ public interface Environment  {
     public abstract FType getType(Id d); // 3
     // BoolRef, IntRef, and the TL name of a (generic) trait.
     
-    public abstract FType getType(NamedType q); // 2
+    public abstract FType getTypeNull(VarType q); // 2
+    public abstract FType getType(VarType q); // 2
     // forTraitType, forVarType (these have lexical depth)
-
+    public abstract FType getType(TraitType q); // toplevel, possible api
+    
     public abstract FType getRootType(String str); // 10 refs
     public abstract FType getLeafType(String str); // 4 refs
 
@@ -102,6 +106,15 @@ public interface Environment  {
     public abstract FType getLeafTypeNull(String name); // 16 refs
     public abstract FType getRootTypeNull(String name); // 4 refs
     public FType getTypeNull(String name); // 3 refs -- keep this name because of compiled code.
+    
+    /**
+     * Level-tagged version of getTypeNull
+     * 
+     * @param name
+     * @param level
+     * @return
+     */
+    public FType getTypeNull(String name, int level);
     
     //public abstract FValue getValue(FValue f1);
 
@@ -258,15 +271,6 @@ public interface Environment  {
     
     public Iterable<String> youngestFrame() ;
   
-    /**
-     * Level-tagged version of getTypeNull
-     * 
-     * @param name
-     * @param level
-     * @return
-     */
-    public FType getTypeNull(String name, int level);
-
     /**
      * Level-tagged version of getValueRaw
      * 

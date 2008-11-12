@@ -46,7 +46,9 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.HasAt;
@@ -383,8 +385,19 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return (Closure) getRootValue("run");
     }
 
-    final public  FType getType(NamedType q)  {
-        Environment e = toContainingObjectEnv(this, q.getLexicalDepth());
+    final public  FType getType(VarType q)  {
+        FType x = getTypeNull(q);
+        if (x == null)
+            {
+                // System.err.println(this.toString());
+                return error(errorMsg("Missing type ", q));
+            }
+        else
+            return x;
+    }
+
+    final public FType getType(TraitType q)  {
+        Environment e = getTopLevel();
         FType x = e.getTypeNull(q.getName());
         if (x == null)
             {
@@ -393,6 +406,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             }
         else
             return x;
+    }
+
+    final public  FType getTypeNull(VarType q)  {
+        Environment e = toContainingObjectEnv(this, q.getLexicalDepth());
+        FType x = e.getTypeNull(q.getName());
+        return x;
     }
 
     final public  FType getType(Id q)  {
@@ -755,7 +774,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     static Environment toContainingObjectEnv(Environment e,
             int negative_object_depth) {
-        if (-negative_object_depth > 0) {
+        if (-negative_object_depth > 1) {
+            // -1 means "self" -- contained in "e", not here.
             // This assumes $self can be found in the current environment.
             // Next statement maps -1 to zero, -2 to one, -3 to two, etc.
             negative_object_depth = -1 - negative_object_depth;
