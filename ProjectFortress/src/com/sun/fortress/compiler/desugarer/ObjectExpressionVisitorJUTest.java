@@ -122,8 +122,8 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             assertEquals(original, Shell.eval(generated));
         } finally {
             ComponentWrapper.noCache = false;
-        System.setErr(oldErr);
-        System.setOut(oldOut);
+            System.setErr(oldErr);
+            System.setOut(oldOut);
         }
     }
 
