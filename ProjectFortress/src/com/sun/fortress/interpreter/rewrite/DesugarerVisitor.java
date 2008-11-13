@@ -732,7 +732,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             node = newType(vre, s);
         } else {
             // Rewrite lexical nesting depth to zero if api-qualified.
-            node = NodeFactory.makeVarType(vre, 0);
+            node = NodeFactory.makeVarType(vre, Environment.TOP_LEVEL);
         }
         
         return visitNode(node);
@@ -777,12 +777,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         else
             return visitNode(node);
     }
-//    @Override
-//    public Node forTraitType(TraitType vre) {
-//        String s = NodeUtil.nameString(vre.getName());
-//        Node node = newType(vre, s);
-//        return visitNode(node);
-//    }
+    @Override
+    public Node forTraitType(TraitType vre) {
+        return visitNode(vre);
+    }
 
 
     @Override
@@ -826,11 +824,12 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (_ensures.isSome())    b = translateEnsures(_ensures, b);
             if (_requires.isSome())   b = translateRequires(_requires, b);
 
+            // Remove the original contract, add the translation
             FnDef f = new FnDef(fndef.getSpan(), fndef.getMods(),
                                 fndef.getName(),
                                 fndef.getStaticParams(), fndef.getParams(),
                                 fndef.getReturnType(), fndef.getThrowsClause(),
-                                fndef.getWhere(), fndef.getContract(),
+                                fndef.getWhere(), Option.<Contract>none(),
                                 WellKnownNames.defaultSelfName, b);
 
             n = visitNode(f);
@@ -842,6 +841,44 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         return n;
 
     }
+
+    @Override
+    public Node forAbsFnDecl(AbsFnDecl fndef) {
+        if (atTopLevelInsideTraitOrObject) {
+            currentSelfName = fndef.getSelfName();
+            rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
+        }
+        atTopLevelInsideTraitOrObject = false;
+        lexicalNestingDepth++;
+
+        List<Param> params = fndef.getParams();
+        // fndef.getFnName(); handled at top level.
+        List<StaticParam> tparams = fndef.getStaticParams();
+
+        paramsToLocals(params);
+        immediateDef = tparamsToLocals(tparams, immediateDef);
+
+        AbstractNode n;
+
+    // TODO Contracts, properties, not handled here.  See forFnDef for details.
+        
+        // Strip the contract, we don't know what to do with it,
+        // and it is not in any sensible scope.
+        AbsFnDecl f = new AbsFnDecl(fndef.getSpan(), fndef.getMods(),
+                fndef.getName(),
+                fndef.getStaticParams(), fndef.getParams(),
+                fndef.getReturnType(), fndef.getThrowsClause(),
+                fndef.getWhere(), Option.<Contract>none(),
+                WellKnownNames.defaultSelfName);
+        
+        n = visitNode(f);
+
+        dumpIfChange(fndef, n);
+        return n;
+
+    }
+    
+    
     @Override
     public Node forVarDecl(VarDecl vd) {
         atTopLevelInsideTraitOrObject = false;
@@ -1078,7 +1115,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin, WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new VarType(sp, NodeFactory.makeId(WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName))));
+        args.add(new TypeArg(new VarType(sp,
+                NodeFactory.makeId(WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
+                Environment.TOP_LEVEL)));
 
         _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
 
@@ -1656,21 +1695,21 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Id t1 = gensymId("t1");
             Block inner_block =
                 ExprFactory.makeBlock(sp,
-                                      ExprFactory.makeVarRef(sp, "outcome"));
+                                      ExprFactory.makeVarRef(sp, WellKnownNames.outcome));
             GeneratorClause cond;
             cond = ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(),
                                                    e.getPost());
             If _inner_if =
                 ExprFactory.makeIf(sp,
                                    new IfClause(sp, cond, inner_block),
-                                   ExprFactory.makeThrow(sp, "CalleeViolation"));
+                                   ExprFactory.makeThrow(sp, WellKnownNames.calleeViolationException));
 
             cond = ExprFactory.makeGeneratorClause(sp,
                                                    Useful.<Id>list(), (Expr) ExprFactory.makeVarRef(sp,t1));
             If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
                                                          ExprFactory.makeBlock(sp,_inner_if)),
-                                        ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,"outcome")));
-            LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,"outcome"), b, _if);
+                                        ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,WellKnownNames.outcome)));
+            LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,WellKnownNames.outcome), b, _if);
             Option<Expr> _pre = e.getPre();
             LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, "true")),
                                                                      ExprFactory.makeBlock(sp, r));
@@ -1683,7 +1722,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (Expr e : _invariants.unwrap(Collections.<Expr>emptyList())) {
             Span sp = e.getSpan();
             Id t1 = gensymId("t1");
-            Id t_outcome = gensymId("outcome");
+            Id t_outcome = gensymId(WellKnownNames.outcome);
             Id t2 = gensymId("t2");
 
             Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
@@ -1695,10 +1734,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
                                                     ExprFactory.makeBlock(sp,
                                                                           ExprFactory.makeVarRef(sp,
-                                                                                                 "outcome"))),
-                                          ExprFactory.makeThrow(sp, "CalleeViolation"));
+                                                                                                 WellKnownNames.outcome))),
+                                          ExprFactory.makeThrow(sp, WellKnownNames.calleeViolationException));
             LocalVarDecl r2 = ExprFactory.makeLocalVarDecl(sp, t2, e, _post);
-            LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, "outcome"), b, r2);
+            LocalVarDecl r1 = ExprFactory.makeLocalVarDecl(NodeFactory.makeId(sp, WellKnownNames.outcome), b, r2);
 
             b = ExprFactory.makeBlock(sp, ExprFactory.makeLocalVarDecl(sp, t1,e,r1));
         }
