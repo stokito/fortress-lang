@@ -80,7 +80,6 @@ public class TNFoo extends NativeConstructor {
     @Override
     protected void unregister() {
         // not needed for this class
-        
     }
 
 }
