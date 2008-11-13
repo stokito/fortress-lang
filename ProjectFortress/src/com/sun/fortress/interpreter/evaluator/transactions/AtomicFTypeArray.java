@@ -51,9 +51,9 @@ public class AtomicFTypeArray extends NativeConstructor.FNativeObject {
         super(con);
         this.con     = con;
 
-		array        = new AtomicReferenceArray<FValue>(capacity);
-		trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
-		FortressTaskRunner.debugPrintln("AtomicFTypeArray con = " + con + " capacity = " + capacity);
+        array        = new AtomicReferenceArray<FValue>(capacity);
+        trans        = new AtomicReferenceArray<TransactorRecord>(capacity);
+        FortressTaskRunner.debugPrintln("AtomicFTypeArray con = " + con + " capacity = " + capacity);
 
     }
 
