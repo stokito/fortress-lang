@@ -1862,7 +1862,7 @@ trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
     shiftLeft(shift: I): Range[\I\]
     shiftRight(shift: I): Range[\I\]
     opr << (self, shift: I): Range[\I\]
-    opr >> (self, shift: I): Range[\I\] 
+    opr >> (self, shift: I): Range[\I\]
 end
 
 trait PartialRange[\I\] extends Range[\I\] end
@@ -2093,7 +2093,7 @@ trait String extends { StandardTotalOrder[\String\],
          whatever optimizationms for empty ranges and trivial (whole string) ranges may be
          appropriate for the representation.*)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
-    allButLast(): String 
+    allButLast(): String
     allButFirst(): String
 
     rangeContains(r: Range[\ZZ32\], c: Char) : Boolean
@@ -2107,9 +2107,9 @@ trait String extends { StandardTotalOrder[\String\],
             start[i] = | str[0] || ... || str[i-1] |,       and
             str[0] || str [1] || ... || str[n] = self
     **)
-    
-    splitWithOffsets(): Generator⟦(ZZ32, String)⟧ 
-    split(): Generator⟦String⟧
+
+    splitWithOffsets(): Generator[\(ZZ32, String)\]
+    split(): Generator[\String\]
 
     (**  A balanced version of the reciever  **)
     balanced(): String ensures {outcome.isAlmostBalanced AND outcome = self}
