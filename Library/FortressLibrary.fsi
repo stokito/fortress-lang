@@ -2093,6 +2093,8 @@ trait String extends { StandardTotalOrder[\String\],
          whatever optimizationms for empty ranges and trivial (whole string) ranges may be
          appropriate for the representation.*)
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
+    allButLast(): String 
+    allButFirst(): String
 
     rangeContains(r: Range[\ZZ32\], c: Char) : Boolean
 
@@ -2105,7 +2107,9 @@ trait String extends { StandardTotalOrder[\String\],
             start[i] = | str[0] || ... || str[i-1] |,       and
             str[0] || str [1] || ... || str[n] = self
     **)
-    split(): Generator[\(ZZ32, String)\]
+    
+    splitWithOffsets(): Generator⟦(ZZ32, String)⟧ 
+    split(): Generator⟦String⟧
 
     (**  A balanced version of the reciever  **)
     balanced(): String ensures {outcome.isAlmostBalanced AND outcome = self}

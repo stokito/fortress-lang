@@ -3522,6 +3522,8 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     end
 
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
+    allButLast(): String = self[0#(|self| - 1)]
+    allButFirst(): String = self[1:]
 
     (** The operator %||% with at least one String argument converts to String and
         appends **)

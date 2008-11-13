@@ -269,9 +269,22 @@ component StringTests
     assert("abcdefg"[1#4], subC)
   end
   
+  test testStringification() = do
+    str = CatString("The word \"test\"", " is overused")
+    ran = 1:20:2
+    assert(str.asString, str)
+    assert(str.asExprString, "\"The word \\\"test\\\" is overused\"")
+    assert(str.asDebugString, "BC27/1:"//
+"        J15/0:The word \"test\""//
+"        J12/0: is overused") 
+    assert((CatString(str[#11], str[13:])).asExprString, "\"The word \\\"tt\\\" is overused\"")
+    assert(ran.asString, "[1,3,5,7,... 19]")
+    assert(ran.asExprString, "1:19:2")
+    assert(ran.asDebugString, "StridedFullParScalarRange(1,19,2)")
+  end
+  
   run(args:String...):() = do
-    println "This's a \"test\"".asExprString
-    println "This's a \"test\""
+    testStringification()
     testDepth()
     testindexing()
     testSubString()

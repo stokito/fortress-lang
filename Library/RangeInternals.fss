@@ -1128,6 +1128,7 @@ object StridedFullParScalarRange[\I extends Integral[\I\]\](l:I, r:I, str:I) ext
     getter stride(): I = str
     getter left(): Just[\I\] = Just[\I\](l)
     getter right(): Just[\I\] = Just[\I\](r)
+    getter asExprString(): String = l || ":" || r || ":" || str
     getter asDebugString(): String = "StridedFullParScalarRange(" l "," r "," str ")"
     seq(self): StridedFullSeqScalarRange[\I\] = StridedFullSeqScalarRange[\I\](l,r,str)
     generate[\T\](red:Reduction[\T\], body: I->T): T =

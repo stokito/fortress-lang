@@ -40,6 +40,7 @@ export String
         if |other| = 0 then self else concatAndBalanceIfNecessary(self, other) end
     opr || (self, _:EmptyString): String = self
     opr || (self, other:Char) = concatAndBalanceIfNecessary(self, other.asString)
+    
   end Concatenable
 
   trait Balanceable extends String
@@ -76,6 +77,7 @@ export String
     getter bounds() = 0#size
     getter generator() = ConcatGenerator(left.generator, right.generator)
     getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
+    getter asExprString() = left.asExprString.allButLast() || right.asExprString.allButFirst 
 
     opr ∈ (c:Char, self): Boolean = (c IN left) OR (c IN right)
 
@@ -145,7 +147,8 @@ export String
     end
 
     splitWithOffsets(): Generator⟦(ZZ32, String)⟧ = ⟨⟦(ZZ32, String)⟧ (0, left), (|left|, right) ⟩
-
+    split(): Generator⟦String⟧ =  ⟨⟦String⟧ piece | (_, piece) ← self.splitWithOffsets() ⟩
+    
     balanced() 
     (*) ensures {outcome = self ∧ outcome.isAlmostBalanced} 
     =
@@ -264,7 +267,7 @@ export String
     getter isEmpty() = true
     getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
-    getter asExprString() = "EmptyString()"
+    getter asExprString() = "\"\""
     
     asDebugStringIndented(indent: ZZ32) = spaces(indent) "E" |self| "/" self.depth
 
@@ -327,7 +330,8 @@ end
     getter size() = range.size
     getter depth() = baseString.depth    (* We pretend that substring nodes don't add depth *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString *)
-    getter asJavaString(): String = baseString.asJavaString.uncheckedSubstring(range)
+    getter asJavaString() = baseString.asJavaString.uncheckedSubstring(range)
+    getter asExprString() = self.asJavaString.asExprString
     getter isBalanced() = baseString.isBalanced
 
     balanced() =
