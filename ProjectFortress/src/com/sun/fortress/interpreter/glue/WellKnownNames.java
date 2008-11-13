@@ -68,6 +68,7 @@ public class WellKnownNames {
     public final static String bigOperator = "__bigOperator";
     public final static String bigOperator2 = "__bigOperator2";
     public final static String filter = "__filter";
+    public final static String outcome = "outcome";
 
     public final static String containsTypeName = "Contains";
     public final static String containsMatchName = "MATCH";
