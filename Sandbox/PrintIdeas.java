@@ -23,7 +23,7 @@ class PrintIdeas extends Object {
 		/* Begin write sequence */
 
 
-		String s = "a very long string to print all in one piece";
+		String s = "a very long string to print ∀ ∈ one piece";
 		BufferedWriter bufferedOut1 = new BufferedWriter(outW,
 				2 * s.length() + 3);
 		String t = "another output string that should not be mixed";
