@@ -2068,11 +2068,10 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
 * STRINGS
 ************************************************************)
 
-trait String extends { StandardTotalOrder[\String\],
-                  ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
+trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     getter size() : ZZ32
     getter indices() : CompactFullRange[\ZZ32\]
-    getter generator() : Generator[\Char\]
+    getter generate[\R\](red: Reduction[\R\], body: Char -> R): R
     getter depth() : ZZ32
     getter asJavaString(): String
     getter isBalanced(): Boolean
@@ -2095,6 +2094,10 @@ trait String extends { StandardTotalOrder[\String\],
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
     allButLast(): String
     allButFirst(): String
+    
+    abstract splitWithOffsets(): Generator⟦(ZZ32, String)⟧ 
+    abstract split(): Generator⟦String⟧ 
+    
 
     rangeContains(r: Range[\ZZ32\], c: Char) : Boolean
 

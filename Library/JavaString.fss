@@ -18,7 +18,6 @@
 native component JavaString
 
 import String.{...}
-import FlatStringInfo.{...}
 
 export JavaString
 
@@ -26,7 +25,7 @@ export JavaString
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-  object JavaString extends {StringDebug}
+  object JavaString extends { StringDebug, DelegatedIndexed[\Char,ZZ32\] }
     getter size() : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
     getter asExprString() : String =
@@ -34,6 +33,11 @@ package="com.sun.fortress.interpreter.glue.prim"
     getter asJavaString(): String = self
     getter asStriing(): String = self
     getter depth() = 0
+    
+    (* With the help of trait DelegatedIndex, this defines our generate method *)
+    getter generator() : Generator[\Char\] = 
+        self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
+
     getter isBalanced() = true
     getter isAlmostBalanced() = true
     getter isExtremelyUnbalanced() = false
@@ -111,7 +115,7 @@ package="com.sun.fortress.interpreter.glue.prim"
         appends **)
     opr ||(self, b:JavaString): String = do
         if b.isEmpty then self
-        elif self.size + b.size > flatStringInfo.maxSize then
+        elif self.size + b.size > maxLeafStringSize then
              (* Since both self and b have depth 0, balancing can't be necessary *)
             CatString(self, b)     
         else
@@ -122,7 +126,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr ||(self, b:String):String = do
         if self.isEmpty then b
         elif b.isEmpty then self
-        elif self.size + b.size > flatStringInfo.maxSize then 
+        elif self.size + b.size > maxLeafStringSize then 
             concatAndBalanceIfNecessary(self, b)
         else 
             javaAppend(self, b.asJavaString)
@@ -130,7 +134,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     end
 
     opr ||(self, b:Char): String =
-        if |self| ≥ flatStringInfo.maxSize then
+        if |self| ≥ maxLeafStringSize then
             concatAndBalanceIfNecessary(self, b.asString)
         else
             javaAppend(self, b)
@@ -145,4 +149,6 @@ package="com.sun.fortress.interpreter.glue.prim"
     javaPrintln(a: JavaString): () = 
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
  
+    var maxLeafStringSize: ZZ32 := 32
+    
 end

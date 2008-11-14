@@ -16,9 +16,18 @@
  ******************************************************************************)
 
 api JavaString
+
   object JavaString extends { String }
-  
-        javaAppend(self, JavaString): JavaString
-        
+    opr ||(self, b:JavaString): String
+    opr ||(self, b:String):String
+    opr ||(self, b:Char): String         
+    opr ||(a:JavaString, self): String  
+    javaAppend(self, b:JavaString):String
+    javaAppend(self, b:Char):String
   end
+    
+    javaPrint(a: JavaString): ()
+    javaPrintln(a: JavaString): () 
+    var maxLeafStringSize: ZZ32
+    
 end
