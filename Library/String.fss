@@ -46,7 +46,7 @@ export String
   trait Balanceable extends String
     getter isBalanced() = self.depth ≤ 46 AND: |self| ≥ fib[self.depth]
     getter isAlmostBalanced() = self.depth ≤ 48 AND: |self| ≥ fib[self.depth-2]
-    getter isExtremelyUnbalanced() = self.depth > 45
+    getter isExtremelyUnbalanced() = self.depth > 30 AND: (¬ self.isBalanced)
   end Balanceable
   
   trait StringDebug extends String
@@ -65,6 +65,18 @@ export String
         if result.isExtremelyUnbalanced 
             then result.balanced()
             else result
+        end
+      end
+      
+    concatAndBalanceIfNecessary(s1: CatString, s2: JavaString) = do
+        (* This handles the case where s1.right is a short JavaString *)
+        typecase r = s1.right of
+            JavaString ⇒ if |r| + |s2| ≤ maxLeafStringSize then 
+                                        s1.left || javaAppend(r, s2)
+                                    else
+                                        concatAndBalanceIfNecessary(s1 asif String, s2)
+                                    end
+            String  ⇒ concatAndBalanceIfNecessary(s1 asif String, s2)
         end
       end
 

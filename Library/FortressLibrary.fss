@@ -3492,7 +3492,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     getter asString() : String = self
     getter indices() : CompactFullRange[\ZZ32\] = self.bounds
     (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
-       CatString trees.  Sub-traits should override it with equivalent but more efficeint code. *)
+       CatString trees.  Sub-traits should override it with equivalent but more efficient code. *)
     getter generator() : Generator[\Char\] =
         self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
     getter asJavaString(): String
