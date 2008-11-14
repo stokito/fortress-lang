@@ -432,8 +432,7 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                  Option<WhereClause> where
                                      = Option.<WhereClause>none(),
                                  Option<Contract> contract
-                                     = Option.<Contract>none(),
-                                 String selfName = NodeUtil.defaultSelfName)
+                                     = Option.<Contract>none())
                                 implements Applicable, GenericDecl;
             /**
              * functional declaration in components or APIs

@@ -691,6 +691,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         defsToLocals(defs);
         return visitNode(com);
     }
+    
     @Override
     public Node forOpRef(OpRef vre) {
         String s = NodeUtil.stringName(vre.getOriginalName());
@@ -786,7 +787,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnDef(FnDef fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            currentSelfName = fndef.getSelfName();
+            currentSelfName = WellKnownNames.defaultSelfName;
             rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
         }
         atTopLevelInsideTraitOrObject = false;
@@ -829,8 +830,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                 fndef.getName(),
                                 fndef.getStaticParams(), fndef.getParams(),
                                 fndef.getReturnType(), fndef.getThrowsClause(),
-                                fndef.getWhere(), Option.<Contract>none(),
-                                WellKnownNames.defaultSelfName, b);
+                                fndef.getWhere(), Option.<Contract>none(), b);
 
             n = visitNode(f);
         } else {
@@ -845,7 +845,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forAbsFnDecl(AbsFnDecl fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            currentSelfName = fndef.getSelfName();
+            currentSelfName = WellKnownNames.defaultSelfName;
             rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
         }
         atTopLevelInsideTraitOrObject = false;
@@ -868,8 +868,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 fndef.getName(),
                 fndef.getStaticParams(), fndef.getParams(),
                 fndef.getReturnType(), fndef.getThrowsClause(),
-                fndef.getWhere(), Option.<Contract>none(),
-                WellKnownNames.defaultSelfName);
+                fndef.getWhere(), Option.<Contract>none());
         
         n = visitNode(f);
 

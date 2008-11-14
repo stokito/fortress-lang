@@ -50,7 +50,6 @@ public class NodeFactory {
 
     /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
     public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
-                                          Option<Id> optSelfName,
                                           IdOrOpOrAnonymousName name,
                                           List<StaticParam> staticParams,
                                           List<Param> params,
@@ -58,14 +57,8 @@ public class NodeFactory {
                                           Option<List<BaseType>> throwss,
                                           Option<WhereClause> where,
                                           Option<Contract> contract) {
-        String selfName;
-        if (optSelfName.isSome()) {
-            selfName = optSelfName.unwrap().getText();
-        } else {
-            selfName = WellKnownNames.defaultSelfName;
-        }
         return new AbsFnDecl(s, mods, name, staticParams, params, returnType,
-                             throwss, where, contract, selfName);
+                             throwss, where, contract);
     }
 
     public static Id makeTemporaryId() {
@@ -578,7 +571,6 @@ public class NodeFactory {
      * Alternatively, you can invoke the FnDef constructor without a selfName
      */
     public static FnDef makeFnDecl(Span s, List<Modifier> mods,
-                                   Option<Id> optSelfName,
                                    IdOrOpOrAnonymousName name,
                                    List<StaticParam> staticParams,
                                    List<Param> params,
@@ -587,14 +579,8 @@ public class NodeFactory {
                                    Option<WhereClause> where,
                                    Option<Contract> contract,
                                    Expr body) {
-        String selfName;
-        if (optSelfName.isSome()) {
-            selfName = optSelfName.unwrap().getText();
-        } else {
-            selfName = WellKnownNames.defaultSelfName;
-        }
         return new FnDef(s, mods, name, staticParams, params, returnType,
-                         throwss, where, contract, selfName, body);
+                         throwss, where, contract, body);
     }
 
     public static FnDef makeFnDef(Span span, List<Modifier> mods,

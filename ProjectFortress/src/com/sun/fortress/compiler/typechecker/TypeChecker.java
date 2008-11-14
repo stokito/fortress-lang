@@ -2346,7 +2346,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				that.getThrowsClause(),
 				that.getWhere(),
 				contract,
-				that.getSelfName(),
 				(Expr)bodyResult.ast());
 		return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
 				bodyResult, result)

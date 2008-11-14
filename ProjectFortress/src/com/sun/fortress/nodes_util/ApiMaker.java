@@ -190,8 +190,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                    that.getReturnType(),
                                                    that.getThrowsClause(),
                                                    that.getWhere(),
-                                                   that.getContract(),
-                                                   that.getSelfName()));
+                                                   that.getContract()));
         } else return Option.<Node>none();
     }
 
@@ -220,8 +219,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                    that.getReturnType(),
                                                    that.getThrowsClause(),
                                                    that.getWhere(),
-                                                   that.getContract(),
-                                                   that.getSelfName()));
+                                                   that.getContract()));
         } else return Option.<Node>none();
     }
 }
