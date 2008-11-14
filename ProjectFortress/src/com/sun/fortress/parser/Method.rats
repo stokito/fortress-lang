@@ -44,7 +44,7 @@ FnAbsDeclOrDecl MdDecl =
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a3.getReceiver(), a3, a4);
+                                          a3, a4);
      };
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
@@ -52,7 +52,7 @@ FnDecl MdDef =
      a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
-                                       a2.getReceiver(), a2, a3, a4);
+                                       a2, a3, a4);
      };
 
 /* AbsMdDecl ::= (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause */
@@ -63,7 +63,7 @@ AbsFnDecl AbsMdDecl =
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a3.getReceiver(), a3, a4);
+                                          a3, a4);
      };
 
 /* MdHeaderFront ::=
@@ -110,7 +110,7 @@ FnAbsDeclOrDecl GetterSetterDecl =
        if (a2 != null) mods.addAll(a2);
        mods.add(a3);
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a4.getReceiver(), a4, a5);
+                                          a4, a5);
      };
 
 /* GetterSetterDef ::=
@@ -122,7 +122,7 @@ FnAbsDeclOrDecl GetterSetterDef =
      { if (a1 == null) a1 = new ArrayList<Modifier>();
        a1.add(a2);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
-                                       a3.getReceiver(), a3, a4, a5);
+                                       a3, a4, a5);
      };
 
 /* GetterSetterMod ::= getter w | setter w */
@@ -142,7 +142,7 @@ AbsFnDecl AbsGetterSetterDecl =
        if (a2 != null) mods.addAll(a2);
        mods.add(a3);
        yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a4.getReceiver(), a4, a5);
+                                          a4, a5);
      };
 
 /* Coercion ::=

@@ -581,21 +581,16 @@ public final class FortressUtil {
     }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        Option<Id> receiver,
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeAbsFnDecl(span, mods, receiver, fhf.getName(),
+        return NodeFactory.makeAbsFnDecl(span, mods, fhf.getName(),
                                          fhf.getStaticParams(), fhf.getParams(),
                                          fhc.getReturnType(), throws_, where_,
                                          contract);
     }
 
-    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        FnHeaderFront fhf, FnHeaderClause fhc) {
-        return mkAbsFnDecl(span, mods, Option.<Id>none(), fhf, fhc);
-    }
 
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         IdOrOpOrAnonymousName name, List<StaticParam> sparams,
@@ -604,7 +599,7 @@ public final class FortressUtil {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
+        return NodeFactory.makeAbsFnDecl(span, mods, name,
                                          sparams, params,
                                          Option.<Type>none(), throws_,
                                          where_, contract);
@@ -613,7 +608,7 @@ public final class FortressUtil {
     public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
                                         IdOrOpOrAnonymousName name, List<Param> params,
                                         Type ty) {
-        return NodeFactory.makeAbsFnDecl(span, mods, Option.<Id>none(), name,
+        return NodeFactory.makeAbsFnDecl(span, mods, name,
                                          emptyStaticParams(), params,
                                          Option.some(ty),
                                          Option.<List<BaseType>>none(),
@@ -621,12 +616,12 @@ public final class FortressUtil {
     }
 
     public static FnDef mkFnDecl(Span span, List<Modifier> mods,
-                                 Option<Id> receiver, FnHeaderFront fhf,
+                                 FnHeaderFront fhf,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, receiver, fhf.getName(),
+        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
                                       fhf.getStaticParams(), fhf.getParams(),
                                       fhc.getReturnType(), throws_, where_,
                                       contract, expr);
@@ -638,15 +633,9 @@ public final class FortressUtil {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, Option.<Id>none(), name,
+        return NodeFactory.makeFnDecl(span, mods, name,
                                       sparams, params, Option.<Type>none(),
                                       throws_, where_, contract, expr);
-    }
-
-    public static FnDef mkFnDecl(Span span, List<Modifier> mods,
-                                 FnHeaderFront fhf, FnHeaderClause fhc,
-                                 Expr expr) {
-        return mkFnDecl(span, mods, Option.<Id>none(), fhf, fhc, expr);
     }
 
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,

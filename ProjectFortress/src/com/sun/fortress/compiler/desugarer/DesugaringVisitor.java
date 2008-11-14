@@ -624,7 +624,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new AbsFnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
                              name_result, staticParams_result, params_result,
                              returnType_result, throwsClause_result,
-                             where_result, contract_result, that.getSelfName());
+                             where_result, contract_result);
     }
 
     @Override
@@ -641,7 +641,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new FnDef(that.getSpan(), removeGetterSetterMod(mods_result),
                          name_result, staticParams_result, params_result,
                          returnType_result, throwsClause_result,
-                         where_result, contract_result, that.getSelfName(),
+                         where_result, contract_result,
                          body_result);
     }
 }
