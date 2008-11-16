@@ -2094,10 +2094,10 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     uncheckedSubstring(r0: Range[\ZZ32\]) : String
     allButLast(): String
     allButFirst(): String
-    
-    abstract splitWithOffsets(): Generator⟦(ZZ32, String)⟧ 
-    abstract split(): Generator⟦String⟧ 
-    
+
+    abstract splitWithOffsets(): Generator[\(ZZ32, String)\]
+    abstract split(): Generator[\String\]
+
 
     rangeContains(r: Range[\ZZ32\], c: Char) : Boolean
 
