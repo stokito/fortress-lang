@@ -1618,14 +1618,14 @@ end
 
 object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
     getter holds(): Boolean
-    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
 end
 
 trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
     getter holds(): Boolean
-    getter cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
     abstract getter outer(): Reduction[\R\]
     abstract getter inner(): Reduction[\R\]
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G
 end
 
 trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
@@ -2070,13 +2070,10 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
 
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     getter size() : ZZ32
+    getter asString() : String
     getter indices() : CompactFullRange[\ZZ32\]
-    getter generate[\R\](red: Reduction[\R\], body: Char -> R): R
-    getter depth() : ZZ32
+    getter generator() : Generator[\Char\]
     getter asJavaString(): String
-    getter isBalanced(): Boolean
-
-
     verify() : ()       (* Verify the data structure invaraints of self *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison

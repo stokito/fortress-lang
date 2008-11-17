@@ -155,6 +155,14 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     }
 
     public void forAbsFnDeclOnly(AbsFnDecl that) {
+        if ( NodeUtil.isGetter(that) ) {
+            if ( ! that.getParams().isEmpty() )
+                log(that, "Getter declaration should not have a parameter.");
+        } else if ( NodeUtil.isSetter(that) ) {
+            if ( ! (that.getParams().size() == 1) )
+                log(that, "Setter declaration should have a single parameter.");
+        }
+
         List<Modifier> mods = that.getMods();
         if ( inTrait || inObject ) {
             if ( NodeUtil.isGetter(that) || NodeUtil.isSetter(that) ) {
@@ -235,6 +243,14 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     }
 
     public void forFnDefOnly(FnDef that) {
+        if ( NodeUtil.isGetter(that) ) {
+            if ( ! that.getParams().isEmpty() )
+                log(that, "Getter declaration should not have a parameter.");
+        } else if ( NodeUtil.isSetter(that) ) {
+            if ( ! (that.getParams().size() == 1) )
+                log(that, "Setter declaration should have a single parameter.");
+        }
+
         List<Modifier> mods = that.getMods();
         if ( inBlock ) { // local function declaration
             for ( Modifier mod : mods ) {
