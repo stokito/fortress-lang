@@ -107,7 +107,7 @@ public class TypesUtil {
             switch (_args.size()) {
                 case 0: return Types.VOID;
                 case 1: return _args.get(0);
-                default: return new TupleType(_args);
+                default: return new TupleType(NodeFactory.makeSpan("impossible", _args), _args);
             }
         }
 
@@ -170,7 +170,7 @@ public class TypesUtil {
                                     public StaticArg value(StaticParam arg0) {
                                         // This is only legal if StaticParam is a TypeParam!!!
                                         Type t = NodeFactory.make_InferenceVarType(arg0.getSpan());
-                                        return new TypeArg(t);
+                                        return new TypeArg(NodeFactory.makeSpan(t), t);
                                     }}));
                         }
                         else if( num_static_params != num_static_args ) {

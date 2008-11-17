@@ -48,6 +48,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
@@ -57,13 +58,15 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class TypeCheckerTestCase extends TestCase {
 
+    private static Span span = NodeFactory.makeSpan("TypeCheckerTestCase bogus");
+    
     public static Type parseType(String s) {
         s = s.trim();
         if (s.contains("->")) {
             int arrowIndex = s.indexOf("->");
             Type left = parseType(s.substring(0, arrowIndex));
             Type right = parseType(s.substring(arrowIndex+2));
-            return new ArrowType(NodeFactory.makeDomain(left), right);
+            return new ArrowType(span, NodeFactory.makeDomain(left), right);
         }
         if (s.startsWith("(")) {
             List<Type> types = new ArrayList<Type>();
@@ -104,9 +107,9 @@ public abstract class TypeCheckerTestCase extends TestCase {
             new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, Option.<WhereClause>none()));
+            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
-        TraitAbsDeclOrDecl ast = new TraitDecl(NodeFactory.makeId(name), sparams,
+        TraitAbsDeclOrDecl ast = new TraitDecl(span, NodeFactory.makeId(name), sparams,
                                                extendsClause,
                                                Collections.<Decl>emptyList());
         return new ProperTraitIndex(ast,

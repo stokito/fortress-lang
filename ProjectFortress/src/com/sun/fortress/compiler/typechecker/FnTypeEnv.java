@@ -104,7 +104,7 @@ class FnTypeEnv extends TypeEnv {
 					// Ugh..
 					TypeArg type_arg = (TypeArg)arg0;
 					VarType v = (VarType)type_arg.getType();
-					StaticParam p = new TypeParam(v.getName());
+					StaticParam p = new TypeParam(NodeFactory.makeSpan(v), v.getName());
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
 					return Pair.make(p, a);
 				}});
@@ -155,7 +155,7 @@ class FnTypeEnv extends TypeEnv {
                                                                  _fn.where()));
             }
         }
-        return Option.some(new BindingLookup(var, new IntersectionType(overloadedTypes)));
+        return Option.some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
     }
 
     @Override

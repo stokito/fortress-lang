@@ -35,6 +35,8 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
 
+    private Span span = NodeFactory.makeSpan("StaticTypeReplacerJUTest.BOGUS");
+    
     private StaticTypeReplacer replacer;
 
     public void testLeafNodes() {
@@ -51,8 +53,8 @@ public class StaticTypeReplacerJUTest extends TypeCheckerTestCase {
                                          makeIntArg("m"),
                                          makeBoolArg("true"),
                                          makeOpArg("-"),
-                                         makeDimArg(makeDimRef("Length")),
-                                         makeUnitArg(makeUnitRef("ft_")));
+                                         makeDimArg(makeDimRef(span, "Length")),
+                                         makeUnitArg(makeUnitRef(span, "ft_")));
 
         replacer = new StaticTypeReplacer(params, args);
 //        Lambda<Type, Type> subst = TypeAnalyzerUtil.makeSubstitution(params, args); 

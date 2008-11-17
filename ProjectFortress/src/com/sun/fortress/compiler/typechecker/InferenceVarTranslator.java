@@ -24,6 +24,8 @@ import edu.rice.cs.plt.collect.OneToOneRelation;
 import edu.rice.cs.plt.collect.IndexedOneToOneRelation;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 
 /**
  * Renames inference variables to a canonical form, in which each unique variable encountered
@@ -87,7 +89,7 @@ public class InferenceVarTranslator {
         // with instances of a custom class, thus preventing name clashes with variables
         // created elsewhere that wrap Characters (currently, other instances just wrap
         // raw Objects)
-        return new _InferenceVarType(_canonicalNames.next());
+        return new _InferenceVarType(NodeFactory.makeSpan("blame InferenceVarTranslator.nextCanonicalVar"), _canonicalNames.next());
     }
 
     public Type canonicalizeVars(Type t) {

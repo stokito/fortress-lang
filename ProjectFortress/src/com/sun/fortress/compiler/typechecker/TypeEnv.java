@@ -189,7 +189,7 @@ public abstract class TypeEnv {
             }
         }
 
-        return new Domain(paramTypes, varargsType, keywordTypes);
+        return new Domain(NodeFactory.makeSpan("TypeEnv_bogus_span_for_empty_list", params), paramTypes, varargsType, keywordTypes);
     }
 
     public static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
@@ -470,7 +470,7 @@ public abstract class TypeEnv {
                 overloads.add(genericArrowFromDecl(decl));
                 mods.addAll(decl.getMods());
             }
-            type = Option.<Type>some(new IntersectionType(overloads));
+            type = Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
             mutable = false;
         }
 

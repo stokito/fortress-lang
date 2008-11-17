@@ -71,7 +71,7 @@ begin ast;
 /**
  * top-level node interface
  */
-interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
+interface Node(ignoreForEquals Span span) extends HasAt;
     /**
      * declaration in components or APIs
      */
@@ -432,7 +432,8 @@ interface Node(ignoreForEquals Span span = new Span()) extends HasAt;
                                  Option<WhereClause> where
                                      = Option.<WhereClause>none(),
                                  Option<Contract> contract
-                                     = Option.<Contract>none())
+                                     = Option.<Contract>none(),
+                                 Id unambiguousName = new Id(in_span, in_span.toString()))
                                 implements Applicable, GenericDecl;
             /**
              * functional declaration in components or APIs

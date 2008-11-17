@@ -153,7 +153,7 @@ public class Transform extends TemplateUpdateVisitor {
             }
         });
         Expr init_result = (Expr) recur(that.getInit());
-        return new GeneratorClause(newIds, init_result);
+        return new GeneratorClause(NodeFactory.makeSpan(newIds, init_result), newIds, init_result);
     }
 
     public Node forIfClause(IfClause that) {
@@ -235,7 +235,7 @@ public class Transform extends TemplateUpdateVisitor {
             extendSyntaxEnvironment(name_result, newId);
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return new Label(exprType_result, newId, body_result);
+            return new Label(NodeFactory.makeSpan(that), exprType_result, newId, body_result);
         } else {
             return super.forLabel(that);
         }
@@ -257,7 +257,7 @@ public class Transform extends TemplateUpdateVisitor {
             List<TypecaseClause> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
             Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
             setSyntaxEnvironment(save);
-            return new Typecase(exprType_result, newIds, bindExpr_result, clauses_result, elseClause_result);
+            return new Typecase(NodeFactory.makeSpan(that), exprType_result, newIds, bindExpr_result, clauses_result, elseClause_result);
         } else {
             return super.forTypecase(that);
         }
@@ -491,7 +491,7 @@ public class Transform extends TemplateUpdateVisitor {
 		Node newNode =
 		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(),
 						  vars, new LinkedList<String>());
-                return new Level( binding.getLevel(), newNode.accept( this ) );
+                return new Level(NodeFactory.makeSpan(id, params),  binding.getLevel(), newNode.accept( this ) );
             }
         }
     }
@@ -592,8 +592,9 @@ public class Transform extends TemplateUpdateVisitor {
 			String firstParam = parameters.get(0).getText();
 			String restParam = parameters.get(1).getText();
 			Map<String, Level> newEnv = new HashMap<String,Level>(variables);
-			newEnv.put(firstParam, new Level( toMatch.getLevel() - 1, first) );
-			newEnv.put(restParam, new Level( toMatch.getLevel(), rest) );
+			// TODO not confident these spans are correct.
+			newEnv.put(firstParam, new Level(NodeFactory.makeSpan(clause),  toMatch.getLevel() - 1, first) );
+			newEnv.put(restParam, new Level(NodeFactory.makeSpan(clause),   toMatch.getLevel(), rest) );
                         // EllipsesEnvironment env2 = new EllipsesEnvironment( ellipsesEnv );
                         // env2.add( NodeFactory.makeId( restParam ), 1, rest );
                         Debug.debug( Debug.Type.SYNTAX, 2, "Head of cons variable " + firstParam + " is " + first );
@@ -614,7 +615,7 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
         if ( partial instanceof Level ){
             Level l = (Level) partial;
-            return new Level( l.getLevel(), traverse( l.getObject() ) );
+            return new Level(NodeFactory.makeSpan(l), l.getLevel(), traverse( l.getObject() ) );
         } else if ( partial instanceof List ){
             List<Object> all = new LinkedList<Object>();
             for ( Object o : (List<?>) partial ){
@@ -746,10 +747,10 @@ public class Transform extends TemplateUpdateVisitor {
             for ( Id var : freeVariables ){
                 Level value = lookupVariable( var, new LinkedList<Id>() );
                 if ( value.getLevel() == 0 ){
-                    newVars.put( var.getText(), new Level( value.getLevel(), value ) );
+                    newVars.put( var.getText(), new Level(NodeFactory.makeSpan(value),   value.getLevel(), value ) );
                 } else {
                     List l = (List) value.getObject();
-                    newVars.put( var.getText(), new Level( value.getLevel() - 1, l.get( i ) ) );
+                    newVars.put( var.getText(), new Level(NodeFactory.makeSpan(value), value.getLevel() - 1, l.get( i ) ) );
                 }
             }
 

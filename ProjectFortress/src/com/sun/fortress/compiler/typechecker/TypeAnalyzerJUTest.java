@@ -27,6 +27,7 @@ import edu.rice.cs.plt.text.TextUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 
@@ -38,6 +39,8 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
 public class TypeAnalyzerJUTest extends TestCase {
 
+    static Span span = NodeFactory.makeSpan("TypeAnalyzerJUTest");
+    
     public static void main(String... args) {
       junit.textui.TestRunner.run(TypeAnalyzerJUTest.class);
     }
@@ -398,7 +401,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((AbsDecl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Api ast = new Api(NodeFactory.makeAPIName(name),
+        Api ast = new Api(span,NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,
@@ -423,7 +426,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Component ast = new Component(NodeFactory.makeAPIName(name),
+        Component ast = new Component(span, NodeFactory.makeAPIName(name),
                                       Collections.<Import>emptyList(),
                                       Collections.<Export>emptyList(),
                                       traitDecls);
@@ -459,17 +462,17 @@ public class TypeAnalyzerJUTest extends TestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, Option.<WhereClause>none()));
+            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitAbsDeclOrDecl ast;
         if (absDecl) {
-            ast = new AbsTraitDecl(NodeFactory.makeId(name),
+            ast = new AbsTraitDecl(span, NodeFactory.makeId(span, name),
                                    Collections.<StaticParam>emptyList(),
                                    extendsClause,
                                    Collections.<AbsDecl>emptyList());
         }
         else {
-            ast = new TraitDecl(NodeFactory.makeId(name),
+            ast = new TraitDecl(span, NodeFactory.makeId(span, name),
                                 Collections.<StaticParam>emptyList(),
                                 extendsClause,
                                 Collections.<Decl>emptyList());
@@ -510,7 +513,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     private static Type parseType(String s) {
         s = s.trim();
         int opIndex;
-
+ 
         opIndex = findAtTop(s, "->");
         if (opIndex >= 0) {
             s = s + " "; // recognize a trailing "io"
@@ -519,12 +522,12 @@ public class TypeAnalyzerJUTest extends TestCase {
             Domain d = parseDomain(s.substring(0, opIndex));
             Type r = parseType(s.substring(opIndex+2, effectStart));
             Effect e = parseEffect(s.substring(effectStart));
-            return new ArrowType(d, r, e);
+            return new ArrowType(span, d, r, e);
         }
 
         opIndex = findAtTop(s, "|");
         if (opIndex == 0) {
-            return new UnionType(parseTypeList(s, "|{", "}"));
+            return new UnionType(span, parseTypeList(s, "|{", "}"));
         }
         else if (opIndex > 0) {
             Type left = parseType(s.substring(0, opIndex));
@@ -534,7 +537,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         opIndex = findAtTop(s, "&");
         if (opIndex == 0) {
-            return new IntersectionType(parseTypeList(s, "&{", "}"));
+            return new IntersectionType(span, parseTypeList(s, "&{", "}"));
         }
         else if (opIndex > 0) {
             Type left = parseType(s.substring(0, opIndex));
@@ -546,10 +549,10 @@ public class TypeAnalyzerJUTest extends TestCase {
             boolean varargs = s.endsWith("...)");
             if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
             List<Type> ts = parseTypeList(s, "(", ")");
-            if (varargs) { return new VarargTupleType(ts, ts.remove(ts.size()-1)); }
+            if (varargs) { return new VarargTupleType(span, ts, ts.remove(ts.size()-1)); }
             else if (ts.size() == 0) { return VOID; }
             else if (ts.size() == 1) { return ts.get(0); }
-            else { return new TupleType(ts); }
+            else { return new TupleType(span, ts); }
         }
 
         if (s.length() == 0 |
@@ -563,7 +566,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         if (s.equals("Bottom")) { return BOTTOM; }
 
         if (s.startsWith("#")) {
-            return new _InferenceVarType(s);
+            return new _InferenceVarType(span, s);
         }
 
         if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
@@ -590,24 +593,24 @@ public class TypeAnalyzerJUTest extends TestCase {
                     if (eq >= 0) {
                         Id k = NodeFactory.makeId(elt.substring(0, eq).trim());
                         Type t = parseType(elt.substring(eq+1));
-                        keys.add(new KeywordType(k, t));
+                        keys.add(new KeywordType(span, k, t));
                     }
                     else { args.add(parseType(elt)); }
                 }
             }
-            return new Domain(args, varargs, keys);
+            return new Domain(span, args, varargs, keys);
         }
         else {
-            return new Domain(Collections.singletonList(parseType(s)));
+            return new Domain(span, Collections.singletonList(parseType(s)));
         }
     }
 
     private static Effect parseEffect(String s) {
-        if (s.length() == 0) { return new Effect(); }
+        if (s.length() == 0) { return new Effect(span); }
 
         boolean io = false;
         s = s.trim();
-        if (s.equals("io")) { return new Effect(true); }
+        if (s.equals("io")) { return new Effect(span, true); }
         else if (s.startsWith("io ")) { io = true; s = s.substring(3).trim(); }
         else if (s.endsWith(" io")) { io = true; s = s.substring(0, s.length()-3).trim(); }
 
@@ -626,7 +629,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             }
             ts.add((BaseType) t);
         }
-        return new Effect(Option.some(ts), io);
+        return new Effect(span, Option.some(ts), io);
     }
 
     private static List<Type> parseTypeList(String s, String leftDelim, String rightDelim) {

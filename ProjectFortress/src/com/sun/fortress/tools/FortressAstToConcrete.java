@@ -706,7 +706,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              Option<String> returnType_result,
                                              Option<List<String>> throwsClause_result,
                                              Option<String> where_result,
-                                             Option<String> contract_result) {
+                                             Option<String> contract_result,
+                                             String unambiguousName_result) {
         StringBuilder s = new StringBuilder();
 
         for ( String mod : mods_result ){
@@ -785,6 +786,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          Option<List<String>> throwsClause_result,
                                          Option<String> where_result,
                                          Option<String> contract_result,
+                                         String unambigousName_result,
                                          String body_result) {
         StringBuilder s = new StringBuilder();
         for ( String mod : mods_result ){

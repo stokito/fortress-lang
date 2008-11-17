@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
@@ -74,7 +75,8 @@ class FnDefTypeEnv extends TypeEnv {
         for (FnDef fn : fns) {
             overloadedTypes.add(genericArrowFromDecl(fn));
         }
-        return some(new BindingLookup(var, new IntersectionType(overloadedTypes)));
+        // TODO highly bogus span here -- we need a set-span
+        return some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
     }
 
     @Override

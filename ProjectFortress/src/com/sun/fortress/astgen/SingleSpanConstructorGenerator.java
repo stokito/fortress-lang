@@ -39,16 +39,21 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
   public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i) {}
 
   public void generateClassMembers(TabPrintWriter writer, NodeClass c) {
-    boolean hasSingleSpanConstructor = true;
-    boolean allDefaults = true;
+    // boolean hasSingleSpanConstructor = true;
+    // boolean allDefaults = true;
+    int nonDefault = 0;
+    // Guaranteed to iterate at least once, all fields have Span.
     for (Field f : c.allFields(ast)) {
-        hasSingleSpanConstructor = false;
-        allDefaults &= f.defaultValue().isSome();
+        //hasSingleSpanConstructor = false;
+        //allDefaults &= f.defaultValue().isSome();
+        if (f.defaultValue().isNone()) nonDefault++;
     }
 
-    hasSingleSpanConstructor |= allDefaults;
+    // hasSingleSpanConstructor |= allDefaults;
 
-    if (!hasSingleSpanConstructor) {
+    // if (!hasSingleSpanConstructor) {
+    // 1 is the Span field, which is known not to be defaulted
+    if (nonDefault > 1) {
       writer.startLine("/**");
       writer.startLine(" * Single Span constructor, for template gap access.  Clients are ");
       writer.startLine(" * responsible for never accessing other fields than the gapId and ");

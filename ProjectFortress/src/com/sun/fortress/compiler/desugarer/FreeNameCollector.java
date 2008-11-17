@@ -243,7 +243,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             (enclosingObjectDecl.isSome() || enclosingTraitDecl.isSome()) ) {
             // use the "self" id to get the right type of the
             // enclosing object / trait decl
-            Option<Type> type = objExprTypeEnv.type( new Id("self") );
+            Span s = (enclosingObjectDecl.isSome() ?
+                          enclosingObjectDecl :
+                          enclosingTraitDecl).unwrap().getSpan();
+            Option<Type> type = objExprTypeEnv.type( new Id(s, "self") );
             freeNames.setEnclosingSelfType(type);
         }
 

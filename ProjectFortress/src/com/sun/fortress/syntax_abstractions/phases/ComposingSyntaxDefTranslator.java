@@ -564,7 +564,7 @@ public class ComposingSyntaxDefTranslator {
             });
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\", new Level(%d, %s));", 
+            code.add(String.format("%s.put(\"%s\", new Level(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), %d, %s));", 
                                    BOUND_VARIABLES, 
                                    var, 
                                    levelDepth, 
@@ -587,7 +587,7 @@ public class ComposingSyntaxDefTranslator {
         String name = FreshName.getFreshName("stringLiteral");
         indents.add(3);
         code.add("StringLiteralExpr " + prefixJavaVariable(name) + 
-                 " = new StringLiteralExpr(\"\"+" + prefixJavaVariable(id) + ");");
+                 " = new StringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
         return name;
     }
 }

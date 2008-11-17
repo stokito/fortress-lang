@@ -565,7 +565,8 @@ public class Unprinter extends NodeReflection {
 
         expectPrefix(")");
 
-        return new Level( level, obj.unwrap() );
+            // TODO Why don't levels write their spans out?
+        return new Level(lastSpan, level, obj.unwrap() );
     }
 
     public Map<String,Object> readMap() throws IOException {

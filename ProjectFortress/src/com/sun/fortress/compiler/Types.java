@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
 import java.util.Collections;
@@ -43,19 +44,22 @@ import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 public final class Types {
 
     private Types() {}
+    
+    private static Span span = NodeFactory.makeSpan("If you see this, it is a bug.");
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
     public static final Id ARRAY_NAME = makeId(fortressLibrary,"Array");
     // TODO: Replace ImmutableArray with ImmutableHeapSequence when
     //       ImmutableHeapSequence is put into the libraries.
     public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary, "ImmutableArray");
-    public static final AnyType ANY = new AnyType();
-    public static final BottomType BOTTOM = new BottomType();
+    
+    public static final AnyType ANY = new AnyType(span);
+    public static final BottomType BOTTOM = new BottomType(span);
     public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
 
     public static final Domain BOTTOM_DOMAIN = NodeFactory.makeDomain(BOTTOM);
 
-    public static final VoidType VOID = new VoidType();
+    public static final VoidType VOID = new VoidType(span);
     public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
     public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
     public static final TraitType ZZ32 = makeTraitType(fortressLibrary, "ZZ32");
@@ -67,7 +71,7 @@ public final class Types {
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");
 
 
-    public static final LabelType LABEL = new LabelType();
+    public static final LabelType LABEL = new LabelType(span);
 
     public static final TraitType makeVarargsParamType(Type varargsType) {
         return makeTraitType(IMMUTABLE_HEAP_SEQ_NAME, makeTypeArg(varargsType), makeTypeArg(ZZ32));
@@ -119,7 +123,10 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return BOTTOM;
                 case 1: return IterUtil.first(ts);
-                default: return new UnionType(CollectUtil.makeList(ts));
+                default: {
+                    List<Type> l = CollectUtil.makeList(ts);
+                    return new UnionType(NodeFactory.makeSpan("impossible", l), l);
+                }
             }
         }
     };
@@ -136,7 +143,10 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return ANY;
                 case 1: return IterUtil.first(ts);
-                default: return new IntersectionType(CollectUtil.makeList(ts));
+                default: {
+                    List<Type> l = CollectUtil.makeList(ts);
+                    return new IntersectionType(NodeFactory.makeSpan("impossible", l), l);
+                }
             }
         }
     };
@@ -197,7 +207,10 @@ public final class Types {
             switch (IterUtil.sizeOf(ts, 2)) {
                 case 0: return VOID;
                 case 1: return IterUtil.first(ts);
-                default: return new TupleType(CollectUtil.makeList(ts));
+                default: {
+                    List<Type> l = CollectUtil.makeList(ts);
+                    return new TupleType(NodeFactory.makeSpan("impossible", l), l);
+                }
             }
         }
     };
@@ -229,14 +242,14 @@ public final class Types {
      */
     public static Type stripKeywords(Domain d) {
         if (d.getVarargs().isSome()) {
-            return new VarargTupleType(d.getArgs(), d.getVarargs().unwrap());
+            return new VarargTupleType(NodeFactory.makeSpan(d.getArgs(), d.getVarargs().unwrap()), d.getArgs(), d.getVarargs().unwrap());
         }
         else {
             List<Type> args = d.getArgs();
             switch (args.size()) {
                 case 0: return VOID;
                 case 1: return args.get(0);
-                default: return new TupleType(args);
+                default: return new TupleType(NodeFactory.makeSpan("impossible", args), args);
             }
         }
     }
@@ -264,7 +277,7 @@ public final class Types {
     public static Domain makeDomain(Type argsType, Map<Id, Type> keywords) {
         List<KeywordType> keywordList = new ArrayList<KeywordType>(keywords.size());
         for (Map.Entry<Id, Type> entry : keywords.entrySet()) {
-            keywordList.add(new KeywordType(entry.getKey(), entry.getValue()));
+            keywordList.add(new KeywordType(NodeFactory.makeSpan(entry.getKey(), entry.getValue()), entry.getKey(), entry.getValue()));
         }
         return makeDomain(argsType, keywordList);
     }
@@ -277,17 +290,17 @@ public final class Types {
     public static Domain makeDomain(Type argsType, final List<KeywordType> keywords) {
         return argsType.accept(new NodeAbstractVisitor<Domain>() {
             @Override public Domain forVoidType(VoidType t) {
-                return new Domain(Collections.<Type>emptyList(), keywords);
+                return new Domain(NodeFactory.makeSpan("Types_bogus_span_for_empty_list", keywords), Collections.<Type>emptyList(), keywords);
             }
             @Override public Domain forTupleType(TupleType t) {
-                return new Domain(t.getElements(), keywords);
+                return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
             }
             @Override public Domain forVarargTupleType(VarargTupleType t) {
-                return new Domain(t.getElements(), Option.some(t.getVarargs()),
+                return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), Option.some(t.getVarargs()),
                                   keywords);
             }
             @Override public Domain forType(Type t) {
-                return new Domain(Collections.singletonList(t), keywords);
+                return new Domain(NodeFactory.makeSpan(t, keywords), Collections.singletonList(t), keywords);
             }
         });
     }

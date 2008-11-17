@@ -37,15 +37,6 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
-    /** Alternatively, you can invoke the CharLiteralExpr constructor without parenthesized or val */
-    /*
-     *  Right now this doesn't do the right thing if char is outside
-     *  of range (i.e. more than 16 bits).   This should get fixed when
-     *  the Fortress String handles character with more than 16 bits.
-     */
-    public static CharLiteralExpr makeCharLiteralExpr(int c) {
-        return new CharLiteralExpr(""+ (char)c);
-    }
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
@@ -170,15 +161,6 @@ public class ExprFactory {
                           Collections.<StaticParam>emptyList(), params,
                           returnType, Option.<WhereClause>none(),
                           throwsClause, body);
-    }
-
-    /** Alternatively, you can invoke the IntLiteralExpr constructor without parenthesized or text */
-    public static IntLiteralExpr makeIntLiteralExpr(int i) {
-        return new IntLiteralExpr(BigInteger.valueOf(i));
-    }
-
-    public static Expr makeIntLiteralExpr(long i) {
-        return new IntLiteralExpr(BigInteger.valueOf(i));
     }
 
     public static IntLiteralExpr makeIntLiteralExpr(Span span, BigInteger val) {
@@ -382,10 +364,6 @@ public class ExprFactory {
         return new StringLiteralExpr(span, s);
     }
 
-    public static StringLiteralExpr makeStringLiteralExpr(String s) {
-        return new StringLiteralExpr(s);
-    }
-
     /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
             List<Expr> subs) {
@@ -545,11 +523,6 @@ public class ExprFactory {
         return expr;
     }
 
-    /** Alternatively, you can invoke the VoidLiteralExpr constructor without parenthesized or text */
-    public static VoidLiteralExpr makeVoidLiteralExpr() {
-        return new VoidLiteralExpr();
-    }
-
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
         return new VoidLiteralExpr(span, false, "");
     }
@@ -557,8 +530,8 @@ public class ExprFactory {
     public static If makeIf(IfClause _if, Expr _else) {
         List<IfClause> ifclauses = Collections.singletonList(_if);
         List<Expr> elseBlock = Collections.singletonList(_else);
-        Block _elseClause = new Block( elseBlock);
-        return new If(ifclauses, Option.some(_elseClause));
+        Block _elseClause = new Block(_else.getSpan(), elseBlock);
+        return new If(NodeFactory.makeSpan(_if, _else), ifclauses, Option.some(_elseClause));
     }
 
     public static If makeIf(Span sp, IfClause _if, Expr _else) {
@@ -570,7 +543,7 @@ public class ExprFactory {
 
     public static If makeIf(IfClause _if) {
         List<IfClause> ifclauses = Collections.singletonList(_if);
-        return new If(ifclauses, Option.<Block>none());
+        return new If(_if.getSpan(), ifclauses, Option.<Block>none());
     }
 
     public static If makeIf(Span sp, IfClause _if) {
@@ -581,7 +554,7 @@ public class ExprFactory {
     public static If makeIf(Span sp, Expr cond, Block _then, Block _else) {
         return
         makeIf(sp,
-                new IfClause(
+                new IfClause(NodeFactory.makeSpan(cond, _else),
                         makeGeneratorClause(cond.getSpan(), cond),
                         _then), _else);
     }
@@ -589,7 +562,7 @@ public class ExprFactory {
     public static If makeIf(Span sp, Expr cond, Block _then) {
         return
         makeIf(sp,
-                new IfClause(
+                new IfClause(NodeFactory.makeSpan(cond, _then),
                         makeGeneratorClause(cond.getSpan(), cond),
                         _then));
     }
@@ -628,7 +601,7 @@ public class ExprFactory {
         List<LValue> _lhs = new ArrayList<LValue>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
-        _lhs.add(new LValueBind(p,false));
+        _lhs.add(new LValueBind(p.getSpan(), p,false));
         return new LocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
     }
 
@@ -656,20 +629,16 @@ public class ExprFactory {
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
         List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        Link link = new Link(NodeFactory.makeSpan(_op, _expr), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
-        return new ChainExpr(e, links);
+        return new ChainExpr(NodeFactory.makeSpan(e, _expr), e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
      List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(new Span(_op.getSpan(), _expr.getSpan()), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        Link link = new Link(NodeFactory.makeSpan(_op, _expr), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return new ChainExpr(sp, e, links);
-    }
-
-    public static Throw makeThrow(String st) {
-        return new Throw(makeVarRef(st));
     }
 
     /**
@@ -1023,7 +992,7 @@ public class ExprFactory {
     }
 
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
-        Expr body = new VarRef(id);
+        Expr body = new VarRef(id.getSpan(), id);
         return new TemplateGapFnExpr(s, id, params);
     }
 

@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.PreTransformerDef;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
 
@@ -101,7 +102,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
             Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
             List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
-            return new NamedTransformerDef( name, params, transformer );
+            return new NamedTransformerDef(NodeFactory.makeSpan("RewriteTransformerNames.forPreTransformerDefOnly"), name, params, transformer );
         } catch (OptionUnwrapException e){
             throw new MacroError("Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e);
         }
