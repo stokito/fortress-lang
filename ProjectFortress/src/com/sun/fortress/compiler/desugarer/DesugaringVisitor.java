@@ -518,7 +518,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     public Node forFieldRefOnly(FieldRef that, Option<Type> exprType_result,
                                 Expr obj_result, Id field_result) {
         return ExprFactory.makeMethodInvocation(that, obj_result, field_result,
-                                                ExprFactory.makeVoidLiteralExpr());
+                                                ExprFactory.makeVoidLiteralExpr(that.getSpan()));
     }
 
     @Override
@@ -547,7 +547,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                         Expr obj_result, Name field_result) {
         if ( field_result instanceof Id)
             return ExprFactory.makeMethodInvocation(that, obj_result, (Id)field_result,
-                                                    ExprFactory.makeVoidLiteralExpr());
+                                                    ExprFactory.makeVoidLiteralExpr(that.getSpan()));
         else
             return ExprFactory.make_RewriteFieldRef(that, obj_result,
                                                     field_result);
@@ -619,12 +619,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                  Option<Type> returnType_result,
                                  Option<List<BaseType>> throwsClause_result,
                                  Option<WhereClause> where_result,
-                                 Option<Contract> contract_result)
+                                 Option<Contract> contract_result,
+                                 Id unambiguousName_result)
     {
         return new AbsFnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
                              name_result, staticParams_result, params_result,
                              returnType_result, throwsClause_result,
-                             where_result, contract_result);
+                             where_result, contract_result, unambiguousName_result);
     }
 
     @Override
@@ -636,12 +637,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<List<BaseType>> throwsClause_result,
                              Option<WhereClause> where_result,
                              Option<Contract> contract_result,
+                             Id unambiguousName_result,
                              Expr body_result)
     {
         return new FnDef(that.getSpan(), removeGetterSetterMod(mods_result),
                          name_result, staticParams_result, params_result,
                          returnType_result, throwsClause_result,
-                         where_result, contract_result,
+                         where_result, contract_result, unambiguousName_result,
                          body_result);
     }
 }

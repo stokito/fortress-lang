@@ -36,6 +36,7 @@ import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeCheckerTestCase.*;
 
 public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
+    static Span span = NodeFactory.makeSpan("SubtypeCheckerJUTest");
 
     Type alpha = NodeFactory.makeVarType("ALPHA");
     Type beta  = NodeFactory.makeVarType("BETA");
@@ -327,7 +328,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
             traitDecls.add((AbsDecl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Api ast = new Api(NodeFactory.makeAPIName(name),
+        Api ast = new Api(span, NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,
@@ -352,7 +353,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Component ast = new Component(NodeFactory.makeAPIName(name),
+        Component ast = new Component(span, NodeFactory.makeAPIName(span, name),
                                       Collections.<Import>emptyList(),
                                       Collections.<Export>emptyList(),
                                       traitDecls);
@@ -388,17 +389,17 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(supT, Option.<WhereClause>none()));
+            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitAbsDeclOrDecl ast;
         List<StaticParam> sparams = Collections.<StaticParam>emptyList();
         if (absDecl) {
-            ast = new AbsTraitDecl(NodeFactory.makeId(name), sparams,
+            ast = new AbsTraitDecl(span, NodeFactory.makeId(span, name), sparams,
                                    extendsClause,
                                    Collections.<AbsDecl>emptyList());
         }
         else {
-            ast = new TraitDecl(NodeFactory.makeId(name), sparams,
+            ast = new TraitDecl(span, NodeFactory.makeId(span, name), sparams,
                                 extendsClause,
                                 Collections.<Decl>emptyList());
         }

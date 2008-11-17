@@ -698,7 +698,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 											Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());   
 											ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));          
 											all_results.add(new TypeCheckerResult(that, Option.<Type>none(), constraint));
-											return new TypeArg(ivt);
+											return new TypeArg(NodeFactory.makeSpan(ivt), ivt);
 										}
 										else{
 											return NI.nyi();
@@ -2397,7 +2397,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		AbstractTupleType domain;
 		if(varargs){
 			Type var = dlist.remove(dlist.size()-1);
-			domain = new VarargTupleType(dlist,var);
+			domain = new VarargTupleType(that.getSpan(), dlist,var);
 		}
 		else{
 			domain = NodeFactory.makeTupleType(dlist);
@@ -2526,7 +2526,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(arrow_types));
+						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = new _RewriteInstantiatedFnRefs(that.getSpan(),
 							that.isParenthesized(),
@@ -2553,12 +2553,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			} else if (arrow_types.size() == 1) { // special case to allow for simpler types
 				type = Option.<Type>some(arrow_types.get(0));
 			} else {
-				type = Option.<Type>some(new IntersectionType(arrow_types));
+				type = Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 			}
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(arrow_types));
+						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = new FnRef(that.getSpan(),
 							that.isParenthesized(),
@@ -3738,7 +3738,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(arrow_types));
+						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					new_node = new _RewriteInstantiatedOpRefs(that.getSpan(),
 							that.isParenthesized(),
 							type,
@@ -3763,7 +3763,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(arrow_types));
+						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 
 					constraints = accumulated_constraints;        
 					new_node = new OpRef(that.getSpan(),
@@ -3909,8 +3909,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			// Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
 			Type freshArrow = NodeFactory.makeArrowType(new Span(),
-					NodeFactory.make_InferenceVarType(),
-					NodeFactory.make_InferenceVarType());
+					NodeFactory.make_InferenceVarType(that.getSpan()),
+					NodeFactory.make_InferenceVarType(that.getSpan()));
 			TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);
 
 			// Type check the other nodes and recur on the fn app.

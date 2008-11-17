@@ -222,7 +222,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfType(that.getReturnType()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 v.recurOnOptionOfWhereClause(that.getWhere()),
-                v.recurOnOptionOfContract(that.getContract()));
+                v.recurOnOptionOfContract(that.getContract()),
+                that.getUnambiguousName());
     }
 
     /**
@@ -241,6 +242,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                 v.recurOnOptionOfWhereClause(that.getWhere()),
                 v.recurOnOptionOfContract(that.getContract()),
+                that.getUnambiguousName(),
                 (Expr) that.getBody().accept(v));
     }
 

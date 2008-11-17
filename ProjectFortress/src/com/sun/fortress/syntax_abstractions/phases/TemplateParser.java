@@ -40,6 +40,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.UnparsedTransformer;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
@@ -70,7 +71,7 @@ public class TemplateParser {
                                                       that.getTransformer(), 
                                                       that.getNonterminal(), 
                                                       parser);
-                                    return new NodeTransformer(templateNode);
+                                    return new NodeTransformer(NodeFactory.makeSpan(templateNode), templateNode);
                                 }
                             });
                     } else {
@@ -99,7 +100,7 @@ public class TemplateParser {
                                 TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);
                                 Transformer transformer = 
                                     (Transformer) that.getTransformer().accept(tvs);
-                                return new NamedTransformerDef(that.getName(), 
+                                return new NamedTransformerDef(NodeFactory.makeSpan(that), that.getName(), 
                                                                that.getParameters(), 
                                                                transformer);
                             }

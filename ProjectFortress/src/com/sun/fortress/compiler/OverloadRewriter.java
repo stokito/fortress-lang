@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.IdOrOpName;
 import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class OverloadRewriter {
@@ -70,13 +71,14 @@ public class OverloadRewriter {
         OverloadRewriteVisitor visitor = new OverloadRewriteVisitor();
         comp = (Component) comp.accept(visitor);
         List<Decl> decls = comp.getDecls();
+        Span span = comp.getSpan();
 
         // Add rewritten overloaded functions
         Map<String, List<Id>> overloadedFunctions = visitor.getOverloadedFunctions();
         for (Map.Entry<String, List<Id>> overload : overloadedFunctions.entrySet()) {
             List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
             Id overloadingId = NodeFactory.makeId(overload.getKey());
-            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(overloadingId, overloadings);
+            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingId, overloadings);
             decls.add(newDecl);
         }
 
@@ -84,8 +86,8 @@ public class OverloadRewriter {
         Map<String, List<OpName>> overloadedOperators = visitor.getOverloadedOperators();
         for (Map.Entry<String, List<OpName>> overload : overloadedOperators.entrySet()) {
             List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
-            OpName overloadingOpName = NodeFactory.makeOp(overload.getKey());
-            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(overloadingOpName, overloadings);
+            OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan("impossible", overload.getValue()), overload.getKey());
+            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingOpName, overloadings);
             decls.add(newDecl);
         }
         return comp;

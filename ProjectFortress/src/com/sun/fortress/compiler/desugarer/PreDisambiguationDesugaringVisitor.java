@@ -48,7 +48,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
  */
 public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
-    private final Id anyTypeId = new Id(WellKnownNames.anyTypeName);
+    private final Id anyTypeId = new Id(NodeFactory.makeSpan("singleton"), WellKnownNames.anyTypeName);
 
     /** If the extends clause of a trait declaration, an object declaration, or
      *  an object expression is empty, then replace the empty extends clause

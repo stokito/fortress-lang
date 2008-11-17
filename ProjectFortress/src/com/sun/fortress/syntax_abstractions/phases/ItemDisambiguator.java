@@ -110,7 +110,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), 
                                       that.getNonterminal());
         if (oname.isSome()) {
-            return new UnparsedTransformer(that.getTransformer(), oname.unwrap());
+            return new UnparsedTransformer(NodeFactory.makeSpan(that, oname.unwrap()), that.getTransformer(), oname.unwrap());
         } else {
             throw new MacroError(that, "Cannot find non-terminal " + that.getNonterminal());
         }

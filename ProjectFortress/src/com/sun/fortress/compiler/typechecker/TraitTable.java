@@ -21,6 +21,7 @@ import java.util.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
@@ -39,7 +40,7 @@ public class TraitTable {
 
     public Option<TypeConsIndex> typeCons(Id name) {
         TypeConsIndex result;
-        Id simpleName = new Id(name.getText());
+        Id simpleName = new Id(NodeFactory.makeSpan(name), name.getText());
         // TODO: Shouldn't qualified names only point to APIs? -- Dan
         if (name.getApi().isNone() ||
             currentCompilationUnit.ast().getName().equals(name.getApi().unwrap())) {

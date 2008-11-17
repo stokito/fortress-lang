@@ -18,6 +18,8 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Useful;
 import junit.framework.TestCase;
 
@@ -27,6 +29,8 @@ import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
 
 public class TypeEnvJUTest extends TestCase {
+    private static Span span = NodeFactory.makeSpan("TypeEnvJUTest bogus");
+
     private final Type FOO = makeVarType("Foo");
     private final Type BAZ = makeVarType("Baz");
     private final Type BAR = makeVarType("Bar");
@@ -36,15 +40,15 @@ public class TypeEnvJUTest extends TestCase {
                                                   makeLValue("z", BAR));
 
     private final TypeEnv moreExtended =
-        extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar())),
+        extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar(span))),
                         makeLValue("b",
                                    BAZ,
-                                   Useful.<Modifier>list(new ModifierAbstract())),
+                                   Useful.<Modifier>list(new ModifierAbstract(span))),
                         makeLValue("c",
                                    BAR,
-                                   Useful.<Modifier>list(new ModifierWrapped(),
-                                                         new ModifierHidden(),
-                                                         new ModifierSettable())));
+                                   Useful.<Modifier>list(new ModifierWrapped(span),
+                                                         new ModifierHidden(span),
+                                                         new ModifierSettable(span))));
 
     public void testEmptyTypeEnv() {
         assertEquals(none(), TypeEnv.make().type(makeId("x")));
@@ -62,7 +66,7 @@ public class TypeEnvJUTest extends TestCase {
 
     public void testLookupMods() {
         assertEquals(0, moreExtended.mods("x").unwrap().size());
-        assertEquals(Useful.<Modifier>list(new ModifierAbstract()),
+        assertEquals(Useful.<Modifier>list(new ModifierAbstract(span)),
                      moreExtended.mods("b").unwrap());
     }
 

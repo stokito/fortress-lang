@@ -820,7 +820,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add(fndef.getBody());
-            Block b = new Block(exprs);
+            Block b = new Block(_contract.unwrap().getSpan(), exprs);
             if (_invariants.isSome()) b = translateInvariants(_invariants, b);
             if (_ensures.isSome())    b = translateEnsures(_ensures, b);
             if (_requires.isSome())   b = translateRequires(_requires, b);
@@ -1114,11 +1114,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin, WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(new VarType(sp,
-                NodeFactory.makeId(WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
+        args.add(new TypeArg(sp,new VarType(sp,
+                NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
                 Environment.TOP_LEVEL)));
 
-        _RewriteFnRef fn = new _RewriteFnRef(in_fn, args);
+        _RewriteFnRef fn = new _RewriteFnRef(s.getSpan(), in_fn, args);
 
         List<Param> params = Collections.emptyList();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
@@ -1628,9 +1628,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                         false,
                         ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
                         (Id) vre.getVar(),
-                        visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                        visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                         visitedArgs.size() == 1 ? visitedArgs.get(0) :
-                            new TupleExpr(visitedArgs));
+                            new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
+                                    visitedArgs));
             }
         } else  if (expr instanceof _RewriteFieldRef) {
 
@@ -1640,9 +1641,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                     false,
                                     selfDotSomething.getObj(), // this will rewrite in the future.
                                     (Id) selfDotSomething.getField(),
-                                    visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                                    visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                                     visitedArgs.size() == 1 ? visitedArgs.get(0) :
-                                        new TupleExpr(visitedArgs));
+                                        new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs), visitedArgs));
         }
 
         throw new Error("Not there yet.");

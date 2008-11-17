@@ -79,7 +79,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             if (!overloadedOperators.containsKey(overloadingName)) {
                 overloadedOperators.put(overloadingName, ops);
             }
-            OpName overloadingOpName = NodeFactory.makeOp(overloadingName);
+            OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOpName));
         }
         return super.forOpRefOnly(that, exprType_result, originalName, ops, staticArgs);

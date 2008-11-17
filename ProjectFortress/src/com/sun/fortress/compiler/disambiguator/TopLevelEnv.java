@@ -609,7 +609,7 @@ public class TopLevelEnv extends NameEnv {
     private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
         // Insert 'this' api as an implicit import. This kind of strange, but the grammars
         // need them at a minimum.
-        Import this_api_import = new ImportStar(api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
+        Import this_api_import = new ImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"), api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
         return filterApis(Collections.unmodifiableMap(apis), 
                 Useful.concat(Collections.singletonList(this_api_import), 
                         api.getImports()

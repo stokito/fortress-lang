@@ -54,6 +54,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 
@@ -186,16 +187,17 @@ public class IndexBuilder {
     }
 
     /**
-     * One doesn't generally store ObjectIndeces for Object expressions because they cannot
+     * One doesn't generally store ObjectIndices for Object expressions because they cannot
      * really be referred to on their own as types. However, there are some circumstances where
      * having an index for one can be helpful.
      */
     public static ObjectTraitIndex buildObjectExprIndex(ObjectExpr obj) {
-    	Id fake_object_name = new Id("FAKE_NAME");
+        Span fake_span = NodeFactory.makeSpan("FAKE_SPAN");
+    	Id fake_object_name = new Id(fake_span, "FAKE_NAME");
     	IndexBuilder builder = new IndexBuilder();
 
     	// Make fake object
-    	ObjectDecl decl = new ObjectDecl(fake_object_name,
+    	ObjectDecl decl = new ObjectDecl(fake_span, fake_object_name,
     			                         Collections.<StaticParam>emptyList(),
     			                         obj.getExtendsClause(),
     			                         obj.getDecls());

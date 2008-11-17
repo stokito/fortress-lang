@@ -27,21 +27,24 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 
 import junit.framework.TestCase;
 
 public class FortressTypeToJavaTypeJUTest extends TestCase {
 
-    private VarType stringType = new VarType(NodeFactory.makeId("FortressBuiltin", "String"));
+    private Span span = NodeFactory.makeSpan("bogus");
+    
+    private VarType stringType = new VarType(span, NodeFactory.makeId("FortressBuiltin", "String"));
     private String stringTypeResult = "String";
-    private VarType fortressASTType = new VarType(NodeFactory.makeId("FortressAst", "Decl"));
+    private VarType fortressASTType = new VarType(span, NodeFactory.makeId("FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";
 
     private TraitType mkTraitType(String api, String id, BaseType typeArg) {
         Id name = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
-        args.add(new TypeArg(typeArg));
-        return new TraitType(name, args);
+        args.add(new TypeArg(span, typeArg));
+        return new TraitType(span, name, args);
     }
 
     public void testTypeTranslatorVarTypeString() {

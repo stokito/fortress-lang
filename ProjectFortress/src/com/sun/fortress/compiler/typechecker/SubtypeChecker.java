@@ -565,7 +565,10 @@ public abstract class SubtypeChecker {
         switch (elts.size()) {
             case 0: return BOTTOM;
             case 1: return IterUtil.first(elts);
-            default: return new UnionType(CollectUtil.makeList(elts));
+            default: {
+                List<Type> l = CollectUtil.makeList(elts);
+                return new UnionType(NodeFactory.makeSetSpan("impossible", l),l);
+            }
         }
     }
 
@@ -581,7 +584,10 @@ public abstract class SubtypeChecker {
         switch (elts.size()) {
             case 0: return ANY;
             case 1: return IterUtil.first(elts);
-            default: return new IntersectionType(CollectUtil.makeList(elts));
+            default: {
+                List<Type> l = CollectUtil.makeList(elts);
+                return new IntersectionType(NodeFactory.makeSetSpan("impossible", l),l);
+            }
         }
     }
 

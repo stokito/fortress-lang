@@ -271,7 +271,7 @@ public class TypeAnalyzer {
                             else {
                                 List<Type> elts = makeList(skipLast(ts));
                                 Type varargs = last(ts);
-                                return new VarargTupleType(elts, varargs);
+                                return new VarargTupleType(NodeFactory.makeSpan(elts, varargs), elts, varargs);
                             }
                         }
                     };
@@ -307,7 +307,7 @@ public class TypeAnalyzer {
                     public Domain value(Iterable<Type> ts) {
                         List<KeywordType> ks = new ArrayList<KeywordType>(domainKeys.size());
                         for (Pair<Id, Type> p : zip(domainKeys.keySet(), skipFirst(ts))) {
-                            ks.add(new KeywordType(p.first(), p.second()));
+                            ks.add(new KeywordType(NodeFactory.makeSetSpan(p.first(), p.second()), p.first(), p.second()));
                         }
                         return makeDomain(first(ts), ks);
                     }
@@ -316,7 +316,7 @@ public class TypeAnalyzer {
                 Iterable<Type> ranges = liftConjuncts(normalRange, history);
                 Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Domain, Type, Type>() {
                     public Type value(Domain d, Type r) {
-                        return new ArrowType(d, r, normalEffect);
+                        return new ArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect);
                     }
                 });
                 // don't meet, because the arrows here aren't subtypes of each other
@@ -340,12 +340,12 @@ public class TypeAnalyzer {
                 else {
                     List<BaseType> reduced = reduceDisjuncts(normalThrows.unwrap(),
                                                              _emptyHistory);
-                    if (reduced.isEmpty()) { return new Effect(e.isIo()); }
+                    if (reduced.isEmpty()) { return new Effect(NodeFactory.makeSpan(e), e.isIo()); }
                     else if (reduced.equals(e.getThrowsClause().unwrap())) {
                         return e;
                     }
                     else {
-                        return new Effect(Option.some(reduced), e.isIo());
+                        return new Effect(NodeFactory.makeSetSpan(e, reduced), Option.some(reduced), e.isIo());
                     }
                 }
             }

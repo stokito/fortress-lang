@@ -70,7 +70,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that, Id id_result) {
-        return new UnparsedTransformer(rewriteVars(that.getTransformer(), that), id_result);
+        return new UnparsedTransformer(NodeFactory.makeSpan(that), rewriteVars(that.getTransformer(), that), id_result);
     }
 
     @Override public Node forCaseTransformer(CaseTransformer thatTransformer) {
@@ -83,7 +83,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 /* extend the environment and transform the body */
                 @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
                     TemplateVarRewriter tvr = extendWithCaseBindings(gapName, caseType, that);
-                    return new CaseTransformerClause(that.getConstructor(), 
+                    return new CaseTransformerClause(NodeFactory.makeSpan(that), that.getConstructor(), 
                                                      that.getParameters(),
                                                      (Transformer) that.getBody().accept(tvr));
                 }

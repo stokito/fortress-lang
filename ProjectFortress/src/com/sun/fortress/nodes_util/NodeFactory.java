@@ -36,6 +36,113 @@ import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
 public class NodeFactory {
+    /**
+     * For use only when there is no hope of
+     * attaching a true span.
+     * @param villain
+     * @return a span from a string.
+     * @deprecated
+     */
+    public static Span makeSpan(String villain) {
+        SourceLoc sl = new SourceLocRats(villain,0,0,0);
+        return new Span(sl,sl);
+    }
+    
+    /**
+     * 
+     * @param start
+     * @return  the span from a node.
+     */public static Span makeSpan(Node node) {
+        return node.getSpan();
+    }
+    
+    /**
+     * 
+     * @param start
+     * @param finish
+     * @return the span encompassing both spans.
+     */public static Span makeSpan(Span start, Span finish) {
+        return new Span(start.getBegin(), finish.getEnd());
+    }
+    
+    /**
+     * 
+     * @param start
+     * @param finish
+     * @return the span encompassing the spans of both nodes.
+     */
+     public static Span makeSpan(Node start, Node finish) {
+        return makeSpan(start.getSpan(), finish.getSpan());
+    }
+    
+    /**
+     * 
+     * @param start
+     * @param l
+     * @return the span encompassing the spans of node start to the span of the end of the list.
+     */
+     public static Span makeSpan(Node start, List<? extends Node> l) {
+         int s = l.size();
+        return makeSpan(start, s == 0 ? start : l.get(s-1));
+    }
+     
+     /**
+      * 
+      * @param start
+      * @param l
+      * @return the span encompassing the spans of list start to node finish.
+      */
+      public static Span makeSpan(List<? extends Node> l, Node finish) {
+         int s = l.size();
+        return makeSpan(s == 0 ? finish : l.get(0), finish);
+    }
+          
+     /**
+      * 
+      * @param start
+      * @param l
+      * @return the span encompassing the spans the first and last nodes of the list.
+      */
+     public static Span makeSpan(String ifEmpty, List<? extends Node> l) {
+         int s = l.size();
+        return s==0 ? makeSpan(ifEmpty) : makeSpan(l.get(0), l.get(s-1));
+    }
+    /**
+     * In some situations, a begin-to-end span is not really right, and something
+     * more like a set of spans ought to be used.  Even though this is not yet
+     * implemented, the name is provided to allow expression of intent.
+     * 
+     * @param start
+     * @param l
+     * @return the span encompassing the spans of node start to the span of the end of the list.
+     */
+     public static Span makeSetSpan(Node start, List<? extends Node> l) {
+         return makeSpan(start, l);
+     }
+     /**
+      * In some situations, a begin-to-end span is not really right, and something
+      * more like a set of spans ought to be used.  Even though this is not yet
+      * implemented, the name is provided to allow expression of intent.
+      * 
+      * @param start
+      * @param l
+      * @return the span encompassing the spans {a, b}
+      */
+     public static Span makeSetSpan(Node a, Node b) {
+         return makeSpan(a,b);
+     }
+     /**
+     * In some situations, a begin-to-end span is not really right, and something
+     * more like a set of spans ought to be used.  Even though this is not yet
+     * implemented, the name is provided to allow expression of intent.
+     * 
+     * @param l
+     * @return the span encompassing the spans the first and last nodes of the list.
+     */
+    public static Span makeSetSpan(String ifEmpty, List<? extends Node> l) {
+        return makeSpan(ifEmpty, l);
+    }
+    
     public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
                                           Id name, Option<Type> type) {
         return makeAbsFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
@@ -209,10 +316,6 @@ public class NodeFactory {
         return result;
     }
 
-    public static _InferenceVarType make_InferenceVarType() {
-        return new _InferenceVarType(new Object());
-    }
-
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
         return new TupleType(t.getSpan(), t.isParenthesized(), tys);
     }
@@ -248,16 +351,16 @@ public class NodeFactory {
         return new DimArg(s.getSpan(), s);
     }
 
-    public static DimRef makeDimRef(String name) {
-        return new DimRef(makeId(name));
+    public static DimRef makeDimRef(Span span, String name) {
+        return new DimRef(span, makeId(name));
     }
 
     public static UnitArg makeUnitArg(UnitExpr s) {
         return new UnitArg(s.getSpan(), s);
     }
 
-    public static UnitRef makeUnitRef(String name) {
-        return new UnitRef(makeId(name));
+    public static UnitRef makeUnitRef(Span span, String name) {
+        return new UnitRef(span, makeId(name));
     }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
@@ -732,13 +835,14 @@ public class NodeFactory {
         return new Enclosing(in_span, in_open, in_close);
     }
 
-    private static Option<Fixity> infix = Option.<Fixity>some(new InFixity());
-    private static Option<Fixity> prefix = Option.<Fixity>some(new PreFixity());
-    private static Option<Fixity> postfix = Option.<Fixity>some(new PostFixity());
-    private static Option<Fixity> nofix = Option.<Fixity>some(new NoFixity());
-    private static Option<Fixity> multifix = Option.<Fixity>some(new MultiFixity());
-    private static Option<Fixity> enclosing = Option.<Fixity>some(new EnclosingFixity());
-    private static Option<Fixity> big = Option.<Fixity>some(new BigFixity());
+    // All of these should go away, except for the gross overhead of allocating separate items.
+    private static Option<Fixity> infix = Option.<Fixity>some(new InFixity(makeSpan("singleton")));
+    private static Option<Fixity> prefix = Option.<Fixity>some(new PreFixity(makeSpan("singleton")));
+    private static Option<Fixity> postfix = Option.<Fixity>some(new PostFixity(makeSpan("singleton")));
+    private static Option<Fixity> nofix = Option.<Fixity>some(new NoFixity(makeSpan("singleton")));
+    private static Option<Fixity> multifix = Option.<Fixity>some(new MultiFixity(makeSpan("singleton")));
+    private static Option<Fixity> enclosing = Option.<Fixity>some(new EnclosingFixity(makeSpan("singleton")));
+    private static Option<Fixity> big = Option.<Fixity>some(new BigFixity(makeSpan("singleton")));
     private static Option<Fixity> unknownFix = Option.<Fixity>none();
 
     public static Op makeOp(String name) {
@@ -1194,7 +1298,7 @@ public class NodeFactory {
     }
 
     public static Import makeImportStar(APIName api, List<IdOrOpOrAnonymousName> excepts) {
-             return new ImportStar(api, excepts);
+             return new ImportStar(makeSpan(api, excepts), api, excepts);
     }
 
     public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
@@ -1266,18 +1370,4 @@ public class NodeFactory {
         return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
     }
 
-    public static Decl makeFnDecl(String functionName, Id typeName, Expr expression) {
-        Span span = FortressUtil.spanTwo(typeName.getSpan(), expression.getSpan());
-        Id fnName = new Id(span, functionName);
-        List<Param> params = new LinkedList<Param>();
-        List<StaticArg> staticArgs = new LinkedList<StaticArg>();
-        Type type = new TraitType(typeName, staticArgs);
-        params.add(new VarargsParam(new Id("args"), type));
-        Type returnType = new TraitType(typeName , staticArgs);
-        return new FnDef(span, Collections.<Modifier>emptyList(), fnName,
-                         Collections.<StaticParam>emptyList(), params,
-                         Option.some(returnType), Option.<List<BaseType>>none(),
-                         Option.<WhereClause>none(), Option.<Contract>none(),
-                         expression);
-    }
 }

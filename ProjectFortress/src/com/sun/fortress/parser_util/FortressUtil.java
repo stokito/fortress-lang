@@ -90,8 +90,10 @@ public final class FortressUtil {
         return Collections.<Type>emptyList();
     }
 
+    private static Effect effect = new Effect(NodeFactory.makeSpan("singleton"));
+    
     public static Effect emptyEffect() {
-        return new Effect();
+        return effect;
     }
 
     public static <T> List<T> getListVal(Option<List<T>> o) {

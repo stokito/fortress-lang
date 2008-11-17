@@ -33,6 +33,8 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.SyntaxUtil;
 
 /* EscapeRewriter
@@ -47,7 +49,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
         if (s.startsWith(ESCAPECHAR)) {
             int inx = 1;
             while(inx<s.length()-1) {
-                ls.add(new CharSymbol(""+s.charAt(inx)));
+                ls.add(new CharSymbol(NodeFactory.makeSpan("impossible", ls), ""+s.charAt(inx)));
                 inx++;
             }
             s = ""+s.charAt(s.length()-1);
@@ -55,14 +57,14 @@ public class EscapeRewriter extends NodeUpdateVisitor {
         return s;
     }
 
-    private String removeTrailingEscape(String s, List<CharacterSymbol> ls) {
+    private String removeTrailingEscape(Span span, String s, List<CharacterSymbol> ls) {
         String end = "";
         if (s.startsWith(ESCAPECHAR)) {
             int inx = 1;
             end = ""+s.charAt(inx);
             inx++;
             while(inx<s.length()) {
-                ls.add(new CharSymbol(""+s.charAt(inx)));
+                ls.add(new CharSymbol(span, ""+s.charAt(inx)));
                 inx++;
             }
             return end;
@@ -86,8 +88,8 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
                     String begin = removeLeadingEscape(that.getBegin(), head);
                     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
-                    String end = removeTrailingEscape(that.getEnd(), tail);
-                    head.add(new CharacterInterval(begin, end));
+                    String end = removeTrailingEscape(that.getSpan(), that.getEnd(), tail);
+                    head.add(new CharacterInterval(that.getSpan(), begin, end));
                     head.addAll(tail);
                     return head;
                 }
@@ -96,7 +98,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                 public List<CharacterSymbol> forCharSymbol(CharSymbol that) {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
                     String s = removeLeadingEscape(that.getString(), head);
-                    head.add(new CharSymbol(s));
+                    head.add(new CharSymbol(that.getSpan(), s));
                     return head;
                 }
 
@@ -123,7 +125,8 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                                       Id result_id,
                                       SyntaxSymbol result_symbol) {
         String s = removeEscape(result_id.getText());
-        return new PrefixedSymbol(that.getSpan(), new Id(s), result_symbol);
+        // TODO is span correct below?
+        return new PrefixedSymbol(that.getSpan(), new Id(result_id.getSpan(), s), result_symbol);
     }
 
     private String removeEscape(String s) {
