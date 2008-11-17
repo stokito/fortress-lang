@@ -787,7 +787,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                          Option<String> where_result,
                                          Option<String> contract_result,
                                          String unambigousName_result,
-                                         String body_result) {
+                                         String body_result,
+                                         Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
