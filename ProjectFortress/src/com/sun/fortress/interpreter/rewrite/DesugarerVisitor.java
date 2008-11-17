@@ -250,14 +250,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     private class SelfRewrite extends Member {
-        String s;
-        SelfRewrite(String s) { this.s = s; }
+        SelfRewrite() {}
         Expr replacement(VarRef original) {
             Expr expr = dottedReference(original.getSpan(),
                     objectNestingDepth - objectNestedness);
             return expr;
         }
-        public String toString() { return "Self("+s+")@"+objectNestedness+"/"+lexicalNestedness; }
+        public String toString() { return "Self(self)@"+objectNestedness+"/"+lexicalNestedness; }
     }
 
     /**
@@ -279,7 +278,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private BATree<String, StaticParam> visibleGenericParameters;
     private BATree<String, StaticParam> usedGenericParameters;
-    
+
     public BASet<String> functionals;
 
     /**
@@ -312,9 +311,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     /**
      * Returns a new DesugarerVisitor.
-     * 
+     *
      * @param suppressDebugDump normally true for everything but files mentioned on the command line.
-     * @param list 
+     * @param list
      */
     public DesugarerVisitor(boolean suppressDebugDump) {
         this(new BATree<String, Thing>(StringHashComparer.V),
@@ -359,7 +358,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     boolean inTrait;
 
-    String currentSelfName = WellKnownNames.defaultSelfName;
     boolean atTopLevelInsideTraitOrObject = false; // true immediately within a trait/object
 
     BATree<String, Boolean> immediateDef = null;
@@ -384,7 +382,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
 
     }
-    
+
     BoolRef newName(BoolRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {
@@ -394,7 +392,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
 
     }
-    
+
     IntRef newName(IntRef vre, String s) {
         Thing t = rewrites.get(s);
         if (t == null) {
@@ -606,7 +604,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         boolean savedFnDefIsMethod = atTopLevelInsideTraitOrObject;
         int savedObjectNestingDepth = objectNestingDepth;
         int savedLexicalNestingDepth = lexicalNestingDepth;
-        String savedSelfName = currentSelfName;
 
         /*
          * TRUE RECURSION HERE
@@ -632,7 +629,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         atTopLevelInsideTraitOrObject = savedFnDefIsMethod;
         objectNestingDepth = savedObjectNestingDepth;
         lexicalNestingDepth = savedLexicalNestingDepth;
-        currentSelfName = savedSelfName;
         immediateDef = savedImmediateDef;
 
         return returned_node;
@@ -660,16 +656,16 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<Import> imports_result = recurOnListOfImport(com.getImports());
         List<Export> exports_result = recurOnListOfExport(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
-                
-        AbstractNode nn = 
+
+        AbstractNode nn =
          new Component(com.getSpan(), com.is_native(),
                  name_result, imports_result,
                  exports_result, decls_result,
                  objectExprs, Useful.list(functionals));
-        
+
         if (debug && ! suppressDebugDump)
             System.err.println("AFTER\n" + NodeUtil.dump(nn));
-        
+
        return nn;
     }
     @Override
@@ -691,7 +687,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         defsToLocals(defs);
         return visitNode(com);
     }
-    
+
     @Override
     public Node forOpRef(OpRef vre) {
         String s = NodeUtil.stringName(vre.getOriginalName());
@@ -735,7 +731,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             // Rewrite lexical nesting depth to zero if api-qualified.
             node = NodeFactory.makeVarType(vre, Environment.TOP_LEVEL);
         }
-        
+
         return visitNode(node);
 
     }
@@ -787,8 +783,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnDef(FnDef fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            currentSelfName = WellKnownNames.defaultSelfName;
-            rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
+            rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
         }
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
@@ -845,8 +840,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forAbsFnDecl(AbsFnDecl fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            currentSelfName = WellKnownNames.defaultSelfName;
-            rewrites_put(currentSelfName, new SelfRewrite(currentSelfName));
+            rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
         }
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
@@ -861,7 +855,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         AbstractNode n;
 
     // TODO Contracts, properties, not handled here.  See forFnDef for details.
-        
+
         // Strip the contract, we don't know what to do with it,
         // and it is not in any sensible scope.
         AbsFnDecl f = new AbsFnDecl(fndef.getSpan(), fndef.getMods(),
@@ -869,15 +863,15 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 fndef.getStaticParams(), fndef.getParams(),
                 fndef.getReturnType(), fndef.getThrowsClause(),
                 fndef.getWhere(), Option.<Contract>none());
-        
+
         n = visitNode(f);
 
         dumpIfChange(fndef, n);
         return n;
 
     }
-    
-    
+
+
     @Override
     public Node forVarDecl(VarDecl vd) {
         atTopLevelInsideTraitOrObject = false;
@@ -1167,7 +1161,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         String s = IterUtil.last(ids).getText();
         return s;
     }
-   
+
     /**
      * Given List<Id>, generate tuple of corresponding VarRef
      */
@@ -1348,7 +1342,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (Param d : params) {
             String s = d.getName().getText();
             // "self" is not a local.
-            if (! s.equals(currentSelfName)) {
+            if (! s.equals(WellKnownNames.defaultSelfName)) {
                 rewrites_put(s, new Local());
 
             }

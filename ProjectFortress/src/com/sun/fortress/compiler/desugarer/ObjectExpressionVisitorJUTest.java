@@ -29,9 +29,9 @@ import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.Shell;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.WireTappedPrintStream;
 
 public class ObjectExpressionVisitorJUTest extends TestCase {
@@ -94,7 +94,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             FValue original = Shell.eval(file);
             // Delete the cached file from evaluating the original file!!!
             ASTIO.deleteJavaAst(CacheBasedRepository.cachedCompFileName(
-                    ProjectProperties.ANALYZED_CACHE_DIR, PreParser.apiName(
+                    ProjectProperties.ANALYZED_CACHE_DIR, NodeUtil.apiName(
                             NodeFactory.makeAPIName(file), new File(file)
                                     .getCanonicalFile())));
             String name = file.substring(0, file.lastIndexOf("."));
