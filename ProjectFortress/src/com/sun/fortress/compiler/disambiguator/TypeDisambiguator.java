@@ -243,7 +243,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfWhereClause(that.getWhere()),
                 v.recurOnOptionOfContract(that.getContract()),
                 that.getUnambiguousName(),
-                (Expr) that.getBody().accept(v));
+                (Expr) that.getBody().accept(v),
+                that.getImplementsUnambiguousName());
     }
 
     @Override public Node forArrowType(final ArrowType that) {

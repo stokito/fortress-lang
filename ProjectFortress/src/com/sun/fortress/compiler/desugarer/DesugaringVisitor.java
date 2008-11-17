@@ -638,12 +638,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<WhereClause> where_result,
                              Option<Contract> contract_result,
                              Id unambiguousName_result,
-                             Expr body_result)
+                             Expr body_result,
+                             Option<Id> implementsUnambiguousName_result)
     {
         return new FnDef(that.getSpan(), removeGetterSetterMod(mods_result),
                          name_result, staticParams_result, params_result,
                          returnType_result, throwsClause_result,
                          where_result, contract_result, unambiguousName_result,
-                         body_result);
+                         body_result, implementsUnambiguousName_result);
     }
 }

@@ -433,7 +433,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                                      = Option.<WhereClause>none(),
                                  Option<Contract> contract
                                      = Option.<Contract>none(),
-                                 Id unambiguousName = new Id(in_span, in_span.toString()))
+                                 Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()))
                                 implements Applicable, GenericDecl;
             /**
              * functional declaration in components or APIs
@@ -461,7 +461,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
                  * e.g.) swap (x, y) = (y, x)
                  */
-                FnDef(Expr body);
+                FnDef(Expr body, Option<Id> implementsUnambiguousName = Option.<Id>none());
         /**
          * value parameter of functional declarations and object declarations
          * Names must be unqualified.
