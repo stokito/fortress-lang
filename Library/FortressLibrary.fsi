@@ -2070,10 +2070,12 @@ opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\]
 
 trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     getter size() : ZZ32
-    getter asString() : String
     getter indices() : CompactFullRange[\ZZ32\]
-    getter generator() : Generator[\Char\]
+    getter depth() : ZZ32
     getter asJavaString(): String
+    getter isBalanced(): Boolean
+
+
     verify() : ()       (* Verify the data structure invaraints of self *)
     opr |self| : ZZ32
     opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison

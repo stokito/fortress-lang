@@ -17,7 +17,7 @@
 
 native component JavaString
 
-import String.{...}
+import String.{maxLeafSize, concatAndBalanceIfNecessary, CatString, spaces}
 
 export JavaString
 
@@ -25,27 +25,28 @@ export JavaString
 language="java"
 package="com.sun.fortress.interpreter.glue.prim"
 
-  object JavaString extends { StringDebug, DelegatedIndexed[\Char,ZZ32\] }
+  object JavaString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
     getter size() : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
     getter asExprString() : String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$ToString")
     getter asJavaString(): String = self
     getter asStriing(): String = self
+    getter asDebugString(): String = asDebugStringIndented(0)
     getter depth() = 0
     
     (* With the help of trait DelegatedIndex, this defines our generate method *)
-    getter generator() : Generator[\Char\] = 
-        self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
+    getter generator() : Generator⟦Char⟧ = 
+        self.indices.map⟦Char⟧(fn (i:ZZ32):Char => self.get(i))
 
     getter isBalanced() = true
     getter isAlmostBalanced() = true
-    getter isExtremelyUnbalanced() = false
-    
+    getter isExtremelyUnbalanced() = false 
+     
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
         
-    uncheckedSubstring(r1: Range[\ZZ32\]) : String = do
+    uncheckedSubstring(r1: Range⟦ZZ32⟧) : String = do
     (* We could build a subString node here, but not until everything is working, 
         because that will introduce 
        SubString objects into code that may still expect JavaStrings.
@@ -95,9 +96,9 @@ package="com.sun.fortress.interpreter.glue.prim"
         stream.write(self)
         
 
-    indexOf(c:Char): Maybe[\ZZ32\] = do
+    indexOf(c:Char): Maybe⟦ZZ32⟧ = do
         i = javaIndexOf(c)
-        if i = -1 then Nothing[\ZZ32\] else Just[\ZZ32\](i) end
+        if i = -1 then Nothing⟦ZZ32⟧ else Just⟦ZZ32⟧(i) end
       end
       
     verify() = do
@@ -109,13 +110,13 @@ package="com.sun.fortress.interpreter.glue.prim"
          
     opr IN(c:Char, self): Boolean = self.javaIndexOf(c) =/= -1
     
-    rangeContains(r: Range[\ZZ32\], c: Char) = self.javaIndexOf(c) ∈ self.bounds[r]
+    rangeContains(r: Range⟦ZZ32⟧, c: Char) = self.javaIndexOf(c) ∈ self.bounds[r]
 
     (** The operator %||% with at least one String argument converts to string and
         appends **)
     opr ||(self, b:JavaString): String = do
         if b.isEmpty then self
-        elif self.size + b.size > maxLeafStringSize then
+        elif self.size + b.size > maxLeafSize then
              (* Since both self and b have depth 0, balancing can't be necessary *)
             CatString(self, b)     
         else
@@ -126,7 +127,7 @@ package="com.sun.fortress.interpreter.glue.prim"
     opr ||(self, b:String):String = do
         if self.isEmpty then b
         elif b.isEmpty then self
-        elif self.size + b.size > maxLeafStringSize then 
+        elif self.size + b.size > maxLeafSize then 
             concatAndBalanceIfNecessary(self, b)
         else 
             javaAppend(self, b.asJavaString)
@@ -134,13 +135,14 @@ package="com.sun.fortress.interpreter.glue.prim"
     end
 
     opr ||(self, b:Char): String =
-        if |self| ≥ maxLeafStringSize then
+        if |self| ≥ maxLeafSize then
             concatAndBalanceIfNecessary(self, b.asString)
         else
             javaAppend(self, b)
         end
         
-    splitWithOffsets() = Nothing[\Generator[\(ZZ32, String)\]\]
+    splitWithOffsets() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
   end JavaString
   
@@ -149,6 +151,4 @@ package="com.sun.fortress.interpreter.glue.prim"
     javaPrintln(a: JavaString): () = 
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
  
-    var maxLeafStringSize: ZZ32 := 32
-    
 end

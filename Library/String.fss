@@ -49,11 +49,6 @@ export String
     getter isExtremelyUnbalanced() = self.depth > 30 AND: (¬ self.isBalanced)
   end Balanceable
   
-  trait StringDebug extends String
-    getter asDebugString(): String = asDebugStringIndented(0)
-    abstract asDebugStringIndented(indent: ZZ32): String
-  end
-
 (*
 ==== CatString ====
 *)
@@ -71,7 +66,7 @@ export String
     concatAndBalanceIfNecessary(s1: CatString, s2: JavaString) = do
         (* This handles the case where s1.right is a short JavaString *)
         typecase r = s1.right of
-            JavaString ⇒ if |r| + |s2| ≤ maxLeafStringSize then 
+            JavaString ⇒ if |r| + |s2| ≤ maxLeafSize then 
                                         s1.left || javaAppend(r, s2)
                                     else
                                         concatAndBalanceIfNecessary(s1 asif String, s2)
@@ -82,7 +77,7 @@ export String
 
 (* Object *)
         
-  object CatString(left: String, right:String)  extends {Concatenable, Balanceable, StringDebug}
+  object CatString(left: String, right:String)  extends {Concatenable, Balanceable}
     size = left.size + right.size
     depthField = 1 + (left.depth MAX right.depth)
     getter depth() = depthField
@@ -90,6 +85,10 @@ export String
     getter generator() = ConcatGenerator(left.generator, right.generator)
     getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
     getter asExprString() = left.asExprString.allButLast() || right.asExprString.allButFirst 
+    getter asDebugString(): String = asDebugStringIndented(0)
+    
+    generate⟦R⟧(r: Reduction⟦R⟧, body: Char→R): R =
+            r.join(left.generate(r, body), right.generate(r, body))
 
     opr ∈ (c:Char, self): Boolean = (c IN left) OR (c IN right)
 
@@ -115,7 +114,7 @@ export String
     =
         if |left| ≥ |other|
         then
-            left CASE_INSENSITIVE_CMP other
+            (left CASE_INSENSITIVE_CMP other) LEXICO: (|self| CMP |other|)
         else
             (left CASE_INSENSITIVE_CMP other[0#|left|]) LEXICO: (right CASE_INSENSITIVE_CMP other[(|left|):])
         end
@@ -123,13 +122,12 @@ export String
     (* get is, and should be, without bounds checks.  [ ] does the bounds checks,
         and then delegates to get *)
     get(i): Char =
-        if i ∈ left.indices then left[i] else right[i - |left|] end
+        if i ∈ left.indices then left.get(i) else right.get(i - |left|) end
 
     verify() = do
         assert(self.depth, (left.depth MAX right.depth) + 1, self)
         assert(self.size(), |left| + |right|, self)
     end
-
 
     asDebugStringIndented(indent: ZZ32): String = 
         (spaces(indent) || self.balanceIndicator() || "C" || self.size "/" self.depth || ":")  //
@@ -272,18 +270,21 @@ export String
 ==== EmptyString ====
 *)
 
-  value object EmptyString extends {String, Concatenable, StringDebug}
+  value object EmptyString extends {String, Concatenable}
     getter size() = 0
     getter bounds() = 0#0
     getter depth() = 0
     getter isEmpty() = true
-    getter generator() = Nothing⟦Char⟧
     getter asJavaString() = ""
     getter asExprString() = "\"\""
+    getter asDebugString(): String = asDebugStringIndented(0)
     
     asDebugStringIndented(indent: ZZ32) = spaces(indent) "E" |self| "/" self.depth
+    
+    generate⟦R⟧(r: Reduction⟦R⟧, body: Char→R): R = r.empty()
 
     opr ∈ (c:Char, self): Boolean = false
+    
     rangeContains(r: Range⟦ZZ32⟧, c: Char) = false
 
     opr CMP(self, other: String): TotalComparison =
@@ -292,7 +293,7 @@ export String
         |self| CMP |other|
 
     get(i): Char =
-        throw IndexOutOfBounds("Can't get characters from an empty string")
+        throw IndexOutOfBounds("Can't get character (" i ") from an EmptyString")
 
     opr[r: Range⟦ZZ32⟧]: String = do
         rr = self.bounds[r]     (* to raise a bounds error *)
@@ -319,6 +320,7 @@ export String
     writeOn(stream): () = do end
 
     splitWithOffsets() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
   end EmptyString
   
@@ -338,13 +340,25 @@ end
 ==== SubString ====
 *)
 
-  object SubString(baseString: String, range: Range⟦ZZ32⟧) extends  {Concatenable, StringDebug}
+  object SubString(baseString: String, range: Range⟦ZZ32⟧) extends  {Concatenable, DelegatedIndexed⟦Char, ZZ32⟧ }
     getter size() = range.size
     getter depth() = baseString.depth    (* We pretend that substring nodes don't add depth *)
     getter isEmpty() = false    (* Because we take care never to construct an empty SubString *)
     getter asJavaString() = baseString.asJavaString.uncheckedSubstring(range)
     getter asExprString() = self.asJavaString.asExprString
+    getter asDebugString(): String = asDebugStringIndented(0)
     getter isBalanced() = baseString.isBalanced
+    
+    (* this is a placeholder, until I write the better code using split, or 
+    eliminate SubString entirely *)
+    getter generator() : Generator⟦Char⟧ = 
+        self.indices.map⟦Char⟧(fn (i:ZZ32):Char => self.get(i))
+    
+    asDebugStringIndented(indent: ZZ32) : String = 
+        (spaces(indent) ||  "S" |self| "= [" range.asExprString "]") //
+        baseString.asDebugStringIndented(indent + 8)
+    
+    opr |self| : ZZ32 = self.size
 
     balanced() =
         if self.isBalanced then self
@@ -433,10 +447,6 @@ end
         end
     end methodVerify
 
-    asDebugStringIndented(indent: ZZ32) : String = 
-        (spaces(indent) ||  "S" |self| "= [" range.asExprString "]") //
-        baseString.asDebugStringIndented(indent + 8)
-
     splitWithOffsets(): Generator⟦(ZZ32, String)⟧ = do
     (* The pairs (start, str) that are generated are such that start[0] = 0 and start[i] = (str[0] || ... || str[i-1]).size
       and str[0] || str [1] || ... || str[n] = self
@@ -454,6 +464,8 @@ end
             Nothing⟦Generator⟦(ZZ32,String)⟧⟧
         end
     end
+    
+    split(): Generator⟦String⟧ =self.splitWithOffsets().map(fn (_, str) ⇒str)
 
     get(i:ZZ32) = do
         (*) assert(i < range.size, "getting char " i " from a substring of size " |range|)
@@ -532,4 +544,6 @@ end
       result
   end
 
+  var maxLeafSize: ZZ32 := 32
+    
 end
