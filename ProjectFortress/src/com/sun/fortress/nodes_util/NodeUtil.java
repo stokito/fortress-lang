@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
@@ -27,15 +28,20 @@ import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
+import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.exceptions.StaticError;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
-    public static final String defaultSelfName = WellKnownNames.defaultSelfName;
-
+    /* get the declared name of a component or api */
+    public static APIName apiName(APIName name, File f) throws StaticError {
+        CompilationUnit cu = Parser.preparseFileConvertExn(name, f);
+        return cu.getName();
+    }
 
     public static Iterable<Id> getIds(final Id qName) {
         return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
@@ -46,6 +52,71 @@ public class NodeUtil {
                 return IterUtil.singleton(qName);
             }
         });
+    }
+
+    /* get a list of imported apis from a component/api */
+    public static List<APIName> getImportedApis(APIName name, File f) throws StaticError {
+        CompilationUnit cu = Parser.preparseFileConvertExn(name, f);
+        if (cu instanceof Component) {
+            return collectComponentImports((Component)cu);
+        } else if (cu instanceof Api) {
+            return collectApiImports((Api)cu);
+        } else {
+            throw StaticError.make("Neither a component nor an api", cu);
+        }
+    }
+
+    public static List<APIName> collectApiImports(Api api){
+        List<APIName> all = new ArrayList<APIName>();
+        for (Import i : api.getImports()){
+            if (i instanceof ImportedNames) {
+                ImportedNames names = (ImportedNames) i;
+                all.add( names.getApi() );
+            } else { // i instanceof ImportApi
+                ImportApi apis = (ImportApi) i;
+                for (AliasedAPIName a : apis.getApis()) {
+                    all.add(a.getApi());
+                }
+            }
+        }
+        return removeExecutableApi(all);
+    }
+
+    public static List<APIName> collectComponentImports(Component comp){
+        final List<APIName> all = new ArrayList<APIName>();
+        comp.accept(new NodeDepthFirstVisitor_void(){
+                @Override
+                public void forImportedNamesDoFirst(ImportedNames that) {
+                    Debug.debug(Debug.Type.SYNTAX, 2, "Add import api ", that.getApi());
+                    all.add(that.getApi());
+                }
+
+                @Override
+                public void forExport(Export that){
+                    Debug.debug(Debug.Type.SYNTAX, 2, "Add export api ", that.getApis());
+                    all.addAll(that.getApis());
+                }
+
+                @Override
+                public void forImportApi(ImportApi that){
+                    for (AliasedAPIName api : that.getApis()){
+                        Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi());
+                        all.add(api.getApi());
+                    }
+                }
+            });
+        return removeExecutableApi(all);
+    }
+
+    private static List<APIName> removeExecutableApi(List<APIName> all){
+        APIName executable = NodeFactory.makeAPIName("Executable");
+        List<APIName> fixed = new ArrayList<APIName>();
+        for (APIName name : all){
+            if (! name.equals(executable)){
+                fixed.add(name);
+            }
+        }
+        return fixed;
     }
 
     /* for HasAt ***********************************************************/

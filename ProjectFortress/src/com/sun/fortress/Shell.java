@@ -47,11 +47,11 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Files;
@@ -232,7 +232,7 @@ public final class Shell {
         }
 
         int return_code = 0;
-            
+
         // Now match the assembled string.
         try {
             String what = tokens[0];
@@ -287,10 +287,10 @@ public final class Shell {
             System.err.println(error.getMessage());
             return_code = -2;
         }
-        
+
         Init.allowForLeakChecks();
-        
-        
+
+
         if (return_code != 0)
             System.exit(return_code);
     }
@@ -637,7 +637,7 @@ public final class Shell {
 
     private static APIName trueApiName( String path ) throws UserError, IOException {
         try {
-            return PreParser.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
+            return NodeUtil.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
         } catch (FileNotFoundException ex) {
             throw new UserError("Can't find file " + path);
         }

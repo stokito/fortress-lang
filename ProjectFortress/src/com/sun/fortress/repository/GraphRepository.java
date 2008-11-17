@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
@@ -48,7 +49,6 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
-import com.sun.fortress.syntax_abstractions.parser.PreParser;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.iter.IterUtil;
@@ -291,19 +291,19 @@ public class GraphRepository extends StubRepository implements FortressRepositor
      */
     private List<APIName> dependencies(ApiGraphNode node) throws FileNotFoundException, StaticError {
         if ( node.getApi().isSome() ){
-            return PreParser.collectApiImports((Api)node.getApi().unwrap().ast());
+            return NodeUtil.collectApiImports((Api)node.getApi().unwrap().ast());
         } else {
             File fdot = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
-            return PreParser.getImportedApis(node.getName(), fdot);
+            return NodeUtil.getImportedApis(node.getName(), fdot);
         }
     }
 
     private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
         if ( node.getComponent().isSome() ){
-            return PreParser.collectComponentImports((Component)node.getComponent().unwrap().ast());
+            return NodeUtil.collectComponentImports((Component)node.getComponent().unwrap().ast());
         } else {
             File fdot = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
-            return PreParser.getImportedApis(node.getName(), fdot);
+            return NodeUtil.getImportedApis(node.getName(), fdot);
         }
     }
 
@@ -666,8 +666,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         throws FileNotFoundException {
         return 0;
     }
-    
-    public void clear() {        
+
+    public void clear() {
         cache.clear();
     }
 
