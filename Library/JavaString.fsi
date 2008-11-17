@@ -28,6 +28,5 @@ api JavaString
     
     javaPrint(a: JavaString): ()
     javaPrintln(a: JavaString): () 
-    var maxLeafStringSize: ZZ32
     
 end

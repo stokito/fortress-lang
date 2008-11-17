@@ -28,11 +28,11 @@ api String
   object SubString extends String
   end
  
-  trait StringDebug extends String
-    getter asDebugString(): String
-    abstract asDebugStringIndented(indent: ZZ32): String
-  end
-(*  
+(*
+
+  (*    Concatenable and Balanceable are implementation traits, 
+        and thus they should not appear in the api *)
+          
   trait Concatenable  extends String
     opr || (self, other: String): String
     opr || (self, other: EmptyString): String
@@ -45,10 +45,15 @@ api String
     getter isExtremelyUnbalanced(): Boolean
   end Balanceable
   *)
+  
   printStats(s: String): ()
  
   (** A string containing n spaces **)
   spaces(n: ZZ32): String
+  
+  (** The maximum size to which we grow a leaf node (by 
+        copying) before switching to a CatString of the pieces **)
+  var maxLeafSize: ZZ32
 
 end
 
