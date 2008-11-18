@@ -459,7 +459,9 @@ public class IndexBuilder {
      */
     private void buildFunction(FnAbsDeclOrDecl ast,
             Relation<IdOrOpOrAnonymousName, Function> functions) {
-        functions.add(ast.getName(), new DeclaredFunction(ast));
+        DeclaredFunction df = new DeclaredFunction(ast);
+        functions.add(ast.getName(), df);
+        functions.add(ast.getUnambiguousName(), df);
     }
 
     /**
