@@ -37,12 +37,6 @@ Expr ExprGap =
        yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
      };
 
-Expr DelimitedExprGap =
-     <GAP> prefix "DelimitedExpr" w a1:Id params:ParamList? w suffix
-     { if (params == null) params = new LinkedList<Id>();
-       yyValue = ExprFactory.makeTemplateGapDelimitedExpr(createSpan(yyStart,yyCount), a1, params);
-     };
-
 Expr SimpleExprGap =
      <GAP> prefix "SimpleExpr" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
@@ -74,13 +68,13 @@ List<Id> BindIdOrBindIdTupleGap =
        yyValue = FortressUtil.<Id, TemplateGapId>mkList(t);
      };
 
-Name NameGap = 
+Name NameGap =
      <GAP> prefix "Name" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
        yyValue = ExprFactory.makeTemplateGapName(createSpan(yyStart,yyCount), a1, params);
      };
 
-Id IdGap = 
+Id IdGap =
      <GAP> prefix "Id" w a1:Id params:ParamList? w suffix w DoubleStar
      { if (params == null) params = new LinkedList<Id>();
        /* yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params); */

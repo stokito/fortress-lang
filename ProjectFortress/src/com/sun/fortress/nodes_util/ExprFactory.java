@@ -42,9 +42,9 @@ public class ExprFactory {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
 
-    public static Exit makeExit(Span span, Option<Type> typeOp, Option<Id> targetOp, Expr retExpr) { 
+    public static Exit makeExit(Span span, Option<Type> typeOp, Option<Id> targetOp, Expr retExpr) {
         return new Exit(span, typeOp, targetOp, Option.<Expr>some(retExpr));
-    } 
+    }
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
         BigInteger intPart;
@@ -148,7 +148,7 @@ public class ExprFactory {
                 Option.<List<BaseType>>none(), body);
     }
 
-    public static FnExpr makeFnExpr(Span span, List<Param> params, 
+    public static FnExpr makeFnExpr(Span span, List<Param> params,
                                     Option<Type> returnType, Expr body) {
         return new FnExpr(span, params, returnType, body);
     }
@@ -977,10 +977,6 @@ public class ExprFactory {
 
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapExpr(s, id, params);
-    }
-
-    public static TemplateGapDelimitedExpr makeTemplateGapDelimitedExpr(Span s, Id id, List<Id> params) {
-        return new TemplateGapDelimitedExpr(s, id, params);
     }
 
     public static TemplateGapSimpleExpr makeTemplateGapSimpleExpr(Span s, Id id, List<Id> params) {

@@ -761,223 +761,213 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  */
                 _RewriteAssignment(List<OpRef> opsForLhs);
             /**
-             * expressions beginning and ending with reserved words
-             * Expr ::= DelimitedExpr
+             * sequence of block elements implicitly enclosed by do/end
+             * BlockElems ::= BlockElem+
+             * e.g.) y = x
+             *       z = 2x
+             *       y + z
              */
-            abstract DelimitedExpr();
-                /**
-                 * sequence of block elements implicitly enclosed by do/end
-                 * BlockElems ::= BlockElem+
-                 * e.g.) y = x
-                 *       z = 2x
-                 *       y + z
-                 */
-                Block(List<Expr> exprs);
-                /**
-                 * case expression or extremum expression
-                 * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
-                 *                 | case most Op of CaseClauses end
-                 * CaseElse ::= else => BlockElems
-                 * e.g.) case most > of
-                 *         1 mile => "miles are larger"
-                 *         1 kilometer => "we were wrong again"
-                 *       end
-                 *  eqOp and inOp are to help with disambiguation
-                 */
-                CaseExpr(Option<Expr> param,
-                         Option<OpRef> compare = Option.<OpRef>none(),
-                         OpRef equalsOp = ExprFactory.makeInfixEq(),
-                         OpRef inOp= ExprFactory.makeInfixIn(),
-                         List<CaseClause> clauses,
-                         Option<Block> elseClause = Option.<Block>none());
-                /**
-                 * do expression
-                 * Do ::= (DoFront also)* DoFront end
-                 * e.g.) do
-                 *         accum += treeSum(t.left)
-                 *       also do
-                 *         accum += treeSum(t.right)
-                 *       also do
-                 *         accum += t.datum
-                 *       end
-                 */
-                Do(List<DoFront> fronts);
-                /**
-                 * for expression
-                 * DelimitedExpr ::= for GeneratorClauseList DoFront end
-                 * e.g.) for i <- sequential(1:5) do
-                 *         print (i " ")
-                 *       end
-                 */
-                For(List<GeneratorClause> gens, DoFront body);
-                /**
-                 * if expression
-                 * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
-                 *                 | ( if CondExpr then BlockElems Elifs? Else end? )
-                 * Elif ::= elif CondExpr then BlockElems
-                 * Else ::= else BlockElems
-                 * CondExpr ::= BindId <- Expr
-                 *            | Expr
-                 * e.g.) if x IN {0, 1, 2} then 0
-                 *       elif x IN {3, 4, 5} then 3
-                 *       else 6 end
-                 */
-                If(List<IfClause> clauses,
-                   Option<Block> elseClause = Option.<Block>none());
-                /**
-                 * label expression
-                 * Names must be unqualified.
-                 * DelimitedExpr ::= label Id BlockElems end Id
-                 * e.g.) label I_95
-                 *         if goingTo(Sun)
-                 *         then exit I_95 with x32B
-                 *         else x32A
-                 *         end
-                 *       end I_95
-                 */
-                Label(Id name, Block body);
+            Block(List<Expr> exprs);
+            /**
+             * case expression or extremum expression
+             * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
+             *                 | case most Op of CaseClauses end
+             * CaseElse ::= else => BlockElems
+             * e.g.) case most > of
+             *         1 mile => "miles are larger"
+             *         1 kilometer => "we were wrong again"
+             *       end
+             *  eqOp and inOp are to help with disambiguation
+             */
+            CaseExpr(Option<Expr> param,
+                     Option<OpRef> compare = Option.<OpRef>none(),
+                     OpRef equalsOp = ExprFactory.makeInfixEq(),
+                     OpRef inOp= ExprFactory.makeInfixIn(),
+                     List<CaseClause> clauses,
+                     Option<Block> elseClause = Option.<Block>none());
+            /**
+             * do expression
+             * Do ::= (DoFront also)* DoFront end
+             * e.g.) do
+             *         accum += treeSum(t.left)
+             *       also do
+             *         accum += treeSum(t.right)
+             *       also do
+             *         accum += t.datum
+             *       end
+             */
+            Do(List<DoFront> fronts);
+            /**
+             * for expression
+             * DelimitedExpr ::= for GeneratorClauseList DoFront end
+             * e.g.) for i <- sequential(1:5) do
+             *         print (i " ")
+             *       end
+             */
+            For(List<GeneratorClause> gens, DoFront body);
+            /**
+             * if expression
+             * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
+             *                 | ( if CondExpr then BlockElems Elifs? Else end? )
+             * Elif ::= elif CondExpr then BlockElems
+             * Else ::= else BlockElems
+             * CondExpr ::= BindId <- Expr
+             *            | Expr
+             * e.g.) if x IN {0, 1, 2} then 0
+             *       elif x IN {3, 4, 5} then 3
+             *       else 6 end
+             */
+            If(List<IfClause> clauses,
+               Option<Block> elseClause = Option.<Block>none());
+            /**
+             * label expression
+             * Names must be unqualified.
+             * DelimitedExpr ::= label Id BlockElems end Id
+             * e.g.) label I_95
+             *         if goingTo(Sun)
+             *         then exit I_95 with x32B
+             *         else x32A
+             *         end
+             *       end I_95
+             */
+            Label(Id name, Block body);
+            /**
+             * object expression
+             */
+            abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause
+                                            = Collections.<TraitTypeWhere>emptyList(),
+                                        List<Decl> decls);
                 /**
                  * object expression
+                 * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
+                 * e.g.)  object extends {List}
+                 *          cons(x) = Cons(x, self)
+                 *          append (xs) = xs
+                 *        end
                  */
-                abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause
-                                                = Collections.<TraitTypeWhere>emptyList(),
-                                            List<Decl> decls);
-                    /**
-                     * object expression
-                     * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
-                     * e.g.)  object extends {List}
-                     *          cons(x) = Cons(x, self)
-                     *          append (xs) = xs
-                     *        end
-                     */
-                    ObjectExpr();
-                    /**
-                     * object expression rewritten by interpreter.rewrite.Disambiguate
-                     */
-                    _RewriteObjectExpr(Map<String, StaticParam> implicitTypeParameters,
-                                       String genSymName,
-                                       List<StaticParam> staticParams,
-                                       List<StaticArg> staticArgs,
-                                       Option<List<Param>> params)
-                                      implements GenericWithParams;
+                ObjectExpr();
                 /**
-                 * try expression
-                 * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
-                 *                     (finally BlockElems)? end
-                 * e.g.) try
-                 *         inp = read (file)
-                 *         write (inp, newFile)
-                 *       forbid IOException
-                 *       end
+                 * object expression rewritten by interpreter.rewrite.Disambiguate
                  */
-                Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
-                    List<BaseType> forbid = Collections.<BaseType>emptyList(),
-                    Option<Block> finallyClause = Option.<Block>none());
-                /**
-                 * labeled expression: tuple expression or argument expression
-                 */
-                abstract AbstractTupleExpr(List<Expr> exprs);
-                    /**
-                     * tuple expression
-                     * TupleExpr ::= ( (Expr,)+ Expr )
-                     * e.g.) (1, 2, 5)
-                     */
-                    TupleExpr();
-                    /**
-                     * argument expression
-                     * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
-                     *           | ( (Expr,)* Expr... )
-                     *           | TupleExpr
-                     * e.g.) (1, 2, [3 4]..., x = 5)
-                     */
-                    ArgExpr(Option<VarargsExpr> varargs
-                                = Option.<VarargsExpr>none(),
-                            List<KeywordExpr> keywords
-                                = Collections.<KeywordExpr>emptyList(),
-                            boolean inApp = false);
-                /**
-                 * typecase expression
-                 * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
-                 *                     CaseElse? end
-                 * TypecaseBindings ::= TypecaseVars (= Expr)?
-                 * TypecaseVars ::= BindId
-                 *              |   ( BindId(, BindId)+ )
-                 * e.g.) typecase x = myLoser .myField of
-                 *         String => x.append("foo")
-                 *         Number => x + 3
-                 *         Object => yogiBerraAutograph
-                 *       end
-                 * Names in bind must be unqualified.
-                 */
-                Typecase(List<Id> bindIds, Option<Expr> bindExpr,
-                         List<TypecaseClause> clauses,
-                         Option<Block> elseClause = Option.<Block>none());
-                /**
-                 * while expression
-                 * DelimitedExpr ::= while GeneratorClause Do
-                 * e.g.) while x < 10 do print x; x += 1 end
-                 */
-                While(GeneratorClause test, Do body);
+                _RewriteObjectExpr(Map<String, StaticParam> implicitTypeParameters,
+                                   String genSymName,
+                                   List<StaticParam> staticParams,
+                                   List<StaticArg> staticArgs,
+                                   Option<List<Param>> params)
+                                  implements GenericWithParams;
             /**
-             * control flow expression
-             * Expr ::= FlowExpr
+             * try expression
+             * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
+             *                     (finally BlockElems)? end
+             * e.g.) try
+             *         inp = read (file)
+             *         write (inp, newFile)
+             *       forbid IOException
+             *       end
              */
-            abstract FlowExpr();
+            Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
+                List<BaseType> forbid = Collections.<BaseType>emptyList(),
+                Option<Block> finallyClause = Option.<Block>none());
+            /**
+             * labeled expression: tuple expression or argument expression
+             */
+            abstract AbstractTupleExpr(List<Expr> exprs);
                 /**
-                 * comprehension or accumulator
+                 * tuple expression
+                 * TupleExpr ::= ( (Expr,)+ Expr )
+                 * e.g.) (1, 2, 5)
                  */
-                abstract BigOpApp(List<StaticArg> staticArgs
-                                      = Collections.<StaticArg>emptyList());
-                    /**
-                     * summation and other reduction expression
-                     * FlowExpr ::= Accumulator StaticArgs?
-                     *                ([ GeneratorClauseList ])? Expr
-                     * Accumulator ::= SUM | PROD | Big Op
-                     * e.g.) PROD[i <- 1:n] i
-                     */
-                    Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
-                    /**
-                     * array comprehension
-                     * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
-                     *                        ]
-                     * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
-                     */
-                    ArrayComprehension(List<ArrayComprehensionClause> clauses);
+                TupleExpr();
                 /**
-                 * atomic expression
-                 * FlowExpr ::= atomic AtomicBack
-                 * AtomicBack ::= AssignExpr
-                 *              | OpExpr
-                 *              | DelimitedExpr
-                 * e.g.) atomic sum += a[i]
+                 * argument expression
+                 * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
+                 *           | ( (Expr,)* Expr... )
+                 *           | TupleExpr
+                 * e.g.) (1, 2, [3 4]..., x = 5)
                  */
-                AtomicExpr(Expr expr);
+                ArgExpr(Option<VarargsExpr> varargs
+                            = Option.<VarargsExpr>none(),
+                        List<KeywordExpr> keywords
+                            = Collections.<KeywordExpr>emptyList(),
+                        boolean inApp = false);
+            /**
+             * typecase expression
+             * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
+             *                     CaseElse? end
+             * TypecaseBindings ::= TypecaseVars (= Expr)?
+             * TypecaseVars ::= BindId
+             *              |   ( BindId(, BindId)+ )
+             * e.g.) typecase x = myLoser .myField of
+             *         String => x.append("foo")
+             *         Number => x + 3
+             *         Object => yogiBerraAutograph
+             *       end
+             * Names in bind must be unqualified.
+             */
+            Typecase(List<Id> bindIds, Option<Expr> bindExpr,
+                     List<TypecaseClause> clauses,
+                     Option<Block> elseClause = Option.<Block>none());
+            /**
+             * while expression
+             * DelimitedExpr ::= while GeneratorClause Do
+             * e.g.) while x < 10 do print x; x += 1 end
+             */
+            While(GeneratorClause test, Do body);
+            /**
+             * comprehension or accumulator
+             */
+            abstract BigOpApp(List<StaticArg> staticArgs
+                                  = Collections.<StaticArg>emptyList());
                 /**
-                 * exiting labeled expressions
-                 * FlowExpr ::= exit Id? (with Expr)?
-                 * e.g.) exit I_95 with x32B
-                 * Targets must be unqualified.
+                 * summation and other reduction expression
+                 * FlowExpr ::= Accumulator StaticArgs?
+                 *                ([ GeneratorClauseList ])? Expr
+                 * Accumulator ::= SUM | PROD | Big Op
+                 * e.g.) PROD[i <- 1:n] i
                  */
-                Exit(Option<Id> target = Option.<Id>none(),
-                     Option<Expr> returnExpr = Option.<Expr>none());
+                Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
                 /**
-                 * spawn expression
-                 * FlowExpr ::= spawn Expr
-                 * e.g.) spawn mm(lefttop, right, resulttop)
+                 * array comprehension
+                 * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
+                 *                        ]
+                 * e.g.) [(x, y, 1) |-> 0.0 | x <- 1:xSize, y <- 1:ySize ]
                  */
-                Spawn(Expr body);
-                /**
-                 * throw expression
-                 * FlowExpr ::= throw Expr
-                 * e.g.) throw Error
-                 */
-                Throw(Expr expr);
-                /**
-                 * tryatomic expression
-                 * FlowExpr ::= tryatomic AtomicBack
-                 * e.g.) tryatomic sum += a[i]
-                 */
-                TryAtomicExpr(Expr expr);
+                ArrayComprehension(List<ArrayComprehensionClause> clauses);
+            /**
+             * atomic expression
+             * FlowExpr ::= atomic AtomicBack
+             * AtomicBack ::= AssignExpr
+             *              | OpExpr
+             *              | DelimitedExpr
+             * e.g.) atomic sum += a[i]
+             */
+            AtomicExpr(Expr expr);
+            /**
+             * exiting labeled expressions
+             * FlowExpr ::= exit Id? (with Expr)?
+             * e.g.) exit I_95 with x32B
+             * Targets must be unqualified.
+             */
+            Exit(Option<Id> target = Option.<Id>none(),
+                 Option<Expr> returnExpr = Option.<Expr>none());
+            /**
+             * spawn expression
+             * FlowExpr ::= spawn Expr
+             * e.g.) spawn mm(lefttop, right, resulttop)
+             */
+            Spawn(Expr body);
+            /**
+             * throw expression
+             * FlowExpr ::= throw Expr
+             * e.g.) throw Error
+             */
+            Throw(Expr expr);
+            /**
+             * tryatomic expression
+             * FlowExpr ::= tryatomic AtomicBack
+             * e.g.) tryatomic sum += a[i]
+             */
+            TryAtomicExpr(Expr expr);
             /**
              * function expression
              * Names must be unqualified.

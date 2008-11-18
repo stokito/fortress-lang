@@ -30,7 +30,7 @@ import com.sun.fortress.exceptions.InterpreterBug;
  * This permits us to eg reduce an lvalue once, and then use it
  * in lvalue OP= expr without duplicate computation.
  */
-public class _WrappedFValue extends DelimitedExpr {
+public class _WrappedFValue extends Expr {
     private final FValue _fValue;
 
     /**

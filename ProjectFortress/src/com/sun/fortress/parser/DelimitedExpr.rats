@@ -302,7 +302,7 @@ Expr MapExpr =
    | (BIG w)? LeftEncloser StaticArgs? w Expr wr | wr GeneratorClauseList w
               RightEncloser
  */
-FlowExpr Comprehension =
+Expr Comprehension =
      <ErrorProduction1>
      (BIG w)? opensquare wr StaticArgs w ArrayComprehensionClause
      (br ArrayComprehensionClause)* w closesquare
