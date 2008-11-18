@@ -52,7 +52,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
 
     FnAbsDeclOrDecl fndef;
 
- 
+
      /* (non-Javadoc)
       * @see com.sun.fortress.interpreter.evaluator.values.SingleFcn#getDomain()
       */
@@ -133,7 +133,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return memo.make(l, location);
     }
 
-    public FnAbsDeclOrDecl getFnDefOrDecl() {
+    public FnAbsDeclOrDecl getFnDeclOrDecl() {
         return fndef;
     }
 

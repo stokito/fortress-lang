@@ -46,7 +46,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
         // BUG IS HERE, NEED TO instantiate the selfParameterType! ;
 
-        FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDefOrDecl());
+        FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDeclOrDecl());
 
         FunctionalMethod cl = FType.anyAreSymbolic(args) ?
                 new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :

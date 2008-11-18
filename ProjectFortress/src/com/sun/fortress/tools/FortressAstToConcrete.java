@@ -777,7 +777,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
 
-    @Override public String forFnDefOnly(FnDef that,
+    @Override public String forFnDeclOnly(FnDecl that,
                                          List<String> mods_result,
                                          final String name_result,
                                          List<String> staticParams_result,

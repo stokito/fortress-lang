@@ -529,9 +529,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				downwardConstraint);
 	}
 
-	public TypeChecker extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
+	public TypeChecker extendWithFnDecls(Relation<IdOrOpOrAnonymousName, ? extends FnDecl> fns) {
 		return new TypeChecker(table,
-				typeEnv.extendWithFnDefs(fns),
+				typeEnv.extendWithFnDecls(fns),
 				compilationUnit,
 				subtypeChecker,
 				labelExitTypes,
@@ -695,8 +695,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 										// Otherwise, we've got all static parameters
 										if(arg0 instanceof TypeParam){
 											Set<BaseType> bounds = CollectUtil.asSet(((TypeParam)arg0).getExtendsClause());
-											Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());   
-											ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));          
+											Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
+											ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));
 											all_results.add(new TypeCheckerResult(that, Option.<Type>none(), constraint));
 											return new TypeArg(NodeFactory.makeSpan(ivt), ivt);
 										}
@@ -1222,7 +1222,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 		else{
 			List<StaticArg> sargs = that.getStaticArgs();
-			Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters(), this.subtypeChecker); 
+			Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters(), this.subtypeChecker);
 			if(constraints.isSome()) {
 				// First arg MUST BE a TypeArg, and it must be a supertype of the elements
 				Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
@@ -2302,7 +2302,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forFnDef(FnDef that) {
+	public TypeCheckerResult forFnDecl(FnDecl that) {
 		TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
 
 		TypeCheckerResult result = new TypeCheckerResult(that);
@@ -2337,7 +2337,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							"declared return type is ", returnType.unwrap()));
 		}
 
-		FnDef new_node = new FnDef(that.getSpan(),
+		FnDecl new_node = new FnDecl(that.getSpan(),
 				that.getMods(),
 				that.getName(),
 				that.getStaticParams(),
@@ -2683,7 +2683,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<LValueBind> result_bindings;
 		Type lhstype;
 		// Now create the bindings
-	
+
 		if( bindings_count == 1 ){
 			// Just one binding
 			lhstype = NodeFactory.make_InferenceVarType(that.getBind().get(0).getSpan());
@@ -2941,13 +2941,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forLetFn(LetFn that) {
-		Relation<IdOrOpOrAnonymousName, FnDef> fnDefs = new IndexedRelation<IdOrOpOrAnonymousName, FnDef>(false);
-		for (FnDef fnDef : that.getFns()) {
+		Relation<IdOrOpOrAnonymousName, FnDecl> fnDefs = new IndexedRelation<IdOrOpOrAnonymousName, FnDecl>(false);
+		for (FnDecl fnDef : that.getFns()) {
 			fnDefs.add(fnDef.getName(), fnDef);
 		}
 
-		TypeChecker newChecker = this.extendWithFnDefs(fnDefs);
-		List<TypeCheckerResult> fn_results = newChecker.recurOnListOfFnDef(that.getFns());
+		TypeChecker newChecker = this.extendWithFnDecls(fnDefs);
+		List<TypeCheckerResult> fn_results = newChecker.recurOnListOfFnDecl(that.getFns());
 
 		// A LetFn is like a let. It has a body, and it's type is the type of the body
 		List<TypeCheckerResult> body_results = newChecker.recurOnListOfExpr(that.getBody());
@@ -2960,7 +2960,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						that.isParenthesized(),
 						body_type,
 						(List<Expr>)TypeCheckerResult.astFromResults(body_results),
-						(List<FnDef>)TypeCheckerResult.astFromResults(fn_results));
+						(List<FnDecl>)TypeCheckerResult.astFromResults(fn_results));
 
 				TypeCheckerResult result =
 					TypeCheckerResult.compose(new_node, body_type, subtypeChecker,
@@ -3765,7 +3765,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 
-					constraints = accumulated_constraints;        
+					constraints = accumulated_constraints;
 					new_node = new OpRef(that.getSpan(),
 							that.isParenthesized(),
 							type,

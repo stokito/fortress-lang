@@ -47,26 +47,26 @@ public class NodeFactory {
         SourceLoc sl = new SourceLocRats(villain,0,0,0);
         return new Span(sl,sl);
     }
-    
+
     /**
-     * 
+     *
      * @param start
      * @return  the span from a node.
      */public static Span makeSpan(Node node) {
         return node.getSpan();
     }
-    
+
     /**
-     * 
+     *
      * @param start
      * @param finish
      * @return the span encompassing both spans.
      */public static Span makeSpan(Span start, Span finish) {
         return new Span(start.getBegin(), finish.getEnd());
     }
-    
+
     /**
-     * 
+     *
      * @param start
      * @param finish
      * @return the span encompassing the spans of both nodes.
@@ -74,9 +74,9 @@ public class NodeFactory {
      public static Span makeSpan(Node start, Node finish) {
         return makeSpan(start.getSpan(), finish.getSpan());
     }
-    
+
     /**
-     * 
+     *
      * @param start
      * @param l
      * @return the span encompassing the spans of node start to the span of the end of the list.
@@ -85,9 +85,9 @@ public class NodeFactory {
          int s = l.size();
         return makeSpan(start, s == 0 ? start : l.get(s-1));
     }
-     
+
      /**
-      * 
+      *
       * @param start
       * @param l
       * @return the span encompassing the spans of list start to node finish.
@@ -96,9 +96,9 @@ public class NodeFactory {
          int s = l.size();
         return makeSpan(s == 0 ? finish : l.get(0), finish);
     }
-          
+
      /**
-      * 
+      *
       * @param start
       * @param l
       * @return the span encompassing the spans the first and last nodes of the list.
@@ -111,7 +111,7 @@ public class NodeFactory {
      * In some situations, a begin-to-end span is not really right, and something
      * more like a set of spans ought to be used.  Even though this is not yet
      * implemented, the name is provided to allow expression of intent.
-     * 
+     *
      * @param start
      * @param l
      * @return the span encompassing the spans of node start to the span of the end of the list.
@@ -123,7 +123,7 @@ public class NodeFactory {
       * In some situations, a begin-to-end span is not really right, and something
       * more like a set of spans ought to be used.  Even though this is not yet
       * implemented, the name is provided to allow expression of intent.
-      * 
+      *
       * @param start
       * @param l
       * @return the span encompassing the spans {a, b}
@@ -135,14 +135,14 @@ public class NodeFactory {
      * In some situations, a begin-to-end span is not really right, and something
      * more like a set of spans ought to be used.  Even though this is not yet
      * implemented, the name is provided to allow expression of intent.
-     * 
+     *
      * @param l
      * @return the span encompassing the spans the first and last nodes of the list.
      */
     public static Span makeSetSpan(String ifEmpty, List<? extends Node> l) {
         return makeSpan(ifEmpty, l);
     }
-    
+
     public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
                                           Id name, Option<Type> type) {
         return makeAbsFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
@@ -671,9 +671,9 @@ public class NodeFactory {
     }
 
     /**
-     * Alternatively, you can invoke the FnDef constructor without a selfName
+     * Alternatively, you can invoke the FnDecl constructor without a selfName
      */
-    public static FnDef makeFnDecl(Span s, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
                                    IdOrOpOrAnonymousName name,
                                    List<StaticParam> staticParams,
                                    List<Param> params,
@@ -682,20 +682,20 @@ public class NodeFactory {
                                    Option<WhereClause> where,
                                    Option<Contract> contract,
                                    Expr body) {
-        return new FnDef(s, mods, name, staticParams, params, returnType,
+        return new FnDecl(s, mods, name, staticParams, params, returnType,
                          throwss, where, contract, body);
     }
 
-    public static FnDef makeFnDef(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
                                   Id name, Option<Type> type, Expr body) {
-        return makeFnDef(span, mods, name, Collections.<Param>emptyList(), type,
+        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
                          body);
     }
 
-    public static FnDef makeFnDef(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
                                   Id name, List<Param> params,
                                   Option<Type> type, Expr body) {
-        return new FnDef(span, mods, name, Collections.<StaticParam>emptyList(),
+        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
                          params, type, Option.<List<BaseType>>none(),
                          Option.<WhereClause>none(), Option.<Contract>none(),
                          body);

@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
@@ -450,7 +450,7 @@ public class Constructor extends NonPrimitive {
         if (sf instanceof MethodClosure) {
             MethodClosure pdm = (MethodClosure) sf;
             Applicable a = pdm.getDef();
-            if (a instanceof FnDef || a instanceof NativeApp) return;
+            if (a instanceof FnDecl || a instanceof NativeApp) return;
             if (a.at().equals(sf.at())) {
                 error(cfn, errorMsg("Object ",cfn.stringName(),
                       " does not define an abstract method declared in type ",

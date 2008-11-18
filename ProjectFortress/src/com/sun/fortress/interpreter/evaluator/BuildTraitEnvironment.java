@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.TraitMethod;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.nodes.AbsFnDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValueBind;
@@ -93,7 +93,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
         return null;
     }
 
-    protected void forFnDef3(FnDef x) {
+    protected void forFnDecl3(FnDecl x) {
         List<StaticParam> staticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
         if (!staticParams.isEmpty()) {
@@ -123,7 +123,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
     public Boolean forAbsFnDecl(AbsFnDecl x) {

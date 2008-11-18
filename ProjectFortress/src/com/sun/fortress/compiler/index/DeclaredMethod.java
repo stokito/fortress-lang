@@ -24,7 +24,7 @@ import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -56,12 +56,12 @@ public class DeclaredMethod extends Method {
 				return Option.none();
 			}
 			@Override
-			public Option<Expr> forFnDef(FnDef that) {
+			public Option<Expr> forFnDecl(FnDecl that) {
 				return Option.some(that.getBody());
 			}
 		});
 	}
-	
+
 	@Override
 	public List<Param> parameters() {
 		return _ast.getParams();
@@ -82,7 +82,7 @@ public class DeclaredMethod extends Method {
 
 	@Override
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		FnAbsDeclOrDecl replaced_decl = 
+		FnAbsDeclOrDecl replaced_decl =
 			(FnAbsDeclOrDecl)_ast.accept(new StaticTypeReplacer(params,args));
 		return new DeclaredMethod(replaced_decl,_declaringTrait);
 	}

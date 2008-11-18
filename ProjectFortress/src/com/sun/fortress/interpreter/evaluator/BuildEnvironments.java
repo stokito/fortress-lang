@@ -271,7 +271,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
 
-    private void forFnDef1(FnDef x) {
+    private void forFnDecl1(FnDecl x) {
         List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
         FValue cl;
@@ -288,32 +288,32 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         //LINKER putOrOverloadOrShadowGeneric(x, containing, name, cl);
     }
 
-   private void forFnDef2(FnDef x) {
+   private void forFnDecl2(FnDecl x) {
    }
 
    // Overridden in BuildTraitEnvironment
-   protected void forFnDef3(FnDef x) {
+   protected void forFnDecl3(FnDecl x) {
        List<StaticParam> optStaticParams = x.getStaticParams();
        String fname = NodeUtil.nameAsMethod(x);
        Fcn fcn = (Fcn)containing.getLeafValue(fname);
        fcn.finishInitializing();
    }
 
-   private void forFnDef4(FnDef x) {
+   private void forFnDecl4(FnDecl x) {
    }
 
  /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.FnDef)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.FnDecl)
      */
     @Override
-    public Boolean forFnDef(FnDef x) {
+    public Boolean forFnDecl(FnDecl x) {
         switch (getPass()) {
-        case 1: forFnDef1(x); break;
-        case 2: forFnDef2(x); break;
-        case 3: forFnDef3(x); break;
-        case 4: forFnDef4(x); break;
+        case 1: forFnDecl1(x); break;
+        case 2: forFnDecl2(x); break;
+        case 3: forFnDecl3(x); break;
+        case 4: forFnDecl4(x); break;
         }
        return null;
     }
@@ -795,7 +795,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     public Boolean forAbsTraitDecl(AbsTraitDecl x) {
         return bug("BuildEnvironments.forAbsTraitDecl should not be called");
     }
-    
+
     /*
      * (non-Javadoc)
      *
@@ -873,7 +873,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, Environment interior) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
-        // TODO What if I don't 
+        // TODO What if I don't
         // interior = interior.extendAt(x);
 
         EvalType et;
@@ -1093,13 +1093,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDef(com.sun.fortress.interpreter.nodes.AbsFnDecl)
+     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
      */
     @Override
     public Boolean forAbsFnDecl(AbsFnDecl x) {
         return bug("BuildEnvironments.forAbsFnDecl should not be called");
     }
-    
+
     /*
      * (non-Javadoc)
      *

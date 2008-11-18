@@ -27,7 +27,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.MatrixType;
@@ -116,15 +116,6 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     public void forFnDecl(FnDecl that) {
         // TODO Auto-generated method stub
         super.forFnDecl(that);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forFnDef(com.sun.fortress.nodes.FnDef)
-     */
-    @Override
-    public void forFnDef(FnDef that) {
-        // TODO Auto-generated method stub
-        super.forFnDef(that);
     }
 
     /* (non-Javadoc)

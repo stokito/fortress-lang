@@ -63,8 +63,8 @@ object O2[\X extends String, Z, ZObj extends Z\](var v:ZZ32, s:X, s2:ZObj)
     name():X = s
 end
 
-(* Nested FnDefs within the object decl which declares more static params *)
-(* Local functions with generatics are not supported at the moment; 
+(* Nested FnDecls within the object decl which declares more static params *)
+(* Local functions with generatics are not supported at the moment;
    remove the comments when they are.
 object O3[\X extends String, S extends String\](x:X, s:S)
     foo[\Z1 extends ZZ32\](z1:Z1):Y = object extends Y
@@ -74,8 +74,8 @@ object O3[\X extends String, S extends String\](x:X, s:S)
         end
 end *)
 
-(* Nested FnDefs within the object decl which declares more static params *)
-(* Local functions with generatics are not supported at the moment; 
+(* Nested FnDecls within the object decl which declares more static params *)
+(* Local functions with generatics are not supported at the moment;
    remove the comments when they are.
 object O4[\X extends String, S extends String\](x:X, s:S)
     foo[\Z1 extends ZZ32\](z1:Z1):Y = do
@@ -97,7 +97,7 @@ run(args:String...):() = do
     assert( 7, t.z(), "t.z() failed." )
     assert( o1.s, t.a(), "t.a() failed." )
 
-(* Local functions with generatics are not supported at the moment; 
+(* Local functions with generatics are not supported at the moment;
    remove the comments when they are.
 
     o3:O3[\String, String\] = O3[\String, String\]("str1", "str2")

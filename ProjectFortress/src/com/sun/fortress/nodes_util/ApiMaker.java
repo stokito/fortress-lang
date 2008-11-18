@@ -79,7 +79,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                     return new Boolean(result);
                 }
 
-                @Override public Boolean forFnDef(FnDef that) {
+                @Override public Boolean forFnDecl(FnDecl that) {
                     return new Boolean(containsPrivate(that.getMods()));
                 }
 
@@ -172,7 +172,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
         } else return Option.<Node>none();
     }
 
-    public Option<Node> forFnDef(FnDef that) {
+    public Option<Node> forFnDecl(FnDecl that) {
         if ( ! isPrivate(that) ) {
             if ( that.getReturnType().isNone() )
                 log(that, "The return type of " + that.getName() + " is required.");

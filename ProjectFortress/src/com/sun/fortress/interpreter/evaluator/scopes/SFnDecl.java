@@ -1,5 +1,5 @@
-(*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+/*******************************************************************************
+    Copyright 2007 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -13,17 +13,19 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
+ ******************************************************************************/
 
-component forFnDef
-export Executable
+package com.sun.fortress.interpreter.evaluator.scopes;
 
-    plus3(x:ZZ32) = do
-    x + 3
-    end
+import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.nodes.FnDecl;
 
-    run(args:String...):()=do
-    y = plus3(2 2 2 2 - 3 2 2)
-    print(y)
-    end
-end
+
+public class SFnDecl extends Base {
+
+    public SFnDecl(Environment environment, FnDecl f) {
+        super(environment);
+        // TODO Auto-generated constructor stub
+    }
+
+}

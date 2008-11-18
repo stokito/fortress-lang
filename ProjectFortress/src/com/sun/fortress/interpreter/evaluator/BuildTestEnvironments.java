@@ -64,8 +64,8 @@ public class BuildTestEnvironments extends NodeDepthFirstVisitor<Boolean> {
         return false;
     }
 
-    public Boolean forFnDef(FnDef x) {
-        Debug.debug( Debug.Type.INTERPRETER, 2, "ForFnDef ", x);
+    public Boolean forFnDecl(FnDecl x) {
+        Debug.debug( Debug.Type.INTERPRETER, 2, "ForFnDecl ", x);
         List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 

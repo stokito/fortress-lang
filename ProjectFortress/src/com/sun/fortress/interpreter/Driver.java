@@ -72,7 +72,6 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnDef;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -131,12 +130,12 @@ public class Driver {
     }
 
     public static ArrayList<ComponentWrapper> components;
- 
+
     public static void reset() {
         components = null;
         libraryComponentWrapper = null;
     }
-    
+
     public static Environment evalComponent(ComponentIndex p,
                                             FortressRepository fr)
         throws IOException {

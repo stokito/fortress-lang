@@ -130,7 +130,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         }
 
         GenericFunctionOrMethod bar = (GenericFunctionOrMethod) appliedThing;
-        // FnAbsDeclOrDecl fndod = bar.getFnDefOrDecl();
+        // FnAbsDeclOrDecl fndod = bar.getFnDeclOrDecl();
         List<StaticParam> tparams = bar.getStaticParams();
         List<Param> params = bar.getParams();
         // Must use the right environment for unifying against the generic.

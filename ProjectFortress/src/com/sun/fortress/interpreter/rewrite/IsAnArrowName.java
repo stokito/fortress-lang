@@ -18,7 +18,7 @@ package com.sun.fortress.interpreter.rewrite;
 
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -61,10 +61,10 @@ public class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor#forFnDef(com.sun.fortress.nodes.FnDef)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor#forFnDecl(com.sun.fortress.nodes.FnDecl)
      */
     @Override
-    public ArrowOrFunctional forFnDef(FnDef that) {
+    public ArrowOrFunctional forFnDecl(FnDecl that) {
      // Return "is a self method"
         return NodeUtil.selfParameterIndex(that) >= 0 ? ArrowOrFunctional.FUNCTIONAL : ArrowOrFunctional.NEITHER;
     }

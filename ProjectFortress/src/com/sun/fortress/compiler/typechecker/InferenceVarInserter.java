@@ -22,7 +22,7 @@ import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValueBind;
@@ -87,7 +87,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 
 
     @Override
-	public Node forFnDefOnly(FnDef that, List<Modifier> mods_result,
+	public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result,
 			IdOrOpOrAnonymousName name_result,
 			List<StaticParam> staticParams_result, List<Param> params_result,
 			Option<Type> returnType_result,
@@ -100,7 +100,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 					returnType_result;
 
-		return super.forFnDefOnly(that, mods_result, name_result, staticParams_result,
+		return super.forFnDeclOnly(that, mods_result, name_result, staticParams_result,
 				params_result, new_ret_type, throwsClause_result, where_result,
 				contract_result, unambiguousName_result, body_result, implementsUnambiguousName_result);
 	}

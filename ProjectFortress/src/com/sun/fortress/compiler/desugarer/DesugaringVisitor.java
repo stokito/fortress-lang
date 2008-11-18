@@ -253,7 +253,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             return NodeFactory.makeAbsFnDecl(span, mods, field.getName(),
                                              field.getType());
         else
-            return NodeFactory.makeFnDef(span, mods, field.getName(),
+            return NodeFactory.makeFnDecl(span, mods, field.getName(),
                                          field.getType(), body);
     }
 
@@ -305,7 +305,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             return NodeFactory.makeAbsFnDecl(span, mods, name, params,
                                              Option.some(voidType));
         else
-            return NodeFactory.makeFnDef(span, mods, name, params,
+            return NodeFactory.makeFnDecl(span, mods, name, params,
                                          Option.some(voidType), assign);
     }
 
@@ -629,7 +629,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forFnDefOnly(FnDef that, List<Modifier> mods_result,
+    public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result,
                              IdOrOpOrAnonymousName name_result,
                              List<StaticParam> staticParams_result,
                              List<Param> params_result,
@@ -641,7 +641,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Expr body_result,
                              Option<Id> implementsUnambiguousName_result)
     {
-        return new FnDef(that.getSpan(), removeGetterSetterMod(mods_result),
+        return new FnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
                          name_result, staticParams_result, params_result,
                          returnType_result, throwsClause_result,
                          where_result, contract_result, unambiguousName_result,

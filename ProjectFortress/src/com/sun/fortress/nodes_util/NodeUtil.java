@@ -149,7 +149,7 @@ public class NodeUtil {
     }
 
     public static Option<Expr> getBody(Applicable def) {
-        if (def instanceof FnDef) { return Option.some(((FnDef)def).getBody()); }
+        if (def instanceof FnDecl) { return Option.some(((FnDecl)def).getBody()); }
         else if (def instanceof FnExpr) { return Option.some(((FnExpr)def).getBody()); }
         else { return Option.none(); }
     }

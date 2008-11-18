@@ -43,7 +43,7 @@ import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -230,10 +230,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * When recurring on a FnDecl, we first need to extend the
      * environment with all the newly bound static parameters.
      */
-    @Override public Node forFnDef(final FnDef that) {
+    @Override public Node forFnDecl(final FnDecl that) {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
-        return forFnDefOnly(that,
+        return forFnDeclOnly(that,
                 v.recurOnListOfModifier(that.getMods()),
                 (IdOrOpOrAnonymousName) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
