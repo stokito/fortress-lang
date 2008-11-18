@@ -45,7 +45,7 @@ import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.For;
@@ -431,7 +431,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
 
             @Override
-            public Set<Id> forFnDef(FnDef that) {
+            public Set<Id> forFnDecl(FnDecl that) {
                 return Collections.emptySet();
             }
 
@@ -463,7 +463,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
 
             @Override
-            public Set<IdOrOpOrAnonymousName> forFnDef(FnDef that) {
+            public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
                 if (NodeUtil.isSetterOrGetter(that.getMods())) {
                     accessors.add(that.getName());
                     return Collections.emptySet();
@@ -509,7 +509,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //             }
 
 //             @Override
-//             public Set<Id> forFnDef(FnDef that) {
+//             public Set<Id> forFnDecl(FnDecl that) {
 //                 return Collections.emptySet();
 //             }
 
@@ -540,7 +540,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //             }
 
 //             @Override
-//             public Set<IdOrOpOrAnonymousName> forFnDef(FnDef that) {
+//             public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
 //                 if( isSetterOrGetter(that.getMods()) )
 //                     accessors.add(that.getName());
 //                 if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
@@ -899,7 +899,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         // No need to recur on the name, as we will not modify it and we have already checked
-        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it
+        // for shadowing in forObjectDecl. Also, if this FnDecl is a getter, we allow it
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
         return forAbsFnDeclOnly(that,
@@ -916,23 +916,23 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 
     /**
-     * When recurring on a FnDef, we first need to extend the
+     * When recurring on a FnDecl, we first need to extend the
      * environment with all the newly bound static parameters that
      * can be used in an expression context, along with all function
      * parameters and 'self'.
      * TODO: Handle variables bound in where clauses.
      */
-    @Override public Node forFnDef(FnDef that) {
+    @Override public Node forFnDecl(FnDecl that) {
         Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
         Set<Id> params = extractParamNames(that.getParams());
         checkForValidParams(params);
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         // No need to recur on the name, as we will not modify it and we have already checked
-        // for shadowing in forObjectDecl. Also, if this FnDef is a getter, we allow it
+        // for shadowing in forObjectDecl. Also, if this FnDecl is a getter, we allow it
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
-        return forFnDefOnly(that,
+        return forFnDeclOnly(that,
                             v.recurOnListOfModifier(that.getMods()),
                             (IdOrOpOrAnonymousName) that.getName(),
                             v.recurOnListOfStaticParam(that.getStaticParams()),
@@ -1135,16 +1135,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override public Node forLetFn(LetFn that) {
         Set<IdOrOpOrAnonymousName> definedNames = extractDefinedFnNames(that.getFns());
         ExprDisambiguator v = extendWithLocalFns(definedNames);
-        List<FnDef> fnsResult = v.recurOnListOfFnDef(that.getFns());
+        List<FnDecl> fnsResult = v.recurOnListOfFnDecl(that.getFns());
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forLetFnOnly(that, type_result, bodyResult, fnsResult);
     }
 
 
-    private Set<IdOrOpOrAnonymousName> extractDefinedFnNames(Iterable<FnDef> fnDefs) {
+    private Set<IdOrOpOrAnonymousName> extractDefinedFnNames(Iterable<FnDecl> fnDefs) {
         Set<IdOrOpOrAnonymousName> result = new HashSet<IdOrOpOrAnonymousName>();
-        for (FnDef fd : fnDefs) { result.add(fd.getName()); }
+        for (FnDecl fd : fnDefs) { result.add(fd.getName()); }
         // multiple instances of the same name are allowed
         return result;
     }

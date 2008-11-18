@@ -74,7 +74,7 @@ api FortressSyntax
 
   native grammar LocalVarFnDecl
     LocalVarFnDecl : LetExpr
-    LocalFnDecl : FnDef
+    LocalFnDecl : FnDecl
     LocalVarDecl : LocalVarDecl
   end
 

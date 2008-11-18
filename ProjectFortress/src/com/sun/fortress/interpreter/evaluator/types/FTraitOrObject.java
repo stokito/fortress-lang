@@ -38,7 +38,7 @@ import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
@@ -455,7 +455,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
             thisOverrides.putItem(s, mo);
         }
         Applicable a = mc.getDef();
-        if (a instanceof FnDef) {
+        if (a instanceof FnDecl) {
             thisSupplies.putItem(s, mo);
         } else {
             thisRequires.putItem(s, mo);

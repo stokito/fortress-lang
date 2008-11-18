@@ -23,9 +23,9 @@ api SyntaxExtends
 
   grammar A extends { Declaration, D }
     Decl |List[\Decl\]:=
-      some Thing 
+      some Thing
         do
-          fnDef : FnDef = FnDef(emptyList[\Modifier\](), 
+          fnDef : FnDecl = FnDecl(emptyList[\Modifier\](),
                      Id(Nothing[\APIName\], "some" Thing.in_text),
                      emptyList[\StaticParam\](),
                      emptyList[\Param\](),
@@ -35,7 +35,7 @@ api SyntaxExtends
                      Contract(Nothing[\List[\Expr\]\], Nothing[\List[\EnsuresClause\]\], Nothing[\List[\Expr\]\]),
                      "foo",
                      StringLiteralExpr("some " Thing.in_text))
-          ls : List[\FnDef\] = emptyList[\FnDef\](1)
+          ls : List[\FnDecl\] = emptyList[\FnDecl\](1)
           ls.addRight(fnDef)
         end
   end
@@ -62,7 +62,7 @@ api SyntaxExtends
     Thing |Expr:=
       thingC1 <[ thingC1 ]>
 
-    Gnu :Expr:= 
+    Gnu :Expr:=
       Thing do Thing.in_text end
 
   end

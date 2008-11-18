@@ -24,7 +24,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -51,7 +51,7 @@ public class DeclaredFunction extends Function {
 				return Option.none();
 			}
 			@Override
-			public Option<Expr> forFnDef(FnDef that) {
+			public Option<Expr> forFnDecl(FnDecl that) {
 				return Option.some(that.getBody());
 			}
 		});

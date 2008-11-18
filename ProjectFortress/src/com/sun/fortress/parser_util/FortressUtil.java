@@ -91,7 +91,7 @@ public final class FortressUtil {
     }
 
     private static Effect effect = new Effect(NodeFactory.makeSpan("singleton"));
-    
+
     public static Effect emptyEffect() {
         return effect;
     }
@@ -617,7 +617,7 @@ public final class FortressUtil {
                                          Option.<WhereClause>none(), Option.<Contract>none());
     }
 
-    public static FnDef mkFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
                                  FnHeaderFront fhf,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
@@ -629,7 +629,7 @@ public final class FortressUtil {
                                       contract, expr);
     }
 
-    public static FnDef mkFnDecl(Span span, List<Modifier> mods, IdOrOpOrAnonymousName name,
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods, IdOrOpOrAnonymousName name,
                                  List<StaticParam> sparams, List<Param> params,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();

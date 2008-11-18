@@ -127,7 +127,7 @@ public class Transform extends TemplateUpdateVisitor {
     /* Support renaming for these nodes
      * LValueBind    ( only for LocalVarDecl ) - done
      * UnpastingBind ( only for LocalVarDecl ) - done
-     * FnDef         ( only for local function decls ) - done
+     * FnDecl        ( only for local function decls ) - done
      * NormalParam   ( only for FnExpr and local function decls ) - done
      * VarargsParam  ( only for FnExpr and local function decls ) - done
      * Label - done
@@ -137,9 +137,9 @@ public class Transform extends TemplateUpdateVisitor {
      *    TestDecl
      *    For - done
      *    While - done
-     *    Accumulator - 
-     *    GeneratedExpr 
-     *    ArrayComprehensionClause 
+     *    Accumulator -
+     *    GeneratedExpr
+     *    ArrayComprehensionClause
      *    IfClause - done
      */
 
@@ -335,18 +335,18 @@ public class Transform extends TemplateUpdateVisitor {
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
             List<Expr> body_result = recurOnListOfExpr(that.getBody());
-            List<FnDef> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDef, FnDef>(){
-                public FnDef apply(FnDef fn){
-                    return (FnDef) fn.accept( new TemplateUpdateVisitor(){
-                            public Node forFnDefOnly(FnDef that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) {
+            List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
+                public FnDecl apply(FnDecl fn){
+                    return (FnDecl) fn.accept( new TemplateUpdateVisitor(){
+                            public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) {
                                 List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
                                 if ( name_result instanceof Id) {
                                     Id old = (Id) ((Id)name_result).accept(transformer);
                                     Id generatedId = generateId(old);
                                     extendSyntaxEnvironment(old, generatedId);
-                                    return new FnDef(that.getSpan(), mods_result, generatedId, staticParams_result, new_params_result, returnType_result, throwsClause_result, where_result, contract_result, body_result);
+                                    return new FnDecl(that.getSpan(), mods_result, generatedId, staticParams_result, new_params_result, returnType_result, throwsClause_result, where_result, contract_result, body_result);
                                 } else {
-                                    return new FnDef(that.getSpan(), mods_result, name_result, staticParams_result,
+                                    return new FnDecl(that.getSpan(), mods_result, name_result, staticParams_result,
                                                      new_params_result, returnType_result, throwsClause_result,
                                                      where_result, contract_result, body_result);
                                 }

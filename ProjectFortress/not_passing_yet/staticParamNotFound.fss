@@ -48,7 +48,7 @@ object O[\X extends String, bool b, nat n\](var v:ZZ32, s:X)
     name():X = s
 end
 
-(* Nested FnDefs within the object decl which declares more static params *)
+(* Nested FnDecls within the object decl which declares more static params *)
 object O4[\X extends String, S extends String\](x:X, s:S)
     foo[\Z1 extends ZZ32\](z1:Z1):Y = do
         nested[\Z2 extends ZZ32\](z2:Z2):Y = object extends Y

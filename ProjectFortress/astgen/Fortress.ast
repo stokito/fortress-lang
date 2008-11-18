@@ -455,13 +455,10 @@ interface Node(ignoreForEquals Span span) extends HasAt;
             AbsFnDecl() implements AbsDecl;
             /**
              * functional declaration in components
+             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
+             * e.g.) swap (x, y) = (y, x)
              */
-            abstract FnDecl();
-                /**
-                 * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
-                 * e.g.) swap (x, y) = (y, x)
-                 */
-                FnDef(Expr body, Option<Id> implementsUnambiguousName = Option.<Id>none());
+            FnDecl(Expr body, Option<Id> implementsUnambiguousName = Option.<Id>none());
         /**
          * value parameter of functional declarations and object declarations
          * Names must be unqualified.
@@ -1020,7 +1017,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  *                   = Expr
                  * e.g.) localFn(x: ZZ32) = x + 2
                  */
-                LetFn(List<FnDef> fns);
+                LetFn(List<FnDecl> fns);
                 /**
                  * local variable declaration
                  * LocalVarDecl ::= var? LocalVarWTypes InitVal

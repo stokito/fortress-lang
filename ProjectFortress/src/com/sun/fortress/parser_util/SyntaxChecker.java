@@ -242,7 +242,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                       " should have the self parameter.");
     }
 
-    public void forFnDefOnly(FnDef that) {
+    public void forFnDeclOnly(FnDecl that) {
         if ( NodeUtil.isGetter(that) ) {
             if ( ! that.getParams().isEmpty() )
                 log(that, "Getter declaration should not have a parameter.");

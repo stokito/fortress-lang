@@ -49,7 +49,7 @@ import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntArg;
@@ -108,10 +108,10 @@ public abstract class TypeEnv {
         typeEnv = typeEnv.extend(cu.variables());
 
         //Iterate over top level types, adding each to component-level environment
-        
+
         typeEnv = typeEnv.extendWithTypeConses(cu.typeConses());
-        
-        
+
+
         return typeEnv;
     }
 
@@ -228,18 +228,18 @@ public abstract class TypeEnv {
     static Id removeApi(Id id) {
     	return NodeFactory.makeIdFromLast(id);
     }
-    
+
     static Enclosing removeApi(Enclosing id) {
     	return NodeFactory.makeEnclosing(id.getSpan(), id.getOpen(), id.getClose());
     }
-    
+
     static Op removeApi(Op id) {
     	return NodeFactory.makeOp(id.getSpan(), id.getText(), id.getFixity());
     }
-    
+
     static IdOrOpOrAnonymousName removeApi(IdOrOpOrAnonymousName id) {
     	return id.accept(new NodeDepthFirstVisitor<IdOrOpOrAnonymousName>(){
-			@Override 
+			@Override
 			public IdOrOpOrAnonymousName forEnclosing(Enclosing that) {
 				return NodeFactory.makeEnclosing(that.getSpan(), that.getOpen(), that.getClose());
 			}
@@ -258,7 +258,7 @@ public abstract class TypeEnv {
 			}
     	});
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
@@ -270,18 +270,18 @@ public abstract class TypeEnv {
      * is not in scope.
      */
     public abstract Option<StaticParam> staticParam(IdOrOpOrAnonymousName id);
-    
+
     /**
      * Return the {@code Node} that declared the given id, or None if the id does not
      * exist. Note that this method should not be passed the id of a function, since
      * functions have multiple declaration sites. You can tell if an id is a function
      * or not by calling type() on the same id.
-     * 
+     *
      * @exception IllegalArgumentException If var is a function, since functions have
      * multiple declaration sites.
      */
     public abstract Option<Node> declarationSite(IdOrOpOrAnonymousName var);
-    
+
     /**
      * Return the type of the given IdOrOpOrAnonymousName (if the given IdOrOpOrAnonymousName is in
      * this type environment).
@@ -393,9 +393,9 @@ public abstract class TypeEnv {
         else { return new FnTypeEnv(fns, this); }
     }
 
-    public final TypeEnv extendWithFnDefs(Relation<IdOrOpOrAnonymousName, ? extends FnDef> fns) {
+    public final TypeEnv extendWithFnDecls(Relation<IdOrOpOrAnonymousName, ? extends FnDecl> fns) {
         if (fns.size() == 0) { return this; }
-        else { return new FnDefTypeEnv(fns, this); }
+        else { return new FnDeclTypeEnv(fns, this); }
     }
 
     public final TypeEnv extendWithMethods(Relation<IdOrOpOrAnonymousName, Method> methods) {
@@ -412,7 +412,7 @@ public abstract class TypeEnv {
     	if( params.size() == 0 ) {return this; }
     	else { return new StaticParamTypeEnv(params,this); }
     }
-    
+
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
         if (typeConses.isEmpty()) {
             return this;
@@ -508,8 +508,8 @@ public abstract class TypeEnv {
         public Option<Type> getType() { return type; }
         public List<Modifier> getMods() { return mods; }
 
-        public boolean isMutable() { 
-            if( mutable ) 
+        public boolean isMutable() {
+            if( mutable )
                 return true;
 
             // Check mods for ModifierVar

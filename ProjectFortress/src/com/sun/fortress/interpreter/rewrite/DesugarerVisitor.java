@@ -71,7 +71,7 @@ import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
-import com.sun.fortress.nodes.FnDef;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratedExpr;
@@ -601,7 +601,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         BATree<String, Boolean> savedImmediateDef = immediateDef;
         immediateDef = null;
 
-        boolean savedFnDefIsMethod = atTopLevelInsideTraitOrObject;
+        boolean savedFnDeclIsMethod = atTopLevelInsideTraitOrObject;
         int savedObjectNestingDepth = objectNestingDepth;
         int savedLexicalNestingDepth = lexicalNestingDepth;
 
@@ -626,7 +626,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
         visibleGenericParameters = savedVisibleGenerics;
         usedGenericParameters = savedUsedGenerics;
-        atTopLevelInsideTraitOrObject = savedFnDefIsMethod;
+        atTopLevelInsideTraitOrObject = savedFnDeclIsMethod;
         objectNestingDepth = savedObjectNestingDepth;
         lexicalNestingDepth = savedLexicalNestingDepth;
         immediateDef = savedImmediateDef;
@@ -781,7 +781,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
 
     @Override
-    public Node forFnDef(FnDef fndef) {
+    public Node forFnDecl(FnDecl fndef) {
         if (atTopLevelInsideTraitOrObject) {
             rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
         }
@@ -821,7 +821,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (_requires.isSome())   b = translateRequires(_requires, b);
 
             // Remove the original contract, add the translation
-            FnDef f = new FnDef(fndef.getSpan(), fndef.getMods(),
+            FnDecl f = new FnDecl(fndef.getSpan(), fndef.getMods(),
                                 fndef.getName(),
                                 fndef.getStaticParams(), fndef.getParams(),
                                 fndef.getReturnType(), fndef.getThrowsClause(),
@@ -854,7 +854,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         AbstractNode n;
 
-    // TODO Contracts, properties, not handled here.  See forFnDef for details.
+    // TODO Contracts, properties, not handled here.  See forFnDecl for details.
 
         // Strip the contract, we don't know what to do with it,
         // and it is not in any sensible scope.
@@ -956,7 +956,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
         // defined var is no longer eligible for rewrite.
-        List<FnDef> defs = lf.getFns();
+        List<FnDecl> defs = lf.getFns();
         defsToLocals(defs);
         // All the function names are in scope in the function
         // definitions, and in the body of code that follows them.

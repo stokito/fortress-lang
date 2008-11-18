@@ -41,7 +41,7 @@ import edu.rice.cs.plt.tuple.Pair;
 public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     private TypeCheckerOutput typeCheckerOutput;
     // A stack keeping track of all nodes that can create new scope
-    // TraitDecl, ObjectDecl, FnDef, FnExpr, IfClause, For, LetFn, LocalVarDecl,
+    // TraitDecl, ObjectDecl, FnDecl, FnExpr, IfClause, For, LetFn, LocalVarDecl,
     // Label, Catch, Typecase, GeneratedExpr, While, and ObjectExpr
     private Stack<Node> scopeStack;
     // A stack keeping track of (potentially nested) object exprs
@@ -153,9 +153,9 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     }
 
     @Override
-    public void forFnDef(FnDef that) {
+    public void forFnDecl(FnDecl that) {
         scopeStack.push(that);
-        super.forFnDef(that);
+        super.forFnDecl(that);
         scopeStack.pop();
     }
 
@@ -322,16 +322,16 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     @Override
     public void forExit(Exit that) {
 	    // Not in object expression; we are done.
-	    if( objExprStack.isEmpty() ) { 
+	    if( objExprStack.isEmpty() ) {
 	        super.forExit(that);
 	        return;
 	    }
-	   
+
         forExitDoFirst(that);
 
-        // figure out the exit label name; 
+        // figure out the exit label name;
         // there should be one assigned in Exit._target by the
-        // ExprDisambiguator already; if it's not found, throw an error 
+        // ExprDisambiguator already; if it's not found, throw an error
         Option<Id> targetOp = that.getTarget();
         Id target = null;
         if( targetOp.isSome() ) {
@@ -341,41 +341,41 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             Label innerMostLabel = null;
             ObjectExpr innerMostObjExpr = null;
             for(int i=scopeStack.size()-1; i>=0; i++) {
-                Node n = scopeStack.get(i); 
+                Node n = scopeStack.get(i);
                 if(n instanceof Label) {
-                    innerMostLabel = (Label) n; 
+                    innerMostLabel = (Label) n;
                     break;
                 } else if(n instanceof ObjectExpr) {
-                    innerMostObjExpr = (ObjectExpr) n; 
+                    innerMostObjExpr = (ObjectExpr) n;
                 }
             }
 
-            if(innerMostObjExpr == null) { 
+            if(innerMostObjExpr == null) {
                 // the label is not captured because it's defined within the
                 // inner-most object expr; no need to handle this.
 	            super.forExit(that);
 	            return;
-            } 
+            }
 
             // this label _is_ captured
             target = innerMostLabel.getName();  */
-            throw new DesugarerError( that.getSpan(), 
+            throw new DesugarerError( that.getSpan(),
                         "Exit target label is not disambiguated!" );
         }
-        
-        // check wither the target label is declared within obj expr or free 
+
+        // check wither the target label is declared within obj expr or free
         Label label = null;
         ObjectExpr innerMostObjExpr = null;
 
         for(int i=scopeStack.size()-1; i>=0; i--) {
-            Node n = scopeStack.get(i); 
+            Node n = scopeStack.get(i);
             if(n instanceof Label) {
-                label = (Label) n; 
+                label = (Label) n;
                 if( label.getName().equals(target) ) {
                     // label found before hitting the inner most obj
                     // expr, so it is not free
-                    break; 
-                } 
+                    break;
+                }
             } else if(n instanceof ObjectExpr) {
                 // found the obj expr before finding the label, so it's free
                 freeNames.add(that);
@@ -409,10 +409,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         boolean isShadowed = false;
 
         if(enclosingTraitDecl.isSome()) {
-            isShadowed = isShadowedInNode( enclosingTraitDecl.unwrap(), 
+            isShadowed = isShadowedInNode( enclosingTraitDecl.unwrap(),
                                            that.getVar() );
         } else if(enclosingObjectDecl.isSome()) {
-            isShadowed = isShadowedInNode( enclosingObjectDecl.unwrap(), 
+            isShadowed = isShadowedInNode( enclosingObjectDecl.unwrap(),
                                            that.getVar() );
         }
 
@@ -999,13 +999,13 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         }
 
         @Override
-        public void forFnDef(FnDef that) {
+        public void forFnDecl(FnDecl that) {
             IdOrOpOrAnonymousName name = that.getName();
             if(name instanceof Id) {
                 decledNames.add((Id) name);
             } else {
                 throw new DesugarerError(that.getSpan(), "Unexpected type " +
-                        "for FnDef name " + that.getName() + " when " +
+                        "for FnDecl name " + that.getName() + " when " +
                         "when parsing decls for object expr at " +
                         root.getSpan() );
             }

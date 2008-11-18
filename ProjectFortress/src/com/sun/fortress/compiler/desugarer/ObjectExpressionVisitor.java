@@ -44,7 +44,7 @@ import edu.rice.cs.plt.tuple.Pair;
 public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     // Type info passed down from the type checking phase
     private TypeCheckerOutput typeCheckerOutput;
-    /* 
+    /*
      * A list of newly created ObjectDecls (i.e. lifted obj expressions and
      * objectDecls for boxed mutable var refs they capture)
      */
@@ -224,7 +224,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             returnValue = (ObjectDecl) that.accept(rewriter);
         }
 
-        /* 
+        /*
          * if rewriteList == null, returnValue = that; otherwise,
          * returnValue is updated by the MutableVarRefRewriteVisitor.
          * Note that we must update mutableVarRefContainerMap first
@@ -253,9 +253,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forFnDef(FnDef that) {
+	public Node forFnDecl(FnDecl that) {
         scopeStack.push(that);
-        Node returnValue = super.forFnDef(that);
+        Node returnValue = super.forFnDecl(that);
         scopeStack.pop();
         return returnValue;
     }
@@ -384,16 +384,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         /*
          * A map mapping from Exit node to its corresponding exitFnParam info
          * that we created when lifting the ObjectExpr - we need the param Id
-         * and type to make the FnRef in ExitRewriter 
+         * and type to make the FnRef in ExitRewriter
          * We use the Exit's span and target label id as the key instead of
-         * just the Exit node itself, because by this point, the Exit may 
-         * have been rewritten and may not be the same if its return 
+         * just the Exit node itself, because by this point, the Exit may
+         * have been rewritten and may not be the same if its return
          * expression captured mutable variables (they would be boxed).
          * We only store the function id and type pair as value because
          * that's all we need.  If we store the NormalParam instead, we
          * would have to dig those info out again.
          */
-        final Map<Pair<Span,Id>, Pair<Id,Type>> 
+        final Map<Pair<Span,Id>, Pair<Id,Type>>
             exitFnParamMap = new HashMap<Pair<Span,Id>, Pair<Id,Type>>();
 
         ObjectDecl lifted = liftObjectExpr(that, freeNames, exitFnParamMap);
@@ -403,14 +403,14 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         /*
          * Anonymous inner class that rewrites the Exit node which captured
          * the free label inside ObjectExpr into a call to the Exit function
-         * that passed into lifted ObjectDecl as a param 
+         * that passed into lifted ObjectDecl as a param
          */
         NodeUpdateVisitor rewriter = new NodeUpdateVisitor() {
-                @Override 
+                @Override
                 public Node forExit(Exit that) {
                     Span span = that.getSpan();
                     Id labelId = unwrapIfSomeElseError( that.getTarget(),
-                                    that.getSpan(), 
+                                    that.getSpan(),
                                     "Exit target label is not disambiguated!" );
                     Pair<Span,Id> exitKey = new Pair<Span,Id>(span, labelId);
                     Pair<Id,Type> exitFnInfo = exitFnParamMap.get(exitKey);
@@ -420,8 +420,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
                         Id fnName = exitFnInfo.first();
                         FnRef fnRef = ExprFactory.makeFnRef(fnName);
-                        exprs.add(fnRef); 
-                        exprs.add( unwrapIfSomeElseAlternative(returnExpr, 
+                        exprs.add(fnRef);
+                        exprs.add( unwrapIfSomeElseAlternative(returnExpr,
                                      ExprFactory.makeVoidLiteralExpr(span)) );
 
                         return ExprFactory.makeTightJuxt(span, false, exprs);
@@ -509,12 +509,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             }
         }
 
-        // Handle static params from the enclosing nested FnDef
+        // Handle static params from the enclosing nested FnDecl
         for(Node n : scopeStack) {
-            if(n instanceof FnDef) {
-                sParams = ((FnDef) n).getStaticParams();
+            if(n instanceof FnDecl) {
+                sParams = ((FnDecl) n).getStaticParams();
                 for(StaticParam sp : sParams) {
-                    args.add( makeStaticArgFromStaticParam(sp) ); 
+                    args.add( makeStaticArgFromStaticParam(sp) );
                 }
             }
         }
@@ -570,16 +570,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
             /* Make the argument for each exit label captured:
              *     fn(e:exitWithType) : exitWithType => exit foo with e  OR
-             *     fn() : () => exit foo 
+             *     fn() : () => exit foo
              * Actually, this is a "cheat".  The fn should really have
              * BottomType as its return type, but since BottomType cannot be
              * named, we use a more loose type that would work with the use
              * site.
              */
             for(Exit exit : freeExitLabels) {
-                Span exitSpan = exit.getSpan(); 
+                Span exitSpan = exit.getSpan();
                 exitFnExprParams = new LinkedList<Param>();
-                exitWithId = NodeFactory.makeId( exitSpan, 
+                exitWithId = NodeFactory.makeId( exitSpan,
                                 MANGLE_CHAR+EXIT_WITH_PARAM );
 
                 exitWithExpr = exit.getReturnExpr();
@@ -588,23 +588,23 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     if( exitWithTypeOp.isSome() ) {
                         VarRef var = ExprFactory.makeVarRef(exitSpan,
                                             exitWithId, exitWithTypeOp);
-                        exitFnBody = ExprFactory.makeExit(exitSpan, 
+                        exitFnBody = ExprFactory.makeExit(exitSpan,
                             exit.getExprType(), exit.getTarget(), var);
-                        exitFnExprParams.add( 
+                        exitFnExprParams.add(
                             NodeFactory.makeNormalParam(exitSpan,
                                 exitWithId, exitWithTypeOp) );
                     } else {
                         throw new DesugarerError( exitSpan,
                                     "Exit with expr of an unknown type!" );
                     }
-                    exitFnRetTypeOp = exitWithTypeOp; 
+                    exitFnRetTypeOp = exitWithTypeOp;
                 } else {
-                    exitFnBody = exit; 
-                    exitFnRetTypeOp = Option.<Type>some( 
+                    exitFnBody = exit;
+                    exitFnRetTypeOp = Option.<Type>some(
                                         NodeFactory.makeVoidType(exitSpan) );
-                } 
+                }
 
-                exitFnExpr = ExprFactory.makeFnExpr( exitSpan, 
+                exitFnExpr = ExprFactory.makeFnExpr( exitSpan,
                                 exitFnExprParams, exitFnRetTypeOp, exitFnBody );
                 exprs.add(exitFnExpr);
             }
@@ -650,7 +650,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                         freeNames.getEnclosingSelfType() );
         }
 
-        params = makeParamsForLiftedObj(target, freeNames, 
+        params = makeParamsForLiftedObj(target, freeNames,
                                         enclosingSelf, exitFnParamMap);
         /* Use default value for modifiers, where clauses,
            throw clauses, contract */
@@ -701,11 +701,11 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             sParamsCopy.addAll(sParams);
         }
 
-        // Handle static params from the enclosing nested FnDef
+        // Handle static params from the enclosing nested FnDecl
         for(Node n : scopeStack) {
-            if(n instanceof FnDef) {
-                sParams = ((FnDef) n).getStaticParams();
-                sParamsCopy.addAll(sParams); 
+            if(n instanceof FnDecl) {
+                sParams = ((FnDecl) n).getStaticParams();
+                sParamsCopy.addAll(sParams);
             }
         }
 
@@ -742,7 +742,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
                     type = var.getExprType();
-                    param = NodeFactory.makeNormalParam(var.getSpan(), 
+                    param = NodeFactory.makeNormalParam(var.getSpan(),
                                                         var.getVar(), type);
                     params.add(param);
                 }
@@ -773,8 +773,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                     "Exit target label is not disambiguated!");
                 if(retExpr.isSome()) {
                     retType = unwrapIfSomeElseError(
-                                retExpr.unwrap().getExprType(), 
-                                exitSpan, 
+                                retExpr.unwrap().getExprType(),
+                                exitSpan,
                                 "Exit with expr of an unknown type!" );
                 } else { // exit with no expr
                     retType = NodeFactory.makeVoidType(exitSpan);
@@ -782,7 +782,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
                 exitFnType = NodeFactory.makeArrowType( exitSpan, retType, retType );
                 type = Option.<Type>some(exitFnType);
-                Id exitFnId = NodeFactory.makeId(exitSpan, 
+                Id exitFnId = NodeFactory.makeId(exitSpan,
                         MANGLE_CHAR + EXIT_FUNC_PREFIX + "_" + exitIndex);
                 param = NodeFactory.makeNormalParam(exitSpan, exitFnId, type);
                 params.add(param);
@@ -814,13 +814,13 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // id of the newly created param for implicit self
         Id enclosingParamId = NodeFactory.makeId(paramSpan,
                 MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
-        param = NodeFactory.makeNormalParam(paramSpan, 
+        param = NodeFactory.makeNormalParam(paramSpan,
                                         enclosingParamId, enclosingSelfType);
 
         return param;
     }
 
-    /* 
+    /*
      * Generate a map mapping from mutable VarRef to its coresponding
      * container info (i.e. its boxed ObjectDecl, the new VarDecl to create
      * the boxed ObjectDecl instance, the VarRef to the new VarDecl, etc.)
@@ -891,7 +891,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private int nextUniqueId() {
         return uniqueId++;
     }
-        
+
     /* Static helper methods for handling Option<T> */
     private static <T> T
     unwrapIfSomeElseError(Option<T> option, Span span, String errMsg) {
