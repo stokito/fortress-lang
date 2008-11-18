@@ -40,7 +40,7 @@ import static edu.rice.cs.plt.debug.DebugUtil.debug;
 public class TypeAnalyzerJUTest extends TestCase {
 
     static Span span = NodeFactory.makeSpan("TypeAnalyzerJUTest");
-    
+
     public static void main(String... args) {
       junit.textui.TestRunner.run(TypeAnalyzerJUTest.class);
     }
@@ -428,7 +428,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         Component ast = new Component(span, NodeFactory.makeAPIName(name),
                                       Collections.<Import>emptyList(),
-                                      Collections.<Export>emptyList(),
+                                      Collections.<APIName>emptyList(),
                                       traitDecls);
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
@@ -513,7 +513,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     private static Type parseType(String s) {
         s = s.trim();
         int opIndex;
- 
+
         opIndex = findAtTop(s, "->");
         if (opIndex >= 0) {
             s = s + " "; // recognize a trailing "io"

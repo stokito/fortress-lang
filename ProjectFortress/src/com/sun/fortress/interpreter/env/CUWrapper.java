@@ -41,7 +41,6 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.DerivedFiles;
@@ -52,10 +51,10 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Visitor2;
 
 public class CUWrapper {
-    
+
     private final static boolean loadCompiledEnvs =
         ProjectProperties.getBoolean("fortress.test.compiled.environments", true);
-    
+
     CompilationUnit comp_unit;
 
     HashMap<String, APIWrapper> exports = new  HashMap<String, APIWrapper>();
@@ -67,13 +66,13 @@ public class CUWrapper {
      * (e.g., FortressLibrary, FortressBuiltin}
      */
     protected String[]  implicitLibs;
-    
+
     public BASet<String> ownNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
     public BASet<String> excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
 
     /**
-     * If a variable/value/function name is missing when an API is initialized, 
-     * store it here, in case it is found later (that is, imported into the 
+     * If a variable/value/function name is missing when an API is initialized,
+     * store it here, in case it is found later (that is, imported into the
      * component through some other API).
      */
     //public BASet<String> missingExportedVars = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
@@ -88,9 +87,9 @@ public class CUWrapper {
      * some other API).
      */
     //public BASet<String> missingExportedTypes = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-    
+
     public Set<AbstractNode> unresolvedExports = new HashSet<AbstractNode>();
-       
+
     protected DesugarerVisitor desugarer;
 
     int visitState;
@@ -104,14 +103,14 @@ public class CUWrapper {
                 cw.reset();
             }
         this.exports = null;
-        
+
     }
-    
+
     Visitor2<String, Object> nameCollector = new Visitor2<String, Object>() {
 
         @Override
         public void visit(String t, Object u) {
-            
+
             ownNames.add(t);
         }
     };
@@ -121,13 +120,13 @@ public class CUWrapper {
        this.implicitLibs = implicitLibs;
        if (comp == null)
             throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
-       
+
          comp_unit = comp;
-        
+
          String fortressFileName = comp_unit.getName().getText();
-        
+
          try {
-            
+
                 Environment e = loadCompiledEnvs ?
                     SimpleClassLoader.loadEnvironment(fortressFileName, false) :
                     new BetterEnvLevelZero(comp);
@@ -135,11 +134,11 @@ public class CUWrapper {
                 be = (comp.is_native() ?
                         new BuildNativeEnvironment(e, linker) :
                         new BuildTopLevelEnvironments(e, linker));
-                List<Export> component_exports = comp.getExports();
-                for (Export exp : component_exports) {
+                List<APIName> component_exports = comp.getExports();
+                for (APIName exp : component_exports) {
                     // TODO work in progress, this might not be the best place
                 }
-            
+
         } catch (IOException ex) {
             bug("Failed to load class (" + ex + ") for " + comp);
         } catch (InstantiationException ex) {
@@ -153,19 +152,19 @@ public class CUWrapper {
         this.implicitLibs = implicitLibs;
         if (api == null)
             throw new NullPointerException("Null api (1st parameter to constructor) not allowed");
-        
+
          //comp_unit = (Api) RewriteInPresenceOfTypeInfoVisitor.Only.visit(api);
         comp_unit = api; // do nothing?
-        
+
          String fortressFileName = comp_unit.getName().getText();
-        
+
          try {
                 Environment e = loadCompiledEnvs ?
                      SimpleClassLoader.loadEnvironment(fortressFileName, true) :
                          new BetterEnvLevelZero(api);
                 e.setTopLevel();
                 be = new BuildApiEnvironment(e, linker);
-            
+
         } catch (IOException ex) {
             bug("Failed to load class (" + ex + ") for " + api);
         } catch (InstantiationException ex) {
@@ -188,10 +187,10 @@ public class CUWrapper {
 
     public CUWrapper(Component comp, List<APIWrapper> api_list, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
-        for (APIWrapper api : api_list) 
+        for (APIWrapper api : api_list)
             exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
-    
+
 
 
     public static boolean overloadable(Object u) {
@@ -218,7 +217,7 @@ public class CUWrapper {
     public Collection<APIWrapper> getExports() {
         return exports.values();
     }
-    
+
     public void touchExports(boolean suppressDebugDump) {
         if (visitState != UNVISITED)
             return;
@@ -257,10 +256,10 @@ public class CUWrapper {
     public boolean injectAtTopLevel(String putName, String getName, CUWrapper getFrom, Set<String>excluded) {
         return desugarer.injectAtTopLevel(putName, getName, getFrom.desugarer, excluded);
     }
-    
- 
 
- 
+
+
+
     public void initTypes() {
         if (visitState == POPULATED) {
             visitState = TYPED;
@@ -302,7 +301,7 @@ public class CUWrapper {
     }
 
     protected void registerObjectExprs(Environment environment) {
-        
+
     }
 
     public Environment getEnvironment() {

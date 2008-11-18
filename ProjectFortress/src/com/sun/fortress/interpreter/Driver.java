@@ -69,7 +69,6 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GrammarDecl;
@@ -509,12 +508,11 @@ public class Driver {
             ComponentWrapper comp_wrapper;
 
             List<APIWrapper> exports_list = new ArrayList<APIWrapper>(1);
-            for (Export ex : comp.getExports())
-                for (APIName ex_apiname : ex.getApis()) {
-                    String ex_name = NodeUtil.nameString(ex_apiname);
-                    Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
-                    exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
-                }
+            for (APIName ex_apiname : comp.getExports()) {
+                String ex_name = NodeUtil.nameString(ex_apiname);
+                Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
+                exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
+            }
 
             comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary);
             fr.forgetComponent(name);

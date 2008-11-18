@@ -161,13 +161,14 @@ interface Node(ignoreForEquals Span span) extends HasAt;
             /**
              * component declaration
              * Component ::= native? component APIName Imports? Exports Decls? end
+             * Export ::= export APINames
              * e.g.) component Hello
              *         export Executable
              *         run(args:String...) = print "Hello, World!\n"
              *       end
              */
             Component(boolean _native = false, APIName name, List<Import> imports,
-                      List<Export> exports, List<Decl> decls,
+                      List<APIName> exports, List<Decl> decls,
                       List<_RewriteObjectExpr> objectExprs =
                            Collections.<_RewriteObjectExpr>emptyList(),
                       List<String> functionalMethodNames =
@@ -225,12 +226,6 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          */
         AliasedAPIName(APIName api,
                        Option<Id> alias = Option.<Id>none());
-        /**
-         * export statement
-         * Export ::= export APINames
-         * e.g.) export Executable
-         */
-        Export(List<APIName> apis);
         /**
          * trait or object declaration in components or APIs
          * Name must be unqualified.

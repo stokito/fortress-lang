@@ -286,9 +286,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( String import_ : imports_result ){
             s.append( import_ ).append( "\n" );
         }
-        for ( String export_ : exports_result ){
-            s.append( export_ ).append( "\n" );
-        }
+        if (exports_result.size() == 0)
+            return bug(that, "A component should have at least one export statement.");
+        else
+            s = optCurlyBraces(s,"export ", exports_result, "");
+        s.append( "\n" );
         for ( String decl_ : decls_result ){
             s.append( decl_ ).append( "\n\n" );
         }
@@ -372,14 +374,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " as " ).append(alias_result.unwrap());
         }
         return s.toString();
-    }
-
-    @Override public String forExportOnly(Export that, List<String> apis_result) {
-        StringBuilder s = new StringBuilder();
-        if (apis_result.size() == 0)
-            return bug(that, "An export statement should have at least one API name.");
-        else
-            return optCurlyBraces(s,"export ", apis_result, "").toString();
     }
 
     @Override public String forAbsTraitDeclOnly(AbsTraitDecl that,

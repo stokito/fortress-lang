@@ -33,7 +33,6 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportNames;

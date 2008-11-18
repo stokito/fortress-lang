@@ -92,12 +92,6 @@ public class NodeUtil {
                 }
 
                 @Override
-                public void forExport(Export that){
-                    Debug.debug(Debug.Type.SYNTAX, 2, "Add export api ", that.getApis());
-                    all.addAll(that.getApis());
-                }
-
-                @Override
                 public void forImportApi(ImportApi that){
                     for (AliasedAPIName api : that.getApis()){
                         Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi());
@@ -105,6 +99,9 @@ public class NodeUtil {
                     }
                 }
             });
+        for (APIName api : comp.getExports()) {
+            all.add(api);
+        }
         return removeExecutableApi(all);
     }
 

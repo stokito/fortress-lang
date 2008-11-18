@@ -34,7 +34,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes._RewriteObjectExpr;
@@ -52,37 +51,37 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ComponentWrapper extends CUWrapper {
 
-    /* 
+    /*
      * Next three lines are for the "cache" of rewritten ASTs
      */
     private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
         @Override
         public String apply(APIName x) {
             return ProjectProperties.compFileName(ProjectProperties.INTERPRETER_CACHE_DIR, CacheBasedRepository.deCaseName(x));
-        } 
+        }
     };
     private static IOAst componentReaderWriter = new IOAst(toCompFileName);
-    private static DerivedFiles<CompilationUnit> componentCache = 
+    private static DerivedFiles<CompilationUnit> componentCache =
         new DerivedFiles<CompilationUnit>(componentReaderWriter);
-    
+
     public static boolean noCache;
-    
+
     Component transformed;
     boolean cacheDisabled;
-    
-    
+
+
     private Component getCached(ComponentIndex comp) {
         if (cacheDisabled)
             return null;
         else
             return  (Component) componentCache.get(comp.ast().getName(), comp.modifiedDate());
     }
-    
+
     public ComponentWrapper(ComponentIndex comp, HashMap<String, ComponentWrapper> linker,
             String[] implicitLibs) {
         super((Component) comp.ast(), linker, implicitLibs);
         cacheDisabled = noCache;
-        
+
         transformed = getCached(comp);
         // TODO Auto-generated constructor stub
     }
@@ -124,7 +123,7 @@ public class ComponentWrapper extends CUWrapper {
                 componentCache.put(transformed.getName(), transformed);
             }
         }
-        
+
         if (!cacheDisabled && exportsMain(transformed)) {
             // It's not a library, no point keeping this copy in memory.
             componentCache.forget(transformed.getName());
@@ -135,29 +134,27 @@ public class ComponentWrapper extends CUWrapper {
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
         be.getEnvironment().visit(nameCollector);
         comp_unit = cu;
-         
+
         for (String implicitLibraryName : implicitLibs) {
             be.importAPIName(implicitLibraryName);
         }
-        
+
         for (CUWrapper api: exports.values()) {
             be.importAPIName(api.name());
         }
-        
+
         for (APIWrapper api: exports.values()) {
             api.populateOne(this);
         }
 
         return cu;
     }
-    
+
     private boolean exportsMain(Component transformed2) {
-        List<Export> exports = transformed2.getExports();
-        for (Export e : exports) {
-            List<APIName> apis = e.getApis();
-            for (APIName a : apis)
-                if (a.getText().equals("Executable"))
-                    return true;
+        List<APIName> exports = transformed2.getExports();
+        for (APIName a : exports) {
+            if (a.getText().equals("Executable"))
+                return true;
         }
         return false;
     }
@@ -169,7 +166,7 @@ public class ComponentWrapper extends CUWrapper {
      */
     protected void registerObjectExprs(Environment env) {
         Component comp = (Component) comp_unit;
-        
+
             for (_RewriteObjectExpr oe : comp.getObjectExprs()) {
                 String name = oe.getGenSymName();
                 List<StaticParam> params = oe.getStaticParams();
@@ -195,7 +192,7 @@ public class ComponentWrapper extends CUWrapper {
                     env.putValue(name, con);
                 }
             }
-        
+
     }
     public Set<String> getTopLevelRewriteNames() {
         return desugarer.getTopLevelRewriteNames();

@@ -77,10 +77,10 @@ public class TopLevelEnvGen {
     }
 
     public static String mangleClassIdentifier(String identifier) {
-        String mangledString = identifier.replaceAll("\\.", "\\$");  
-        return mangledString;         
+        String mangledString = identifier.replaceAll("\\.", "\\$");
+        return mangledString;
     }
-    
+
     /**
      * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
      * Dangerous characters are the union of all characters forbidden
@@ -114,7 +114,7 @@ public class TopLevelEnvGen {
         if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {
             mangledString = "\\=" + mangledString;
         }
-        return mangledString; 
+        return mangledString;
     }
 
     /**
@@ -145,7 +145,7 @@ public class TopLevelEnvGen {
 
         return new CompilationUnitResult(compiledApis, errors);
     }
- 
+
     /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
@@ -231,7 +231,7 @@ public class TopLevelEnvGen {
             if (imports instanceof ImportApi) {
                 ImportApi importApi = (ImportApi) imports;
                 for (AliasedAPIName api : importApi.getApis()) {
-                    importedApiNames.add(NodeUtil.nameString(api.getApi()));                    
+                    importedApiNames.add(NodeUtil.nameString(api.getApi()));
                 }
             } else if (imports instanceof ImportedNames) {
                 ImportedNames importNames = (ImportedNames) imports;
@@ -240,26 +240,24 @@ public class TopLevelEnvGen {
                 throw StaticError.make("Unrecognized import type in bytecode generation", imports);
             }
         }
-        
+
         // XXX: SUPER DUPER HACKY
         // Rewrite the AST to include these builtin imports!
         for(String builtinLib : WellKnownNames.defaultLibrary) {
-            importedApiNames.add(builtinLib);            
+            importedApiNames.add(builtinLib);
         }
-        
+
         // Any names that are exported, are also "imported", which is to say,
         // the disambiguator will generate references to them, so we had better
         // have an answer.
         if (comp instanceof Component) {
             Component ccomp = (Component) comp;
-            for (Export e : ccomp.getExports()) {
-                for (APIName api : e.getApis()) {
-                    importedApiNames.add(NodeUtil.nameString(api));
-                }
+            for (APIName api : ccomp.getExports()) {
+                importedApiNames.add(NodeUtil.nameString(api));
             }
         }
-        
-        namesToFields(EnvironmentClass.ENVIRONMENT, cw, symbolNames, importedApiNames);        
+
+        namesToFields(EnvironmentClass.ENVIRONMENT, cw, symbolNames, importedApiNames);
     }
 
     /**
@@ -270,7 +268,7 @@ public class TopLevelEnvGen {
 
         // Create all variables as fields in the environment
         Set<String> idStringSet = new HashSet<String>();
-        for(Id id : compUnitIndex.variables().keySet()) {                        
+        for(Id id : compUnitIndex.variables().keySet()) {
             String idString = NodeUtil.nameString(id);
             if (idString.equals("_")) {
                 Variable v = compUnitIndex.variables().get(id);
@@ -284,17 +282,17 @@ public class TopLevelEnvGen {
                 // System.err.println(v);
                 // apply further mangling.
             }
-            idStringSet.add(idString);            
+            idStringSet.add(idString);
         }
-        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);
 
         // Create all functions as fields in the environment
         idStringSet.clear();
         for(IdOrOpOrAnonymousName id : compUnitIndex.functions().firstSet()) {
             String idString = NodeUtil.nameString(id);
-            idStringSet.add(idString);            
-        }        
-        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
+            idStringSet.add(idString);
+        }
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);
 
         // Create all types as fields in the environment
         idStringSet.clear();
@@ -302,7 +300,7 @@ public class TopLevelEnvGen {
             String idString = NodeUtil.nameString(id);
             idStringSet.add(idString);
         }
-        namesToFields(EnvironmentClass.FTYPE, cw, symbolNames, idStringSet); 
+        namesToFields(EnvironmentClass.FTYPE, cw, symbolNames, idStringSet);
 
         // Special case for singleton objects; get to the object through
         // its type
@@ -313,22 +311,22 @@ public class TopLevelEnvGen {
                 ObjectTraitIndex oti = (ObjectTraitIndex) tci;
                 if (oti.constructor().isNone()) {
                     String idString = WellKnownNames.obfuscatedSingletonConstructorName(NodeUtil.nameString(id), id);
-                    idStringSet.add(idString);                    
+                    idStringSet.add(idString);
                 }
             }
         }
-        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);        
-        
+        namesToFields(EnvironmentClass.FVALUE, cw, symbolNames, idStringSet);
+
         handleWeirdToplevelDecls(cw, compUnitIndex, symbolNames);
-        
+
         writeImportFields(cw, compUnitIndex, symbolNames);
     }
-    
+
     /**
      * Emits additional names for overloaded functions,
      * for temporaries generated by multiple assignment/init,
      * and for object expressions.
-     * 
+     *
      * @param cw
      * @param compUnitIndex
      * @param symbolNames
@@ -354,7 +352,7 @@ public class TopLevelEnvGen {
                     }
                 }
             }
-        
+
         // Scan for all object exprs in a component; the interpreter will
         // promote those to top level.
         NodeDepthFirstVisitor_void visitor = new NodeDepthFirstVisitor_void() {
@@ -372,8 +370,8 @@ public class TopLevelEnvGen {
             };
             compUnit.accept(visitor);
         }
-    }    
-    
+    }
+
     private static void namesToFields(EnvironmentClass nameSpace,
             ClassWriter cw, EnvSymbolNames symbolNames, Set<String> idStringSet) {
         for(String idString : idStringSet) {
@@ -387,13 +385,13 @@ public class TopLevelEnvGen {
         idString = idString + nameSpace.namespace();
         cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
         return;
-    }    
+    }
 
     /**
      * Generate the default constructor for this class.
      * This constructors calls the method setToplevel().
      * If this environment is not a top-level environment, then a default
-     * constructor does not need to be created.  (ASM will generate a 
+     * constructor does not need to be created.  (ASM will generate a
      * default constructor).
      */
     private static void writeMethodInit(ClassWriter cw, String className) {
@@ -413,7 +411,7 @@ public class TopLevelEnvGen {
 
     /**
      * Implementing "static reflection" for the method getFooRaw so the
-     * interpreter uses a switch instruction for ***GetRaw 
+     * interpreter uses a switch instruction for ***GetRaw
      * based on the hash values of String names in this namespace.
      */
     private static void writeMethodGetRaw(ClassWriter cw, String className,
@@ -438,19 +436,19 @@ public class TopLevelEnvGen {
         ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
         Label returnNull = new Label();
-        
+
         getRawHelper(mv, className, hashCodeRelation, environmentClass, sortedCodes, returnNull);
 
         mv.visitLabel(returnNull);
         mv.visitInsn(Opcodes.ACONST_NULL);
-        mv.visitInsn(Opcodes.ARETURN);        
-        
+        mv.visitInsn(Opcodes.ARETURN);
+
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
         mv.visitLocalVariable("this", "L" + className + ";", null, beginFunction, endFunction, 0);
         mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, beginFunction, endFunction, 1);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(2, 3);
         mv.visitEnd();
     }
@@ -504,7 +502,7 @@ public class TopLevelEnvGen {
 
     /**
      * Implementing "static reflection" for the method putRaw so the
-     * interpreter uses a switch instruction for ***PutRaw 
+     * interpreter uses a switch instruction for ***PutRaw
      * based on the hash values of String names in this namespace.
      */
     private static void writeMethodPutRaw(ClassWriter cw, String className,
@@ -523,14 +521,14 @@ public class TopLevelEnvGen {
         Label beginLoop = new Label();
         mv.visitLabel(beginLoop);
 
-        Relation<String, Integer> hashCodeRelation = symbolNames.makeHashCodeRelation(environmentClass);        
+        Relation<String, Integer> hashCodeRelation = symbolNames.makeHashCodeRelation(environmentClass);
         ArrayList<Integer> sortedCodes = new ArrayList<Integer>(hashCodeRelation.secondSet());
         Collections.sort(sortedCodes);
         Label notFound = new Label();
         putRawHelper(mv, className, environmentClass, hashCodeRelation, sortedCodes, notFound);
         mv.visitLabel(notFound);
-        mv.visitInsn(Opcodes.RETURN);        
-        Label endFunction = new Label();                
+        mv.visitInsn(Opcodes.RETURN);
+        Label endFunction = new Label();
         mv.visitLabel(endFunction);
         mv.visitLocalVariable("this", "L" + className + ";", null,
                 beginFunction, endFunction, 0);
@@ -538,7 +536,7 @@ public class TopLevelEnvGen {
                 beginFunction, endFunction, 1);
         mv.visitLocalVariable("value", environmentClass.descriptor(), null, beginFunction, endFunction, 2);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(2, 4);
         mv.visitEnd();
     }
@@ -559,12 +557,12 @@ public class TopLevelEnvGen {
         for(int i = 0; i < codes.length; i++) {
             mv.visitLabel(labels[i]);
             putRawBaseCase(mv, className, hashCodeRelation, environmentClass, codes[i], notFound);
-        }        
-        
+        }
+
     }
 
     private static void putRawBaseCase(MethodVisitor mv, String className,
-            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass, 
+            Relation<String, Integer> hashCodeRelation, EnvironmentClass environmentClass,
             int code, Label notFound ) {
 
         PredicateSet<String> strings = hashCodeRelation.matchSecond(code);
@@ -602,7 +600,7 @@ public class TopLevelEnvGen {
         mv.visitLabel(l1);
         mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
         mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(1, 2);
         mv.visitEnd();
     }
@@ -618,7 +616,7 @@ public class TopLevelEnvGen {
         mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
         mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
         mv.visitLocalVariable("f2", "Ljava/lang/Number;", null, l0, l1, 2);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(0, 3);
         mv.visitEnd();
     }
@@ -641,7 +639,7 @@ public class TopLevelEnvGen {
         mv.visitLabel(l2);
         mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
         mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(3, 2);
         mv.visitEnd();
     }
@@ -713,7 +711,7 @@ public class TopLevelEnvGen {
         mv.visitLabel(l9);
         mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
         mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
-        // See comment above on ClassWriter.COMPUTE_FRAMES        
+        // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(2, 2);
         mv.visitEnd();
     }
@@ -782,7 +780,7 @@ public class TopLevelEnvGen {
         for (APIName componentName : compiledCompUnits.keySet()) {
             Pair<String,byte[]> compOutput = compiledCompUnits.get(componentName);
             String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + compOutput.getA() + ".class";
-             outputClassFile(compOutput.getB(), fileName, errors); 
+             outputClassFile(compOutput.getB(), fileName, errors);
         }
     }
 
@@ -810,5 +808,3 @@ public class TopLevelEnvGen {
     }
 
 }
-
-

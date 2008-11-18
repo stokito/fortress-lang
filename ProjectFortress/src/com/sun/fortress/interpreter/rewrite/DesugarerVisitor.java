@@ -65,7 +65,6 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.EnsuresClause;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ExtentRange;
@@ -654,7 +653,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         APIName name_result = (APIName) recur(com.getName());
         List<Import> imports_result = recurOnListOfImport(com.getImports());
-        List<Export> exports_result = recurOnListOfExport(com.getExports());
+        List<APIName> exports_result = recurOnListOfAPIName(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
         AbstractNode nn =

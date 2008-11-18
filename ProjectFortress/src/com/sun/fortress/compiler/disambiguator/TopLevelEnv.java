@@ -45,7 +45,6 @@ import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -75,7 +74,7 @@ import edu.rice.cs.plt.tuple.Pair;
 
 public class TopLevelEnv extends NameEnv {
     private static final Set<String> WELL_KNOWN_APIS = Useful.set(WellKnownNames.fortressLibrary, WellKnownNames.fortressBuiltin, WellKnownNames.anyTypeName);
-    
+
     private final GlobalEnvironment _originalGlobalEnv; // environment as it is created by the compiler
     private final GlobalEnvironment _filteredGlobalEnv; // environment that only includes "imported" names
     private final CompilationUnitIndex _current;
@@ -94,7 +93,7 @@ public class TopLevelEnv extends NameEnv {
         _originalGlobalEnv = globalEnv;
         _current = current;
         _errors = errors;
-        
+
         GlobalEnvironment filtered_global_env;
         if( current instanceof ApiIndex ) {
          // Filter env based on what this api imports
@@ -104,13 +103,13 @@ public class TopLevelEnv extends NameEnv {
         else if( current instanceof ComponentIndex ) {
             //  Filter env based on what this component imports
             Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), ((Component)current.ast()));
-            filtered_global_env = new GlobalEnvironment.FromMap(filtered);            
+            filtered_global_env = new GlobalEnvironment.FromMap(filtered);
         }
         else {
             throw new IllegalArgumentException("Unanticipated subtype of CompilationUnitIndex.");
         }
         _filteredGlobalEnv = filtered_global_env;
-        
+
         _onDemandImportedApis = Collections.unmodifiableMap(initializeOnDemandImportedApis(filtered_global_env, current));
         _onDemandTypeConsNames = Collections.unmodifiableMap(initializeOnDemandTypeConsNames(_onDemandImportedApis));
         _onDemandVariableNames = Collections.unmodifiableMap(initializeOnDemandVariableNames(_onDemandImportedApis));
@@ -122,7 +121,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     /**
-     * Initializes the map of imported API names to ApiIndices. 
+     * Initializes the map of imported API names to ApiIndices.
      * Adds all imported and implicitly imported
      * Apis to a map that it returns.
      * For now, all imports are assumed to be on-demand imports.
@@ -130,7 +129,7 @@ public class TopLevelEnv extends NameEnv {
     private Map<APIName, ApiIndex> initializeOnDemandImportedApis(GlobalEnvironment globalEnv, CompilationUnitIndex current) {
         // TODO: Fix to support other kinds of imports.
         Set<APIName> imports = current.imports();
-        Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>(); 
+        Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>();
 
         // The following APIs are always imported, provided they exist.
         for (APIName api : implicitlyImportedApis()) {
@@ -183,7 +182,7 @@ public class TopLevelEnv extends NameEnv {
         // For now, we support only on demand imports.
         // TODO: Fix to support explicit imports and api imports. I don't think this is still a 'to-do'
         Map<Id, Set<Id>> result = new HashMap<Id, Set<Id>>();
-        
+
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (Map.Entry<Id, TypeConsIndex> typeEntry: apiEntry.getValue().typeConses().entrySet()) {
                 initializeEntry(apiEntry, typeEntry, result);
@@ -215,7 +214,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     private static OpName copyOpNameWithNewAPIName(OpName op, final APIName api) {
-    	OpName result = 
+    	OpName result =
     		op.accept(new NodeDepthFirstVisitor<OpName>(){
     			@Override
     			public OpName defaultCase(Node that) {
@@ -231,11 +230,11 @@ public class TopLevelEnv extends NameEnv {
     			}});
     	return result;
     }
-    
+
     private static Pair<Map<Id, Set<Id>>, Map<OpName, Set<OpName>>> initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) {
         Map<Id, Set<Id>> fun_result = new HashMap<Id, Set<Id>>();
         Map<OpName, Set<OpName>> ops_result =  new HashMap<OpName, Set<OpName>>();
-        
+
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
 
@@ -252,7 +251,7 @@ public class TopLevelEnv extends NameEnv {
                         matches.add(name);
                         fun_result.put(_fnName, matches);
                     }
-                } 
+                }
                 else { // fnName instanceof OpName
                     OpName _opName = (OpName)fnName;
                     OpName name = copyOpNameWithNewAPIName(_opName, apiEntry.getKey());
@@ -298,7 +297,7 @@ public class TopLevelEnv extends NameEnv {
             return Option.none();
         }
     }
-    
+
     @Override
     public Option<StaticParam> hasTypeParam(IdOrOpName name) {
         return Option.none();
@@ -320,13 +319,13 @@ public class TopLevelEnv extends NameEnv {
                 _current.dimensions().containsKey(name) ||
                 _current.units().containsKey(name)) {
 
-            // A name defined in this CU should only be qualified if this is an API 
+            // A name defined in this CU should only be qualified if this is an API
             Id result_id;
             if( _current instanceof ApiIndex )
                 result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
             else if( _current instanceof ComponentIndex )
                 result_id = apiQualifyIfComponentExports(((ComponentIndex)_current), name);
-            else 
+            else
                 result_id = name;
 
 
@@ -344,33 +343,33 @@ public class TopLevelEnv extends NameEnv {
      */
     private Id apiQualifyIfComponentExports(ComponentIndex comp, Id name) {
         Option<Id> result_ = Option.none();
-        
+
         for( APIName api_name : comp.exports() ) {
-            
+
             // TODO: We don't really need this, but for now since there is no Executable...
             if( !_originalGlobalEnv.definesApi(api_name) ) continue;
-            
+
             ApiIndex api = _originalGlobalEnv.api(api_name);
-            
+
             if( api.typeConses().containsKey(name) ) {
-                if( result_.isSome() ) 
+                if( result_.isSome() )
                     return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + name);
-                
+
                 result_ = Option.some(NodeFactory.makeId(api_name, name, name.getSpan()));
             }
         }
-        
+
         if( result_.isNone() )
             return name;
         else
             return result_.unwrap();
     }
 
-    public Set<Id> explicitVariableNames(Id name) {  	
+    public Set<Id> explicitVariableNames(Id name) {
         Set<Id> result = Collections.emptySet();
         if (_current.variables().containsKey(name) ||
                 _current.units().containsKey(name)) {
-            
+
             // A name defined in this CU should only be qualified if this is an API
             Id result_id;
             if( _current instanceof ApiIndex )
@@ -393,7 +392,7 @@ public class TopLevelEnv extends NameEnv {
 
     public Set<Id> explicitFunctionNames(Id name) {
     	Set<Id> result = Collections.emptySet();
-    	
+
     	// Add fns from this component
         if (_current.functions().containsFirst(name)) {
             // Only qualify name with an API if we are indeed inside of an API
@@ -402,10 +401,10 @@ public class TopLevelEnv extends NameEnv {
                 result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
             else
                 result_id = name;
-            
+
             result = CollectUtil.union(result, Collections.singleton(result_id));
         }
-        
+
         // Also add imports
         result = CollectUtil.union(result, this.onDemandFunctionNames(name));
 
@@ -423,7 +422,7 @@ public class TopLevelEnv extends NameEnv {
                 result_id = NodeFactory.makeOpName(_current.ast().getName(), name);
             else
                 result_id = name;
-                
+
             result = CollectUtil.union(result, Collections.singleton(result_id));
         }
 
@@ -583,24 +582,22 @@ public class TopLevelEnv extends NameEnv {
             return Option.none();
         }
     }
-    
+
     /**
      * Returns API names in the given list of exports that can be imported implicitly.
      * This helps, for example, when compiling FortressLibrary, since that is one API that
-     * is normally imported implicitly. 
+     * is normally imported implicitly.
      */
-    private static Set<APIName> findWellKnownExports(List<Export> exports) {
-        return IterUtil.fold(exports, new HashSet<APIName>(),new Lambda2<HashSet<APIName>,Export, HashSet<APIName>>(){
-            public HashSet<APIName> value(HashSet<APIName> arg0, Export arg1) {
-                for( APIName api : arg1.getApis() ) {
-                    if( WELL_KNOWN_APIS.contains(api.getText()) ) {
-                        arg0.add(api);
-                    }
+    private static Set<APIName> findWellKnownExports(List<APIName> exports) {
+        return IterUtil.fold(exports, new HashSet<APIName>(),new Lambda2<HashSet<APIName>,APIName, HashSet<APIName>>(){
+            public HashSet<APIName> value(HashSet<APIName> arg0, APIName api) {
+                if( WELL_KNOWN_APIS.contains(api.getText()) ) {
+                    arg0.add(api);
                 }
                 return arg0;
             }});
     }
-    
+
     private static  Map<APIName, ApiIndex> filterApis(Map<APIName,ApiIndex> apis, Component comp) {
         Set<APIName> dont_import = findWellKnownExports(comp.getExports());
         return filterApis(Collections.unmodifiableMap(apis), comp.getImports(), dont_import);
@@ -610,16 +607,16 @@ public class TopLevelEnv extends NameEnv {
         // Insert 'this' api as an implicit import. This kind of strange, but the grammars
         // need them at a minimum.
         Import this_api_import = new ImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"), api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
-        return filterApis(Collections.unmodifiableMap(apis), 
-                Useful.concat(Collections.singletonList(this_api_import), 
+        return filterApis(Collections.unmodifiableMap(apis),
+                Useful.concat(Collections.singletonList(this_api_import),
                         api.getImports()
                         )
                         , Collections.<APIName>emptySet());
     }
 
-    private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set, 
+    private static <K, T> Map<K,T> filterMap(Map<K,T> map, Set<? super K> set,
             Predicate<K> pred) {
-        
+
         Map<K,T> result = new HashMap<K,T>();
         for( Map.Entry<K, T> entry : map.entrySet() ) {
             if( pred.contains(entry.getKey()) ) {
@@ -628,27 +625,27 @@ public class TopLevelEnv extends NameEnv {
         }
         return result;
     }
-    
+
     private static <K, T> Map<K,T> removeHelper(Map<K,T> map, final Set<? super K> set) {
         Predicate<K> pred = new Predicate<K>() {
             public boolean contains(K arg1) {
                 return !set.contains(arg1);
             }};
-        
+
         return filterMap(map, set, pred);
     }
-    
+
     private static ApiIndex remove(ApiIndex index,
             final Set<IdOrOpOrAnonymousName> exceptions_) {
-        
+
         Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
 
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
                 return !exceptions_.contains(arg0);
             }
-            
+
         };
-        
+
         return new ApiIndex((Api)index.ast(),
                             removeHelper(index.variables(), exceptions_),
                             new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
@@ -658,27 +655,27 @@ public class TopLevelEnv extends NameEnv {
                             index.grammars(),
                             index.modifiedDate());
     }
-    
+
     private static <K, T> Map<K,T> keepHelper(Map<K,T> map, final Set<? super K> set) {
         Predicate<K> pred = new Predicate<K>() {
             public boolean contains(K arg1) {
                 return set.contains(arg1);
             }};
-        
+
         return filterMap(map, set, pred);
     }
-    
+
     private static ApiIndex keep(ApiIndex index,
             final Set<IdOrOpOrAnonymousName> allowed_) {
-        
+
         Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
 
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
                 return allowed_.contains(arg0);
             }
-            
+
         };
-        
+
         return new ApiIndex((Api)index.ast(),
                 keepHelper(index.variables(), allowed_),
                 new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
@@ -688,14 +685,14 @@ public class TopLevelEnv extends NameEnv {
                 index.grammars(),
                 index.modifiedDate());
     }
-    
+
     /**
      * Filter out whole apis or parts of apis based on the imports of a component or
-     * api. FortressBuiltin and AnyType are always imported, and FortressLibrary is only 
+     * api. FortressBuiltin and AnyType are always imported, and FortressLibrary is only
      * imported implicitly if it is not imported explicitly. If {@code do_not_import} contains
      * api names, those apis will not beimported no matter what.
      */
-    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) { 
+    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) {
         final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
         final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
 
@@ -721,7 +718,7 @@ public class TopLevelEnv extends NameEnv {
                 APIName name = that.getApi();
 
                 // TODO Handle these aliased names more thoroughly
-                List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(), 
+                List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(),
                         new Lambda<AliasedSimpleName,IdOrOpOrAnonymousName>(){
                     public IdOrOpOrAnonymousName value(
                             AliasedSimpleName arg0) {
@@ -771,7 +768,7 @@ public class TopLevelEnv extends NameEnv {
             else if( allowed.containsKey(name) ) {
                 Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
                 result.put(name, keep(index, allowed_));
-            } 
+            }
             else if( name.getText().equals(WellKnownNames.fortressBuiltin) ) {
                 // Fortress builtin is always implicitly imported
                 result.put(name, index);
