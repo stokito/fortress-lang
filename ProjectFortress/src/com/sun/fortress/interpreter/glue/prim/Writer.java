@@ -19,13 +19,13 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import java.io.BufferedWriter;
+import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.List;
-
-/* import java.lang.String; /* SPARE COPY  */
-import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -34,51 +34,56 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.interpreter.glue.NativeFn0;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.useful.Useful;
 
-public class FileWriteStream extends NativeConstructor {
+public class Writer extends NativeConstructor {
     private static NativeConstructor con = null;
 
-    public FileWriteStream(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public Writer(Environment env, FTypeObject selfType, GenericWithParams def) {
         super(env, selfType, def);
+        con = this;
     }
 
     @Override
 	protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
-    	FileWriteStream.con = con;
         String name = args.get(0).getString();
         try {
-            BufferedWriter r = Useful.utf8BufferedFileWriter(name);
-            return new PrimWriter(name, r);
+            OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(
+					name), Charset.forName("UTF-8"));
+			return new PrimWriter(name, w);
         } catch (FileNotFoundException ex) {
             return error("FileNotFound: "+name);
         }
     }
 
-    private static final class PrimWriter extends FNativeObject {
-        protected final BufferedWriter writer;
+    static final class PrimWriter extends FNativeObject {
+        protected final OutputStreamWriter writer;
         protected final String name;
 
-        public PrimWriter(String name, BufferedWriter writer) {
-            super(FileWriteStream.con);
+        public PrimWriter(String name, OutputStreamWriter writer) {
+			super(Writer.con);
             this.writer = writer;
             this.name = name;
         }
 
         @Override
 		public NativeConstructor getConstructor() {
-            return FileWriteStream.con;
+            return Writer.con;
         }
 
         @Override
 		public String getString() {
-            return "<Write handle to \""+name+"\">";
+            return "<Writer on \"" + name + "\">";
         }
 
+        public OutputStreamWriter getWriter() {
+			return writer;
+		}
+        
         @Override
 		public boolean seqv(FValue v) {
             return (v==this);
@@ -98,7 +103,8 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     private static abstract class wS2V extends NativeMeth1 {
-        protected abstract void f(BufferedWriter r, String s) throws IOException;
+        protected abstract void f(java.io.Writer r, String s)
+				throws IOException;
         @Override
 		protected final FValue act(FObject self, FValue s) {
             try {
@@ -111,7 +117,7 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     private static abstract class w2V extends NativeMeth0 {
-        protected abstract void f(BufferedWriter r) throws IOException;
+        protected abstract void f(java.io.Writer r) throws IOException;
         @Override
 		protected final FValue act(FObject self) {
             try {
@@ -130,34 +136,53 @@ public class FileWriteStream extends NativeConstructor {
         }
     }
 
-    public static final class toString extends w2S {
-        @Override
-		protected final String f(PrimWriter r) {
-            return r.getString();
-        }
-    }
-
     public static final class write extends wS2V {
         @Override
-		protected final void f(BufferedWriter w, String s) throws IOException {
+		protected final void f(java.io.Writer w, String s) throws IOException {
             w.append(s);
         }
     }
 
     public static final class flush extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+		protected void f(java.io.Writer w) throws IOException {
             w.flush();
         }
     }
 
     public static final class close extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+		protected void f(java.io.Writer w) throws IOException {
             w.close();
         }
     }
 
+    private static abstract class v2w extends NativeFn0 {
+		protected abstract FileDescriptor fileDescriptor();
+
+		@Override
+		protected final PrimWriter act() {
+			FileOutputStream fd = new FileOutputStream(fileDescriptor());
+			OutputStreamWriter stdout = new OutputStreamWriter(fd, Charset
+					.forName("UTF-8"));
+			return new PrimWriter("<stdout>", stdout);
+		}
+	}
+
+	public static final class outputWriter extends v2w {
+		@Override
+		protected FileDescriptor fileDescriptor() {
+			return FileDescriptor.out;
+		}
+	}
+
+	public static final class errorWriter extends v2w {
+		@Override
+		protected FileDescriptor fileDescriptor() {
+			return FileDescriptor.err;
+		}
+	}
+    
     @Override
     protected void unregister() {
         con = null;

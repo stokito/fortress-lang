@@ -1,0 +1,75 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component Streams
+import JavaString.JavaString
+export Streams
+
+(***********************************************************
+ * Types to support input and output
+ ***********************************************************)
+
+trait Closeable
+    close():()
+end
+
+trait FileStream extends Closeable
+    getter fileName():String
+end
+
+trait Consumable
+    consume():()
+    whenUnconsumed():()
+end
+
+trait WriteStream extends { Closeable }
+
+    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms 
+        for writing characters to  a %WriteStream%. **)
+        
+    abstract write(s: String):()
+    abstract write(c: Char):()
+    
+    (** %write(Any)% converts its argument to a String using %asString%
+        and appends the result to the stream. **)
+    write(x: Any):() =  
+            typecase x of
+                Object ⇒ write x.asString
+                else   ⇒ write ("" || x)                   (* handles tuples *)
+            end
+
+    (** %writes% converts each of the generated elements to a string
+        using %asString% unless the element is already a %String% in
+        which case it is left alone.  The resulting strings are
+        appended together to the end of the stream.  To avoid
+        interleaving with concurrent output to the same stream, this
+        append step is done monolithically. **)
+    writes(x:Generator[\Any\]):() = writes(x,"")   
+    writes(x: Generator[\Any\], rest: String):() =
+        write((BIG ||[e ← x] 
+                   typecase e of
+                        String ⇒ e
+                        Object ⇒ e.asString
+                        else   ⇒ ("" || e)                 (* handles tuples *)
+                   end) || rest)
+
+    (** %flush% any output to the stream that is still buffered. **)
+    abstract flush():()
+
+end WriteStream
+
+end Streams

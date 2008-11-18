@@ -19,13 +19,8 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-
-/* import java.lang.String; /* SPARE COPY  */
-import java.lang.String; /*  ECLIPSE MAY REMOVE THIS INCORRECTLY */
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -37,46 +32,41 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.nodes.GenericWithParams;
-import com.sun.fortress.useful.Useful;
 
-public class FileWriteStream extends NativeConstructor {
+public class BufferedWriter extends NativeConstructor {
     private static NativeConstructor con = null;
 
-    public FileWriteStream(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public BufferedWriter(Environment env, FTypeObject selfType,
+			GenericWithParams def) {
         super(env, selfType, def);
+        con = this;
     }
 
     @Override
-	protected FNativeObject makeNativeObject(List<FValue> args,
-                                             NativeConstructor con) {
-    	FileWriteStream.con = con;
-        String name = args.get(0).getString();
-        try {
-            BufferedWriter r = Useful.utf8BufferedFileWriter(name);
-            return new PrimWriter(name, r);
-        } catch (FileNotFoundException ex) {
-            return error("FileNotFound: "+name);
-        }
+    protected FNativeObject makeNativeObject(List<FValue> args,
+			NativeConstructor con) {
+		Writer.PrimWriter w = (Writer.PrimWriter) args.get(0);
+		int size = args.get(1).getInt();
+		return new BuffWriter(new java.io.BufferedWriter(w.getWriter(), size));
     }
 
-    private static final class PrimWriter extends FNativeObject {
-        protected final BufferedWriter writer;
-        protected final String name;
 
-        public PrimWriter(String name, BufferedWriter writer) {
-            super(FileWriteStream.con);
+    private static final class BuffWriter extends FNativeObject {
+		protected final java.io.BufferedWriter writer;
+
+		public BuffWriter(java.io.BufferedWriter writer) {
+			super(BufferedWriter.con);
             this.writer = writer;
-            this.name = name;
         }
 
         @Override
 		public NativeConstructor getConstructor() {
-            return FileWriteStream.con;
+            return BufferedWriter.con;
         }
 
         @Override
 		public String getString() {
-            return "<Write handle to \""+name+"\">";
+            return "<BufferedWriter on " + writer.toString() + ">";
         }
 
         @Override
@@ -86,11 +76,11 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     private static abstract class w2S extends NativeMeth0 {
-        protected abstract String f(PrimWriter r) throws IOException;
+        protected abstract String f(BuffWriter r) throws IOException;
         @Override
 		protected final FValue act(FObject self) {
             try {
-                return FString.make(f((PrimWriter)self));
+                return FString.make(f((BuffWriter) self));
             } catch (IOException e) {
                 return error("Write IOException on "+self.getString());
             }
@@ -98,11 +88,12 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     private static abstract class wS2V extends NativeMeth1 {
-        protected abstract void f(BufferedWriter r, String s) throws IOException;
+        protected abstract void f(java.io.BufferedWriter r, String s)
+				throws IOException;
         @Override
 		protected final FValue act(FObject self, FValue s) {
             try {
-                f(((PrimWriter)self).writer, s.getString());
+                f(((BuffWriter) self).writer, s.getString());
                 return FVoid.V;
             } catch (IOException e) {
                 return error("Write IOException on "+self.getString());
@@ -111,11 +102,11 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     private static abstract class w2V extends NativeMeth0 {
-        protected abstract void f(BufferedWriter r) throws IOException;
+        protected abstract void f(java.io.BufferedWriter r) throws IOException;
         @Override
 		protected final FValue act(FObject self) {
             try {
-                f(((PrimWriter)self).writer);
+                f(((BuffWriter) self).writer);
                 return FVoid.V;
             } catch (IOException e) {
                 return error("IOException on "+self.getString());
@@ -123,37 +114,31 @@ public class FileWriteStream extends NativeConstructor {
         }
     }
 
-    public static final class fileName extends w2S {
-        @Override
-		protected final String f(PrimWriter r) {
-            return r.name;
-        }
-    }
-
     public static final class toString extends w2S {
         @Override
-		protected final String f(PrimWriter r) {
+		protected final String f(BuffWriter r) {
             return r.getString();
         }
     }
 
     public static final class write extends wS2V {
         @Override
-		protected final void f(BufferedWriter w, String s) throws IOException {
-            w.append(s);
+		protected final void f(java.io.BufferedWriter w, String s)
+				throws IOException {
+			w.write(s);
         }
     }
 
     public static final class flush extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+		protected void f(java.io.BufferedWriter w) throws IOException {
             w.flush();
         }
     }
 
     public static final class close extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+		protected void f(java.io.BufferedWriter w) throws IOException {
             w.close();
         }
     }
