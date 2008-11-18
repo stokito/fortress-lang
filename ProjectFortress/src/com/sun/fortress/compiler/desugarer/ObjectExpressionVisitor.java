@@ -169,7 +169,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     @Override
     public Node forComponentOnly(Component that, APIName name_result,
                                      List<Import> imports_result,
-                                     List<Export> exports_result,
+                                     List<APIName> exports_result,
                                      List<Decl> decls_result,
                                      List<_RewriteObjectExpr> objectExprs) {
         // note objectExprs parameter is a temporary hack.

@@ -28,8 +28,7 @@ api FortressSyntax
     CompilationUnit : CompilationUnit
     Component : Component
     Api : Api
-    Exports : List[\Export\]
-    Export : Export
+    Exports : List[\APIName\]
     Imports : List[\Import\]
     Import : Import
   end

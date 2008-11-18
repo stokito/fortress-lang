@@ -23,7 +23,6 @@ import java.util.Collections;
 import junit.framework.Assert;
 
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FloatLiteralExpr;
 import com.sun.fortress.nodes.Id;
@@ -123,15 +122,6 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     APIName newAPIName(String a, String b, String c) {
         Span span1 = newSpan("cat", 1, 2, 3);
         return NodeFactory.makeAPIName(span1, Useful.list(newId(a), newId(b), newId(c)));
-    }
-
-    public void testExport() {
-        Span span1 = newSpan("cat", 1, 2, 3);
-        Export e1 = new Export(span1, FortressUtil.mkList(newAPIName("some", "exported", "apiname")));
-        Export e2 = new Export(span1, FortressUtil.mkList(newAPIName("some", "exported", "apiname")));
-        Export e3 = new Export(span1, FortressUtil.mkList(newAPIName("an", "exported", "apiname")));
-
-        een(e1, e2, e3);
     }
 
     /**

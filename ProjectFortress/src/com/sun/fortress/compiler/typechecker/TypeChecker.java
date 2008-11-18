@@ -2041,7 +2041,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					that.is_native(),
 					(APIName)name_result.ast(),
 					(List<Import>)TypeCheckerResult.astFromResults(imports_result),
-					(List<Export>)TypeCheckerResult.astFromResults(exports_result),
+					(List<APIName>)TypeCheckerResult.astFromResults(exports_result),
 					(List<Decl>)TypeCheckerResult.astFromResults(decls_result));
 
 		return TypeCheckerResult.compose(new_comp,
@@ -2208,11 +2208,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				some((Expr)withResult.ast()));
 
 		return TypeCheckerResult.compose(new_node, Types.BOTTOM, subtypeChecker, withResult);
-	}
-
-	@Override
-	public TypeCheckerResult forExportOnly(Export that, List<TypeCheckerResult> apis_result) {
-		return new TypeCheckerResult(that);
 	}
 
 	// Works for extremum expressions

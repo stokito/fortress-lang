@@ -92,7 +92,6 @@ private Component Component =
      }
    / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w a4:Exports w (_)*
      { if (a3 == null) a3 = Collections.<Import>emptyList();
-       // List<Export> a4 = Collections.<Export>emptyList();
        List<Decl> a5 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
@@ -262,12 +261,15 @@ private List<AliasedAPIName> AliasedAPINameList =
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* Exports ::= Export (br Export)* */
-private List<Export> Exports = a1:Export a2s:(br Export)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+private List<APIName> Exports = a1:Export a2s:(br Export)*
+     { yyValue = a1;
+       for (List<APIName> export : a2s.list()) {
+           a1.addAll(export);
+       }
+     };
 
 /* Export ::= export w APINames */
-private Export Export = export w a1:APINames
-     { yyValue = new Export(createSpan(yyStart,yyCount), a1); };
+private List<APIName> Export = export w APINames;
 
 /* APINames ::=
      APIName

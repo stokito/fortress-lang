@@ -25,7 +25,6 @@ import java.util.Set;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Export;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.VarDecl;
@@ -44,7 +43,7 @@ public class ComponentIndex extends CompilationUnitIndex {
                           Map<Id, Dimension> dimensions,
                           Map<Id, Unit> units,
                           long modifiedDate) {
-        super(ast, variables, functions, typeConses, 
+        super(ast, variables, functions, typeConses,
               dimensions, units, modifiedDate);
         _initializers = initializers;
     }
@@ -54,13 +53,11 @@ public class ComponentIndex extends CompilationUnitIndex {
     }
 
     @Override
-    public Set<APIName> exports() { 
-        List<Export> exports = ((Component)ast()).getExports();
+    public Set<APIName> exports() {
+        List<APIName> exports = ((Component)ast()).getExports();
         Set<APIName> result = new HashSet<APIName>();
 
-        for( Export export : exports ) {
-            result.addAll(export.getApis());
-        }
+        result.addAll(exports);
         return result;
     }
 
