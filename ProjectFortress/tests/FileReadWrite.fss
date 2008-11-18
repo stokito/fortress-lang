@@ -18,6 +18,8 @@
 component FileReadWrite
 import File.{...}
 import FileSupport.{...}
+import Writer.{...}
+import Streams.{...}
 export Executable
 
 shouldBeTheSame(a:String, b:String, diag:String,f:String):() =
@@ -61,18 +63,22 @@ genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: St
     rs3.close()
     shouldBeTheSame(s,res3,"Generated sequentially via comprehension using ",desc)
   end
+  
+createTestFile(fout: WriteStream): String = do
+      s0 = "Writing into a file..."//
+      s1 = "Writing again..."//
+      s2 = "And an unterminated line."
+      s = s0 s1 s2
+      fout.write(s0)
+      fout.write(s1)
+      fout.write(s2)
+      fout.close()
+      s
+  end
 
 run(args:String...) = do
-  s0 = "Writing into a file..."//
-  s1 = "Writing again..."//
-  s2 = "And an unterminated line."
-  s = s0 s1 s2
-  fout: FileWriteStream = FileWriteStream("testFile.txt")
-  fout.print(s0)
-  fout.print(s1)
-  fout.print(s2)
-  fout.close()
-
+  s = createTestFile(Writer("testFile.txt"))
+  
   (* Note that we can't distinguish the non-terminated final line when
      we use readLine.  We'll always get a final empty line. *)
   streamTest(s//, "\n", fn (rs) => rs.readLine(),"readLine")
@@ -80,7 +86,7 @@ run(args:String...) = do
       c = rs.readChar()
       if c = char(0) then "" else "" c end
     end
-  streamTest(s, "", rdChar,"readChar")
+  streamTest(s, "", rdChar, "readChar")
   streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
   streamTest(s, "", fn (rs) => rs.read(),"read()")
 
@@ -90,6 +96,9 @@ run(args:String...) = do
   genTest[\String\](s, "", fn (rs) => rs.chunks(), "chunks()")
   genTest[\Char\](s, "", fn (rs) => rs.chunks().nest[\Char\](identity[\String\]),
                "exploded characters")
+  
+  _ = createTestFile(BufferedWriter(Writer("testFile.txt"), 23))
+  streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
 end
 
 end
