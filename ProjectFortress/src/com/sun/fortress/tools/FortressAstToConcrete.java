@@ -2611,31 +2611,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forOrConstraintOnly(OrConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        return handleParen( left_result + " OR " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forAndConstraintOnly(AndConstraint that,
-                                                 String left_result,
-                                                 String right_result) {
-        return handleParen( left_result + " AND " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forImpliesConstraintOnly(ImpliesConstraint that,
-                                                     String left_result,
-                                                     String right_result) {
-        return handleParen( left_result + " IMPLIES " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forBEConstraintOnly(BEConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        return handleParen( left_result + " = " + right_result,
+    @Override public String forBinaryBoolConstraintOnly(BinaryBoolConstraint that,
+                                                        String op,
+                                                        String left_result,
+                                                        String right_result) {
+        return handleParen( left_result + " " + op + " " + right_result,
                             that.isParenthesized() );
     }
 

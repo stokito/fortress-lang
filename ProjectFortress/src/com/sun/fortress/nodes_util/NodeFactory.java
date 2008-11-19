@@ -1129,21 +1129,9 @@ public class NodeFactory {
             public BoolExpr forNotConstraint(NotConstraint b) {
                 return new NotConstraint(b.getSpan(), true, b.getBool());
             }
-            public BoolExpr forOrConstraint(OrConstraint b) {
-                return new OrConstraint(b.getSpan(), true, b.getLeft(),
-                        b.getRight());
-            }
-            public BoolExpr forAndConstraint(AndConstraint b) {
-                return new AndConstraint(b.getSpan(), true, b.getLeft(),
-                        b.getRight());
-            }
-            public BoolExpr forImpliesConstraint(ImpliesConstraint b) {
-                return new ImpliesConstraint(b.getSpan(), true, b.getLeft(),
-                        b.getRight());
-            }
-            public BoolExpr forBEConstraint(BEConstraint b) {
-                return new BEConstraint(b.getSpan(), true, b.getLeft(),
-                        b.getRight());
+            public BoolExpr forBinaryBoolConstraint(BinaryBoolConstraint b) {
+                return new BinaryBoolConstraint(b.getSpan(), true, b.getOp(),
+                                                b.getLeft(), b.getRight());
             }
             public BoolExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
