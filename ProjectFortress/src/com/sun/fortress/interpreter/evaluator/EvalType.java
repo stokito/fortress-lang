@@ -358,17 +358,24 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             public FType forNotConstraint(NotConstraint n) {
                 return Bool.make(!boolify(n.getBool()));
             }
-            public FType forOrConstraint(OrConstraint n) {
-                return Bool.make(boolify(n.getLeft()) || boolify(n.getRight()));
+
+            private boolean boolOp(BinaryBoolConstraint n, String op, boolean left, boolean right) {
+                if ( op.equals("OR") )
+                    return left || right;
+                else if ( op.equals("AND") )
+                    return left && right;
+                else if ( op.equals("IMPLIES") )
+                    return !left || right;
+                else if ( op.equals("=") )
+                    return left == right;
+                else
+                    bug(n, errorMsg("EvalType: ", n.getClass(),
+                                    " is not a subtype of BoolExpr."));
+                return false;
             }
-            public FType forAndConstraint(AndConstraint n) {
-                return Bool.make(boolify(n.getLeft()) && boolify(n.getRight()));
-            }
-            public FType forImpliesConstraint(ImpliesConstraint n) {
-                return Bool.make(!boolify(n.getLeft()) || boolify(n.getRight()));
-            }
-            public FType forBEConstraint(BEConstraint n) {
-                return Bool.make(boolify(n.getLeft()) == boolify(n.getRight()));
+            public FType forBinaryBooluConstraint(BinaryBoolConstraint n) {
+                Op op = (Op)n.getOp().getOriginalName();
+                return Bool.make(boolOp(n, op.getText(), boolify(n.getLeft()), boolify(n.getRight())));
             }
             public FType defaultCase(Node x) {
                 return bug(x, errorMsg("EvalType: ", x.getClass(),

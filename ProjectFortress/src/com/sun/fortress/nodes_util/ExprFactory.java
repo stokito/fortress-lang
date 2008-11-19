@@ -254,6 +254,11 @@ public class ExprFactory {
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
     }
 
+    public static OpRef makeOpRef(Span span, String name) {
+        OpName op = NodeFactory.makeOpInfix(span, name);
+        return new OpRef(span, op, Collections.singletonList(op));
+    }
+
     public static OpRef makeOpRef(OpName op) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }

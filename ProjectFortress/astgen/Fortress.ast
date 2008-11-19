@@ -1642,33 +1642,13 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                     NotConstraint(BoolExpr bool);
                     /**
                      * binary boolean constraint
+                     * BoolConstraint ::= BoolExpr OR BoolExpr
+                     *                  | BoolExpr AND BoolExpr
+                     *                  | BoolExpr IMPLIES BoolExpr
+                     *                  | BoolExpr = BoolExpr
                      * e.g.) ninf OR pinf
                      */
-                    abstract BinaryBoolConstraint(BoolExpr left, BoolExpr right);
-                        /**
-                         * boolean OR constraint
-                         * BoolConstraint ::= BoolExpr OR BoolExpr
-                         * e.g.) ninf OR pinf
-                         */
-                        OrConstraint();
-                        /**
-                         * boolean AND constraint
-                         * BoolConstraint ::= BoolExpr AND BoolExpr
-                         * e.g.) ninf AND pinf
-                         */
-                        AndConstraint();
-                        /**
-                         * boolean IMPLIES constraint
-                         * BoolConstraint ::= BoolExpr IMPLIES BoolExpr
-                         * e.g.) ninf IMPLIES pinf
-                         */
-                        ImpliesConstraint();
-                        /**
-                         * boolean equality constraint
-                         * BoolConstraint ::= BoolExpr = BoolExpr
-                         * e.g.) ninf = pinf
-                         */
-                        BEConstraint();
+                    BinaryBoolConstraint(OpRef op, BoolExpr left, BoolExpr right);
             /**
              * unit expression
              * StaticExpr ::= UnitExpr

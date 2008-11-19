@@ -228,23 +228,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "NOT(" + node.getBool().accept(this) + ")";
     }
 
-    private String forBoolOpConstraint(BinaryBoolConstraint node, String op) {
-        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
-    }
-    public String forAndConstraint(AndConstraint node) {
-        return forBoolOpConstraint(node, " AND ");
-    }
-
-    public String forOrConstraint(OrConstraint node) {
-        return forBoolOpConstraint(node, " OR ");
-    }
-
-    public String forImpliesConstraint(ImpliesConstraint node) {
-        return forBoolOpConstraint(node, " IMPLIES ");
-    }
-
-    public String forBEConstraint(BEConstraint node) {
-        return forBoolOpConstraint(node, " IFF ");
+    private String forBoolOpConstraint(BinaryBoolConstraint node) {
+        return "(" + node.getLeft().accept(this) + node.getOp().accept(this) + node.getRight().accept(this) + ")";
     }
 
     public String forVarRef(VarRef node) {
