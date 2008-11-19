@@ -773,6 +773,19 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forTraitType(TraitType vre) {
         return visitNode(vre);
     }
+    @Override
+    public Node forTraitTypeWhere(TraitTypeWhere vre) {
+        lexicalNestingDepth++;
+        Option<WhereClause> owc = vre.getWhere();
+        if (owc.isSome()) {
+            WhereClause wc = owc.unwrap();
+            List<WhereBinding> lwb = wc.getBindings();
+            for (WhereBinding wb : lwb) {
+                rewrites_put(wb.getName().getText(), new Local());
+            }
+        }
+        return visitNode(vre);
+    }
 
 
     @Override
@@ -876,7 +889,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             // Introduce a temporary, then initialize elements
             // piece-by-piece.
             Expr init = vd.getInit();
-            init = (Expr) visitNode(init);
+            init = (Expr) recur(init);
             lhs = (List<LValue>) recurOnListOfLValue(lhs);
             ArrayList<VarDecl> newdecls = new ArrayList<VarDecl>(1+lhs.size());
             String temp = WellKnownNames.tempTupleName(vd);
