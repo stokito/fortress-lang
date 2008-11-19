@@ -48,7 +48,7 @@ AbsVarDecl ApiFldDecl =
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
-     { List<LValueBind> lvs;
+     { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        FortressUtil.validId(lvs);
@@ -59,7 +59,7 @@ AbsVarDecl ApiFldDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            syntaxError(span, "Mismatched numbers of variables and types.");
-       List<LValueBind> lvs;
+       List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
        FortressUtil.validId(lvs);

@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.Applicable;
@@ -83,8 +83,8 @@ public class BuildTraitEnvironment extends BuildEnvironments {
 
     public Boolean forVarDecl(VarDecl x) {
         if (fields != null) {
-            List<LValueBind> lhs = x.getLhs();
-            for (LValueBind lvb : lhs) {
+            List<LValue> lhs = x.getLhs();
+            for (LValue lvb : lhs) {
                 Id name = lvb.getName();
                 String s = NodeUtil.nameString(name);
                 fields.add(s);

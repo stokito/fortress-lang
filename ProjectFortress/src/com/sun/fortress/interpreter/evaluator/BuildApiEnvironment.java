@@ -33,11 +33,11 @@ import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes_util.NodeUtil;
 
 public class BuildApiEnvironment extends BuildTopLevelEnvironments {
-    
+
     @Override
     public Boolean forAbsFnDecl(AbsFnDecl x) {
         Boolean change = Boolean.FALSE;
@@ -72,14 +72,14 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             typeNames.add(fname);
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
             FType ft = exporter.getEnvironment().getRootTypeNull(fname); // toplevel
-            
+
             // This is overloadable if the object is NOT a singleton.
             if (x.getParams().isSome()) {
                 overloadNames.add(fname);
-                exporter.overloadableExportedFunction.add(fname);             
-                api.overloadableExportedFunction.add(fname);             
+                exporter.overloadableExportedFunction.add(fname);
+                api.overloadableExportedFunction.add(fname);
             }
-            
+
             if (fv != null) {
                 bindInto.putValueRaw(fname, fv);
                 change = Boolean.TRUE;
@@ -97,7 +97,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
                 //exporter.missingExportedTypes.put(fname);
             }
             handlePossibleFM(x.getDecls());
-            
+
         }
         return change;
     }
@@ -126,10 +126,10 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     public Boolean forAbsVarDecl(AbsVarDecl x) {
         // super.forAbsVarDecl(x);
         Boolean change = Boolean.FALSE;
-        
+
         if (getPass() == 1) {
-            List<LValueBind> lhs = x.getLhs();
-            LValueBind lvb = lhs.get(0); // Have desugared to single vars
+            List<LValue> lhs = x.getLhs();
+            LValue lvb = lhs.get(0); // Have desugared to single vars
             Id name = lvb.getName();
             String sname = NodeUtil.stringName(name);
             valNames.add(sname);
@@ -148,19 +148,19 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
 
     CUWrapper exporter;
     CUWrapper api;
-    
+
     @Override
     public void setExporterAndApi(CUWrapper exporter, CUWrapper api) {
         this.exporter = exporter;
         this.api = api;
     }
-    
+
     public BuildApiEnvironment(Environment within,
             Map<String, ComponentWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }
-    
+
     private void handlePossibleFM(List<? extends AbsDeclOrDecl> tdecls) {
         for (AbsDeclOrDecl adod : tdecls) {
             ArrowOrFunctional aof = adod
@@ -178,7 +178,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
                     bindInto.putValueRaw(s, fv);
                 } else {
                     // TODO not handling this quite yet.
-                    
+
                     //exporter.missingExportedVars.put(s);
                 }
             }
@@ -186,5 +186,5 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         }
     }
 
-    
+
 }

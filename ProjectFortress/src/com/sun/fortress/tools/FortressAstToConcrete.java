@@ -602,19 +602,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     private List<Boolean> isMutables(List<LValue> lhs) {
         return Useful.applyToAll( lhs, new Fn<LValue,Boolean>(){
             public Boolean apply( LValue value ){
-                return value.accept( new NodeDepthFirstVisitor<Boolean>(){
-                    @Override public Boolean forLValueBind(LValueBind that) {
-                        return that.isMutable();
-                    }
-
-                    @Override public Boolean forUnpastingBind(UnpastingBind that) {
-                        return false;
-                    }
-
-                    @Override public Boolean forUnpastingSplit(UnpastingSplit that) {
-                        return false;
-                    }
-                });
+                return value.isMutable();
             }
         });
 
@@ -626,8 +614,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         List<LValue> lhs = new ArrayList<LValue>();
-        for ( LValueBind lv : that.getLhs() ) {
-            lhs.add( (LValue)lv );
+        for ( LValue lv : that.getLhs() ) {
+            lhs.add( lv );
         }
         List<Boolean> mutables = isMutables( lhs );
         if ( mutables.contains( true ) &&
@@ -645,10 +633,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forLValueBindOnly(LValueBind that,
-                                              String name_result,
-                                              Option<String> type_result,
-                                              List<String> mods_result) {
+    @Override public String forLValueOnly(LValue that,
+                                          String name_result,
+                                          Option<String> type_result,
+                                          List<String> mods_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( join(mods_result, " ") );
@@ -661,28 +649,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( handleType(type_result.unwrap()) );
         }
 
-        return s.toString();
-    }
-
-    @Override public String forUnpastingBindOnly(UnpastingBind that,
-                                                 String name_result,
-                                                 List<String> dim_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( name_result );
-        if ( ! dim_result.isEmpty() ) {
-            s.append( "[ " );
-            s.append( join(dim_result, " BY ") );
-            s.append( " ]" );
-        }
-
-        return s.toString();
-    }
-
-    @Override public String forUnpastingSplitOnly(UnpastingSplit that,
-                                                  List<String> elems_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( join(elems_result, "\n") );
         return s.toString();
     }
 
@@ -1710,8 +1676,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         List<String> lhs_result = recurOnListOfLValue(that.getLhs());
         Option<String> rhs_result = recurOnOptionOfExpr(that.getRhs());
         for (LValue lv : that.getLhs()) {
-            if ( lv instanceof LValueBind )
-                locals.add(((LValueBind)lv).getName().getText());
+            locals.add(lv.getName().getText());
         }
         List<String> body_result = recurOnListOfExpr(that.getBody());
         return forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);

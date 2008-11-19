@@ -274,7 +274,7 @@ public class TopLevelEnvGen {
                 Variable v = compUnitIndex.variables().get(id);
                 if (v instanceof DeclaredVariable) {
                     DeclaredVariable dv = (DeclaredVariable) v;
-                    LValueBind lvb = dv.ast();
+                    LValue lvb = dv.ast();
                     idString = WellKnownNames.tempForUnderscore(lvb.getName());
                 } else {
                     throw new Error("unhandled case for _ variable");
@@ -345,7 +345,7 @@ public class TopLevelEnvGen {
                 } else if (decl instanceof VarDecl) {
                     // The interpreter rewrites a temporary for multiple assignment.
                     VarDecl vd = (VarDecl) decl;
-                    List<LValueBind> lhs = vd.getLhs();
+                    List<LValue> lhs = vd.getLhs();
                     if (lhs.size() > 1) {
                         String idString = WellKnownNames.tempTupleName(vd);
                         nameToField(EnvironmentClass.FVALUE, cw, symbolNames, idString);

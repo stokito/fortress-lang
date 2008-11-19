@@ -421,17 +421,7 @@ public class NodeUtil {
 
     /* stringNames *********************************************************/
     public static IterableOnce<String> stringNames(LValue lv) {
-        return lv.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
-            public IterableOnce<String> forLValueBind(LValueBind d) {
-                return new UnitIterable<String>(d.getName().getText());
-            }
-            public IterableOnce<String> forUnpastingBind(UnpastingBind d) {
-                return new UnitIterable<String>(d.getName().getText());
-            }
-            public IterableOnce<String> forUnpastingSplit(UnpastingSplit d) {
-                return new IterableOnceForLValueList(d.getElems());
-            }
-        });
+        return new UnitIterable<String>(lv.getName().getText());
     }
 
     public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {

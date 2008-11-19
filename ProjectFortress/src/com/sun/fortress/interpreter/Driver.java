@@ -80,7 +80,6 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.ImportedNames;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;

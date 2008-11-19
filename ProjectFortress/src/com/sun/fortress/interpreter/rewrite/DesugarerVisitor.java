@@ -82,7 +82,6 @@ import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.MathPrimary;
@@ -112,9 +111,6 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.Typecase;
-import com.sun.fortress.nodes.Unpasting;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FnRef;
@@ -751,7 +747,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         return visitNode(that);
     }
     @Override
-    public Node forLValueBind(LValueBind lvb) {
+    public Node forLValue(LValue lvb) {
         Id id = lvb.getName();
         if ("_".equals(id.getText())) {
             Id newId = new Id(id.getSpan(), WellKnownNames.tempForUnderscore(id));
@@ -874,21 +870,21 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forVarDecl(VarDecl vd) {
         atTopLevelInsideTraitOrObject = false;
-        List<LValueBind> lhs = vd.getLhs();
+        List<LValue> lhs = vd.getLhs();
 
         if (lhs.size() > 1) {
             // Introduce a temporary, then initialize elements
             // piece-by-piece.
             Expr init = vd.getInit();
             init = (Expr) visitNode(init);
-            lhs = (List<LValueBind>) recurOnListOfLValueBind(lhs);
+            lhs = (List<LValue>) recurOnListOfLValue(lhs);
             ArrayList<VarDecl> newdecls = new ArrayList<VarDecl>(1+lhs.size());
             String temp = WellKnownNames.tempTupleName(vd);
             Span at = vd.getSpan();
             VarDecl new_vd = NodeFactory.makeVarDecl(at, temp, init);
             newdecls.add(new_vd);
             int element_index = 0;
-            for (LValueBind lv : lhs) {
+            for (LValue lv : lhs) {
                 Id newName = new Id(at, "$" + element_index);
                 newdecls.add(new VarDecl(at, Useful.list(lv),
                         new _RewriteFieldRef(at, false, init, newName)));
@@ -1363,7 +1359,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
 
         @Override
-        public void forLValueBind(LValueBind that) {
+        public void forLValue(LValue that) {
             that.getName().accept(this);
         }
 
@@ -1371,19 +1367,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         public void forId(Id that) {
             String s = that.getText();
             rewrites_put(s, new Local());
-        }
-
-        @Override
-        public void forUnpastingBind(UnpastingBind that) {
-            that.getName().accept(this);
-            for (ExtentRange er : that.getDim())
-                er.accept(this);
-        }
-
-        @Override
-        public void forUnpastingSplit(UnpastingSplit that) {
-            for (Unpasting up : that.getElems())
-                up.accept(this);
         }
 
     };

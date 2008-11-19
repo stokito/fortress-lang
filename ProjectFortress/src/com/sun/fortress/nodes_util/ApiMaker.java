@@ -70,9 +70,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 }
 
                 @Override public Boolean forVarDecl(VarDecl that) {
-                    List<LValueBind> lhs = that.getLhs();
+                    List<LValue> lhs = that.getLhs();
                     boolean result = false;
-                    for (LValueBind lv : lhs) {
+                    for (LValue lv : lhs) {
                         if ( containsPrivate(lv.getMods()) )
                             result = true;
                     }
@@ -153,8 +153,8 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
      */
     public Option<Node> forVarDecl(VarDecl that) {
         if ( ! isPrivate(that) ) {
-            List<LValueBind> lhs = new ArrayList<LValueBind>();
-            for (LValueBind lvb : that.getLhs()) {
+            List<LValue> lhs = new ArrayList<LValue>();
+            for (LValue lvb : that.getLhs()) {
                 if ( lvb.getType().isNone() )
                     log(lvb, "The type of " + lvb.getName() + " is required.");
                 if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {

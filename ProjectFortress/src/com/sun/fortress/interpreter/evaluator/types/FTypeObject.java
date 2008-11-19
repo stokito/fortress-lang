@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.VarAbsDeclOrDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -65,7 +65,7 @@ public class FTypeObject extends FTraitOrObject {
         this.declaredMembersOf = new BetterEnv(at);
         for(AbsDeclOrDecl v : members) {
             if (v instanceof VarAbsDeclOrDecl) {
-                for (LValueBind lhs : ((VarAbsDeclOrDecl)v).getLhs()) {
+                for (LValue lhs : ((VarAbsDeclOrDecl)v).getLhs()) {
                     fields.add(lhs.getName());
                 }
                 if (params.isSome()) {

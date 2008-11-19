@@ -717,99 +717,99 @@ public class NodeFactory {
         return new VarType(span, id);
     }
 
-    public static LValueBind makeLValue(Id id) {
-        return new LValueBind(id.getSpan(), id);
+    public static LValue makeLValue(Id id) {
+        return new LValue(id.getSpan(), id);
     }
 
-    public static LValueBind makeLValue(String name, String type) {
+    public static LValue makeLValue(String name, String type) {
         return makeLValue(name, makeVarType(type));
     }
 
-    public static LValueBind makeLValue(Id name, Id type) {
-        return new LValueBind(new Span(name.getSpan(), type.getSpan()),
+    public static LValue makeLValue(Id name, Id type) {
+        return new LValue(new Span(name.getSpan(), type.getSpan()),
                               name,
                               Option.some((Type)makeVarType(type.getSpan(),type)),
                               Collections.<Modifier>emptyList(),
                               false);
     }
 
-    public static LValueBind makeLValue(Id name, Type type) {
-        return new LValueBind(new Span(name.getSpan(), type.getSpan()),
+    public static LValue makeLValue(Id name, Type type) {
+        return new LValue(new Span(name.getSpan(), type.getSpan()),
                 name,
                 Option.some(type),
                 Collections.<Modifier>emptyList(),
                 false);
     }
 
-    public static LValueBind makeLValue(Id name, Option<Type> type) {
-        return new LValueBind(name.getSpan(),
+    public static LValue makeLValue(Id name, Option<Type> type) {
+        return new LValue(name.getSpan(),
                 name,
                 type,
                 Collections.<Modifier>emptyList(),
                 false);
     }
 
-    public static LValueBind makeLValue(String name, Type type) {
-        return new LValueBind(type.getSpan(), makeId(name), Option.some(type),
+    public static LValue makeLValue(String name, Type type) {
+        return new LValue(type.getSpan(), makeId(name), Option.some(type),
                 Collections.<Modifier>emptyList(), false);
     }
 
-    public static LValueBind makeLValue(String name, Type type, List<Modifier> mods) {
-        LValueBind result = makeLValue(name, type);
+    public static LValue makeLValue(String name, Type type, List<Modifier> mods) {
+        LValue result = makeLValue(name, type);
         return makeLValue(result, mods);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, Id name) {
-        return new LValueBind(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
+    public static LValue makeLValue(LValue lvb, Id name) {
+        return new LValue(lvb.getSpan(), name, lvb.getType(), lvb.getMods(),
                               lvb.isMutable());
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+    public static LValue makeLValue(LValue lvb, boolean mutable) {
+        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               lvb.getMods(), mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods) {
+    public static LValue makeLValue(LValue lvb, List<Modifier> mods) {
         boolean mutable = lvb.isMutable();
         for (Modifier m : mods) {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               mods, mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, List<Modifier> mods,
+    public static LValue makeLValue(LValue lvb, List<Modifier> mods,
             boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(), lvb.getType(),
+        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getType(),
                               mods, mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, Type ty) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+    public static LValue makeLValue(LValue lvb, Type ty) {
+        return new LValue(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), lvb.getMods(),
                               lvb.isMutable());
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, Type ty,
+    public static LValue makeLValue(LValue lvb, Type ty,
             boolean mutable) {
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+        return new LValue(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), lvb.getMods(), mutable);
     }
 
-    public static LValueBind makeLValue(LValueBind lvb, Type ty,
+    public static LValue makeLValue(LValue lvb, Type ty,
             List<Modifier> mods) {
         boolean mutable = lvb.isMutable();
         for (Modifier m : mods) {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValueBind(lvb.getSpan(), lvb.getName(),
+        return new LValue(lvb.getSpan(), lvb.getName(),
                               Option.some(ty), mods, mutable);
     }
 
-    public static LValueBind makeLValue(NormalParam param) {
-        return new LValueBind(param.getSpan(), param.getName(),
+    public static LValue makeLValue(NormalParam param) {
+        return new LValue(param.getSpan(), param.getName(),
                 param.getType(), param.getMods(), false);
     }
 
@@ -1092,30 +1092,30 @@ public class NodeFactory {
         return new OpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
     }
 
-    public static AbsVarDecl makeAbsVarDecl(Span span, List<LValueBind> lvals) {
+    public static AbsVarDecl makeAbsVarDecl(Span span, List<LValue> lvals) {
         FortressUtil.validId(lvals);
         return new AbsVarDecl(span, lvals);
     }
 
-    public static VarDecl makeVarDecl(Span span, List<LValueBind> lvals, Expr init) {
+    public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Expr init) {
         FortressUtil.validId(lvals);
         return new VarDecl(span, lvals, init);
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
         FortressUtil.validId(name);
-        LValueBind bind = new LValueBind(span, name, Option.<Type>none(),
+        LValue bind = new LValue(span, name, Option.<Type>none(),
                 Collections.<Modifier>emptyList(), true);
-        return new VarDecl(span, Useful.<LValueBind>list(bind), init);
+        return new VarDecl(span, Useful.<LValue>list(bind), init);
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
         Id id = new Id(span, name);
         FortressUtil.validId(id);
-        LValueBind bind = new LValueBind(span, id,
+        LValue bind = new LValue(span, id,
                                          Option.<Type>none(),
                                          Collections.<Modifier>emptyList(), true);
-        return new VarDecl(span, Useful.<LValueBind>list(bind), init);
+        return new VarDecl(span, Useful.<LValue>list(bind), init);
     }
 
     public static BoolExpr makeInParentheses(BoolExpr be) {

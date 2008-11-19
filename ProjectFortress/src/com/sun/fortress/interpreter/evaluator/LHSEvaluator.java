@@ -48,15 +48,12 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.Unpasting;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.useful.HasAt;
@@ -128,10 +125,10 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
     public Voidoid forVarRef(VarRef x) {
         String s = x.getVar().getText();
-        
+
         Environment e = evaluator.e.getHomeEnvironment(x.getVar());
         e = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth());
-        
+
         FType ft = e.getVarTypeNull(s);
         if (ft != null) {
             // Check that variable can receive type
@@ -145,23 +142,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
-     */
-    @Override
-    public Voidoid forUnpastingBind(UnpastingBind x) {
-        return super.forUnpastingBind(x);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
-     */
-    @Override
-    public Voidoid forUnpastingSplit(UnpastingSplit x) {
-        return super.forUnpastingSplit(x);
-    }
-
-    public Voidoid forLValueBind(LValueBind x) {
+    public Voidoid forLValue(LValue x) {
         Id name = x.getName();
         Option<Type> type = x.getType();
         String s = NodeUtil.nameString(name);
@@ -200,7 +181,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                 String aname = WellKnownNames.arrayTrait(rank);
                 if (Glue.extendsGenericTrait(outerType, aname)) {
                     bestGuess = Glue.typeFromGeneric(outerType, aname, WellKnownNames.arrayElementTypeName);
-                    
+
                     // Find and invoke the generic factory arrayK[\ T, size1, ..., sizeK \] ()
                     String genericName = WellKnownNames.arrayMaker(rank);
                     int[] natParams = (int[]) iuo_tuple.resultExtents().clone();

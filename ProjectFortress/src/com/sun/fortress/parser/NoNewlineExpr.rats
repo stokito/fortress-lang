@@ -195,7 +195,7 @@ List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;
      NoNewlineVarWType
    | ( w NoNewlineVarWType (w , w NoNewlineVarWType)+ w )
  */
-List<LValueBind> NoNewlineVarWTypes =
+List<LValue> NoNewlineVarWTypes =
      a1:NoNewlineVarWType
      { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:NoNewlineVarWType a2s:(w comma w NoNewlineVarWType)+ w
@@ -203,8 +203,8 @@ List<LValueBind> NoNewlineVarWTypes =
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* NoNewlineVarWType ::= BindId s NoNewlineIsType */
-LValueBind NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
-     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2); };
+LValue NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
+     { yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1,a2); };
 
 /* NoNewlineIsType ::= : w NoNewlineType */
 Type NoNewlineIsType = void:colon w NoNewlineType ;

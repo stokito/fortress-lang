@@ -25,7 +25,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -47,11 +47,11 @@ import edu.rice.cs.plt.tuple.Option;
 public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
-	public Node forLValueBindOnly(LValueBind that, Id name_result,
+	public Node forLValueOnly(LValue that, Id name_result,
 			Option<Type> type_result, List<Modifier> mods_result) {
 		if( type_result.isNone() ) {
 			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
-			return new LValueBind(that.getSpan(),name_result,new_type,mods_result,that.isMutable());
+			return new LValue(that.getSpan(),name_result,new_type,mods_result,that.isMutable());
 		}
 		else {
 			return that;

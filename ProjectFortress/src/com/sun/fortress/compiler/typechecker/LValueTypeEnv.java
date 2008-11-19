@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -34,37 +34,37 @@ import com.sun.fortress.nodes._InferenceVarType;
 import edu.rice.cs.plt.tuple.Option;
 
 class LValueTypeEnv extends TypeEnv {
-    private final LValueBind[] entries;
+    private final LValue[] entries;
     private final TypeEnv parent;
-    
-    LValueTypeEnv(LValueBind[] _entries, TypeEnv _parent) {
+
+    LValueTypeEnv(LValue[] _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
 
-    LValueTypeEnv(List<LValueBind> _entries, TypeEnv _parent) {
-        entries = _entries.toArray(new LValueBind[_entries.size()]);
+    LValueTypeEnv(List<LValue> _entries, TypeEnv _parent) {
+        entries = _entries.toArray(new LValue[_entries.size()]);
         parent = _parent;
     }
 
-    private Option<LValueBind> findLVal(IdOrOpOrAnonymousName var) {
+    private Option<LValue> findLVal(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
-    	for (LValueBind entry : entries) {
+
+    	for (LValue entry : entries) {
             if (var.equals(entry.getName()) || no_api_var.equals(entry.getName())) {
                 return some(entry);
             }
         }
     	return none();
     }
-    
+
     /**
      * Return a BindingLookup that binds the given IdOrOpOrAnonymousName to a type
      * (if the given IdOrOpOrAnonymousName is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
-    	Option<LValueBind> lval = findLVal(var);
-    	
+    	Option<LValue> lval = findLVal(var);
+
     	if( lval.isSome() )
     		return some(new BindingLookup(lval.unwrap()));
     	else
@@ -74,7 +74,7 @@ class LValueTypeEnv extends TypeEnv {
     @Override
     public List<BindingLookup> contents() {
         List<BindingLookup> result = new ArrayList<BindingLookup>();
-        for (LValueBind entry : entries) {
+        for (LValue entry : entries) {
             result.add(new BindingLookup(entry));
         }
         result.addAll(parent.contents());
@@ -83,7 +83,7 @@ class LValueTypeEnv extends TypeEnv {
 
 	@Override
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
-		Option<LValueBind> lval = findLVal(var);
+		Option<LValue> lval = findLVal(var);
 
 		if( lval.isSome() )
 			return Option.<Node>some(lval.unwrap());
@@ -93,14 +93,14 @@ class LValueTypeEnv extends TypeEnv {
 
 	@Override
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		LValueBind[] new_entries = new LValueBind[entries.length];
-		
+		LValue[] new_entries = new LValue[entries.length];
+
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		for( int i = 0; i<entries.length; i++ ) {
-			new_entries[i] = (LValueBind)entries[i].accept(rep);
+			new_entries[i] = (LValue)entries[i].accept(rep);
 		}
-		
+
 		return new LValueTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 
