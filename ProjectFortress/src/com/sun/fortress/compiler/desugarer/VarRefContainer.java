@@ -26,7 +26,6 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierSettable;
@@ -58,7 +57,7 @@ public class VarRefContainer {
     private static final String CONTAINER_FIELD_PREFIX = "box";
 
     public VarRefContainer(VarRef origVar,
-                           Node origDeclNode, 
+                           Node origDeclNode,
                            String uniqueSuffix) {
         this.origVar = origVar;
         this.origDeclNode = origDeclNode;
@@ -112,10 +111,10 @@ public class VarRefContainer {
     }
 
     public VarDecl containerField() {
-        List<LValueBind> lhs = new LinkedList<LValueBind>();
+        List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( new LValueBind(origDeclNode.getSpan(), containerVarId(),
-                                containerType(), false) );
+        lhs.add( new LValue(origDeclNode.getSpan(), containerVarId(),
+                            containerType(), false) );
         VarDecl field = new VarDecl( origDeclNode.getSpan(),
                                      lhs, makeCallToContainerObj() );
 
@@ -130,15 +129,15 @@ public class VarRefContainer {
 
     public FieldRef containerFieldRef(Span varRefSpan) {
         return ExprFactory.makeFieldRef( varRefSpan,
-                                         this.containerVarRef(varRefSpan), 
+                                         this.containerVarRef(varRefSpan),
                                          origVar.getVar() );
     }
 
     public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( new LValueBind(origDeclNode.getSpan(), containerVarId(),
-                                containerType(), false) );
+        lhs.add( new LValue(origDeclNode.getSpan(), containerVarId(),
+                            containerType(), false) );
         LocalVarDecl ret = ExprFactory.makeLocalVarDecl( origDeclNode.getSpan(),
                             lhs, makeCallToContainerObj(), bodyExprs );
 

@@ -19,7 +19,7 @@ package com.sun.fortress.interpreter.rewrite;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NormalParam;
@@ -44,10 +44,10 @@ public class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor#forLValueBind(com.sun.fortress.nodes.LValueBind)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor#forLValue(com.sun.fortress.nodes.LValue)
      */
     @Override
-    public ArrowOrFunctional forLValueBind(LValueBind that) {
+    public ArrowOrFunctional forLValue(LValue that) {
         return optionTypeIsArrow(that.getType());
     }
 

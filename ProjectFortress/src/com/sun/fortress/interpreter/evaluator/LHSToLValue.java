@@ -29,13 +29,10 @@ import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Lhs;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
-import com.sun.fortress.nodes.Unpasting;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
@@ -122,27 +119,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
         return x;
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingBind(com.sun.fortress.interpreter.nodes.UnpastingBind)
-     */
-    @Override
-    public Lhs forUnpastingBind(UnpastingBind x) {
-        Id name = x.getName();
-        List<ExtentRange> dim = x.getDim();
-        return super.forUnpastingBind(x);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forUnpastingSplit(com.sun.fortress.interpreter.nodes.UnpastingSplit)
-     */
-    @Override
-    public Lhs forUnpastingSplit(UnpastingSplit x) {
-        int dim = x.getDim();
-        List<Unpasting> elems = x.getElems();
-        return super.forUnpastingSplit(x);
-    }
-
-    public Lhs forLValueBind(LValueBind x) {
+    public Lhs forLValue(LValue x) {
         return x;
     }
 

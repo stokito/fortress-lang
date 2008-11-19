@@ -661,13 +661,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     private void forVarDecl1(VarDecl x) {
-        List<LValueBind> lhs = x.getLhs();
+        List<LValue> lhs = x.getLhs();
 
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<Type> type = x.getType();
         Expr init = x.getInit();
-        LValueBind lvb = lhs.get(0);
+        LValue lvb = lhs.get(0);
 
           Option<Type> type = lvb.getType();
           Id name = lvb.getName();
@@ -688,8 +688,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 //        int index = 0;
 
 //        for (LValue lv : lhs) {
-//            if (lv instanceof LValueBind) {
-//                LValueBind lvb = (LValueBind) lv;
+//            if (lv instanceof LValue) {
+//                LValue lvb = (LValue) lv;
 //                Option<Type> type = lvb.getType();
 //                Id name = lvb.getName();
 //                String sname = name.getName();
@@ -730,14 +730,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     private void forVarDecl4(VarDecl x) {
 
-        List<LValueBind> lhs = x.getLhs();
+        List<LValue> lhs = x.getLhs();
 
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<Type> type = x.getType();
         Expr init = x.getInit();
         // int index = 0;
-        LValueBind lvb = lhs.get(0);
+        LValue lvb = lhs.get(0);
 
 
          {

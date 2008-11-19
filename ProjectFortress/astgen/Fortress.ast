@@ -348,7 +348,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
          * variable declaration in components or APIs
          */
-        abstract VarAbsDeclOrDecl(List<LValueBind> lhs) implements AbsDeclOrDecl;
+        abstract VarAbsDeclOrDecl(List<LValue> lhs) implements AbsDeclOrDecl;
             /**
              * variable declaration in APIs
              * AbsVarDecl ::= AbsVarMods? VarWTypes
@@ -374,36 +374,12 @@ interface Node(ignoreForEquals Span span) extends HasAt;
             VarDecl(Expr init) implements Decl;
         /**
          * left-hand side of variable declaration
+         * e.g.) var x: ZZ32
+         * Name must be unqualified.
          */
-        abstract LValue();
-            /**
-             * e.g.) var x: ZZ32
-             * Name must be unqualified.
-             */
-            LValueBind(Id name, Option<Type> type = Option.<Type>none(),
-                       List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       boolean mutable = false) implements Lhs, ImplicitGetterSetter;
-            /**
-             * left-hand side of matrix unpasting
-             * Unpasting ::= [ UnpastingElems ]
-             */
-            abstract Unpasting();
-                /**
-                 * simple unpasting
-                 * Names must be unqualified.
-                 * UnpastingElem ::= BindId ([ UnpastingDim ])?
-                 *                 | Unpasting
-                 * UnpastingDim ::= ExtentRange (BY ExtentRange)+
-                 * e.g.) squareShape[m BY m]
-                 */
-                UnpastingBind(Id name, List<ExtentRange> dim);
-                /**
-                 * complex unpasting
-                 * UnpastingElems ::= UnpastingElem RectSeparator UnpastingElems
-                 *                  | UnpastingElem
-                 * e.g.) squareShape[m BY m]  rest
-                 */
-                UnpastingSplit(List<Unpasting> elems, int dim);
+        LValue(Id name, Option<Type> type = Option.<Type>none(),
+               List<Modifier> mods = Collections.<Modifier>emptyList(),
+               boolean mutable = false) implements Lhs, ImplicitGetterSetter;
         /**
          * Overloading specification
          */

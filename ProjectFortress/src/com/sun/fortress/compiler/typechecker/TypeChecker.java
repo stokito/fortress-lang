@@ -131,15 +131,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 	static private Type getTypeOfLValue(LValue lval) {
-		// TODO Implement unpasting
-		return
-		lval.accept(new NodeDepthFirstVisitor<Type>(){
-			@Override
-			public Type forLValueBind(LValueBind that) {
-				// All types must exist by the typechecker
-				return that.getType().unwrap();
-			}
-		});
+            return lval.getType().unwrap();
 	}
 	private static boolean isExprMI(MathItem item) {
 		return item.accept(new NodeDepthFirstVisitor<Boolean>(){
@@ -155,10 +147,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		});
 	}
 
-	private static Type typeFromLValueBinds(List<LValueBind> bindings) {
+	private static Type typeFromLValues(List<LValue> bindings) {
 		List<Type> results = new ArrayList<Type>();
 
-		for (LValueBind binding: bindings) {
+		for (LValue binding: bindings) {
 			if (binding.getType().isSome()) {
 				results.add(binding.getType().unwrap());
 			} else
@@ -459,7 +451,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 
-	private TypeChecker extend(List<LValueBind> bindings) {
+	private TypeChecker extend(List<LValue> bindings) {
 		return new TypeChecker(table,
 				typeEnv.extendWithLValues(bindings),
 				compilationUnit,
@@ -630,7 +622,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						}
 						else if( field instanceof DeclaredVariable ) {
 							DeclaredVariable var = (DeclaredVariable)field;
-							LValueBind bind = var.ast();
+							LValue bind = var.ast();
 							return Option.some(bind.getType().unwrap());
 						}
 						else {
@@ -1417,7 +1409,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				}
 			}
 
-			@Override public Pair<TypeCheckerResult, Type> forLValueBind(LValueBind that) {
+			@Override public Pair<TypeCheckerResult, Type> forLValue(LValue that) {
 				if( !that.isMutable() ) {
 					String err = "Left-hand side of assignment must be mutable.";
 					return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
@@ -1962,7 +1954,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				"Catch clauses must catch sub-types of Exception, but " + that.getMatch() + " is not.");
 
 		// bind id and check the body
-		LValueBind lval = NodeFactory.makeLValue(id_to_bind, that.getMatch());
+		LValue lval = NodeFactory.makeLValue(id_to_bind, that.getMatch());
 		TypeChecker extend_tc = this.extend(Collections.singletonList(lval));
 		TypeCheckerResult body_result = that.getBody().accept(extend_tc);
 
@@ -2572,7 +2564,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forFor(For that) {
-		Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+		Pair<List<TypeCheckerResult>,List<LValue>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
 		Option<TypeCheckerResult> type_result = recurOnOptionOfType(that.getExprType());
 		TypeChecker extend = this.extend(pair.second());
 		TypeCheckerResult body_result = that.getBody().accept(extend);
@@ -2605,7 +2597,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forGeneratedExpr(GeneratedExpr that) {
-		Pair<List<TypeCheckerResult>,List<LValueBind>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
+		Pair<List<TypeCheckerResult>,List<LValue>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
 		TypeChecker extend = this.extend(pair.second());
 		TypeCheckerResult body_result = that.getExpr().accept(extend);
 		List<TypeCheckerResult> res = pair.first();
@@ -2629,17 +2621,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
 	}
 
-	private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseGetBindings(GeneratorClause that,
+	private Pair<TypeCheckerResult, List<LValue>> forGeneratorClauseGetBindings(GeneratorClause that,
 			boolean mustBeCondition) {
 		TypeCheckerResult init_result = that.getInit().accept(this);
-		final Pair<TypeCheckerResult, List<LValueBind>> p = forGeneratorClauseOnlyGetBindings(that, init_result, mustBeCondition);
+		final Pair<TypeCheckerResult, List<LValue>> p = forGeneratorClauseOnlyGetBindings(that, init_result, mustBeCondition);
 
 		if( postInference ) {
 			Boolean ok = true;
-			List<LValueBind> closed_binds = new ArrayList<LValueBind>();
-			for(LValueBind b : p.second()){
+			List<LValue> closed_binds = new ArrayList<LValue>();
+			for(LValue b : p.second()){
 				Pair<Boolean,Node> temp = TypesUtil.closeConstraints(b, subtypeChecker, p.first());
-				closed_binds.add((LValueBind)temp.second());
+				closed_binds.add((LValue)temp.second());
 				ok&=temp.first();
 			}
 			TypeCheckerResult successful = new TypeCheckerResult(that);
@@ -2654,7 +2646,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 
-	private Pair<TypeCheckerResult, List<LValueBind>> forGeneratorClauseOnlyGetBindings(GeneratorClause that,
+	private Pair<TypeCheckerResult, List<LValue>> forGeneratorClauseOnlyGetBindings(GeneratorClause that,
 			TypeCheckerResult init_result, boolean mustBeCondition) {
 
 		if( that.getBind().isEmpty()) {
@@ -2669,20 +2661,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						that.getInit() + " had type " + init_result.type().unwrap() + ".");
 
 			return Pair.make(TypeCheckerResult.compose(new_node, subtypeChecker, init_result, bool_result),
-					Collections.<LValueBind>emptyList());
+					Collections.<LValue>emptyList());
 		}
 
 		// Otherwise, we may actually have bindings!
 		int bindings_count = that.getBind().size();
 
-		List<LValueBind> result_bindings;
+		List<LValue> result_bindings;
 		Type lhstype;
 		// Now create the bindings
 
 		if( bindings_count == 1 ){
 			// Just one binding
 			lhstype = NodeFactory.make_InferenceVarType(that.getBind().get(0).getSpan());
-			LValueBind lval = NodeFactory.makeLValue(that.getBind().get(0), lhstype);
+			LValue lval = NodeFactory.makeLValue(that.getBind().get(0), lhstype);
 			result_bindings = Collections.singletonList(lval);
 		}
 		else {
@@ -2695,7 +2687,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			lhstype=Types.makeTuple(inference_vars);
 			// Now just create the lvalues with the newly created inference variable type
 			Iterator<Id> id_iter = that.getBind().iterator();
-			result_bindings = new ArrayList<LValueBind>(bindings_count);
+			result_bindings = new ArrayList<LValue>(bindings_count);
 			for( Type inference_var : inference_vars ) {
 				result_bindings.add(NodeFactory.makeLValue(id_iter.next(), inference_var));
 			}
@@ -2775,12 +2767,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	// and we didn't want to confuse things by giving it a type.
 	private Pair<TypeCheckerResult, Option<Type>> forIfClauseWithType(IfClause that) {
 		// For generalized 'if' we must introduce new bindings.
-		Pair<TypeCheckerResult, List<LValueBind>> result_and_binds =
+		Pair<TypeCheckerResult, List<LValue>> result_and_binds =
 			this.forGeneratorClauseGetBindings(that.getTest(), true);
 
 		// Destruct result
 		TypeCheckerResult test_result = result_and_binds.first();
-		List<LValueBind> bindings = result_and_binds.second();
+		List<LValue> bindings = result_and_binds.second();
 
 		// Check body with new bindings
 		TypeChecker tc_with_new_bindings = this.extend(bindings);
@@ -4278,14 +4270,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			else{
 				meet=this.subtypeChecker.meet(clause.getMatch().get(0),original_type);
 			}
-			LValueBind bind = NodeFactory.makeLValue(to_bind.get(0), meet);
+			LValue bind = NodeFactory.makeLValue(to_bind.get(0), meet);
 			extend=this.extend(Collections.singletonList(bind));
 		}else{
 			if(to_bind.size()!=clause.getMatch().size()){
 				return new TypeCheckerResult(clause, TypeError.make("Tuple sizes don't match",clause));
 			}
 			else{
-				List<LValueBind> binds=new ArrayList<LValueBind>(to_bind.size());
+				List<LValue> binds=new ArrayList<LValue>(to_bind.size());
 				Iterator<Type> mitr=clause.getMatch().iterator();
 				assert(original_type instanceof TupleType);
 				TupleType tuple=(TupleType)original_type;
@@ -4309,14 +4301,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forVarDecl(VarDecl that) {
-		List<LValueBind> lhs = that.getLhs();
+		List<LValue> lhs = that.getLhs();
 		Expr init = that.getInit();
 
 		TypeCheckerResult initResult = init.accept(this);
 
 		TypeCheckerResult subtype_result;
 		if (lhs.size() == 1) { // We have a single variable binding, not a tuple binding
-			LValueBind var = lhs.get(0);
+			LValue var = lhs.get(0);
 			Option<Type> varType = var.getType();
 			if (varType.isSome()) {
 				if (initResult.type().isNone()) {
@@ -4337,7 +4329,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return bug("All inferrred types should at least be inference variables by typechecking: " + that);
 			}
 		} else { // lhs.size() >= 2
-			Type varType = typeFromLValueBinds(lhs);
+			Type varType = typeFromLValues(lhs);
 			if (initResult.type().isNone()) {
 				// The right hand side could not be typed, which must have resulted in a
 				// signaled error. No need to signal another error.
@@ -4389,7 +4381,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forWhile(While that) {
-		Pair<TypeCheckerResult,List<LValueBind>> res = this.forGeneratorClauseGetBindings(that.getTest(), true);
+		Pair<TypeCheckerResult,List<LValue>> res = this.forGeneratorClauseGetBindings(that.getTest(), true);
 		TypeChecker extended = this.extend(res.second());
 		TypeCheckerResult body_result = that.getBody().accept(extended);
 
@@ -4621,18 +4613,18 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	// For each generator clause, check its body, then put its variables in scope for the next generator clause.
 	// Finally, return all of the bindings so that they can be put in scope in some larger expression, like the
 	// body of a for loop, for example.
-	private Pair<List<TypeCheckerResult>, List<LValueBind>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens) {
+	private Pair<List<TypeCheckerResult>, List<LValue>> recurOnListsOfGeneratorClauseBindings(List<GeneratorClause> gens) {
 		if( gens.isEmpty() )
-			return Pair.make(Collections.<TypeCheckerResult>emptyList(), Collections.<LValueBind>emptyList());
+			return Pair.make(Collections.<TypeCheckerResult>emptyList(), Collections.<LValue>emptyList());
 		else if( gens.size() == 1 ) {
-			Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
+			Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
 			return Pair.make(Collections.singletonList(pair.first()), pair.second());
 		}
 		else {
-			Pair<TypeCheckerResult,List<LValueBind>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
+			Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
 			TypeChecker new_checker = this.extend(pair.second());
 			// recur
-			Pair<List<TypeCheckerResult>, List<LValueBind>> recur_result =
+			Pair<List<TypeCheckerResult>, List<LValue>> recur_result =
 				new_checker.recurOnListsOfGeneratorClauseBindings(CollectUtil.makeList(IterUtil.skipFirst(gens)));
 			return Pair.make( Useful.cons(pair.first(), recur_result.first()),
 					Useful.concat(pair.second(), recur_result.second()));

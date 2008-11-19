@@ -300,7 +300,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "" + NodeUtil.nameString(node.getName()) + ":" + node.getType().accept(this);
     }
 
-    public String forLValueBind(LValueBind node) {
+    public String forLValue(LValue node) {
         String r = "";
         if (node.getType().isSome()) {
             r = ":" + node.getType().unwrap().accept(this);

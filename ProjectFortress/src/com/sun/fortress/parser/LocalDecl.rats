@@ -115,18 +115,15 @@ LocalVarDecl LocalVarDecl =
            FortressUtil.allHaveTypes(a2);
            a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        }
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
-                                             FortressUtil.toLValueList(a2), a3);
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
    / a1:(var w)? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
      { a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
-                                             FortressUtil.toLValueList(a2), a3);
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
    / a1:(var w)? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),
-                                             FortressUtil.toLValueList(a2));
+       yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:VarWoTypes s equals w a2:NoNewlineExpr
      { yyValue = FortressUtil.mkLocalVarDecl(createSpan(yyStart,yyCount),a1,a2); }
@@ -176,11 +173,11 @@ LocalVarDecl LocalVarDecl =
                              "Mutable variables should be declared with their types.");
      };
 
-LValueBind VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?
+LValue VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?
      { if (a2 == null)
-           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1);
+           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1);
        else
-           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2);
+           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VarWoTypes ::=
@@ -195,44 +192,37 @@ List<LValue> VarWoTypes =
 
 LValue VarWoType =
      a1:BindId
-     { yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount), a1); }
-   / Unpasting ;
+     { yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount), a1); }
+   / Unpasting
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = FortressUtil.mkLValue(span, new Id(span, "_"));
+     };
 
 /* Unpasting ::= [ w UnpastingElems w ] */
-private Unpasting Unpasting =
+private void Unpasting =
      void:opensquare w UnpastingElems w void:closesquare ;
 
 /* UnpastingElems ::=
      UnpastingElem RectSeparator UnpastingElems
    | UnpastingElem
  */
-private Unpasting UnpastingElems =
-     a1:UnpastingElem a2:RectSeparator a3:UnpastingElems
-     { yyValue = FortressUtil.unpastingCons(createSpan(yyStart,yyCount),
-                                            a1, a2, a3);
-     }
+private void UnpastingElems =
+     UnpastingElem RectSeparator UnpastingElems
    / UnpastingElem ;
 
 /* UnpastingElem ::=
      BindId (w [ w UnpastingDim w ])?
    | Unpasting
  */
-private Unpasting UnpastingElem =
-     a1:BindId a2:(void:opensquare w UnpastingDim w void:closesquare)?
-     { if (a2 == null)
-           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1,
-                                       Collections.<ExtentRange>emptyList());
-       else
-           yyValue = new UnpastingBind(createSpan(yyStart,yyCount), a1, a2);
-     }
+private void UnpastingElem =
+     BindId (void:opensquare w UnpastingDim w void:closesquare)?
    / Unpasting ;
 
 // NoNewlineExtentRange instead of ExtnetRange
 // due to the Rats! module system
 /* UnpastingDim ::= NoNewlineExtentRange (w BY w NoNewlineExtentRange)+  */
-private List<ExtentRange> UnpastingDim =
-     a1:NoNewlineExtentRange a2s:(w cross w NoNewlineExtentRange)+
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+private void UnpastingDim =
+     NoNewlineExtentRange (w cross w NoNewlineExtentRange)+ ;
 
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */
 CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems

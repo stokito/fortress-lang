@@ -125,8 +125,7 @@ public class Transform extends TemplateUpdateVisitor {
     */
 
     /* Support renaming for these nodes
-     * LValueBind    ( only for LocalVarDecl ) - done
-     * UnpastingBind ( only for LocalVarDecl ) - done
+     * LValue        ( only for LocalVarDecl ) - done
      * FnDecl        ( only for local function decls ) - done
      * NormalParam   ( only for FnExpr and local function decls ) - done
      * VarargsParam  ( only for FnExpr and local function decls ) - done
@@ -371,19 +370,12 @@ public class Transform extends TemplateUpdateVisitor {
             List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
                 public LValue apply(LValue value){
                     return (LValue) value.accept( new TemplateUpdateVisitor(){
-                        public Node forLValueBindOnly(LValueBind that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
+                        public Node forLValueOnly(LValue that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
                             Id old = (Id) name_result.accept(transformer);
                             Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return new LValueBind(that.getSpan(), generatedId, type_result, mods_result);
-                        }
-                        public Node forUnpastingBindOnly(UnpastingBind that, Id name_result, List<ExtentRange> dim_result) {
-                            Id old = (Id) name_result.accept(transformer);
-                            Id generatedId = generateId(old);
-                            Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                            extendSyntaxEnvironment(old, generatedId);
-                            return new UnpastingBind(that.getSpan(), generatedId, dim_result);
+                            return new LValue(that.getSpan(), generatedId, type_result, mods_result);
                         }
                     });
                 }

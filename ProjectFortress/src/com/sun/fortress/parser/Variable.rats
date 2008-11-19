@@ -58,14 +58,14 @@ VarDecl VarDecl =
        yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, a3.getA());
      }
    / a1:VarImmutableMods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
-     { List<LValueBind> lvs;
+     { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
        else lvs = FortressUtil.ids2Lvs(a2);
        FortressUtil.validId(lvs);
        yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, a3);
      }
    / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
-     { List<LValueBind> lvs;
+     { List<LValue> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
            else           lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
@@ -81,7 +81,7 @@ VarDecl VarDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            syntaxError(span, "Mismatched numbers of variables and types.");
-       List<LValueBind> lvs;
+       List<LValue> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
            else           lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
@@ -129,18 +129,18 @@ transient private Modifier VarImmutableMod =
      VarMayType
    | ( w VarMayType (w , w VarMayType)+ w )
  */
-List<LValueBind> VarMayTypes =
+List<LValue> VarMayTypes =
      a1:VarMayType
      { yyValue = FortressUtil.mkList(a1); }
    / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
 /* VarMayType ::= BindId (w IsType)? */
-LValueBind VarMayType = a1:BindId a2:(w IsType)
+LValue VarMayType = a1:BindId a2:(w IsType)
      { if (a2 == null)
-           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1);
+           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1);
        else
-           yyValue = FortressUtil.mkLValueBind(createSpan(yyStart,yyCount),a1,a2);
+           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* InitVal ::= (=|:=) w NoNewlineExpr */
@@ -162,7 +162,7 @@ AbsVarDecl AbsVarDecl =
        yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
-     { List<LValueBind> lvs;
+     { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        FortressUtil.validId(lvs);
@@ -173,7 +173,7 @@ AbsVarDecl AbsVarDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            syntaxError(span, "Mismatched numbers of variables and types.");
-       List<LValueBind> lvs;
+       List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
        FortressUtil.validId(lvs);

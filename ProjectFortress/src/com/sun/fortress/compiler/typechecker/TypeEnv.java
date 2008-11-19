@@ -57,7 +57,7 @@ import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierSettable;
@@ -118,7 +118,7 @@ public abstract class TypeEnv {
     /**
      * Construct a new TypeEnv from the given bindings.
      */
-    public static TypeEnv make(LValueBind... entries) {
+    public static TypeEnv make(LValue... entries) {
         return EmptyTypeEnv.ONLY.extend(entries);
     }
 
@@ -368,12 +368,12 @@ public abstract class TypeEnv {
      * Unfortunately, we must give some variants of 'extend' long names to allow the
      * compiler to distinguish them from other variants with the same _erased_ signature.
      */
-    public final TypeEnv extend(LValueBind... entries) {
+    public final TypeEnv extend(LValue... entries) {
         if (entries.length == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
 
-    public final TypeEnv extendWithLValues(List<LValueBind> entries) {
+    public final TypeEnv extendWithLValues(List<LValue> entries) {
         if (entries.size() == 0) { return this; }
         else { return new LValueTypeEnv(entries, this); }
     }
@@ -436,10 +436,10 @@ public abstract class TypeEnv {
 
     /**
      * A wrapper around the binding found in the TypeEnv.  Since some bindings
-     * do not have an Id to be indexed, there is no way to create the LValueBind
+     * do not have an Id to be indexed, there is no way to create the LValue
      * node to represent the binding.  In the case of operators, for example,
      * only a IdOrOpOrAnonymousName exists, so the BindingLookup exports the same methods
-     * that LValueBind does, since an LValueBind cannot be created.
+     * that LValue does, since an LValue cannot be created.
      */
     public static class BindingLookup {
 
@@ -448,7 +448,7 @@ public abstract class TypeEnv {
         private final List<Modifier> mods;
         private final boolean mutable;
 
-        public BindingLookup(LValueBind binding) {
+        public BindingLookup(LValue binding) {
             var = binding.getName();
             type = binding.getType();
             mods = binding.getMods();

@@ -148,7 +148,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 /* ApiFldMod         ::= hidden | settable | test */
 
     public void forAbsVarDeclOnly(AbsVarDecl that) {
-        for (LValueBind lvb : that.getLhs()) {
+        for (LValue lvb : that.getLhs()) {
             if ( lvb.getType().isNone() )
                 log(lvb, "The type of " + lvb.getName() + " is required.");
         }

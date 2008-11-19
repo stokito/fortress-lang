@@ -96,8 +96,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private boolean mutable(ImplicitGetterSetter field) {
-        if ( field instanceof LValueBind )
-            return ((LValueBind)field).isMutable();
+        if ( field instanceof LValue )
+            return ((LValue)field).isMutable();
 
         for (Modifier mod : field.getMods()) {
             if (mod instanceof ModifierSettable ||
@@ -178,7 +178,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
         for (Decl decl: decls) {
             if (decl instanceof VarAbsDeclOrDecl) {
-                for (LValueBind binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
+                for (LValue binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -196,7 +196,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         for (Decl decl: decls) {
             if (decl instanceof VarAbsDeclOrDecl) {
-                for (LValueBind binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
+                for (LValue binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -330,7 +330,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
                 public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl decl) {
-                    for (LValueBind binding : decl.getLhs()) {
+                    for (LValue binding : decl.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(false, owner, binding));
@@ -354,7 +354,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
                 public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl dec) {
-                    for (LValueBind binding : dec.getLhs()) {
+                    for (LValue binding : dec.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
                             result.add(makeGetter(inTrait, owner, binding));
@@ -373,18 +373,18 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private List<Decl> mangleDecls(List<Decl> decls) {
         return new NodeUpdateVisitor() {
             public Node forVarDecl(VarDecl that) {
-                List<LValueBind> newLVals = new ArrayList<LValueBind>();
+                List<LValue> newLVals = new ArrayList<LValue>();
 
-                for (LValueBind lval : that.getLhs()) {
+                for (LValue lval : that.getLhs()) {
                     // System.err.println(mangleName(lval.getName()));
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
                 return NodeFactory.makeVarDecl(that.getSpan(), newLVals, that.getInit());
             }
             public Node forAbsVarDecl(AbsVarDecl that) {
-                List<LValueBind> newLVals = new ArrayList<LValueBind>();
+                List<LValue> newLVals = new ArrayList<LValue>();
 
-                for (LValueBind lval : that.getLhs()) {
+                for (LValue lval : that.getLhs()) {
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
                 return NodeFactory.makeAbsVarDecl(that.getSpan(), newLVals);

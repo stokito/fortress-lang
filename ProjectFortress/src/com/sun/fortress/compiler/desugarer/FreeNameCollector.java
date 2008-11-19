@@ -69,7 +69,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
      * value: list of pairs
      *        pair.first is the VarRef
      *        pair.second is the decl node where the VarRef is declared
-     *            (which is either a Param, LValueBind, or LocalVarDecl)
+     *            (which is either a Param, LValue, or LocalVarDecl)
      *
      * IMPORTANT: Need to use Pair of String & Span as key!
      * Span alone does not work, because the newly created nodes have the
@@ -285,7 +285,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
                 if(declNode instanceof LocalVarDecl) {
                     declSite = declNode;
                 } else if( declNode instanceof Param ||
-                           declNode instanceof LValueBind ) {
+                           declNode instanceof LValue ) {
                     if( enclosingObjectDecl.isNone() ) {
     		            throw new DesugarerError( var.getSpan(),
                             "Unexpected decl node for " + var + "; " +
@@ -665,10 +665,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             String name = "LocalVarDecl";
             List<LValue> lhs = cast.getLhs();
             for(LValue lvalue : lhs) {
-                if ( lvalue instanceof LValueBind )
-                    name += ( "_" + ((LValueBind) lvalue).getName().getText() );
-                else // lvalue instanceof Unpasting
-                    throw new DesugarerError("Unpasting is not yet supported.");
+                name += ( "_" + lvalue.getName().getText() );
             }
             return new Pair<String,Span>( name, cast.getSpan() );
         } else {
@@ -990,11 +987,11 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         @Override
         public void forVarDecl(VarDecl that) {
-            recurOnListOfLValueBind(that.getLhs());
+            recurOnListOfLValue(that.getLhs());
         }
 
         @Override
-        public void forLValueBind(LValueBind that) {
+        public void forLValue(LValue that) {
             decledNames.add(that.getName());
         }
 

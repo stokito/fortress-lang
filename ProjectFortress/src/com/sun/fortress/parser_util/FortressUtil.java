@@ -133,14 +133,6 @@ public final class FortressUtil {
         return l;
     }
 
-    public static List<LValue> toLValueList(List<LValueBind> lvbs) {
-        List<LValue> result = new ArrayList<LValue>();
-        for (LValueBind lvb : lvbs) {
-            result.add((LValue)lvb);
-        }
-        return result;
-    }
-
     public static List<Type> toTypeList(List<BaseType> tys) {
         List<Type> result = new ArrayList<Type>();
         for (BaseType ty : tys) {
@@ -346,12 +338,7 @@ public final class FortressUtil {
 
     public static void validId(List<? extends LValue> lvs) {
         for (LValue lv : lvs) {
-            if (lv instanceof LValueBind) {
-                validId(((LValueBind)lv).getName());
-            } else if (lv instanceof UnpastingBind) {
-                validId(((UnpastingBind)lv).getName());
-            } else // if (lv instanceof UnpastingSplit)
-                validId(((UnpastingSplit)lv).getElems());
+            validId(lv.getName());
         }
     }
 
@@ -407,25 +394,25 @@ public final class FortressUtil {
         return false;
     }
 
-    public static void allHaveTypes(List<LValueBind> vars) {
-        for (LValueBind l : vars) {
+    public static void allHaveTypes(List<LValue> vars) {
+        for (LValue l : vars) {
             if (l.getType().isNone())
                 syntaxError(l.getSpan(),
                             "Mutable variables should be declared with their types.");
         }
     }
 
-    public static List<LValueBind> setMutable(List<LValueBind> vars) {
-        List<LValueBind> result = new ArrayList<LValueBind>();
-        for (LValueBind l : vars) {
+    public static List<LValue> setMutable(List<LValue> vars) {
+        List<LValue> result = new ArrayList<LValue>();
+        for (LValue l : vars) {
             result.add(NodeFactory.makeLValue(l, true));
         }
         return result;
     }
 
-    public static List<LValueBind> setMutable(List<LValueBind> vars, Span span) {
-        List<LValueBind> result = new ArrayList<LValueBind>();
-        for (LValueBind l : vars) {
+    public static List<LValue> setMutable(List<LValue> vars, Span span) {
+        List<LValue> result = new ArrayList<LValue>();
+        for (LValue l : vars) {
             List<Modifier> mods = new ArrayList<Modifier>();
             mods.add(new ModifierVar(span));
             result.add(NodeFactory.makeLValue(l, mods));
@@ -433,19 +420,19 @@ public final class FortressUtil {
         return result;
     }
 
-    public static List<LValueBind> setMods(List<LValueBind> vars,
+    public static List<LValue> setMods(List<LValue> vars,
                                            List<Modifier> mods) {
-        List<LValueBind> result = new ArrayList<LValueBind>();
-        for (LValueBind l : vars) {
+        List<LValue> result = new ArrayList<LValue>();
+        for (LValue l : vars) {
             result.add(NodeFactory.makeLValue(l, mods));
         }
         return result;
     }
 
-    public static List<LValueBind> setModsAndMutable(List<LValueBind> vars,
+    public static List<LValue> setModsAndMutable(List<LValue> vars,
                                                      List<Modifier> mods) {
-        List<LValueBind> result = new ArrayList<LValueBind>();
-        for (LValueBind l : vars) {
+        List<LValue> result = new ArrayList<LValue>();
+        for (LValue l : vars) {
             result.add(NodeFactory.makeLValue(l, mods, true));
         }
         return result;
@@ -454,11 +441,9 @@ public final class FortressUtil {
     public static List<LValue> setMutableLValue(List<LValue> vars, Span span) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-                List<Modifier> mods = new ArrayList<Modifier>();
-                mods.add(new ModifierVar(span));
-                result.add(NodeFactory.makeLValue((LValueBind)l, mods));
-            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
+            List<Modifier> mods = new ArrayList<Modifier>();
+            mods.add(new ModifierVar(span));
+            result.add(NodeFactory.makeLValue(l, mods));
         }
         return result;
     }
@@ -466,9 +451,7 @@ public final class FortressUtil {
     public static List<LValue> setType(List<LValue> vars, Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind)
-                result.add(NodeFactory.makeLValue((LValueBind)l, ty));
-            else syntaxError(l.getSpan(), "Unpasting cannot be set types.");
+            result.add(NodeFactory.makeLValue(l, ty));
         }
         return result;
     }
@@ -477,10 +460,8 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind)));
-                ind += 1;
-            } else syntaxError(l.getSpan(), "Unpasting cannot be set types.");
+            result.add(NodeFactory.makeLValue(l, tys.get(ind)));
+            ind += 1;
         }
         return result;
     }
@@ -488,9 +469,7 @@ public final class FortressUtil {
     public static List<LValue> setMutableAndType(List<LValue> vars, Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-                result.add(NodeFactory.makeLValue((LValueBind)l, ty, true));
-            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
+            result.add(NodeFactory.makeLValue(l, ty, true));
         }
         return result;
     }
@@ -499,11 +478,9 @@ public final class FortressUtil {
                                                  Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-           if (l instanceof LValueBind) {
-               List<Modifier> mods = new ArrayList<Modifier>();
-               mods.add(new ModifierVar(span));
-               result.add(NodeFactory.makeLValue((LValueBind)l, ty, mods));
-           } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
+            List<Modifier> mods = new ArrayList<Modifier>();
+            mods.add(new ModifierVar(span));
+            result.add(NodeFactory.makeLValue(l, ty, mods));
         }
         return result;
     }
@@ -513,11 +490,8 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-                result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
-                                                  true));
-                ind += 1;
-            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
+            result.add(NodeFactory.makeLValue(l, tys.get(ind), true));
+            ind += 1;
         }
         return result;
     }
@@ -527,57 +501,54 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
-            if (l instanceof LValueBind) {
-               List<Modifier> mods = new ArrayList<Modifier>();
-               mods.add(new ModifierVar(span));
-               result.add(NodeFactory.makeLValue((LValueBind)l, tys.get(ind),
-                                                 mods));
-               ind += 1;
-            } else syntaxError(l.getSpan(), "Unpasting cannot be mutable.");
+            List<Modifier> mods = new ArrayList<Modifier>();
+            mods.add(new ModifierVar(span));
+            result.add(NodeFactory.makeLValue(l, tys.get(ind), mods));
+            ind += 1;
         }
         return result;
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
                                            Option<Type> ty, boolean mutable) {
-        List<LValueBind> lvs = new ArrayList<LValueBind>();
+        List<LValue> lvs = new ArrayList<LValue>();
         for (Id id : ids) {
-            lvs.add(new LValueBind(id.getSpan(), id, ty, mods, mutable));
+            lvs.add(new LValue(id.getSpan(), id, ty, mods, mutable));
         }
         return lvs;
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
                                            Type ty, boolean mutable) {
         return ids2Lvs(ids, mods, Option.some(ty), mutable);
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, Type ty,
+    public static List<LValue> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
         return ids2Lvs(ids, emptyModifiers(), Option.some(ty), mutable);
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods) {
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods) {
         return ids2Lvs(ids, mods, Option.<Type>none(), false);
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids) {
+    public static List<LValue> ids2Lvs(List<Id> ids) {
         return ids2Lvs(ids, emptyModifiers(), Option.<Type>none(), false);
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Modifier> mods,
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
                                            List<Type> tys, boolean mutable) {
-        List<LValueBind> lvs = new ArrayList<LValueBind>();
+        List<LValue> lvs = new ArrayList<LValue>();
         int ind = 0;
         for (Id id : ids) {
-            lvs.add(new LValueBind(id.getSpan(), id, Option.some(tys.get(ind)),
+            lvs.add(new LValue(id.getSpan(), id, Option.some(tys.get(ind)),
                                    mods, mutable));
             ind += 1;
         }
         return lvs;
     }
 
-    public static List<LValueBind> ids2Lvs(List<Id> ids, List<Type> tys,
+    public static List<LValue> ids2Lvs(List<Id> ids, List<Type> tys,
                                            boolean mutable) {
         return ids2Lvs(ids, emptyModifiers(), tys, mutable);
     }
@@ -654,20 +625,20 @@ public final class FortressUtil {
                                 Option.<Expr>none());
     }
 
-    public static LValueBind mkLValueBind(Span span, Id id, Type ty) {
-        return new LValueBind(span, id, Option.some(ty), emptyModifiers(),false);
+    public static LValue mkLValue(Span span, Id id, Type ty) {
+        return new LValue(span, id, Option.some(ty), emptyModifiers(),false);
     }
-    public static LValueBind mkLValueBind(Span span, Id id) {
-        return new LValueBind(span, id, Option.<Type>none(),
+    public static LValue mkLValue(Span span, Id id) {
+        return new LValue(span, id, Option.<Type>none(),
                               emptyModifiers(), false);
     }
-    public static LValueBind mkLValueBind(Id id, Type ty,
+    public static LValue mkLValue(Id id, Type ty,
                                           List<Modifier> mods) {
-        return new LValueBind(id.getSpan(), id, Option.some(ty), mods,
+        return new LValue(id.getSpan(), id, Option.some(ty), mods,
                               getMutable(mods));
     }
-    public static LValueBind mkLValueBind(Id id, Type ty) {
-        return mkLValueBind(id, ty, emptyModifiers());
+    public static LValue mkLValue(Id id, Type ty) {
+        return mkLValue(id, ty, emptyModifiers());
     }
 
 // let rec multi_dim_cons (expr : expr)
@@ -785,6 +756,7 @@ public final class FortressUtil {
 //                else (* sep = dim *)
 //                  unpasting_split span dim (one :: elems)
 //            | _ -> Errors.internal_error span "Empty unpasting.")
+/*
     public static Unpasting unpastingCons(Span span, Unpasting one, int sep,
                                           Unpasting two) {
         List<Unpasting> onetwo = new ArrayList<Unpasting>();
@@ -815,6 +787,7 @@ public final class FortressUtil {
             return bug(two, "UnpastingBind or UnpastingSplit expected.");
         }
     }
+*/
 
 // let join (one : span) (two : span) : span =
 //   match one, two with

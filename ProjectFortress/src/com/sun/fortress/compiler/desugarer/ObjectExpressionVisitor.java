@@ -84,7 +84,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
      * value: list of pairs
      *        pair.first is the varRef
      *        pair.second is the decl node where the varRef is declared
-     *              (which is either a Param, LValueBind, or LocalVarDecl)
+     *              (which is either a Param, LValue, or LocalVarDecl)
      *
      * IMPORTANT: Need to use Pair of String & Span as key!
      * Span alone does not work, because the newly created nodes have the

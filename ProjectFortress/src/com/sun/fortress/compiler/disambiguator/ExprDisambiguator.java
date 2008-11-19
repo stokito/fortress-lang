@@ -58,7 +58,6 @@ import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -86,8 +85,6 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.UnitParam;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
@@ -353,17 +350,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                         Set<Id> result) {
         for (LValue lv : lvalues) {
             boolean valid = true;
-            if (lv instanceof LValueBind) {
-                Id id = ((LValueBind)lv).getName();
-                valid = (result.add(id) || id.getText().equals("_"));
-            }
-            else if (lv instanceof UnpastingBind) {
-                Id id = ((UnpastingBind)lv).getName();
-                valid = (result.add(id) || id.getText().equals("_"));
-            }
-            else { // lv instanceof UnpastingSplit
-                extractDefinedVarNames(((UnpastingSplit)lv).getElems(), result);
-            }
+            Id id = lv.getName();
+            valid = (result.add(id) || id.getText().equals("_"));
             if (!valid) { error("Duplicate local variable name", lv); }
         }
     }

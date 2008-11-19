@@ -106,7 +106,7 @@ import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.KeywordExpr;
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.Lhs;
@@ -137,8 +137,6 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypecaseClause;
-import com.sun.fortress.nodes.UnpastingBind;
-import com.sun.fortress.nodes.UnpastingSplit;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
@@ -885,7 +883,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forLValueBind(LValueBind x) {
+    public FValue forLValue(LValue x) {
         Id name = x.getName();
         return FString.make(NodeUtil.nameString(name));
     }
@@ -1649,14 +1647,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // throw new MatchFailure();
             return error(x, e, errorMsg("typecase match failure given ",resTuple));
         }
-    }
-
-    public FValue forUnpastingBind(UnpastingBind x) {
-        return NI("forUnpastingBind");
-    }
-
-    public FValue forUnpastingSplit(UnpastingSplit x) {
-        return NI("forUnpastingSplit");
     }
 
     public FValue forVarRef(VarRef x) {

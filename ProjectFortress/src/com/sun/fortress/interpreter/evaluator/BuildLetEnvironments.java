@@ -35,7 +35,6 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.LValueBind;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -127,19 +126,13 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             }
         } else {
             EvalType eval_type = new EvalType(containing);
-            for (LValue lval : lhs) {
-                if (lval instanceof LValueBind) {
-                    LValueBind lvb = (LValueBind) lval;
-                    if (lvb.isMutable() && lvb.getType().isSome()) {
-                        FValue fv = lval.accept(new_eval);
-                        FType fvt = lvb.getType().unwrap().accept(eval_type);
-                        containing.putVariable(fv.getString(),fvt);
-                    } else {
-                        containing.putValue(lval.accept(new_eval), new IndirectionCell());
-
-                    }
+            for (LValue lvb : lhs) {
+                if (lvb.isMutable() && lvb.getType().isSome()) {
+                    FValue fv = lvb.accept(new_eval);
+                    FType fvt = lvb.getType().unwrap().accept(eval_type);
+                    containing.putVariable(fv.getString(),fvt);
                 } else {
-                    containing.putValue(lval.accept(new_eval), new IndirectionCell());
+                    containing.putValue(lvb.accept(new_eval), new IndirectionCell());
                 }
             }
 

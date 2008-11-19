@@ -17,13 +17,13 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.LValueBind;
+import com.sun.fortress.nodes.LValue;
 
 public class DeclaredVariable extends Variable {
-    
-    private final LValueBind _ast;
-    
-    public DeclaredVariable(LValueBind ast) { _ast = ast; }
-    
-    public LValueBind ast() { return _ast; }
+
+    private final LValue _ast;
+
+    public DeclaredVariable(LValue ast) { _ast = ast; }
+
+    public LValue ast() { return _ast; }
 }

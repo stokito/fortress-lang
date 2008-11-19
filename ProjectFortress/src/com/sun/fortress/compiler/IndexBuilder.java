@@ -386,7 +386,7 @@ public class IndexBuilder {
      */
     private void buildVariables(VarAbsDeclOrDecl ast,
             Map<Id, Variable> variables) {
-        for (LValueBind b : ast.getLhs()) {
+        for (LValue b : ast.getLhs()) {
             variables.put(b.getName(), new DeclaredVariable(b));
         }
     }
@@ -399,7 +399,7 @@ public class IndexBuilder {
             Id declaringTrait,
             Map<Id, Method> getters,
             Map<Id, Method> setters) {
-        for (LValueBind b : ast.getLhs()) {
+        for (LValue b : ast.getLhs()) {
             ModifierSet mods = extractModifiers(b.getMods());
             // TODO: check for correct modifiers?
             Id name = b.getName();
@@ -421,7 +421,7 @@ public class IndexBuilder {
             Map<Id, Variable> fields,
             Map<Id, Method> getters,
             Map<Id, Method> setters) {
-        for (LValueBind b : ast.getLhs()) {
+        for (LValue b : ast.getLhs()) {
             ModifierSet mods = extractModifiers(b.getMods());
             // TODO: check for correct modifiers?
             Id name = b.getName();
