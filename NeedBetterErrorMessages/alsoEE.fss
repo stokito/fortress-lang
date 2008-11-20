@@ -1,0 +1,17 @@
+component alsoEE
+
+export Executable
+
+    run(args: String ...) = do
+        do
+            println "a very long string"
+        also
+            println "an even longer string"
+        end
+    end
+    
+end alsoEE
+
+(*  I don't even know whart's wrong with this one!  The message is
+    /Users/black/Development/PFC/Sandbox/alsoEE.fss:9:13: Syntax Error
+*)
