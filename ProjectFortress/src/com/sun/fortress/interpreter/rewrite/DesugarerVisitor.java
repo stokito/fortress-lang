@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Wrapper;
 
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -116,6 +117,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VarargsParam;
+import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
@@ -779,13 +781,43 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Option<WhereClause> owc = vre.getWhere();
         if (owc.isSome()) {
             WhereClause wc = owc.unwrap();
+            boolean change = false;
             List<WhereBinding> lwb = wc.getBindings();
+            
             for (WhereBinding wb : lwb) {
                 rewrites_put(wb.getName().getText(), new Local());
             }
+            
+            /* Handcoded visit to avoid a "recur" visit on the WhereClause
+              The binding action of a WhereClause in a TraitTypeWhere seems
+              to be different.
+            */
+            
+            WhereClause nwc = (WhereClause) visitNode(wc);
+            BaseType t = vre.getType();
+            BaseType nt = (BaseType) recur(t);
+            if (t == nt && wc == nwc)
+                return vre;
+            else
+                return NodeFactory.makeTraitTypeWhere(nt,  Wrapper.<WhereClause>make(nwc));
+        } else {
+            return visitNode(vre);
         }
-        return visitNode(vre);
+        
+        
     }
+
+  @Override
+  public Node forWhereClause(WhereClause wc) {
+      lexicalNestingDepth++;
+      
+          List<WhereBinding> lwb = wc.getBindings();
+          for (WhereBinding wb : lwb) {
+              rewrites_put(wb.getName().getText(), new Local());
+          }
+      
+      return visitNode(wc);
+  }
 
 
     @Override
@@ -913,36 +945,35 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
 
-    public Node forAbstractObjectExpr(AbstractObjectExpr oe) {
+   
+
+    @Override
+    public Node for_RewriteObjectExpr(_RewriteObjectExpr oe) {
         List<? extends AbsDeclOrDecl> defs = oe.getDecls();
         List<BaseType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
-        // TODO wip
-
         objectNestingDepth++;
         lexicalNestingDepth++;
         atTopLevelInsideTraitOrObject = true;
         defsToMembers(defs);
         accumulateMembersFromExtends(xtends, rewrites);
         AbstractNode n = visitNodeTO(oe);
+        return n;
+    }
+    
+    @Override
+    public Node forObjectExpr(ObjectExpr oe) {
+        // TODO wip
+
         // REMEMBER THAT THIS IS THE NEW _RewriteObjectExpr!
         // Implicitly parameterized by either visibleGenericParameters,
         // or by usedGenericParameters.
         // Note the keys of a BATree are sorted.
-        _RewriteObjectExpr rwoe = ExprFactory.make_RewriteObjectExpr((ObjectExpr)n,
-                                              usedGenericParameters);
+        _RewriteObjectExpr rwoe = (_RewriteObjectExpr) recur(ExprFactory.make_RewriteObjectExpr((ObjectExpr)oe,
+                                              usedGenericParameters));
         objectExprs.add(rwoe);
 
-        return new _RewriteObjectExprRef(rwoe.getSpan(), rwoe.isParenthesized(), rwoe.getExprType(), rwoe.getGenSymName(), rwoe.getStaticArgs());
-    }
-
-    @Override
-    public Node for_RewriteObjectExpr(_RewriteObjectExpr that) {
-        return forAbstractObjectExpr(that);
-    }
-    @Override
-    public Node forObjectExpr(ObjectExpr that) {
-        return forAbstractObjectExpr(that);
-    }
+        return visitNode(new _RewriteObjectExprRef(rwoe.getSpan(), rwoe.isParenthesized(), rwoe.getExprType(), rwoe.getGenSymName(), rwoe.getStaticArgs()));
+   }
 
     @Override
     public Node forCatch(Catch that) {
