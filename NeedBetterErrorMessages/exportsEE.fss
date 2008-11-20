@@ -1,0 +1,12 @@
+component exportsEE
+
+exports Executable
+
+    run(args: String ...) = do
+            println "a very long string"
+    end
+    
+end exportsEE
+
+(* The problem here is that I miss-spelled export as exports.
+    The error report is "Syntax Error" at the colon after args at line 5 *)
