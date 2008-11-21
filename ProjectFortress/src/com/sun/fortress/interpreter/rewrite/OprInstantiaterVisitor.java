@@ -20,16 +20,24 @@ package com.sun.fortress.interpreter.rewrite;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpParam;
+import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.RewriteHackList;
+
+import edu.rice.cs.plt.tuple.Option;
 
 
 public class OprInstantiaterVisitor extends NodeUpdateVisitor {
@@ -53,10 +61,30 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
     }
 
     @Override
+    public Node forOpRef(OpRef op) {
+        final OpName originalName = op.getOriginalName();
+        final List<OpName> ops = op.getOps();
+        final List<StaticArg> args = op.getStaticArgs();
+        final Option<Type> otype = op.getExprType();
+        final Type type = otype.isNone() ? null : otype.unwrap();
+        
+        OpName n_originalName = (OpName) recur(originalName);
+        List<OpName> n_ops = recurOnListOfOpName(ops);
+        List<StaticArg> n_args = recurOnListOfStaticArg(args);
+        Type n_type = type == null ? (Type) null : (Type) recur(type);
+        
+        if (args != n_args || originalName != n_originalName || ops != n_ops || type != n_type) {
+            return new OpRef(op.getSpan(), op.isParenthesized(), Option.wrap(n_type), Environment.TOP_LEVEL,
+                    n_originalName, n_ops, n_args);
+        }
+        
+        return op;
+    }
+
+    @Override
     public Node forOpParam(OpParam opp) {
         // Replace instance ofs Op with substitution.
         if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
-            // throw new Error();
             return new RewriteHackList();
         } else return opp;
     }
