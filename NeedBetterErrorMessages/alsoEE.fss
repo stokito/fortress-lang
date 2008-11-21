@@ -12,6 +12,6 @@ export Executable
     
 end alsoEE
 
-(*  I don't even know whart's wrong with this one!  The message is
+(*  Another "do" is needed ater the "also".  The message I get is
     /Users/black/Development/PFC/Sandbox/alsoEE.fss:9:13: Syntax Error
 *)
