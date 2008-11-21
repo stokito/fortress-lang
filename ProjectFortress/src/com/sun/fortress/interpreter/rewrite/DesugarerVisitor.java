@@ -261,7 +261,27 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private BATree<String, Thing> rewrites;
 
+    /*
+     * The next four methods all do the same thing,
+     * but the intent is indicated in case it becomes
+     * necessary to maintain separate rewritings (this is
+     * an issue if the same name is defined in different
+     * ways at different lexical depths; need to check
+     * whether that is allowed, or might become allowed).
+     */
+    public Thing var_rewrites_put(String k, Thing d) {
+        return rewrites.put(k, d);
+    }
+    
+    public Thing obj_rewrites_put(String k, Thing d) {
+        return rewrites.put(k, d);
+    }
+    
     public Thing rewrites_put(String k, Thing d) {
+        return rewrites.put(k, d);
+    }
+    
+    public Thing type_rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
 
@@ -785,7 +805,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             List<WhereBinding> lwb = wc.getBindings();
             
             for (WhereBinding wb : lwb) {
-                rewrites_put(wb.getName().getText(), new Local());
+                type_rewrites_put(wb.getName().getText(), new Local());
             }
             
             /* Handcoded visit to avoid a "recur" visit on the WhereClause
@@ -813,7 +833,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
       
           List<WhereBinding> lwb = wc.getBindings();
           for (WhereBinding wb : lwb) {
-              rewrites_put(wb.getName().getText(), new Local());
+              type_rewrites_put(wb.getName().getText(), new Local());
           }
       
       return visitNode(wc);
@@ -823,7 +843,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnDecl(FnDecl fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
+            var_rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
         }
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
@@ -880,7 +900,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forAbsFnDecl(AbsFnDecl fndef) {
         if (atTopLevelInsideTraitOrObject) {
-            rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
+            var_rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
         }
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
@@ -979,7 +999,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forCatch(Catch that) {
         String s = ((Catch) that).getName().stringName();
         lexicalNestingDepth++;
-        rewrites_put(s, new Local());
+        var_rewrites_put(s, new Local());
         return visitNode(that);
     }
     @Override
@@ -1317,7 +1337,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (d instanceof TraitAbsDeclOrDecl) {
                 String s = d.stringName();
                 TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
-                rewrites_put(s, new Trait(dod, rewrites));
+                type_rewrites_put(s, new Trait(dod, rewrites));
             } else if (d instanceof ObjectDecl) {
                 ObjectDecl od = (ObjectDecl) d;
                 Option<List<Param>> params = od.getParams();
@@ -1329,7 +1349,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                  *
                  */
                 String s = od.getName().getText();
-                rewrites_put(s, new Local());
+                obj_rewrites_put(s, new Local());
 
                 if (params.isNone())
                     arrows.remove(s);
@@ -1337,7 +1357,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                     arrows.add(s);
             } else {
                 for (String s : NodeUtil.stringNames(d)) {
-                    rewrites_put(s, new Local());
+                    var_rewrites_put(s, new Local());
                 }
             }
         }
@@ -1367,7 +1387,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                     String s = fadod.getName().stringName();
                     arrows.add(s);
                     functionals.add(s);
-                    rewrites_put(s, new FunctionalMethod());
+                    var_rewrites_put(s, new FunctionalMethod());
                 }
 
         }
@@ -1382,7 +1402,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             String s = d.getName().getText();
             // "self" is not a local.
             if (! s.equals(WellKnownNames.defaultSelfName)) {
-                rewrites_put(s, new Local());
+                var_rewrites_put(s, new Local());
 
             }
         }
@@ -1391,7 +1411,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     private void IdsToLocals(List<Id> lid) {
         for (Id d : lid) {
             String s = d.getText();
-            rewrites_put(s, new Local());
+            var_rewrites_put(s, new Local());
         }
     }
 
@@ -1410,7 +1430,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         @Override
         public void forId(Id that) {
             String s = that.getText();
-            rewrites_put(s, new Local());
+            var_rewrites_put(s, new Local());
         }
 
     };
@@ -1431,8 +1451,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             for (StaticParam d : params) {
                 String s = NodeUtil.getName(d);
                 // OpParams are not real members
-                if (! (d instanceof OpParam))
-                    rewrites_put(s, new Local());
+                // if (! (d instanceof OpParam))
+                    type_rewrites_put(s, new Local());
                 visibleGenericParameters.put(s, d);
                 immediateDef = addToImmediateDef(immediateDef, s);
             }
@@ -1478,7 +1498,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 }
             }
             for (String s: NodeUtil.stringNames(dd))
-                rewrites_put(s, new Member());
+                var_rewrites_put(s, new Member());
         }
 
     }
@@ -1490,7 +1510,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (params.isSome())
             for (Param d : params.unwrap()) {
                 String s = d.getName().getText();
-                rewrites_put(s, new Member());
+                var_rewrites_put(s, new Member());
                 ArrowOrFunctional aof = d.accept(IsAnArrowName.isAnArrowName);
                 if (aof != ArrowOrFunctional.NEITHER) {
                     arrows.add(s);
@@ -1511,7 +1531,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private void stringsToMembers(Collection<String> strings) {
         for (String s : strings) {
-            rewrites_put(s, new Member());
+            var_rewrites_put(s, new Member());
             arrows.remove(s);
         }
     }
@@ -1521,7 +1541,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private void stringsToLocals(Collection<String> strings) {
         for (String s : strings) {
-            rewrites_put(s, new Local());
+            type_rewrites_put(s, new Local());
             arrows.remove(s);
         }
     }
@@ -1594,7 +1614,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                         arrow_names.add(sdd);
                                         if (aof == ArrowOrFunctional.FUNCTIONAL) {
                                             functionals.add(sdd);
-                                            rewrites_put(sdd, new FunctionalMethod());
+                                            var_rewrites_put(sdd, new FunctionalMethod());
                                             continue; // do not add as a member
                                         }
                                     } else {

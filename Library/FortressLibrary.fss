@@ -3238,7 +3238,7 @@ object TrivialOpenRange extends OpenRange[\Any\]
     imposeStride(x:Any): OpenRange[\Any\] = (::x)
     atMost(k:Any): RangeWithExtent[\Any\] = (#k)
     opr INTERSECTION(self, other:Range[\Any\]): Range[\Any\] = other
-    opr =(self, other:Range[\Any\]): Boolean = instanceof[\TrivialOpenRange\](other)
+    opr =(self, other:Range[\Any\]): Boolean = instanceOf[\TrivialOpenRange\](other)
     opr IN(_:Any, self): Boolean = true
     check(): TrivialOpenRange = self
 end
