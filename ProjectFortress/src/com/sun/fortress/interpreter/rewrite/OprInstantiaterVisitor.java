@@ -74,8 +74,8 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
         Type n_type = type == null ? (Type) null : (Type) recur(type);
         
         if (args != n_args || originalName != n_originalName || ops != n_ops || type != n_type) {
-            return new OpRef(op.getSpan(), op.isParenthesized(), Option.wrap(n_type), Environment.TOP_LEVEL,
-                    n_originalName, n_ops, n_args);
+            return new OpRef(op.getSpan(), op.isParenthesized(), Option.wrap(n_type), n_args, Environment.TOP_LEVEL,
+                    n_originalName, n_ops);
         }
         
         return op;

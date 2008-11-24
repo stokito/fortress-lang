@@ -1290,7 +1290,7 @@ public class NodeFactory {
     }
 
     public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
-            return new OpRef(original.getSpan(), original.isParenthesized(), lexicalNestedness, original.getOriginalName(), original.getOps(), original.getStaticArgs());
+            return new OpRef(original.getSpan(), original.isParenthesized(), original.getStaticArgs(), lexicalNestedness, original.getOriginalName(), original.getOps());
 
     }
 

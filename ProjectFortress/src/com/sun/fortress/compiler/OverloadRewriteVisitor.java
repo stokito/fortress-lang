@@ -35,8 +35,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     final private Map<String, List<OpName>> overloadedOperators = new HashMap<String, List<OpName>>();
 
     @Override
-    public Node forFnRefOnly(FnRef that, Option<Type> exprType_result, Id originalName, List<Id> fns,
-            List<StaticArg> staticArgs) {
+    public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
+            List<StaticArg> staticArgs, Id originalName, List<Id> fns) {
         if (fns.size() > 1) {
             Collections.<Id>sort(fns, NodeComparator.idComparer);
             StringBuffer buffer = new StringBuffer();
@@ -56,13 +56,13 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             Id overloadingId = NodeFactory.makeId(overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
-        return super.forFnRefOnly(that, exprType_result , originalName, fns, staticArgs);
+        return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns);
     }
 
 
     @Override
-    public Node forOpRefOnly(OpRef that, Option<Type> exprType_result, OpName originalName, List<OpName> ops,
-            List<StaticArg> staticArgs) {
+    public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
+            List<StaticArg> staticArgs, OpName originalName, List<OpName> ops) {
         if (ops.size() > 1) {
             Collections.<OpName>sort(ops, NodeComparator.opNameComparer);
             StringBuffer buffer = new StringBuffer();
@@ -82,7 +82,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOpName));
         }
-        return super.forOpRefOnly(that, exprType_result, originalName, ops, staticArgs);
+        return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops);
     }
 
 

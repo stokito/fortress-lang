@@ -523,8 +523,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
-                             Id fnResult, List<Id> fns_result,
-                             List<StaticArg> staticArgs_result) {
+                             List<StaticArg> staticArgs_result,
+                             Id fnResult, List<Id> fns_result) {
         // After disambiguation, the Id in a FnRef should have an empty API.
         assert(fnResult.getApi().isNone());
 

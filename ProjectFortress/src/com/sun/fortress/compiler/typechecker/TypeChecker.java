@@ -2441,9 +2441,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forFnRefOnly(final FnRef that, Option<TypeCheckerResult> exprType_result,
+                List<TypeCheckerResult> staticArgs_result,
 			TypeCheckerResult originalName_result,
-			List<TypeCheckerResult> fns_result,
-			List<TypeCheckerResult> staticArgs_result) {
+			List<TypeCheckerResult> fns_result) {
 
 		// Could we give a type to each of our fns?
 		for( TypeCheckerResult r : fns_result ) {
@@ -2501,10 +2501,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					FnRef fn_ref = new FnRef(that.getSpan(),
 							that.isParenthesized(),
 							some(new_type),
+                                                        new_args,
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-							that.getFns(),
-							new_args);
+							that.getFns());
 					fn_overloadings.add(new _RewriteFnRefOverloading(that.getSpan(), fn_ref, new_type));
 					arrow_types.add(new_type);
 					accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
@@ -2518,11 +2518,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					new_node = new _RewriteInstantiatedFnRefs(that.getSpan(),
 							that.isParenthesized(),
 							type,
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-							that.getFns(),
-							that.getStaticArgs(),
-							fn_overloadings);
+	                                                 that.getStaticArgs(),
+	                                                 that.getLexicalDepth(),
+							 that.getOriginalName(),
+							 that.getFns(),
+							 fn_overloadings);
 		}
 		else {
 			// otherwise, we just operate according to the normal procedure, apply args or none were necessary
@@ -2550,10 +2550,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					new_node = new FnRef(that.getSpan(),
 							that.isParenthesized(),
 							type,
+                                                        that.getStaticArgs(),
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-							that.getFns(),
-							that.getStaticArgs());
+							that.getFns());
 		}
 
 		return TypeCheckerResult.compose(new_node, type, subtypeChecker,
@@ -3655,9 +3655,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forOpRefOnly(final OpRef that, Option<TypeCheckerResult> exprType_result,
+                List<TypeCheckerResult> staticArgs_result,
 			TypeCheckerResult originalName_result,
-			List<TypeCheckerResult> ops_result,
-			List<TypeCheckerResult> staticArgs_result) {
+			List<TypeCheckerResult> ops_result) {
 		// Did all ops typecheck?
 		for( TypeCheckerResult o_r : ops_result ) {
 			if( !o_r.isSuccessful() )
@@ -3713,10 +3713,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					OpRef new_op_ref = new OpRef(that.getSpan(),
 							that.isParenthesized(),
+                                                        new_args,
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-							that.getOps(),
-							new_args);
+							that.getOps());
 
 					overloadings.add(new _RewriteOpRefOverloading(that.getSpan(), new_op_ref, new_type));
 					arrow_types.add(new_type);
@@ -3729,10 +3729,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					new_node = new _RewriteInstantiatedOpRefs(that.getSpan(),
 							that.isParenthesized(),
 							type,
+                                                        that.getStaticArgs(),
 							that.getLexicalDepth(),
 							that.getOriginalName(),
 							that.getOps(),
-							that.getStaticArgs(),
 							overloadings);
 					constraints = accumulated_constraints;
 		}
@@ -3756,10 +3756,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					new_node = new OpRef(that.getSpan(),
 							that.isParenthesized(),
 							type,
+                                                        (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-							(List<OpName>)TypeCheckerResult.astFromResults(ops_result),
-							(List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result));
+							(List<OpName>)TypeCheckerResult.astFromResults(ops_result));
 		}
 
 
