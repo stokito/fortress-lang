@@ -264,7 +264,7 @@ public class ExprFactory {
     }
 
     public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
-        return new OpRef(op.getSpan(), op, Collections.singletonList(op), staticArgs);
+        return new OpRef(op.getSpan(), staticArgs, op, Collections.singletonList(op));
     }
 
     public static OpExpr makeOpExpr(Span span, Option<Type> ty, OpRef op,
@@ -314,13 +314,13 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
-        return new FnRef(original.getSpan(), original.isParenthesized(), original.getLexicalDepth(), original.getOriginalName(), original.getFns(), original.getStaticArgs());
+        return new FnRef(original.getSpan(), original.isParenthesized(), original.getStaticArgs(), original.getLexicalDepth(), original.getOriginalName(), original.getFns());
     }
 
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
                                   List<Id> ids, List<StaticArg> sargs) {
-        return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids,
-                         sargs);
+        return new FnRef(that.getSpan(), that.isParenthesized(), ty,
+                sargs, name, ids);
     }
 
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
@@ -330,39 +330,39 @@ public class ExprFactory {
 
     public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
         List<Id> names = Collections.singletonList(name);
-        return new FnRef(span, false, name, names, sargs);
+        return new FnRef(span, false, sargs, name, names);
     }
 
     public static FnRef makeFnRef(Id name) {
         List<Id> names =
             Collections.singletonList(name);
-        return new FnRef(name.getSpan(), false, name, names, Collections.<StaticArg>emptyList());
+        return new FnRef(name.getSpan(), false, Collections.<StaticArg>emptyList(), name, names);
     }
 
     public static FnRef makeFnRef(Id name, Id orig){
-     return new FnRef(name.getSpan(),false, orig, Collections.singletonList(name),Collections.<StaticArg>emptyList());
+     return new FnRef(name.getSpan(),false,Collections.<StaticArg>emptyList(), orig, Collections.singletonList(name));
     }
 
     public static FnRef makeFnRef(Id orig, List<Id> names){
-     return new FnRef(orig.getSpan(),false, orig, names,Collections.<StaticArg>emptyList());
+     return new FnRef(orig.getSpan(),false,Collections.<StaticArg>emptyList(), orig, names);
     }
 
     public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
         Id qName = NodeFactory.makeId(apiIds, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qName, qNames,
-                Collections.<StaticArg>emptyList());
+        return new FnRef(qName.getSpan(), false,
+                Collections.<StaticArg>emptyList(), qName, qNames);
     }
 
     public static FnRef makeFnRef(APIName api, Id name) {
         Id qName = NodeFactory.makeId(api, name);
         List<Id> qNames = Collections.singletonList(qName);
-        return new FnRef(qName.getSpan(), false, qName, qNames,
-                Collections.<StaticArg>emptyList());
+        return new FnRef(qName.getSpan(), false,
+                Collections.<StaticArg>emptyList(), qName, qNames);
     }
 
     public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<Id> fns, List<StaticArg> sargs) {
-     return new FnRef(span, paren, original_fn, fns, sargs);
+     return new FnRef(span, paren, sargs, original_fn, fns);
     }
 
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
@@ -872,12 +872,12 @@ public class ExprFactory {
             return new TightJuxt(e.getSpan(), true, e.getExprs());
         }
         public Expr forFnRef(FnRef e) {
-            return new FnRef(e.getSpan(), true, e.getOriginalName(), e.getFns(),
-                    e.getStaticArgs());
+            return new FnRef(e.getSpan(), true,
+                    e.getStaticArgs(), e.getOriginalName(), e.getFns());
         }
         public Expr forOpRef(OpRef e) {
-            return new OpRef(e.getSpan(), true, e.getOriginalName(), e.getOps(),
-                    e.getStaticArgs());
+            return new OpRef(e.getSpan(), true,
+                    e.getStaticArgs(), e.getOriginalName(), e.getOps());
         }
         public Expr forSubscriptExpr(SubscriptExpr e) {
             return new SubscriptExpr(e.getSpan(), true, e.getObj(),
@@ -919,7 +919,7 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
 
-     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
+     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),op.getLexicalDepth(),new_original_name,new_ops);
      return ExprFactory.makeOpExpr(new_op, lhs, rhs);
     }
 
@@ -938,7 +938,7 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
 
-     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getLexicalDepth(),new_original_name,new_ops,op.getStaticArgs());
+     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),op.getLexicalDepth(),new_original_name,new_ops);
      return ExprFactory.makeOpExpr(e, new_op);
     }
 

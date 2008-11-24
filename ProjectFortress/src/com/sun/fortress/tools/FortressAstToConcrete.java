@@ -1832,9 +1832,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result,
+                                         List<String> staticArgs_result,
                                          String originalName_result,
-                                         List<String> fns_result,
-                                         List<String> staticArgs_result) {
+                                         List<String> fns_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( originalName_result );
@@ -1857,9 +1857,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forOpRefOnly(OpRef that, Option<String> exprType_result,
+                                         List<String> staticArgs_result,
                                          String originalName_result,
-                                         List<String> ops_result,
-                                         List<String> staticArgs_result) {
+                                         List<String> ops_result) {
         return handleParen( canonicalOp(originalName_result),
                             that.isParenthesized() );
     }
@@ -1875,16 +1875,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override
     public String for_RewriteInstantiatedFnRefsOnly(
             _RewriteInstantiatedFnRefs that, Option<String> exprType_result,
-            String originalName_result, List<String> fns_result,
-            List<String> staticArgs_result, List<String> overloadings_result) {
+            List<String> staticArgs_result,
+            String originalName_result, List<String> fns_result, List<String> overloadings_result) {
         return "(* _RewriteInstantiatedFnRefs *)";
     }
 
     @Override
     public String for_RewriteInstantiatedOpRefsOnly(
             _RewriteInstantiatedOpRefs that, Option<String> exprType_result,
-            String originalName_result, List<String> ops_result,
-            List<String> staticArgs_result, List<String> overloadings_result) {
+            List<String> staticArgs_result,
+            String originalName_result, List<String> ops_result, List<String> overloadings_result) {
         return "(* _RewriteInstantiatedOpRefs *)";
     }
 

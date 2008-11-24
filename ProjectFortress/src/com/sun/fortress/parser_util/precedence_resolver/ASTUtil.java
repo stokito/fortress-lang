@@ -108,9 +108,9 @@ public class ASTUtil {
             Span s = FortressUtil.spanTwo(left, right);
             Enclosing en = new Enclosing(s, left, right);
             OpRef ref = new OpRef(s,
+                    sargs,
                     en,
-                                  Collections.<OpName>singletonList(en),
-                                  sargs);
+                                  Collections.<OpName>singletonList(en));
             return new OpExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +

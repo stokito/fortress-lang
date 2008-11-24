@@ -1306,7 +1306,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
 
-        OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),op_name,CollectUtil.makeList(ops),that.getStaticArgs());
+        OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),that.getStaticArgs(),op_name,CollectUtil.makeList(ops));
         return Option.<OpRef>some(result);
     }
 
@@ -1336,7 +1336,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         if ( result_.isNone() ) {
             // Make sure to populate the 'originalName' field.
-            return new OpRef(that.getSpan(),that.isParenthesized(),IterUtil.first(that.getOps()), that.getOps(),that.getStaticArgs());
+            return new OpRef(that.getSpan(),that.isParenthesized(),that.getStaticArgs(),IterUtil.first(that.getOps()), that.getOps());
         }
         else {
             return result_.unwrap();

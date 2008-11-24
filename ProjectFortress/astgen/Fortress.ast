@@ -187,7 +187,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * import statement
          * Import ::= import ImportedNames | import api AliasedAPINames
          */
-        abstract Import();
+        abstract Import(Option<String> foreignLanguage = Option.<String>none());
             /**
              * ImportedNames ::= APIName . {...} (except SimpleNames)?
              *                 | APIName . { AliasedSimpleNameList (, ...)? }
@@ -1126,9 +1126,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                          * e.g.) identity[\String\]
                          */
                         FnRef(Id originalName,
-                              List<Id> fns = Collections.<Id>singletonList(in_originalName),
-                              List<StaticArg> staticArgs
-                                  = Collections.<StaticArg>emptyList());
+                              List<Id> fns = Collections.<Id>singletonList(in_originalName));
                             /**
                              * A list of FnRefs used for infering static arguments. Used only between the two
                              * passes of the typechecker. Indicates that one of these FnRefs, which each have
@@ -1143,9 +1141,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                          * e.g.) +[\String\]
                          */
                         OpRef(OpName originalName,
-                              List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
-                              List<StaticArg> staticArgs
-                                  = Collections.<StaticArg>emptyList());
+                              List<OpName> ops = Collections.<OpName>singletonList(in_originalName));
                             /**
                              * Similar to _RewriteInstantiatedFnRefs, this node is used for inferring static
                              * arguments to an Op call. This node only exists between the first and second
