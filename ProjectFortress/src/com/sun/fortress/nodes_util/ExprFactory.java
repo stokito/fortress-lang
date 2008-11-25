@@ -318,9 +318,10 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
-                                  List<Id> ids, List<StaticArg> sargs) {
+                                  List<Id> ids, List<StaticArg> sargs,
+                                  Option<List<_RewriteFnRefOverloading>> overloadings) {
         return new FnRef(that.getSpan(), that.isParenthesized(), ty,
-                sargs, name, ids);
+                         sargs, name, ids, overloadings);
     }
 
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,

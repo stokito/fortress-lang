@@ -692,14 +692,14 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              * FieldSelection ::= Primary . Id
              * AssignOp ::= := | Op=
              * e.g.) x += 1
+             *
+             * <opsForLhs>
+             * An assignment that has passed typechecking, and uses an operator.
+             * Because different static args can be inferred for each Lhs assignment
+             * opr, this node gives a separate OpRef for each Lhs.
              */
-            Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs);
-                /**
-                 * An assignment that has passed typechecking, and uses an operator.
-                 * Because different static args can be inferred for each Lhs assignment
-                 * opr, this node gives a separate OpRef for each Lhs.
-                 */
-                _RewriteAssignment(List<OpRef> opsForLhs);
+            Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs,
+                       Option<List<OpRef>> opsForLhs = Option.<List<OpRef>>none());
             /**
              * sequence of block elements implicitly enclosed by do/end
              * BlockElems ::= BlockElem+
@@ -1086,31 +1086,32 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                          * list of ids allows cross-API overloading
                          * Primary ::= Id[\StaticArgList\]
                          * e.g.) identity[\String\]
+                         *
+                         * <overloadings>
+                         * A list of FnRefs used for infering static arguments. Used only between the two
+                         * passes of the typechecker. Indicates that one of these FnRefs, which each have
+                         * different instantiations of static arguments, should be the correct instantiation.
                          */
                         FnRef(Id originalName,
-                              List<Id> fns = Collections.<Id>singletonList(in_originalName));
-                            /**
-                             * A list of FnRefs used for infering static arguments. Used only between the two
-                             * passes of the typechecker. Indicates that one of these FnRefs, which each have
-                             * different instantiations of static arguments, should be the correct instantiation.
-                             */
-                            _RewriteInstantiatedFnRefs(List<_RewriteFnRefOverloading> overloadings
-                                                           = Collections.<_RewriteFnRefOverloading>emptyList());
+                              List<Id> fns = Collections.<Id>singletonList(in_originalName),
+                              Option<List<_RewriteFnRefOverloading>> overloadings
+                                  = Option.<List<_RewriteFnRefOverloading>>none());
                         /**
                          * operator name with (inferred) static instantiations
                          * list of operators allows cross-API overloading
                          * Primary ::= Op[\StaticArgList\]
                          * e.g.) +[\String\]
+                         *
+                         * <overloadings>
+                         * Similar to FnRef, this node is used for inferring static
+                         * arguments to an Op call. This node only exists between the first and second
+                         * passes of the typechecker. Holds several different instantiations of static args,
+                         * one of which may be the correct insantiation.
                          */
                         OpRef(OpName originalName,
-                              List<OpName> ops = Collections.<OpName>singletonList(in_originalName));
-                            /**
-                             * Similar to _RewriteInstantiatedFnRefs, this node is used for inferring static
-                             * arguments to an Op call. This node only exists between the first and second
-                             * passes of the typechecker. Holds several different instantiations of static args,
-                             * one of which may be the correct insantiation.
-                             */
-                            _RewriteInstantiatedOpRefs(List<_RewriteOpRefOverloading> overloadings = Collections.<_RewriteOpRefOverloading>emptyList());
+                              List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
+                              Option<List<_RewriteOpRefOverloading>> overloadings
+                                  = Option.<List<_RewriteOpRefOverloading>>none());
                     /**
                      * juxtaposition of expressions
                      * If this node turns out to actually be a juxtaposition,
@@ -1977,14 +1978,14 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * case clause used in case expressions and extremum expressions
          * CaseClause ::= Expr => BlockElems
          * e.g.) { Jupiter, Saturn, Uranus, Neptune } => "outer"
+         *
+         * <op>
+         * the operator that is used for this particular case.
+         * Created in typechecking,
+         * because different ops can be chosen for different clauses.
          */
-        CaseClause(Expr match, Block body);
-            /**
-             * A rewritten case clause that includes the operator that is used for this
-             * particular case. Created in typechecking, because different ops can be
-             * chosen for different clauses.
-             */
-            _RewriteCaseClause(OpRef op);
+        CaseClause(Expr match, Block body,
+                   Option<OpRef> op = Option.<OpRef>none());
         /**
          * catch clause used in try expressions
          * Names must be unqualified.

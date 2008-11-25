@@ -860,22 +860,24 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult for_RewriteFnApp(_RewriteFnApp that) {
 		TypeCheckerResult arg_result = recur(that.getArgument());
 
-		if( postInference && that.getFunction() instanceof _RewriteInstantiatedFnRefs ) {
+		if( postInference && that.getFunction() instanceof FnRef &&
+                    ((FnRef)that.getFunction()).getOverloadings().isSome() ) {
+                    FnRef fns = (FnRef)that.getFunction();
 			// if we have finished typechecking, and we have encountered a reference to an overloaded function
-			_RewriteInstantiatedFnRefs fns = (_RewriteInstantiatedFnRefs)that.getFunction();
 
 			if( !arg_result.isSuccessful() ) {
 				return TypeCheckerResult.compose(that, subtypeChecker, arg_result);
 			}
 
 			Type arg_type = arg_result.type().unwrap();
-			TypeCheckerResult fn_result = findStaticallyMostApplicableFn(destructFnOverloadings(fns.getOverloadings()), arg_type, fns, fns.getOriginalName());
+			TypeCheckerResult fn_result = findStaticallyMostApplicableFn(destructFnOverloadings(fns.getOverloadings().unwrap()),
+                                                                                     arg_type, fns, fns.getOriginalName());
 			// Now just check the rewritten expression by the normal means
 			return for_RewriteFnAppOnly(that,Option.<TypeCheckerResult>none(), fn_result, arg_result);
 		}
 		else {
 			// Add constraints from the arguments, since they may affect overloading choice
-			TypeCheckerResult fn_result = recur(that.getFunction());
+                    TypeCheckerResult fn_result = recur(that.getFunction());
 			Iterable<ConstraintFormula> arg_constraint = Collections.singletonList(arg_result.getNodeConstraints());
 			//debugging
 			ConstraintFormula temp = ConstraintFormula.TRUE;
@@ -1275,6 +1277,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forAssignment(Assignment that) {
+            if ( that.getOpsForLhs().isSome() ) // postInference pass
+                return for_Assignment( that );
+
 		Pair<List<Type>, TypeCheckerResult> tuple_types_ = requireTupleType(that.getRhs(), that.getLhs().size());
 
 		// Get the types for the RHS, which must be a tuple if the LHS is
@@ -1302,14 +1307,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Assignment new_node;
 		if( that.getOpr().isSome() ) {
-			// Create a _RewriteAssignment, with an OpRef for each LHS
-			new_node = new _RewriteAssignment(that.getSpan(),
-					that.isParenthesized(),
-					Option.<Type>some(Types.VOID),
-					(List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-					that.getOpr(),
-					(Expr)rhs_result.ast(),
-					op_refs);
+			// Create a new Assignment, with an OpRef for each LHS
+			new_node = new Assignment(that.getSpan(),
+                                                  that.isParenthesized(),
+                                                  Option.<Type>some(Types.VOID),
+                                                  (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+                                                  that.getOpr(),
+                                                  (Expr)rhs_result.ast(),
+                                                  Option.<List<OpRef>>some(op_refs));
 		}
 		else {
 			// Create a new Assignment
@@ -1321,15 +1326,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					(Expr)rhs_result.ast());
 		}
 		// This case could not result in open constraints: If there is an OpRef, this must not be
-		// the postInference pass, because _RewriteAssignmentNodes should exist instead. If there is
+		// the postInference pass, because AssignmentNodes should exist instead. If there is
 		// no OpRef, then no open constraints can be created.
 		return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, rhs_result,
 				TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
 	}
 
-
-	@Override
-	public TypeCheckerResult for_RewriteAssignment(_RewriteAssignment that) {
+	private TypeCheckerResult for_Assignment(Assignment that) {
 		Pair<List<Type>, TypeCheckerResult> tuple_types_ = requireTupleType(that.getRhs(), that.getLhs().size());
 
 		// Get the types for the RHS, which must be a tuple if the LHS is
@@ -1355,14 +1358,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				op_refs.add(p.first().unwrap());
 		};
 
-		// Create a _RewriteAssignment, with an OpRef for each LHS
-		Assignment new_node = new _RewriteAssignment(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(Types.VOID),
-				(List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-				that.getOpr(),
-				(Expr)rhs_result.ast(),
-				op_refs);
+		// Create a Assignment, with an OpRef for each LHS
+		Assignment new_node = new Assignment(that.getSpan(),
+                                                     that.isParenthesized(),
+                                                     Option.<Type>some(Types.VOID),
+                                                     (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
+                                                     that.getOpr(),
+                                                     (Expr)rhs_result.ast(),
+                                                     Option.<List<OpRef>>some(op_refs));
 
 		TypeCheckerResult result = TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, rhs_result,
 				TypeCheckerResult.compose(new_node, subtypeChecker, lhs_results));
@@ -1371,7 +1374,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult successful = new TypeCheckerResult(that);
 		if( postInference && TypesUtil.containsInferenceVarTypes(new_node) ) {
 			Pair<Boolean,Node> temp = TypesUtil.closeConstraints(new_node, result);
-			new_node = (_RewriteAssignment)temp.second();
+			new_node = (Assignment)temp.second();
 			if(!temp.first()){
 				String err = "No overloading for " + that.getOpr().unwrap();
 				successful = new TypeCheckerResult(that, TypeError.make(err,that));
@@ -1514,11 +1517,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		final Type arg_type = result_and_arg_type.second();
 		// Find the arrow type of the opr, if it is some
 		Option<TypeCheckerResult> opr_type = (new NodeDepthFirstVisitor<TypeCheckerResult>() {
-			@Override public TypeCheckerResult for_RewriteInstantiatedOpRefs(_RewriteInstantiatedOpRefs that) {
-				Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
-				return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings()), args_type, that, that.getOriginalName());
-			}
 			@Override public TypeCheckerResult forOpRef(OpRef that) {
+                            if ( that.getOverloadings().isSome() ) {
+				Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
+				return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()), args_type, that, that.getOriginalName());
+                            }
+
 				TypeCheckerResult op_result = TypeChecker.this.recur(that);
 				if( !op_result.isSuccessful() ) return op_result;
 
@@ -1647,15 +1651,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					CaseClause that) {
 				TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
 				TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
-				CaseClause new_node = new CaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast());
-				return Triple.make(new_node, match_result, body_result);
-			}
-
-			@Override
-			public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> for_RewriteCaseClause(_RewriteCaseClause that) {
-				TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
-				TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
-				_RewriteCaseClause new_node = new _RewriteCaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast(), that.getOp());
+				CaseClause new_node = new CaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast(),
+                                                                     that.getOp());
 				return Triple.<CaseClause,TypeCheckerResult,TypeCheckerResult>make(new_node, match_result, body_result);
 			}
 		};
@@ -1721,17 +1718,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Type param_type = param_result_.unwrap().type().unwrap(); // assured by the fact that we are caseExprNormal
 
 			if( postInference ) {
-				// after inference, the case clause had better be a _RewriteCaseClause.
-				if( !(clause instanceof _RewriteCaseClause) ) return bug("All case clauses should be rewritten to reflect the chosen compare op.");
+				// after inference, the case clause had better have the op field set
+                            if( clause.getOp().isNone() )
+                                    return bug("All case clauses should be rewritten to reflect the chosen compare op.");
 
-				_RewriteCaseClause rclause = (_RewriteCaseClause)clause;
-				Pair<Type, TypeCheckerResult> p = for_RewriteCaseClauseGetType(rclause, param_result_);
+				Pair<Type, TypeCheckerResult> p = for_CaseClauseGetType(clause, param_result_);
 				clause_results.add(p.second());
 				clause_types.add(p.first());
 			}
 			else {
 				// during inference, we'll try to apply the given compare op (if there is one) and otherwise try
-				// equals and in. We will remake the CaseClasue as a _RewriteCaseClause, with a chosen opr.
+				// equals and in. We will set the op field with a chosen opr.
 				Pair<Type, TypeCheckerResult> p = forCaseClauseRewriteAndGetType(clause, param_result_, compare_result_, equals_result, in_result);
 				clause_results.add(p.second());
 				clause_types.add(p.first());
@@ -1774,7 +1771,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	/**
 	 * Typecheck the clause, using one of the ops (compare, equals, or in), return the type of the right-hand side block, and
-	 * rewrite the CaseClause as a _RewriteCaseClause. All TypeCheckerResults must contain types, and must contain the AST type
+	 * rewrite the CaseClause to set the op field. All TypeCheckerResults must contain types, and must contain the AST type
 	 * that is reflected by their name.
 	 */
 	private Pair<Type, TypeCheckerResult> forCaseClauseRewriteAndGetType(CaseClause clause, Option<TypeCheckerResult> param_result_,
@@ -1830,10 +1827,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return Pair.<Type,TypeCheckerResult>make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, e_r, match_result, block_result));
 		}
 		else {
-			_RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
-					(Expr)match_result.ast(),
-					(Block)block_result.ast(),
-					chosen_op);
+			CaseClause new_node = new CaseClause(clause.getSpan(),
+                                                             (Expr)match_result.ast(),
+                                                             (Block)block_result.ast(),
+                                                             Option.<OpRef>some(chosen_op));
 			TypeCheckerResult app_result = new TypeCheckerResult(new_node, application_result.unwrap().second());
 			Type app_type = application_result.unwrap().first();
 			// We still must ensure the type of the application is a Boolean
@@ -1843,9 +1840,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 	/**
+         * pointInference pass
 	 * Typecheck the clause AND return the type of the right-hand side.
 	 */
-	private Pair<Type, TypeCheckerResult> for_RewriteCaseClauseGetType(_RewriteCaseClause clause, Option<TypeCheckerResult> param_result_) {
+	private Pair<Type, TypeCheckerResult> for_CaseClauseGetType(CaseClause clause, Option<TypeCheckerResult> param_result_) {
+            // after inference, the case clause had better have the op field set
+            if( clause.getOp().isNone() )
+                return bug("All case clauses should be rewritten to reflect the chosen compare op.");
+
+            OpRef op = clause.getOp().unwrap();
+
 		TypeCheckerResult match_result = recur(clause.getMatch());
 		TypeCheckerResult block_result = recur(clause.getBody());
 
@@ -1857,12 +1861,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Type block_type = block_result.type().unwrap();
 		Type param_type = param_result_.unwrap().type().unwrap();
 
-		if( clause.getOp() instanceof _RewriteInstantiatedOpRefs ) {
+		if( op.getOverloadings().isSome() ) {
 			// Our operator is an overloading, so we should find the statically most applicable one and rewrite
-			_RewriteInstantiatedOpRefs overloadings = (_RewriteInstantiatedOpRefs)clause.getOp();
 			Type arg_type = NodeFactory.makeTupleType(Useful.list(param_type, match_type));
 			TypeCheckerResult app_result_1 =
-				findStaticallyMostApplicableFn(destructOpOverLoading(overloadings.getOverloadings()), arg_type, overloadings, overloadings.getOriginalName());
+                            findStaticallyMostApplicableFn(destructOpOverLoading(op.getOverloadings().unwrap()),
+                                                           arg_type, op, op.getOriginalName());
 
 			if( app_result_1.isSuccessful() ) {
 				Type arrow_type = app_result_1.type().unwrap();
@@ -1870,15 +1874,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					TypesUtil.applicationType(subtypeChecker, arrow_type, new ArgList(param_type, match_type), downwardConstraint);
 
 				if( app_result_2.isSome() ) {
-					_RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
-							(Expr)match_result.ast(),
-							(Block)block_result.ast(),
-							(OpRef)app_result_1.ast());
+					CaseClause new_node = new CaseClause(clause.getSpan(),
+                                                                             (Expr)match_result.ast(),
+                                                                             (Block)block_result.ast(),
+                                                                             Option.<OpRef>some((OpRef)app_result_1.ast()));
 					TypeCheckerResult app_result_3 = new TypeCheckerResult(new_node, app_result_2.unwrap().second());
 					Type app_type = app_result_2.unwrap().first();
 					// We still must ensure the type of the application is a Boolean
 					TypeCheckerResult bool_result = checkSubtype(app_type, Types.BOOLEAN, new_node,
-							"Result of application of " + clause.getOp() + " to param and match expression must have type boolean, but had type " + app_type + ".");
+                                                                                     "Result of application of " + op + " to param and match expression must have type boolean, but had type " + app_type + ".");
 					return Pair.make(block_type, TypeCheckerResult.compose(new_node, subtypeChecker, bool_result, app_result_3, match_result, block_result));
 				}
 				else {
@@ -1892,25 +1896,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 		else {
 			// no overloading, so just do the normal thing
-			TypeCheckerResult op_result = recur(clause.getOp());
+                    TypeCheckerResult op_result = recur(op);
 			if( !op_result.isSuccessful() ) return Pair.make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, op_result));
 			Option<Pair<Type, ConstraintFormula>> app_result_1 =
 				TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(param_type, match_type), downwardConstraint);
 			if( app_result_1.isSome() ) {
-				_RewriteCaseClause new_node = new _RewriteCaseClause(clause.getSpan(),
-						(Expr)match_result.ast(),
-						(Block)block_result.ast(),
-						(OpRef)op_result.ast());
+				CaseClause new_node = new CaseClause(clause.getSpan(),
+                                                                     (Expr)match_result.ast(),
+                                                                     (Block)block_result.ast(),
+                                                                     Option.<OpRef>some((OpRef)op_result.ast()));
 				TypeCheckerResult app_result_2 = new TypeCheckerResult(new_node, app_result_1.unwrap().second());
 				Type app_type = app_result_1.unwrap().first();
 				// We still must ensure the type of the application is a Boolean
 				TypeCheckerResult bool_result = checkSubtype(app_type, Types.BOOLEAN, new_node,
-						"Result of application of " + clause.getOp() + " to param and match expression must have type boolean, but had type " + app_type + ".");
+                                                                             "Result of application of " + op + " to param and match expression must have type boolean, but had type " + app_type + ".");
 				return Pair.make(block_type, TypeCheckerResult.compose(new_node, subtypeChecker, bool_result, app_result_2, match_result, block_result));
 			}
 			else {
 				// error
-				String err = "No overloading of the operator " + clause.getOp() + " could be found for arguments of type " +
+                            String err = "No overloading of the operator " + op + " could be found for arguments of type " +
 				param_type + " (Param Type)  and " + match_type + " (Match Type).";
 				TypeCheckerResult e_r = new TypeCheckerResult(clause, TypeError.make(err, clause));
 				return Pair.<Type,TypeCheckerResult>make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, e_r, match_result, block_result));
@@ -2444,9 +2448,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forFnRefOnly(final FnRef that, Option<TypeCheckerResult> exprType_result,
-                List<TypeCheckerResult> staticArgs_result,
-			TypeCheckerResult originalName_result,
-			List<TypeCheckerResult> fns_result) {
+                                              List<TypeCheckerResult> staticArgs_result,
+                                              TypeCheckerResult originalName_result,
+                                              List<TypeCheckerResult> fns_result,
+                                              Option<List<TypeCheckerResult>> overloadings_result) {
 
 		// Could we give a type to each of our fns?
 		for( TypeCheckerResult r : fns_result ) {
@@ -2463,7 +2468,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		ConstraintFormula constraints=ConstraintFormula.TRUE;
 
 		// if no static args are provided, and we have several overloadings, we
-		// will create a _RewriteInstantiatedFnRef
+		// will create a FnRef with the overloadings field set
 		if( that.getStaticArgs().isEmpty()  && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
 			// if there is an overloading that requires static args, and we don't have any, we'll
 			// create a _FnInstantitedOverloading
@@ -2518,14 +2523,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
-					new_node = new _RewriteInstantiatedFnRefs(that.getSpan(),
-							that.isParenthesized(),
-							type,
-	                                                 that.getStaticArgs(),
-	                                                 that.getLexicalDepth(),
-							 that.getOriginalName(),
-							 that.getFns(),
-							 fn_overloadings);
+					new_node = new FnRef(that.getSpan(),
+                                                             that.isParenthesized(),
+                                                             type,
+                                                             that.getStaticArgs(),
+                                                             that.getLexicalDepth(),
+                                                             that.getOriginalName(),
+                                                             that.getFns(),
+                                                             Option.<List<_RewriteFnRefOverloading>>some(fn_overloadings));
 		}
 		else {
 			// otherwise, we just operate according to the normal procedure, apply args or none were necessary
@@ -3561,10 +3566,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult forOpExpr(OpExpr that) {
 		List<TypeCheckerResult> args_result = recurOnListOfExpr(that.getArgs());
 
-		if( postInference && that.getOp() instanceof _RewriteInstantiatedOpRefs ) {
-			// if we have finished typechecking, and we have encountered a reference to an overloaded op
-			_RewriteInstantiatedOpRefs ops = (_RewriteInstantiatedOpRefs)that.getOp();
+                OpRef ops = that.getOp();
 
+		if( postInference && ops.getOverloadings().isSome() ) {
+			// if we have finished typechecking, and we have encountered a reference to an overloaded op
 
 			for( TypeCheckerResult r : args_result ) {
 				if( !r.isSuccessful() )
@@ -3575,7 +3580,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }
 			}));
 			Type arg_type = NodeFactory.makeTupleType(that.getSpan(), arg_types);
-			TypeCheckerResult op_result = findStaticallyMostApplicableFn(destructOpOverLoading(ops.getOverloadings()), arg_type,ops, ops.getOriginalName());
+			TypeCheckerResult op_result = findStaticallyMostApplicableFn(destructOpOverLoading(ops.getOverloadings().unwrap()),
+                                                                                     arg_type,ops, ops.getOriginalName());
 
 			// Now just check the rewritten expression by the normal means
 			return forOpExprOnly(that, Option.<TypeCheckerResult>none(), op_result, args_result);
@@ -3658,9 +3664,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forOpRefOnly(final OpRef that, Option<TypeCheckerResult> exprType_result,
-                List<TypeCheckerResult> staticArgs_result,
-			TypeCheckerResult originalName_result,
-			List<TypeCheckerResult> ops_result) {
+                                              List<TypeCheckerResult> staticArgs_result,
+                                              TypeCheckerResult originalName_result,
+                                              List<TypeCheckerResult> ops_result,
+                                              Option<List<TypeCheckerResult>> overloadings_result) {
 		// Did all ops typecheck?
 		for( TypeCheckerResult o_r : ops_result ) {
 			if( !o_r.isSuccessful() )
@@ -3676,7 +3683,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		ConstraintFormula constraints=ConstraintFormula.TRUE;
 
 		// If no static args are given, but overloadings require them, we'll create a
-		// _RewriteInstantiatedOpRef.
+		// OpRef with the overloading field set.
 		if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
 			List<_RewriteOpRefOverloading> overloadings = new ArrayList<_RewriteOpRefOverloading>();
 			List<Type> arrow_types = new ArrayList<Type>();
@@ -3729,14 +3736,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
-					new_node = new _RewriteInstantiatedOpRefs(that.getSpan(),
-							that.isParenthesized(),
-							type,
-                                                        that.getStaticArgs(),
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-							that.getOps(),
-							overloadings);
+					new_node = new OpRef(that.getSpan(),
+                                                             that.isParenthesized(),
+                                                             type,
+                                                             that.getStaticArgs(),
+                                                             that.getLexicalDepth(),
+                                                             that.getOriginalName(),
+                                                             that.getOps(),
+                                                             Option.<List<_RewriteOpRefOverloading>>some(overloadings));
 					constraints = accumulated_constraints;
 		}
 		else {
