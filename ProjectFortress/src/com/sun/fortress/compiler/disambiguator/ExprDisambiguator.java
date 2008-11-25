@@ -30,14 +30,14 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.Catch;
+import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.Do;
@@ -133,6 +133,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Set<Id> _uninitializedNames;
     private List<StaticError> _errors;
     private Option<Id> _innerMostLabel;
+    private boolean inComponent = false;
 
     public ExprDisambiguator(NameEnv env, List<StaticError> errors) {
         _env = env;
@@ -499,55 +500,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //     }
 
     /**
-     * When recurring on an AbsTraitDecl, we first need to extend the
-     * environment with all the newly bound static parameters that can
-     * be used in an expression context.
-     * TODO: Handle variables bound in where clauses.
-     * TODO: Insert inherited method names into the environment.
-     */
-    @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
-        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-
-        // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames =
-            extractDeclNames(that.getDecls());
-        Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
-        Set<IdOrOpOrAnonymousName> fns = declNames.third();
-
-        Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
-        Set<Id> inheritedGettersAndSetters = inherited.first();
-        Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
-
-        // Do not extend the environment with "fields", getters, or setters in a trait.
-        // References to all three must have an explicit receiver.
-        v = this.
-            extendWithVars(extractStaticExprVars(that.getStaticParams())).
-            extendWithFns(inheritedMethods).
-            extendWithSelf(that.getSpan()).
-            extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should
-            // not be referred to without explicit receivers in most (all?) cases. But the
-            // libraries break horribly if we leave them off.
-            extendWithFns(inheritedGettersAndSetters).
-            extendWithFns(gettersAndSetters);
-
-        v.checkForShadowingVars(vars);
-
-        return forAbsTraitDeclOnly(that,
-                                   v.recurOnListOfModifier(that.getMods()),
-                                   (Id) that.getName().accept(v),
-                                   v.recurOnListOfStaticParam(that.getStaticParams()),
-                                   extendsClause,
-                                   v.recurOnOptionOfWhereClause(that.getWhere()),
-                                   v.recurOnListOfBaseType(that.getExcludes()),
-                                   v.recurOnOptionOfListOfBaseType(that.getComprises()),
-                                   v.recurOnListOfDecl(that.getDecls()));
-    }
-
-
-    /**
      * When recurring on an ObjExpr, we first need to extend the
      * environment with all the newly bound variables and methods
      * TODO: Insert inherited method names into the environment.
@@ -667,6 +619,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return new Pair<Set<Id>, Set<IdOrOpOrAnonymousName>>(gettersAndSetters, methods);
     }
 
+    @Override public Node forComponent(final Component that) {
+        inComponent = true;
+        return super.forComponent( that );
+    }
+
     /**
      * When recurring on a TraitDecl, we first need to extend the
      * environment with all the newly bound static parameters that
@@ -689,6 +646,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> inheritedGettersAndSetters = inherited.first();
         Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
 
+        // Do not extend the environment with "fields", getters, or setters in a trait.
+        // References to all three must have an explicit receiver.
         v = this.
             extendWithVars(extractStaticExprVars(that.getStaticParams())).
             extendWithFns(inheritedGettersAndSetters).
@@ -702,6 +661,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedGettersAndSetters).
             extendWithFns(gettersAndSetters);
 
+        if ( ! inComponent )
+            v.checkForShadowingVars(vars);
+
         return forTraitDeclOnly(that,
 				v.recurOnListOfModifier(that.getMods()),
 				(Id) that.getName().accept(v),
@@ -712,59 +674,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				v.recurOnOptionOfListOfBaseType(that.getComprises()),
 				v.recurOnListOfDecl(that.getDecls()));
     }
-
-
-    /**
-     * When recurring on an AbsObjectDecl, we first need to extend the
-     * environment with all the newly bound static parameters that can
-     * be used in an expression context.
-     * TODO: Handle variables bound in where clauses.
-     * TODO: Insert inherited method names into the environment.
-     */
-    @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
-        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-
-        // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(that.getDecls());
-        Set<Id> vars = declNames.first();
-        Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
-        // fns does not contain getters and setters
-        Set<IdOrOpOrAnonymousName> fns = declNames.third();
-
-        Set<Id> params = extractParamNames(that.getParams());
-        Set<Id> fields = CollectUtil.union(params, vars);
-
-        Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
-        Set<Id> inheritedGettersAndSetters = inherited.first();
-        Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
-
-        v = this.extendWithVars(extractStaticExprVars
-				(that.getStaticParams())).
-            extendWithSelf(that.getSpan()).
-            extendWithVars(params).
-            extendWithVars(vars).
-            extendWithFns(inheritedMethods).
-            extendWithFns(fns).
-            // TODO The following two extensions are problematic; getters and setters should
-            // not be referred to without explicit receivers in most (all?) cases. But the
-            // libraries break horribly if we leave them off.
-            extendWithFns(inheritedGettersAndSetters, fields).
-            extendWithFns(gettersAndSetters, fields);
-
-        return forAbsObjectDeclOnly(that,
-                                    v.recurOnListOfModifier(that.getMods()),
-                                    (Id) that.getName().accept(v),
-                                    v.recurOnListOfStaticParam(that.getStaticParams()),
-                                    extendsClause,
-                                    v.recurOnOptionOfWhereClause(that.getWhere()),
-                                    v.recurOnOptionOfListOfParam(that.getParams()),
-                                    v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                                    v.recurOnOptionOfContract(that.getContract()),
-                                    v.recurOnListOfDecl(that.getDecls()));
-    }
-
-
 
     /**
      * When recurring on an ObjectDecl, we first need to extend the
@@ -781,6 +690,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(that.getDecls());
         Set<Id> vars = declNames.first();
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
+        // fns does not contain getters and setters
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
         Set<Id> params = extractParamNames(that.getParams());

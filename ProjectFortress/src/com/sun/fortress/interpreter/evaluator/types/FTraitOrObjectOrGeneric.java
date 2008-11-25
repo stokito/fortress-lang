@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierValue;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Fn;
@@ -45,8 +45,8 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         this.env = env;
         this.decl = def;
         boolean isValueType = false;
-        if (def instanceof TraitObjectAbsDeclOrDecl)
-            for (Modifier mod : ((TraitObjectAbsDeclOrDecl) def).getMods())
+        if (def instanceof TraitObjectDecl)
+            for (Modifier mod : ((TraitObjectDecl) def).getMods())
                 if (mod instanceof ModifierValue) {
                     isValueType = true;
                     break;

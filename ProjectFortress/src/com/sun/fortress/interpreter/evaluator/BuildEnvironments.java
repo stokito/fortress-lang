@@ -521,7 +521,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     }
 
-    private void makeGenericSingleton(ObjectAbsDeclOrDecl x, Environment e, Id name,
+    private void makeGenericSingleton(ObjectDecl x, Environment e, Id name,
             String fname, FTraitOrObjectOrGeneric ft) {
         GenericConstructor gen = new GenericConstructor(e, x, name);
         guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), gen, x);
@@ -799,16 +799,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     /*
      * (non-Javadoc)
      *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
-     */
-    @Override
-    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
-        return bug("BuildEnvironments.forAbsTraitDecl should not be called");
-    }
-
-    /*
-     * (non-Javadoc)
-     *
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forTraitDef(com.sun.fortress.interpreter.nodes.TraitDecl)
      */
     @Override
@@ -881,7 +871,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      * @param ftt
      * @param interior
      */
-    public void finishTrait(TraitAbsDeclOrDecl x, FTypeTrait ftt, Environment interior) {
+    public void finishTrait(TraitDecl x, FTypeTrait ftt, Environment interior) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         // TODO What if I don't
         // interior = interior.extendAt(x);
@@ -990,7 +980,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         return et;
     }
 
-    public void finishObjectTrait(ObjectAbsDeclOrDecl x, FTypeObject ftt) {
+    public void finishObjectTrait(ObjectDecl x, FTypeObject ftt) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
         finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
     }
@@ -1088,17 +1078,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     public Boolean forImportStar(ImportStar x) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
-     */
-    @Override
-    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
-        return bug("BuildEnvironments.forAbsObjectDecl should not be called");
-
     }
 
     public Environment getBindingEnv() {

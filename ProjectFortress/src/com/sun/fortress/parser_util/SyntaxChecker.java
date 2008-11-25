@@ -83,59 +83,51 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
-    public void forAbsTraitDecl(AbsTraitDecl that) {
-        inTrait = true;
-        List<Modifier> mods = that.getMods();
-        for ( Modifier mod : mods ) {
-            if ( ! ((mod instanceof ModifierValue) ||
-                    (mod instanceof ModifierTest)) )
-                log(that, "The modifier " + mod + " of the trait " +
-                          that.getName() + " is not a valid modifier " +
-                          "for a trait in an API.");
-        }
-        super.forAbsTraitDecl( that );
-        inTrait = false;
-    }
-
     public void forTraitDecl(TraitDecl that) {
         inTrait = true;
         List<Modifier> mods = that.getMods();
-        for ( Modifier mod : mods ) {
-            if ( ! ((mod instanceof ModifierPrivate) ||
-                    (mod instanceof ModifierValue) ||
-                    (mod instanceof ModifierTest)) )
-                log(that, "The modifier " + mod + " of the trait " +
-                          that.getName() + " is not a valid modifier " +
-                          "for a trait in a component.");
+        if ( inComponent ) {
+            for ( Modifier mod : mods ) {
+                if ( ! ((mod instanceof ModifierPrivate) ||
+                        (mod instanceof ModifierValue) ||
+                        (mod instanceof ModifierTest)) )
+                    log(that, "The modifier " + mod + " of the trait " +
+                        that.getName() + " is not a valid modifier " +
+                        "for a trait in a component.");
+            }
+        } else if ( inApi ) {
+            for ( Modifier mod : mods ) {
+                if ( ! ((mod instanceof ModifierValue) ||
+                        (mod instanceof ModifierTest)) )
+                    log(that, "The modifier " + mod + " of the trait " +
+                        that.getName() + " is not a valid modifier " +
+                        "for a trait in an API.");
+            }
         }
         super.forTraitDecl( that );
         inTrait = false;
     }
 
-    public void forAbsObjectDecl(AbsObjectDecl that) {
-        inObject = true;
-        List<Modifier> mods = that.getMods();
-        for ( Modifier mod : mods ) {
-            if ( ! ((mod instanceof ModifierValue) ||
-                    (mod instanceof ModifierTest)) )
-                log(that, "The modifier " + mod + " of the object " +
-                          that.getName() + " is not a valid modifier " +
-                          "for an object in an API.");
-        }
-        super.forAbsObjectDecl( that );
-        inObject = false;
-    }
-
     public void forObjectDecl(ObjectDecl that) {
         inObject = true;
         List<Modifier> mods = that.getMods();
-        for ( Modifier mod : mods ) {
-            if ( ! ((mod instanceof ModifierPrivate) ||
-                    (mod instanceof ModifierValue) ||
-                    (mod instanceof ModifierTest)) )
-                log(that, "The modifier " + mod + " of the object " +
-                          that.getName() + " is not a valid modifier " +
-                          "for an object in a component.");
+        if ( inComponent ) {
+            for ( Modifier mod : mods ) {
+                if ( ! ((mod instanceof ModifierPrivate) ||
+                        (mod instanceof ModifierValue) ||
+                        (mod instanceof ModifierTest)) )
+                    log(that, "The modifier " + mod + " of the object " +
+                        that.getName() + " is not a valid modifier " +
+                        "for an object in a component.");
+            }
+        } else {
+            for ( Modifier mod : mods ) {
+                if ( ! ((mod instanceof ModifierValue) ||
+                        (mod instanceof ModifierTest)) )
+                    log(that, "The modifier " + mod + " of the object " +
+                        that.getName() + " is not a valid modifier " +
+                        "for an object in an API.");
+            }
         }
         super.forObjectDecl( that );
         inObject = false;

@@ -24,7 +24,7 @@ import java.util.Collections;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.iter.IterUtil;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -37,15 +37,15 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
  * {@link ObjectTraitIndex}.
  */
 public abstract class TraitIndex extends TypeConsIndex {
-    
-    private final TraitObjectAbsDeclOrDecl _ast;
+
+    private final TraitObjectDecl _ast;
     private final Map<Id, Method> _getters;
     private final Map<Id, Method> _setters;
     private final Set<Function> _coercions;
     private final Relation<IdOrOpOrAnonymousName, Method> _dottedMethods;
     private final Relation<IdOrOpOrAnonymousName, FunctionalMethod> _functionalMethods;
-    
-    public TraitIndex(TraitObjectAbsDeclOrDecl ast,
+
+    public TraitIndex(TraitObjectDecl ast,
                       Map<Id, Method> getters,
                       Map<Id, Method> setters,
                       Set<Function> coercions,
@@ -58,42 +58,42 @@ public abstract class TraitIndex extends TypeConsIndex {
         _dottedMethods = dottedMethods;
         _functionalMethods = functionalMethods;
     }
-    
-    public TraitObjectAbsDeclOrDecl ast() { return _ast; }
-    
+
+    public TraitObjectDecl ast() { return _ast; }
+
     public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
-    
+
     public List<Id> hiddenParameters() { return Collections.emptyList(); }
-    
+
     /**
      * Return all subtype relationships described by parameter bounds and where clauses.
      * Each pair {@code p} in the list is an assertion that {@code p.first()} is a subtype
      * of {@code p.second()}.
      */
     public Iterable<Pair<Type, Type>> typeConstraints() { return IterUtil.empty(); }
-    
+
     public List<TraitTypeWhere> extendsTypes() {
         return _ast.getExtendsClause();
     }
-    
+
     public Map<Id, Method> getters() {
         return _getters;
     }
-    
+
     public Map<Id, Method> setters() {
         return _setters;
     }
-    
+
     public Set<Function> coercions() {
         return _coercions;
     }
-    
+
     public Relation<IdOrOpOrAnonymousName, Method> dottedMethods() {
         return _dottedMethods;
     }
-    
+
     public Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods() {
         return _functionalMethods;
     }
-    
+
 }

@@ -464,12 +464,12 @@ public class TypeAnalyzerJUTest extends TestCase {
             BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
-        TraitAbsDeclOrDecl ast;
+        TraitDecl ast;
         if (absDecl) {
-            ast = new AbsTraitDecl(span, NodeFactory.makeId(span, name),
-                                   Collections.<StaticParam>emptyList(),
-                                   extendsClause,
-                                   Collections.<Decl>emptyList());
+            ast = new TraitDecl(span, NodeFactory.makeId(span, name),
+                                Collections.<StaticParam>emptyList(),
+                                extendsClause,
+                                Collections.<Decl>emptyList());
         }
         else {
             ast = new TraitDecl(span, NodeFactory.makeId(span, name),

@@ -26,7 +26,7 @@ import java.util.Set;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.NI;
 
@@ -37,7 +37,7 @@ import edu.rice.cs.plt.tuple.Pair;
 /** Wraps a (non-object) trait declaration. */
 public class ProperTraitIndex extends TraitIndex {
 
-	public ProperTraitIndex(TraitAbsDeclOrDecl ast,
+	public ProperTraitIndex(TraitDecl ast,
 			Map<Id, Method> getters,
 			Map<Id, Method> setters,
 			Set<Function> coercions,
@@ -92,7 +92,7 @@ public class ProperTraitIndex extends TraitIndex {
 		}
 		Relation<IdOrOpOrAnonymousName, FunctionalMethod> new_functional = CollectUtil.makeRelation(new_fm);
 
-		return new ProperTraitIndex((TraitAbsDeclOrDecl)this.ast().accept(v),
+		return new ProperTraitIndex((TraitDecl)this.ast().accept(v),
 				new_getters,
 				new_setters,
 				new_coercions,

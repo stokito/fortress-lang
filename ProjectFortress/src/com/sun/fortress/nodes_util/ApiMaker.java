@@ -118,15 +118,15 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             inTrait = true;
             List<Decl> absDecls = declsToDecls(that.getDecls());
             inTrait = false;
-            return Option.<Node>some(new AbsTraitDecl(that.getSpan(),
-                                                      that.getMods(),
-                                                      that.getName(),
-                                                      that.getStaticParams(),
-                                                      that.getExtendsClause(),
-                                                      that.getWhere(),
-                                                      that.getExcludes(),
-                                                      that.getComprises(),
-                                                      absDecls));
+            return Option.<Node>some(new TraitDecl(that.getSpan(),
+                                                   that.getMods(),
+                                                   that.getName(),
+                                                   that.getStaticParams(),
+                                                   that.getExtendsClause(),
+                                                   that.getWhere(),
+                                                   that.getExcludes(),
+                                                   that.getComprises(),
+                                                   absDecls));
         } else return Option.<Node>none();
     }
 
@@ -135,16 +135,16 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             inObject = true;
             List<Decl> absDecls = declsToDecls(that.getDecls());
             inObject = false;
-            return Option.<Node>some(new AbsObjectDecl(that.getSpan(),
-                                                       that.getMods(),
-                                                       that.getName(),
-                                                       that.getStaticParams(),
-                                                       that.getExtendsClause(),
-                                                       that.getWhere(),
-                                                       that.getParams(),
-                                                       that.getThrowsClause(),
-                                                       that.getContract(),
-                                                       absDecls));
+            return Option.<Node>some(new ObjectDecl(that.getSpan(),
+                                                    that.getMods(),
+                                                    that.getName(),
+                                                    that.getStaticParams(),
+                                                    that.getExtendsClause(),
+                                                    that.getWhere(),
+                                                    that.getParams(),
+                                                    that.getThrowsClause(),
+                                                    that.getContract(),
+                                                    absDecls));
         } else return Option.<Node>none();
     }
 

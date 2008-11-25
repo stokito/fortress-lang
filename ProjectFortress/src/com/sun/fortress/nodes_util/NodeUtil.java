@@ -383,7 +383,7 @@ public class NodeUtil {
             return nameString(node);
         }
             @Override
-        public String forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl node) {
+        public String forObjectDecl(ObjectDecl node) {
             return node.getName().getText();
         }
             @Override
@@ -391,7 +391,7 @@ public class NodeUtil {
             return node.getGenSymName();
         }
             @Override
-        public String forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl node) {
+        public String forTraitDecl(TraitDecl node) {
             return node.getName().getText();
         }
             @Override
@@ -450,7 +450,7 @@ public class NodeUtil {
             public IterableOnce<String> forLocalVarDecl(LocalVarDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());
             }
-            public IterableOnce<String> forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl d) {
+            public IterableOnce<String> forObjectDecl(ObjectDecl d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> for_RewriteObjectExpr(_RewriteObjectExpr d) {
@@ -469,7 +469,7 @@ public class NodeUtil {
             public IterableOnce<String> forTestDecl(TestDecl d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
-            public IterableOnce<String> forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl d) {
+            public IterableOnce<String> forTraitDecl(TraitDecl d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forTypeAlias(TypeAlias d) {

@@ -24,7 +24,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.useful.Factory1P;
@@ -33,11 +33,11 @@ import com.sun.fortress.useful.Memo1P;
 
 public class GenericSingleton extends FValue implements Factory1P<List<FType>, FObject, HasAt> {
 
-    ObjectAbsDeclOrDecl odecl;
+    ObjectDecl odecl;
     FType t;
     GenericConstructor genericConstructor;
 
-    public GenericSingleton(ObjectAbsDeclOrDecl odecl, FType t, GenericConstructor gc) {
+    public GenericSingleton(ObjectDecl odecl, FType t, GenericConstructor gc) {
         super();
         this.odecl = odecl;
         this.t = t;
