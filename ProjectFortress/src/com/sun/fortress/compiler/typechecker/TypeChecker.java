@@ -423,7 +423,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				}
 				else{
 					String err_message = "Two consecutive ^s";
-					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+					StaticError err=TypeError.make(err_message,
+                                                                       new Span(((ASTNode)exponent.unwrap()).getSpan(),
+                                                                                that.getSpan()).toString());
 					return new TypeCheckerResult(that,err);
 				}
 			}
@@ -435,7 +437,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				}
 				else{
 					String err_message = "Exponentiation followed by subscripting is illegal";
-					StaticError err=TypeError.make(err_message, new Span(exponent.unwrap().getSpan(),that.getSpan()).toString());
+					StaticError err=TypeError.make(err_message,
+                                                                       new Span(((ASTNode)exponent.unwrap()).getSpan(),
+                                                                                that.getSpan()).toString());
 					exponent = Option.none();
 					return new TypeCheckerResult(that,err);
 				}
@@ -4426,7 +4430,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 * T is returned.
 	 */
 	private Pair<TypeCheckerResult, Type> getConditionType(Type sub, Node ast, String error) {
-		Type infer_type = NodeFactory.make_InferenceVarType(ast.getSpan());
+            if ( ! ( ast instanceof ASTNode ) )
+                bug(ast, "Only ASTNodes are supported.");
+            Type infer_type = NodeFactory.make_InferenceVarType(((ASTNode)ast).getSpan());
 		Type generator_type = Types.makeConditionType(infer_type);
 		TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
 
@@ -4440,7 +4446,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 * T is returned.
 	 */
 	private Pair<TypeCheckerResult, Type> getGeneratorType(Type sub, Node ast, String error) {
-		Type infer_type = NodeFactory.make_InferenceVarType(ast.getSpan());
+            if ( ! ( ast instanceof ASTNode ) )
+                bug(ast, "Only ASTNodes are supported.");
+            Type infer_type = NodeFactory.make_InferenceVarType(((ASTNode)ast).getSpan());
 		Type generator_type = Types.makeGeneratorType(infer_type);
 		TypeCheckerResult result = this.checkSubtype(sub, generator_type, ast, error);
 

@@ -31,7 +31,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Voidoid;
 

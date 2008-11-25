@@ -45,7 +45,7 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.GHashMap;
 import com.sun.fortress.useful.HasAt;

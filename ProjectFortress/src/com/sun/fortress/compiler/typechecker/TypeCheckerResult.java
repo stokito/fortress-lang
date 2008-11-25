@@ -27,6 +27,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -45,14 +46,15 @@ import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
     private final Option<Type> type;
     private final ConstraintFormula nodeConstraints;
-    private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs; 
+    private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
 
-    private static Pair<ConstraintFormula, Option<StaticError>> 
+    private static Pair<ConstraintFormula, Option<StaticError>>
     collectConstraints(Iterable<? extends TypeCheckerResult> results,
             TypeAnalyzer checker, Node ast) {
         SubtypeHistory empty_history = checker.new SubtypeHistory();
@@ -70,8 +72,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
 	private static Map<Pair<Node,Span>, TypeEnv> collectEnvMaps(Iterable<? extends TypeCheckerResult> results) {
 		// Take the union of each map from every TypeCheckerResult
-		return IterUtil.fold(results, 
-				             Collections.<Pair<Node,Span>, TypeEnv>emptyMap(), 
+		return IterUtil.fold(results,
+				             Collections.<Pair<Node,Span>, TypeEnv>emptyMap(),
 				             new Lambda2<Map<Pair<Node,Span>, TypeEnv>,TypeCheckerResult,Map<Pair<Node,Span>, TypeEnv>>() {
 								public Map<Pair<Node,Span>, TypeEnv> value(
 										Map<Pair<Node,Span>, TypeEnv> arg0,
@@ -87,7 +89,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
 
 	public static TypeCheckerResult compose(Node _ast, Option<Type> _type,
-			TypeAnalyzer type_analyzer, 
+			TypeAnalyzer type_analyzer,
 			TypeCheckerResult... results) {
 
 		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
@@ -99,15 +101,15 @@ public class TypeCheckerResult extends StaticPhaseResult {
 			errors = Useful.prepend(constraints_.second().unwrap(), errors);
 		}
 
-		return new TypeCheckerResult(_ast, 
-				_type, 
-				errors, 
+		return new TypeCheckerResult(_ast,
+				_type,
+				errors,
 				constraints_.first(),
 				collectEnvMaps(Arrays.asList(results)));
 	}
 
 	public static TypeCheckerResult compose(Node _ast, Type _type,
-			TypeAnalyzer type_analyzer, 
+			TypeAnalyzer type_analyzer,
 			TypeCheckerResult... results) {
 		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
 			collectConstraints(Arrays.asList(results),type_analyzer,_ast);
@@ -118,9 +120,9 @@ public class TypeCheckerResult extends StaticPhaseResult {
 			errors = Useful.prepend(constraints_.second().unwrap(), errors);
 		}
 
-		return new TypeCheckerResult(_ast, 
-				_type, 
-				errors, 
+		return new TypeCheckerResult(_ast,
+				_type,
+				errors,
 				constraints_.first(),
 				collectEnvMaps(Arrays.asList(results)));
 	}
@@ -145,16 +147,16 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	}
 
     public static TypeCheckerResult compose(Node _ast, TypeAnalyzer type_analyzer, Option<TypeCheckerResult>... results) {
-        List<TypeCheckerResult> real_results = 
+        List<TypeCheckerResult> real_results =
             CollectUtil.makeList(IterUtil.map(IterUtil.filter(Arrays.asList(results), new Predicate<Option<TypeCheckerResult>>(){
                 public boolean contains(Option<TypeCheckerResult> arg0) { return arg0.isSome(); }}),
                 new Lambda<Option<TypeCheckerResult>,TypeCheckerResult>(){
                     public TypeCheckerResult value(Option<TypeCheckerResult> arg0) {return arg0.unwrap(); }}));
         return compose(_ast, type_analyzer, real_results);
     }
-	
-	public static TypeCheckerResult compose(Node _ast, 
-			TypeAnalyzer type_analyzer, 
+
+	public static TypeCheckerResult compose(Node _ast,
+			TypeAnalyzer type_analyzer,
 			List<TypeCheckerResult> results) {
 		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
 			collectConstraints(results,type_analyzer,_ast);
@@ -171,9 +173,9 @@ public class TypeCheckerResult extends StaticPhaseResult {
 				collectEnvMaps(results));
 	}
 
-	public static TypeCheckerResult compose(Node _ast, 
-			Type _type, 
-			TypeAnalyzer type_analyzer, 
+	public static TypeCheckerResult compose(Node _ast,
+			Type _type,
+			TypeAnalyzer type_analyzer,
 			List<TypeCheckerResult> results) {
 		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
 			collectConstraints(results,type_analyzer,_ast);
@@ -190,15 +192,15 @@ public class TypeCheckerResult extends StaticPhaseResult {
 				collectEnvMaps(results));
 	}
 
-	public static TypeCheckerResult compose(Node _ast, 
-			Option<Type> _type, 
+	public static TypeCheckerResult compose(Node _ast,
+			Option<Type> _type,
 			TypeAnalyzer type_analyzer,
 			List<TypeCheckerResult> results) {
 		Pair<ConstraintFormula,Option<StaticError>> constraints_ =
 			collectConstraints(results,type_analyzer,_ast);
 
 		List<StaticError> errors = CollectUtil.makeList(IterUtil.relax(collectErrors(results)));
-		
+
 		if( constraints_.second().isSome() ) {
 			errors = Useful.prepend(constraints_.second().unwrap(), errors);
 		}
@@ -209,7 +211,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 				collectEnvMaps(results));
 	}
 
-	public static TypeCheckerResult compose(Node _ast, 
+	public static TypeCheckerResult compose(Node _ast,
 			TypeAnalyzer type_analyzer,
 			Option<List<TypeCheckerResult>> results_) {
 		if (results_.isSome()) {
@@ -255,12 +257,12 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	}
 
 	/**
-	 * Convenience method that calls {@code addNodeTypeEnvEntry} on 'this' 
+	 * Convenience method that calls {@code addNodeTypeEnvEntry} on 'this'
 	 */
 	public TypeCheckerResult addNodeTypeEnvEntry(Node node, TypeEnv env) {
 		return addNodeTypeEnvEntry(this, node, env);
 	}
-	
+
 	/**
 	 * Add a mapping from a variable-declaring node to the type environment that is in scope at its location.
 	 * This method extends {@code result} with the new entry.
@@ -270,10 +272,12 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	 * @return A newly extended TypeCheckerResult.
 	 */
 	public static TypeCheckerResult addNodeTypeEnvEntry(TypeCheckerResult result,
-			                                            Node node, TypeEnv env) {
-		return addNodeTypeEnvEntries(result, Collections.singletonMap(Pair.make(node, node.getSpan()), env));
+                                                            Node node, TypeEnv env) {
+            if ( ! ( node instanceof ASTNode ) )
+                bug(node, "Only ASTNodes are supported.");
+            return addNodeTypeEnvEntries(result, Collections.singletonMap(Pair.make(node, ((ASTNode)node).getSpan()), env));
 	}
-	
+
 	/**
 	 * Add new entries that link variable-declaring nodes to the type environments that are in scope when
 	 * the nodes are reached. This new TypeCheckerResult will be the same as {@code result} except that its
@@ -284,25 +288,25 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	 */
 	public static TypeCheckerResult addNodeTypeEnvEntries(TypeCheckerResult result,
 			                                              Map<Pair<Node,Span>,TypeEnv> entries) {
-		return new TypeCheckerResult(result.ast, result.type, 
-				                     result.errors(), result.nodeConstraints, 
+		return new TypeCheckerResult(result.ast, result.type,
+				                     result.errors(), result.nodeConstraints,
 				                     CollectUtil.union(result.nodeTypeEnvs,entries));
 	}
-	
+
 	public static Option<? extends Node> astFromResult(Option<TypeCheckerResult> result) {
 		if( result.isSome() )
 			return Option.some(result.unwrap().ast());
 		else
 			return Option.<Node>none();
 	}
-	
+
 	public static Option<? extends List<? extends Node>> astFromResults(Option<List<TypeCheckerResult>> results) {
 		if( results.isSome() )
 			return Option.some(astFromResults(results.unwrap()));
 		else
 			return Option.none();
 	}
-	
+
 	public static List<? extends Node> astFromResults(List<TypeCheckerResult> results) {
 		return Useful.immutableTrimmedList(
 		        CollectUtil.makeList(IterUtil.map(results,
@@ -312,7 +316,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		                }}
 		        )));
 	}
-	
+
 	public TypeCheckerResult(Node _ast, Type _type,
 			Iterable<? extends StaticError> _errors) {
 		super(_errors);
@@ -337,8 +341,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
 			ConstraintFormula c) {
 		this(_ast,_type,_errors,c,Collections.<Pair<Node,Span>, TypeEnv>emptyMap());
 	}
-	
-	public TypeCheckerResult(Node _ast, 
+
+	public TypeCheckerResult(Node _ast,
 			Iterable<? extends StaticError> _errors) {
 		super(_errors);
 		ast = _ast;
@@ -380,11 +384,11 @@ public class TypeCheckerResult extends StaticPhaseResult {
 	}
 
 	public TypeCheckerResult(Node _ast,
-			Option<Type> _type, 
+			Option<Type> _type,
 			Iterable<? extends StaticError> _errors,
 			ConstraintFormula c) {
 		this(_ast, _type, _errors, c, Collections.<Pair<Node,Span>, TypeEnv>emptyMap());
-	}    
+	}
 
 	public TypeCheckerResult(Node _ast, StaticError _error) {
 		super(IterUtil.make(_error));
@@ -468,7 +472,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         return new TypeCheckerResult(this.ast,
                                      this.type,
                                      this.errors(),
-                                     this.nodeConstraints.removeTypesFromScope(var_types), 
-                                     this.nodeTypeEnvs); 
-    }	
+                                     this.nodeConstraints.removeTypesFromScope(var_types),
+                                     this.nodeTypeEnvs);
+    }
 }

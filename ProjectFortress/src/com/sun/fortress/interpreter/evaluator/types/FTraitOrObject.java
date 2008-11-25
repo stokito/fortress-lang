@@ -43,7 +43,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
 import com.sun.fortress.useful.HasAt;

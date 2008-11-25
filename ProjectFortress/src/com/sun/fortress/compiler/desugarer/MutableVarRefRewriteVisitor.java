@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -36,12 +37,13 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Span;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     // The root of the subtree in AST which we are trying to rewrite
     // This root can only be either ObjectDecl or LocalVarDecl, which can
     // declare mutable variables captured by ObjectExpr
-    private Node entryNode;
+    private ASTNode entryNode;
     // A map mapping from VarRefs to its corresponding boxed type
     private Map<VarRef, VarRefContainer> mutableVarRefContainerMap;
     // A list of varRefs that are declared directly under entryNode and
@@ -52,7 +54,9 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     public MutableVarRefRewriteVisitor(Node entryNode,
                 Map<VarRef, VarRefContainer> mutableVarRefContainerMap,
                 List<VarRef> varRefsToRewrite) {
-        this.entryNode = entryNode;
+        if ( ! ( entryNode instanceof ASTNode ) )
+            bug(entryNode, "Only ASTNodes are supported.");
+        this.entryNode = (ASTNode)entryNode;
         this.mutableVarRefContainerMap = mutableVarRefContainerMap;
         this.varRefsToRewrite = varRefsToRewrite;
     }

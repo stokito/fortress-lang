@@ -17,9 +17,9 @@
 
 package com.sun.fortress.nodes_util;
 
-import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.ASTNode;
 
-public class NodeSpanEquals<T extends Node> {
+public class NodeSpanEquals<T extends ASTNode> {
 
 	private T node;
 
@@ -29,10 +29,10 @@ public class NodeSpanEquals<T extends Node> {
 
     public boolean equals(Object other) {
         if (other == null) return false;
-        if (!(other instanceof Node)) {
+        if (!(other instanceof ASTNode)) {
         	return false;
         }
-        Node oNode = (Node) other;
+        ASTNode oNode = (ASTNode) other;
         return (node.equals(other) && node.getSpan().equals(oNode.getSpan()));
     }
 

@@ -797,7 +797,7 @@ public final class FortressUtil {
 // let span_two (one : 'a node) (two : 'b node) : span =
 //   join one.node_span two.node_span
 
-    public static Span spanTwo(Node s1, Node s2) {
+    public static Span spanTwo(ASTNode s1, ASTNode s2) {
         return new Span(s1.getSpan().getBegin(), s2.getSpan().getEnd());
     }
 
@@ -812,12 +812,12 @@ public final class FortressUtil {
     public static Span spanAll(Object[] nodes, int size) {
         if (size == 0) return new Span();
         else { // size != 0
-            return new Span(((Node)Array.get(nodes,0)).getSpan().getBegin(),
-                            ((Node)Array.get(nodes,size-1)).getSpan().getEnd());
+            return new Span(((ASTNode)Array.get(nodes,0)).getSpan().getBegin(),
+                            ((ASTNode)Array.get(nodes,size-1)).getSpan().getEnd());
         }
     }
 
-    public static Span spanAll(Iterable<? extends Node> nodes) {
+    public static Span spanAll(Iterable<? extends ASTNode> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(); }
         else {
             return new Span(IterUtil.first(nodes).getSpan().getBegin(),
@@ -825,7 +825,7 @@ public final class FortressUtil {
         }
     }
 
-    public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends Node> nodes) {
+    public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends ASTNode> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(defaultLoc, defaultLoc); }
         else {
             return new Span(IterUtil.first(nodes).getSpan().getBegin(),

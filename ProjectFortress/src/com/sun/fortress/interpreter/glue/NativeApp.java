@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.glue;
 
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 import java.util.Hashtable;
 import java.util.List;
@@ -27,6 +28,9 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
+import com.sun.fortress.nodes.NodeVisitor;
+import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.Id;
@@ -40,7 +44,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.useful.Pair;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -107,6 +111,15 @@ public abstract class NativeApp implements Applicable {
     public String toString() {
         return (a.stringName()+"(native " + this.getClass().getSimpleName()+")");
     }
+
+    public <RetType> RetType accept(NodeVisitor<RetType> visitor) {
+        return visitor.forId(new Id(NodeFactory.makeSpan(""), ""));
+    }
+    public void accept(NodeVisitor_void visitor) {}
+    public int generateHashCode() { return 0; }
+    public java.lang.String serialize() { return ""; }
+    public void serialize(java.io.Writer writer) {}
+    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
 
     /**
      * Actually apply the native function to the passed-in arguments.
