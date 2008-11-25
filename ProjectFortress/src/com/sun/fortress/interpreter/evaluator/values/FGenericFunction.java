@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -50,7 +50,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
                               implements GenericFunctionOrMethod,
                               Factory1P<List<FType>, Simple_fcn, HasAt> {
 
-    FnAbsDeclOrDecl fndef;
+    FnDecl fndef;
 
 
      /* (non-Javadoc)
@@ -133,7 +133,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return memo.make(l, location);
     }
 
-    public FnAbsDeclOrDecl getFnDeclOrDecl() {
+    public FnDecl getFnDecl() {
         return fndef;
     }
 
@@ -141,7 +141,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return getWithin();
     }
 
-    public FGenericFunction(Environment e, FnAbsDeclOrDecl fndef) {
+    public FGenericFunction(Environment e, FnDecl fndef) {
         super(e);
         this.fndef = fndef;
     }

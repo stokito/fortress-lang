@@ -417,15 +417,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    public List<String> myRecurOnListOfDecl(List<Decl> that) {
+    private List<String> myRecurOnListOfDecl(List<Decl> that) {
         boolean sawField = false;
         boolean sawGetterSetter = false;
         List<String> accum = new java.util.ArrayList<String>(that.size());
         for (Decl elt : that) {
             if ( elt instanceof VarDecl ) {
                 sawField = true;
-            } else if ( elt instanceof AbsFnDecl ) {
-                if ( NodeUtil.isSetterOrGetter(((AbsFnDecl)elt).getMods()) ) {
+            } else if ( elt instanceof FnDecl ) {
+                if ( NodeUtil.isSetterOrGetter(((FnDecl)elt).getMods()) ) {
                     sawGetterSetter = true;
                     if ( sawField ) {
                         accum.add("\n");
@@ -657,97 +657,20 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "(* _RewriteFnOverloadDecl(" + name_result + ") *)";
     }
 
-    @Override public String forAbsFnDeclOnly(AbsFnDecl that,
-                                             List<String> mods_result,
-                                             final String name_result,
-                                             List<String> staticParams_result,
-                                             List<String> params_result,
-                                             Option<String> returnType_result,
-                                             Option<List<String>> throwsClause_result,
-                                             Option<String> where_result,
-                                             Option<String> contract_result,
-                                             String unambiguousName_result) {
-        StringBuilder s = new StringBuilder();
 
-        for ( String mod : mods_result ){
-            s.append( mod ).append( " " );
-        }
-        final String sparams = inOxfordBrackets(staticParams_result);
-        final String vparams = inParentheses(params_result);
-        s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
-
-            @Override public String forId(final Id idThat) {
-                return name_result + sparams + inParentheses(inParentheses(vparams));
-            }
-
-            @Override public String forOp(final Op opThat) {
-                final String oper = opThat.getText();
-                /* fixity shouldnt be null */
-                assert(opThat.getFixity().isSome());
-                return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
-                    @Override public String forPreFixityOnly(PreFixity that) {
-                        return "opr " + oper + sparams + inParentheses(vparams);
-                    }
-
-                    @Override public String forPostFixityOnly(PostFixity that){
-                        return "opr " + inParentheses(vparams) + oper + sparams;
-                    }
-
-                    @Override public String forNoFixityOnly(NoFixity that){
-                        return "opr " + oper + "()";
-                    }
-
-                    @Override public String forInFixityOnly(InFixity that){
-                        return "opr " + oper + sparams + inParentheses(vparams);
-                    }
-
-                    @Override public String forMultiFixityOnly(MultiFixity that) {
-                        return "opr " + oper + sparams + inParentheses(vparams);
-                    }
-
-                    @Override public String forBigFixityOnly(BigFixity that) {
-                        return "opr " + oper + sparams + inParentheses(vparams);
-                    }
-                });
-            }
-
-            @Override public String forEnclosing(Enclosing that) {
-                String left = that.getOpen().getText();
-                String right = that.getClose().getText();
-                right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
-                String params = vparams.equals("()") ? "" : vparams;
-                params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
-                return "opr " + left + sparams + " " + params + " " + right;
-            }
-        }));
-
-        if ( returnType_result.isSome() ) {
-            s.append( handleType(returnType_result.unwrap()) );
-        }
-        throwsClause(s, throwsClause_result);
-        if ( where_result.isSome() )
-            s.append( " " ).append( where_result.unwrap() );
-        if ( contract_result.isSome() ) {
-            s.append( " " );
-            s.append( contract_result.unwrap() );
-        }
-
-        return s.toString();
-    }
-
-
+    /****************************************/
     @Override public String forFnDeclOnly(FnDecl that,
-                                         List<String> mods_result,
-                                         final String name_result,
-                                         List<String> staticParams_result,
-                                         List<String> params_result,
-                                         Option<String> returnType_result,
-                                         Option<List<String>> throwsClause_result,
-                                         Option<String> where_result,
-                                         Option<String> contract_result,
-                                         String unambigousName_result,
-                                         String body_result,
-                                         Option<String> implementsUnambiguousName_result) {
+                                          List<String> mods_result,
+                                          final String name_result,
+                                          List<String> staticParams_result,
+                                          List<String> params_result,
+                                          Option<String> returnType_result,
+                                          Option<List<String>> throwsClause_result,
+                                          Option<String> where_result,
+                                          Option<String> contract_result,
+                                          String unambigousName_result,
+                                          Option<String> body_result,
+                                          Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
@@ -811,10 +734,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " " );
             s.append( contract_result.unwrap() );
         }
-        s.append( " =\n" );
-        increaseIndent();
-        s.append( body_result );
-        decreaseIndent();
+        if ( body_result.isSome() ) {
+            s.append( " =\n" );
+            increaseIndent();
+            s.append( body_result.unwrap() );
+            decreaseIndent();
+        }
         return s.toString();
     }
 

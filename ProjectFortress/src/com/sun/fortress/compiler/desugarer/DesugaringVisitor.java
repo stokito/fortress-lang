@@ -115,8 +115,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
      */
     private boolean hasExplicitGetter(Id name, List<Decl> decls) {
         for (Decl decl: decls) {
-            if (decl instanceof FnAbsDeclOrDecl) {
-                FnAbsDeclOrDecl _decl = (FnAbsDeclOrDecl) decl;
+            if (decl instanceof FnDecl) {
+                FnDecl _decl = (FnDecl) decl;
                 if (_decl.getName().equals(name) && NodeUtil.isGetter(_decl)) {
                     return true;
                 }
@@ -132,8 +132,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
      */
     private boolean hasExplicitSetter(Id name, List<Decl> decls) {
         for (Decl decl: decls) {
-            if (decl instanceof FnAbsDeclOrDecl) {
-                FnAbsDeclOrDecl _decl = (FnAbsDeclOrDecl) decl;
+            if (decl instanceof FnDecl) {
+                FnDecl _decl = (FnDecl) decl;
                 if (_decl.getName().equals(name) && NodeUtil.isSetter(_decl)) {
                     return true;
                 }
@@ -220,7 +220,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    private FnAbsDeclOrDecl makeGetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
+    private FnDecl makeGetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
             if (!(mod instanceof ModifierSettable) &&
@@ -250,14 +250,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             body = ExprFactory.makeVarRef(span, mangleName(name));
 
         if ( inTrait )
-            return NodeFactory.makeAbsFnDecl(span, mods, field.getName(),
-                                             field.getType());
+            return NodeFactory.makeFnDecl(span, mods, field.getName(),
+                                          field.getType(), Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
                                          field.getType(), body);
     }
 
-    private FnAbsDeclOrDecl makeSetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
+    private FnDecl makeSetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
         Span span = field.getSpan();
         Type voidType = NodeFactory.makeVoidType(span);
         Option<Type> ty = field.getType();
@@ -302,8 +302,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                 lhs, rhs);
         }
         if ( inTrait )
-            return NodeFactory.makeAbsFnDecl(span, mods, name, params,
-                                             Option.some(voidType));
+            return NodeFactory.makeFnDecl(span, mods, name, params,
+                                          Option.some(voidType), Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, name, params,
                                          Option.some(voidType), assign);
@@ -605,23 +605,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forAbsFnDeclOnly(AbsFnDecl that, List<Modifier> mods_result,
-                                 IdOrOpOrAnonymousName name_result,
-                                 List<StaticParam> staticParams_result,
-                                 List<Param> params_result,
-                                 Option<Type> returnType_result,
-                                 Option<List<BaseType>> throwsClause_result,
-                                 Option<WhereClause> where_result,
-                                 Option<Contract> contract_result,
-                                 Id unambiguousName_result)
-    {
-        return new AbsFnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
-                             name_result, staticParams_result, params_result,
-                             returnType_result, throwsClause_result,
-                             where_result, contract_result, unambiguousName_result);
-    }
-
-    @Override
     public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result,
                              IdOrOpOrAnonymousName name_result,
                              List<StaticParam> staticParams_result,
@@ -631,7 +614,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<WhereClause> where_result,
                              Option<Contract> contract_result,
                              Id unambiguousName_result,
-                             Expr body_result,
+                             Option<Expr> body_result,
                              Option<Id> implementsUnambiguousName_result)
     {
         return new FnDecl(that.getSpan(), removeGetterSetterMod(mods_result),

@@ -182,44 +182,24 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                      ! p.getName().getText().equals("self") )
                     log(p, "The type of " + p.getName() + " is required.");
             }
-            return Option.<Node>some(new AbsFnDecl(that.getSpan(),
-                                                   that.getMods(),
-                                                   that.getName(),
-                                                   that.getStaticParams(),
-                                                   that.getParams(),
-                                                   that.getReturnType(),
-                                                   that.getThrowsClause(),
-                                                   that.getWhere(),
-                                                   that.getContract()));
-        } else return Option.<Node>none();
-    }
-
-    /* For an abstract method declaration in a component,
-       the APIMaker puts the "abstract" modifier in the generated API.
-     */
-    public Option<Node> forAbsFnDecl(AbsFnDecl that) {
-        if ( ! isPrivate(that) ) {
-            if ( that.getReturnType().isNone() )
-                log(that, "The return type of " + that.getName() + " is required.");
-            for ( Param p : that.getParams() ) {
-                if ( p instanceof NormalParam &&
-                     ((NormalParam)p).getType().isNone() &&
-                     ! p.getName().getText().equals("self") )
-                    log(p, "The type of " + p.getName() + " is required.");
-            }
+            /* For an abstract method declaration in a component,
+               the APIMaker puts the "abstract" modifier in the generated API.
+            */
             List<Modifier> mods = that.getMods();
-            if ( inTrait ) {
+            if ( inTrait && that.getBody().isNone() ) {
                 mods.add(0, new ModifierAbstract(that.getSpan()));
             }
-            return Option.<Node>some(new AbsFnDecl(that.getSpan(),
-                                                   mods,
-                                                   that.getName(),
-                                                   that.getStaticParams(),
-                                                   that.getParams(),
-                                                   that.getReturnType(),
-                                                   that.getThrowsClause(),
-                                                   that.getWhere(),
-                                                   that.getContract()));
+            return Option.<Node>some(new FnDecl(that.getSpan(),
+                                                mods,
+                                                that.getName(),
+                                                that.getStaticParams(),
+                                                that.getParams(),
+                                                that.getReturnType(),
+                                                that.getThrowsClause(),
+                                                that.getWhere(),
+                                                that.getContract(),
+                                                Option.<Expr>none(),
+                                                Option.<Id>none()));
         } else return Option.<Node>none();
     }
 }

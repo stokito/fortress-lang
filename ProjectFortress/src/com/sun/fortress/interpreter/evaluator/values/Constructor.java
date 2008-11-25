@@ -261,7 +261,7 @@ public class Constructor extends NonPrimitive {
         final Set<String> overridden = new HashSet<String>();
 //        final NodeVisitor_void overrideFinder = new NodeAbstractVisitor_void() {
 //
-//            FnAbsDeclOrDecl current;
+//            FnDecl current;
 //
 //            public void forModifierOverride(ModifierOverride mo) {
 //                overridden.add(current.stringName());
@@ -269,7 +269,7 @@ public class Constructor extends NonPrimitive {
 //            }
 //
 //            @Override
-//            public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl that) {
+//            public void forFnDecl(FnDecl that) {
 //                current = that;
 //                for (Modifier m : that.getMods()) {
 //                    m.accept(this);

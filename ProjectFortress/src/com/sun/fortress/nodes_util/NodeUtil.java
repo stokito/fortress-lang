@@ -146,7 +146,7 @@ public class NodeUtil {
     }
 
     public static Option<Expr> getBody(Applicable def) {
-        if (def instanceof FnDecl) { return Option.some(((FnDecl)def).getBody()); }
+        if (def instanceof FnDecl) { return ((FnDecl)def).getBody(); }
         else if (def instanceof FnExpr) { return Option.some(((FnExpr)def).getBody()); }
         else { return Option.none(); }
     }
@@ -375,7 +375,7 @@ public class NodeUtil {
             else return nameString(ids.get(0));
         }
             @Override
-        public String forFnAbsDeclOrDecl(FnAbsDeclOrDecl node) {
+        public String forFnDecl(FnDecl node) {
             return nameString(node.getName());
         }
             @Override
@@ -438,7 +438,7 @@ public class NodeUtil {
             public IterableOnce<String> forFnExpr(FnExpr d) {
                 return new UnitIterable<String>(nameString(d.getName()));
             }
-            public IterableOnce<String> forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
+            public IterableOnce<String> forFnDecl(FnDecl d) {
                 return new UnitIterable<String>(nameString(d.getName()));
             }
             public IterableOnce<String> forGeneratedExpr(GeneratedExpr d) {
@@ -528,7 +528,7 @@ public class NodeUtil {
         };
 
 
-    public static boolean isGetter(FnAbsDeclOrDecl decl) {
+    public static boolean isGetter(FnDecl decl) {
         for (Modifier mod : decl.getMods()) {
             if (mod instanceof ModifierGetter) {
                 return true;
@@ -537,7 +537,7 @@ public class NodeUtil {
         return false;
     }
 
-    public static boolean isSetter(FnAbsDeclOrDecl decl) {
+    public static boolean isSetter(FnDecl decl) {
         for (Modifier mod : decl.getMods()) {
             if (mod instanceof ModifierSetter) {
                 return true;

@@ -156,95 +156,9 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
-    public void forAbsFnDeclOnly(AbsFnDecl that) {
-        if ( NodeUtil.isGetter(that) ) {
-            if ( ! that.getParams().isEmpty() )
-                log(that, "Getter declaration should not have a parameter.");
-        } else if ( NodeUtil.isSetter(that) ) {
-            if ( ! (that.getParams().size() == 1) )
-                log(that, "Setter declaration should have a single parameter.");
-        }
-
-        List<Modifier> mods = that.getMods();
-        if ( inTrait || inObject ) {
-            if ( NodeUtil.isGetter(that) || NodeUtil.isSetter(that) ) {
-                for ( Modifier mod : mods ) {
-                    if ( ! ((mod instanceof ModifierAtomic) ||
-                            (mod instanceof ModifierIO) ||
-                            (mod instanceof ModifierTest) ||
-                            (mod instanceof ModifierAbstract) ||
-                            (mod instanceof ModifierGetter) ||
-                            (mod instanceof ModifierSetter)) ) {
-                        if ( inComponent ) {
-                            if ( ! (mod instanceof ModifierPrivate) )
-                                log(that, "The modifier " + mod + " of the getter/setter " +
-                                          that.getName() + " is not a valid modifier " +
-                                          "for a getter/setter in a component.");
-                        } else { // if ( inApi )
-                            log(that, "The modifier " + mod + " of the getter/setter " +
-                                      that.getName() + " is not a valid modifier " +
-                                      "for a getter/setter in an API.");
-                        }
-                    }
-                }
-            } else { // non-getter/setter method declaration
-                for ( Modifier mod : mods ) {
-                    if ( ! ((mod instanceof ModifierAtomic) ||
-                            (mod instanceof ModifierIO) ||
-                            (mod instanceof ModifierTest) ||
-                            (mod instanceof ModifierOverride) ||
-                            (mod instanceof ModifierAbstract)) ) {
-                        if ( inComponent ) {
-                            if ( ! (mod instanceof ModifierPrivate) )
-                                log(that, "The modifier " + mod + " of the method " +
-                                          that.getName() + " is not a valid modifier " +
-                                          "for a method in a component.");
-                        } else { // if ( inApi )
-                            log(that, "The modifier " + mod + " of the method " +
-                                      that.getName() + " is not a valid modifier " +
-                                      "for a method in an API.");
-                        }
-                    }
-                }
-            }
-        } else { // top-level function declaration in an API
-            for ( Modifier mod : mods ) {
-                if ( ! ((mod instanceof ModifierAtomic) ||
-                        (mod instanceof ModifierIO) ||
-                        (mod instanceof ModifierTest)) )
-                    log(that, "The modifier " + mod + " of the function " +
-                              that.getName() + " is not a valid modifier " +
-                              "for a function in an API.");
-            }
-        }
-
-        boolean isOprMethod = false;
-        IdOrOpOrAnonymousName name = that.getName();
-        if ( (inTrait || inObject) &&
-             (that.getName() instanceof OpName) ) {
-            isOprMethod = (! (name instanceof Enclosing) ) ||
-                          ((Enclosing)name).getOpen().getText().equals("|");
-        }
-        boolean hasSelf = false;
-
-        if ( that.getReturnType().isNone() )
-            log(that, "The return type of " + name + " is required.");
-
-        for ( Param p : that.getParams() ) {
-            if ( p.getName().getText().equals("self") )
-                hasSelf = true;
-            if ( p instanceof NormalParam &&
-                 ((NormalParam)p).getType().isNone() &&
-                 ! p.getName().getText().equals("self") )
-                log(p, "The type of " + p.getName() + " is required.");
-        }
-
-        if ( isOprMethod && ! hasSelf )
-            log(that, "An operator method " + name +
-                      " should have the self parameter.");
-    }
-
     public void forFnDeclOnly(FnDecl that) {
+        boolean hasBody = that.getBody().isSome();
+
         if ( NodeUtil.isGetter(that) ) {
             if ( ! that.getParams().isEmpty() )
                 log(that, "Getter declaration should not have a parameter.");
@@ -264,38 +178,92 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
             }
         } else if ( inTrait || inObject ) {
             if ( NodeUtil.isGetter(that) || NodeUtil.isSetter(that) ) {
-                for ( Modifier mod : mods ) {
-                    if ( ! ((mod instanceof ModifierAtomic) ||
-                            (mod instanceof ModifierIO) ||
-                            (mod instanceof ModifierTest) ||
-                            (mod instanceof ModifierPrivate) ||
-                            (mod instanceof ModifierGetter) ||
-                            (mod instanceof ModifierSetter)) )
-                        log(that, "The modifier " + mod + " of the getter/setter " +
-                                  that.getName() + " is not a valid modifier " +
-                                  "for a getter/setter in a component.");
+                if ( hasBody ) {
+                    for ( Modifier mod : mods ) {
+                        if ( ! ((mod instanceof ModifierAtomic) ||
+                                (mod instanceof ModifierIO) ||
+                                (mod instanceof ModifierTest) ||
+                                (mod instanceof ModifierPrivate) ||
+                                (mod instanceof ModifierGetter) ||
+                                (mod instanceof ModifierSetter)) )
+                            log(that, "The modifier " + mod + " of the getter/setter " +
+                                that.getName() + " is not a valid modifier " +
+                                "for a getter/setter in a component.");
+                    }
+                } else { // does not have the body expression
+                    for ( Modifier mod : mods ) {
+                        if ( ! ((mod instanceof ModifierAtomic) ||
+                                (mod instanceof ModifierIO) ||
+                                (mod instanceof ModifierTest) ||
+                                (mod instanceof ModifierAbstract) ||
+                                (mod instanceof ModifierGetter) ||
+                                (mod instanceof ModifierSetter)) ) {
+                            if ( inComponent ) {
+                                if ( ! (mod instanceof ModifierPrivate) )
+                                    log(that, "The modifier " + mod + " of the getter/setter " +
+                                        that.getName() + " is not a valid modifier " +
+                                          "for a getter/setter in a component.");
+                            } else { // if ( inApi )
+                                log(that, "The modifier " + mod + " of the getter/setter " +
+                                    that.getName() + " is not a valid modifier " +
+                                    "for a getter/setter in an API.");
+                            }
+                        }
+                    }
                 }
             } else { // non-getter/setter method declaration
+                if ( hasBody ) {
+                    for ( Modifier mod : mods ) {
+                        if ( ! ((mod instanceof ModifierAtomic) ||
+                                (mod instanceof ModifierIO) ||
+                                (mod instanceof ModifierTest) ||
+                                (mod instanceof ModifierPrivate) ||
+                                (mod instanceof ModifierOverride)) )
+                            log(that, "The modifier " + mod + " of the method " +
+                                that.getName() + " is not a valid modifier " +
+                                "for a method in a component.");
+                    }
+                } else { // does not have the body expression
+                    for ( Modifier mod : mods ) {
+                        if ( ! ((mod instanceof ModifierAtomic) ||
+                                (mod instanceof ModifierIO) ||
+                                (mod instanceof ModifierTest) ||
+                                (mod instanceof ModifierOverride) ||
+                                (mod instanceof ModifierAbstract)) ) {
+                            if ( inComponent ) {
+                                if ( ! (mod instanceof ModifierPrivate) )
+                                    log(that, "The modifier " + mod + " of the method " +
+                                        that.getName() + " is not a valid modifier " +
+                                        "for a method in a component.");
+                            } else { // if ( inApi )
+                                log(that, "The modifier " + mod + " of the method " +
+                                    that.getName() + " is not a valid modifier " +
+                                    "for a method in an API.");
+                            }
+                        }
+                    }
+                }
+            }
+        } else { // top-level function declaration
+            if ( hasBody ) {
                 for ( Modifier mod : mods ) {
                     if ( ! ((mod instanceof ModifierAtomic) ||
                             (mod instanceof ModifierIO) ||
                             (mod instanceof ModifierTest) ||
-                            (mod instanceof ModifierPrivate) ||
-                            (mod instanceof ModifierOverride)) )
-                        log(that, "The modifier " + mod + " of the method " +
-                                  that.getName() + " is not a valid modifier " +
-                                  "for a method in a component.");
+                            (mod instanceof ModifierPrivate)) )
+                        log(that, "The modifier " + mod + " of the function " +
+                            that.getName() + " is not a valid modifier " +
+                            "for a top-level function.");
                 }
-            }
-        } else { // top-level function declaration in a component
-            for ( Modifier mod : mods ) {
-                if ( ! ((mod instanceof ModifierAtomic) ||
-                        (mod instanceof ModifierIO) ||
-                        (mod instanceof ModifierTest) ||
-                        (mod instanceof ModifierPrivate)) )
-                    log(that, "The modifier " + mod + " of the function " +
-                              that.getName() + " is not a valid modifier " +
-                              "for a top-level function.");
+            } else { // does not have the body expression
+                for ( Modifier mod : mods ) {
+                    if ( ! ((mod instanceof ModifierAtomic) ||
+                            (mod instanceof ModifierIO) ||
+                            (mod instanceof ModifierTest)) )
+                        log(that, "The modifier " + mod + " of the function " +
+                            that.getName() + " is not a valid modifier " +
+                            "for a function in an API.");
+                }
             }
         }
 
@@ -307,9 +275,17 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                           ((Enclosing)name).getOpen().getText().equals("|");
         }
         boolean hasSelf = false;
+        if ( (! hasBody) && that.getReturnType().isNone() )
+            log(that, "The return type of " + name + " is required.");
+
         for ( Param p : that.getParams() ) {
             if ( p.getName().getText().equals("self") )
                 hasSelf = true;
+            if ( (! hasBody) &&
+                 p instanceof NormalParam &&
+                 ((NormalParam)p).getType().isNone() &&
+                 ! p.getName().getText().equals("self") )
+                log(p, "The type of " + p.getName() + " is required.");
         }
         if ( isOprMethod && ! hasSelf )
             log(that, "An operator method " + name +

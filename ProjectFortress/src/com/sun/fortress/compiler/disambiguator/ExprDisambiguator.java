@@ -30,7 +30,6 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.VarDecl;
@@ -408,11 +407,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             }
 
             @Override
-            public Set<Id> forAbsFnDecl(AbsFnDecl that) {
-                return Collections.emptySet();
-            }
-
-            @Override
             public Set<Id> forFnDecl(FnDecl that) {
                 return Collections.emptySet();
             }
@@ -424,19 +418,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             @Override
             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
                 return Collections.emptySet();
-            }
-
-            @Override
-            public Set<IdOrOpOrAnonymousName> forAbsFnDecl(AbsFnDecl that) {
-                if( NodeUtil.isSetterOrGetter(that.getMods()) ) {
-                    accessors.add(that.getName());
-                    return Collections.emptySet();
-                } else if (FortressUtil.isFunctionalMethod(that.getParams())) {
-                    // don't add functional methods! they go at the top level...
-                    return Collections.emptySet();
-                } else {
-                    return Collections.singleton(that.getName());
-                }
             }
 
             @Override
@@ -476,11 +457,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //             }
 
 //             @Override
-//             public Set<Id> forAbsFnDecl(AbsFnDecl that) {
-//                 return Collections.emptySet();
-//             }
-
-//             @Override
 //             public Set<Id> forFnDecl(FnDecl that) {
 //                 return Collections.emptySet();
 //             }
@@ -490,20 +466,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //             @Override
 //             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
 //                 return Collections.emptySet();
-//             }
-
-//             @Override
-//             public Set<IdOrOpOrAnonymousName> forAbsFnDecl(AbsFnDecl that) {
-//                 if( isSetterOrGetter(that.getMods()) )
-//                     accessors.add(that.getName());
-
-//                 if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
-//                     // don't add functional methods! they go at the top level...
-//                     return Collections.emptySet();
-//                 }
-//                 else {
-//                     return Collections.singleton(that.getName());
-//                 }
 //             }
 
 //             @Override
@@ -852,36 +814,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  v.recurOnListOfDecl(that.getDecls()));
     }
 
-
-    /**
-     * When recurring on an AbsFnDecl, we first need to extend the
-     * environment with all the newly bound static parameters that
-     * can be used in an expression context, along with all function
-     * parameters and 'self'.
-     * TODO: Handle variables bound in where clauses.
-     */
-    @Override public Node forAbsFnDecl(final AbsFnDecl that) {
-        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<Id> params = extractParamNames(that.getParams());
-        ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
-
-        // No need to recur on the name, as we will not modify it and we have already checked
-        // for shadowing in forObjectDecl. Also, if this FnDecl is a getter, we allow it
-        // to share its name with a field, so blindly checking for shadowing at this point
-        // doesn't work.
-        return forAbsFnDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
-				(IdOrOpOrAnonymousName) that.getName(),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
-				v.recurOnListOfParam(that.getParams()),
-				v.recurOnOptionOfType(that.getReturnType()),
-				v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                                v.recurOnOptionOfWhereClause(that.getWhere()),
-				v.recurOnOptionOfContract(that.getContract()),
-				that.getUnambiguousName());
-    }
-
-
     /**
      * When recurring on a FnDecl, we first need to extend the
      * environment with all the newly bound static parameters that
@@ -909,7 +841,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             v.recurOnOptionOfWhereClause(that.getWhere()),
                             v.recurOnOptionOfContract(that.getContract()),
                             that.getUnambiguousName(),
-                            (Expr) that.getBody().accept(v),
+                            v.recurOnOptionOfExpr(that.getBody()),
                             that.getImplementsUnambiguousName());
     }
 

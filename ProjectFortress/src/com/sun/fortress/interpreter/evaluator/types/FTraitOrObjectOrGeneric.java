@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierValue;
 import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
@@ -91,26 +91,26 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         FTraitOrObjectOrGeneric x = this;
         // List<Decl> defs = members;
 
-        SortedSet<FnAbsDeclOrDecl> defs = Useful
-                .<Decl, FnAbsDeclOrDecl> filteredSortedSet(members,
-                        new Fn<Decl, FnAbsDeclOrDecl>() {
+        SortedSet<FnDecl> defs = Useful
+                .<Decl, FnDecl> filteredSortedSet(members,
+                        new Fn<Decl, FnDecl>() {
                             @Override
-                            public FnAbsDeclOrDecl apply(Decl x) {
-                                if (x instanceof FnAbsDeclOrDecl)
-                                    return (FnAbsDeclOrDecl) x;
+                            public FnDecl apply(Decl x) {
+                                if (x instanceof FnDecl)
+                                    return (FnDecl) x;
                                 return null;
                             }
                         }, NodeComparator.fnAbsDeclOrDeclComparer);
 
         if (x instanceof FTypeGeneric) {
 
-            for (FnAbsDeclOrDecl dod : defs) {
+            for (FnDecl dod : defs) {
 
-                int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+                int spi = NodeUtil.selfParameterIndex((FnDecl) dod);
                 if (spi >= 0) {
                     // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    // FnDecl
+                    FnDecl fndod = (FnDecl) dod;
                     String fndodname = NodeUtil.nameString(fndod.getName());
                     // cl = new OverloadedFunction(fndod.getName(),
                     // getEnv());
@@ -128,13 +128,13 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
             }
         } else {
 
-            for (FnAbsDeclOrDecl dod : defs) {
+            for (FnDecl dod : defs) {
 
-                int spi = NodeUtil.selfParameterIndex((FnAbsDeclOrDecl) dod);
+                int spi = NodeUtil.selfParameterIndex((FnDecl) dod);
                 if (spi >= 0) {
                     // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    // FnDecl
+                    FnDecl fndod = (FnDecl) dod;
                     String fndodname = NodeUtil.nameString(fndod.getName());
 
                     Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, x);
@@ -167,13 +167,13 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
 
         for (Decl dod : defs) {
             // Filter out non-functions.
-            if (dod instanceof FnAbsDeclOrDecl) {
+            if (dod instanceof FnDecl) {
                 int spi = NodeUtil
-                        .selfParameterIndex((FnAbsDeclOrDecl) dod);
+                        .selfParameterIndex((FnDecl) dod);
                 if (spi >= 0) {
                     // If it is a functional method, it is definitely a
-                    // FnAbsDeclOrDecl
-                    FnAbsDeclOrDecl fndod = (FnAbsDeclOrDecl) dod;
+                    // FnDecl
+                    FnDecl fndod = (FnDecl) dod;
                     // System.err.println("Functional method " + dod + "
                     // pass
                     // "+pass);

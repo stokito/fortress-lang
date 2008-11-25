@@ -45,7 +45,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AbstractObjectExpr;
@@ -67,7 +66,6 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.ExtentRange;
 import com.sun.fortress.nodes.FieldRef;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
@@ -869,9 +867,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         AbstractNode n;
 
-        if (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) {
+        if ( fndef.getBody().isSome() &&
+             (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) ) {
             List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add(fndef.getBody());
+            exprs.add(fndef.getBody().unwrap());
             Block b = new Block(_contract.unwrap().getSpan(), exprs);
             if (_invariants.isSome()) b = translateInvariants(_invariants, b);
             if (_ensures.isSome())    b = translateEnsures(_ensures, b);
@@ -879,10 +878,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
             // Remove the original contract, add the translation
             FnDecl f = new FnDecl(fndef.getSpan(), fndef.getMods(),
-                                fndef.getName(),
-                                fndef.getStaticParams(), fndef.getParams(),
-                                fndef.getReturnType(), fndef.getThrowsClause(),
-                                fndef.getWhere(), Option.<Contract>none(), b);
+                                  fndef.getName(),
+                                  fndef.getStaticParams(), fndef.getParams(),
+                                  fndef.getReturnType(), fndef.getThrowsClause(),
+                                  fndef.getWhere(), Option.<Contract>none(), Option.<Expr>some(b));
 
             n = visitNode(f);
         } else {
@@ -893,41 +892,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         return n;
 
     }
-
-    @Override
-    public Node forAbsFnDecl(AbsFnDecl fndef) {
-        if (atTopLevelInsideTraitOrObject) {
-            var_rewrites_put(WellKnownNames.defaultSelfName, new SelfRewrite());
-        }
-        atTopLevelInsideTraitOrObject = false;
-        lexicalNestingDepth++;
-
-        List<Param> params = fndef.getParams();
-        // fndef.getFnName(); handled at top level.
-        List<StaticParam> tparams = fndef.getStaticParams();
-
-        paramsToLocals(params);
-        immediateDef = tparamsToLocals(tparams, immediateDef);
-
-        AbstractNode n;
-
-    // TODO Contracts, properties, not handled here.  See forFnDecl for details.
-
-        // Strip the contract, we don't know what to do with it,
-        // and it is not in any sensible scope.
-        AbsFnDecl f = new AbsFnDecl(fndef.getSpan(), fndef.getMods(),
-                fndef.getName(),
-                fndef.getStaticParams(), fndef.getParams(),
-                fndef.getReturnType(), fndef.getThrowsClause(),
-                fndef.getWhere(), Option.<Contract>none());
-
-        n = visitNode(f);
-
-        dumpIfChange(fndef, n);
-        return n;
-
-    }
-
 
     @Override
     public Node forVarDecl(VarDecl vd) {
@@ -1385,7 +1349,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             ArrowOrFunctional aof = adod.accept(IsAnArrowName.isAnArrowName);
                 if (aof == ArrowOrFunctional.FUNCTIONAL) {
                     // Only certain things can be a functional method.
-                    FnAbsDeclOrDecl fadod = (FnAbsDeclOrDecl) adod;
+                    FnDecl fadod = (FnDecl) adod;
                     String s = fadod.getName().stringName();
                     arrows.add(s);
                     functionals.add(s);

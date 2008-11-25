@@ -29,7 +29,6 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AnyType;
@@ -206,26 +205,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfDecl(that.getDecls()));
     }
 
-
-    /**
-     * When recurring on an AbsFnDecl, we first need to extend the
-     * environment with all the newly bound static parameters.
-     */
-    @Override public Node forAbsFnDecl(final AbsFnDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
-
-        return forAbsFnDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
-                (IdOrOpOrAnonymousName) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfParam(that.getParams()),
-                v.recurOnOptionOfType(that.getReturnType()),
-                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
-                v.recurOnOptionOfContract(that.getContract()),
-                that.getUnambiguousName());
-    }
-
     /**
      * When recurring on a FnDecl, we first need to extend the
      * environment with all the newly bound static parameters.
@@ -243,7 +222,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfWhereClause(that.getWhere()),
                 v.recurOnOptionOfContract(that.getContract()),
                 that.getUnambiguousName(),
-                (Expr) that.getBody().accept(v),
+                v.recurOnOptionOfExpr(that.getBody()),
                 that.getImplementsUnambiguousName());
     }
 

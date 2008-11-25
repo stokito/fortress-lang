@@ -24,7 +24,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.nodes_util.Applicable;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 
 
 public class BuildObjectEnvironment extends BuildTraitEnvironment {
@@ -39,7 +39,7 @@ public class BuildObjectEnvironment extends BuildTraitEnvironment {
         return new MethodClosure(containing,x, definer);
     }
 
-    protected GenericMethod newGenericClosure(Environment e, FnAbsDeclOrDecl x) {
+    protected GenericMethod newGenericClosure(Environment e, FnDecl x) {
         return new GenericMethod(containing, e, x, definer, false);
     }
 

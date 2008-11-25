@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArrow;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierOverride;
@@ -97,8 +97,8 @@ public class Closure extends NonPrimitive implements Scope {
 
     @Override
     public boolean isOverride() {
-        if (def instanceof FnAbsDeclOrDecl) {
-            List<Modifier> mods = ((FnAbsDeclOrDecl) def).getMods();
+        if (def instanceof FnDecl) {
+            List<Modifier> mods = ((FnDecl) def).getMods();
             for (Modifier mod : mods)
                 if (mod instanceof ModifierOverride)
                     return true;

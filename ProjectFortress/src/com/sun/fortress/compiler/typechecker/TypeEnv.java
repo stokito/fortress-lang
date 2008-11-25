@@ -48,7 +48,6 @@ import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -146,7 +145,7 @@ public abstract class TypeEnv {
         }
     }
 
-    protected static _RewriteGenericArrowType genericArrowFromDecl(FnAbsDeclOrDecl decl) {
+    protected static _RewriteGenericArrowType genericArrowFromDecl(FnDecl decl) {
         return new _RewriteGenericArrowType(decl.getSpan(),
                                             decl.getStaticParams(),
                                             domainFromParams(decl.getParams()),
@@ -393,7 +392,7 @@ public abstract class TypeEnv {
         else { return new FnTypeEnv(fns, this); }
     }
 
-    public final TypeEnv extendWithFnDecls(Relation<IdOrOpOrAnonymousName, ? extends FnDecl> fns) {
+    public final TypeEnv extendWithFnDecls(Relation<IdOrOpOrAnonymousName, FnDecl> fns) {
         if (fns.size() == 0) { return this; }
         else { return new FnDeclTypeEnv(fns, this); }
     }
@@ -455,18 +454,18 @@ public abstract class TypeEnv {
             mutable = binding.isMutable();
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, FnAbsDeclOrDecl decl) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, FnDecl decl) {
             var = _var;
             type = Option.<Type>wrap(genericArrowFromDecl(decl));
             mods = decl.getMods();
             mutable = false;
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, Collection<? extends FnAbsDeclOrDecl> decls) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Collection<FnDecl> decls) {
             var = _var;
             List<Type> overloads = new ArrayList<Type>();
             mods = Collections.<Modifier>emptyList();
-            for (FnAbsDeclOrDecl decl : decls) {
+            for (FnDecl decl : decls) {
                 overloads.add(genericArrowFromDecl(decl));
                 mods.addAll(decl.getMods());
             }

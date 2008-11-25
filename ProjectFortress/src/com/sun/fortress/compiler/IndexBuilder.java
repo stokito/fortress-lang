@@ -157,7 +157,7 @@ public class IndexBuilder {
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
             }
-            @Override public void forAbsFnDecl(AbsFnDecl d) {
+            @Override public void forFnDecl(FnDecl d) {
                 buildFunction(d, functions);
             }
             @Override public void forDimDecl(DimDecl d) {
@@ -236,9 +236,6 @@ public class IndexBuilder {
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables); initializers.add(d);
             }
-            @Override public void forAbsFnDecl(AbsFnDecl d) {
-                buildFunction(d, functions);
-            }
             @Override public void forFnDecl(FnDecl d) {
                 buildFunction(d, functions);
             }
@@ -286,7 +283,7 @@ public class IndexBuilder {
             @Override public void forVarDecl(VarDecl d) {
                 buildTraitFields(d, name, getters, setters);
             }
-            @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
+            @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
                         functionalMethods, functions);
             }
@@ -360,7 +357,7 @@ public class IndexBuilder {
                 if (d.getInit().isSome())
                     initializers.add(d);
             }
-            @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
+            @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
                         functionalMethods, functions);
             }
@@ -455,7 +452,7 @@ public class IndexBuilder {
      * Create a function wrapper for the declaration and put it in the given
      * relation.
      */
-    private void buildFunction(FnAbsDeclOrDecl ast,
+    private void buildFunction(FnDecl ast,
             Relation<IdOrOpOrAnonymousName, Function> functions) {
         DeclaredFunction df = new DeclaredFunction(ast);
         functions.add(ast.getName(), df);
@@ -467,7 +464,7 @@ public class IndexBuilder {
      * method, or functional method, and add it to the appropriate map; also store
      * functional methods with top-level functions.
      */
-    private void buildMethod(FnAbsDeclOrDecl ast,
+    private void buildMethod(FnDecl ast,
             Id declaringTrait,
             Map<Id, Method> getters,
             Map<Id, Method> setters,

@@ -23,7 +23,6 @@ import java.util.List;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
@@ -38,15 +37,15 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredMethod extends Method {
 
-    private final FnAbsDeclOrDecl _ast;
+    private final FnDecl _ast;
     private final Id _declaringTrait;
 
-    public DeclaredMethod(FnAbsDeclOrDecl ast, Id declaringTrait) {
+    public DeclaredMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
 
-    public FnAbsDeclOrDecl ast() { return _ast; }
+    public FnDecl ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
@@ -57,7 +56,7 @@ public class DeclaredMethod extends Method {
 			}
 			@Override
 			public Option<Expr> forFnDecl(FnDecl that) {
-				return Option.some(that.getBody());
+                            return that.getBody();
 			}
 		});
 	}
@@ -82,8 +81,8 @@ public class DeclaredMethod extends Method {
 
 	@Override
 	public Functional instantiate(List<StaticParam> params, List<StaticArg> args) {
-		FnAbsDeclOrDecl replaced_decl =
-			(FnAbsDeclOrDecl)_ast.accept(new StaticTypeReplacer(params,args));
+		FnDecl replaced_decl =
+			(FnDecl)_ast.accept(new StaticTypeReplacer(params,args));
 		return new DeclaredMethod(replaced_decl,_declaringTrait);
 	}
 
@@ -99,6 +98,6 @@ public class DeclaredMethod extends Method {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new DeclaredMethod((FnAbsDeclOrDecl)_ast.accept(visitor), this._declaringTrait);
+		return new DeclaredMethod((FnDecl)_ast.accept(visitor), this._declaringTrait);
 	}
 }

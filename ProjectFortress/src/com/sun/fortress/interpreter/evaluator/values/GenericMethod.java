@@ -30,7 +30,7 @@ import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.nodes.DimParam;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpParam;
@@ -108,7 +108,7 @@ public class GenericMethod extends MethodClosure implements
     }
 
     public GenericMethod(Environment declarationEnv, Environment evaluationEnv,
-            FnAbsDeclOrDecl fndef, FType definer, boolean isTraitMethod) {
+            FnDecl fndef, FType definer, boolean isTraitMethod) {
         super(// new SpineEnv(declarationEnv, fndef), // Add an extra scope/layer for the generics.
                 declarationEnv, // not yet, it changes overloading semantics.
                 fndef, definer );
@@ -116,7 +116,7 @@ public class GenericMethod extends MethodClosure implements
         this.evaluationEnv = evaluationEnv;
     }
 
-    //    public GenericMethod(Environment declarationEnv, Environment traitEnv, FnAbsDeclOrDecl fndef, String selfName) {
+    //    public GenericMethod(Environment declarationEnv, Environment traitEnv, FnDecl fndef, String selfName) {
     //        super(declarationEnv, fndef, selfName);
     //
     //    }
@@ -208,10 +208,10 @@ public class GenericMethod extends MethodClosure implements
     //             if (x != 0) return x;
     //             return NodeUtil.nameString(((FnExpr)left).getName())
     //                 .compareTo(NodeUtil.nameString(((FnExpr)right).getName()));
-    //         } else if (left instanceof FnAbsDeclOrDecl) {
+    //         } else if (left instanceof FnDecl) {
     //             int x = Useful.compareClasses(left, right);
     //             if (x != 0) return x;
-    //             return compare(left, (FnAbsDeclOrDecl)right);
+    //             return compare(left, (FnDecl)right);
     //         } else if (left instanceof NativeApp) {
     //             return Useful.compareClasses(left, right);
     //         } else {

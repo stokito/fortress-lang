@@ -34,7 +34,7 @@ import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
@@ -74,14 +74,14 @@ class FnTypeEnv extends TypeEnv {
         entries = _entries;
     }
 
-    // Takes a functional method declaration like: 
+    // Takes a functional method declaration like:
     // opr IN(x:E, self:Generator[\E\]):Boolean
     // and returns the type we want it to have,
     // (x:$i, Generator[\$i\]) -> Boolean
-    private Type replaceGenericSelfParamsWithInferenceVars(FnAbsDeclOrDecl fn) {
+    private Type replaceGenericSelfParamsWithInferenceVars(FnDecl fn) {
     	// First we need to get the lists of args -> params
     	// To do this we must find self's type
-    	
+
     	Option<Type> self_type_ = Option.none();
     	for( Param param : fn.getParams() ) {
     		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
@@ -94,7 +94,7 @@ class FnTypeEnv extends TypeEnv {
     	if( self_type_.isNone() )
     		InterpreterBug.bug("We said this was a functional method (" + fn + ") but maybe it wasn't.");
     	TraitType self_type = (TraitType)self_type_.unwrap();
-    	
+
     	// This may be a seriously misguided attempt to get StaticParams from StaticArgs... NEB
     	Iterable<StaticArg> only_typeargs = IterUtil.filter(self_type.getArgs(), new Predicate<StaticArg>(){
 			public boolean contains(StaticArg arg0) { return arg0 instanceof TypeArg; }});
@@ -108,22 +108,22 @@ class FnTypeEnv extends TypeEnv {
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
 					return Pair.make(p, a);
 				}});
-    	
+
     	// Now replace
-    	StaticTypeReplacer st_replacer = 
+    	StaticTypeReplacer st_replacer =
     		new StaticTypeReplacer(CollectUtil.makeList(IterUtil.pairFirsts(replacement_pairs)),
     				               CollectUtil.makeList(IterUtil.pairSeconds(replacement_pairs)));
-    	
+
     	return (Type)genericArrowFromDecl(fn).accept(st_replacer);
     }
-    
+
     /**
      * Return a BindingLookup that binds the given Id to a type
      * (if the given Id is in this type environment).
      */
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
+
     	Set<? extends Function> fns = entries.matchFirst(no_api_var);
         if (fns.isEmpty()) {
             return parent.binding(var);
@@ -136,7 +136,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(genericArrowFromDecl(_fn.ast()));
             } else if (fn instanceof FunctionalMethod) {
                 FunctionalMethod _fn = (FunctionalMethod)fn;
-                FnAbsDeclOrDecl decl = _fn.ast();
+                FnDecl decl = _fn.ast();
                 overloadedTypes.add(replaceGenericSelfParamsWithInferenceVars(decl));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
@@ -145,7 +145,7 @@ class FnTypeEnv extends TypeEnv {
                 Id qualified_trait_name = NodeFactory.makeId(var.getApi(), _fn.declaringTrait());
                 Type selfType = makeTraitType(qualified_trait_name,
                                               staticParamsToArgs(_fn.staticParameters()));
-                
+
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
                 overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParameters(),
@@ -174,12 +174,12 @@ class FnTypeEnv extends TypeEnv {
 	@Override
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_var = removeApi(var);
-    	
+
     	Set<? extends Function> fns = entries.matchFirst(no_api_var);
         if (fns.isEmpty()) {
             return parent.declarationSite(var);
         }
-        
+
         throw new IllegalArgumentException("The declarationSite method should not be called on functions.");
 	}
 
@@ -187,17 +187,17 @@ class FnTypeEnv extends TypeEnv {
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
 		Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends Function>> iter = entries.iterator();
 		Set<Pair<IdOrOpOrAnonymousName, Function>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, Function>>();
-		
+
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		while( iter.hasNext() ) {
 			Pair<IdOrOpOrAnonymousName, ? extends Function> p = iter.next();
 			Function f = p.second();
-			
+
 			f = (Function)f.acceptNodeUpdateVisitor(rep);
 			new_entries_.add(Pair.make(p.first(), f));
 		}
-		
+
 		return new FnTypeEnv(CollectUtil.makeRelation(new_entries_),
 				             parent.replaceAllIVars(ivars));
 	}
