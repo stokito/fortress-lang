@@ -148,10 +148,10 @@ public class IndexBuilder {
         final Map<String, GrammarIndex> grammars =
             new HashMap<String, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
-            @Override public void forAbsTraitDecl(AbsTraitDecl d) {
+            @Override public void forTraitDecl(TraitDecl d) {
                 buildTrait(d, typeConses, functions);
             }
-            @Override public void forAbsObjectDecl(AbsObjectDecl d) {
+            @Override public void forObjectDecl(ObjectDecl d) {
                 buildObject(d, typeConses, functions, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
@@ -268,7 +268,7 @@ public class IndexBuilder {
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
      */
-    private void buildTrait(TraitAbsDeclOrDecl ast,
+    private void buildTrait(TraitDecl ast,
             Map<Id, TypeConsIndex> typeConses,
             final Relation<IdOrOpOrAnonymousName, Function> functions) {
         final Id name = ast.getName();
@@ -304,7 +304,7 @@ public class IndexBuilder {
      * to the given relation; create a constructor function or singleton variable and
      * put it in the appropriate map.
      */
-    private void buildObject(ObjectAbsDeclOrDecl ast,
+    private void buildObject(ObjectDecl ast,
             Map<Id, TypeConsIndex> typeConses,
             final Relation<IdOrOpOrAnonymousName, Function> functions,
             Map<Id, Variable> variables) {

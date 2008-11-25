@@ -30,7 +30,6 @@ import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Decl;
-import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
@@ -242,23 +241,6 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
          * Make the default behavior return null, no throw an exception.
          */
         public Boolean defaultCase(Node x) {
-            return null;
-        }
-
-        /* (non-Javadoc)
-         * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forAbsTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
-         */
-        @Override
-        public Boolean forAbsTraitDecl(AbsTraitDecl x) {
-            List<StaticParam> staticParams = x.getStaticParams();
-            Id name = x.getName();
-
-            if (staticParams.isEmpty()) {
-                    FTypeTrait ftt =
-                        (FTypeTrait) containing.getRootType(NodeUtil.nameString(name)); // top level
-                    Environment interior = ftt.getWithin();
-                    ftt.getMembers();
-            }
             return null;
         }
 

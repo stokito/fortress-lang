@@ -219,7 +219,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * trait or object declaration in components or APIs
          * Name must be unqualified.
          */
-        abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
+        abstract TraitObjectDecl(List<Modifier> mods
                                      = Collections.<Modifier>emptyList(),
                                  Id name,
                                  List<StaticParam> staticParams
@@ -232,107 +232,96 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                                  implements HasWhere, GenericDecl;
             /**
              * trait declaration in components or APIs
+             *
+             * trait declaration in APIs
+             * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
+             *                  AbsGoInATrait? end
+             * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
+             * ExtendsWhere ::= extends TraitTypeWheres
+             * AbsTraitClause ::= Excludes | AbsComprises | Where
+             * Excludes ::= excludes TraitTypes
+             * AbsComprises ::= comprises ComprisingTypes
+             * ComprisingTypes ::= TraitType | { ComprisingTypeList }
+             * ComprisingTypeList ::= ...
+             *                      | TraitType(, TraitType)*(, ...)?
+             * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
+             *                 | AbsCoercions? AbsGoBackInATrait
+             *                 | AbsCoercions
+             * AbsGoesFrontInATrait ::= ApiFldDecl
+             *                        | AbsGetterSetterDecl
+             *                        | PropertyDecl
+             * AbsGoesBackInATrait  ::= AbsMdDecl
+             *                        | PropertyDecl
+             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+             *         cons(x: alph): List[\alpha\]
+             *       end
+             *
+             * trait declaration in components
+             * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
+             *               end
+             * TraitClause ::= Excludes | Comprises | Where
+             * Comprises ::= comprises TraitTypes
+             * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
+             *              | Coercions? GoBackInATrait
+             *              | Coercions
+             * GoesFrontInATrait ::= AbsFldDecl
+             *                     | GetterSetterDecl
+             *                     | PropertyDecl
+             * GoesBackInATrait  ::= MdDecl
+             *                     | PropertyDecl
+             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+             *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
+             *       end
              */
-            abstract TraitAbsDeclOrDecl(List<BaseType> excludes
-                                   = Collections.<BaseType>emptyList(),
-                               Option<List<BaseType>> comprises
-                                   = Option.<List<BaseType>>none(),
-                               List<Decl> decls);
-                /**
-                 * trait declaration in APIs
-                 * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
-                 *                  AbsGoInATrait? end
-                 * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
-                 * ExtendsWhere ::= extends TraitTypeWheres
-                 * AbsTraitClause ::= Excludes | AbsComprises | Where
-                 * Excludes ::= excludes TraitTypes
-                 * AbsComprises ::= comprises ComprisingTypes
-                 * ComprisingTypes ::= TraitType | { ComprisingTypeList }
-                 * ComprisingTypeList ::= ...
-                 *                      | TraitType(, TraitType)*(, ...)?
-                 * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
-                 *                 | AbsCoercions? AbsGoBackInATrait
-                 *                 | AbsCoercions
-                 * AbsGoesFrontInATrait ::= ApiFldDecl
-                 *                        | AbsGetterSetterDecl
-                 *                        | PropertyDecl
-                 * AbsGoesBackInATrait  ::= AbsMdDecl
-                 *                        | PropertyDecl
-                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-                 *         cons(x: alph): List[\alpha\]
-                 *       end
-                 */
-                AbsTraitDecl(List<Decl> decls) implements Decl;
-                /**
-                 * trait declaration in components
-                 * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
-                 *               end
-                 * TraitClause ::= Excludes | Comprises | Where
-                 * Comprises ::= comprises TraitTypes
-                 * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
-                 *              | Coercions? GoBackInATrait
-                 *              | Coercions
-                 * GoesFrontInATrait ::= AbsFldDecl
-                 *                     | GetterSetterDecl
-                 *                     | PropertyDecl
-                 * GoesBackInATrait  ::= MdDecl
-                 *                     | PropertyDecl
-                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-                 *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
-                 *       end
-                 */
-                TraitDecl(List<Decl> decls) implements GenericDecl;
+            TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
+                      Option<List<BaseType>> comprises
+                          = Option.<List<BaseType>>none(),
+                      List<Decl> decls) implements GenericDecl;
             /**
              * object declaration in components or APIs
+             *
+             * object declaration in APIs
+             * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
+             * ObjectHeader ::= object Id StaticParams? ObjectValParam?
+             *                  ExtendsWhere? FnClauses
+             * FnClauses ::= Throws? Where? Contract
+             * Throws ::= throws MayTraitTypes
+             * ObjectValParam ::= ( ObjectParams? )
+             * ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
+             *                | ObjectParam (, ObjectParam)*
+             * ObjectKeyword ::= ObjectParam = Expr
+             * ObjectParam ::= ParamFldMods? Param
+             *               | var Param
+             * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
+             *                   | AbsCoercions? AbsGoBackInAnObject
+             *                   | AbsCoercions
+             * AbsGoesFrontInAnObject ::= ApiFldDecl
+             *                          | AbsGetterSetterDecl
+             *                          | PropertyDecl
+             * AbsGoesBackInAnObject ::= AbsMdDecl
+             *                         | PropertyDecl
+             * e.g.) object Empty[\alph\]() extends List[\alpha\] end
+             *
+             * object declaration in components
+             * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
+             * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
+             *                | Coercions? GoBackInAnObject
+             *                | Coercions
+             * GoesFrontInAnObject ::= FldDecl
+             *                       | GetterSetterDecl
+             *                       | PropertyDecl
+             * GoesBackInAnObject ::= MdDef
+             *                      | PropertyDecl
+             * e.g.) object Empty[\alph\]() extends List[\alpha\]
+             *         length() = 0
+             *       end
              */
-            abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
-                                    = Option.<List<Param>>none(),
-                                Option<List<BaseType>> throwsClause
-                                    = Option.<List<BaseType>>none(),
-                                Option<Contract> contract
-                                    = Option.<Contract>none(),
-                                List<Decl> decls)
-                               implements GenericDeclWithParams;
-                /**
-                 * object declaration in APIs
-                 * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
-                 * ObjectHeader ::= object Id StaticParams? ObjectValParam?
-                 *                  ExtendsWhere? FnClauses
-                 * FnClauses ::= Throws? Where? Contract
-                 * Throws ::= throws MayTraitTypes
-                 * ObjectValParam ::= ( ObjectParams? )
-                 * ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
-                 *                | ObjectParam (, ObjectParam)*
-                 * ObjectKeyword ::= ObjectParam = Expr
-                 * ObjectParam ::= ParamFldMods? Param
-                 *               | var Param
-                 * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
-                 *                   | AbsCoercions? AbsGoBackInAnObject
-                 *                   | AbsCoercions
-                 * AbsGoesFrontInAnObject ::= ApiFldDecl
-                 *                          | AbsGetterSetterDecl
-                 *                          | PropertyDecl
-                 * AbsGoesBackInAnObject ::= AbsMdDecl
-                 *                         | PropertyDecl
-                 * e.g.) object Empty[\alph\]() extends List[\alpha\] end
-                 */
-                AbsObjectDecl(List<Decl> decls) implements Decl;
-                /**
-                 * object declaration in components
-                 * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
-                 * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
-                 *                | Coercions? GoBackInAnObject
-                 *                | Coercions
-                 * GoesFrontInAnObject ::= FldDecl
-                 *                       | GetterSetterDecl
-                 *                       | PropertyDecl
-                 * GoesBackInAnObject ::= MdDef
-                 *                      | PropertyDecl
-                 * e.g.) object Empty[\alph\]() extends List[\alpha\]
-                 *         length() = 0
-                 *       end
-                 */
-                ObjectDecl(List<Decl> decls) implements GenericDeclWithParams;
+            ObjectDecl(Option<List<Param>> params = Option.<List<Param>>none(),
+                       Option<List<BaseType>> throwsClause
+                           = Option.<List<BaseType>>none(),
+                       Option<Contract> contract = Option.<Contract>none(),
+                       List<Decl> decls)
+                      implements GenericDeclWithParams;
         /**
          * variable declaration in components or APIs
          *

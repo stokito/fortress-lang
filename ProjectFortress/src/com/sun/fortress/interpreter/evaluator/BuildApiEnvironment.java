@@ -28,8 +28,8 @@ import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
@@ -61,9 +61,9 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     }
 
     @Override
-    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
+    public Boolean forObjectDecl(ObjectDecl x) {
         Boolean change = Boolean.FALSE;
-        // super.forAbsObjectDecl(x);
+        // super.forObjectDecl(x);
         if (getPass() == 1) {
             String fname = NodeUtil.stringName(x.getName());
             valNames.add(fname);
@@ -101,9 +101,9 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     }
 
     @Override
-    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
+    public Boolean forTraitDecl(TraitDecl x) {
         Boolean change = Boolean.FALSE;
-        // super.forAbsTraitDecl(x);
+        // super.forTraitDecl(x);
         if (getPass() == 1) {
             String fname = NodeUtil.stringName(x.getName());
             typeNames.add(fname);

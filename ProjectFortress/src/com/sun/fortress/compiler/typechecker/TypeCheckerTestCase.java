@@ -39,7 +39,6 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -59,7 +58,7 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class TypeCheckerTestCase extends TestCase {
 
     private static Span span = NodeFactory.makeSpan("TypeCheckerTestCase bogus");
-    
+
     public static Type parseType(String s) {
         s = s.trim();
         if (s.contains("->")) {
@@ -109,9 +108,9 @@ public abstract class TypeCheckerTestCase extends TestCase {
             BaseType supT = (BaseType) parseType(sup);
             extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
-        TraitAbsDeclOrDecl ast = new TraitDecl(span, NodeFactory.makeId(name), sparams,
-                                               extendsClause,
-                                               Collections.<Decl>emptyList());
+        TraitDecl ast = new TraitDecl(span, NodeFactory.makeId(name), sparams,
+                                      extendsClause,
+                                      Collections.<Decl>emptyList());
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),
                                     Collections.<Id, Method>emptyMap(),

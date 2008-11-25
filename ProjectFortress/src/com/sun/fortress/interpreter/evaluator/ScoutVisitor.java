@@ -19,8 +19,7 @@ package com.sun.fortress.interpreter.evaluator;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.values.Overload;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Expr;
@@ -29,11 +28,10 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.VarargTupleType;
@@ -43,24 +41,6 @@ import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.WhereExtends;
 
 public class ScoutVisitor extends NodeAbstractVisitor_void {
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forAbsObjectDecl(com.sun.fortress.nodes.AbsObjectDecl)
-     */
-    @Override
-    public void forAbsObjectDecl(AbsObjectDecl that) {
-        // TODO Auto-generated method stub
-        super.forAbsObjectDecl(that);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forAbsTraitDecl(com.sun.fortress.nodes.AbsTraitDecl)
-     */
-    @Override
-    public void forAbsTraitDecl(AbsTraitDecl that) {
-        // TODO Auto-generated method stub
-        super.forAbsTraitDecl(that);
-    }
-
     /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forArrayType(com.sun.fortress.nodes.ArrayType)
      */
@@ -125,30 +105,12 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forObjectAbsDeclOrDecl(com.sun.fortress.nodes.ObjectAbsDeclOrDecl)
-     */
-    @Override
-    public void forObjectAbsDeclOrDecl(ObjectAbsDeclOrDecl that) {
-        // TODO Auto-generated method stub
-        super.forObjectAbsDeclOrDecl(that);
-    }
-
-    /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forObjectDecl(com.sun.fortress.nodes.ObjectDecl)
      */
     @Override
     public void forObjectDecl(ObjectDecl that) {
         // TODO Auto-generated method stub
         super.forObjectDecl(that);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitAbsDeclOrDecl(com.sun.fortress.nodes.TraitAbsDeclOrDecl)
-     */
-    @Override
-    public void forTraitAbsDeclOrDecl(TraitAbsDeclOrDecl that) {
-        // TODO Auto-generated method stub
-        super.forTraitAbsDeclOrDecl(that);
     }
 
     /* (non-Javadoc)
@@ -161,12 +123,12 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitObjectAbsDeclOrDecl(com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl)
+     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTraitObjectDecl(com.sun.fortress.nodes.TraitObjectDecl)
      */
     @Override
-    public void forTraitObjectAbsDeclOrDecl(TraitObjectAbsDeclOrDecl that) {
+    public void forTraitObjectDecl(TraitObjectDecl that) {
         // TODO Auto-generated method stub
-        super.forTraitObjectAbsDeclOrDecl(that);
+        super.forTraitObjectDecl(that);
     }
 
     /* (non-Javadoc)

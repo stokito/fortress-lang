@@ -44,9 +44,9 @@ api FortressSyntax
 
   native grammar TraitObject (* rename to TraitsAndObjectDecls *)
     TraitDecl : TraitDecl
-    AbsTraitDecl : AbsTraitDecl
+    AbsTraitDecl : TraitDecl
     ObjectDecl : ObjectDecl
-    AbsObjectDecl : AbsObjectDecl
+    AbsObjectDecl : ObjectDecl
   end
 
   native grammar Function

@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -43,10 +43,10 @@ import edu.rice.cs.plt.tuple.Option;
 public class OprInstantiaterVisitor extends NodeUpdateVisitor {
     Map<String, String> subst;
 
-    public TraitObjectAbsDeclOrDecl visit(TraitObjectAbsDeclOrDecl toadod) {
-        return (TraitObjectAbsDeclOrDecl) toadod.accept(this);
+    public TraitObjectDecl visit(TraitObjectDecl toadod) {
+        return (TraitObjectDecl) toadod.accept(this);
     }
-    
+
     public OprInstantiaterVisitor(Map<String, String> subst) {
         this.subst = subst;
     }
@@ -67,17 +67,17 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
         final List<StaticArg> args = op.getStaticArgs();
         final Option<Type> otype = op.getExprType();
         final Type type = otype.isNone() ? null : otype.unwrap();
-        
+
         OpName n_originalName = (OpName) recur(originalName);
         List<OpName> n_ops = recurOnListOfOpName(ops);
         List<StaticArg> n_args = recurOnListOfStaticArg(args);
         Type n_type = type == null ? (Type) null : (Type) recur(type);
-        
+
         if (args != n_args || originalName != n_originalName || ops != n_ops || type != n_type) {
             return new OpRef(op.getSpan(), op.isParenthesized(), Option.wrap(n_type), n_args, Environment.TOP_LEVEL,
                     n_originalName, n_ops);
         }
-        
+
         return op;
     }
 
@@ -88,8 +88,8 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
             return new RewriteHackList();
         } else return opp;
     }
-    
-    
+
+
     @Override
     public List<StaticParam> recurOnListOfStaticParam(List<StaticParam> that) {
         List<StaticParam> accum = new java.util.ArrayList<StaticParam>();

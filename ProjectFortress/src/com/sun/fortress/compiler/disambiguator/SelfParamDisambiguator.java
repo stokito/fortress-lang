@@ -21,8 +21,7 @@ import java.util.List;
 import static com.sun.fortress.compiler.IndexBuilder.SELF_NAME;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
@@ -43,7 +42,7 @@ import edu.rice.cs.plt.tuple.Option;
  * disambiguation but before the TypeDisambiguator pass.
  * At parse-time, methods that take the 'self' parameter may not have a
  * type for that parameter. However, at disambiguation time, we can give
- * it one.<br> 
+ * it one.<br>
  * {@code trait Foo f(self) : () end}
  * becomes
  * {@code trait Foo f(self:Foo) : () end}
@@ -53,25 +52,6 @@ import edu.rice.cs.plt.tuple.Option;
  * the type of node given.
  */
 public class SelfParamDisambiguator extends NodeUpdateVisitor {
-	
-	@Override
-	public Node forAbsObjectDecl(AbsObjectDecl that) {
-    	// Add a type to self parameters of methods
-		Type self_type = NodeFactory.makeTraitType(that.getName(),
-        		                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
-		AbsObjectDecl that_new = (AbsObjectDecl)this.replaceSelfParamsWithType(that, self_type);
-		return super.forAbsObjectDecl(that_new);
-	}
-
-	@Override
-	public Node forAbsTraitDecl(AbsTraitDecl that) {
-    	// Add a type to self parameters of methods
-		Type self_type = NodeFactory.makeTraitType(that.getName(),
-        		                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
-		AbsTraitDecl that_new = (AbsTraitDecl)this.replaceSelfParamsWithType(that, self_type);
-		return super.forAbsTraitDecl(that_new);
-	}
-
 	@Override
 	public Node forObjectDecl(ObjectDecl that) {
 	     // Add a type to self parameters of methods
@@ -89,9 +69,9 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     	TraitDecl that_new = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
 		return super.forTraitDecl(that_new);
 	}
-	
-	
-	
+
+
+
     @Override
 	public Node forObjectExpr(ObjectExpr that) {
     	// Add a type to self parameters of methods
@@ -102,13 +82,13 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
 
 	/**
      * Replaces Parameters whose name is 'self' with a parameter with
-     * the explicit type given. 
-     * 
+     * the explicit type given.
+     *
      * @param that
      * @param self_type
      */
     private Node replaceSelfParamsWithType(Node that, final Type self_type) {
-    	
+
     	NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
 			int traitNestingDepth = 0;
     		@Override
@@ -122,28 +102,22 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     			else
     				new_type = type_result;
 
-    			return new NormalParam(that.getSpan(), 
+    			return new NormalParam(that.getSpan(),
 			               that.getMods(),
 			               that.getName(),
 			               new_type,
 			               that.getDefaultExpr());
 			}
-    		
+
 			// end recurrance here
-			@Override public Node forObjectDecl(ObjectDecl that) { 
+			@Override public Node forObjectDecl(ObjectDecl that) {
 				return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
 			}
-			@Override public Node forTraitDecl(TraitDecl that) { 
+			@Override public Node forTraitDecl(TraitDecl that) {
 				return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
 			}
-			@Override public Node forObjectExpr(ObjectExpr that) { 
+			@Override public Node forObjectExpr(ObjectExpr that) {
 				return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
-			}
-			@Override public Node forAbsObjectDecl(AbsObjectDecl that) {
-				return (++traitNestingDepth) > 1 ? that : super.forAbsObjectDecl(that);
-			}
-			@Override public Node forAbsTraitDecl(AbsTraitDecl that) {
-				return (++traitNestingDepth) > 1 ? that : super.forAbsTraitDecl(that);
 			}
     	};
     	return that.accept(replacer);

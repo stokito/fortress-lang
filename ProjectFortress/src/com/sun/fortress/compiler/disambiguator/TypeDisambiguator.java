@@ -29,8 +29,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BoolArg;
@@ -131,24 +130,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     /**
-     * When recurring on an AbsTraitDecl, we first need to extend the
-     * environment with all the newly bound static parameters.
-     */
-    @Override public Node forAbsTraitDecl(final AbsTraitDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
-
-        return forAbsTraitDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
-                (Id) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
-                v.recurOnListOfBaseType(that.getExcludes()),
-                v.recurOnOptionOfListOfBaseType(that.getComprises()),
-                v.recurOnListOfDecl(that.getDecls()));
-    }
-
-    /**
      * When recurring on a TraitDecl, we first need to extend the
      * environment with all the newly bound static parameters.
      */
@@ -163,26 +144,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnOptionOfWhereClause(that.getWhere()),
                 v.recurOnListOfBaseType(that.getExcludes()),
                 v.recurOnOptionOfListOfBaseType(that.getComprises()),
-                v.recurOnListOfDecl(that.getDecls()));
-    }
-
-
-    /**
-     * When recurring on an AbsObjectDecl, we first need to extend the
-     * environment with all the newly bound static parameters.
-     */
-    @Override public Node forAbsObjectDecl(final AbsObjectDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
-
-        return forAbsObjectDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
-                (Id) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
-                v.recurOnOptionOfListOfParam(that.getParams()),
-                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                v.recurOnOptionOfContract(that.getContract()),
                 v.recurOnListOfDecl(that.getDecls()));
     }
 

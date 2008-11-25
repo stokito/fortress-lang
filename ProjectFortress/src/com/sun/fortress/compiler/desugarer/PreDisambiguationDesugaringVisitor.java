@@ -74,23 +74,6 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-        public Node forAbsTraitDeclOnly(AbsTraitDecl that,
-                                        List<Modifier> mods,
-                                        Id name,
-                                        List<StaticParam> staticParams,
-                                        List<TraitTypeWhere> extendsClause,
-                                        Option<WhereClause> where,
-                                        List<BaseType> excludes,
-                                        Option<List<BaseType>> comprises,
-                                        List<Decl> decls) {
-        if (!that.getName().equals(anyTypeId)) {
-            extendsClause = rewriteExtendsClause(that, extendsClause);
-        }
-        return super.forAbsTraitDeclOnly(that, mods, name, staticParams, extendsClause,
-                                         where, excludes, comprises, decls);
-    }
-
-    @Override
         public Node forTraitDeclOnly(TraitDecl that,
                                      List<Modifier> mods,
                                      Id name,
@@ -105,22 +88,6 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         }
         return super.forTraitDeclOnly(that, mods, name, staticParams, extendsClause,
                                       where, excludes, comprises, decls);
-    }
-
-    @Override
-        public Node forAbsObjectDeclOnly(AbsObjectDecl that,
-                                         List<Modifier> mods,
-                                         Id name,
-                                         List<StaticParam> staticParams,
-                                         List<TraitTypeWhere> extendsClause,
-                                         Option<WhereClause> where,
-                                         Option<List<Param>> params,
-                                         Option<List<BaseType>> throwsClause,
-                                         Option<Contract> contract,
-                                         List<Decl> decls) {
-        extendsClause = rewriteExtendsClause(that, extendsClause);
-        return super.forAbsObjectDeclOnly(that, mods, name, staticParams, extendsClause,
-                                          where, params, throwsClause, contract, decls);
     }
 
     @Override

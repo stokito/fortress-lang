@@ -17,8 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.nodes.AbsObjectDecl;
-import com.sun.fortress.nodes.AbsTraitDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.DimUnitDecl;
@@ -103,28 +102,10 @@ public class EvalVarsEnvironment extends BuildEnvironments {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forObjectDecl(com.sun.fortress.interpreter.nodes.AbsObjectDecl)
-     */
-    @Override
-    public Boolean forAbsObjectDecl(AbsObjectDecl x) {
-        return null;
-
-    }
-
-    /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forObjectDef(com.sun.fortress.interpreter.nodes.ObjectDecl)
      */
     @Override
     public Boolean forObjectDecl(ObjectDecl x) {
-        return null;
-
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forTraitDecl(com.sun.fortress.interpreter.nodes.AbsTraitDecl)
-     */
-    @Override
-    public Boolean forAbsTraitDecl(AbsTraitDecl x) {
         return null;
 
     }

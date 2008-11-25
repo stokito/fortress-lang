@@ -61,7 +61,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         });
     }
 
-    public String forTraitObjectAbsDeclOrDecl(TraitObjectAbsDeclOrDecl node) {
+    public String forTraitObjectDecl(TraitObjectDecl node) {
         return node.getClass().getSimpleName() + " " + node.getName() + " at " + node.getSpan().begin.at();
     }
 

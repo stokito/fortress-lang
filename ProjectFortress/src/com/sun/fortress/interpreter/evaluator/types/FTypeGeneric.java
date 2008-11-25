@@ -46,8 +46,8 @@ import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
@@ -104,7 +104,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         original = this;
     }
 
-    public FTypeGeneric(FTypeGeneric orig, TraitObjectAbsDeclOrDecl new_def) {
+    public FTypeGeneric(FTypeGeneric orig, TraitObjectDecl new_def) {
         super(orig.getName(), orig.getWithin(), orig.getDecl());
         genericAt = orig.getDef();
         def = new_def;
@@ -256,8 +256,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 OprInstantiaterVisitor oi = new OprInstantiaterVisitor(substitutions);
                 //OprInstantiater oi = new OprInstantiater(substitutions);
 
-                TraitObjectAbsDeclOrDecl new_def =
-                    (TraitObjectAbsDeclOrDecl)oi.visit((TraitObjectAbsDeclOrDecl)FTypeGeneric.this.getDef());
+                TraitObjectDecl new_def =
+                    (TraitObjectDecl)oi.visit((TraitObjectDecl)FTypeGeneric.this.getDef());
 
                 FTypeGeneric replacement =
                     new FTypeGeneric(FTypeGeneric.this, new_def);
@@ -279,8 +279,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         FTraitOrObject rval;
 
-        if (gen.def instanceof TraitAbsDeclOrDecl) {
-            TraitAbsDeclOrDecl td = (TraitAbsDeclOrDecl) gen.def;
+        if (gen.def instanceof TraitDecl) {
+            TraitDecl td = (TraitDecl) gen.def;
             FTypeTraitInstance ftt = new FTypeTraitInstance(td.getName().getText(),
                                                     clenv, gen, bind_args, key_args, gen.members);
             FTraitOrObject old = map.put(key_args, ftt); // Must put

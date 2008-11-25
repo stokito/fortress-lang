@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.ObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
@@ -60,17 +60,17 @@ class ObjectTypeEnv extends TypeEnv {
 
         // Api-less name used for look-up only.
         Id no_api_var = removeApi(_var);
-        
+
         if (!entries.containsKey(no_api_var)) { return parent.binding(var); }
         TypeConsIndex typeCons = entries.get(no_api_var);
-        
+
         // TODO: This seems wrong... If they were looking for an Object, but found some
         // other kind of type, isn't there some way we could return a better error message?
         if (!(typeCons instanceof ObjectTraitIndex)) { return parent.binding(var); }
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
-        
+
         Type type;
-        ObjectAbsDeclOrDecl decl = (ObjectAbsDeclOrDecl)objIndex.ast();
+        ObjectDecl decl = (ObjectDecl)objIndex.ast();
         if (decl.getStaticParams().isEmpty()) {
             if (decl.getParams().isNone()) {
                 // No static params, no normal params
@@ -88,7 +88,7 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = 
+                type =
                 	new _RewriteGenericArrowType(decl.getSpan(), decl.getStaticParams(),
                                                  domainFromParams(decl.getParams().unwrap()),
                                                  NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
@@ -96,7 +96,7 @@ class ObjectTypeEnv extends TypeEnv {
             }
         }
 
-        return Option.some(new BindingLookup(var, type, decl.getMods()));   
+        return Option.some(new BindingLookup(var, type, decl.getMods()));
     }
 
     @Override
@@ -119,24 +119,24 @@ class ObjectTypeEnv extends TypeEnv {
 
         // Api-less name used for look-up only.
         Id no_api_var = removeApi(_var);
-        
+
         if (!entries.containsKey(no_api_var)) { return parent.declarationSite(var); }
         TypeConsIndex typeCons = entries.get(no_api_var);
-        
+
         // TODO: This seems wrong... If they were looking for an Object, but found some
         // other kind of type, isn't there some way we could return a better error message?
         if (!(typeCons instanceof ObjectTraitIndex)) { return parent.declarationSite(var); }
         ObjectTraitIndex objIndex = (ObjectTraitIndex)typeCons;
-        
+
         return Option.<Node>some(objIndex.ast());
 	}
 
 	@Override
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		
+
 		Map<Id, TypeConsIndex> new_entries = new HashMap<Id, TypeConsIndex>();
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		for( Map.Entry<Id, TypeConsIndex> entry : entries.entrySet() ) {
 			TypeConsIndex tc = entry.getValue();
 			tc = tc.acceptNodeUpdateVisitor(rep);

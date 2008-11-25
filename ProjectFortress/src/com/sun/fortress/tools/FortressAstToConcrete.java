@@ -48,6 +48,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     private boolean _unqualified;
     private boolean _unmangle;
+    private boolean inComponent = false;
     private int width = 50;
     private Set<String> locals = new HashSet<String>();
 
@@ -278,6 +279,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> exports_result,
                                              List<String> decls_result,
                                              List<String> objectExprs) {
+        inComponent = true;
         // note objectExprs parameter is a temporary hack.
         StringBuilder s = new StringBuilder();
         if (that.is_native())
@@ -301,6 +303,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forApiOnly(Api that, String name_result,
                                        List<String> imports_result,
                                        List<String> decls_result) {
+        inComponent = false;
         //increaseIndent();
         StringBuilder s = new StringBuilder();
         s.append( "api " ).append( name_result ).append( "\n" );
@@ -376,47 +379,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forAbsTraitDeclOnly(AbsTraitDecl that,
-                                                List<String> mods_result,
-                                                String name_result,
-                                                List<String> staticParams_result,
-                                                List<String> extendsClause_result,
-                                                Option<String> where_result,
-                                                List<String> excludes_result,
-                                                Option<List<String>> comprises_result,
-                                                List<String> decls_result) {
-        StringBuilder s = new StringBuilder();
-
-        increaseIndent();
-        if ( ! mods_result.isEmpty() ) {
-            s.append( join(mods_result, " ") );
-            s.append( " ");
-        }
-        s.append( "trait " ).append( name_result );
-        inOxfordBrackets(s, staticParams_result);
-        s = optCurlyBraces(s, " extends ", extendsClause_result, "");
-        if ( where_result.isSome() )
-            s.append("\n      ").append( where_result.unwrap() );
-        s = optCurlyBraces(s, " excludes ", excludes_result, "");
-        if ( comprises_result.isSome() ){
-            List<String> throws_ = comprises_result.unwrap();
-            s.append(" comprises ");
-            if ( ! throws_.isEmpty() )
-                inCurlyBraces(s, "", throws_);
-            else
-                s.append( "{ ... }" );
-        }
-        if ( ! decls_result.isEmpty() ) {
-            s.append( "\n" );
-            s.append( indent(join(decls_result,"\n")) );
-        }
-        s.append( "\nend" );
-
-        decreaseIndent();
-
-        return s.toString();
-    }
-
     private List<String> myRecurOnListOfDecl(List<Decl> that) {
         boolean sawField = false;
         boolean sawGetterSetter = false;
@@ -443,19 +405,23 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return accum;
     }
 
-    @Override public String forAbsTraitDecl(AbsTraitDecl that) {
-        List<String> mods_result = recurOnListOfModifier(that.getMods());
-        String name_result = recur(that.getName());
-        List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
-        List<String> excludes_result = recurOnListOfBaseType(that.getExcludes());
-        Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-        List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
-        return forAbsTraitDeclOnly(that, mods_result, name_result,
-                                   staticParams_result, extendsClause_result,
-                                   where_result, excludes_result, comprises_result,
-                                   decls_result);
+    @Override public String forTraitDecl(TraitDecl that) {
+        if ( inComponent )
+            return super.forTraitDecl( that );
+        else {
+            List<String> mods_result = recurOnListOfModifier(that.getMods());
+            String name_result = recur(that.getName());
+            List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
+            List<String> excludes_result = recurOnListOfBaseType(that.getExcludes());
+            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
+            List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
+            return forTraitDeclOnly(that, mods_result, name_result,
+                                    staticParams_result, extendsClause_result,
+                                    where_result, excludes_result, comprises_result,
+                                    decls_result);
+        }
     }
 
     @Override public String forTraitDeclOnly(TraitDecl that,
@@ -480,48 +446,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( where_result.isSome() )
             s.append(" ").append( where_result.unwrap() );
         s = optCurlyBraces(s, " excludes ", excludes_result, "");
-        s = optCurlyClause(s, " comprises ", comprises_result);
-        if ( ! decls_result.isEmpty() ) {
-            s.append( "\n" );
-            s.append( indent(join(decls_result,"\n")) );
-        }
-        s.append( "\nend" );
-
-        decreaseIndent();
-
-        return s.toString();
-    }
-
-    @Override public String forAbsObjectDeclOnly(AbsObjectDecl that,
-                                                 List<String> mods_result,
-                                                 String name_result,
-                                                 List<String> staticParams_result,
-                                                 List<String> extendsClause_result,
-                                                 Option<String> where_result,
-                                                 Option<List<String>> params_result,
-                                                 Option<List<String>> throwsClause_result,
-                                                 Option<String> contract_result,
-                                                 List<String> decls_result) {
-        StringBuilder s = new StringBuilder();
-
-        increaseIndent();
-
-        if ( ! mods_result.isEmpty() ) {
-            s.append( join(mods_result, " ") );
-            s.append( " " );
-        }
-        s.append( "object " ).append( name_result );
-        inOxfordBrackets(s, staticParams_result);
-        if ( params_result.isSome() ){
-            s.append( inParentheses(inParentheses(params_result.unwrap())) );
-        }
-        s = optCurlyBraces(s, " extends ", extendsClause_result, "");
-        throwsClause(s, throwsClause_result);
-        if ( where_result.isSome() )
-            s.append(" ").append( where_result.unwrap() );
-        if ( contract_result.isSome() ) {
-            s.append( " " );
-            s.append( contract_result.unwrap() );
+        if ( inComponent )
+            s = optCurlyClause(s, " comprises ", comprises_result);
+        else {
+            if ( comprises_result.isSome() ){
+                List<String> throws_ = comprises_result.unwrap();
+                s.append(" comprises ");
+                if ( ! throws_.isEmpty() )
+                    inCurlyBraces(s, "", throws_);
+                else
+                    s.append( "{ ... }" );
+            }
         }
         if ( ! decls_result.isEmpty() ) {
             s.append( "\n" );
@@ -534,21 +469,25 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    public String forAbsObjectDecl(AbsObjectDecl that) {
-        List<String> mods_result = recurOnListOfModifier(that.getMods());
-        String name_result = recur(that.getName());
-        List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-        Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
-        Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
-        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-        Option<String> contract_result = recurOnOptionOfContract(that.getContract());
-        List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
-        return forAbsObjectDeclOnly(that, mods_result, name_result,
-                                    staticParams_result, extendsClause_result,
-                                    where_result, params_result,
-                                    throwsClause_result, contract_result,
-                                    decls_result);
+    public String forObjectDecl(ObjectDecl that) {
+        if ( inComponent )
+            return super.forObjectDecl( that );
+        else {
+            List<String> mods_result = recurOnListOfModifier(that.getMods());
+            String name_result = recur(that.getName());
+            List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
+            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
+            Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
+            Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+            Option<String> contract_result = recurOnOptionOfContract(that.getContract());
+            List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
+            return forObjectDeclOnly(that, mods_result, name_result,
+                                     staticParams_result, extendsClause_result,
+                                     where_result, params_result,
+                                     throwsClause_result, contract_result,
+                                     decls_result);
+        }
     }
 
     @Override public String forObjectDeclOnly(ObjectDecl that,

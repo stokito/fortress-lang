@@ -45,7 +45,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
@@ -98,10 +97,9 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TestDecl;
 import com.sun.fortress.nodes.TightJuxt;
-import com.sun.fortress.nodes.TraitAbsDeclOrDecl;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitDecl;
-import com.sun.fortress.nodes.TraitObjectAbsDeclOrDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
@@ -198,9 +196,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * what names are in scope, though not necessarily what they mean.
      */
     private class Trait extends Local {
-        TraitAbsDeclOrDecl defOrDecl;
+        TraitDecl defOrDecl;
         Map<String, Thing> env;
-        Trait(TraitAbsDeclOrDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
+        Trait(TraitDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
         public String toString() { return "Trait="+defOrDecl; }
 
         public boolean equals (Object o) {
@@ -1031,25 +1029,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forAbsTraitDecl(AbsTraitDecl td) {
-        List<Decl> defs = td.getDecls();
-        List<StaticParam> tparams = td.getStaticParams();
-        // TODO wip
-        lexicalNestingDepth++;
-        objectNestingDepth++;
-        atTopLevelInsideTraitOrObject = true;
-        defsToMembers(defs);
-        immediateDef = tparamsToLocals(tparams, immediateDef);
-
-        accumulateMembersFromExtends(td);
-
-        inTrait = true;
-        AbstractNode n = visitNodeTO(td);
-        inTrait = false;
-        return n;
-    }
-
-    @Override
     public Node forTraitDecl(TraitDecl td) {
         List<Decl> defs = td.getDecls();
         List<StaticParam> tparams = td.getStaticParams();
@@ -1260,7 +1239,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     /**
      * @param td
      */
-    private void accumulateMembersFromExtends(TraitAbsDeclOrDecl td) {
+    private void accumulateMembersFromExtends(TraitDecl td) {
         accumulateMembersFromExtends(NodeUtil.getTypes(td.getExtendsClause()),
                 rewrites);
     }
@@ -1300,9 +1279,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private void defsToLocals(List<Decl> defs) {
         for (Decl d : defs) {
-            if (d instanceof TraitAbsDeclOrDecl) {
+            if (d instanceof TraitDecl) {
                 String s = d.stringName();
-                TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
+                TraitDecl dod = (TraitDecl) d;
                 type_rewrites_put(s, new Trait(dod, rewrites));
             } else if (d instanceof ObjectDecl) {
                 ObjectDecl od = (ObjectDecl) d;
@@ -1334,8 +1313,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private void functionalMethodsOfDefsToLocals(List<Decl> defs) {
         for (Decl d : defs) {
-            if (d instanceof TraitObjectAbsDeclOrDecl) {
-                TraitObjectAbsDeclOrDecl dod = (TraitObjectAbsDeclOrDecl) d;
+            if (d instanceof TraitObjectDecl) {
+                TraitObjectDecl dod = (TraitObjectDecl) d;
                 List <Decl> tdecls = dod.getDecls();
                 handlePossibleFM(tdecls);
             } else {
@@ -1558,7 +1537,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                     }
                     if (th instanceof Trait) {
                         Trait tr = (Trait) th;
-                        TraitAbsDeclOrDecl tdod = tr.defOrDecl;
+                        TraitDecl tdod = tr.defOrDecl;
                         if (!(visited.contains(tdod))) {
                             visited.add(tdod);
                             // Process this trait -- add its name, as well
