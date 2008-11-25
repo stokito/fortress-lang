@@ -2248,10 +2248,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String for_RewriteGenericArrowTypeOnly(_RewriteGenericArrowType that,
-                                                            List<String> staticParams_result,
                                                             String domain_result,
                                                             String range_result,
                                                             String effect_result,
+                                                            List<String> staticParams_result,
                                                             Option<String> where_result) {
         StringBuilder s = new StringBuilder();
 

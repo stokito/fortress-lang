@@ -89,10 +89,11 @@ class ObjectTypeEnv extends TypeEnv {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
                 type =
-                	new _RewriteGenericArrowType(decl.getSpan(), decl.getStaticParams(),
-                                                 domainFromParams(decl.getParams().unwrap()),
-                                                 NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
-                                                 decl.getWhere());
+                	new _RewriteGenericArrowType(decl.getSpan(),
+                                                     domainFromParams(decl.getParams().unwrap()),
+                                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
+                                                     decl.getStaticParams(),
+                                                     decl.getWhere());
             }
         }
 

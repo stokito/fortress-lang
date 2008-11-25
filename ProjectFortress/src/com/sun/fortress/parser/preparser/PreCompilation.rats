@@ -97,7 +97,7 @@ private Component Component =
        if (a1 == null)
            yyValue = new Component(span, a2, a3, a4, a5);
        else
-           yyValue = new Component(span, true, a2, a3, a4, a5);
+           yyValue = new Component(span, a2, a3, true, a4, a5);
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */

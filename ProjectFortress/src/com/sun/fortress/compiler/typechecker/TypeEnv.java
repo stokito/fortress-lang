@@ -147,12 +147,12 @@ public abstract class TypeEnv {
 
     protected static _RewriteGenericArrowType genericArrowFromDecl(FnDecl decl) {
         return new _RewriteGenericArrowType(decl.getSpan(),
-                                            decl.getStaticParams(),
                                             domainFromParams(decl.getParams()),
                                             // all types have been filled in at this point
                                             decl.getReturnType().unwrap(),
                                             makeEffect(decl.getSpan().getEnd(),
                                                        decl.getThrowsClause()),
+                                            decl.getStaticParams(),
                                             decl.getWhere());
     }
 
