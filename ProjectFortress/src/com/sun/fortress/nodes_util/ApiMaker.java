@@ -89,13 +89,13 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             } ).booleanValue();
     }
 
-    private List<AbsDecl> declsToAbsDecls(final List<Decl> that) {
+    private List<Decl> declsToDecls(final List<Decl> that) {
         boolean changed = false;
-        List<AbsDecl> result = new java.util.ArrayList<AbsDecl>(0);
+        List<Decl> result = new java.util.ArrayList<Decl>(0);
         for (Decl elt : that) {
             Option<Node> elt_result = elt.accept(this);
             if ( elt_result.isSome() )
-                result.add((AbsDecl)elt_result.unwrap());
+                result.add((Decl)elt_result.unwrap());
         }
         return result;
     }
@@ -104,7 +104,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
         Node result = new Api(that.getSpan(),
                               that.getName(),
                               that.getImports(),
-                              declsToAbsDecls(that.getDecls()));
+                              declsToDecls(that.getDecls()));
         try {
             writer.close();
         } catch (IOException error) {
@@ -116,7 +116,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     public Option<Node> forTraitDecl(TraitDecl that) {
         if ( ! isPrivate(that) ) {
             inTrait = true;
-            List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+            List<Decl> absDecls = declsToDecls(that.getDecls());
             inTrait = false;
             return Option.<Node>some(new AbsTraitDecl(that.getSpan(),
                                                       that.getMods(),
@@ -133,7 +133,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     public Option<Node> forObjectDecl(ObjectDecl that) {
         if ( ! isPrivate(that) ) {
             inObject = true;
-            List<AbsDecl> absDecls = declsToAbsDecls(that.getDecls());
+            List<Decl> absDecls = declsToDecls(that.getDecls());
             inObject = false;
             return Option.<Node>some(new AbsObjectDecl(that.getSpan(),
                                                        that.getMods(),

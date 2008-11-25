@@ -45,8 +45,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.RewriteHackList;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDecl;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AbsVarDecl;
@@ -272,15 +270,15 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Thing var_rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
-    
+
     public Thing obj_rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
-    
+
     public Thing rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
-    
+
     public Thing type_rewrites_put(String k, Thing d) {
         return rewrites.put(k, d);
     }
@@ -490,7 +488,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Component com = (Component) tlnode;
-            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            List<Decl> defs = com.getDecls();
             defsToLocals(defs);
             functionalMethodsOfDefsToLocals(defs);
         } else if (tlnode instanceof Api) {
@@ -499,7 +497,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             // TODO - we may need to separate this out some more because of
             // circular dependences between type names. See above.
             Api com = (Api) tlnode;
-            List<? extends AbsDeclOrDecl> defs = com.getDecls();
+            List<Decl> defs = com.getDecls();
             defsToLocals(defs);
             functionalMethodsOfDefsToLocals(defs);
         }
@@ -663,7 +661,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forComponent(Component com) {
-        List<? extends AbsDeclOrDecl> defs = com.getDecls();
+        List<Decl> defs = com.getDecls();
         defsToLocals(defs);
 
         if (debug && ! suppressDebugDump)
@@ -700,7 +698,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
     @Override
     public Node forApi(Api com) {
-        List<? extends AbsDeclOrDecl> defs = com.getDecls();
+        List<Decl> defs = com.getDecls();
         defsToLocals(defs);
         return visitNode(com);
     }
@@ -803,16 +801,16 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             WhereClause wc = owc.unwrap();
             boolean change = false;
             List<WhereBinding> lwb = wc.getBindings();
-            
+
             for (WhereBinding wb : lwb) {
                 type_rewrites_put(wb.getName().getText(), new Local());
             }
-            
+
             /* Handcoded visit to avoid a "recur" visit on the WhereClause
               The binding action of a WhereClause in a TraitTypeWhere seems
               to be different.
             */
-            
+
             WhereClause nwc = (WhereClause) visitNode(wc);
             BaseType t = vre.getType();
             BaseType nt = (BaseType) recur(t);
@@ -823,19 +821,19 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         } else {
             return visitNode(vre);
         }
-        
-        
+
+
     }
 
   @Override
   public Node forWhereClause(WhereClause wc) {
       lexicalNestingDepth++;
-      
+
           List<WhereBinding> lwb = wc.getBindings();
           for (WhereBinding wb : lwb) {
               type_rewrites_put(wb.getName().getText(), new Local());
           }
-      
+
       return visitNode(wc);
   }
 
@@ -965,11 +963,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
 
-   
+
 
     @Override
     public Node for_RewriteObjectExpr(_RewriteObjectExpr oe) {
-        List<? extends AbsDeclOrDecl> defs = oe.getDecls();
+        List<Decl> defs = oe.getDecls();
         List<BaseType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
         objectNestingDepth++;
         lexicalNestingDepth++;
@@ -979,7 +977,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         AbstractNode n = visitNodeTO(oe);
         return n;
     }
-    
+
     @Override
     public Node forObjectExpr(ObjectExpr oe) {
         // TODO wip
@@ -1015,7 +1013,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
         // defined var is no longer eligible for rewrite.
-        List<FnDecl> defs = lf.getFns();
+        List<Decl> defs = new ArrayList<Decl>();
+        for (FnDecl d : lf.getFns()) {
+            defs.add((Decl)d);
+        }
         defsToLocals(defs);
         // All the function names are in scope in the function
         // definitions, and in the body of code that follows them.
@@ -1043,7 +1044,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      // All the methods and fields defined in object and the
         // extended traits
         // are mapped to "self".
-        List<? extends AbsDeclOrDecl> defs = od.getDecls();
+        List<Decl> defs = od.getDecls();
         Option<List<Param>> params = od.getParams();
         List<StaticParam> tparams = od.getStaticParams();
         List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
@@ -1066,7 +1067,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forAbsTraitDecl(AbsTraitDecl td) {
-        List<? extends AbsDecl> defs = td.getDecls();
+        List<Decl> defs = td.getDecls();
         List<StaticParam> tparams = td.getStaticParams();
         // TODO wip
         lexicalNestingDepth++;
@@ -1085,7 +1086,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forTraitDecl(TraitDecl td) {
-        List<? extends Decl> defs = td.getDecls();
+        List<Decl> defs = td.getDecls();
         List<StaticParam> tparams = td.getStaticParams();
         // TODO wip
         lexicalNestingDepth++;
@@ -1332,8 +1333,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     /**
      * @param defs
      */
-    private void defsToLocals(List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl d : defs) {
+    private void defsToLocals(List<Decl> defs) {
+        for (Decl d : defs) {
             if (d instanceof TraitAbsDeclOrDecl) {
                 String s = d.stringName();
                 TraitAbsDeclOrDecl dod = (TraitAbsDeclOrDecl) d;
@@ -1366,11 +1367,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     /**
      * @param defs
      */
-    private void functionalMethodsOfDefsToLocals(List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl d : defs) {
+    private void functionalMethodsOfDefsToLocals(List<Decl> defs) {
+        for (Decl d : defs) {
             if (d instanceof TraitObjectAbsDeclOrDecl) {
                 TraitObjectAbsDeclOrDecl dod = (TraitObjectAbsDeclOrDecl) d;
-                List <? extends AbsDeclOrDecl> tdecls = dod.getDecls();
+                List <Decl> tdecls = dod.getDecls();
                 handlePossibleFM(tdecls);
             } else {
                 // Thankfully, do nothing.
@@ -1378,8 +1379,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
     }
 
-    private void handlePossibleFM(List<? extends AbsDeclOrDecl> tdecls) {
-        for (AbsDeclOrDecl adod : tdecls) {
+    private void handlePossibleFM(List<Decl> tdecls) {
+        for (Decl adod : tdecls) {
             ArrowOrFunctional aof = adod.accept(IsAnArrowName.isAnArrowName);
                 if (aof == ArrowOrFunctional.FUNCTIONAL) {
                     // Only certain things can be a functional method.
@@ -1474,8 +1475,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     /**
      * @param defs
      */
-    private void defsToMembers(List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl dd : defs) {
+    private void defsToMembers(List<Decl> defs) {
+        for (Decl dd : defs) {
 
             if (dd instanceof VarDecl) {
                 //visited.add(tdod);
@@ -1601,7 +1602,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                             // as all the members
                             // types.add(s); // The trait is known by this
                             // name.
-                            for (AbsDeclOrDecl dd : tdod.getDecls()) {
+                            for (Decl dd : tdod.getDecls()) {
                                 String sdd = dd.stringName();
                                 if (dd instanceof VarDecl) {
                                     //visited.add(tdod);

@@ -40,7 +40,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -78,7 +78,7 @@ public class Constructor extends NonPrimitive {
     boolean finished = false;
 
     IdOrOpOrAnonymousName cfn;
-    List<? extends AbsDeclOrDecl> defs;
+    List<Decl> defs;
     Option<List<Param>> params;
 
     MultiMap<FTraitOrObject, SingleFcn> traitsToMethodSets =
@@ -173,7 +173,7 @@ public class Constructor extends NonPrimitive {
     // TODO need to copy the field names
 
     public Constructor(Environment env, FTypeObject selfType, HasAt def,
-                IdOrOpOrAnonymousName name, List<? extends AbsDeclOrDecl> defs,
+                IdOrOpOrAnonymousName name, List<Decl> defs,
                 Option<List<Param>> params) {
         super(env); // TODO verify that this is the proper env.
         this.selfType = selfType;

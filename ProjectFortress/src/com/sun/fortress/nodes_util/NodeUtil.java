@@ -424,7 +424,7 @@ public class NodeUtil {
         return new UnitIterable<String>(lv.getName().getText());
     }
 
-    public static IterableOnce<String> stringNames(AbsDeclOrDecl decl) {
+    public static IterableOnce<String> stringNames(Decl decl) {
         return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forDimDecl(DimDecl d) {
                 return new UnitIterable<String>(d.getDim().getText());

@@ -49,7 +49,7 @@ public CompilationUnit File =
      }
    / w a1:Imports w semicolon? w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
-       List<AbsDecl> a2 = Collections.<AbsDecl>emptyList();
+       List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
@@ -68,7 +68,7 @@ public CompilationUnit File =
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = new Api(span, name, Collections.<Import>emptyList(),
-                         Collections.<AbsDecl>emptyList());
+                         Collections.<Decl>emptyList());
      };
 
 /* CompilationUnit ::=
@@ -108,7 +108,7 @@ private Api Api =
      }
    / api w a1:APIName a2:(w yyValue:Imports w semicolon?)? w (_)*
      { if (a2 == null) a2 = Collections.<Import>emptyList();
-       List<AbsDecl> a3 = Collections.<AbsDecl>emptyList();
+       List<Decl> a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        yyValue = new Api(span, a1, a2, a3);
      };

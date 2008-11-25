@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 
@@ -46,7 +46,7 @@ public class FTypeTraitInstance extends FTypeTrait implements
 
     public FTypeTraitInstance(String name, Environment interior,
             FTypeGeneric generic, List<FType> bind_args, List<FType> name_args,
-            List<? extends AbsDeclOrDecl> members) {
+            List<Decl> members) {
         super(name, interior, interior.getAt(), members, generic.getDecl());
         this.generic = generic;
         this.bind_args = bind_args;
@@ -66,7 +66,7 @@ public class FTypeTraitInstance extends FTypeTrait implements
                 // Should not get here.
                 throw new Error("Badly layered environment");
             }
-            
+
         }
     }
 

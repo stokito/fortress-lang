@@ -20,7 +20,7 @@ package com.sun.fortress.interpreter.evaluator.types;
 import java.util.Collections;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 
 public class SymbolicInstantiatedType extends SymbolicType {
@@ -30,7 +30,7 @@ public class SymbolicInstantiatedType extends SymbolicType {
      * @param interior
      */
     public SymbolicInstantiatedType(String name, Environment interior, AbstractNode decl) {
-        super(name, interior, Collections.<AbsDeclOrDecl>emptyList(), decl);
+        super(name, interior, Collections.<Decl>emptyList(), decl);
         isSymbolic = true;
     }
 

@@ -31,7 +31,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiaterVisitor;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.DimParam;
@@ -91,11 +91,11 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     public static void reset() {
     	pendingFunctionalMethodFinishes = new ArrayList<FTraitOrObjectOrGeneric>();
     }
-    
+
     private final Generic def;
     private final FTypeGeneric original;
 
-    public FTypeGeneric(Environment e, Generic d, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+    public FTypeGeneric(Environment e, Generic d, List<Decl> members, AbstractNode decl) {
         super(NodeUtil.stringName(d), e, decl);
         def = d;
         params = d.getStaticParams();
@@ -345,7 +345,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         } else {
             rval = bug( within, errorMsg("The use of generic type is " +
                         "found at unexpected place; it needs to be either " +
-                        "within a trait, an object, or an object " + 
+                        "within a trait, an object, or an object " +
                         "expression type, but found: " + gen.def) );
        }
 

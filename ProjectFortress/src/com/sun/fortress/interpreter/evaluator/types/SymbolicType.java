@@ -27,7 +27,7 @@ import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 
 abstract public class SymbolicType extends FTypeTrait {
@@ -41,7 +41,7 @@ abstract public class SymbolicType extends FTypeTrait {
         return false;
     }
 
-    public SymbolicType(String name, Environment interior, List<? extends AbsDeclOrDecl> members, AbstractNode decl) {
+    public SymbolicType(String name, Environment interior, List<Decl> members, AbstractNode decl) {
         super(name, interior, interior.getAt(), members, decl);
         membersInitialized = true;
     }

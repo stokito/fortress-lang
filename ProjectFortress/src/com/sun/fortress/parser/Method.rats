@@ -164,7 +164,7 @@ Decl Coercion =
 /* AbsCoercion ::=
    coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
  */
-AbsDecl AbsCoercion =
+Decl AbsCoercion =
      coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
      a4:CoercionClauses a5:(w widens)?
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();

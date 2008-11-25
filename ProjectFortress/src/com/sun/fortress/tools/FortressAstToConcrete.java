@@ -417,11 +417,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    public List<String> myRecurOnListOfAbsDecl(List<AbsDecl> that) {
+    public List<String> myRecurOnListOfDecl(List<Decl> that) {
         boolean sawField = false;
         boolean sawGetterSetter = false;
         List<String> accum = new java.util.ArrayList<String>(that.size());
-        for (AbsDecl elt : that) {
+        for (Decl elt : that) {
             if ( elt instanceof AbsVarDecl ) {
                 sawField = true;
             } else if ( elt instanceof AbsFnDecl ) {
@@ -451,7 +451,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
         List<String> excludes_result = recurOnListOfBaseType(that.getExcludes());
         Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
-        List<String> decls_result = myRecurOnListOfAbsDecl(that.getDecls());
+        List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
         return forAbsTraitDeclOnly(that, mods_result, name_result,
                                    staticParams_result, extendsClause_result,
                                    where_result, excludes_result, comprises_result,
@@ -543,7 +543,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
         Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
         Option<String> contract_result = recurOnOptionOfContract(that.getContract());
-        List<String> decls_result = myRecurOnListOfAbsDecl(that.getDecls());
+        List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
         return forAbsObjectDeclOnly(that, mods_result, name_result,
                                     staticParams_result, extendsClause_result,
                                     where_result, params_result,

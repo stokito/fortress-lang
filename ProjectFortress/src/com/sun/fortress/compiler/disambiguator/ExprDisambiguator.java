@@ -29,7 +29,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
@@ -398,7 +398,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     private Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>>
-        extractDeclNames(List<? extends AbsDeclOrDecl> decls) {
+        extractDeclNames(List<Decl> decls) {
         final Set<IdOrOpOrAnonymousName> accessors = new HashSet<IdOrOpOrAnonymousName>();
 
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
@@ -465,12 +465,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         };
 
         Set<Id> vars = new HashSet<Id>();
-        for (AbsDeclOrDecl decl : decls) {
+        for (Decl decl : decls) {
             vars.addAll(decl.accept(var_finder));
         }
 
         Set<IdOrOpOrAnonymousName> fns = new HashSet<IdOrOpOrAnonymousName>();
-        for (AbsDeclOrDecl decl : decls) {
+        for (Decl decl : decls) {
             fns.addAll(decl.accept(fn_finder));
         }
 
@@ -602,7 +602,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                    v.recurOnOptionOfWhereClause(that.getWhere()),
                                    v.recurOnListOfBaseType(that.getExcludes()),
                                    v.recurOnOptionOfListOfBaseType(that.getComprises()),
-                                   v.recurOnListOfAbsDecl(that.getDecls()));
+                                   v.recurOnListOfDecl(that.getDecls()));
     }
 
 
@@ -820,7 +820,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                     v.recurOnOptionOfListOfParam(that.getParams()),
                                     v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                                     v.recurOnOptionOfContract(that.getContract()),
-                                    v.recurOnListOfAbsDecl(that.getDecls()));
+                                    v.recurOnListOfDecl(that.getDecls()));
     }
 
 

@@ -172,14 +172,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
 
-     protected static void doDefs(BuildEnvironments inner, List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl def : defs) {
+     protected static void doDefs(BuildEnvironments inner, List<Decl> defs) {
+        for (Decl def : defs) {
             def.accept(inner);
         }
     }
 
-    protected void doDefs(List<? extends AbsDeclOrDecl> defs) {
-        for (AbsDeclOrDecl def : defs) {
+    protected void doDefs(List<Decl> defs) {
+        for (Decl def : defs) {
             def.accept(this);
         }
     }
@@ -195,7 +195,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 //    private void doTraitMethodDefs(FTypeTrait ftt, Set<String> fields) {
 //        BetterEnv into = ftt.getMembers();
 //        BetterEnv forTraitMethods = ftt.getMethodExecutionEnv();
-//        List<? extends AbsDeclOrDecl> defs = ftt.getASTmembers();
+//        List<Decl> defs = ftt.getASTmembers();
 //
 //        BuildTraitEnvironment inner = new BuildTraitEnvironment(into,
 //                forTraitMethods, ftt, fields);
@@ -204,12 +204,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 //
 //    }
 //
-    public void doDefs1234(List<? extends AbsDeclOrDecl> defs) {
+    public void doDefs1234(List<Decl> defs) {
         doDefs(defs);
         doDefs234(defs);
     }
 
-    public void doDefs234(List<? extends AbsDeclOrDecl> defs) {
+    public void doDefs234(List<Decl> defs) {
         secondPass();
         doDefs(defs);
         thirdPass();
@@ -527,12 +527,12 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     public void scanForFunctionalMethodNames(
             FTraitOrObjectOrGeneric x,
-            List<? extends AbsDeclOrDecl> defs) {
+            List<Decl> defs) {
         scanForFunctionalMethodNames(x, defs, false);
     }
 
     public void scanForFunctionalMethodNames(FTraitOrObjectOrGeneric x,
-            List<? extends AbsDeclOrDecl> defs, boolean bogus) {
+            List<Decl> defs, boolean bogus) {
         // This is probably going away.
         Environment topLevel = containing;
         if (getPass() == 1) {
@@ -890,7 +890,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));
         }
-        List<? extends AbsDeclOrDecl> fns = x.getDecls();
+        List<Decl> fns = x.getDecls();
 
         // doTraitMethodDefs(ftt, null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 

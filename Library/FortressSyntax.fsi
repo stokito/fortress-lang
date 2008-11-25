@@ -38,8 +38,8 @@ api FortressSyntax
   native grammar Declaration
       Decls : List[\Decl\]
       Decl : List[\Decl\]
-      AbsDecls : List[\AbsDecl\]
-      AbsDecl : AbsDecl
+      AbsDecls : List[\Decl\]
+      AbsDecl : Decl
   end
 
   native grammar TraitObject (* rename to TraitsAndObjectDecls *)

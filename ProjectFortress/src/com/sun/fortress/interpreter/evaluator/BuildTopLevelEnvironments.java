@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
@@ -66,7 +66,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      * Empty by default
      */
     public Set<String> typeNames = new HashSet<String>();
-    
+
     /**
      * Used for mapping API Names to their environments
      */
@@ -129,7 +129,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      */
     @Override
     public Boolean forApi(Api x) {
-        List<? extends AbsDeclOrDecl> decls = x.getDecls();
+        List<Decl> decls = x.getDecls();
 
         switch (getPass()) {
         case 1:
@@ -140,7 +140,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         return null;
 
     }
-    
+
     public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {
         switch (getPass()) {
         case 1: {
@@ -149,14 +149,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             bindInto.putValue(s,new OverloadedFunction(x.getName(), bindInto));
         }
         break;
-        
+
         case 3: {
             String s = x.getName().stringName();
             OverloadedFunction of = (OverloadedFunction) bindInto.getRootValue(s);
             for (IdOrOpName fn : x.getFns()) {
                 Option<APIName> oapi = fn.getApi();
                 FValue oapi_val = null;
-                
+
                 if (fn instanceof Id) {
                     oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
                 } else if (fn instanceof OpName) {
@@ -164,11 +164,11 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 } else {
                     bug("Unexpected change to AST node hierarchy");
                 }
-                
+
                 if (oapi_val == null) {
                     bug("Failed to find overload member " + fn + " for " + x);
                 }
-                
+
                 if (oapi_val instanceof SingleFcn) {
                     of.addOverload((SingleFcn) oapi_val, true);
                 } else if (oapi_val instanceof OverloadedFunction) {
@@ -176,13 +176,13 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
                 } else {
                     bug("Unexpected function binding for " + fn +" , value is " + oapi_val);
                 }
-                
+
             }
-            
+
             of.finishInitializing();
-            
+
         }
-        
+
         }
         return null;
     }
@@ -194,15 +194,15 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
      */
     @Override
     public Boolean forComponent(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<Decl> defs = x.getDecls();
         switch (getPass()) {
         case 1: forComponent1(x); break;
 
-        case 2: doDefs(this, defs); 
+        case 2: doDefs(this, defs);
         break;
         case 3: {
             ForceTraitFinish v = new ForceTraitFinish() ;
-            for (AbsDeclOrDecl def : defs) {
+            for (Decl def : defs) {
                 v.visit(def);
             }
         }
@@ -213,7 +213,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     }
 
     public Boolean forComponentDefs(Component x) {
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<Decl> defs = x.getDecls();
         doDefs(this, defs);
         return null;
     }
@@ -222,13 +222,13 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         APIName name = x.getName();
         List<Import> imports = x.getImports();
         // List<Export> exports = x.getExports();
-        List<? extends AbsDeclOrDecl> defs = x.getDecls();
+        List<Decl> defs = x.getDecls();
 
         // SComponent comp = new SComponent(BetterEnv.primitive(x), x);
         //containing.putComponent(name, comp);
 
         forComponentDefs(x);
-        
+
         for (Import imp : imports) {
             imp.accept(this);
         }
@@ -279,14 +279,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             return null;
         }
 
-        void visit(AbsDeclOrDecl def) {
+        void visit(Decl def) {
             def.accept(this);
         }
     }
-    
+
     public void setExporterAndApi(CUWrapper exporter, CUWrapper api) {
         bug("Can only set exporter of API environment builder.");
     }
-    
+
 
 }
