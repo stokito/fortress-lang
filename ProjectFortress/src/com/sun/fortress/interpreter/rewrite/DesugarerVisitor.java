@@ -668,8 +668,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
         AbstractNode nn =
-         new Component(com.getSpan(), com.is_native(),
-                 name_result, imports_result,
+         new Component(com.getSpan(),
+                 name_result, imports_result, com.is_native(),
                  exports_result, decls_result,
                  objectExprs, Useful.list(functionals));
 

@@ -2030,9 +2030,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Component new_comp =
 			new Component(that.getSpan(),
-					that.is_native(),
 					(APIName)name_result.ast(),
 					(List<Import>)TypeCheckerResult.astFromResults(imports_result),
+					that.is_native(),
 					(List<APIName>)TypeCheckerResult.astFromResults(exports_result),
 					(List<Decl>)TypeCheckerResult.astFromResults(decls_result));
 

@@ -148,10 +148,11 @@ class FnTypeEnv extends TypeEnv {
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                overloadedTypes.add(new _RewriteGenericArrowType(loc, _fn.staticParameters(),
+                overloadedTypes.add(new _RewriteGenericArrowType(loc,
                                                                  domainFromParams(_fn.parameters()),
                                                                  selfType,
                                                                  makeEffect(loc.getEnd(), CollectUtil.makeList(_fn.thrownTypes())),
+                                                                 _fn.staticParameters(),
                                                                  _fn.where()));
             }
         }

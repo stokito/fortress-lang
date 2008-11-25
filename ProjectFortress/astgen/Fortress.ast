@@ -145,7 +145,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              *         run(args:String...) = print "Hello, World!\n"
              *       end
              */
-            Component(boolean _native = false, APIName name, List<Import> imports,
+            Component(boolean _native = false,
                       List<APIName> exports, List<Decl> decls,
                       List<_RewriteObjectExpr> objectExprs =
                            Collections.<_RewriteObjectExpr>emptyList(),
@@ -914,9 +914,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              * Expr ::= fn ValParam IsType? Throws? => Expr
              * e.g.) fn x => x + 2
              */
-            FnExpr(ignoreForEquals Span span, // no default -- required to produce a fnName
-                   ignoreForEquals boolean parenthesized = false,
-                   IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
+            FnExpr(IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
                    List<StaticParam> staticParams
                        = Collections.<StaticParam>emptyList(),
                    List<Param> params,
@@ -1398,10 +1396,6 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  */
                 _RewriteGenericArrowType(List<StaticParam> staticParams
                                           = Collections.<StaticParam>emptyList(),
-                                         Domain domain,
-                                         Type range,
-                                         Effect effect
-                                          = FortressUtil.emptyEffect(),
                                          Option<WhereClause> where
                                           = Option.<WhereClause>none());
             /**
