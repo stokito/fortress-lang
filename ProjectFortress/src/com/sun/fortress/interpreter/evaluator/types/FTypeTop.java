@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.env.BetterEnv;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
@@ -35,7 +35,7 @@ public class FTypeTop extends FTypeTrait {
 
     private FTypeTop() {
         super("Any",BetterEnv.blessedEmpty(),new HasAt.FromString("Built in"),
-                Collections.<AbsDeclOrDecl>emptyList(), null); // HACK need a token here.
+                Collections.<Decl>emptyList(), null); // HACK need a token here.
         membersInitialized = true;
     }
 

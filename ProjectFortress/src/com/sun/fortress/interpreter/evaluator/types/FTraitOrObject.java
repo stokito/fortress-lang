@@ -36,7 +36,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericMethod;
 import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.StaticArg;
@@ -224,7 +224,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         }
     }
 
-    public FTraitOrObject(String name, Environment env, HasAt at, List<? extends AbsDeclOrDecl> members, AbstractNode def) {
+    public FTraitOrObject(String name, Environment env, HasAt at, List<Decl> members, AbstractNode def) {
         super(name, env, def);
         this.members = members;
         this.at = at;

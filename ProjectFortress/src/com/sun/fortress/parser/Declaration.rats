@@ -57,8 +57,8 @@ List<Decl> Decl =
    / a1:PropertyDecl { yyValue = FortressUtil.mkList((Decl)a1); };
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
-List<AbsDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
-     { for (List<AbsDecl> ds : a2s.list()) {
+List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
+     { for (List<Decl> ds : a2s.list()) {
          a1.addAll(ds);
        }
        yyValue = a1;
@@ -75,14 +75,14 @@ List<AbsDecl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | PropertyDecl
    | GrammarDef
  */
-List<AbsDecl> AbsDecl =
-     a1:AbsTraitDecl  { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:AbsObjectDecl { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:AbsVarDecl    { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:AbsFnDecl     { yyValue = FortressUtil.mkList((AbsDecl)a1); }
+List<Decl> AbsDecl =
+     a1:AbsTraitDecl  { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:AbsObjectDecl { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:AbsVarDecl    { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:AbsFnDecl     { yyValue = FortressUtil.mkList((Decl)a1); }
    / DimUnitDecl
-   / a1:TypeAlias     { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:TestDecl      { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:PropertyDecl  { yyValue = FortressUtil.mkList((AbsDecl)a1); }
-   / a1:GrammarDef    { yyValue = FortressUtil.mkList((AbsDecl)a1); }
+   / a1:TypeAlias     { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:TestDecl      { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:PropertyDecl  { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:GrammarDef    { yyValue = FortressUtil.mkList((Decl)a1); }
    ;

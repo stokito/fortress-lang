@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.FunctionalMethod;
 import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Modifier;
@@ -54,7 +54,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         this.isValueType = isValueType;
     }
 
-    List<? extends AbsDeclOrDecl> members;
+    List<Decl> members;
 
     Environment env;
 
@@ -68,7 +68,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         return this.isValueType;
     }
 
-    public List<? extends AbsDeclOrDecl> getASTmembers() {
+    public List<Decl> getASTmembers() {
         return members;
     }
 
@@ -89,13 +89,13 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         if (isSymbolic)
             return;
         FTraitOrObjectOrGeneric x = this;
-        // List<? extends AbsDeclOrDecl> defs = members;
+        // List<Decl> defs = members;
 
         SortedSet<FnAbsDeclOrDecl> defs = Useful
-                .<AbsDeclOrDecl, FnAbsDeclOrDecl> filteredSortedSet(members,
-                        new Fn<AbsDeclOrDecl, FnAbsDeclOrDecl>() {
+                .<Decl, FnAbsDeclOrDecl> filteredSortedSet(members,
+                        new Fn<Decl, FnAbsDeclOrDecl>() {
                             @Override
-                            public FnAbsDeclOrDecl apply(AbsDeclOrDecl x) {
+                            public FnAbsDeclOrDecl apply(Decl x) {
                                 if (x instanceof FnAbsDeclOrDecl)
                                     return (FnAbsDeclOrDecl) x;
                                 return null;
@@ -162,10 +162,10 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
             return;
 
         topLevel = topLevel.getTopLevel();
-        
-        List<? extends AbsDeclOrDecl> defs = members;
 
-        for (AbsDeclOrDecl dod : defs) {
+        List<Decl> defs = members;
+
+        for (Decl dod : defs) {
             // Filter out non-functions.
             if (dod instanceof FnAbsDeclOrDecl) {
                 int spi = NodeUtil

@@ -179,7 +179,7 @@ public class IndexBuilder {
                 buildGrammar(d, grammars);
             }
         };
-        for (AbsDecl decl : ast.getDecls()) {
+        for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
         ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, dimensions, units, grammars, modifiedDate);
@@ -294,7 +294,7 @@ public class IndexBuilder {
                 NI.nyi();
             }
         };
-        for (AbsDeclOrDecl decl : ast.getDecls()) {
+        for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ProperTraitIndex(ast, getters, setters, coercions,
@@ -370,7 +370,7 @@ public class IndexBuilder {
                 NI.nyi();
             }
         };
-        for (AbsDeclOrDecl decl : ast.getDecls()) {
+        for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,

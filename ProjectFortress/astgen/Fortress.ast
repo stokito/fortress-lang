@@ -75,15 +75,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
     /**
      * declaration in components or APIs
      */
-    interface AbsDeclOrDecl();
-        /**
-         * declaration in APIs
-         */
-        interface AbsDecl();
-        /**
-         * declaration in components
-         */
-        interface Decl();
+    interface Decl();
     /**
      * left-hand-side of assignments, local variable declarations, or
      * top-level variable declarations
@@ -107,7 +99,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      * or APIs
      */
     interface HasParams(Option<List<Param>> params,
-                        List<? extends AbsDeclOrDecl> decls);
+                        List<Decl> decls);
     /**
      * with a where clause
      * implemented by trait and object declarations in components or APIs
@@ -134,11 +126,8 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      * intersections of interface types
      */
     interface GenericWithParams() extends Generic, HasParams;
-    interface GenericAbsDeclOrDecl() extends Generic, AbsDeclOrDecl;
-        interface GenericDecl() extends Decl;
-    interface GenericAbsDeclOrDeclWithParams() extends GenericWithParams,
-                                                       GenericAbsDeclOrDecl;
-        interface GenericDeclWithParams() extends GenericDecl;
+    interface GenericDecl() extends Generic, Decl;
+        interface GenericDeclWithParams() extends GenericWithParams;
 
     /**
      * type or the domain of an arrow type
@@ -182,7 +171,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              *         run(args:String...):()
              *       end
              */
-            Api(List<AbsDecl> decls);
+            Api(List<Decl> decls);
         /**
          * import statement
          * Import ::= import ImportedNames | import api AliasedAPINames
@@ -231,24 +220,24 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * Name must be unqualified.
          */
         abstract TraitObjectAbsDeclOrDecl(List<Modifier> mods
-                                              = Collections.<Modifier>emptyList(),
-                                          Id name,
-                                          List<StaticParam> staticParams
-                                              = Collections.<StaticParam>emptyList(),
-                                          List<TraitTypeWhere> extendsClause
-                                              = Collections.<TraitTypeWhere>emptyList(),
-                                          Option<WhereClause> where
-                                              = Option.<WhereClause>none(),
-                                          List<? extends AbsDeclOrDecl> decls)
-                                         implements HasWhere, GenericAbsDeclOrDecl;
+                                     = Collections.<Modifier>emptyList(),
+                                 Id name,
+                                 List<StaticParam> staticParams
+                                     = Collections.<StaticParam>emptyList(),
+                                 List<TraitTypeWhere> extendsClause
+                                     = Collections.<TraitTypeWhere>emptyList(),
+                                 Option<WhereClause> where
+                                     = Option.<WhereClause>none(),
+                                 List<Decl> decls)
+                                 implements HasWhere, GenericDecl;
             /**
              * trait declaration in components or APIs
              */
             abstract TraitAbsDeclOrDecl(List<BaseType> excludes
-                                            = Collections.<BaseType>emptyList(),
-                                        Option<List<BaseType>> comprises
-                                            = Option.<List<BaseType>>none(),
-                                        List<? extends AbsDeclOrDecl> decls);
+                                   = Collections.<BaseType>emptyList(),
+                               Option<List<BaseType>> comprises
+                                   = Option.<List<BaseType>>none(),
+                               List<Decl> decls);
                 /**
                  * trait declaration in APIs
                  * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
@@ -273,7 +262,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  *         cons(x: alph): List[\alpha\]
                  *       end
                  */
-                AbsTraitDecl(List<AbsDecl> decls) implements AbsDecl;
+                AbsTraitDecl(List<Decl> decls) implements Decl;
                 /**
                  * trait declaration in components
                  * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
@@ -297,13 +286,13 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              * object declaration in components or APIs
              */
             abstract ObjectAbsDeclOrDecl(Option<List<Param>> params
-                                             = Option.<List<Param>>none(),
-                                         Option<List<BaseType>> throwsClause
-                                             = Option.<List<BaseType>>none(),
-                                         Option<Contract> contract
-                                             = Option.<Contract>none(),
-                                         List<? extends AbsDeclOrDecl> decls)
-                                        implements GenericAbsDeclOrDeclWithParams;
+                                    = Option.<List<Param>>none(),
+                                Option<List<BaseType>> throwsClause
+                                    = Option.<List<BaseType>>none(),
+                                Option<Contract> contract
+                                    = Option.<Contract>none(),
+                                List<Decl> decls)
+                               implements GenericDeclWithParams;
                 /**
                  * object declaration in APIs
                  * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
@@ -327,7 +316,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  *                         | PropertyDecl
                  * e.g.) object Empty[\alph\]() extends List[\alpha\] end
                  */
-                AbsObjectDecl(List<AbsDecl> decls) implements AbsDecl;
+                AbsObjectDecl(List<Decl> decls) implements Decl;
                 /**
                  * object declaration in components
                  * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
@@ -343,12 +332,11 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  *         length() = 0
                  *       end
                  */
-                ObjectDecl(List<Decl> decls)
-                          implements GenericDeclWithParams;
+                ObjectDecl(List<Decl> decls) implements GenericDeclWithParams;
         /**
          * variable declaration in components or APIs
          */
-        abstract VarAbsDeclOrDecl(List<LValue> lhs) implements AbsDeclOrDecl;
+        abstract VarAbsDeclOrDecl(List<LValue> lhs) implements Decl;
             /**
              * variable declaration in APIs
              * AbsVarDecl ::= AbsVarMods? VarWTypes
@@ -361,7 +349,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              * BindId ::= Id | _
              * e.g.) var (x, y): ZZ64...
              */
-            AbsVarDecl() implements AbsDecl, Decl;
+            AbsVarDecl() implements Decl;
             /**
              * variable declaration in components
              * VarDecl ::= VarMods? VarWTypes InitVal
@@ -390,22 +378,22 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * Names must be unqualified.
          */
         abstract FnAbsDeclOrDecl(List<Modifier> mods
-                                     = Collections.<Modifier>emptyList(),
-                                 IdOrOpOrAnonymousName name,
-                                 List<StaticParam> staticParams
-                                     = Collections.<StaticParam>emptyList(),
-                                 List<Param> params
-                                     = Collections.<Param>emptyList(),
-                                 Option<Type> returnType
-                                     = Option.<Type>none(),
-                                 Option<List<BaseType>> throwsClause
-                                     = Option.<List<BaseType>>none(),
-                                 Option<WhereClause> where
-                                     = Option.<WhereClause>none(),
-                                 Option<Contract> contract
-                                     = Option.<Contract>none(),
-                                 Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()))
-                                implements Applicable, GenericDecl;
+                            = Collections.<Modifier>emptyList(),
+                        IdOrOpOrAnonymousName name,
+                        List<StaticParam> staticParams
+                            = Collections.<StaticParam>emptyList(),
+                        List<Param> params
+                            = Collections.<Param>emptyList(),
+                        Option<Type> returnType
+                            = Option.<Type>none(),
+                        Option<List<BaseType>> throwsClause
+                            = Option.<List<BaseType>>none(),
+                        Option<WhereClause> where
+                            = Option.<WhereClause>none(),
+                        Option<Contract> contract
+                            = Option.<Contract>none(),
+                        Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()))
+                       implements Applicable, GenericDecl;
             /**
              * functional declaration in components or APIs
              * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
@@ -423,7 +411,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              *          | FnSig
              * e.g.) swap (x: Object, y: Object): (Object, Object)
              */
-            AbsFnDecl() implements AbsDecl;
+            AbsFnDecl() implements Decl;
             /**
              * functional declaration in components
              * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
@@ -465,7 +453,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          *               | dim Id (= Type)? (default Id)?
          *               | (unit | SI_unit) Id+ (: Type)? (= Expr)?
          */
-        abstract DimUnitDecl() implements Decl, AbsDecl;
+        abstract DimUnitDecl() implements Decl;
             /**
              * dimension declaration
              * Names for dim and default must be unqualified.
@@ -489,7 +477,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
          */
         TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
-                implements Decl, AbsDecl;
+                implements Decl;
         /**
          * property declaration
          * Names must be unqualified.
@@ -497,12 +485,12 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
          */
         PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
-                     Expr expr) implements Decl, AbsDecl;
+                     Expr expr) implements Decl;
         /**
          * grammar declaration
          * Names (but not extends elements) must be unqualified.
          */
-        abstract GrammarDecl(Id name, List<Id> extends) implements AbsDecl;
+        abstract GrammarDecl(Id name, List<Id> extends) implements Decl;
             /**
              * grammar definition
              */
@@ -512,7 +500,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
          * grammar member (nonterminal or terminal) declaration
          * Names and params must be unqualified.
          */
-        abstract GrammarMemberDecl(Id name) implements AbsDecl;
+        abstract GrammarMemberDecl(Id name) implements Decl;
             /**
              * nonterminal declaration
              */
@@ -546,7 +534,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
          * syntax declaration
          */
-        abstract SyntaxDecl(Option<String> modifier) implements AbsDecl;
+        abstract SyntaxDecl(Option<String> modifier) implements Decl;
             /**
              * syntax definition in syntax declarations
              */
@@ -558,7 +546,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
           * Transformation declaration
           */
-        abstract TransformerDecl() implements AbsDecl;
+        abstract TransformerDecl() implements Decl;
             /**
              * pre transformer definition in transformer declarations
              */
@@ -1721,7 +1709,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                       List<StaticParam> staticParams
                           = Collections.<StaticParam>emptyList(),
                       Type type)
-                     implements Decl, AbsDecl;
+                     implements Decl;
             /**
              * coercion constraint declared in where clauses
              * WhereConstraint ::= Type coerces Type

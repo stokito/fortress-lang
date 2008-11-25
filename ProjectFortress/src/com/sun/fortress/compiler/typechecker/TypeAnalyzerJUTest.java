@@ -392,13 +392,13 @@ public class TypeAnalyzerJUTest extends TestCase {
     /**
      * Make an ApiIndex with the given name and traits.
      * @param name  Assumed to consist of a single part (has no '.' separators).
-     * @param traits  Each index is assumed to wrap an AbsDecl (not a Decl).
+     * @param traits  Each index is assumed to wrap an Decl (not a Decl).
      */
     private static ApiIndex api(String name, TraitIndex... traits) {
-        List<AbsDecl> traitDecls = new ArrayList<AbsDecl>(traits.length);
+        List<Decl> traitDecls = new ArrayList<Decl>(traits.length);
         Map<Id, TypeConsIndex> traitMap = new HashMap<Id, TypeConsIndex>();
         for (TraitIndex t : traits) {
-            traitDecls.add((AbsDecl) t.ast());
+            traitDecls.add((Decl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
         Api ast = new Api(span,NodeFactory.makeAPIName(name),
@@ -417,7 +417,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     /**
      * Make a ComponentIndex with the given name and traits.
      * @param name  Assumed to consist of a single part (has no '.' separators).
-     * @param traits  Each index is assumed to wrap a Decl (not an AbsDecl).
+     * @param traits  Each index is assumed to wrap a Decl (not an Decl).
      */
     private static ComponentIndex component(String name, TraitIndex... traits) {
         List<Decl> traitDecls = new ArrayList<Decl>(traits.length);
@@ -450,7 +450,7 @@ public class TypeAnalyzerJUTest extends TestCase {
     }
 
     /**
-     * Make a ProperTraitIndex with the given name and supertypes.  Wrapped AST is an AbsDecl.
+     * Make a ProperTraitIndex with the given name and supertypes.  Wrapped AST is an Decl.
      * @param name  A simple name.
      * @param supers  Type strings (parsed by parseType()); must parse to TraitTypes.
      */
@@ -469,7 +469,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             ast = new AbsTraitDecl(span, NodeFactory.makeId(span, name),
                                    Collections.<StaticParam>emptyList(),
                                    extendsClause,
-                                   Collections.<AbsDecl>emptyList());
+                                   Collections.<Decl>emptyList());
         }
         else {
             ast = new TraitDecl(span, NodeFactory.makeId(span, name),

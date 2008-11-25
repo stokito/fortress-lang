@@ -70,7 +70,7 @@ CompilationUnit Program =
        yyValue = new Component(span, name, a1, a2, a3);
      }
    / a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)?
-     { if (a2 == null) a2 = Collections.<AbsDecl>emptyList();
+     { if (a2 == null) a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
@@ -142,7 +142,7 @@ private Api Api =
            yyValue = syntaxError(span, "An API declaration of " + a1 +
                                  " has the different name " + a4 + " at the end.");
        if (a2 == null) a2 = Collections.<Import>emptyList();
-       if (a3 == null) a3 = Collections.<AbsDecl>emptyList();
+       if (a3 == null) a3 = Collections.<Decl>emptyList();
        yyValue = new Api(span, a1, a2, a3);
      };
 

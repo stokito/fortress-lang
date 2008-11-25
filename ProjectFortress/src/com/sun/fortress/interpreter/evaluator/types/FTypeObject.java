@@ -25,7 +25,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.env.BetterEnv;
 import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
@@ -60,10 +60,10 @@ public class FTypeObject extends FTraitOrObject {
 
     public FTypeObject(String name, Environment env, HasAt at,
                        Option<List<Param>> params,
-                       List<? extends AbsDeclOrDecl> members, AbstractNode def) {
+                       List<Decl> members, AbstractNode def) {
         super(name, env, at, members, def);
         this.declaredMembersOf = new BetterEnv(at);
-        for(AbsDeclOrDecl v : members) {
+        for(Decl v : members) {
             if (v instanceof VarAbsDeclOrDecl) {
                 for (LValue lhs : ((VarAbsDeclOrDecl)v).getLhs()) {
                     fields.add(lhs.getName());
@@ -108,7 +108,7 @@ public class FTypeObject extends FTraitOrObject {
         if (membersInitialized)
                return;
         BetterEnv into = getMembersInternal();
-         List<? extends AbsDeclOrDecl> defs = getASTmembers();
+         List<Decl> defs = getASTmembers();
 
         /* The parameters to BuildObjectEnvironment are
          * myseriously backwards-looking
@@ -123,7 +123,7 @@ public class FTypeObject extends FTraitOrObject {
         inner.doDefs1234(defs);
 
         // This is a minor hack to deal with messed-up object environments.
-        for(AbsDeclOrDecl v : members) {
+        for(Decl v : members) {
             if (v instanceof FnAbsDeclOrDecl) {
                 String s = NodeUtil.nameAsMethod((FnAbsDeclOrDecl)v);//.getName().stringName();
                 declaredMembersOf.putValueRaw(s,  methodEnv.getLeafValue(s));

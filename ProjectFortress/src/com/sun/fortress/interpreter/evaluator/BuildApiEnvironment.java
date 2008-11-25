@@ -25,7 +25,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
 import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
-import com.sun.fortress.nodes.AbsDeclOrDecl;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
@@ -161,8 +161,8 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         // TODO Auto-generated constructor stub
     }
 
-    private void handlePossibleFM(List<? extends AbsDeclOrDecl> tdecls) {
-        for (AbsDeclOrDecl adod : tdecls) {
+    private void handlePossibleFM(List<Decl> tdecls) {
+        for (Decl adod : tdecls) {
             ArrowOrFunctional aof = adod
                     .accept(IsAnArrowName.isAnArrowName);
             if (aof == ArrowOrFunctional.FUNCTIONAL) {

@@ -82,7 +82,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                         Option<WhereClause> where,
                                         List<BaseType> excludes,
                                         Option<List<BaseType>> comprises,
-                                        List<AbsDecl> decls) {
+                                        List<Decl> decls) {
         if (!that.getName().equals(anyTypeId)) {
             extendsClause = rewriteExtendsClause(that, extendsClause);
         }
@@ -117,7 +117,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                          Option<List<Param>> params,
                                          Option<List<BaseType>> throwsClause,
                                          Option<Contract> contract,
-                                         List<AbsDecl> decls) {
+                                         List<Decl> decls) {
         extendsClause = rewriteExtendsClause(that, extendsClause);
         return super.forAbsObjectDeclOnly(that, mods, name, staticParams, extendsClause,
                                           where, params, throwsClause, contract, decls);
