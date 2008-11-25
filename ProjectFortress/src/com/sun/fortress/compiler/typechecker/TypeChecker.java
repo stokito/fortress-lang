@@ -3442,10 +3442,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				that.getStaticParams(),
 				(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
 				where,
+				(List<Decl>)TypeCheckerResult.astFromResults(decls_result),
 				(Option<List<Param>>)TypeCheckerResult.astFromResults(paramsResult),
 				(Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClauseResult),
-				contract,
-				(List<Decl>)TypeCheckerResult.astFromResults(decls_result));
+				contract);
 
 		return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extends_no_obj_result),
@@ -4005,9 +4005,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					that.getStaticParams(),
 					(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
 					where,
+					(List<Decl>)TypeCheckerResult.astFromResults(decls_result),
 					(List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
-					(Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult),
-					(List<Decl>)TypeCheckerResult.astFromResults(decls_result));
+					(Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult));
 
 		return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, modsResult),

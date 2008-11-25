@@ -124,9 +124,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                    that.getStaticParams(),
                                                    that.getExtendsClause(),
                                                    that.getWhere(),
+                                                   absDecls,
                                                    that.getExcludes(),
-                                                   that.getComprises(),
-                                                   absDecls));
+                                                   that.getComprises()));
         } else return Option.<Node>none();
     }
 
@@ -141,10 +141,10 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                     that.getStaticParams(),
                                                     that.getExtendsClause(),
                                                     that.getWhere(),
+                                                    absDecls,
                                                     that.getParams(),
                                                     that.getThrowsClause(),
-                                                    that.getContract(),
-                                                    absDecls));
+                                                    that.getContract()));
         } else return Option.<Node>none();
     }
 

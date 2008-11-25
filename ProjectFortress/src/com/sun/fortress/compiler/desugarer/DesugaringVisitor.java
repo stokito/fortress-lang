@@ -577,9 +577,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         return forObjectDeclOnly(that, that.getMods(), that.getName(),
                                  that.getStaticParams(), that.getExtendsClause(),
-                                 that.getWhere(), params_result,
-                                 that.getThrowsClause(), contract_result,
-                                 gettersAndDecls);
+                                 that.getWhere(), gettersAndDecls, params_result,
+                                 that.getThrowsClause(), contract_result);
     }
 
     @Override
@@ -600,8 +599,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         return forTraitDeclOnly(that, that.getMods(), that.getName(),
                                 that.getStaticParams(), that.getExtendsClause(),
-                                that.getWhere(), that.getExcludes(),
-                                that.getComprises(), gettersAndDecls);
+                                that.getWhere(), gettersAndDecls,
+                                that.getExcludes(), that.getComprises());
     }
 
     @Override

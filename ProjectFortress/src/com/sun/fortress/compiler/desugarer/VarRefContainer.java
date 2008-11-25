@@ -99,8 +99,8 @@ public class VarRefContainer {
                             Collections.<StaticParam>emptyList(),
                             Collections.<TraitTypeWhere>emptyList(),
                             Option.<WhereClause>none(),
-                            Option.<List<Param>>some(params),
-                            Collections.<Decl>emptyList() );
+                            Collections.<Decl>emptyList(),
+                            Option.<List<Param>>some(params) );
 
         return container;
     }

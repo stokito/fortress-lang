@@ -48,7 +48,7 @@ TraitDecl TraitDecl =
        yyValue =
          new TraitDecl(span, a1, a2.getName(),
                        a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
-                       a3.getExcludes(), a3.getComprises(), a4);
+                       a4, a3.getExcludes(), a3.getComprises());
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
@@ -176,7 +176,7 @@ ObjectDecl ObjectDecl =
        yyValue = new ObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
-            a2.getParams(), fhc.getThrowsClause(), contract, a3);
+            a3, a2.getParams(), fhc.getThrowsClause(), contract);
      };
 
 /* ObjectHeader ::=
@@ -320,7 +320,7 @@ TraitDecl AbsTraitDecl =
        yyValue = new TraitDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
-            a3.getExcludes(), a3.getComprises(), a4);
+            a4, a3.getExcludes(), a3.getComprises());
      };
 
 /* Each trait clause cannot appear more than once. */
@@ -436,7 +436,7 @@ ObjectDecl AbsObjectDecl =
        yyValue = new ObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
-            params, fhc.getThrowsClause(), contract, a3);
+            a3, params, fhc.getThrowsClause(), contract);
      };
 
 /* AbsGoInAnObject ::=

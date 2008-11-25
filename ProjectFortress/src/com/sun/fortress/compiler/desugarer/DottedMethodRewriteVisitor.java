@@ -51,8 +51,8 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
         return super.forObjectDeclOnly(that, that.getMods(), that.getName(),
                                        that.getStaticParams(),
                                        that.getExtendsClause(), that.getWhere(),
-                                       that.getParams(), that.getThrowsClause(),
-                                       that.getContract(), decls_result);
+                                       decls_result, that.getParams(),
+                                       that.getThrowsClause(), that.getContract());
     }
 
     @Override

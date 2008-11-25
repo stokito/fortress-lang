@@ -656,8 +656,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
            throw clauses, contract */
         ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams,
                                            extendsClauses,
-                                           Option.<WhereClause>none(),
-                                           params, decls);
+                                           Option.<WhereClause>none(), decls,
+                                           params);
 
         if(enclosingSelf != null) {
             VarRef receiver = makeVarRefFromNormalParam(enclosingSelf);
