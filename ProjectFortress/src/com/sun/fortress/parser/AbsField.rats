@@ -32,7 +32,7 @@ import Spacing;
    | AbsFldMods? BindIdOrBindIdTuple w : w NoNewlineType w ...
    | AbsFldMods? BindIdOrBindIdTuple w : w NoNewlineTupleType
  */
-AbsVarDecl AbsFldDecl = AbsVarDecl ;
+VarDecl AbsFldDecl = AbsVarDecl ;
 
 List<Modifier> AbsVarMods := AbsFldMods ;
 
@@ -41,18 +41,18 @@ List<Modifier> AbsVarMods := AbsFldMods ;
    | ApiFldMods? BindIdOrBindIdTuple w : w NoNewlineType w ...
    | ApiFldMods? BindIdOrBindIdTuple w : w NoNewlineTupleType
  */
-AbsVarDecl ApiFldDecl =
+VarDecl ApiFldDecl =
      a1:ApiFldMods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        FortressUtil.validId(a2);
-       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), a2);
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, Option.<Expr>none());
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        FortressUtil.validId(lvs);
-       yyValue = new AbsVarDecl(createSpan(yyStart,yyCount), lvs);
+       yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, Option.<Expr>none());
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
      { Span span = createSpan(yyStart,yyCount);
@@ -63,5 +63,5 @@ AbsVarDecl ApiFldDecl =
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
        FortressUtil.validId(lvs);
-       yyValue = new AbsVarDecl(span, lvs);
+       yyValue = new VarDecl(span, lvs, Option.<Expr>none());
      };

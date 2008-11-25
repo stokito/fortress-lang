@@ -4302,7 +4302,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forVarDecl(VarDecl that) {
 		List<LValue> lhs = that.getLhs();
-		Expr init = that.getInit();
+		Expr init;
+                if (that.getInit().isNone())
+                    return super.forVarDecl(that);
+                else {
+                    init = that.getInit().unwrap();
+                }
 
 		TypeCheckerResult initResult = init.accept(this);
 
@@ -4345,7 +4350,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		}
 
-		VarDecl new_node = new VarDecl(that.getSpan(), that.getLhs(), (Expr)initResult.ast());
+		VarDecl new_node = new VarDecl(that.getSpan(), that.getLhs(), Option.<Expr>some((Expr)initResult.ast()));
 		return TypeCheckerResult.compose(new_node, subtypeChecker, subtype_result, initResult);
 	}
 

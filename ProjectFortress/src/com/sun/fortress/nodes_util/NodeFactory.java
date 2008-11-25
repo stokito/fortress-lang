@@ -1092,12 +1092,17 @@ public class NodeFactory {
         return new OpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
     }
 
-    public static AbsVarDecl makeAbsVarDecl(Span span, List<LValue> lvals) {
+    public static VarDecl makeVarDecl(Span span, List<LValue> lvals) {
         FortressUtil.validId(lvals);
-        return new AbsVarDecl(span, lvals);
+        return new VarDecl(span, lvals, Option.<Expr>none());
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Expr init) {
+        FortressUtil.validId(lvals);
+        return new VarDecl(span, lvals, Option.<Expr>some(init));
+    }
+
+    public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Option<Expr> init) {
         FortressUtil.validId(lvals);
         return new VarDecl(span, lvals, init);
     }
@@ -1106,7 +1111,7 @@ public class NodeFactory {
         FortressUtil.validId(name);
         LValue bind = new LValue(span, name, Option.<Type>none(),
                 Collections.<Modifier>emptyList(), true);
-        return new VarDecl(span, Useful.<LValue>list(bind), init);
+        return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
@@ -1115,7 +1120,7 @@ public class NodeFactory {
         LValue bind = new LValue(span, id,
                                          Option.<Type>none(),
                                          Collections.<Modifier>emptyList(), true);
-        return new VarDecl(span, Useful.<LValue>list(bind), init);
+        return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
     public static BoolExpr makeInParentheses(BoolExpr be) {

@@ -666,7 +666,11 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<Type> type = x.getType();
-        Expr init = x.getInit();
+
+        if (x.getInit().isNone())
+            bug("Variable definition should have an expression.");
+
+        Expr init = x.getInit().unwrap();
         LValue lvb = lhs.get(0);
 
           Option<Type> type = lvb.getType();
@@ -735,7 +739,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         // List<Modifier> mods;
         // Id name = x.getName();
         // Option<Type> type = x.getType();
-        Expr init = x.getInit();
+        if (x.getInit().isNone())
+            bug("Variable definition should have an expression.");
+
+        Expr init = x.getInit().unwrap();
         // int index = 0;
         LValue lvb = lhs.get(0);
 
@@ -1078,16 +1085,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     public Boolean forImportStar(ImportStar x) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forVarDecl(com.sun.fortress.interpreter.nodes.AbsVarDecl)
-     */
-    @Override
-    public Boolean forAbsVarDecl(AbsVarDecl x) {
-        return bug("BuildEnvironments.forAbsVarDecl should not be called");
     }
 
     /*

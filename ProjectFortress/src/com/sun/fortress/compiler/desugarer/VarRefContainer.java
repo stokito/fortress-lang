@@ -116,7 +116,7 @@ public class VarRefContainer {
         lhs.add( new LValue(origDeclNode.getSpan(), containerVarId(),
                             containerType(), false) );
         VarDecl field = new VarDecl( origDeclNode.getSpan(),
-                                     lhs, makeCallToContainerObj() );
+                                     lhs, Option.<Expr>some(makeCallToContainerObj()) );
 
         return field;
     }

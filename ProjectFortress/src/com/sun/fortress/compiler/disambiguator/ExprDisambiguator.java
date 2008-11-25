@@ -33,7 +33,7 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
@@ -85,7 +85,6 @@ import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitDecl;
 import com.sun.fortress.nodes.UnitParam;
-import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
@@ -404,11 +403,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
 
             @Override
-            public Set<Id> forAbsVarDecl(AbsVarDecl that) {
-                return extractDefinedVarNames(that.getLhs());
-            }
-
-            @Override
             public Set<Id> forVarDecl(VarDecl that) {
                 return extractDefinedVarNames(that.getLhs());
             }
@@ -426,11 +420,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         };
         NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder =
             new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>() {
-
-            @Override
-            public Set<IdOrOpOrAnonymousName> forAbsVarDecl(AbsVarDecl that) {
-                return Collections.emptySet();
-            }
 
             @Override
             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
@@ -482,11 +471,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 //         NodeDepthFirstVisitor<Set<Id>> var_finder = new NodeDepthFirstVisitor<Set<Id>>(){
 //             @Override
-//             public Set<Id> forAbsVarDecl(AbsVarDecl that) {
-//                 return extractDefinedVarNames(that.getLhs());
-//             }
-
-//             @Override
 //             public Set<Id> forVarDecl(VarDecl that) {
 //                 return extractDefinedVarNames(that.getLhs());
 //             }
@@ -503,11 +487,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 //         };
 //         NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>> fn_finder = new NodeDepthFirstVisitor<Set<IdOrOpOrAnonymousName>>(){
-//             @Override
-//             public Set<IdOrOpOrAnonymousName> forAbsVarDecl(AbsVarDecl that) {
-//                 return Collections.emptySet();
-//             }
-
 //             @Override
 //             public Set<IdOrOpOrAnonymousName> forVarDecl(VarDecl that) {
 //                 return Collections.emptySet();

@@ -475,7 +475,7 @@ public class NodeUtil {
             public IterableOnce<String> forTypeAlias(TypeAlias d) {
                 return new UnitIterable<String>(d.getName().getText());
             }
-            public IterableOnce<String> forVarAbsDeclOrDecl(VarAbsDeclOrDecl d) {
+            public IterableOnce<String> forVarDecl(VarDecl d) {
                 return new IterableOnceForLValueList(d.getLhs());
             }
             public IterableOnce<String> forGrammarDecl(GrammarDecl d) {

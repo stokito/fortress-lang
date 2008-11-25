@@ -147,10 +147,12 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 /* AbsFldMod         ::= hidden | settable | test | wrapped | private */
 /* ApiFldMod         ::= hidden | settable | test */
 
-    public void forAbsVarDeclOnly(AbsVarDecl that) {
-        for (LValue lvb : that.getLhs()) {
-            if ( lvb.getType().isNone() )
-                log(lvb, "The type of " + lvb.getName() + " is required.");
+    public void forVarDeclOnly(VarDecl that) {
+        if ( that.getInit().isNone() ) { // variable declaration without a body expression
+            for (LValue lvb : that.getLhs()) {
+                if ( lvb.getType().isNone() )
+                    log(lvb, "The type of " + lvb.getName() + " is required.");
+            }
         }
     }
 

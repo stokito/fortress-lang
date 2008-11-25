@@ -154,7 +154,7 @@ public class IndexBuilder {
             @Override public void forAbsObjectDecl(AbsObjectDecl d) {
                 buildObject(d, typeConses, functions, variables);
             }
-            @Override public void forAbsVarDecl(AbsVarDecl d) {
+            @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
             }
             @Override public void forAbsFnDecl(AbsFnDecl d) {
@@ -283,7 +283,7 @@ public class IndexBuilder {
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
-            @Override public void forAbsVarDecl(AbsVarDecl d) {
+            @Override public void forVarDecl(VarDecl d) {
                 buildTraitFields(d, name, getters, setters);
             }
             @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
@@ -355,12 +355,10 @@ public class IndexBuilder {
         }
 
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
-            @Override public void forAbsVarDecl(AbsVarDecl d) {
-                buildFields(d, name, fields, getters, setters);
-            }
             @Override public void forVarDecl(VarDecl d) {
                 buildFields(d, name, fields, getters, setters);
-                initializers.add(d);
+                if (d.getInit().isSome())
+                    initializers.add(d);
             }
             @Override public void forFnAbsDeclOrDecl(FnAbsDeclOrDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
@@ -384,7 +382,7 @@ public class IndexBuilder {
      * Create a variable wrapper for each declared variable and add it to the given
      * map.
      */
-    private void buildVariables(VarAbsDeclOrDecl ast,
+    private void buildVariables(VarDecl ast,
             Map<Id, Variable> variables) {
         for (LValue b : ast.getLhs()) {
             variables.put(b.getName(), new DeclaredVariable(b));
@@ -395,7 +393,7 @@ public class IndexBuilder {
      * Create and add to the given maps implicit getters and setters for a trait's
      * abstract fields.
      */
-    private void buildTraitFields(AbsVarDecl ast,
+    private void buildTraitFields(VarDecl ast,
             Id declaringTrait,
             Map<Id, Method> getters,
             Map<Id, Method> setters) {
@@ -416,7 +414,7 @@ public class IndexBuilder {
      * Create field variables and add them to the given map; also create implicit
      * getters and setters.
      */
-    private void buildFields(VarAbsDeclOrDecl ast,
+    private void buildFields(VarDecl ast,
             Id declaringTrait,
             Map<Id, Variable> fields,
             Map<Id, Method> getters,
