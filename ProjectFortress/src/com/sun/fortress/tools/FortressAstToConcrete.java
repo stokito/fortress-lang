@@ -1103,7 +1103,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forAssignmentOnly(Assignment that, Option<String> exprType_result,
                                               List<String> lhs_result,
                                               Option<String> opr_result,
-                                              String rhs_result) {
+                                              String rhs_result,
+                                              Option<List<String>> opsForLhs_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( inParentheses(lhs_result) ).append( " " );
@@ -1116,16 +1117,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
-    }
-
-    @Override public String for_RewriteAssignmentOnly(_RewriteAssignment that,
-                                                      Option<String> exprType_result,
-                                                      List<String> lhs_result,
-                                                      Option<String> opr_result,
-                                                      String rhs_result,
-                                                      List<String> opsForLhs_result) {
-        return forAssignmentOnly(that, exprType_result, lhs_result,
-                                  opr_result, rhs_result);
     }
 
     @Override public String forBlock(Block that) {
@@ -1696,7 +1687,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result,
                                          List<String> staticArgs_result,
                                          String originalName_result,
-                                         List<String> fns_result) {
+                                         List<String> fns_result,
+                                         Option<List<String>> overloadings_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( originalName_result );
@@ -1721,7 +1713,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forOpRefOnly(OpRef that, Option<String> exprType_result,
                                          List<String> staticArgs_result,
                                          String originalName_result,
-                                         List<String> ops_result) {
+                                         List<String> ops_result,
+                                         Option<List<String>> overloadings_result) {
         return handleParen( canonicalOp(originalName_result),
                             that.isParenthesized() );
     }
@@ -1732,22 +1725,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String for_RewriteFnRefOverloadingOnly(
             _RewriteFnRefOverloading that, String fn_result, String ty_result) {
         return "(* _RewriteFnRefOverloading *)";
-    }
-
-    @Override
-    public String for_RewriteInstantiatedFnRefsOnly(
-            _RewriteInstantiatedFnRefs that, Option<String> exprType_result,
-            List<String> staticArgs_result,
-            String originalName_result, List<String> fns_result, List<String> overloadings_result) {
-        return "(* _RewriteInstantiatedFnRefs *)";
-    }
-
-    @Override
-    public String for_RewriteInstantiatedOpRefsOnly(
-            _RewriteInstantiatedOpRefs that, Option<String> exprType_result,
-            List<String> staticArgs_result,
-            String originalName_result, List<String> ops_result, List<String> overloadings_result) {
-        return "(* _RewriteInstantiatedOpRefs *)";
     }
 
     @Override
@@ -2844,15 +2821,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forCaseClauseOnly(CaseClause that,
                                               String match_result,
-                                              String body_result) {
+                                              String body_result,
+                                              Option<String> op_result) {
         return match_result + " => " + body_result;
-    }
-
-    @Override public String for_RewriteCaseClauseOnly(_RewriteCaseClause that,
-                                                      String match_result,
-                                                      String body_result,
-                                                      String op_result) {
-        return forCaseClauseOnly(that, match_result, body_result);
     }
 
     @Override public String forCatchOnly(Catch that,

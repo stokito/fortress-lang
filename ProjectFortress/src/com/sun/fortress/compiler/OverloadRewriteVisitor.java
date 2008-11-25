@@ -36,7 +36,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
-            List<StaticArg> staticArgs, Id originalName, List<Id> fns) {
+                             List<StaticArg> staticArgs, Id originalName, List<Id> fns,
+                             Option<List<_RewriteFnRefOverloading>> overloadings) {
         if (fns.size() > 1) {
             Collections.<Id>sort(fns, NodeComparator.idComparer);
             StringBuffer buffer = new StringBuffer();
@@ -56,13 +57,15 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             Id overloadingId = NodeFactory.makeId(overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
-        return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns);
+        return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns,
+                                  overloadings);
     }
 
 
     @Override
     public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
-            List<StaticArg> staticArgs, OpName originalName, List<OpName> ops) {
+                             List<StaticArg> staticArgs, OpName originalName, List<OpName> ops,
+                             Option<List<_RewriteOpRefOverloading>> overloadings) {
         if (ops.size() > 1) {
             Collections.<OpName>sort(ops, NodeComparator.opNameComparer);
             StringBuffer buffer = new StringBuffer();
@@ -82,7 +85,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOpName));
         }
-        return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops);
+        return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops,
+                                  overloadings);
     }
 
 
