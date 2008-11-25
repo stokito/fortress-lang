@@ -921,13 +921,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                         ft = new SymbolicWhereType(string_name, interior, we);
                         interior.putType(string_name, ft);
                     }
-                } else if (w instanceof TypeAlias) {
-                    /*
-                     * This is problematic; the type bound to the alias cannot
-                     * quite be evaluated yet, but it might be necessary for
-                     * some of the other clauses. What we need is a little
-                     * topological order.
-                     */
                 } else {
                     bug(w, errorMsg("Where clause ", w));
                 }
@@ -959,19 +952,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                             // NI.nyi("need to verify constraint stated in where clause");
                         }
                     }
-                } else if (w instanceof TypeAlias) {
-                    /*
-                     * This is problematic; the type bound to the alias cannot
-                     * quite be evaluated yet, but it might be necessary for
-                     * some of the other clauses. What we need is a little
-                     * topological order.
-                     */
-                    // For now, assume that the order in the where clause is
-                    // topological.
-                    TypeAlias ta = (TypeAlias) w;
-                    Id name = ta.getName();
-                    Type type = ta.getType();
-                    interior.putType(NodeUtil.nameString(name), et.evalType(type));
                 } else {
                     bug(w, errorMsg("Where clause ", w));
                 }

@@ -203,10 +203,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         // Expect that where clauses will add names and constraints.
         if ( wcl.isSome() ) {
             for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
-                if (wc instanceof TypeAlias) {
-                    TypeAlias ta = (TypeAlias) wc;
-                    NI.nyi("Where clauses - type alias");
-                } else if (wc instanceof WhereExtends) {
+                if (wc instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) wc;
                     String we_name = we.getName().getText();
                     // List<Type> we_supers = we.getSupers();
@@ -246,10 +243,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         // Expect that where clauses will add names and constraints.
         if ( wcl.isSome() ) {
             for (WhereConstraint wc : wcl.unwrap().getConstraints()) {
-                if (wc instanceof TypeAlias) {
-                    NI.nyi("Where clauses - type alias");
-                    TypeAlias ta = (TypeAlias) wc;
-                } else if (wc instanceof WhereExtends) {
+                if (wc instanceof WhereExtends) {
                     WhereExtends we = (WhereExtends) wc;
                     String we_name = we.getName().getText();
                     List<BaseType> we_supers = we.getSupers();

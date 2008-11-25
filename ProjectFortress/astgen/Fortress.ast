@@ -73,10 +73,6 @@ begin ast;
  */
 interface Node(ignoreForEquals Span span) extends HasAt;
     /**
-     * declaration in components or APIs
-     */
-    interface Decl();
-    /**
      * left-hand-side of assignments, local variable declarations, or
      * top-level variable declarations
      */
@@ -93,6 +89,10 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      * object expressions in components or APIs
      */
     interface Generic(List<StaticParam> staticParams);
+        interface GenericWithParams() extends HasParams;
+        interface GenericDecl();
+            interface GenericDeclWithParams() extends GenericWithParams;
+
     /**
      * with value parameters
      * implemented by object declarations and object expressions in components
@@ -121,13 +121,6 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      * Repeated expression inside a syntax transformation template
      */
     interface _Ellipses(AbstractNode repeatedNode);
-
-    /**
-     * intersections of interface types
-     */
-    interface GenericWithParams() extends Generic, HasParams;
-    interface GenericDecl() extends Generic, Decl;
-        interface GenericDeclWithParams() extends GenericWithParams;
 
     /**
      * type or the domain of an arrow type
@@ -216,280 +209,257 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         AliasedAPIName(APIName api,
                        Option<Id> alias = Option.<Id>none());
         /**
-         * trait or object declaration in components or APIs
-         * Name must be unqualified.
+         * declaration in components or APIs
          */
-        abstract TraitObjectDecl(List<Modifier> mods
-                                     = Collections.<Modifier>emptyList(),
-                                 Id name,
-                                 List<StaticParam> staticParams
-                                     = Collections.<StaticParam>emptyList(),
-                                 List<TraitTypeWhere> extendsClause
-                                     = Collections.<TraitTypeWhere>emptyList(),
-                                 Option<WhereClause> where
-                                     = Option.<WhereClause>none(),
-                                 List<Decl> decls)
-                                 implements HasWhere, GenericDecl;
+        abstract Decl();
             /**
-             * trait declaration in components or APIs
-             *
-             * trait declaration in APIs
-             * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
-             *                  AbsGoInATrait? end
-             * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
-             * ExtendsWhere ::= extends TraitTypeWheres
-             * AbsTraitClause ::= Excludes | AbsComprises | Where
-             * Excludes ::= excludes TraitTypes
-             * AbsComprises ::= comprises ComprisingTypes
-             * ComprisingTypes ::= TraitType | { ComprisingTypeList }
-             * ComprisingTypeList ::= ...
-             *                      | TraitType(, TraitType)*(, ...)?
-             * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
-             *                 | AbsCoercions? AbsGoBackInATrait
-             *                 | AbsCoercions
-             * AbsGoesFrontInATrait ::= ApiFldDecl
-             *                        | AbsGetterSetterDecl
-             *                        | PropertyDecl
-             * AbsGoesBackInATrait  ::= AbsMdDecl
-             *                        | PropertyDecl
-             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-             *         cons(x: alph): List[\alpha\]
-             *       end
-             *
-             * trait declaration in components
-             * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
-             *               end
-             * TraitClause ::= Excludes | Comprises | Where
-             * Comprises ::= comprises TraitTypes
-             * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
-             *              | Coercions? GoBackInATrait
-             *              | Coercions
-             * GoesFrontInATrait ::= AbsFldDecl
-             *                     | GetterSetterDecl
-             *                     | PropertyDecl
-             * GoesBackInATrait  ::= MdDecl
-             *                     | PropertyDecl
-             * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
-             *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
-             *       end
+             * trait or object declaration in components or APIs
+             * Name must be unqualified.
              */
-            TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
-                      Option<List<BaseType>> comprises
-                          = Option.<List<BaseType>>none(),
-                      List<Decl> decls) implements GenericDecl;
-            /**
-             * object declaration in components or APIs
-             *
-             * object declaration in APIs
-             * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
-             * ObjectHeader ::= object Id StaticParams? ObjectValParam?
-             *                  ExtendsWhere? FnClauses
-             * FnClauses ::= Throws? Where? Contract
-             * Throws ::= throws MayTraitTypes
-             * ObjectValParam ::= ( ObjectParams? )
-             * ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
-             *                | ObjectParam (, ObjectParam)*
-             * ObjectKeyword ::= ObjectParam = Expr
-             * ObjectParam ::= ParamFldMods? Param
-             *               | var Param
-             * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
-             *                   | AbsCoercions? AbsGoBackInAnObject
-             *                   | AbsCoercions
-             * AbsGoesFrontInAnObject ::= ApiFldDecl
-             *                          | AbsGetterSetterDecl
-             *                          | PropertyDecl
-             * AbsGoesBackInAnObject ::= AbsMdDecl
-             *                         | PropertyDecl
-             * e.g.) object Empty[\alph\]() extends List[\alpha\] end
-             *
-             * object declaration in components
-             * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
-             * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
-             *                | Coercions? GoBackInAnObject
-             *                | Coercions
-             * GoesFrontInAnObject ::= FldDecl
-             *                       | GetterSetterDecl
-             *                       | PropertyDecl
-             * GoesBackInAnObject ::= MdDef
-             *                      | PropertyDecl
-             * e.g.) object Empty[\alph\]() extends List[\alpha\]
-             *         length() = 0
-             *       end
-             */
-            ObjectDecl(Option<List<Param>> params = Option.<List<Param>>none(),
-                       Option<List<BaseType>> throwsClause
-                           = Option.<List<BaseType>>none(),
-                       Option<Contract> contract = Option.<Contract>none(),
-                       List<Decl> decls)
-                      implements GenericDeclWithParams;
-        /**
-         * variable declaration in components or APIs
-         *
-         * variable declaration in APIs
-         * AbsVarDecl ::= AbsVarMods? VarWTypes
-         *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
-         *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
-         * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
-         * VarWType ::= BindId IsType
-         * BindIdOrBindIdTuple ::= BindId
-         *                       | ( BindId , BindIdList )
-         * BindId ::= Id | _
-         * e.g.) var (x, y): ZZ64...
-         *
-         * variable declaration in components
-         * VarDecl ::= VarMods? VarWTypes InitVal
-         *           | VarMods? BindIdOrBindIdTuple = Expr
-         *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
-         *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
-         * InitVal ::= (= | :=) Expr
-         * e.g.) var (x, y): ZZ64... = (5, 6)
-         */
-        VarDecl(List<LValue> lhs, Option<Expr> init) implements Decl;
-        /**
-         * left-hand side of variable declaration
-         * e.g.) var x: ZZ32
-         * Name must be unqualified.
-         */
-        LValue(Id name, Option<Type> type = Option.<Type>none(),
-               List<Modifier> mods = Collections.<Modifier>emptyList(),
-               boolean mutable = false) implements Lhs, ImplicitGetterSetter;
-        /**
-         * Overloading specification
-         */
-        _RewriteFnOverloadDecl(IdOrOpName name,
-                               List<IdOrOpName> fns) implements Decl;
-        /**
-         * functional declaration in components or APIs
-         * Names must be unqualified.
-         *
-         * functional declaration in components or APIs
-         * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
-         *             | FnSig
-         * FnSig ::= SimpleName : ArrowType
-         * FnHeaderFront ::= NamedFnHeaderFront
-         *                 | OpHeaderFront
-         * NamedFnHeaderFront ::= Id StaticParams? ValParam
-         * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
-         *                     Params (RightEncloser | Encloser)
-         *                 | opr StaticParams? ValParam (Op | ExponentOp)
-         *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
-         * FnHeaderClause ::= IsType? FnClauses
-         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
-         *          | FnSig
-         * e.g.) swap (x: Object, y: Object): (Object, Object)
-         *
-         * functional declaration in components
-         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
-         * e.g.) swap (x, y) = (y, x)
-         */
-        FnDecl(List<Modifier> mods = Collections.<Modifier>emptyList(),
-               IdOrOpOrAnonymousName name,
-               List<StaticParam> staticParams
-                   = Collections.<StaticParam>emptyList(),
-               List<Param> params = Collections.<Param>emptyList(),
-               Option<Type> returnType = Option.<Type>none(),
-               Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-               Option<WhereClause> where = Option.<WhereClause>none(),
-               Option<Contract> contract = Option.<Contract>none(),
-               Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
-               Option<Expr> body,
-               Option<Id> implementsUnambiguousName = Option.<Id>none())
-              implements Applicable, GenericDecl;
-        /**
-         * value parameter of functional declarations and object declarations
-         * Names must be unqualified.
-         */
-        abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-                       Id name);
-            /**
-             * ValParam := BindId
-             *           | ( Params? )
-             * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
-             *          | (Param, )* Varargs
-             *          | Param(, Param)*
-             * Keyword ::= Param = Expr
-             * Param ::= BindId IsType?
-             *         | Type
-             * e.g.) x: ZZ32 = 3
-             * e.g.) self
-             */
-            NormalParam(Option<Type> type = Option.<Type>none(),
-                        Option<Expr> defaultExpr = Option.<Expr>none())
-                       implements Lhs, ImplicitGetterSetter;
-            /**
-             * varargs parameter
-             * Varargs ::= BindId : Type ...
-             * e.g.) x: String...
-             */
-            VarargsParam(Type type);
-        /**
-         * dimension and unit declaration
-         * DimUnitDecl may represent a single dimension declaration, a single
-         * unit declaration, or both dimension and unit declarations.
-         * DimUnitDecl ::= dim Id (= Type)? (unit | SI_unit) Id+ (= Expr)?
-         *               | dim Id (= Type)? (default Id)?
-         *               | (unit | SI_unit) Id+ (: Type)? (= Expr)?
-         */
-        abstract DimUnitDecl() implements Decl;
-            /**
-             * dimension declaration
-             * Names for dim and default must be unqualified.
-             * e.g.) dim Length SI_unit meter meters m
-             */
-            DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
-                    Option<Id> default = Option.<Id>none());
-            /**
-             * unit declaration
-             * Names of units must be unqualified.
-             * e.g.) unit inch inches: Length
-             */
-            UnitDecl(boolean si_unit = false,
-                     List<Id> units = Collections.<Id>emptyList(),
-                     Option<Type> dim = Option.<Type>none(),
-                     Option<Expr> def);
-        /**
-         * test declaration
-         * Names must be unqualified.
-         * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
-         * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
-         */
-        TestDecl(Id name, List<GeneratorClause> gens, Expr expr)
-                implements Decl;
-        /**
-         * property declaration
-         * Names must be unqualified.
-         * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
-         * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
-         */
-        PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
-                     Expr expr) implements Decl;
-        /**
-         * grammar declaration
-         * Names (but not extends elements) must be unqualified.
-         */
-        abstract GrammarDecl(Id name, List<Id> extends) implements Decl;
-            /**
-             * grammar definition
-             */
-            GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
-	               boolean native);
-        /**
-         * grammar member (nonterminal or terminal) declaration
-         * Names and params must be unqualified.
-         */
-        abstract GrammarMemberDecl(Id name) implements Decl;
-            /**
-             * nonterminal declaration
-             */
-            abstract NonterminalDecl(List<SyntaxDecl> syntaxDecls);
+            abstract TraitObjectDecl(List<Modifier> mods
+                                         = Collections.<Modifier>emptyList(),
+                                     Id name,
+                                     List<StaticParam> staticParams
+                                         = Collections.<StaticParam>emptyList(),
+                                     List<TraitTypeWhere> extendsClause
+                                         = Collections.<TraitTypeWhere>emptyList(),
+                                     Option<WhereClause> where
+                                         = Option.<WhereClause>none(),
+                                     List<Decl> decls)
+                                     implements HasWhere, GenericDecl;
                 /**
-                 * nonterminal definition in nonterminal declarations
+                 * trait declaration in components or APIs
+                 *
+                 * trait declaration in APIs
+                 * AbsTraitDecl ::= AbsTraitMods? TraitHeaderFront AbsTraitClauses
+                 *                  AbsGoInATrait? end
+                 * TraitHeaderFront ::= trait Id StaticParams? ExtendsWhere?
+                 * ExtendsWhere ::= extends TraitTypeWheres
+                 * AbsTraitClause ::= Excludes | AbsComprises | Where
+                 * Excludes ::= excludes TraitTypes
+                 * AbsComprises ::= comprises ComprisingTypes
+                 * ComprisingTypes ::= TraitType | { ComprisingTypeList }
+                 * ComprisingTypeList ::= ...
+                 *                      | TraitType(, TraitType)*(, ...)?
+                 * AbsGoInATrait ::= AbsCoercions? AbsGoFrontInATrait AbsGoBackInATrait?
+                 *                 | AbsCoercions? AbsGoBackInATrait
+                 *                 | AbsCoercions
+                 * AbsGoesFrontInATrait ::= ApiFldDecl
+                 *                        | AbsGetterSetterDecl
+                 *                        | PropertyDecl
+                 * AbsGoesBackInATrait  ::= AbsMdDecl
+                 *                        | PropertyDecl
+                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+                 *         cons(x: alph): List[\alpha\]
+                 *       end
+                 *
+                 * trait declaration in components
+                 * TraitDecl ::= TraitMods? TraitHeaderFront TraitClauses GoInATrait?
+                 *               end
+                 * TraitClause ::= Excludes | Comprises | Where
+                 * Comprises ::= comprises TraitTypes
+                 * GoInATrait ::= Coercions? GoFrontInATrait GoBackInATrait?
+                 *              | Coercions? GoBackInATrait
+                 *              | Coercions
+                 * GoesFrontInATrait ::= AbsFldDecl
+                 *                     | GetterSetterDecl
+                 *                     | PropertyDecl
+                 * GoesBackInATrait  ::= MdDecl
+                 *                     | PropertyDecl
+                 * e.g.) trait List[\alpha\] comprises {Cons[\alpha\],Empty[\alpha\]}
+                 *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
+                 *       end
                  */
-                NonterminalDef(NonterminalHeader header, Option<BaseType> astType);
+                TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
+                          Option<List<BaseType>> comprises
+                              = Option.<List<BaseType>>none(),
+                          List<Decl> decls) implements GenericDecl;
                 /**
-                 * nonterminal extending definition in nonterminal declarations
+                 * object declaration in components or APIs
+                 *
+                 * object declaration in APIs
+                 * AbsObjectDecl ::= AbsObjectMods? ObjectHeader AbsGoInAnObject? end
+                 * ObjectHeader ::= object Id StaticParams? ObjectValParam?
+                 *                  ExtendsWhere? FnClauses
+                 * FnClauses ::= Throws? Where? Contract
+                 * Throws ::= throws MayTraitTypes
+                 * ObjectValParam ::= ( ObjectParams? )
+                 * ObjectParams ::= (ObjectParam ,)* ObjectKeyword(, ObjectKeyword)*
+                 *                | ObjectParam (, ObjectParam)*
+                 * ObjectKeyword ::= ObjectParam = Expr
+                 * ObjectParam ::= ParamFldMods? Param
+                 *               | var Param
+                 * AbsGoInAnObject ::= AbsCoercions? AbsGoFrontInAnObject AbsGoBackInAnObject?
+                 *                   | AbsCoercions? AbsGoBackInAnObject
+                 *                   | AbsCoercions
+                 * AbsGoesFrontInAnObject ::= ApiFldDecl
+                 *                          | AbsGetterSetterDecl
+                 *                          | PropertyDecl
+                 * AbsGoesBackInAnObject ::= AbsMdDecl
+                 *                         | PropertyDecl
+                 * e.g.) object Empty[\alph\]() extends List[\alpha\] end
+                 *
+                 * object declaration in components
+                 * ObjectDecl ::= ObjectMods? ObjectHeader GoInAnObject? end
+                 * GoInAnObject ::= Coercions? GoFrontInAnObject GoBackInAnObject?
+                 *                | Coercions? GoBackInAnObject
+                 *                | Coercions
+                 * GoesFrontInAnObject ::= FldDecl
+                 *                       | GetterSetterDecl
+                 *                       | PropertyDecl
+                 * GoesBackInAnObject ::= MdDef
+                 *                      | PropertyDecl
+                 * e.g.) object Empty[\alph\]() extends List[\alpha\]
+                 *         length() = 0
+                 *       end
                  */
-                NonterminalExtensionDef();
+                ObjectDecl(Option<List<Param>> params = Option.<List<Param>>none(),
+                           Option<List<BaseType>> throwsClause
+                               = Option.<List<BaseType>>none(),
+                           Option<Contract> contract = Option.<Contract>none(),
+                           List<Decl> decls)
+                          implements GenericDeclWithParams;
+            /**
+             * variable declaration in components or APIs
+             *
+             * variable declaration in APIs
+             * AbsVarDecl ::= AbsVarMods? VarWTypes
+             *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
+             *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
+             * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
+             * VarWType ::= BindId IsType
+             * BindIdOrBindIdTuple ::= BindId
+             *                       | ( BindId , BindIdList )
+             * BindId ::= Id | _
+             * e.g.) var (x, y): ZZ64...
+             *
+             * variable declaration in components
+             * VarDecl ::= VarMods? VarWTypes InitVal
+             *           | VarMods? BindIdOrBindIdTuple = Expr
+             *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
+             *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
+             * InitVal ::= (= | :=) Expr
+             * e.g.) var (x, y): ZZ64... = (5, 6)
+             */
+            VarDecl(List<LValue> lhs, Option<Expr> init);
+            /**
+             * Overloading specification
+             */
+            _RewriteFnOverloadDecl(IdOrOpName name,
+                                   List<IdOrOpName> fns);
+            /**
+             * functional declaration in components or APIs
+             * Names must be unqualified.
+             *
+             * functional declaration in components or APIs
+             * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
+             *             | FnSig
+             * FnSig ::= SimpleName : ArrowType
+             * FnHeaderFront ::= NamedFnHeaderFront
+             *                 | OpHeaderFront
+             * NamedFnHeaderFront ::= Id StaticParams? ValParam
+             * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
+             *                     Params (RightEncloser | Encloser)
+             *                 | opr StaticParams? ValParam (Op | ExponentOp)
+             *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
+             * FnHeaderClause ::= IsType? FnClauses
+             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
+             *          | FnSig
+             * e.g.) swap (x: Object, y: Object): (Object, Object)
+             *
+             * functional declaration in components
+             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
+             * e.g.) swap (x, y) = (y, x)
+             */
+            FnDecl(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                   IdOrOpOrAnonymousName name,
+                   List<StaticParam> staticParams
+                       = Collections.<StaticParam>emptyList(),
+                   List<Param> params = Collections.<Param>emptyList(),
+                   Option<Type> returnType = Option.<Type>none(),
+                   Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
+                   Option<WhereClause> where = Option.<WhereClause>none(),
+                   Option<Contract> contract = Option.<Contract>none(),
+                   Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
+                   Option<Expr> body,
+                   Option<Id> implementsUnambiguousName = Option.<Id>none())
+                  implements Applicable, GenericDecl;
+            /**
+             * dimension and unit declaration
+             * DimUnitDecl may represent a single dimension declaration, a single
+             * unit declaration, or both dimension and unit declarations.
+             * DimUnitDecl ::= dim Id (= Type)? (unit | SI_unit) Id+ (= Expr)?
+             *               | dim Id (= Type)? (default Id)?
+             *               | (unit | SI_unit) Id+ (: Type)? (= Expr)?
+             */
+            abstract DimUnitDecl();
+                /**
+                 * dimension declaration
+                 * Names for dim and default must be unqualified.
+                 * e.g.) dim Length SI_unit meter meters m
+                 */
+                DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
+                        Option<Id> default = Option.<Id>none());
+                /**
+                 * unit declaration
+                 * Names of units must be unqualified.
+                 * e.g.) unit inch inches: Length
+                 */
+                UnitDecl(boolean si_unit = false,
+                         List<Id> units = Collections.<Id>emptyList(),
+                         Option<Type> dim = Option.<Type>none(),
+                         Option<Expr> def);
+            /**
+             * test declaration
+             * Names must be unqualified.
+             * TestDecl ::= test Id [ GeneratorClauseList ] = Expr
+             * e.g.) test fxLessThanFy[x <- E, y <- F] = assert(f(x) < f(y))
+             */
+            TestDecl(Id name, List<GeneratorClause> gens, Expr expr);
+            /**
+             * property declaration
+             * Names must be unqualified.
+             * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
+             * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
+             */
+            PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
+                         Expr expr);
+            /**
+             * type alias declaration
+             * TypeAlias ::= type Id StaticParams? = Type
+             * e.g.) type IntList = List[\ZZ64\]
+             */
+            TypeAlias(Id name,
+                      List<StaticParam> staticParams
+                          = Collections.<StaticParam>emptyList(),
+                      Type type);
+            /**
+             * grammar declaration
+             * Names (but not extends elements) must be unqualified.
+             */
+            abstract GrammarDecl(Id name, List<Id> extends);
+                /**
+                 * grammar definition
+                 */
+                GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
+	                   boolean native);
+            /**
+             * grammar member (nonterminal or terminal) declaration
+             * Names and params must be unqualified.
+             */
+            abstract GrammarMemberDecl(Id name);
+                /**
+                 * nonterminal declaration
+                 */
+                abstract NonterminalDecl(List<SyntaxDecl> syntaxDecls);
+                    /**
+                     * nonterminal definition in nonterminal declarations
+                     */
+                    NonterminalDef(NonterminalHeader header, Option<BaseType> astType);
+                    /**
+                     * nonterminal extending definition in nonterminal declarations
+                     */
+                    NonterminalExtensionDef();
         /**
          * nonterminal header
          */
@@ -511,7 +481,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
          * syntax declaration
          */
-        abstract SyntaxDecl(Option<String> modifier) implements Decl;
+        abstract SyntaxDecl(Option<String> modifier);
             /**
              * syntax definition in syntax declarations
              */
@@ -523,7 +493,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
           * Transformation declaration
           */
-        abstract TransformerDecl() implements Decl;
+        abstract TransformerDecl();
             /**
              * pre transformer definition in transformer declarations
              */
@@ -660,6 +630,41 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  * character interval
                  */
                 CharacterInterval(String begin, String end);
+        /**
+         * left-hand side of variable declaration
+         * e.g.) var x: ZZ32
+         * Name must be unqualified.
+         */
+        LValue(Id name, Option<Type> type = Option.<Type>none(),
+               List<Modifier> mods = Collections.<Modifier>emptyList(),
+               boolean mutable = false) implements Lhs, ImplicitGetterSetter;
+        /**
+         * value parameter of functional declarations and object declarations
+         * Names must be unqualified.
+         */
+        abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                       Id name);
+            /**
+             * ValParam := BindId
+             *           | ( Params? )
+             * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
+             *          | (Param, )* Varargs
+             *          | Param(, Param)*
+             * Keyword ::= Param = Expr
+             * Param ::= BindId IsType?
+             *         | Type
+             * e.g.) x: ZZ32 = 3
+             * e.g.) self
+             */
+            NormalParam(Option<Type> type = Option.<Type>none(),
+                        Option<Expr> defaultExpr = Option.<Expr>none())
+                       implements Lhs, ImplicitGetterSetter;
+            /**
+             * varargs parameter
+             * Varargs ::= BindId : Type ...
+             * e.g.) x: String...
+             */
+            VarargsParam(Type type);
         /**
          * expression
          */
@@ -1682,11 +1687,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
              * TypeAlias ::= type Id StaticParams? = Type
              * e.g.) type IntList = List[\ZZ64\]
              */
-            TypeAlias(Id name,
-                      List<StaticParam> staticParams
-                          = Collections.<StaticParam>emptyList(),
-                      Type type)
-                     implements Decl;
+            WhereTypeAlias(TypeAlias alias);
             /**
              * coercion constraint declared in where clauses
              * WhereConstraint ::= Type coerces Type
