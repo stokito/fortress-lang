@@ -61,7 +61,8 @@ transient WhereConstraint WhereConstraint =
        Id id = NodeFactory.bogusId(span);
        yyValue = new WhereExtends(span, id, a2);
      }
-   / TypeAlias
+   / a1:TypeAlias
+     { yyValue = new WhereTypeAlias(createSpan(yyStart,yyCount), a1); }
    / a1:Type w coerces w a2:Type
      { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
    / a1:Type w widens w a2:Type
