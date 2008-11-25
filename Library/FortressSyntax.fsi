@@ -79,11 +79,11 @@ api FortressSyntax
 
   native grammar Variable
     VarDecl : VarDecl
-    AbsVarDecl : AbsVarDecl
+    AbsVarDecl : VarDecl
   end
 
   native grammar AbsField
-    AbsFldDecl : AbsVarDecl
+    AbsFldDecl : VarDecl
   end
 
   native grammar Field

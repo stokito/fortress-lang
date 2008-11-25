@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Param;
-import com.sun.fortress.nodes.VarAbsDeclOrDecl;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 
@@ -64,8 +64,8 @@ public class FTypeObject extends FTraitOrObject {
         super(name, env, at, members, def);
         this.declaredMembersOf = new BetterEnv(at);
         for(Decl v : members) {
-            if (v instanceof VarAbsDeclOrDecl) {
-                for (LValue lhs : ((VarAbsDeclOrDecl)v).getLhs()) {
+            if (v instanceof VarDecl) {
+                for (LValue lhs : ((VarDecl)v).getLhs()) {
                     fields.add(lhs.getName());
                 }
                 if (params.isSome()) {

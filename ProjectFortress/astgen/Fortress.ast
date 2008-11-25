@@ -335,31 +335,26 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                 ObjectDecl(List<Decl> decls) implements GenericDeclWithParams;
         /**
          * variable declaration in components or APIs
+         * variable declaration in APIs
+         * AbsVarDecl ::= AbsVarMods? VarWTypes
+         *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
+         *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
+         * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
+         * VarWType ::= BindId IsType
+         * BindIdOrBindIdTuple ::= BindId
+         *                       | ( BindId , BindIdList )
+         * BindId ::= Id | _
+         * e.g.) var (x, y): ZZ64...
+         *
+         * variable declaration in components
+         * VarDecl ::= VarMods? VarWTypes InitVal
+         *           | VarMods? BindIdOrBindIdTuple = Expr
+         *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
+         *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
+         * InitVal ::= (= | :=) Expr
+         * e.g.) var (x, y): ZZ64... = (5, 6)
          */
-        abstract VarAbsDeclOrDecl(List<LValue> lhs) implements Decl;
-            /**
-             * variable declaration in APIs
-             * AbsVarDecl ::= AbsVarMods? VarWTypes
-             *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
-             *              | AbsVarMods? BindIdOrBindIdTuple : SimpleTupleType
-             * VarWTypes ::= VarWType | ( VarWType(, VarWType)+ )
-             * VarWType ::= BindId IsType
-             * BindIdOrBindIdTuple ::= BindId
-             *                       | ( BindId , BindIdList )
-             * BindId ::= Id | _
-             * e.g.) var (x, y): ZZ64...
-             */
-            AbsVarDecl() implements Decl;
-            /**
-             * variable declaration in components
-             * VarDecl ::= VarMods? VarWTypes InitVal
-             *           | VarMods? BindIdOrBindIdTuple = Expr
-             *           | VarMods? BindIdOrBindIdTuple : Type ... InitVal
-             *           | VarMods? BindIdOrBindIdTuple : SimpleTupleType InitVal
-             * InitVal ::= (= | :=) Expr
-             * e.g.) var (x, y): ZZ64... = (5, 6)
-             */
-            VarDecl(Expr init) implements Decl;
+        VarDecl(List<LValue> lhs, Option<Expr> init) implements Decl;
         /**
          * left-hand side of variable declaration
          * e.g.) var x: ZZ32

@@ -168,7 +168,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 } else
                     lhs.add( lvb );
             }
-            return Option.<Node>some(new AbsVarDecl(that.getSpan(), lhs));
+            return Option.<Node>some(new VarDecl(that.getSpan(), lhs, Option.<Expr>none()));
         } else return Option.<Node>none();
     }
 

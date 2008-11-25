@@ -69,10 +69,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getClass().getSimpleName() + " at " + node.getSpan().begin.at();
     }
 
-    public String forAbsVarDecl(AbsVarDecl node) {
-        return "abstract " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
-    }
-
     public String forArrowType(ArrowType node) {
         String effectString = node.getEffect().accept(this);
         if (effectString.length() > 0) { effectString = " " + effectString; }
@@ -380,7 +376,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forVarDecl(VarDecl node) {
-        return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().accept(this) + node.getSpan();
+        if (node.getInit().isSome())
+            return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().unwrap().accept(this) + node.getSpan();
+        else
+            return "abstract " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
     }
 
     public String forAnyType(AnyType node) {

@@ -422,7 +422,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         boolean sawGetterSetter = false;
         List<String> accum = new java.util.ArrayList<String>(that.size());
         for (Decl elt : that) {
-            if ( elt instanceof AbsVarDecl ) {
+            if ( elt instanceof VarDecl ) {
                 sawField = true;
             } else if ( elt instanceof AbsFnDecl ) {
                 if ( NodeUtil.isSetterOrGetter(((AbsFnDecl)elt).getMods()) ) {
@@ -593,11 +593,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forAbsVarDeclOnly(AbsVarDecl that,
-                                              List<String> lhs_result) {
-        return inParentheses(lhs_result);
-    }
-
     /* contains a true if any of the variables have a 'var' modifier */
     private List<Boolean> isMutables(List<LValue> lhs) {
         return Useful.applyToAll( lhs, new Fn<LValue,Boolean>(){
@@ -610,7 +605,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forVarDeclOnly(VarDecl that,
                                            List<String> lhs_result,
-                                           String init_result) {
+                                           Option<String> init_result) {
+
+        if ( init_result.isNone() )
+            return inParentheses(lhs_result);
+
         StringBuilder s = new StringBuilder();
 
         List<LValue> lhs = new ArrayList<LValue>();
@@ -628,7 +627,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         } else {
             s.append( " = " );
         }
-        s.append( init_result );
+        s.append( init_result.unwrap() );
 
         return s.toString();
     }

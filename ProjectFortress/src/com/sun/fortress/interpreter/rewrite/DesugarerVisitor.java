@@ -47,7 +47,6 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AbstractObjectExpr;
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
@@ -938,7 +937,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (lhs.size() > 1) {
             // Introduce a temporary, then initialize elements
             // piece-by-piece.
-            Expr init = vd.getInit();
+            if (vd.getInit().isNone())
+                return bug(vd, "Variable definition should have an expression.");
+            Expr init = vd.getInit().unwrap();
             init = (Expr) recur(init);
             lhs = (List<LValue>) recurOnListOfLValue(lhs);
             ArrayList<VarDecl> newdecls = new ArrayList<VarDecl>(1+lhs.size());
@@ -950,7 +951,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             for (LValue lv : lhs) {
                 Id newName = new Id(at, "$" + element_index);
                 newdecls.add(new VarDecl(at, Useful.list(lv),
-                        new _RewriteFieldRef(at, false, init, newName)));
+                                         Option.<Expr>some(new _RewriteFieldRef(at, false, init, newName))));
                 element_index++;
             }
             return new RewriteHackList(newdecls);
@@ -1480,8 +1481,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
             if (dd instanceof VarDecl) {
                 //visited.add(tdod);
-            } else if (dd instanceof AbsVarDecl) {
-                //visited.add(tdod);
             } else {
                 String sdd = dd.stringName();
                 ArrowOrFunctional aof = dd.accept(IsAnArrowName.isAnArrowName);
@@ -1605,8 +1604,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                             for (Decl dd : tdod.getDecls()) {
                                 String sdd = dd.stringName();
                                 if (dd instanceof VarDecl) {
-                                    //visited.add(tdod);
-                                } else if (dd instanceof AbsVarDecl) {
                                     //visited.add(tdod);
                                 } else {
                                     ArrowOrFunctional aof = dd.accept(IsAnArrowName.isAnArrowName);

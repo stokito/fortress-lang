@@ -26,10 +26,10 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
 import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.AbsVarDecl;
 import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -123,8 +123,8 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     }
 
     @Override
-    public Boolean forAbsVarDecl(AbsVarDecl x) {
-        // super.forAbsVarDecl(x);
+    public Boolean forVarDecl(VarDecl x) {
+        // super.forVarDecl(x);
         Boolean change = Boolean.FALSE;
 
         if (getPass() == 1) {

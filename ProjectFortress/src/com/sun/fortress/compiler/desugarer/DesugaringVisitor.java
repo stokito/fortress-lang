@@ -177,8 +177,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             }
         }
         for (Decl decl: decls) {
-            if (decl instanceof VarAbsDeclOrDecl) {
-                for (LValue binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
+            if (decl instanceof VarDecl) {
+                for (LValue binding : (((VarDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -195,8 +195,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<Id> newScope = new ArrayList<Id>();
 
         for (Decl decl: decls) {
-            if (decl instanceof VarAbsDeclOrDecl) {
-                for (LValue binding : (((VarAbsDeclOrDecl)decl).getLhs())) {
+            if (decl instanceof VarDecl) {
+                for (LValue binding : (((VarDecl)decl).getLhs())) {
                     newScope.add(binding.getName());
                 }
             }
@@ -205,12 +205,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return new DesugaringVisitor( newScope, boxedRefMap );
     }
 
-    private List<Decl> removeVarAbsDeclOrDecls(List<Decl> decls) {
+    private List<Decl> removeVarDecls(List<Decl> decls) {
         // System.err.println("decls.size() = " + decls.size());
         final List<Decl> result = new ArrayList<Decl>();
 
         for (Decl decl : decls) {
-            if (decl instanceof VarAbsDeclOrDecl) {
+            if (decl instanceof VarDecl) {
                 // skip it
             } else {
                 result.add(decl);
@@ -329,7 +329,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
-                public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl decl) {
+                public void forVarDecl(VarDecl decl) {
                     for (LValue binding : decl.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
@@ -353,7 +353,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         for (Decl decl : decls) {
             decl.accept(new NodeAbstractVisitor_void() {
-                public void forVarAbsDeclOrDecl(VarAbsDeclOrDecl dec) {
+                public void forVarDecl(VarDecl dec) {
                     for (LValue binding : dec.getLhs()) {
                         if (! hidden(binding) &&
                             ! hasExplicitGetter(binding.getName(), decls)) {
@@ -381,14 +381,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 }
                 return NodeFactory.makeVarDecl(that.getSpan(), newLVals, that.getInit());
             }
-            public Node forAbsVarDecl(AbsVarDecl that) {
-                List<LValue> newLVals = new ArrayList<LValue>();
 
-                for (LValue lval : that.getLhs()) {
-                    newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
-                }
-                return NodeFactory.makeAbsVarDecl(that.getSpan(), newLVals);
-            }
             /* Do not descend into object expressions. Instead, we mangle their
              * declarations when they're visited by DesugaringVisitor.
              */
@@ -592,7 +585,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     @Override
     public Node forTraitDecl(TraitDecl that) {
         DesugaringVisitor newVisitor = extend(that.getDecls());
-        List<Decl> decls_result = removeVarAbsDeclOrDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+        List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
 
         // System.err.println("decls_result size = " + decls_result.size());
         LinkedList<Decl> gettersAndDecls = makeGetterSetters(true,
