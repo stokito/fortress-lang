@@ -44,7 +44,7 @@ import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.WhereExtends;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;

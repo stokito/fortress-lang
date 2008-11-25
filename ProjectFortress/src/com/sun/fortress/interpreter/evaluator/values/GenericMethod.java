@@ -39,7 +39,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeParam;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;

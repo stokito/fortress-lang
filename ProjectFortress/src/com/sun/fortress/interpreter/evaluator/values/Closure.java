@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierOverride;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;

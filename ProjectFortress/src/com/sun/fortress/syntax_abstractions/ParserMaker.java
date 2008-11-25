@@ -51,6 +51,7 @@ import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.phases.ComposingSyntaxDefTranslator;
 import com.sun.fortress.syntax_abstractions.rats.RatsParserGenerator;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.Node;
@@ -61,11 +62,13 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 /* Creates a Rats! parser from a PEG.
  */
 public class ParserMaker {
 
-    private static final String FORTRESS = 
+    private static final String FORTRESS =
         "com.sun.fortress.parser.Fortress";
     private static final String TEMPLATEPARSER =
         "com.sun.fortress.parser.templateparser.TemplateParser";
@@ -158,12 +161,12 @@ public class ParserMaker {
                 String userExtensionsName = mangler.forDefinition(definedByPeg);
                 Module baseModule = baseModules.get(moduleName);
                 if (baseModule.modification != null){
-                    Debug.debug(Debug.Type.SYNTAX, 3, 
+                    Debug.debug(Debug.Type.SYNTAX, 3,
                                 baseModule.getClassName() + " is a modification");
                 }
                 Debug.debug(Debug.Type.SYNTAX, 3,
                             "Modify " + definedByPeg +
-                            "; ntName=" + ntName + 
+                            "; ntName=" + ntName +
                             "; baseModule=" + moduleName);
                 boolean found = false;
                 for (Production p : baseModule.productions) {
@@ -192,8 +195,8 @@ public class ParserMaker {
         ModuleName uname = new ModuleName("USERvar");
         /* modify fortress modules */
         for (Module baseModule : baseModules.values()) {
-            if (!baseModule.name.name.equals(FORTRESS) && 
-                !baseModule.name.name.equals(TEMPLATEPARSER) && 
+            if (!baseModule.name.name.equals(FORTRESS) &&
+                !baseModule.name.name.equals(TEMPLATEPARSER) &&
                 !baseModule.name.name.equals(COMPILATION)) {
                 ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
@@ -211,8 +214,8 @@ public class ParserMaker {
 
         /* modify template parser modules */
         for (Module baseModule : templateModules.values()){
-            if (!baseModule.name.name.equals(TEMPLATEPARSER) && 
-                !baseModule.name.name.equals(FORTRESS) && 
+            if (!baseModule.name.name.equals(TEMPLATEPARSER) &&
+                !baseModule.name.name.equals(FORTRESS) &&
                 !baseModule.name.name.equals(TEMPLATECOMPILATION)) {
                 // ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
                 // List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
@@ -258,7 +261,7 @@ public class ParserMaker {
             }
         }
         ModuleList args = new ModuleList(argslist);
-        ModuleInstantiation inst = 
+        ModuleInstantiation inst =
             new ModuleInstantiation(new ModuleName(USER_MODULE_NAME), args, uname);
         mainModule.dependencies.add(inst);
 
@@ -276,7 +279,7 @@ public class ParserMaker {
         class RatsFilenameFilter implements FilenameFilter {
             public boolean accept(File dir, String name) {
                 return name.endsWith(".rats");
-            }		
+            }
         }
         File f = new File(srcDir);
         for (String s: f.list(new RatsFilenameFilter())) {
@@ -296,7 +299,7 @@ public class ParserMaker {
         String name = mangler.forDefinition(nt);
         String javaType = peg.getJavaType(nt);
 
-        ComposingSyntaxDefTranslator translator = 
+        ComposingSyntaxDefTranslator translator =
             new ComposingSyntaxDefTranslator(mangler, nt, javaType, (NTEnv)peg);
         List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.getAll(nt)));
 
@@ -403,7 +406,9 @@ public class ParserMaker {
         if (lastDot >= 0) {
             return name.substring(0, lastDot);
         } else {
-            throw new MacroError(src, "Saw unqualified name: " + name);
+            if ( ! ( src instanceof ASTNode ) )
+                bug(src, "Only ASTNodes are supported.");
+            throw new MacroError((ASTNode)src, "Saw unqualified name: " + name);
         }
     }
 
@@ -412,7 +417,9 @@ public class ParserMaker {
         if (lastDot >= 0) {
             return name.substring(lastDot + 1);
         } else {
-            throw new MacroError(src, "Saw unqualified name: " + name);
+            if ( ! ( src instanceof ASTNode ) )
+                bug(src, "Only ASTNodes are supported.");
+            throw new MacroError((ASTNode)src, "Saw unqualified name: " + name);
         }
     }
 

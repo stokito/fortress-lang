@@ -21,10 +21,8 @@ import java.io.IOException;
 import java.util.List;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
-/*
-Import edu.rice.cs.plt.tuple.Option;
-*/
 import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A visitor that checks syntactic restrictions:
@@ -49,7 +47,9 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 
     private void log(Node that, String message) {
         try {
-            writer.write( that.getSpan() + " : " + message + "\n" );
+            if ( ! ( that instanceof ASTNode ) )
+                bug(that, "Only ASTNodes are supported.");
+            writer.write( ((ASTNode)that).getSpan() + " : " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the syntax checker failed!");
         }

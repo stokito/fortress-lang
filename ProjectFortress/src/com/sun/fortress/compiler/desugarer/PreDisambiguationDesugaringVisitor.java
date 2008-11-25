@@ -57,7 +57,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     private List<TraitTypeWhere> rewriteExtendsClause(Node whence,
                                                       List<TraitTypeWhere> extendsClause) {
         if (extendsClause.size() > 0) return extendsClause;
-        Id objectId = NodeFactory.makeId(whence.getSpan(),
+        if ( ! ( whence instanceof ASTNode ) )
+            bug(whence, "Only ASTNodes are supported.");
+        Id objectId = NodeFactory.makeId(((ASTNode)whence).getSpan(),
                                          WellKnownNames.objectTypeName);
         TraitType typeObject = NodeFactory.makeTraitType(objectId);
         TraitTypeWhere extendsObject = NodeFactory.makeTraitTypeWhere(typeObject);

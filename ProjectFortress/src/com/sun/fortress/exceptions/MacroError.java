@@ -18,7 +18,9 @@
 package com.sun.fortress.exceptions;
 
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.ASTNode;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 public class MacroError extends CompilerError {
 
     /**
@@ -42,7 +44,7 @@ public class MacroError extends CompilerError {
         super(span, msg);
     }
 
-    public MacroError(Node node, String msg) {
+    public MacroError(ASTNode node, String msg) {
         super(node.getSpan(), msg);
     }
 }

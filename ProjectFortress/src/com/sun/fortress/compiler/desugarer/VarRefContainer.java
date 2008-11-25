@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
@@ -50,14 +51,14 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class VarRefContainer {
     private VarRef origVar;
-    private Node origDeclNode;
+    private ASTNode origDeclNode;
     private String uniqueSuffix;
 
     private static final String CONTAINER_DECL_PREFIX = "Box";
     private static final String CONTAINER_FIELD_PREFIX = "box";
 
     public VarRefContainer(VarRef origVar,
-                           Node origDeclNode,
+                           ASTNode origDeclNode,
                            String uniqueSuffix) {
         this.origVar = origVar;
         this.origDeclNode = origDeclNode;
@@ -78,7 +79,7 @@ public class VarRefContainer {
         return NodeFactory.makeId( origDeclNode.getSpan(), name );
     }
 
-    public Node origDeclNode() {
+    public ASTNode origDeclNode() {
         return origDeclNode;
     }
 

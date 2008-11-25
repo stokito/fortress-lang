@@ -24,6 +24,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /**
  * A visitor that makes an api from a component.
@@ -43,7 +44,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
 
     private Option<Node> log(Node that, String message) {
         try {
-            writer.write( that.getSpan() + " : " + message + "\n" );
+            if ( ! ( that instanceof ASTNode ) )
+                bug(that, "Only ASTNodes are supported.");
+            writer.write( ((ASTNode)that).getSpan() + " : " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the api tool failed!");
         }

@@ -27,6 +27,7 @@ import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.StaticChecker;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.FnDecl;
@@ -51,6 +52,8 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Pair;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 /**
  * This type holds output from the TypeChecking phase that could reasonably used by
  * later passes. For instance, you can retrieve a {@code TypeEnv} that is in scope
@@ -59,12 +62,12 @@ import edu.rice.cs.plt.tuple.Pair;
 public class TypeCheckerOutput {
     // FIXME: Change visibility to private
     private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
-    
+
     // Package private: Only the typechecker should need to create these.
     TypeCheckerOutput(Map<Pair<Node,Span>, TypeEnv> node_type_envs) {
         this.nodeTypeEnvs = Collections.unmodifiableMap(node_type_envs);
     }
-    
+
     public TypeCheckerOutput(TypeCheckerOutput that, TypeCheckerOutput the_other) {
         this(CollectUtil.union(that.nodeTypeEnvs, the_other.nodeTypeEnvs));
     }
@@ -75,11 +78,13 @@ public class TypeCheckerOutput {
      * introduce.
      */
     public TypeEnv getTypeEnv(Node n) {
-        Span s = n.getSpan();
+        if ( ! ( n instanceof ASTNode ) )
+            bug(n, "Only ASTNodes are supported.");
+        Span s = ((ASTNode)n).getSpan();
         Pair<Node,Span> p = Pair.make(n, s);
         return this.nodeTypeEnvs.get(p);
     }
-    
+
     /**
      * Given a component ast with one of its subnodes overwritten, and
      * the ast of the component that it was to replace, this method
@@ -87,7 +92,7 @@ public class TypeCheckerOutput {
      * reasonable to think of this method as re-running the typechecker and returning the
      * result. The performance on this is poor so try and run it once per component.
      */
-    public Pair<Node,TypeCheckerOutput> populateType(Node old_component_ast,Node new_component_ast, 
+    public Pair<Node,TypeCheckerOutput> populateType(Node old_component_ast,Node new_component_ast,
             GlobalEnvironment env) {
     	/* Create a new copy of TypeCheckerOutput that does not contain any TypeEnvs for subnodes
     	 * of old_comonent_ast.
@@ -199,7 +204,7 @@ public class TypeCheckerOutput {
 				removed.remove(Pair.make(that,that.getSpan()));
 				super.forWhile(that);
 			}
-    		
+
     	};
     	old_component_ast.accept(remover);
     	TypeCheckerOutput oldremoved = new TypeCheckerOutput(removed);
@@ -211,11 +216,11 @@ public class TypeCheckerOutput {
         TypeCheckerResult result = StaticChecker.checkComponent(component, env);
         TypeCheckerOutput newoutput = result.getTypeCheckerOutput();
         // Get the new ast out of result, merge the TypeCheckerOutput, and then return
-        return Pair.make(result.ast(), new TypeCheckerOutput(oldremoved, newoutput)); 
+        return Pair.make(result.ast(), new TypeCheckerOutput(oldremoved, newoutput));
     }
 
     public static TypeCheckerOutput emptyOutput() {
         return new TypeCheckerOutput(Collections.<Pair<Node,Span>, TypeEnv>emptyMap());
     }
-    
+
 }

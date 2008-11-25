@@ -44,7 +44,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericSingleton;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.Applicable;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;

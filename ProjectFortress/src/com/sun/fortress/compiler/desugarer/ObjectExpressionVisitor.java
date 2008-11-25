@@ -32,6 +32,8 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
@@ -833,8 +835,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         for( Pair<VarRef,Node> varPair : rewriteList ) {
             VarRef var = varPair.first();
             Node declNode = varPair.second();
+            if ( ! ( declNode instanceof ASTNode ) )
+                bug(declNode, "Only ASTNodes are supported.");
             VarRefContainer container =
-                new VarRefContainer( var, declNode, uniqueSuffix );
+                new VarRefContainer( var, (ASTNode)declNode, uniqueSuffix );
             mutableVarRefContainerMap.put(var, container);
             addedVarRefs.add(var);
         }

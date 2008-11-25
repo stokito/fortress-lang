@@ -35,6 +35,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
@@ -795,8 +797,6 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		Debug.debug(Debug.Type.COMPILER,
                     DEBUG_LEVEL, "top level node is: ", topLevelNode);
-		Debug.debug(Debug.Type.COMPILER,
-                    DEBUG_LEVEL, "its span is: ", topLevelNode.getSpan());
 
 		TypeEnv topLevelEnv = typeCheckerOutput.getTypeEnv(topLevelNode);
 
@@ -915,20 +915,23 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     }
 
     private class DecledNamesCollector extends NodeDepthFirstVisitor_void {
-        private Node root;
+        private ASTNode root;
         private HashSet<Id> decledNames;
         private HashSet<Id> extendedTypeNames;
 
         private DecledNamesCollector(Node root) {
+            if ( ! ( root instanceof ASTNode ) )
+                bug(root, "Only ASTNodes are supported.");
+
             if( (root instanceof TraitDecl == false) &&
                 (root instanceof ObjectDecl == false) &&
                 (root instanceof ObjectExpr == false) ) {
-                throw new DesugarerError(root.getSpan(),
+                throw new DesugarerError(((ASTNode)root).getSpan(),
                     "DecledNamesCollector does not accept node of type " +
                     root.getClass() + " as root.");
             }
 
-            this.root = root;
+            this.root = (ASTNode)root;
             this.decledNames = new HashSet<Id>();
             this.extendedTypeNames = new HashSet<Id>();
         }

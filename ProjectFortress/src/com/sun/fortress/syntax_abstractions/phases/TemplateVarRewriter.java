@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.sun.fortress.nodes_util.NodeFactory;
 
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.CaseTransformer;
 import com.sun.fortress.nodes.CaseTransformerClause;
@@ -44,11 +45,13 @@ import com.sun.fortress.syntax_abstractions.util.BaseTypeCollector;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.exceptions.MacroError;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 import edu.rice.cs.plt.tuple.Option;
 
 /*
- * Rewrite all occurrences of variables in a given template to 
- * occurrences of gaps 
+ * Rewrite all occurrences of variables in a given template to
+ * occurrences of gaps
  */
 class TemplateVarRewriter extends NodeUpdateVisitor {
 
@@ -83,7 +86,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 /* extend the environment and transform the body */
                 @Override public Node forCaseTransformerClause(CaseTransformerClause that) {
                     TemplateVarRewriter tvr = extendWithCaseBindings(gapName, caseType, that);
-                    return new CaseTransformerClause(NodeFactory.makeSpan(that), that.getConstructor(), 
+                    return new CaseTransformerClause(NodeFactory.makeSpan(that), that.getConstructor(),
                                                      that.getParameters(),
                                                      (Transformer) that.getBody().accept(tvr));
                 }
@@ -131,7 +134,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         return Option.some(type);
     }
 
-    private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType, 
+    private TemplateVarRewriter extendWithCaseBindings(Id gapName, BaseType caseType,
                                                        CaseTransformerClause that) {
         List<Id> parameters = that.getParameters();
 
@@ -172,7 +175,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
 
-    /* Rewrite template to surround occurrences of pattern variables 
+    /* Rewrite template to surround occurrences of pattern variables
      * with the gap brackets (ie, PREFIX and SUFFIX), also including
      * associated AST type (FIXME: should be nonterminal).
      *
@@ -183,8 +186,8 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
      * a string closer ("), then go back to Main.
      *
      * Identifier: Accumulate identifier characters until encountering
-     * a non-identifier character. 
-     *   - If the string is a gap name in scope, then try to parse 
+     * a non-identifier character.
+     *   - If the string is a gap name in scope, then try to parse
      *     gap arguments.
      *   - Otherwise, copy the identifier to output and go back to Main.
      *
@@ -246,7 +249,9 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 return index;
             }
         }
-        throw new MacroError(src, "Unclosed string literal in template");
+        if ( ! ( src instanceof ASTNode ) )
+            bug(src, "Only ASTNodes are supported.");
+        throw new MacroError((ASTNode)src, "Unclosed string literal in template");
     }
 
     int identifierLoop(String t, int index, int size, StringBuilder output, Node src) {
@@ -265,7 +270,9 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
             }
         }
         String var = varbuffer.toString();
-        Id varId = NodeFactory.makeId(src.getSpan(), var);
+        if ( ! (src instanceof ASTNode) )
+            bug(src, "Only AST nodes are supported.");
+        Id varId = NodeFactory.makeId(((ASTNode)src).getSpan(), var);
         Option<BaseType> otype = tryLookupType(varId);
 
         // FIXME! Add back support for parameters.
@@ -320,7 +327,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                             inx = end-1;
                             String tmp = "";
                             if (isTemplateApplication(end, t)) {
-                                Pair<Integer,String> p = 
+                                Pair<Integer,String> p =
                                     parseTemplateApplication(end, t, var);
                                 inx = p.getA();
                                 tmp = p.getB();
@@ -335,7 +342,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 }
             }
             result += t.charAt(inx);
-        }	
+        }
         return result;
     }
 
@@ -386,7 +393,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                     }
                 }
                 result += ")";
-            }			
+            }
             return new Pair<Integer,String>(jnx, result);
         }
         // return an error code
@@ -402,9 +409,9 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     private boolean isTemplateApplication(int end, String t) {
-        int jnx = getEndOfTemplateApplication(end, t);		
+        int jnx = getEndOfTemplateApplication(end, t);
         if (jnx > -1) {
-            return t.length() > end && t.charAt(end) == '(';	
+            return t.length() > end && t.charAt(end) == '(';
         }
         return false;
     }

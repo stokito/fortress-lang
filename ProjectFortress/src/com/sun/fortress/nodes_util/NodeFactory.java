@@ -52,7 +52,7 @@ public class NodeFactory {
      *
      * @param start
      * @return  the span from a node.
-     */public static Span makeSpan(Node node) {
+     */public static Span makeSpan(ASTNode node) {
         return node.getSpan();
     }
 
@@ -71,7 +71,7 @@ public class NodeFactory {
      * @param finish
      * @return the span encompassing the spans of both nodes.
      */
-     public static Span makeSpan(Node start, Node finish) {
+     public static Span makeSpan(ASTNode start, ASTNode finish) {
         return makeSpan(start.getSpan(), finish.getSpan());
     }
 
@@ -81,7 +81,7 @@ public class NodeFactory {
      * @param l
      * @return the span encompassing the spans of node start to the span of the end of the list.
      */
-     public static Span makeSpan(Node start, List<? extends Node> l) {
+     public static Span makeSpan(ASTNode start, List<? extends ASTNode> l) {
          int s = l.size();
         return makeSpan(start, s == 0 ? start : l.get(s-1));
     }
@@ -92,7 +92,7 @@ public class NodeFactory {
       * @param l
       * @return the span encompassing the spans of list start to node finish.
       */
-      public static Span makeSpan(List<? extends Node> l, Node finish) {
+      public static Span makeSpan(List<? extends ASTNode> l, ASTNode finish) {
          int s = l.size();
         return makeSpan(s == 0 ? finish : l.get(0), finish);
     }
@@ -103,7 +103,7 @@ public class NodeFactory {
       * @param l
       * @return the span encompassing the spans the first and last nodes of the list.
       */
-     public static Span makeSpan(String ifEmpty, List<? extends Node> l) {
+     public static Span makeSpan(String ifEmpty, List<? extends ASTNode> l) {
          int s = l.size();
         return s==0 ? makeSpan(ifEmpty) : makeSpan(l.get(0), l.get(s-1));
     }
@@ -116,7 +116,7 @@ public class NodeFactory {
      * @param l
      * @return the span encompassing the spans of node start to the span of the end of the list.
      */
-     public static Span makeSetSpan(Node start, List<? extends Node> l) {
+     public static Span makeSetSpan(ASTNode start, List<? extends ASTNode> l) {
          return makeSpan(start, l);
      }
      /**
@@ -128,7 +128,7 @@ public class NodeFactory {
       * @param l
       * @return the span encompassing the spans {a, b}
       */
-     public static Span makeSetSpan(Node a, Node b) {
+     public static Span makeSetSpan(ASTNode a, ASTNode b) {
          return makeSpan(a,b);
      }
      /**
@@ -139,7 +139,7 @@ public class NodeFactory {
      * @param l
      * @return the span encompassing the spans the first and last nodes of the list.
      */
-    public static Span makeSetSpan(String ifEmpty, List<? extends Node> l) {
+    public static Span makeSetSpan(String ifEmpty, List<? extends ASTNode> l) {
         return makeSpan(ifEmpty, l);
     }
 
