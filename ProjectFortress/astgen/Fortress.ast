@@ -131,15 +131,11 @@ interface Node(ignoreForEquals Span span) extends HasAt;
      * top-level node abstract class
      */
     abstract AbstractNode() extends UIDObject;
-
-
         /**
          * compilation unit declaration
          * CompilationUnit ::= Component | Api
          */
         abstract CompilationUnit(APIName name, List<Import> imports);
-
-
             /**
              * component declaration
              * Component ::= native? component APIName Imports? Exports Decls? end
@@ -272,8 +268,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                  */
                 TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
                           Option<List<BaseType>> comprises
-                              = Option.<List<BaseType>>none(),
-                          List<Decl> decls) implements GenericDecl;
+                              = Option.<List<BaseType>>none()) implements GenericDecl;
                 /**
                  * object declaration in components or APIs
                  *
@@ -316,8 +311,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                 ObjectDecl(Option<List<Param>> params = Option.<List<Param>>none(),
                            Option<List<BaseType>> throwsClause
                                = Option.<List<BaseType>>none(),
-                           Option<Contract> contract = Option.<Contract>none(),
-                           List<Decl> decls)
+                           Option<Contract> contract = Option.<Contract>none())
                           implements GenericDeclWithParams;
             /**
              * variable declaration in components or APIs

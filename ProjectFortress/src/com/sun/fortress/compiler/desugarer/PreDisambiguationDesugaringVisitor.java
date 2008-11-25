@@ -80,14 +80,14 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                      List<StaticParam> staticParams,
                                      List<TraitTypeWhere> extendsClause,
                                      Option<WhereClause> where,
+                                     List<Decl> decls,
                                      List<BaseType> excludes,
-                                     Option<List<BaseType>> comprises,
-                                     List<Decl> decls) {
+                                     Option<List<BaseType>> comprises) {
         if (!that.getName().equals(anyTypeId)) {
             extendsClause = rewriteExtendsClause(that, extendsClause);
         }
         return super.forTraitDeclOnly(that, mods, name, staticParams, extendsClause,
-                                      where, excludes, comprises, decls);
+                                      where, decls, excludes, comprises);
     }
 
     @Override
@@ -97,13 +97,13 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                       List<StaticParam> staticParams,
                                       List<TraitTypeWhere> extendsClause,
                                       Option<WhereClause> where,
+                                      List<Decl> decls,
                                       Option<List<Param>> params,
                                       Option<List<BaseType>> throwsClause,
-                                      Option<Contract> contract,
-                                      List<Decl> decls) {
+                                      Option<Contract> contract) {
         extendsClause = rewriteExtendsClause(that, extendsClause);
         return super.forObjectDeclOnly(that, mods, name, staticParams, extendsClause,
-                                       where, params, throwsClause, contract, decls);
+                                       where, decls, params, throwsClause, contract);
     }
 
     @Override

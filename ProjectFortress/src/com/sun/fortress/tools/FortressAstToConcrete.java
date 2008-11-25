@@ -419,8 +419,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
             return forTraitDeclOnly(that, mods_result, name_result,
                                     staticParams_result, extendsClause_result,
-                                    where_result, excludes_result, comprises_result,
-                                    decls_result);
+                                    where_result, decls_result,
+                                    excludes_result, comprises_result);
         }
     }
 
@@ -430,9 +430,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                              List<String> staticParams_result,
                                              List<String> extendsClause_result,
                                              Option<String> where_result,
+                                             List<String> decls_result,
                                              List<String> excludes_result,
-                                             Option<List<String>> comprises_result,
-                                             List<String> decls_result) {
+                                             Option<List<String>> comprises_result) {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
@@ -484,9 +484,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
             return forObjectDeclOnly(that, mods_result, name_result,
                                      staticParams_result, extendsClause_result,
-                                     where_result, params_result,
-                                     throwsClause_result, contract_result,
-                                     decls_result);
+                                     where_result, decls_result, params_result,
+                                     throwsClause_result, contract_result);
         }
     }
 
@@ -496,10 +495,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               List<String> staticParams_result,
                                               List<String> extendsClause_result,
                                               Option<String> where_result,
+                                              List<String> decls_result,
                                               Option<List<String>> params_result,
                                               Option<List<String>> throwsClause_result,
-                                              Option<String> contract_result,
-                                              List<String> decls_result) {
+                                              Option<String> contract_result) {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
