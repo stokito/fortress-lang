@@ -1112,106 +1112,100 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                              */
                             _RewriteInstantiatedOpRefs(List<_RewriteOpRefOverloading> overloadings = Collections.<_RewriteOpRefOverloading>emptyList());
                     /**
-                     * functional applicaiton
+                     * juxtaposition of expressions
+                     * If this node turns out to actually be a juxtaposition,
+                     * based on the types, the op field is a reference to
+                     * the operator that should be used.
+                     *
+                     * In order to know whether a juxtaposition is an infix or
+                     * multifix juxtaposition, we need type information.
+                     *
+                     * After type checking, this node should disappear.
+                     *
+                     * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
+                     *           | Primary TupleExpr
+                     *           | Primary Primary
+                     * e.g.) myString.replace("foo", "few")
+                     * e.g.) log log n
                      */
-                    abstract AppExpr();
+                    abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                  OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
+                                  List<Expr> exprs = new LinkedList<Expr>());
                         /**
-                         * juxtaposition of expressions
-                         * If this node turns out to actually be a juxtaposition,
-                         * based on the types, the op field is a reference to
-                         * the operator that should be used.
-                         *
-                         * In order to know whether a juxtaposition is an infix or
-                         * multifix juxtaposition, we need type information.
-                         *
-                         * After type checking, this node should disappear.
-                         *
-                         * Primary ::= Primary . Id StaticArgs? ParenthesisDelimited
-                         *           | Primary TupleExpr
-                         *           | Primary Primary
-                         * e.g.) myString.replace("foo", "few")
-                         * e.g.) log log n
+                         * juxtaposition with intervening whitespace
+                         * e.g.) 3 5
                          */
-                        abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                      OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
-                                      List<Expr> exprs = new LinkedList<Expr>());
-                            /**
-                             * juxtaposition with intervening whitespace
-                             * e.g.) 3 5
-                             */
-                            LooseJuxt();
-                            /**
-                             * juxtaposition without intervening whitespace. If fnApp is true,
-                             * then this juxtaposition should be type checked ONLY as a function
-                             * application. This should be the case for desugarings only.
-                             * e.g.) f(3+5)
-                             */
-                            TightJuxt(boolean fnApp = false);
+                        LooseJuxt();
                         /**
-                         * functional application
-                         * Primary ::= Primary ArgExpr
-                         *           | Primary Primary
-                         * e.g.) x y
+                         * juxtaposition without intervening whitespace. If fnApp is true,
+                         * then this juxtaposition should be type checked ONLY as a function
+                         * application. This should be the case for desugarings only.
+                         * e.g.) f(3+5)
                          */
-                        _RewriteFnApp(Expr function, Expr argument);
-                        /**
-                         * expression using operators
-                         * (list of ops allows cross-API overloading)
-                         * OpExpr ::= EncloserOp OpExpr? EncloserOp?
-                         *          | OpExpr EncloserOp OpExpr?
-                         *          | Primary
-                         * EncloserOp ::= Encloser
-                         *              | Op
-                         * Primary ::= LeftEncloser ExprList? RightEncloser
-                         *           | Primary ^ Exponent
-                         *           | Primary ExponentOp
-                         * e.g.) 3 + 5
-                         */
-                        OpExpr(OpRef op,
-                               List<Expr> args = Collections.<Expr>emptyList());
-
-                        /**
-                         * If an expression uses and operator, and that operator
-                         * looks at parse-time like a multifix operator, it
-                         * an AmbigMultifixOpExpr node is created, because it is
-                         * unclear until typechecking and overloading resolution
-                         * whether it should be one multifix application or several
-                         * infix applications.
-                         *
-                         * e.g.) 3+4+5+6
-                         */
-                        AmbiguousMultifixOpExpr(OpRef infix_op, OpRef multifix_op,
-                                                List<Expr> args = Collections.<Expr>emptyList());
-
-                        /**
-                         * chain expression
-                         * Certain infix mathematical operators that are
-                         * traditionally regarded as relational operators,
-                         * delivering boolean results, may be chained.
-                         * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
-                         */
-                        ChainExpr(Expr first, List<Link> links);
-                        /**
-                         * coercion invocation
-                         * internal node created by static analysis
-                         * after inferring the implicit coercion invocations
-                         */
-                        CoercionInvocation(BaseType type,
-                                           List<StaticArg> staticArgs
-                                               = Collections.<StaticArg>emptyList(),
-                                           Expr arg);
-                        /**
-                         * a method invocation
-                         * some are created by parsing, while others require later
-                         * static analysis to disambiguate from function applications
-                         *
-                         * Names of "method" must be unqualified.
-                         * e.g.) myString.toUppercase()
-                         */
-                        MethodInvocation(Expr obj, Id method,
-                                         List<StaticArg> staticArgs
-                                             = Collections.<StaticArg>emptyList(),
-                                         Expr arg);
+                        TightJuxt(boolean fnApp = false);
+                    /**
+                     * functional application
+                     * Primary ::= Primary ArgExpr
+                     *           | Primary Primary
+                     * e.g.) x y
+                     */
+                    _RewriteFnApp(Expr function, Expr argument);
+                    /**
+                     * expression using operators
+                     * (list of ops allows cross-API overloading)
+                     * OpExpr ::= EncloserOp OpExpr? EncloserOp?
+                     *          | OpExpr EncloserOp OpExpr?
+                     *          | Primary
+                     * EncloserOp ::= Encloser
+                     *              | Op
+                     * Primary ::= LeftEncloser ExprList? RightEncloser
+                     *           | Primary ^ Exponent
+                     *           | Primary ExponentOp
+                     * e.g.) 3 + 5
+                     */
+                    OpExpr(OpRef op,
+                           List<Expr> args = Collections.<Expr>emptyList());
+                    /**
+                     * If an expression uses and operator, and that operator
+                     * looks at parse-time like a multifix operator, it
+                     * an AmbigMultifixOpExpr node is created, because it is
+                     * unclear until typechecking and overloading resolution
+                     * whether it should be one multifix application or several
+                     * infix applications.
+                     *
+                     * e.g.) 3+4+5+6
+                     */
+                    AmbiguousMultifixOpExpr(OpRef infix_op, OpRef multifix_op,
+                                            List<Expr> args = Collections.<Expr>emptyList());
+                    /**
+                     * chain expression
+                     * Certain infix mathematical operators that are
+                     * traditionally regarded as relational operators,
+                     * delivering boolean results, may be chained.
+                     * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
+                     */
+                    ChainExpr(Expr first, List<Link> links);
+                    /**
+                     * coercion invocation
+                     * internal node created by static analysis
+                     * after inferring the implicit coercion invocations
+                     */
+                    CoercionInvocation(BaseType type,
+                                       List<StaticArg> staticArgs
+                                           = Collections.<StaticArg>emptyList(),
+                                       Expr arg);
+                    /**
+                     * a method invocation
+                     * some are created by parsing, while others require later
+                     * static analysis to disambiguate from function applications
+                     *
+                     * Names of "method" must be unqualified.
+                     * e.g.) myString.toUppercase()
+                     */
+                    MethodInvocation(Expr obj, Id method,
+                                     List<StaticArg> staticArgs
+                                         = Collections.<StaticArg>emptyList(),
+                                     Expr arg);
                     /**
                      * primary expression without any dots
                      * MathPrimary ::= PrimaryFront MathItem*
