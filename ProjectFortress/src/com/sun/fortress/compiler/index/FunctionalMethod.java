@@ -23,7 +23,6 @@ import java.util.List;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
@@ -43,15 +42,15 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public class FunctionalMethod extends Function {
 
-    private final FnAbsDeclOrDecl _ast;
+    private final FnDecl _ast;
     private final Id _declaringTrait;
 
-    public FunctionalMethod(FnAbsDeclOrDecl ast, Id declaringTrait) {
+    public FunctionalMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;
         _declaringTrait = declaringTrait;
     }
 
-    public FnAbsDeclOrDecl ast() { return _ast; }
+    public FnDecl ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
@@ -62,7 +61,7 @@ public class FunctionalMethod extends Function {
 			}
 			@Override
 			public Option<Expr> forFnDecl(FnDecl that) {
-				return Option.some(that.getBody());
+                            return that.getBody();
 			}
 		});
 	}
@@ -99,6 +98,6 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new FunctionalMethod((FnAbsDeclOrDecl)this.ast().accept(visitor), this._declaringTrait);
+		return new FunctionalMethod((FnDecl)this.ast().accept(visitor), this._declaringTrait);
 	}
 }

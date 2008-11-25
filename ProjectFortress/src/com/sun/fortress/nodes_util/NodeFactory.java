@@ -143,29 +143,29 @@ public class NodeFactory {
         return makeSpan(ifEmpty, l);
     }
 
-    public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
-                                          Id name, Option<Type> type) {
-        return makeAbsFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    Id name, Option<Type> type) {
+        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
     }
 
-    public static AbsFnDecl makeAbsFnDecl(Span span, List<Modifier> mods,
-                                          Id name, List<Param> params,
-                                          Option<Type> type) {
-        return new AbsFnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                             params, type);
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    Id name, List<Param> params,
+                                    Option<Type> type) {
+        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
+                          params, type, Option.<Expr>none());
     }
 
-    /** Alternatively, you can invoke the AbsFnDecl constructor without a self name */
-    public static AbsFnDecl makeAbsFnDecl(Span s, List<Modifier> mods,
-                                          IdOrOpOrAnonymousName name,
-                                          List<StaticParam> staticParams,
-                                          List<Param> params,
-                                          Option<Type> returnType,
-                                          Option<List<BaseType>> throwss,
-                                          Option<WhereClause> where,
-                                          Option<Contract> contract) {
-        return new AbsFnDecl(s, mods, name, staticParams, params, returnType,
-                             throwss, where, contract);
+    /** Alternatively, you can invoke the FnDecl constructor without a self name */
+    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<BaseType>> throwss,
+                                    Option<WhereClause> where,
+                                    Option<Contract> contract) {
+        return new FnDecl(s, mods, name, staticParams, params, returnType,
+                          throwss, where, contract, Option.<Expr>none(), Option.<Id>none());
     }
 
     public static Id makeTemporaryId() {
@@ -241,7 +241,7 @@ public class NodeFactory {
         return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
-    /** Alternatively, you can invoke the AbsFnDecl constructor without an alias */
+    /** Alternatively, you can invoke the FnDecl constructor without an alias */
     public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op) {
         return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>none());
     }
@@ -683,18 +683,33 @@ public class NodeFactory {
                                    Option<Contract> contract,
                                    Expr body) {
         return new FnDecl(s, mods, name, staticParams, params, returnType,
-                         throwss, where, contract, body);
+                          throwss, where, contract, Option.<Expr>some(body));
     }
 
     public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
                                   Id name, Option<Type> type, Expr body) {
         return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
-                         body);
+                          Option.<Expr>some(body));
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, Option<Type> type, Option<Expr> body) {
+        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
+                          body);
     }
 
     public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
                                   Id name, List<Param> params,
                                   Option<Type> type, Expr body) {
+        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
+                          params, type, Option.<List<BaseType>>none(),
+                          Option.<WhereClause>none(), Option.<Contract>none(),
+                          Option.<Expr>some(body));
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, List<Param> params,
+                                  Option<Type> type, Option<Expr> body) {
         return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
                          params, type, Option.<List<BaseType>>none(),
                          Option.<WhereClause>none(), Option.<Contract>none(),

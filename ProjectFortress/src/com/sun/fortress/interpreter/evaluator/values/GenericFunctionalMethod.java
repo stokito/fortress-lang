@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ErrorMsgMaker;
@@ -36,7 +36,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     int selfParameterIndex;
     private FTypeGeneric selfParameterType;
 
-    public GenericFunctionalMethod(Environment e, FnAbsDeclOrDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
+    public GenericFunctionalMethod(Environment e, FnDecl fndef, int self_parameter_index, FTypeGeneric self_parameter_type) {
         super(e, fndef);
         this.selfParameterIndex = self_parameter_index;
         this.selfParameterType = self_parameter_type;
@@ -46,7 +46,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
     protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
         // BUG IS HERE, NEED TO instantiate the selfParameterType! ;
 
-        FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDeclOrDecl());
+        FTraitOrObjectOrGeneric instantiatedSelfType = ((FTypeGeneric) selfParameterType).make(args, getFnDecl());
 
         FunctionalMethod cl = FType.anyAreSymbolic(args) ?
                 new FunctionalMethodInstance(clenv, fndef, args, this, selfParameterIndex, instantiatedSelfType) :
@@ -92,8 +92,8 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
 
 
     public String toString() {
-        FnAbsDeclOrDecl node = fndef;
-        // Code lifted from ErrorMsgMaker.forFnAbsDeclOrDecl
+        FnDecl node = fndef;
+        // Code lifted from ErrorMsgMaker.forFnDecl
         return selfParameterType.toString() + Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams())) + "." + NodeUtil.nameString(node.getName())
         //+ Useful.listInOxfords(ErrorMsgMaker.ONLY.mapSelf(getStaticParams()))
         + Useful.listInParens(ErrorMsgMaker.ONLY.mapSelf(node.getParams()))

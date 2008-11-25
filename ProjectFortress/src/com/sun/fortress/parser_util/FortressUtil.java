@@ -553,39 +553,39 @@ public final class FortressUtil {
         return ids2Lvs(ids, emptyModifiers(), tys, mutable);
     }
 
-    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
                                         FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeAbsFnDecl(span, mods, fhf.getName(),
-                                         fhf.getStaticParams(), fhf.getParams(),
-                                         fhc.getReturnType(), throws_, where_,
-                                         contract);
+        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
+                                      fhf.getStaticParams(), fhf.getParams(),
+                                      fhc.getReturnType(), throws_, where_,
+                                      contract);
     }
 
 
-    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        IdOrOpOrAnonymousName name, List<StaticParam> sparams,
-                                        List<Param> params,
-                                        FnHeaderClause fhc) {
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+                                  IdOrOpOrAnonymousName name, List<StaticParam> sparams,
+                                  List<Param> params,
+                                  FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeAbsFnDecl(span, mods, name,
-                                         sparams, params,
-                                         Option.<Type>none(), throws_,
-                                         where_, contract);
+        return NodeFactory.makeFnDecl(span, mods, name,
+                                      sparams, params,
+                                      Option.<Type>none(), throws_,
+                                      where_, contract);
     }
 
-    public static AbsFnDecl mkAbsFnDecl(Span span, List<Modifier> mods,
-                                        IdOrOpOrAnonymousName name, List<Param> params,
-                                        Type ty) {
-        return NodeFactory.makeAbsFnDecl(span, mods, name,
-                                         emptyStaticParams(), params,
-                                         Option.some(ty),
-                                         Option.<List<BaseType>>none(),
-                                         Option.<WhereClause>none(), Option.<Contract>none());
+    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+                                  IdOrOpOrAnonymousName name, List<Param> params,
+                                  Type ty) {
+        return NodeFactory.makeFnDecl(span, mods, name,
+                                      emptyStaticParams(), params,
+                                      Option.some(ty),
+                                      Option.<List<BaseType>>none(),
+                                      Option.<WhereClause>none(), Option.<Contract>none());
     }
 
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods,

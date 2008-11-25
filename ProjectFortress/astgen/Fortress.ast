@@ -335,6 +335,7 @@ interface Node(ignoreForEquals Span span) extends HasAt;
                 ObjectDecl(List<Decl> decls) implements GenericDeclWithParams;
         /**
          * variable declaration in components or APIs
+         *
          * variable declaration in APIs
          * AbsVarDecl ::= AbsVarMods? VarWTypes
          *              | AbsVarMods? BindIdOrBindIdTuple : Type ...
@@ -371,48 +372,40 @@ interface Node(ignoreForEquals Span span) extends HasAt;
         /**
          * functional declaration in components or APIs
          * Names must be unqualified.
+         *
+         * functional declaration in components or APIs
+         * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
+         *             | FnSig
+         * FnSig ::= SimpleName : ArrowType
+         * FnHeaderFront ::= NamedFnHeaderFront
+         *                 | OpHeaderFront
+         * NamedFnHeaderFront ::= Id StaticParams? ValParam
+         * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
+         *                     Params (RightEncloser | Encloser)
+         *                 | opr StaticParams? ValParam (Op | ExponentOp)
+         *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
+         * FnHeaderClause ::= IsType? FnClauses
+         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
+         *          | FnSig
+         * e.g.) swap (x: Object, y: Object): (Object, Object)
+         *
+         * functional declaration in components
+         * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
+         * e.g.) swap (x, y) = (y, x)
          */
-        abstract FnAbsDeclOrDecl(List<Modifier> mods
-                            = Collections.<Modifier>emptyList(),
-                        IdOrOpOrAnonymousName name,
-                        List<StaticParam> staticParams
-                            = Collections.<StaticParam>emptyList(),
-                        List<Param> params
-                            = Collections.<Param>emptyList(),
-                        Option<Type> returnType
-                            = Option.<Type>none(),
-                        Option<List<BaseType>> throwsClause
-                            = Option.<List<BaseType>>none(),
-                        Option<WhereClause> where
-                            = Option.<WhereClause>none(),
-                        Option<Contract> contract
-                            = Option.<Contract>none(),
-                        Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()))
-                       implements Applicable, GenericDecl;
-            /**
-             * functional declaration in components or APIs
-             * AbsFnDecl ::= AbsFnMods? FnHeaderFront FnHeaderClause
-             *             | FnSig
-             * FnSig ::= SimpleName : ArrowType
-             * FnHeaderFront ::= NamedFnHeaderFront
-             *                 | OpHeaderFront
-             * NamedFnHeaderFront ::= Id StaticParams? ValParam
-             * OpHeaderFront ::= opr StaticParams? BIG? (LeftEncloser | Encloser)
-             *                     Params (RightEncloser | Encloser)
-             *                 | opr StaticParams? ValParam (Op | ExponentOp)
-             *                 | opr BIG? (Op | ^ | Encloser) StaticParams? ValParam
-             * FnHeaderClause ::= IsType? FnClauses
-             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause
-             *          | FnSig
-             * e.g.) swap (x: Object, y: Object): (Object, Object)
-             */
-            AbsFnDecl() implements Decl;
-            /**
-             * functional declaration in components
-             * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
-             * e.g.) swap (x, y) = (y, x)
-             */
-            FnDecl(Expr body, Option<Id> implementsUnambiguousName = Option.<Id>none());
+        FnDecl(List<Modifier> mods = Collections.<Modifier>emptyList(),
+               IdOrOpOrAnonymousName name,
+               List<StaticParam> staticParams
+                   = Collections.<StaticParam>emptyList(),
+               List<Param> params = Collections.<Param>emptyList(),
+               Option<Type> returnType = Option.<Type>none(),
+               Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
+               Option<WhereClause> where = Option.<WhereClause>none(),
+               Option<Contract> contract = Option.<Contract>none(),
+               Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
+               Option<Expr> body,
+               Option<Id> implementsUnambiguousName = Option.<Id>none())
+              implements Applicable, GenericDecl;
         /**
          * value parameter of functional declarations and object declarations
          * Names must be unqualified.

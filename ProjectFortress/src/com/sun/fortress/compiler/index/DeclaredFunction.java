@@ -23,7 +23,6 @@ import java.util.List;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -37,11 +36,11 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.tuple.Option;
 
 public class DeclaredFunction extends Function {
-    private final FnAbsDeclOrDecl _ast;
+    private final FnDecl _ast;
 
-    public DeclaredFunction(FnAbsDeclOrDecl ast) { _ast = ast; }
+    public DeclaredFunction(FnDecl ast) { _ast = ast; }
 
-    public FnAbsDeclOrDecl ast() { return _ast; }
+    public FnDecl ast() { return _ast; }
 
 	@Override
 	public Option<Expr> body() {
@@ -52,7 +51,7 @@ public class DeclaredFunction extends Function {
 			}
 			@Override
 			public Option<Expr> forFnDecl(FnDecl that) {
-				return Option.some(that.getBody());
+                            return that.getBody();
 			}
 		});
 	}
@@ -88,7 +87,7 @@ public class DeclaredFunction extends Function {
 
 	@Override
 	public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-		return new DeclaredFunction((FnAbsDeclOrDecl)this._ast.accept(visitor));
+		return new DeclaredFunction((FnDecl)this._ast.accept(visitor));
 	}
 
 }

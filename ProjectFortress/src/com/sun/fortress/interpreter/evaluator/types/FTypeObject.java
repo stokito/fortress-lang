@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.BuildObjectEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
@@ -73,8 +73,8 @@ public class FTypeObject extends FTraitOrObject {
                         fields.add(p.getName());
                     }
                 }
-            } else if (v instanceof FnAbsDeclOrDecl) {
-                methods.add(((FnAbsDeclOrDecl)v).getName());
+            } else if (v instanceof FnDecl) {
+                methods.add(((FnDecl)v).getName());
             }
         }
         cannotBeExtended = true;
@@ -124,8 +124,8 @@ public class FTypeObject extends FTraitOrObject {
 
         // This is a minor hack to deal with messed-up object environments.
         for(Decl v : members) {
-            if (v instanceof FnAbsDeclOrDecl) {
-                String s = NodeUtil.nameAsMethod((FnAbsDeclOrDecl)v);//.getName().stringName();
+            if (v instanceof FnDecl) {
+                String s = NodeUtil.nameAsMethod((FnDecl)v);//.getName().stringName();
                 declaredMembersOf.putValueRaw(s,  methodEnv.getLeafValue(s));
             }
         }

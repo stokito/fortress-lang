@@ -17,7 +17,6 @@
 
 package com.sun.fortress.interpreter.evaluator;
 
-import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
 import com.sun.fortress.nodes.Api;
@@ -63,15 +62,6 @@ public class EvalVarsEnvironment extends BuildEnvironments {
      */
     @Override
     public Boolean forDimUnitDecl(DimUnitDecl x) {
-        return null;
-
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.evaluator.BuildEnvironments#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
-     */
-    @Override
-    public Boolean forAbsFnDecl(AbsFnDecl x) {
         return null;
 
     }

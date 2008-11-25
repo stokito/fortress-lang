@@ -337,7 +337,7 @@ public class Transform extends TemplateUpdateVisitor {
             List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
                 public FnDecl apply(FnDecl fn){
                     return (FnDecl) fn.accept( new TemplateUpdateVisitor(){
-                            public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Expr body_result) {
+                            public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Option<Expr> body_result) {
                                 List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
                                 if ( name_result instanceof Id) {
                                     Id old = (Id) ((Id)name_result).accept(transformer);

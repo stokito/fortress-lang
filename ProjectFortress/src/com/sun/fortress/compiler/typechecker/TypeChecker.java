@@ -521,7 +521,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				downwardConstraint);
 	}
 
-	public TypeChecker extendWithFnDecls(Relation<IdOrOpOrAnonymousName, ? extends FnDecl> fns) {
+	public TypeChecker extendWithFnDecls(Relation<IdOrOpOrAnonymousName, FnDecl> fns) {
 		return new TypeChecker(table,
 				typeEnv.extendWithFnDecls(fns),
 				compilationUnit,
@@ -2290,6 +2290,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forFnDecl(FnDecl that) {
+                if (that.getBody().isNone())
+                    return super.forFnDecl(that);
+
 		TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
 
 		TypeCheckerResult result = new TypeCheckerResult(that);
@@ -2302,7 +2305,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			contractResult = result;
 			contract = Option.<Contract>none();
 		}
-		TypeCheckerResult bodyResult = that.getBody().accept(newChecker);
+		TypeCheckerResult bodyResult = that.getBody().unwrap().accept(newChecker);
 
 		if( !contractResult.isSuccessful() || !bodyResult.isSuccessful() ) {
 			return TypeCheckerResult.compose(that, subtypeChecker, result, bodyResult, contractResult);
@@ -2325,15 +2328,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		FnDecl new_node = new FnDecl(that.getSpan(),
-				that.getMods(),
-				that.getName(),
-				that.getStaticParams(),
-				that.getParams(),
-				returnType,
-				that.getThrowsClause(),
-				that.getWhere(),
-				contract,
-				(Expr)bodyResult.ast());
+                                             that.getMods(),
+                                             that.getName(),
+                                             that.getStaticParams(),
+                                             that.getParams(),
+                                             returnType,
+                                             that.getThrowsClause(),
+                                             that.getWhere(),
+                                             contract,
+                                             Option.<Expr>some((Expr)bodyResult.ast()));
 		return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
 				bodyResult, result)
 				.addNodeTypeEnvEntry(new_node, typeEnv)

@@ -16,7 +16,6 @@
  ******************************************************************************/
 package com.sun.fortress.interpreter.rewrite;
 
-import com.sun.fortress.nodes.AbsFnDecl;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.LValue;
@@ -49,15 +48,6 @@ public class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
     @Override
     public ArrowOrFunctional forLValue(LValue that) {
         return optionTypeIsArrow(that.getType());
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor#forAbsFnDecl(com.sun.fortress.nodes.AbsFnDecl)
-     */
-    @Override
-    public ArrowOrFunctional forAbsFnDecl(AbsFnDecl that) {
-        // Return "is a self method"
-        return NodeUtil.selfParameterIndex(that) >= 0  ? ArrowOrFunctional.FUNCTIONAL : ArrowOrFunctional.NEITHER;
     }
 
     /* (non-Javadoc)

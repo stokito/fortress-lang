@@ -36,15 +36,15 @@ import Spacing;
      MdDef
    | (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause
  */
-FnAbsDeclOrDecl MdDecl =
+FnDecl MdDecl =
      MdDef
    / a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a3, a4);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
+                                       a3, a4);
      };
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
@@ -56,14 +56,14 @@ FnDecl MdDef =
      };
 
 /* AbsMdDecl ::= (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause */
-AbsFnDecl AbsMdDecl =
+FnDecl AbsMdDecl =
      a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
        if (a1 != null)
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a3, a4);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
+                                       a3, a4);
      };
 
 /* MdHeaderFront ::=
@@ -100,7 +100,7 @@ FnHeaderFront AbsNamedMdHeaderFront =
      GetterSetterDef
    | (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
-FnAbsDeclOrDecl GetterSetterDecl =
+FnDecl GetterSetterDecl =
      GetterSetterDef
    / a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
@@ -109,14 +109,14 @@ FnAbsDeclOrDecl GetterSetterDecl =
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
        mods.add(a3);
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a4, a5);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
+                                       a4, a5);
      };
 
 /* GetterSetterDef ::=
      Mods? GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
  */
-FnAbsDeclOrDecl GetterSetterDef =
+FnDecl GetterSetterDef =
      a1:Mods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
      a5:NoNewlineExpr
      { if (a1 == null) a1 = new ArrayList<Modifier>();
@@ -133,7 +133,7 @@ transient private Modifier GetterSetterMod =
 /* AbsGetterSetterDecl ::=
      (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
  */
-AbsFnDecl AbsGetterSetterDecl =
+FnDecl AbsGetterSetterDecl =
      a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
      { List<Modifier> mods = new ArrayList<Modifier>();
@@ -141,8 +141,8 @@ AbsFnDecl AbsGetterSetterDecl =
            mods.add(new ModifierAbstract(createSpan(yyStart,8)));
        if (a2 != null) mods.addAll(a2);
        mods.add(a3);
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          a4, a5);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
+                                       a4, a5);
      };
 
 /* Coercion ::=
@@ -172,9 +172,9 @@ Decl AbsCoercion =
        List<Modifier> mods = new ArrayList<Modifier>();
        if (a5 != null) mods.add(new ModifierWidens(createSpan(yyStart,8)));
        Span span = createSpan(yyStart+9,8);
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods,
-                                          new Id(span, "coerce"),
-                                          a1, params, a4);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
+                                       new Id(span, "coerce"),
+                                       a1, params, a4);
     };
 
 /* CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)? */

@@ -46,10 +46,10 @@ import edu.rice.cs.plt.tuple.Pair;
  * A type environment whose outermost scope binds local function definitions.
  */
 class FnDeclTypeEnv extends TypeEnv {
-    private Relation<IdOrOpOrAnonymousName, ? extends FnDecl> entries;
+    private Relation<IdOrOpOrAnonymousName, FnDecl> entries;
     private TypeEnv parent;
 
-    FnDeclTypeEnv(Relation<IdOrOpOrAnonymousName, ? extends FnDecl> _entries, TypeEnv _parent) {
+    FnDeclTypeEnv(Relation<IdOrOpOrAnonymousName, FnDecl> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
     }
@@ -61,7 +61,7 @@ class FnDeclTypeEnv extends TypeEnv {
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_name = removeApi(var);
 
-        Set<? extends FnDecl> fns = entries.matchFirst(no_api_name);
+        Set<FnDecl> fns = entries.matchFirst(no_api_name);
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;
@@ -96,7 +96,7 @@ class FnDeclTypeEnv extends TypeEnv {
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
     	IdOrOpOrAnonymousName no_api_name = removeApi(var);
 
-        Set<? extends FnDecl> fns = entries.matchFirst(no_api_name);
+        Set<FnDecl> fns = entries.matchFirst(no_api_name);
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;
@@ -111,13 +111,13 @@ class FnDeclTypeEnv extends TypeEnv {
 
 	@Override
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
-		Iterator<? extends Pair<IdOrOpOrAnonymousName, ? extends FnDecl>> iter = this.entries.iterator();
+		Iterator<? extends Pair<IdOrOpOrAnonymousName, FnDecl>> iter = this.entries.iterator();
 		Set<Pair<IdOrOpOrAnonymousName, FnDecl>> new_entries_ = new HashSet<Pair<IdOrOpOrAnonymousName, FnDecl>>();
 
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
 
 		while( iter.hasNext() ) {
-			Pair<IdOrOpOrAnonymousName, ? extends FnDecl> p = iter.next();
+			Pair<IdOrOpOrAnonymousName, FnDecl> p = iter.next();
 			FnDecl f = p.second();
 
 			f = (FnDecl)f.accept(rep);

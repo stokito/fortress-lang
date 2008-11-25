@@ -265,7 +265,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         EvalType.guardedPutType(name, type, where, containing);
     }
 
-    protected FValue newGenericClosure(Environment e, FnAbsDeclOrDecl x) {
+    protected FValue newGenericClosure(Environment e, FnDecl x) {
         return new FGenericFunction(e, x);
     }
 
@@ -309,6 +309,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forFnDecl(FnDecl x) {
+        if (x.getBody().isNone())
+            bug("Function definition should have a body expression.");
+
         switch (getPass()) {
         case 1: forFnDecl1(x); break;
         case 2: forFnDecl2(x); break;
@@ -1085,16 +1088,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     public Boolean forImportStar(ImportStar x) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forFnDecl(com.sun.fortress.interpreter.nodes.AbsFnDecl)
-     */
-    @Override
-    public Boolean forAbsFnDecl(AbsFnDecl x) {
-        return bug("BuildEnvironments.forAbsFnDecl should not be called");
     }
 
     /*

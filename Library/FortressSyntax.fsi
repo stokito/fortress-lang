@@ -51,14 +51,14 @@ api FortressSyntax
 
   native grammar Function
     FnDecl : Decl
-    FnSig : AbsFnDecl
-    AbsFnDecl : AbsFnDecl
+    FnSig : FnDecl
+    AbsFnDecl : FnDecl
   end
 
   native grammar Method
-    MdDecl : FnAbsDeclOrDecl
+    MdDecl : FnDecl
     MdDef : FnDecl
-    AbsMdDecl : AbsFnDecl
+    AbsMdDecl : FnDecl
   end
 
 

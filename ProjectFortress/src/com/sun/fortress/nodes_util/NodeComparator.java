@@ -132,17 +132,17 @@ public class NodeComparator {
     static class IdComparer implements Comparator<Id> {
         public int compare(Id left, Id right) {
             return NodeComparator.compare(left, right);
-        }        
+        }
     }
     public final static IdComparer idComparer = new IdComparer();
 
     static class OpNameComparer implements Comparator<OpName> {
         public int compare(OpName left, OpName right) {
             return NodeComparator.compare(left, right);
-        }        
+        }
     }
 
-    public final static OpNameComparer opNameComparer = new OpNameComparer();    
+    public final static OpNameComparer opNameComparer = new OpNameComparer();
 
     /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {
@@ -170,7 +170,7 @@ public class NodeComparator {
         return 0;
     }
 
-    public static int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
+    public static int compare(FnDecl left, FnDecl right) {
         IdOrOpOrAnonymousName fn0 = left.getName();
         IdOrOpOrAnonymousName fn1 = right.getName();
         int x = NodeComparator.compare(fn0, fn1);
@@ -181,13 +181,13 @@ public class NodeComparator {
         return x;
     }
 
-    static class FnAbsDeclOrDeclComparer implements Comparator<FnAbsDeclOrDecl> {
-        public int compare(FnAbsDeclOrDecl left, FnAbsDeclOrDecl right) {
+    static class FnDeclComparer implements Comparator<FnDecl> {
+        public int compare(FnDecl left, FnDecl right) {
             return NodeComparator.compare(left, right);
         }
     }
 
-    public final static FnAbsDeclOrDeclComparer fnAbsDeclOrDeclComparer = new FnAbsDeclOrDeclComparer();
+    public final static FnDeclComparer fnAbsDeclOrDeclComparer = new FnDeclComparer();
 
      public static int compare(IdOrOpOrAnonymousName left, IdOrOpOrAnonymousName right) {
         Class<? extends IdOrOpOrAnonymousName> leftClass = left.getClass();

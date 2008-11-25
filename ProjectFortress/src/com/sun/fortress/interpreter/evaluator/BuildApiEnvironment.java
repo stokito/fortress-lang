@@ -27,10 +27,9 @@ import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
 import com.sun.fortress.interpreter.rewrite.IsAnArrowName;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.VarDecl;
-import com.sun.fortress.nodes.AbsFnDecl;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.AbsObjectDecl;
 import com.sun.fortress.nodes.AbsTraitDecl;
-import com.sun.fortress.nodes.FnAbsDeclOrDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
@@ -39,9 +38,8 @@ import com.sun.fortress.nodes_util.NodeUtil;
 public class BuildApiEnvironment extends BuildTopLevelEnvironments {
 
     @Override
-    public Boolean forAbsFnDecl(AbsFnDecl x) {
+    public Boolean forFnDecl(FnDecl x) {
         Boolean change = Boolean.FALSE;
-        // super.forAbsFnDecl(x);
         if (getPass() == 1) {
             // TODO the value obtained should be filtered.
             IdOrOpOrAnonymousName id = x.getName();
@@ -167,7 +165,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
                     .accept(IsAnArrowName.isAnArrowName);
             if (aof == ArrowOrFunctional.FUNCTIONAL) {
                 // Only certain things can be a functional method.
-                FnAbsDeclOrDecl fadod = (FnAbsDeclOrDecl) adod;
+                FnDecl fadod = (FnDecl) adod;
                 String s = fadod.getName().stringName();
                 overloadNames.add(s);
                 exporter.overloadableExportedFunction.add(s);

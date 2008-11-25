@@ -43,12 +43,12 @@ Decl FnDecl =
      }
    / a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
 
 /* FnSig ::= SimpleName w : w NoNewlineType */
-AbsFnDecl FnSig =
+FnDecl FnSig =
      a1:SimpleName w colon w a2:NoNewlineType
      { final List<Modifier> mods = FortressUtil.emptyModifiers();
        final List<Param>  params = FortressUtil.emptyParams();
@@ -75,18 +75,18 @@ AbsFnDecl FnSig =
            params.add(new Param(k.getSpan(), mods, k.getName(), k.getType(), bottomExpr));
        }
        */
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount), mods, a1,
-                                          params, ((ArrowType)a2).getRange());
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
+                                       params, ((ArrowType)a2).getRange());
      };
 
 /* AbsFnDecl ::=
      Mods? AbsFnHeaderFront FnHeaderClause
    | FnSig
  */
-AbsFnDecl AbsFnDecl =
+FnDecl AbsFnDecl =
      a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = FortressUtil.emptyModifiers();
-       yyValue = FortressUtil.mkAbsFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
 
