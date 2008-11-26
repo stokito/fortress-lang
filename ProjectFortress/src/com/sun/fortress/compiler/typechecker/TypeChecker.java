@@ -1024,26 +1024,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return new TypeCheckerResult(that);
 	}
 
-	/*
-	 * FIXME: Figure out what type these should have and make them propogate ast
-	 */
-	@Override
-	public TypeCheckerResult forArgExprOnly(ArgExpr that, Option<TypeCheckerResult> exprType_result,
-			List<TypeCheckerResult> exprs_result,
-			Option<TypeCheckerResult> varargs_result,
-			List<TypeCheckerResult> keywords_result) {
-		if (varargs_result.isSome()) {
-			return TypeCheckerResult.compose(that,
-					subtypeChecker,
-					TypeCheckerResult.compose(that, subtypeChecker, exprs_result),
-					TypeCheckerResult.compose(that, subtypeChecker, varargs_result.unwrap()), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
-		} else {
-			return TypeCheckerResult.compose(that,
-					subtypeChecker,
-					TypeCheckerResult.compose(that, subtypeChecker, exprs_result), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
-		}
-	}
-
 	// This case is only called for single element arrays ( e.g., [5] )
 	// and not for pieces of ArrayElements
 	@Override
@@ -4103,7 +4083,24 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forTupleExprOnly(TupleExpr that, Option<TypeCheckerResult> exprType_result,
-			List<TypeCheckerResult> exprs_result) {
+                                                  List<TypeCheckerResult> exprs_result,
+                                                  Option<TypeCheckerResult> varargs_result,
+                                                  List<TypeCheckerResult> keywords_result) {
+            if ( varargs_result.isSome() || keywords_result.size() > 0 ) { // ArgExpr
+                /*
+                 * FIXME: Figure out what type these should have and make them propogate ast
+                 */
+		if (varargs_result.isSome()) {
+			return TypeCheckerResult.compose(that,
+					subtypeChecker,
+					TypeCheckerResult.compose(that, subtypeChecker, exprs_result),
+					TypeCheckerResult.compose(that, subtypeChecker, varargs_result.unwrap()), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
+		} else {
+			return TypeCheckerResult.compose(that,
+					subtypeChecker,
+					TypeCheckerResult.compose(that, subtypeChecker, exprs_result), TypeCheckerResult.compose(that, subtypeChecker, keywords_result));
+		}
+            } else {
 		List<Type> types = new ArrayList<Type>(exprs_result.size());
 		for (TypeCheckerResult r : exprs_result) {
 			if (r.type().isNone()) {
@@ -4122,6 +4119,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		return TypeCheckerResult.compose(new_node, tuple_type,
 				subtypeChecker, exprs_result);
+            }
 	}
 
 	private TypeCheckerResult forTypeAnnotatedExprOnly(TypeAnnotatedExpr that,

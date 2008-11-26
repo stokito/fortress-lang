@@ -185,19 +185,18 @@ Expr ArgExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w void:ellipses w comma w)?
      a3:KeywordExpr a4s:(w comma w KeywordExpr)* w closeparen
      { List<Expr> es = a1s.list();
-       Option<VarargsExpr> vs = ((a2 != null) ?
-                              Option.some(new VarargsExpr(a2.getSpan(), a2)) :
-                              Option.<VarargsExpr>none());
+       Option<Expr> vs = ((a2 != null) ? Option.some(a2)
+                                       : Option.<Expr>none());
        List<KeywordExpr> ks = new ArrayList<KeywordExpr>();
        ks.add(a3);
        for (KeywordExpr b : (List<KeywordExpr>)a4s.list()) {
            ks.add(b);
        }
-       yyValue = new ArgExpr(createSpan(yyStart,yyCount), false, es, vs, ks);
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount), false, es, vs, ks);
      }
    / openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { Option<VarargsExpr> vs = Option.some(new VarargsExpr(a2.getSpan(), a2));
-       yyValue = new ArgExpr(createSpan(yyStart,yyCount),false,a1s.list(),vs);
+     { Option<Expr> vs = Option.some(a2);
+       yyValue = new TupleExpr(createSpan(yyStart,yyCount),false,a1s.list(),vs);
      }
    / TupleExpr ;
 

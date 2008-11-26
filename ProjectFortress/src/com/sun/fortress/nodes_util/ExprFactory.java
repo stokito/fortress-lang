@@ -761,11 +761,8 @@ public class ExprFactory {
                     e.getCatchClause(), e.getForbid(),
                     e.getFinallyClause());
         }
-        public Expr forArgExpr(ArgExpr e) {
-            return new ArgExpr(e.getSpan(), true, e.getExprs(), e.getVarargs());
-        }
         public Expr forTupleExpr(TupleExpr e) {
-            return new TupleExpr(e.getSpan(), true, e.getExprs());
+            return new TupleExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
         }
         public Expr forTypecase(Typecase e) {
             return new Typecase(e.getSpan(), true, e.getBindIds(),

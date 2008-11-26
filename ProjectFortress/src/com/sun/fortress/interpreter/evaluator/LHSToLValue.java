@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFieldRef;
@@ -121,14 +120,6 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
 
     public Lhs forLValue(LValue x) {
         return x;
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArgExpr(com.sun.fortress.interpreter.nodes.ArgExpr)
-     */
-    @Override
-    public Lhs forArgExpr(ArgExpr x) {
-        return NI.nyi("nested tuple in LHS of binding");
     }
 
     /* (non-Javadoc)

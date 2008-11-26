@@ -69,7 +69,6 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
-import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.ArrayComprehension;
 import com.sun.fortress.nodes.ArrayComprehensionClause;
 import com.sun.fortress.nodes.ArrayElement;
@@ -160,7 +159,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class Evaluator extends EvaluatorBase<FValue> {
      boolean debug = false;
-    final private static boolean isArgExpr = false;
 
     public FValue eval(Expr e) {
         return e.accept(this);
@@ -260,7 +258,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 // TODO:  An LHS walks, talks, and barks just like
                 // an Expr in this context.  Yet it isn't an Expr, and
                 // we can't pass the lhses to the numerous functions
-                // which expect a List<Expr>---for example ArgExpr
+                // which expect a List<Expr>---for example,
+                // TupleExpr with a varargs or keywords
                 // or evalExprListParallel!  This is extremely annoying!
                 List<FValue> lhsComps = new ArrayList<FValue>(lhsSize);
                 for (Lhs lhs : lhses) {
@@ -1604,18 +1603,14 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
     }
 
-    public FValue forArgExpr(ArgExpr x) {
-        List<Expr> exprs = x.getExprs();
-        /*
-        if (!isArgExpr)
-            error(x, "Tuples are not allowed to have varargs or keyword expressions.");
-        */
-        return FTuple.make(evalExprListParallel(exprs));
-    }
-
     public FValue forTupleExpr(TupleExpr x) {
-        List<Expr> exprs = x.getExprs();
-        return FTuple.make(evalExprListParallel(exprs));
+        if ( x.getVarargs().isSome() || x.getKeywords().size() > 0 ) { // ArgExpr
+            List<Expr> exprs = x.getExprs();
+            return FTuple.make(evalExprListParallel(exprs));
+        } else {
+            List<Expr> exprs = x.getExprs();
+            return FTuple.make(evalExprListParallel(exprs));
+        }
     }
 
     public FValue forTypecase(Typecase x) {
