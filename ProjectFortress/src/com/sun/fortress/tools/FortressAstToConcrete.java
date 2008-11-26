@@ -681,38 +681,29 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forNormalParamOnly(NormalParam that,
-                                               List<String> mods_result,
-                                               String name_result,
-                                               Option<String> type_result,
-                                               Option<String> defaultExpr_result) {
+    @Override public String forParamOnly(Param that,
+                                         List<String> mods_result,
+                                         String name_result,
+                                         Option<String> type_result,
+                                         Option<String> defaultExpr_result,
+                                         Option<String> varargsType_result) {
         StringBuilder s = new StringBuilder();
 
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
         s.append( name_result );
-        if (type_result.isSome() &&
-            !name_result.equals("self"))
-            s.append( handleType(type_result.unwrap()) );
-        if (defaultExpr_result.isSome())
-            s.append( "=").append( defaultExpr_result );
 
-        return s.toString();
-    }
-
-    @Override public String forVarargsParamOnly(VarargsParam that,
-                                                List<String> mods_result,
-                                                String name_result,
-                                                Option<String> type_result) {
-        StringBuilder s = new StringBuilder();
-
-        for ( String mod : mods_result ){
-            s.append( mod ).append( " " );
+        if ( varargsType_result.isNone() ) {
+            if (type_result.isSome() &&
+                !name_result.equals("self"))
+                s.append( handleType(type_result.unwrap()) );
+            if (defaultExpr_result.isSome())
+                s.append( "=").append( defaultExpr_result );
+        } else {
+            s.append( handleType(varargsType_result.unwrap()) );
+            s.append( "..." );
         }
-        s.append( name_result );
-        s.append( handleType(type_result.unwrap()) );
-        s.append( "..." );
 
         return s.toString();
     }

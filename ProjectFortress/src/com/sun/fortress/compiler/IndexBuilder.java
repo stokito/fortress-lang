@@ -326,14 +326,14 @@ public class IndexBuilder {
                 Id paramName = p.getName();
                 fields.put(paramName, new ParamVariable(p));
                 if (!mods.isHidden) {
-                    if ( p instanceof NormalParam)
-                        getters.put(paramName, new FieldGetterMethod((NormalParam)p, name));
+                    if ( p.getVarargsType().isNone() )
+                        getters.put(paramName, new FieldGetterMethod(p, name));
                     else
                         bug(p, "Varargs object parameters should not define getters.");
                 }
                 if (mods.isSettable || mods.isVar) {
-                    if ( p instanceof NormalParam)
-                        setters.put(paramName, new FieldSetterMethod((NormalParam)p, name));
+                    if ( p.getVarargsType().isNone() )
+                        setters.put(paramName, new FieldSetterMethod(p, name));
                     else
                         bug(p, "Varargs object parameters should not define setters.");
                 }

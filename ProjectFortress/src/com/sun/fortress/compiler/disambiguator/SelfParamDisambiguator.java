@@ -27,9 +27,9 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -92,9 +92,12 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     	NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
 			int traitNestingDepth = 0;
     		@Override
-			public Node forNormalParamOnly(NormalParam that,
-					List<Modifier> mods_result, Id name_result,
-					Option<Type> type_result, Option<Expr> defaultExpr_result) {
+			public Node forParamOnly(Param that,
+                                                 List<Modifier> mods_result, Id name_result,
+                                                 Option<Type> type_result,
+                                                 Option<Expr> defaultExpr_result,
+                                                 Option<Type> varargsType_result) {
+                    if ( varargsType_result.isNone() ) {
     			// my type is broken I need to qualify the type name
     			Option<Type> new_type;
     			if( name_result.equals(SELF_NAME) )
@@ -102,12 +105,15 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     			else
     				new_type = type_result;
 
-    			return new NormalParam(that.getSpan(),
-			               that.getMods(),
-			               that.getName(),
-			               new_type,
-			               that.getDefaultExpr());
-			}
+    			return new Param(that.getSpan(),
+                                         that.getMods(),
+                                         that.getName(),
+                                         new_type,
+                                         that.getDefaultExpr(),
+                                         that.getVarargsType());
+                    } else
+                        return that;
+                }
 
 			// end recurrance here
 			@Override public Node forObjectDecl(ObjectDecl that) {

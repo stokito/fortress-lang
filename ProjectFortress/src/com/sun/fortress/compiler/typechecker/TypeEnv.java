@@ -65,7 +65,6 @@ import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.OpParam;
@@ -78,7 +77,6 @@ import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitArg;
 import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
-import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -132,15 +130,12 @@ public abstract class TypeEnv {
      * Get a type from a Param.
      */
     protected static Option<Type> typeFromParam(Param param) {
-        if (param instanceof NormalParam) {
-            NormalParam _param = (NormalParam) param;
-            return _param.getType();
-        } else { // param instanceof VarargsParam
+        if (param.getVarargsType().isNone()) {
+            return param.getType();
+        } else { // a varargs param
             // Convert the declared varargs type into a reference to
             // FortressBuiltin.ImmutableHeapSequence.
-            VarargsParam _param = (VarargsParam) param;
-
-            Type result = Types.makeVarargsParamType(_param.getVarargsType().unwrap());
+            Type result = Types.makeVarargsParamType(param.getVarargsType().unwrap());
             return some(result);
         }
     }
@@ -165,26 +160,24 @@ public abstract class TypeEnv {
         Option<Type> varargsType = none();
 
         for (Param param: params) {
-            if (param instanceof NormalParam) {
-                NormalParam _param = (NormalParam) param;
-                Option<Type> maybeType = _param.getType();
+            if (param.getVarargsType().isNone()) {
+                Option<Type> maybeType = param.getType();
 
                 if (maybeType.isSome()) { // An explicit type is declared.
-                    if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), maybeType.unwrap()));
+                    if (param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(makeKeywordType(param.getName(), maybeType.unwrap()));
                     } else { // We have an ordinary param.
                         paramTypes.add(maybeType.unwrap());
                     }
                 } else { // No type is explicitly declared for this parameter.
-                    if (_param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(_param.getName(), NodeFactory.make_InferenceVarType(_param.getSpan())));
+                    if (param.getDefaultExpr().isSome()) { // We have a keyword param.
+                        keywordTypes.add(makeKeywordType(param.getName(), NodeFactory.make_InferenceVarType(param.getSpan())));
                     } else { // We have an ordinary param.
-                        paramTypes.add(NodeFactory.make_InferenceVarType(_param.getSpan()));
+                        paramTypes.add(NodeFactory.make_InferenceVarType(param.getSpan()));
                     }
                 }
             } else { // We have a varargs param.
-                VarargsParam _param = (VarargsParam) param;
-                varargsType = some(_param.getVarargsType().unwrap());
+                varargsType = some(param.getVarargsType().unwrap());
             }
         }
 

@@ -392,7 +392,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
          * have been rewritten and may not be the same if its return
          * expression captured mutable variables (they would be boxed).
          * We only store the function id and type pair as value because
-         * that's all we need.  If we store the NormalParam instead, we
+         * that's all we need.  If we store the Param instead, we
          * would have to dig those info out again.
          */
         final Map<Pair<Span,Id>, Pair<Id,Type>>
@@ -593,7 +593,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                         exitFnBody = ExprFactory.makeExit(exitSpan,
                             exit.getExprType(), exit.getTarget(), var);
                         exitFnExprParams.add(
-                            NodeFactory.makeNormalParam(exitSpan,
+                            NodeFactory.makeParam(exitSpan,
                                 exitWithId, exitWithTypeOp) );
                     } else {
                         throw new DesugarerError( exitSpan,
@@ -640,7 +640,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
 
         Option<List<Param>> params = null;
-        NormalParam enclosingSelf = null;
+        Param enclosingSelf = null;
 
         List<StaticParam> staticParams =
                 makeStaticParamsForLiftedObj(target, freeNames);
@@ -662,7 +662,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                            params);
 
         if(enclosingSelf != null) {
-            VarRef receiver = makeVarRefFromNormalParam(enclosingSelf);
+            VarRef receiver = makeVarRefFromParam(enclosingSelf);
             DottedMethodRewriteVisitor rewriter =
                 new DottedMethodRewriteVisitor(receiver, freeMethodRefs);
             lifted = (ObjectDecl) lifted.accept(rewriter);
@@ -717,11 +717,11 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private Option<List<Param>>
     makeParamsForLiftedObj(ObjectExpr target,
                            FreeNameCollection freeNames,
-                           NormalParam enclosingSelfParam,
+                           Param enclosingSelfParam,
                            Map<Pair<Span,Id>,Pair<Id,Type>> exitFnParamMap) {
 
         Option<Type> type = null;
-        NormalParam param = null;
+        Param param = null;
         List<Param> params = new LinkedList<Param>();
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
@@ -744,7 +744,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
                     type = var.getExprType();
-                    param = NodeFactory.makeNormalParam(var.getSpan(),
+                    param = NodeFactory.makeParam(var.getSpan(),
                                                         var.getVar(), type);
                     params.add(param);
                 }
@@ -757,7 +757,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // FIXME: What if it has a type that's not visible at top level?
                 // FIXME: what span should I use?
                 type = fn.getExprType();
-                param = NodeFactory.makeNormalParam(fn.getSpan(),
+                param = NodeFactory.makeParam(fn.getSpan(),
                                                     fn.getOriginalName(), type);
                 params.add(param);
             }
@@ -786,7 +786,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 type = Option.<Type>some(exitFnType);
                 Id exitFnId = NodeFactory.makeId(exitSpan,
                         MANGLE_CHAR + EXIT_FUNC_PREFIX + "_" + exitIndex);
-                param = NodeFactory.makeNormalParam(exitSpan, exitFnId, type);
+                param = NodeFactory.makeParam(exitSpan, exitFnId, type);
                 params.add(param);
                 Pair<Span, Id> exitKey = new Pair<Span,Id>(exitSpan, label);
                 Pair<Id, Type> exitFnInfo = new Pair<Id,Type>(exitFnId, exitFnType);
@@ -803,9 +803,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
 
-    private NormalParam makeEnclosingSelfParam(Span paramSpan,
+    private Param makeEnclosingSelfParam(Span paramSpan,
                                         Option<Type> enclosingSelfType) {
-        NormalParam param = null;
+        Param param = null;
 
         // Just sanity check
         if( getEnclosingTraitObjectName() == null ) {
@@ -816,7 +816,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // id of the newly created param for implicit self
         Id enclosingParamId = NodeFactory.makeId(paramSpan,
                 MANGLE_CHAR + ENCLOSING_PREFIX + "_" + objExprNestingLevel);
-        param = NodeFactory.makeNormalParam(paramSpan,
+        param = NodeFactory.makeParam(paramSpan,
                                         enclosingParamId, enclosingSelfType);
 
         return param;
@@ -879,7 +879,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         return enclosingId;
     }
 
-    private VarRef makeVarRefFromNormalParam(NormalParam param) {
+    private VarRef makeVarRefFromParam(Param param) {
         VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
                                                 param.getName(),
                                                 param.getType() );
@@ -1020,7 +1020,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 //                 TypeEnv typeEnv = typeCheckerOutput.getTypeEnv(objExpr);
 //                 Option<Node> declNodeOp =
 //                     typeEnv.declarationSite( varRef.getVar() );
-//                 NormalParam param = null;
+//                 Param param = null;
 //                 if( declNodeOp.isSome() ) {
 //                     param = makeVarParamFromVarRef( varRef,
 //                                 declNodeOp.unwrap().getSpan(),

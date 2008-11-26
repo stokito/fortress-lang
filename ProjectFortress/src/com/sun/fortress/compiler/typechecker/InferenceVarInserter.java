@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
@@ -79,16 +78,21 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forNormalParamOnly(NormalParam that,
-			List<Modifier> mods_result, Id name_result,
-			Option<Type> type_result, Option<Expr> defaultExpr_result) {
+	public Node forParamOnly(Param that,
+                                 List<Modifier> mods_result, Id name_result,
+                                 Option<Type> type_result,
+                                 Option<Expr> defaultExpr_result,
+                                 Option<Type> varargsType_result) {
+            if ( varargsType_result.isNone() ) {
 		// Is the type given?
 		Option<Type> new_type =
 			type_result.isNone() ?
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 						type_result;
 
-		return super.forNormalParamOnly(that, mods_result, name_result, new_type,
-				defaultExpr_result);
+		return super.forParamOnly(that, mods_result, name_result, new_type,
+                                          defaultExpr_result, varargsType_result);
+            } else
+                return that;
 	}
 }

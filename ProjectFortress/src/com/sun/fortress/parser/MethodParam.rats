@@ -47,13 +47,13 @@ List<Param> AbsValParam := openparen a1:(w AbsParams)? w closeparen
        else            yyValue = a1;
      };
 
-NormalParam Param :=
+Param Param :=
      PlainParam
    / a1:self
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount),
                                               "self")); };
 
-NormalParam AbsParam :=
+Param AbsParam :=
      a1:self
      { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount),
                                               "self")); }

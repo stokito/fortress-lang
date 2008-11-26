@@ -154,7 +154,8 @@ public class NodeUtil {
     /* for Param ***********************************************************/
     public static boolean isMultifix(List<Param> params) {
         for (Param p : params) {
-            if (p instanceof VarargsParam) return true;
+            if ( p.getVarargsType().isSome() )
+                return true;
         }
         return (params.size() > 2);
     }

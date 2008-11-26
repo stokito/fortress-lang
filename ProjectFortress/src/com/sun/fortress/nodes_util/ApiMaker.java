@@ -180,8 +180,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             if ( that.getReturnType().isNone() )
                 log(that, "The return type of " + that.getName() + " is required.");
             for ( Param p : that.getParams() ) {
-                if ( p instanceof NormalParam &&
-                     ((NormalParam)p).getType().isNone() &&
+                if ( p.getType().isNone() &&
                      ! p.getName().getText().equals("self") )
                     log(p, "The type of " + p.getName() + " is required.");
             }

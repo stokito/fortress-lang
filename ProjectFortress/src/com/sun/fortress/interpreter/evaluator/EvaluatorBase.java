@@ -179,7 +179,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             Iterator<Param> pit = params.iterator();
             Param pa = pit.next();
 
-            if ( ! (pa instanceof VarargsParam)) {
+            if ( pa.getVarargsType().isNone() ) {
                 /* Tuple (or even re-tuple) arguments when inferring type
                  * if passing different # of args to 1-arg function. */
                 if (DUMP_INFERENCE) {
@@ -206,8 +206,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         " given to 0-argument generic function ", appliedThing));
             }
             try {
-                if (p instanceof NormalParam) {
-                    Option<Type> t = ((NormalParam) p).getType();
+                if (p.getVarargsType().isNone()) {
+                    Option<Type> t = p.getType();
                     // why can't we just skip if missing?
                     if (t.isNone()) {
                         /*
@@ -236,8 +236,8 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                             System.err.println("Unifying "+at+" and "+ty);
                         at.unify(e, tp_set, abm, ty);
                     }
-                } else { // p instanceof VarargsParam
-                    Type ty = ((VarargsParam) p).getVarargsType().unwrap();
+                } else { // a varargs param
+                    Type ty = p.getVarargsType().unwrap();
                     if (DUMP_INFERENCE)
                         System.err.println("Unifying "+at+" and vararg type "+ty);
                     at.unify(e, tp_set, abm, ty);

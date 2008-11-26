@@ -823,7 +823,7 @@ public class NodeFactory {
                               Option.some(ty), mods, mutable);
     }
 
-    public static LValue makeLValue(NormalParam param) {
+    public static LValue makeLValue(Param param) {
         return new LValue(param.getSpan(), param.getName(),
                 param.getType(), param.getMods(), false);
     }
@@ -951,59 +951,63 @@ public class NodeFactory {
             return new Enclosing(op.getSpan(), makeBig(op.getOpen()), makeBig(op.getClose()));
         }
 
-    public static VarargsParam makeVarargsParam(Id name, Type type) {
-        return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(),
-                                name, Option.<Type>some(type));
+    public static Param makeVarargsParam(Id name, Type type) {
+        return new Param(name.getSpan(), Collections.<Modifier>emptyList(),
+                         name, Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
     }
 
-    public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
-        return new VarargsParam(param.getSpan(), mods, param.getName(), param.getVarargsType());
+    public static Param makeVarargsParam(Param param, List<Modifier> mods) {
+        return new Param(param.getSpan(), mods, param.getName(),
+                         Option.<Type>none(), Option.<Expr>none(),
+                         param.getVarargsType());
     }
 
-    public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods,
-                                                Id name, Type type) {
-        return new VarargsParam(span, mods, name, Option.<Type>some(type));
+    public static Param makeVarargsParam(Span span, List<Modifier> mods,
+                                         Id name, Type type) {
+        return new Param(span, mods, name,
+                         Option.<Type>none(), Option.<Expr>none(),
+                         Option.<Type>some(type));
     }
 
-    public static NormalParam makeAbsParam(Type type) {
+    public static Param makeAbsParam(Type type) {
         Id id = new Id(type.getSpan(), "_");
-        return new NormalParam(type.getSpan(), Collections.<Modifier>emptyList(),
-                               id, Option.some(type), Option.<Expr>none());
+        return new Param(type.getSpan(), Collections.<Modifier>emptyList(),
+                         id, Option.some(type), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
-                                        Type type) {
-        return new NormalParam(span, mods, name, Option.some(type), Option.<Expr>none());
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Type type) {
+        return new Param(span, mods, name, Option.some(type), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Span span, List<Modifier> mods, Id name,
-                                        Option<Type> type) {
-        return new NormalParam(span, mods, name, type, Option.<Expr>none());
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Option<Type> type) {
+        return new Param(span, mods, name, type, Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Id id, Type type) {
-        return new NormalParam(id.getSpan(), Collections.<Modifier>emptyList(),
-                id, Option.some(type), Option.<Expr>none());
+    public static Param makeParam(Id id, Type type) {
+        return new Param(id.getSpan(), Collections.<Modifier>emptyList(),
+                         id, Option.some(type), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(Id name) {
-        return new NormalParam(name.getSpan(), Collections.<Modifier>emptyList(),
-                name, Option.<Type>none(), Option.<Expr>none());
+    public static Param makeParam(Id name) {
+        return new Param(name.getSpan(), Collections.<Modifier>emptyList(),
+                         name, Option.<Type>none(), Option.<Expr>none());
     }
 
-    public static NormalParam makeParam(NormalParam param, Expr expr) {
-        return new NormalParam(param.getSpan(), param.getMods(), param.getName(),
-                param.getType(), Option.some(expr));
+    public static Param makeParam(Param param, Expr expr) {
+        return new Param(param.getSpan(), param.getMods(), param.getName(),
+                         param.getType(), Option.some(expr));
     }
 
-    public static NormalParam makeParam(NormalParam param, List<Modifier> mods) {
-        return new NormalParam(param.getSpan(), mods, param.getName(),
-                param.getType(), param.getDefaultExpr());
+    public static Param makeParam(Param param, List<Modifier> mods) {
+        return new Param(param.getSpan(), mods, param.getName(),
+                         param.getType(), param.getDefaultExpr());
     }
 
-    public static NormalParam makeParam(NormalParam param, Id newId) {
-        return new NormalParam(param.getSpan(), param.getMods(), newId,
-                               param.getType(), param.getDefaultExpr());
+    public static Param makeParam(Param param, Id newId) {
+        return new Param(param.getSpan(), param.getMods(), newId,
+                         param.getType(), param.getDefaultExpr());
     }
 
     public static TypeParam makeTypeParam(String name) {
@@ -1048,8 +1052,8 @@ public class NodeFactory {
         return new NatParam(s, new Id(s, name));
     }
 
-    public static NormalParam makeNormalParam(Span span, Id name, Option<Type> type) {
-        return new NormalParam(span, name, type);
+    public static Param makeParam(Span span, Id name, Option<Type> type) {
+        return new Param(span, name, type);
     }
 
     public static TupleType makeTupleType(List<Type> elements) {

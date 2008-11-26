@@ -214,14 +214,14 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
    ObjectKeyword ::= ObjectParam w = w Expr
    ObjectParam   ::= ParamFldMods? Param
  */
-VarargsParam Varargs :=
+Param Varargs :=
      <ErrorProduction>
      VarargsParam
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Varargs parameters of objects are not allowed.");
      };
 
-NormalParam Param :=
+Param Param :=
      a1:ParamFldMods? a2:PlainParam
      { if (a1 != null) {
            if (FortressUtil.getMutable(a1) && a2.getType().isNone())
@@ -237,7 +237,7 @@ NormalParam Param :=
      };
 
 /* ParamWType ::= BindId w IsType */
-private NormalParam PlainParamWType =
+private Param PlainParamWType =
     a1:BindId w a2:IsType
     { yyValue = NodeFactory.makeParam(a1, a2); };
 

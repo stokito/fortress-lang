@@ -158,8 +158,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     private static Option<List<Param>> mangleParams(Option<List<Param>> params) {
         return new NodeUpdateVisitor() {
-            public Node forNormalParam(NormalParam that) {
-                return NodeFactory.makeParam(that, mangleName(that.getName()));
+            public Node forParam(Param that) {
+                if ( that.getVarargsType().isNone() )
+                    return NodeFactory.makeParam(that, mangleName(that.getName()));
+                else
+                    return that;
             }
         }.recurOnOptionOfListOfParam(params);
     }
@@ -172,7 +175,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         if (params.isSome()) {
             for (Param param: params.unwrap()) {
-                if (param instanceof NormalParam)
+                if ( param.getVarargsType().isNone() )
                     newScope.add(param.getName());
             }
         }
@@ -315,14 +318,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         final LinkedList<Decl> result = new LinkedList<Decl>();
         if (params.isSome()) {
             for (Param param : params.unwrap()) {
-                if (param instanceof NormalParam) {
-                    NormalParam _param = (NormalParam)param;
-                    if (! hidden(_param) &&
-                        ! hasExplicitGetter(_param.getName(), decls))
-                        result.add(makeGetter(false, owner, _param));
-                    if ((settable(_param) || mutable(_param)) &&
-                        ! hasExplicitSetter(_param.getName(), decls)) {
-                        result.add(makeSetter(false, owner, _param));
+                if ( param.getVarargsType().isNone() ) {
+                    if (! hidden(param) &&
+                        ! hasExplicitGetter(param.getName(), decls))
+                        result.add(makeGetter(false, owner, param));
+                    if ((settable(param) || mutable(param)) &&
+                        ! hasExplicitSetter(param.getName(), decls)) {
+                        result.add(makeSetter(false, owner, param));
                     }
                 }
             }

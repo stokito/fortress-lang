@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.ImplicitGetterSetter;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -58,9 +57,9 @@ public class FieldSetterMethod extends Method {
 	@Override
 	public List<Param> parameters() {
 	    // return the implicit parameter
-	    Param p = new NormalParam(_ast.getSpan(), Collections.<Modifier>emptyList(), 
-	            new Id(_ast.getSpan(), "fakeParamForImplicitSetter"), _ast.getType(), 
-	            Option.<Expr>none());
+	    Param p = new Param(_ast.getSpan(), Collections.<Modifier>emptyList(),
+                                new Id(_ast.getSpan(), "fakeParamForImplicitSetter"), _ast.getType(),
+                                Option.<Expr>none());
 		return Collections.singletonList(p);
 	}
 

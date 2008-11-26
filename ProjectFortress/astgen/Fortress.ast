@@ -46,14 +46,12 @@ customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
 customPreprocessor com.sun.fortress.astgen.EllipsesNodeCreator;
 customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
-
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
 
 customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
 
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
-
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;
@@ -642,30 +640,25 @@ interface Node() extends HasAt;
             /**
              * value parameter of functional declarations and object declarations
              * Names must be unqualified.
+             * ValParam := BindId
+             *           | ( Params? )
+             * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
+             *          | (Param, )* Varargs
+             *          | Param(, Param)*
+             * Keyword ::= Param = Expr
+             * Param ::= BindId IsType?
+             *         | Type
+             * Varargs ::= BindId : Type ...
+             * e.g.) x: ZZ32 = 3
+             * e.g.) self
+             * e.g.) x: String...
              */
-            abstract Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-                           Id name);
-                /**
-                 * ValParam := BindId
-                 *           | ( Params? )
-                 * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
-                 *          | (Param, )* Varargs
-                 *          | Param(, Param)*
-                 * Keyword ::= Param = Expr
-                 * Param ::= BindId IsType?
-                 *         | Type
-                 * e.g.) x: ZZ32 = 3
-                 * e.g.) self
-                 */
-                NormalParam(Option<Type> type = Option.<Type>none(),
-                            Option<Expr> defaultExpr = Option.<Expr>none())
-                           implements Lhs, ImplicitGetterSetter;
-                /**
-                 * varargs parameter
-                 * Varargs ::= BindId : Type ...
-                 * e.g.) x: String...
-                 */
-                VarargsParam(Option<Type> varargsType = Option.<Type>none());
+            Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                  Id name,
+                  Option<Type> type = Option.<Type>none(),
+                  Option<Expr> defaultExpr = Option.<Expr>none(),
+                  Option<Type> varargsType = Option.<Type>none())
+                 implements Lhs, ImplicitGetterSetter;
             /**
              * expression
              */

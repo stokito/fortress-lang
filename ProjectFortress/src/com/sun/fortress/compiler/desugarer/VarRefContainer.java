@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierSettable;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -91,7 +90,7 @@ public class VarRefContainer {
 
     public ObjectDecl containerDecl() {
         List<Param> params = new LinkedList<Param>();
-        NormalParam param = makeVarParamFromVarRef( origVar,
+        Param param = makeVarParamFromVarRef( origVar,
                                 origDeclNode.getSpan(), origVar.getExprType() );
         params.add(param);
 
@@ -106,9 +105,9 @@ public class VarRefContainer {
         return container;
     }
 
-    public NormalParam containerTypeParam() {
-        return new NormalParam( origDeclNode.getSpan(),
-                                containerVarId(), containerType() );
+    public Param containerTypeParam() {
+        return new Param( origDeclNode.getSpan(),
+                          containerVarId(), containerType() );
     }
 
     public VarDecl containerField() {
@@ -145,13 +144,13 @@ public class VarRefContainer {
         return ret;
     }
 
-    private NormalParam makeVarParamFromVarRef(VarRef var,
+    private Param makeVarParamFromVarRef(VarRef var,
                                                Span paramSpan,
                                                Option<Type> typeOp) {
         List<Modifier> mods = new LinkedList<Modifier>();
         mods.add( new ModifierSettable(paramSpan) );
-        NormalParam param = new NormalParam(paramSpan, mods,
-                                            var.getVar(), typeOp);
+        Param param = new Param(paramSpan, mods,
+                                var.getVar(), typeOp);
         return param;
     }
 

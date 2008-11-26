@@ -316,27 +316,23 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "opr " + NodeUtil.nameString(node.getName());
     }
 
-    public String forNormalParam(NormalParam node) {
+    public String forParam(Param node) {
         StringBuffer sb = new StringBuffer();
         sb.append(NodeUtil.nameString(node.getName()));
-        if (node.getType().isSome()) {
+        if ( node.getVarargsType().isNone() ) {
+            if (node.getType().isSome()) {
+                sb.append(":");
+                sb.append(node.getType().unwrap().accept(this));
+            }
+            if (node.getDefaultExpr().isSome()) {
+                sb.append("=");
+                sb.append(node.getDefaultExpr().unwrap().accept(this));
+            }
+        } else {
             sb.append(":");
-            sb.append(node.getType().unwrap().accept(this));
+            sb.append(node.getVarargsType().unwrap().accept(this));
+            sb.append("...");
         }
-        if (node.getDefaultExpr().isSome()) {
-            sb.append("=");
-            sb.append(node.getDefaultExpr().unwrap().accept(this));
-        }
-        return sb.toString();
-    }
-
-    public String forVarargsParam(VarargsParam node) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(NodeUtil.nameString(node.getName()));
-        sb.append(":");
-        sb.append(node.getVarargsType().unwrap().accept(this));
-        sb.append("...");
-
         return sb.toString();
     }
 
