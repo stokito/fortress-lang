@@ -210,11 +210,11 @@ public class NodeComparator {
         int x = NodeUtil.nameString(left.getName())
                         .compareTo(NodeUtil.nameString(right.getName()));
         if (x != 0) return x;
-        if ((left instanceof NormalParam) && (right instanceof NormalParam)) {
-            x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
+        if ((left.getVarargsType().isNone()) && (right.getVarargsType().isNone())) {
+            x = compareOptionalType(left.getType(), right.getType());
         }
-        if ((left instanceof VarargsParam) && (right instanceof VarargsParam)) {
-            x = compareOptionalType(((VarargsParam)left).getVarargsType(), ((VarargsParam)right).getVarargsType());
+        if ((left.getVarargsType().isSome()) && (right.getVarargsType().isSome())) {
+            x = compareOptionalType(left.getVarargsType(), right.getVarargsType());
         }
         if (x != 0) return x;
         // TODO default expr, mods, must enter into comparison also.

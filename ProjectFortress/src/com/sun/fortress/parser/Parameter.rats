@@ -34,7 +34,7 @@ import Spacing;
 /* ValParam ::= BindId | ( (w Params)? w ) */
 transient List<Param> ValParam =
      a1:BindId
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeParam(a1)); }
+     { yyValue = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a1)); }
    / openparen a1:(w Params)? w closeparen
      { if (a1 == null) yyValue = FortressUtil.emptyParams();
        else            yyValue = a1;
@@ -47,7 +47,7 @@ transient List<Param> AbsValParam =
        else            yyValue = a1;
      }
    / a1:Type
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(NodeFactory.makeAbsParam(a1)); };
+     { yyValue = FortressUtil.<Param, Param>mkList(NodeFactory.makeAbsParam(a1)); };
 
 /* Params ::=
      (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
@@ -72,15 +72,15 @@ transient List<Param> Params =
      }
    / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
+     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list());
        if (a2 != null) yyValue.add(a2);
        yyValue.add(a3);
        yyValue.addAll(a4s.list());
      }
    / a1s:(Param w comma w)* a2:Varargs
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list(), a2); }
+     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list(), a2); }
    / a1:Param a2s:(w comma w Param)*
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
+     { yyValue = FortressUtil.<Param, Param>mkList(a1, a2s.list()); };
 
 /* AbsParams ::=
      (AbsParam w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
@@ -105,40 +105,40 @@ transient List<Param> AbsParams =
      }
    / a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list());
+     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list());
        if (a2 != null) yyValue.add(a2);
        yyValue.add(a3);
        yyValue.addAll(a4s.list());
      }
    / a1s:(AbsParam w comma w)* a2:Varargs
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1s.list(), a2); }
+     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list(), a2); }
    / a1:AbsParam a2s:(w comma w AbsParam)*
-     { yyValue = FortressUtil.<Param, NormalParam>mkList(a1, a2s.list()); };
+     { yyValue = FortressUtil.<Param, Param>mkList(a1, a2s.list()); };
 
 /* Varargs ::= BindId w : w Type w ... */
-transient VarargsParam VarargsParam = a1:BindId w colon w a2:Type w ellipses
+transient Param VarargsParam = a1:BindId w colon w a2:Type w ellipses
      { yyValue = NodeFactory.makeVarargsParam(a1, a2); };
-transient VarargsParam Varargs = VarargsParam ;
+transient Param Varargs = VarargsParam ;
 
 /* Keyword ::= Param w = w Expr */
 transient Param Keyword = a1:Param w equals w a2:Expr
      { yyValue = NodeFactory.makeParam(a1, a2); };
 
 /* Param ::= BindId (w IsType)? */
-transient NormalParam PlainParam =
+transient Param PlainParam =
      a1:BindId a2:(w IsType)?
      { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
        else            yyValue = NodeFactory.makeParam(a1);
      };
-transient NormalParam Param = PlainParam ;
+transient Param Param = PlainParam ;
 
 /* AbsParam ::= BindId w IsType | Type */
-transient NormalParam AbsPlainParam =
+transient Param AbsPlainParam =
      a1:BindId w a2:IsType
      { yyValue = NodeFactory.makeParam(a1, a2); }
    / a1:Type
      { yyValue = NodeFactory.makeAbsParam(a1); };
-transient NormalParam AbsParam = AbsPlainParam ;
+transient Param AbsParam = AbsPlainParam ;
 
 /* OpHeaderFront ::=
      opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)?

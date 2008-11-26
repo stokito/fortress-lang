@@ -125,10 +125,9 @@ public class Transform extends TemplateUpdateVisitor {
     */
 
     /* Support renaming for these nodes
-     * LValue        ( only for LocalVarDecl ) - done
-     * FnDecl        ( only for local function decls ) - done
-     * NormalParam   ( only for FnExpr and local function decls ) - done
-     * VarargsParam  ( only for FnExpr and local function decls ) - done
+     * LValue  ( only for LocalVarDecl ) - done
+     * FnDecl  ( only for local function decls ) - done
+     * Param   ( only for FnExpr and local function decls ) - done
      * Label - done
      * Typecase - done
      * Catch - done
@@ -305,24 +304,29 @@ public class Transform extends TemplateUpdateVisitor {
         public Param apply(Param value){
             final Transform transformer = Transform.this;
             return (Param) value.accept( new TemplateUpdateVisitor(){
-                public Node forNormalParamOnly(NormalParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result, Option<Expr> defaultExpr_result) {
-                    Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
-                    Id generatedId = renameId(name_result);
-                    /*
-                    Id old = (Id) name_result.accept(transformer);
-                    Id generatedId = generateId(old);
-                    Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                    extendSyntaxEnvironment(old, generatedId);
-                    */
-                    return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
-                }
-                public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result) {
-                    Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
-                    Id old = (Id) name_result.accept(transformer);
-                    Id generatedId = generateId(old);
-                    Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                    extendSyntaxEnvironment(old, generatedId);
-                    return new VarargsParam(that.getSpan(), mods_result, generatedId, type_result);
+                public Node forParamOnly(Param that, List<Modifier> mods_result,
+                                         Id name_result, Option<Type> type_result,
+                                         Option<Expr> defaultExpr_result,
+                                         Option<Type> varargsType_result) {
+                    if ( varargsType_result.isNone() ) {
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
+                        Id generatedId = renameId(name_result);
+                        /*
+                          Id old = (Id) name_result.accept(transformer);
+                          Id generatedId = generateId(old);
+                          Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                          extendSyntaxEnvironment(old, generatedId);
+                        */
+                        return new Param(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
+                    } else {
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
+                        Id old = (Id) name_result.accept(transformer);
+                        Id generatedId = generateId(old);
+                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                        extendSyntaxEnvironment(old, generatedId);
+                        return new Param(that.getSpan(), mods_result, generatedId, Option.<Type>none(), Option.<Expr>none(),
+                                         varargsType_result);
+                    }
                 }
             });
         }

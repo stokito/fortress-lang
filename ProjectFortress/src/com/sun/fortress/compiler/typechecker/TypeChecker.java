@@ -246,15 +246,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					int typeCount = 0;
 
 					public LinkedList<Type> value(LinkedList<Type> arg0, Param arg1) {
-						if( arg1 instanceof NormalParam ) {
+                                            if( arg1.getVarargsType().isNone() ) {
 							typeCount++;
-							arg0.add(((NormalParam)arg1).getType().unwrap());
+							arg0.add(arg1.getType().unwrap());
 							return arg0;
 						}
-						else { // VarargParam, add until the sizes are equal
+                                            else { // a varargs param, add until the sizes are equal
 							int to_add = arg_size - typeCount;
 							while( to_add > 0 ) {
-                                                            arg0.add(((VarargsParam)arg1).getVarargsType().unwrap());
+                                                            arg0.add(arg1.getVarargsType().unwrap());
 								to_add--;
 							}
 							return arg0;
@@ -262,8 +262,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					}});
 
 			//handle defaults (nyi)
-			if(params.get(params.size()-1) instanceof NormalParam
-					&& ((NormalParam)params.get(params.size()-1)).getDefaultExpr().isSome()){
+			if(params.get(params.size()-1).getVarargsType().isNone()
+                           && params.get(params.size()-1).getDefaultExpr().isSome()){
 				return NI.nyi();
 			}
 
@@ -616,10 +616,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							Type field_type =
 								field_node.accept(new NodeAbstractVisitor<Type>() {
 									@Override
-									public Type forNormalParam(NormalParam that) { return that.getType().unwrap(); }
-
-									@Override
-									public Type forVarargsParam(VarargsParam that) { return that.getVarargsType().unwrap(); }
+									public Type forParam(Param that) {
+                                                                            if ( that.getVarargsType().isNone() )
+                                                                                return that.getType().unwrap();
+                                                                            else
+                                                                                return that.getVarargsType().unwrap();
+                                                                        }
 								});
 
 							return Option.some(field_type);
@@ -1431,7 +1433,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 
 			@Override
-			public Pair<TypeCheckerResult, Type> forNormalParam(NormalParam that) {
+			public Pair<TypeCheckerResult, Type> forParam(Param that) {
+                            if ( that.getVarargsType().isNone() ) {
 				if( !NodeUtil.isMutable(that) ) {
 					String err = "Left-hand side of assignment must be mutable.";
 					return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
@@ -1443,6 +1446,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							"Type of right-hand side of assignment, " + rhs_type + ", must be a sub-type of left-hand side, " + lhs_type + "."),
 							lhs_type);
 				}
+                            } else
+                                return bug(that, "Varargs parameter should not appear in the left-hand side of an assignment.");
 			}
 
 			@Override
@@ -2377,20 +2382,17 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<Type> dlist = new ArrayList<Type>();
 		Boolean varargs=false;
 		for(Param p: that.getParams()){
-			if(p instanceof NormalParam){
-				NormalParam n = (NormalParam)p;
-				if(n.getType().isSome()){
-					dlist.add(n.getType().unwrap());
-				}
-				else{
-					NI.nyi();
-				}
-			}
-			if(p instanceof VarargsParam){
-				VarargsParam v = (VarargsParam) p;
-				dlist.add(v.getVarargsType().unwrap());
-				varargs=true;
-			}
+                    if(p.getVarargsType().isNone()){
+                        if(p.getType().isSome()){
+                            dlist.add(p.getType().unwrap());
+                        }
+                        else{
+                            NI.nyi();
+                        }
+                    } else {
+                        dlist.add(p.getVarargsType().unwrap());
+                        varargs=true;
+                    }
 		}
 		AbstractTupleType domain;
 		if(varargs){
@@ -3355,8 +3357,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forNormalParam(NormalParam that) {
-		// No checks needed to be performed on a NormalParam.
+	public TypeCheckerResult forParam(Param that) {
+		// No checks needed to be performed on a Param.
 		return new TypeCheckerResult(that);
 	}
 

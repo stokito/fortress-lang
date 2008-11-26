@@ -39,7 +39,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -85,8 +84,8 @@ class FnTypeEnv extends TypeEnv {
     	Option<Type> self_type_ = Option.none();
     	for( Param param : fn.getParams() ) {
     		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
-    			if( param instanceof NormalParam )
-    				self_type_ = ((NormalParam)param).getType();
+                    if( param.getVarargsType().isNone() )
+    				self_type_ = param.getType();
     			else
     				InterpreterBug.bug("self cannot be a varargs.");
     		}
