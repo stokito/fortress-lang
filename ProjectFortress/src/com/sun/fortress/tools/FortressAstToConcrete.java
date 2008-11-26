@@ -1283,45 +1283,45 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forTupleExprOnly(TupleExpr that, Option<String> exprType_result,
-                                             List<String> exprs_result) {
-        if ( exprs_result.size() == 1 )
-            return handleParen( exprs_result.get(0),
-                                that.isParenthesized() );
-        else {
+                                             List<String> exprs_result,
+                                             Option<String> varargs_result,
+                                             List<String> keywords_result) {
+        if ( varargs_result.isSome() || keywords_result.size() > 0 ) { // ArgExpr
             StringBuilder s = new StringBuilder();
 
             s.append( "(" );
-            s.append( join(exprs_result, ", ") );
+            int exprs_size = exprs_result.size();
+            int varargs_size = (varargs_result.isSome()) ? 1 : 0;
+            int keywords_size = keywords_result.size();
+            s.append( join(exprs_result, ", " ) );
+            if ( varargs_size == 1 ) {
+                if ( exprs_size > 0 )
+                    s.append( ", " );
+                s.append( varargs_result.unwrap() );
+                s.append( "..." );
+            }
+            if ( keywords_size > 0 ) {
+                if ( exprs_size + varargs_size > 0)
+                    s.append( ", " );
+                s.append( join(keywords_result, ", ") );
+            }
             s.append( ")" );
 
             return s.toString();
-        }
-    }
+        } else {
+            if ( exprs_result.size() == 1 )
+                return handleParen( exprs_result.get(0),
+                                    that.isParenthesized() );
+            else {
+                StringBuilder s = new StringBuilder();
 
-    @Override public String forArgExprOnly(ArgExpr that, Option<String> exprType_result,
-                                           List<String> exprs_result,
-                                           Option<String> varargs_result,
-                                           List<String> keywords_result) {
-        StringBuilder s = new StringBuilder();
+                s.append( "(" );
+                s.append( join(exprs_result, ", ") );
+                s.append( ")" );
 
-        s.append( "(" );
-        int exprs_size = exprs_result.size();
-        int varargs_size = (varargs_result.isSome()) ? 1 : 0;
-        int keywords_size = keywords_result.size();
-        s.append( join(exprs_result, ", " ) );
-        if ( varargs_size == 1 ) {
-            if ( exprs_size > 0 )
-                s.append( ", " );
-            s.append( varargs_result.unwrap() );
+                return s.toString();
+            }
         }
-        if ( keywords_size > 0 ) {
-            if ( exprs_size + varargs_size > 0)
-                s.append( ", " );
-            s.append( join(keywords_result, ", ") );
-        }
-        s.append( ")" );
-
-        return s.toString();
     }
 
     @Override public String forTypecaseOnly(Typecase that, Option<String> exprType_result,
@@ -2911,11 +2911,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( init_result );
 
         return s.toString();
-    }
-
-    @Override public String forVarargsExprOnly(VarargsExpr that,
-                                               String varargs_result) {
-        return varargs_result + "...";
     }
 
     @Override public String forKeywordTypeOnly(KeywordType that,

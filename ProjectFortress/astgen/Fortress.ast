@@ -813,26 +813,22 @@ interface Node() extends HasAt;
                     Option<Block> finallyClause = Option.<Block>none());
                 /**
                  * labeled expression: tuple expression or argument expression
+                 *
+                 * tuple expression
+                 * TupleExpr ::= ( (Expr,)+ Expr )
+                 *
+                 * argument expression
+                 * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
+                 *           | ( (Expr,)* Expr... )
+                 *           | TupleExpr
+                 * e.g.) (1, 2, [3 4]..., x = 5)
+                 * e.g.) (1, 2, 5)
                  */
-                abstract AbstractTupleExpr(List<Expr> exprs);
-                    /**
-                     * tuple expression
-                     * TupleExpr ::= ( (Expr,)+ Expr )
-                     * e.g.) (1, 2, 5)
-                     */
-                    TupleExpr();
-                    /**
-                     * argument expression
-                     * ArgExpr ::= ( (Expr,)* (Expr...,)? KeywordExpr(, KeywordExpr)* )
-                     *           | ( (Expr,)* Expr... )
-                     *           | TupleExpr
-                     * e.g.) (1, 2, [3 4]..., x = 5)
-                     */
-                    ArgExpr(Option<VarargsExpr> varargs
-                                = Option.<VarargsExpr>none(),
-                            List<KeywordExpr> keywords
-                                = Collections.<KeywordExpr>emptyList(),
-                            boolean inApp = false);
+                TupleExpr(List<Expr> exprs,
+                          Option<Expr> varargs = Option.<Expr>none(),
+                          List<KeywordExpr> keywords
+                              = Collections.<KeywordExpr>emptyList(),
+                          boolean inApp = false);
                 /**
                  * typecase expression
                  * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
@@ -2039,12 +2035,6 @@ interface Node() extends HasAt;
              * e.g.) (i, j) <- my2DArray.indices
              */
             GeneratorClause(List<Id> bind, Expr init);
-            /**
-             * varargs expression used in tuple expressions
-             * Expr...
-             * e.g.) [3 4 5]...
-             */
-            VarargsExpr(Expr varargs);
             /**
              * keyword type used in tuple types
              * Names must be unqualified.

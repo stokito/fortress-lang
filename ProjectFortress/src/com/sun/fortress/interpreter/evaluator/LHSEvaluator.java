@@ -51,7 +51,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.Enclosing;
-import com.sun.fortress.nodes.ArgExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
@@ -269,24 +268,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
      */
     protected void putOrAssignVariable(HasAt x, String s) {
         evaluator.e.putVariable(s, value);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forArgExpr(com.sun.fortress.interpreter.nodes.ArgExpr)
-     */
-    @Override
-    public Voidoid forArgExpr(ArgExpr x) {
-        if (!(value instanceof FTuple)) {
-            error(x, evaluator.e, errorMsg("RHS yields non-tuple ", value));
-        }
-        FTuple t = (FTuple)value;
-        Iterator<FValue> rhsIterator = t.getVals().iterator();
-        for (Expr lhs : x.getExprs()) {
-            // TODO: arity matching and exotic tuple types.
-            lhs.accept(new LHSEvaluator(evaluator, rhsIterator.next()));
-        }
-
-        return null;
     }
 
     /* (non-Javadoc)
