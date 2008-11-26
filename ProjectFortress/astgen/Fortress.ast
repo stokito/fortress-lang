@@ -35,6 +35,7 @@ generateRecursiveVisitors no;
 customClassPath ../build;
 
 /* order matters here */
+customGenerator com.sun.fortress.astgen.ScalaAstGenerator;
 customGenerator com.sun.fortress.astgen.DepthFirstVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateDepthFirstVisitorGenerator;
 
@@ -45,12 +46,14 @@ customGenerator com.sun.fortress.astgen.TemplateDepthFirstVoidVisitorGenerator;
 customPreprocessor com.sun.fortress.astgen.TransformationNodeCreator;
 customPreprocessor com.sun.fortress.astgen.EllipsesNodeCreator;
 customPreprocessor com.sun.fortress.astgen.TemplateGapNodeCreator;
+
 customGenerator com.sun.fortress.astgen.UpdateVisitorGenerator;
 customGenerator com.sun.fortress.astgen.TemplateVisitorGenerator;
 
 customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
 
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
+
 
 package com.sun.fortress.nodes;
 import java.math.BigInteger;

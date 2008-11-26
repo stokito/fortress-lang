@@ -627,8 +627,13 @@ public final class Shell {
                 for (StaticError error: errors) {
                     System.err.println(error);
                 }
-                String err_string = "File " + file_name + " compiled with " + num_errors + " error" +
-                (num_errors == 1 ? "." : "s.");
+                String err_string;
+                if (num_errors == 0) {
+                    err_string = "File " + file_name + " compiled successfully.";
+                } else {
+                    err_string = "File " + file_name + " has " + num_errors + " error" +
+                        (num_errors == 1 ? "." : "s.");
+                }
                 System.err.println(err_string);
                 System.exit(-1);
             }
