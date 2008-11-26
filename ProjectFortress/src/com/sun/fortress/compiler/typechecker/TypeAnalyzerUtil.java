@@ -171,10 +171,10 @@ public class TypeAnalyzerUtil {
                     recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
             }
             @Override public Boolean forTupleType(TupleType t) {
-                return recurOnList(t.getElements());
-            }
-            @Override public Boolean forVarargTupleType(VarargTupleType t) {
-                return recurOnList(t.getElements()) || t.getVarargs().accept(this);
+                if ( t.getVarargs().isNone() )
+                    return recurOnList(t.getElements());
+                else
+                    return recurOnList(t.getElements()) || t.getVarargs().unwrap().accept(this);
             }
             @Override public Boolean forAnyType(AnyType t) { return false; }
             @Override public Boolean forBottomType(BottomType t) { return false; }

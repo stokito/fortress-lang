@@ -549,7 +549,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             boolean varargs = s.endsWith("...)");
             if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
             List<Type> ts = parseTypeList(s, "(", ")");
-            if (varargs) { return new VarargTupleType(span, ts, ts.remove(ts.size()-1)); }
+            if (varargs) { return new TupleType(span, ts, Option.<Type>some(ts.remove(ts.size()-1))); }
             else if (ts.size() == 0) { return VOID; }
             else if (ts.size() == 1) { return ts.get(0); }
             else { return new TupleType(span, ts); }

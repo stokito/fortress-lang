@@ -252,34 +252,35 @@ public class TypeAnalyzer {
                 }
             }
 
-            @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements) {
-                Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
-                return t.equals(result) ? t : result;
-            }
-
-            @Override public Type forVarargTupleTypeOnly(VarargTupleType t, List<Type> normalElements,
-                                                         Type normalVarargs) {
-                // the varargs type can be treated like just another tuple element, as far as
-                // normalization is concerned, unless the varargs type is Bottom
-                if (normalVarargs.equals(BOTTOM)) {
-                    return handleAbstractTuple(normalElements, MAKE_TUPLE);
-                }
-                else {
-                    Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
-                        public Type value(Iterable<Type> ts) {
-                            if (IterUtil.isEmpty(ts)) { return VOID; }
-                            else {
-                                List<Type> elts = makeList(skipLast(ts));
-                                Type varargs = last(ts);
-                                return new VarargTupleType(NodeFactory.makeSpan(elts, varargs), elts, varargs);
-                            }
+                @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements,
+                                                       Option<Type> normalVarargs) {
+                    if ( normalVarargs.isNone() ) {
+                        Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
+                        return t.equals(result) ? t : result;
+                    } else {
+                        // the varargs type can be treated like just another tuple element, as far as
+                        // normalization is concerned, unless the varargs type is Bottom
+                        if (normalVarargs.unwrap().equals(BOTTOM)) {
+                            return handleAbstractTuple(normalElements, MAKE_TUPLE);
                         }
-                    };
-                    Type result = handleAbstractTuple(compose(normalElements, normalVarargs),
-                                                      factory);
-                    return t.equals(result) ? t : result;
+                        else {
+                            Lambda<Iterable<Type>, Type> factory = new Lambda<Iterable<Type>, Type>() {
+                                public Type value(Iterable<Type> ts) {
+                                    if (IterUtil.isEmpty(ts)) { return VOID; }
+                                    else {
+                                        List<Type> elts = makeList(skipLast(ts));
+                                        Type varargs = last(ts);
+                                        return new TupleType(NodeFactory.makeSpan(elts, varargs),
+                                                             elts, Option.<Type>some(varargs));
+                                    }
+                                }
+                            };
+                            Type result = handleAbstractTuple(compose(normalElements, normalVarargs.unwrap()),
+                                                              factory);
+                            return t.equals(result) ? t : result;
+                        }
+                    }
                 }
-            }
 
             private Type handleAbstractTuple(Iterable<Type> normalElements,
                                              final Lambda<Iterable<Type>, Type> factory) {
@@ -454,7 +455,9 @@ public class TypeAnalyzer {
                 @Override public ConstraintFormula forType(Type t) { return null; }
 
                 @Override public
-                ConstraintFormula forVarargTupleType(final VarargTupleType t) {
+                ConstraintFormula forTupleType(final TupleType t) {
+                    if ( t.getVarargs().isSome() ) {
+
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
                             // defer to handling of s
@@ -470,13 +473,13 @@ public class TypeAnalyzer {
                             return voidSubVararg(s, t, h);
                         }
                         @Override public ConstraintFormula forTupleType(TupleType s) {
-                            return tupleSubVararg(s, t, h);
-                        }
-                        @Override public
-                        ConstraintFormula forVarargTupleType(VarargTupleType s) {
-                            return varargSubVararg(s, t, h);
+                            if ( s.getVarargs().isSome() )
+                                return varargSubVararg(s, t, h);
+                            else return tupleSubVararg(s, t, h);
                         }
                     });
+                    } else
+                        return null;
                 }
 
                 @Override public ConstraintFormula forVarType(final VarType t) {
@@ -657,29 +660,29 @@ public class TypeAnalyzer {
         else { return FALSE; }
     }
 
-    private ConstraintFormula voidSubVararg(VoidType s, VarargTupleType t, SubtypeHistory h) {
+    private ConstraintFormula voidSubVararg(VoidType s, TupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 0), h);
     }
 
-    private ConstraintFormula traitSubVararg(TraitType s, VarargTupleType t, SubtypeHistory h) {
+    private ConstraintFormula traitSubVararg(TraitType s, TupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 1), h);
     }
 
-    private ConstraintFormula anySubVararg(AnyType s, VarargTupleType t, SubtypeHistory h) {
+    private ConstraintFormula anySubVararg(AnyType s, TupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, 1), h);
     }
 
-    private ConstraintFormula tupleSubVararg(TupleType s, VarargTupleType t, SubtypeHistory h) {
+    private ConstraintFormula tupleSubVararg(TupleType s, TupleType t, SubtypeHistory h) {
         return sub(s, varargDisjunct(t, s.getElements().size()), h);
     }
 
-    private ConstraintFormula varargSubVararg(VarargTupleType s, VarargTupleType t,
+    private ConstraintFormula varargSubVararg(TupleType s, TupleType t,
                                               SubtypeHistory h) {
         int n = s.getElements().size();
         // if t is too wide, this results in false:
         ConstraintFormula f = sub(varargDisjunct(s, n), varargDisjunct(t, n), h);
         if (!f.isFalse()) {
-            f = f.and(sub(s.getVarargs(), t.getVarargs(), h), h);
+            f = f.and(sub(s.getVarargs().unwrap(), t.getVarargs().unwrap(), h), h);
         }
         return f;
     }

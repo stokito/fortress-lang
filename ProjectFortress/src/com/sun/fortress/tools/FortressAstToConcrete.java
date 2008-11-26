@@ -2172,28 +2172,22 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forTupleTypeOnly(TupleType that,
-                                             List<String> elements_result) {
+                                             List<String> elements_result,
+                                             Option<String> varargs_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( "(" );
         s.append( join(elements_result, ", ") );
+        if ( varargs_result.isSome() ) {
+            s.append( "(* " );
+            s.append( ", " );
+            s.append( varargs_result.unwrap() );
+            s.append( "...)" );
+            s.append( " *)" );
+        }
         s.append( ")" );
 
         return s.toString();
-    }
-
-    @Override public String forVarargTupleTypeOnly(VarargTupleType that,
-                                                   List<String> elements_result,
-                                                   String varargs_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( "(" );
-        s.append( join(elements_result, ", ") );
-        s.append( ", " );
-        s.append( varargs_result );
-        s.append( "...)" );
-
-        return "(* " + s.toString() + " *)";
     }
 
     @Override public String forVoidTypeOnly(VoidType that) {

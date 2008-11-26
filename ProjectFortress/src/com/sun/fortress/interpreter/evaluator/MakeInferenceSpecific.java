@@ -29,7 +29,6 @@ import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.Domain;
@@ -135,20 +134,16 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     }
 
     /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVarargTupleType(com.sun.fortress.nodes.VarargTupleType)
-     */
-    @Override
-    public void forVarargTupleType(VarargTupleType that) {
-        // TODO: implement
-        NI.nyi("Can't yet handle varargs tuples");
-    }
-
-    /* (non-Javadoc)
      * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forTupleType(com.sun.fortress.nodes.TupleType)
      */
     @Override
     public void forTupleType(TupleType that) {
-        acceptList(that.getElements(), this);
+        if ( that.getVarargs().isSome() ) {
+            // TODO: implement
+            NI.nyi("Can't yet handle varargs tuples");
+        } else {
+            acceptList(that.getElements(), this);
+        }
     }
 
     /* (non-Javadoc)

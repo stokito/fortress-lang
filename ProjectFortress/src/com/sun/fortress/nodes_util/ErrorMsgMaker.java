@@ -355,16 +355,15 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName());
     }
 
-    public String forVarargTupleType(VarargTupleType node) {
-        return
-            "(" +
-            Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-            node.getVarargs().accept(this) + "..." +
-            ")";
-    }
-
     public String forTupleType(TupleType node) {
-        return Useful.listInDelimiters("(", mapSelf(node.getElements()), ")");
+        if ( node.getVarargs().isNone() )
+            return Useful.listInDelimiters("(", mapSelf(node.getElements()), ")");
+        else
+            return
+                "(" +
+                Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
+                node.getVarargs().unwrap().accept(this) + "..." +
+                ")";
     }
 
     public String forTypeArg(TypeArg node) {
