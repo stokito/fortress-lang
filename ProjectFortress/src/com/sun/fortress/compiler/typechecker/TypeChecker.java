@@ -254,7 +254,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						else { // VarargParam, add until the sizes are equal
 							int to_add = arg_size - typeCount;
 							while( to_add > 0 ) {
-								arg0.add(((VarargsParam)arg1).getType());
+                                                            arg0.add(((VarargsParam)arg1).getVarargsType().unwrap());
 								to_add--;
 							}
 							return arg0;
@@ -619,7 +619,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 									public Type forNormalParam(NormalParam that) { return that.getType().unwrap(); }
 
 									@Override
-									public Type forVarargsParam(VarargsParam that) { return that.getType(); }
+									public Type forVarargsParam(VarargsParam that) { return that.getVarargsType().unwrap(); }
 								});
 
 							return Option.some(field_type);
@@ -2388,7 +2388,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 			if(p instanceof VarargsParam){
 				VarargsParam v = (VarargsParam) p;
-				dlist.add(v.getType());
+				dlist.add(v.getVarargsType().unwrap());
 				varargs=true;
 			}
 		}

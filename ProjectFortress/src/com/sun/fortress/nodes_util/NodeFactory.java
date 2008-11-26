@@ -952,16 +952,17 @@ public class NodeFactory {
         }
 
     public static VarargsParam makeVarargsParam(Id name, Type type) {
-        return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(), name, type);
+        return new VarargsParam(name.getSpan(), Collections.<Modifier>emptyList(),
+                                name, Option.<Type>some(type));
     }
 
     public static VarargsParam makeVarargsParam(VarargsParam param, List<Modifier> mods) {
-        return new VarargsParam(param.getSpan(), mods, param.getName(), param.getType());
+        return new VarargsParam(param.getSpan(), mods, param.getName(), param.getVarargsType());
     }
 
     public static VarargsParam makeVarargsParam(Span span, List<Modifier> mods,
-            Id name, Type type) {
-        return new VarargsParam(span, mods, name, type);
+                                                Id name, Type type) {
+        return new VarargsParam(span, mods, name, Option.<Type>some(type));
     }
 
     public static NormalParam makeAbsParam(Type type) {

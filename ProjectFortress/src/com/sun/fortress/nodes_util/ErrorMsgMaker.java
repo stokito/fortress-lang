@@ -334,7 +334,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         StringBuffer sb = new StringBuffer();
         sb.append(NodeUtil.nameString(node.getName()));
         sb.append(":");
-        sb.append(node.getType().accept(this));
+        sb.append(node.getVarargsType().unwrap().accept(this));
         sb.append("...");
 
         return sb.toString();

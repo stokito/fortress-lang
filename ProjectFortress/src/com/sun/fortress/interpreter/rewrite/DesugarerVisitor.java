@@ -109,7 +109,6 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFieldRef;

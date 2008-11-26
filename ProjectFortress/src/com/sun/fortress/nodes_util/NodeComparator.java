@@ -214,7 +214,7 @@ public class NodeComparator {
             x = compareOptionalType(((NormalParam)left).getType(), ((NormalParam)right).getType());
         }
         if ((left instanceof VarargsParam) && (right instanceof VarargsParam)) {
-            x = compare(((VarargsParam)left).getType(), ((VarargsParam)right).getType());
+            x = compareOptionalType(((VarargsParam)left).getVarargsType(), ((VarargsParam)right).getVarargsType());
         }
         if (x != 0) return x;
         // TODO default expr, mods, must enter into comparison also.
