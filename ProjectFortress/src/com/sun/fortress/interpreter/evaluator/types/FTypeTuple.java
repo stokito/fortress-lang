@@ -33,7 +33,6 @@ import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarargTupleType;
 import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
@@ -381,13 +380,14 @@ public class FTypeTuple extends FType {
             vargs = Option.none();
         }
         else if (val instanceof TupleType) {
-            elements = ((TupleType) val).getElements();
-            vargs = Option.none();
-        }
-        else if (val instanceof VarargTupleType) {
-            VarargTupleType tup = (VarargTupleType) val;
-            elements = tup.getElements();
-            vargs = Option.some(tup.getVarargs());
+            TupleType _val = (TupleType) val;
+            if ( _val.getVarargs().isNone() ) {
+                elements = _val.getElements();
+                vargs = Option.none();
+            } else {
+                elements = _val.getElements();
+                vargs = Option.some(_val.getVarargs().unwrap());
+            }
         }
         else { return false; }
         return unifyTuple(env, tp_set, abm, elements, vargs);

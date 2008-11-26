@@ -409,16 +409,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     @Override
-    public FType forVarargTupleType(VarargTupleType tt) {
-        List<FType> elts = getFTypeListFromList(tt.getElements());
-        elts.add(FTypeRest.make(tt.getVarargs().accept(this)));
-        return FTypeTuple.make(elts);
-    }
-
-    @Override
     public FType forTupleType(TupleType tt) {
-        List<FType> elts = getFTypeListFromList(tt.getElements());
-        return FTypeTuple.make(elts);
+        if ( tt.getVarargs().isNone() ) {
+            List<FType> elts = getFTypeListFromList(tt.getElements());
+            return FTypeTuple.make(elts);
+        } else {
+            List<FType> elts = getFTypeListFromList(tt.getElements());
+            elts.add(FTypeRest.make(tt.getVarargs().unwrap().accept(this)));
+            return FTypeTuple.make(elts);
+        }
     }
 
     /* (non-Javadoc)

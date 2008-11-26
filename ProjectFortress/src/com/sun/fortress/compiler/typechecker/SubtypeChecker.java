@@ -378,7 +378,7 @@ public abstract class SubtypeChecker {
         return (t instanceof AbstractArrowType);
     }
     private boolean isTuple(Type t) {
-        return (t instanceof AbstractTupleType);
+        return (t instanceof TupleType);
     }
     private boolean isInst(Type t) {
         return (t instanceof TraitType);
@@ -396,7 +396,8 @@ public abstract class SubtypeChecker {
         return (t instanceof IntersectionType);
     }
     private boolean isVarargTupleType(Type t) {
-        return (t instanceof VarargTupleType);
+        return (t instanceof TupleType &&
+                ((TupleType)t).getVarargs().isSome());
     }
 
     private boolean isTypeArg(StaticArg t) {
@@ -597,7 +598,6 @@ public abstract class SubtypeChecker {
      * 1) The following types are not yet supported:
      *
      *        _InferenceVarType(Object id, int index = -1);
-     *        VarargTupleType(Type varargs);
      *        abstract DimExpr();
      *            ExponentType(Type base, IntExpr power);
      *            BaseDim();
@@ -718,30 +718,28 @@ public abstract class SubtypeChecker {
             //          -----------------------------------
             //           p; Delta |- (s, ...) <: (t, ...)
             if (isTuple(s) && isTuple(t)) {
-                if (s instanceof VarargTupleType && t instanceof VarargTupleType) {
-                    VarargTupleType ss = (VarargTupleType)s;
-                    VarargTupleType tt = (VarargTupleType)t;
+                TupleType ss = (TupleType)s;
+                TupleType tt = (TupleType)t;
+                if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
-                    List<Type> spadded = pad(stypes, ss.getVarargs(), padLength);
-                    List<Type> tpadded = pad(ttypes, tt.getVarargs(), padLength);
+                    List<Type> spadded = pad(stypes, ss.getVarargs().unwrap(), padLength);
+                    List<Type> tpadded = pad(ttypes, tt.getVarargs().unwrap(), padLength);
                     for (Pair<Type, Type> p : IterUtil.zip(spadded, tpadded)) {
                         if (!subtype(p.first(), p.second(), history)) {
                             return FALSE;
                         }
                     }
                     // Check that varargs are subtypes
-                    if (!subtype(ss.getVarargs(), tt.getVarargs())) {
+                    if (!subtype(ss.getVarargs().unwrap(), tt.getVarargs().unwrap())) {
                         return FALSE;
                     }
                     return TRUE;
-                } else if (s instanceof VarargTupleType || t instanceof VarargTupleType) {
-                    // only one is a VarargTupleType
+                } else if (ss.getVarargs().isSome() || tt.getVarargs().isSome()) {
+                    // only one has a varargs parameter
                     return FALSE;
                 } else { // s instanceof TupleType && s instanceof TupleType
-                    TupleType ss = (TupleType)s;
-                    TupleType tt = (TupleType)t;
                     List<Type> types = tt.getElements();
                     if (ss.getElements().size() != types.size()) {
                         return FALSE;

@@ -652,6 +652,9 @@ interface Node() extends HasAt;
              * e.g.) x: ZZ32 = 3
              * e.g.) self
              * e.g.) x: String...
+             *
+             * <varargsType>
+             * It is a varargs parameter if the varargsType field is set.
              */
             Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
                   Id name,
@@ -1356,19 +1359,14 @@ interface Node() extends HasAt;
                         TaggedUnitType(Expr unit);
                 /**
                  * tuple-like types
+                 * TupleType ::= ( Type, TypeList )
+                 * e.g.) (ZZ32, String)
+                 *
+                 * <varargs>
+                 * It has a varargs parameter if the varargs field is set.
                  */
-                abstract AbstractTupleType(List<Type> elements);
-                    /**
-                     * tuple type
-                     * TupleType ::= ( Type, TypeList )
-                     * e.g.) (ZZ32, String)
-                     */
-                    TupleType();
-                    /**
-                     * Used internally to represent an infinite union of
-                     * TupleTypes.
-                     */
-                    VarargTupleType(Type varargs);
+                TupleType(List<Type> elements,
+                          Option<Type> varargs = Option.<Type>none());
                 /**
                  * void type
                  * NonArrowType ::= ()

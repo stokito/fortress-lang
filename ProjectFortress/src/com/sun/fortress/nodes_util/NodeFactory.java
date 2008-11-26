@@ -1271,12 +1271,9 @@ public class NodeFactory {
                 return new TraitType(t.getSpan(), true, t.getName(),
                         t.getArgs());
             }
-            public Type forVarargTupleType(VarargTupleType t) {
-                return new VarargTupleType(t.getSpan(), true, t.getElements(),
-                        t.getVarargs());
-            }
             public Type forTupleType(TupleType t) {
-                return new TupleType(t.getSpan(), true, t.getElements());
+                return new TupleType(t.getSpan(), true, t.getElements(),
+                                     t.getVarargs());
             }
             public Type forVoidType(VoidType t) {
                 return new VoidType(t.getSpan(), true);

@@ -2394,10 +2394,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         varargs=true;
                     }
 		}
-		AbstractTupleType domain;
+		TupleType domain;
 		if(varargs){
 			Type var = dlist.remove(dlist.size()-1);
-			domain = new VarargTupleType(that.getSpan(), dlist,var);
+			domain = new TupleType(that.getSpan(), dlist, Option.<Type>some(var));
 		}
 		else{
 			domain = NodeFactory.makeTupleType(dlist);

@@ -380,14 +380,13 @@ public class NodeComparator {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }
 
-    static int compare(VarargTupleType left, VarargTupleType right) {
-        int x = typeListComparer.compare(left.getElements(), right.getElements());
-        if (x != 0) return x;
-        return compare(left.getVarargs(), right.getVarargs());
-    }
-
     static int compare(TupleType left, TupleType right) {
-        return typeListComparer.compare(left.getElements(), right.getElements());
+        if ( left.getVarargs().isSome() && right.getVarargs().isSome() ) {
+            int x = typeListComparer.compare(left.getElements(), right.getElements());
+            if (x != 0) return x;
+            return compare(left.getVarargs().unwrap(), right.getVarargs().unwrap());
+        } else
+            return typeListComparer.compare(left.getElements(), right.getElements());
     }
 
     static int compare(TypeArg left, TypeArg right) {
@@ -423,8 +422,6 @@ public class NodeComparator {
             return compare((ArrowType) left, (ArrowType) right);
         } else if (left instanceof VoidType) {
             return 0;
-        } else if (left instanceof VarargTupleType) {
-            return compare((VarargTupleType) left, (VarargTupleType) right);
         } else if (left instanceof TupleType) {
             return compare((TupleType) left, (TupleType) right);
         } else if (left instanceof TaggedDimType) {

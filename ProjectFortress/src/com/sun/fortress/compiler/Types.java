@@ -44,7 +44,7 @@ import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 public final class Types {
 
     private Types() {}
-    
+
     private static Span span = NodeFactory.makeSpan("If you see this, it is a bug.");
 
     public static final Id ANY_NAME = makeId("AnyType", "Any");
@@ -52,7 +52,7 @@ public final class Types {
     // TODO: Replace ImmutableArray with ImmutableHeapSequence when
     //       ImmutableHeapSequence is put into the libraries.
     public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary, "ImmutableArray");
-    
+
     public static final AnyType ANY = new AnyType(span);
     public static final BottomType BOTTOM = new BottomType(span);
     public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
@@ -225,24 +225,24 @@ public final class Types {
      * Note that the result is defined for all arities, but may sometimes be
      * Bottom.
      */
-    public static Type varargDisjunct(VarargTupleType t, int arity) {
+    public static Type varargDisjunct(TupleType t, int arity) {
         List<Type> base = t.getElements();
         int baseSize = base.size();
         if (baseSize > arity) { return BOTTOM; }
         else {
-            Iterable<Type> rest = IterUtil.copy(t.getVarargs(), arity-baseSize);
+            Iterable<Type> rest = IterUtil.copy(t.getVarargs().unwrap(), arity-baseSize);
             return makeTuple(IterUtil.compose(base, rest));
         }
     }
 
     /**
      * Produce a type representing a Domain with any keyword types removed.
-     * May return a TupleType, a VoidType, a VarargTupleType, or a type
+     * May return a TupleType, a VoidType, a TupleType with varargs, or a type
      * representing a singleton argument.
      */
     public static Type stripKeywords(Domain d) {
         if (d.getVarargs().isSome()) {
-            return new VarargTupleType(NodeFactory.makeSpan(d.getArgs(), d.getVarargs().unwrap()), d.getArgs(), d.getVarargs().unwrap());
+            return new TupleType(NodeFactory.makeSpan(d.getArgs(), d.getVarargs().unwrap()), d.getArgs(), d.getVarargs());
         }
         else {
             List<Type> args = d.getArgs();
@@ -293,11 +293,11 @@ public final class Types {
                 return new Domain(NodeFactory.makeSpan("Types_bogus_span_for_empty_list", keywords), Collections.<Type>emptyList(), keywords);
             }
             @Override public Domain forTupleType(TupleType t) {
-                return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
-            }
-            @Override public Domain forVarargTupleType(VarargTupleType t) {
-                return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), Option.some(t.getVarargs()),
-                                  keywords);
+                if ( t.getVarargs().isNone() )
+                    return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
+                else
+                    return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), t.getVarargs(),
+                                      keywords);
             }
             @Override public Domain forType(Type t) {
                 return new Domain(NodeFactory.makeSpan(t, keywords), Collections.singletonList(t), keywords);
