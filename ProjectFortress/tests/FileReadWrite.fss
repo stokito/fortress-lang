@@ -63,7 +63,7 @@ genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: St
     rs3.close()
     shouldBeTheSame(s,res3,"Generated sequentially via comprehension using ",desc)
   end
-  
+
 createTestFile(fout: WriteStream): String = do
       s0 = "Writing into a file..."//
       s1 = "Writing again..."//
@@ -77,8 +77,13 @@ createTestFile(fout: WriteStream): String = do
   end
 
 run(args:String...) = do
+  (* This is commented out because at present using the handle detaches it from Java-land
+     so that output to System.err gets lost.  This works apart from that little shortcoming.
+  t = createTestFile(stdErr)
+  *)
+
   s = createTestFile(Writer("testFile.txt"))
-  
+
   (* Note that we can't distinguish the non-terminated final line when
      we use readLine.  We'll always get a final empty line. *)
   streamTest(s//, "\n", fn (rs) => rs.readLine(),"readLine")
@@ -96,7 +101,7 @@ run(args:String...) = do
   genTest[\String\](s, "", fn (rs) => rs.chunks(), "chunks()")
   genTest[\Char\](s, "", fn (rs) => rs.chunks().nest[\Char\](identity[\String\]),
                "exploded characters")
-  
+
   _ = createTestFile(BufferedWriter(Writer("testFile.txt"), 23))
   streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
 end

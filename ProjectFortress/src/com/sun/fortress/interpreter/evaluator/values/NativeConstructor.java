@@ -30,11 +30,12 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.nodes.GenericWithParams;
 import com.sun.fortress.useful.HasAt;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 public abstract class NativeConstructor extends Constructor {
 
-    private volatile Environment selfEnv;
-    private volatile Environment lexEnv;
-    
+    private Environment selfEnv;
+
     private static List<NativeConstructor> nativeConstructors = new Vector<NativeConstructor>();
 
     public NativeConstructor(Environment env,
@@ -49,7 +50,7 @@ public abstract class NativeConstructor extends Constructor {
             n.unregister();
         nativeConstructors.clear();
     }
-    
+
     abstract protected void unregister();
 
     public Environment getSelfEnv() {
@@ -57,7 +58,7 @@ public abstract class NativeConstructor extends Constructor {
     }
 
     public Environment getLexicalEnv() {
-        return lexEnv;
+        return getWithin();
     }
 
     protected FValue check(FValue x) {
@@ -99,45 +100,40 @@ public abstract class NativeConstructor extends Constructor {
      */
     @Override
     public FValue applyConstructor(
-            List<FValue> args, HasAt loc, Environment lex_env) {
-        if (!finished) {
-            bug(loc, "applyConstructor before finished!");
-        }
-
-        if (selfEnv == null) {
-            initializeSelfEnv(args, loc, lex_env);
-        }
-
+            List<FValue> args, HasAt loc) {
         return makeNativeObject(args, this);
     }
 
-    private void initializeSelfEnv(List<FValue> args, HasAt loc, Environment lex_env) {
+    @Override
+    public void finishInitializing() {
+        super.finishInitializing();
+        initializeSelfEnv();
+    }
+
+    private void initializeSelfEnv() {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
 
-        Environment self_env =
-            buildEnvFromEnvAndParams(methodsEnv, args, loc);
+        Environment self_env = methodsEnv.extendAt(getAt());
 
         // TODO this is WRONG.  The vars need to be inserted into
         // self, but get evaluated against the larger (lexical)
         // environment.  Arrrrrrrggggggh.
 
         self_env.bless(); // HACK we add to this later.
+
         // This should go wrong if one of the vars has closure value
         // or objectExpr value.
         if (defs.size() > 0) {
+            Environment lex_env = getWithin();
             EvalVarsEnvironment eve =
                 new EvalVarsEnvironment(lex_env.extend(self_env), self_env);
             visitDefs(eve); // HACK here's where we add to self_env.
         }
 
-        synchronized (this) {
-            if (selfEnv != null) return;
-            oneTimeInit(self_env);
-            lexEnv = lex_env;
-            selfEnv = self_env;
-        }
+        oneTimeInit(self_env);
+        selfEnv = self_env;
     }
 
     /**

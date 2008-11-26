@@ -44,7 +44,7 @@ public class BetterEnv extends BaseEnv
 
     /** (Lexical) ancestor environment */
     protected Environment parent;
- 
+
     private final static Comparator<String> comparator = StringHashComparer.V;
 
     public void visit(Visitor2<String, FType> vt,
@@ -129,7 +129,7 @@ public class BetterEnv extends BaseEnv
     /**
      * Creates a new type environment starting with existing (the nominal parent)
      * but with additions added.
-     * 
+     *
      * @param existing
      * @param additions
      */
@@ -140,22 +140,22 @@ public class BetterEnv extends BaseEnv
         parent = existing;
         bless();
     }
-    
+
     protected BetterEnv(BetterEnv existing, Environment additions) {
         this(existing);
         if ( !existing.getBlessed() || !additions.getBlessed() )
             bug(within,existing,"Internal error, attempt to copy environment still under construction");
-        
+
         if (additions instanceof BetterEnv) {
             augment(existing, (BetterEnv) additions);
         } else {
             augment(additions);
         }
-        
-        
+
+
         bless();
     }
-    
+
     private void augment(BetterEnv existing, BetterEnv additions) {
         type_env = augment(existing.type_env, additions.type_env);
         nat_env = augment(existing.nat_env, additions.nat_env);
@@ -207,8 +207,8 @@ public class BetterEnv extends BaseEnv
             BATreeNode<String, Result> new_table = table.add(index, value, comparator);
             return new_table;
         }
-    }     
- 
+    }
+
 
     public Environment extend(BetterEnv additions) {
         return new BetterEnv(this, additions);
@@ -229,7 +229,7 @@ public class BetterEnv extends BaseEnv
         return new BetterEnv(this, this.getAt());
     }
 
-      public Appendable dump(Appendable a) throws IOException {
+    public Appendable dump(Appendable a) throws IOException {
         if (within!=null) {
             a.append(within.at());
             a.append("\n");
@@ -265,13 +265,13 @@ public class BetterEnv extends BaseEnv
     }
 
     public String toString() {
-		StringBuffer sb = new StringBuffer();
-		try {
-			dump(sb);
-		} catch (java.io.IOException e) {
-		}
-		return sb.toString();
-	}
+        StringBuffer sb = new StringBuffer();
+        try {
+            dump(sb);
+        } catch (java.io.IOException e) {
+        }
+        return sb.toString();
+    }
 
     public Boolean getBoolNull(String str) {
         Boolean v = get(bool_env, str);
@@ -303,7 +303,7 @@ public class BetterEnv extends BaseEnv
 
         return v;
     }
- 
+
     public void putTypeRaw(String str, FType f2) {
         type_env = put(type_env, str, f2);
     }
@@ -325,7 +325,7 @@ public class BetterEnv extends BaseEnv
         Environment e = get(api_env, apiName);
         return e;
     }
-    
+
     public void putApi(String apiName, Environment env) {
         api_env = put(api_env, apiName, env);
     }
@@ -342,7 +342,7 @@ public class BetterEnv extends BaseEnv
             return;
         var_env = var_env.delete(s, comparator);
     }
-    
+
     public Environment getTopLevel() {
         return bug("This should have been an environment with a Top Level");
     }
