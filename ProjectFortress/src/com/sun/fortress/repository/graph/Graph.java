@@ -52,6 +52,10 @@ public class Graph<GNode extends GraphNode>{
 		}
 	}
 
+	public String toString() {
+	    return getDebugString();
+	}
+	
 	public String getDebugString(){
 		String retString = "";
 		for ( Map.Entry<GNode,List<GNode>> entry : edges.entrySet() ){
