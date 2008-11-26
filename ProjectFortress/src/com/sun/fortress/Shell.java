@@ -902,10 +902,10 @@ public final class Shell {
      * The fields of this class serve as temporary switches used for testing.
      */
     private static class CompileProperties {
-        boolean preparse = true;    // run syntax abstraction or not
-        boolean type_check = false; // run type checker or not
-        boolean objExpr_desugar = false; // run obj expression desugaring or not
-        boolean getter_setter_desugar = true; // run getter/setter desugaring or not
+        boolean preparse = ProjectProperties.getBoolean("fortress.compile.preparse", true);    // run syntax abstraction or not
+        boolean type_check = ProjectProperties.getBoolean("fortress.compile.typecheck", false); // run type checker or not
+        boolean objExpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.objexpr", false); // run obj expression desugaring or not
+        boolean getter_setter_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.getset", true); // run getter/setter desugaring or not
     }
 
 }
