@@ -379,7 +379,13 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
         </move>
         <move todir="${library}">
           <fileset dir="${astgen.src}">
-            <include name="FortressAst.*" />
+            <include name="FortressAst.fss" />
+            <include name="FortressAst.fsi" />
+          </fileset>
+        </move>
+        <move todir="${astgen.src}">
+          <fileset dir="${astgen.src}">
+            <include name="FortressAst.scala" />
           </fileset>
         </move>
     </target>
