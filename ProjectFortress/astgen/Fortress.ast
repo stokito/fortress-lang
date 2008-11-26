@@ -665,7 +665,7 @@ interface Node() extends HasAt;
                  * Varargs ::= BindId : Type ...
                  * e.g.) x: String...
                  */
-                VarargsParam(Type type);
+                VarargsParam(Option<Type> varargsType = Option.<Type>none());
             /**
              * expression
              */

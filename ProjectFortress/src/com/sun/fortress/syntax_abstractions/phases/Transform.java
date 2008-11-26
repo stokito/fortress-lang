@@ -316,7 +316,7 @@ public class Transform extends TemplateUpdateVisitor {
                     */
                     return new NormalParam(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
                 }
-                public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Type type_result) {
+                public Node forVarargsParamOnly(VarargsParam that, List<Modifier> mods_result, Id name_result, Option<Type> type_result) {
                     Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
                     Id old = (Id) name_result.accept(transformer);
                     Id generatedId = generateId(old);

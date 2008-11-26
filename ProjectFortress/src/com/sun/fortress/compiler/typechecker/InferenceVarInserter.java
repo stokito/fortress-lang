@@ -32,7 +32,6 @@ import com.sun.fortress.nodes.NormalParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VarargsParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 

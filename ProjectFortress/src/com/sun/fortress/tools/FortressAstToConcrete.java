@@ -704,14 +704,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forVarargsParamOnly(VarargsParam that,
                                                 List<String> mods_result,
                                                 String name_result,
-                                                String type_result) {
+                                                Option<String> type_result) {
         StringBuilder s = new StringBuilder();
 
         for ( String mod : mods_result ){
             s.append( mod ).append( " " );
         }
         s.append( name_result );
-        s.append( handleType(type_result) );
+        s.append( handleType(type_result.unwrap()) );
         s.append( "..." );
 
         return s.toString();
