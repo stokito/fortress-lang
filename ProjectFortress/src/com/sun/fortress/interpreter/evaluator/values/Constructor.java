@@ -59,7 +59,7 @@ public class Constructor extends NonPrimitive {
 
     // TODO need to be more organized about all the names
     // that get rewritten.
- //   public HashSet<String> parameterNames = new HashSet<String>();
+    //   public HashSet<String> parameterNames = new HashSet<String>();
 
     private HasAt at;
     protected FTypeObject selfType;
@@ -204,16 +204,16 @@ public class Constructor extends NonPrimitive {
 
     private void finishInitializing(Environment bte) {
 
-       // HashSet<String> fields = new HashSet<String>();
-         // HashMap<String, String> com.sun.fortress.interpreter.rewrite =
+        // HashSet<String> fields = new HashSet<String>();
+        // HashMap<String, String> com.sun.fortress.interpreter.rewrite =
         //  new HashMap<String, String>();
 
-      //  BuildObjectEnvironment bt =
-      //      new BuildObjectEnvironment(bte, selfType.getWithin(), selfType, fields);
+        //  BuildObjectEnvironment bt =
+        //      new BuildObjectEnvironment(bte, selfType.getWithin(), selfType, fields);
 
         // Inject methods into this environment
         // This should create new MethodClosures
-       // visitDefs(bt);
+        // visitDefs(bt);
 
         GHashMap<SingleFcn, FTraitOrObject>
         signaturesToTraitsContainingMethods =
@@ -562,8 +562,7 @@ public class Constructor extends NonPrimitive {
     @Override
     public FValue applyInner(
             List<FValue> args, HasAt loc, Environment envForInference) {
-        Environment lex_env = getWithin();
-        return applyConstructor(args, loc, lex_env);
+        return applyConstructor(args, loc);
     }
     /**
      *
@@ -573,13 +572,14 @@ public class Constructor extends NonPrimitive {
      *
      */
     public FValue applyConstructor(
-            List<FValue> args, HasAt loc, Environment lex_env) {
+            List<FValue> args, HasAt loc) {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
 
         Environment self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
 
+        Environment lex_env = getWithin();
         FObject theObject = makeAnObject(lex_env, self_env);
 
         self_env.putValueRaw(WellKnownNames.secretSelfName, theObject);

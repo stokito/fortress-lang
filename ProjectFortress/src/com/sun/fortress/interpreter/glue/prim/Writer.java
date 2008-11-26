@@ -48,13 +48,13 @@ public class Writer extends NativeConstructor {
     }
 
     @Override
-	protected FNativeObject makeNativeObject(List<FValue> args,
+    protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
         String name = args.get(0).getString();
         try {
             OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(
-					name), Charset.forName("UTF-8"));
-			return new PrimWriter(name, w);
+                    name), Charset.forName("UTF-8"));
+            return new PrimWriter(name, w);
         } catch (FileNotFoundException ex) {
             return error("FileNotFound: "+name);
         }
@@ -65,27 +65,27 @@ public class Writer extends NativeConstructor {
         protected final String name;
 
         public PrimWriter(String name, OutputStreamWriter writer) {
-			super(Writer.con);
+            super(Writer.con);
             this.writer = writer;
             this.name = name;
         }
 
         @Override
-		public NativeConstructor getConstructor() {
+        public NativeConstructor getConstructor() {
             return Writer.con;
         }
 
         @Override
-		public String getString() {
+        public String getString() {
             return "<Writer on \"" + name + "\">";
         }
 
         public OutputStreamWriter getWriter() {
-			return writer;
-		}
-        
+            return writer;
+        }
+
         @Override
-		public boolean seqv(FValue v) {
+        public boolean seqv(FValue v) {
             return (v==this);
         }
     }
@@ -93,7 +93,7 @@ public class Writer extends NativeConstructor {
     private static abstract class w2S extends NativeMeth0 {
         protected abstract String f(PrimWriter r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        protected final FValue act(FObject self) {
             try {
                 return FString.make(f((PrimWriter)self));
             } catch (IOException e) {
@@ -104,9 +104,9 @@ public class Writer extends NativeConstructor {
 
     private static abstract class wS2V extends NativeMeth1 {
         protected abstract void f(java.io.Writer r, String s)
-				throws IOException;
+                throws IOException;
         @Override
-		protected final FValue act(FObject self, FValue s) {
+        protected final FValue act(FObject self, FValue s) {
             try {
                 f(((PrimWriter)self).writer, s.getString());
                 return FVoid.V;
@@ -119,7 +119,7 @@ public class Writer extends NativeConstructor {
     private static abstract class w2V extends NativeMeth0 {
         protected abstract void f(java.io.Writer r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        protected final FValue act(FObject self) {
             try {
                 f(((PrimWriter)self).writer);
                 return FVoid.V;
@@ -131,58 +131,58 @@ public class Writer extends NativeConstructor {
 
     public static final class fileName extends w2S {
         @Override
-		protected final String f(PrimWriter r) {
+        protected final String f(PrimWriter r) {
             return r.name;
         }
     }
 
     public static final class write extends wS2V {
         @Override
-		protected final void f(java.io.Writer w, String s) throws IOException {
+        protected final void f(java.io.Writer w, String s) throws IOException {
             w.append(s);
         }
     }
 
     public static final class flush extends w2V {
         @Override
-		protected void f(java.io.Writer w) throws IOException {
+        protected void f(java.io.Writer w) throws IOException {
             w.flush();
         }
     }
 
     public static final class close extends w2V {
         @Override
-		protected void f(java.io.Writer w) throws IOException {
+        protected void f(java.io.Writer w) throws IOException {
             w.close();
         }
     }
 
     private static abstract class v2w extends NativeFn0 {
-		protected abstract FileDescriptor fileDescriptor();
+        protected abstract FileDescriptor fileDescriptor();
 
-		@Override
-		protected final PrimWriter act() {
-			FileOutputStream fd = new FileOutputStream(fileDescriptor());
-			OutputStreamWriter stdout = new OutputStreamWriter(fd, Charset
-					.forName("UTF-8"));
-			return new PrimWriter("<stdout>", stdout);
-		}
-	}
+        @Override
+        protected final PrimWriter act() {
+            FileOutputStream fd = new FileOutputStream(fileDescriptor());
+            OutputStreamWriter stdout = new OutputStreamWriter(fd, Charset
+                    .forName("UTF-8"));
+            return new PrimWriter("<stdout>", stdout);
+        }
+    }
 
-	public static final class outputWriter extends v2w {
-		@Override
-		protected FileDescriptor fileDescriptor() {
-			return FileDescriptor.out;
-		}
-	}
+    public static final class outputWriter extends v2w {
+        @Override
+        protected FileDescriptor fileDescriptor() {
+            return FileDescriptor.out;
+        }
+    }
 
-	public static final class errorWriter extends v2w {
-		@Override
-		protected FileDescriptor fileDescriptor() {
-			return FileDescriptor.err;
-		}
-	}
-    
+    public static final class errorWriter extends v2w {
+        @Override
+        protected FileDescriptor fileDescriptor() {
+            return FileDescriptor.err;
+        }
+    }
+
     @Override
     protected void unregister() {
         con = null;
