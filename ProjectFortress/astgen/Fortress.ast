@@ -128,11 +128,6 @@ interface Node() extends HasAt;
         interface _Ellipses(AbstractNode repeatedNode);
 
         /**
-         * type or the domain of an arrow type
-         */
-        interface TypeOrDomain();
-
-        /**
          * top-level node abstract class
          */
         abstract AbstractNode() extends UIDObject;
@@ -1243,8 +1238,7 @@ interface Node() extends HasAt;
             /**
              * type
              */
-            root abstract Type(ignoreForEquals boolean parenthesized = false)
-                          implements TypeOrDomain;
+            root abstract Type(ignoreForEquals boolean parenthesized = false);
                 /**
                  * dimension expression (not really a type, but here for
                  * now because of the way the parser is defined)
@@ -1367,6 +1361,18 @@ interface Node() extends HasAt;
                 TupleType(List<Type> elements,
                           Option<Type> varargs = Option.<Type>none());
                 /**
+                 * domain of an arrow type
+                 * ArgType ::=
+                 *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
+                 *   | ( (Type, )* Type ... )
+                 *   | TupleType
+                 * e.g.) ZZ32
+                 * e.g.) (String, ZZ32, String..., foo=ZZ32)
+                 */
+                Domain(List<Type> args,
+                       Option<Type> varargs = Option.<Type>none(),
+                       List<KeywordType> keywords = Collections.<KeywordType>emptyList());
+                /**
                  * void type
                  * NonArrowType ::= ()
                  * e.g.) ()
@@ -1415,19 +1421,6 @@ interface Node() extends HasAt;
                  * The type of the name given to a label expression.  Used internally.
                  */
                 LabelType();
-            /**
-             * domain of an arrow type
-             * ArgType ::=
-             *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
-             *   | ( (Type, )* Type ... )
-             *   | TupleType
-             * e.g.) ZZ32
-             * e.g.) (String, ZZ32, String..., foo=ZZ32)
-             */
-            Domain(List<Type> args,
-                   Option<Type> varargs = Option.<Type>none(),
-                   List<KeywordType> keywords = Collections.<KeywordType>emptyList())
-                  implements TypeOrDomain;
             /**
              * effect on arrow types
              * e.g.) throws FailCalled
