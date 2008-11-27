@@ -286,8 +286,8 @@ public class NodeComparator {
         return compare(left.getEffect(), right.getEffect());
     }
 
-    static int compare(Domain left, Domain right) {
-        int x = typeListComparer.compare(left.getArgs(), right.getArgs());
+    static int compare(TupleType left, TupleType right) {
+        int x = typeListComparer.compare(left.getElements(), right.getElements());
         if (x != 0) return x;
         x = compareOptionalType(left.getVarargs(), right.getVarargs());
         if (x != 0) return x;
@@ -378,15 +378,6 @@ public class NodeComparator {
 
     static int compare(StaticParam left, StaticParam right) {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
-    }
-
-    static int compare(TupleType left, TupleType right) {
-        if ( left.getVarargs().isSome() && right.getVarargs().isSome() ) {
-            int x = typeListComparer.compare(left.getElements(), right.getElements());
-            if (x != 0) return x;
-            return compare(left.getVarargs().unwrap(), right.getVarargs().unwrap());
-        } else
-            return typeListComparer.compare(left.getElements(), right.getElements());
     }
 
     static int compare(TypeArg left, TypeArg right) {

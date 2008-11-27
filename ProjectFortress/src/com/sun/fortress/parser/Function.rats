@@ -57,18 +57,26 @@ FnDecl FnSig =
            syntaxError(a2.getSpan(),
                        "Abstract function declaration should have an arrow type.");
        }
-       Domain d = ((ArrowType) a2).getDomain();
-       for (Type argT : d.getArgs()) {
-           Id name = new Id(argT.getSpan(), "_");
-           params.add(NodeFactory.makeParam(argT.getSpan(), mods, name, argT));
+       Type d = ((ArrowType) a2).getDomain();
+       if ( d instanceof TupleType ) {
+           TupleType _d = (TupleType)d;
+           for (Type argT : _d.getElements()) {
+               Id name = new Id(argT.getSpan(), "_");
+               params.add(NodeFactory.makeParam(argT.getSpan(), mods, name, argT));
+           }
+           if (_d.getVarargs().isSome()) {
+               Type argT = _d.getVarargs().unwrap();
+               Id name = new Id(argT.getSpan(), "_");
+               params.add(NodeFactory.makeVarargsParam(argT.getSpan(), mods, name, argT));
+           }
+           assert(_d.getKeywords().isEmpty()): "Keyword parameters present"
+               + " in a FnSig: " + _d;
+
+       } else {
+           Id name = new Id(d.getSpan(), "_");
+           params.add(NodeFactory.makeParam(d.getSpan(), mods, name, d));
        }
-       if (d.getVarargs().isSome()) {
-           Type argT = d.getVarargs().unwrap();
-           Id name = new Id(argT.getSpan(), "_");
-           params.add(NodeFactory.makeVarargsParam(argT.getSpan(), mods, name, argT));
-       }
-       assert(d.getKeywords().isEmpty()): "Keyword parameters present"
-                                                     + " in a FnSig: " + d;
+
        /*
        We could do this, if we had a suitable value for bottomExpr:
        for (KeywordType k : d.getKeywords()) {

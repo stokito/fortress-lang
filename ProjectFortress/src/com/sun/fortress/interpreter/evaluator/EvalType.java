@@ -400,8 +400,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType forArrowType(ArrowType at) {
-        Domain domain = at.getDomain();
-        if (!domain.getKeywords().isEmpty()) {
+        Type domain = at.getDomain();
+        if ( domain instanceof TupleType &&
+             ! ((TupleType)domain).getKeywords().isEmpty()) {
             return NI.nyi("Can't interpret a type with keywords");
         }
         return FTypeArrow.make(Types.stripKeywords(domain).accept(this),

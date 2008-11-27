@@ -31,6 +31,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BoolParam;
@@ -38,7 +39,6 @@ import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
@@ -188,18 +188,15 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override public Node forArrowType(final ArrowType that) {
-        // make sure this.forDomain is *not* called
-        Domain domainResult = (Domain) super.forDomain(that.getDomain());
+        Type domain = that.getDomain();
+        Type domainResult;
+        if ( domain instanceof TupleType )
+            domainResult = (Type) super.forTupleType( (TupleType)domain );
+        else
+            domainResult = (Type) domain.accept(this);
         Type rangeResult = (Type) that.getRange().accept(this);
         Effect effectResult = (Effect) that.getEffect().accept(this);
         return forArrowTypeOnly(that, domainResult, rangeResult, effectResult);
-    }
-
-    @Override public Node forDomain(final Domain that) {
-        // valid occurrences of Domain are recognized before this recursive
-        // call takes place
-        error("Tuple types are not allowed to have varargs or keyword types.", that);
-        return that;
     }
 
     @Override public Node forVarType(final VarType that) {

@@ -161,7 +161,7 @@ private Type ParenthesizedType =
      ( w (Type w , w)* (Type w ... w , w)? KeywordType (w , w KeywordType)* w )
    | ( w (Type w , w)* Type w ... w )
  */
-Domain Domain =
+Type Domain =
      openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
      a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
@@ -169,13 +169,14 @@ Domain Domain =
        Option<Type> ts2 = Option.wrap(a2);
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
-       yyValue = new Domain(span, ts1, ts2, ts3);
+       yyValue = NodeFactory.makeDomain(span, ts1, ts2, ts3);
      }
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = FortressUtil.mkList(a1s.list());
        Span span = createSpan(yyStart,yyCount);
        Option<Type> ts2 = Option.some(a2);
-       yyValue = new Domain(span, ts1, ts2);
+       yyValue = NodeFactory.makeDomain(span, ts1, ts2,
+                                        Collections.<KeywordType>emptyList());
      };
 
 /* KeywordType ::= BindId w = w Type */

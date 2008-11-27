@@ -57,7 +57,7 @@ public final class Types {
     public static final BottomType BOTTOM = new BottomType(span);
     public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
 
-    public static final Domain BOTTOM_DOMAIN = NodeFactory.makeDomain(BOTTOM);
+    public static final Type BOTTOM_DOMAIN = BOTTOM;
 
     public static final VoidType VOID = new VoidType(span);
     public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
@@ -240,41 +240,49 @@ public final class Types {
      * May return a TupleType, a VoidType, a TupleType with varargs, or a type
      * representing a singleton argument.
      */
-    public static Type stripKeywords(Domain d) {
-        if (d.getVarargs().isSome()) {
-            return new TupleType(NodeFactory.makeSpan(d.getArgs(), d.getVarargs().unwrap()), d.getArgs(), d.getVarargs());
-        }
-        else {
-            List<Type> args = d.getArgs();
-            switch (args.size()) {
-                case 0: return VOID;
-                case 1: return args.get(0);
-                default: return new TupleType(NodeFactory.makeSpan("impossible", args), args);
+    public static Type stripKeywords(Type d) {
+        if ( d instanceof TupleType ) {
+            TupleType _d = (TupleType)d;
+            if (_d.getVarargs().isSome()) {
+                return new TupleType(NodeFactory.makeSpan(_d.getElements(), _d.getVarargs().unwrap()), _d.getElements(), _d.getVarargs());
             }
-        }
+            else {
+                List<Type> args = _d.getElements();
+                switch (args.size()) {
+                    case 0: return VOID;
+                    case 1: return args.get(0);
+                    default: return new TupleType(NodeFactory.makeSpan("impossible", args), args);
+                }
+            }
+        } else
+            return d;
     }
 
     /**
      * Produce a map from keyword names to types.  The iteration order of the
      * map is identical to that of the KeywordType list.
      */
-    public static Map<Id, Type> extractKeywords(Domain d) {
-        // Don't waste time allocating a map if it will be empty (the usual case)
-        if (d.getKeywords().isEmpty()) { return Collections.<Id, Type>emptyMap(); }
-        else {
-            Map<Id, Type> result = new LinkedHashMap<Id, Type>(8);
-            for (KeywordType k : d.getKeywords()) {
-                result.put(k.getName(), k.getType());
+    public static Map<Id, Type> extractKeywords(Type d) {
+        if ( d instanceof TupleType ) {
+            TupleType _d = (TupleType)d;
+            // Don't waste time allocating a map if it will be empty (the usual case)
+            if (_d.getKeywords().isEmpty()) { return Collections.<Id, Type>emptyMap(); }
+            else {
+                Map<Id, Type> result = new LinkedHashMap<Id, Type>(8);
+                for (KeywordType k : _d.getKeywords()) {
+                    result.put(k.getName(), k.getType());
+                }
+                return result;
             }
-            return result;
-        }
+        } else
+            return Collections.<Id, Type>emptyMap();
     }
 
     /**
      * Construct a Domain from a single type representing the required arguments
      * and a keywords map representing the keyword arguments.
      */
-    public static Domain makeDomain(Type argsType, Map<Id, Type> keywords) {
+    public static Type makeDomain(Type argsType, Map<Id, Type> keywords) {
         List<KeywordType> keywordList = new ArrayList<KeywordType>(keywords.size());
         for (Map.Entry<Id, Type> entry : keywords.entrySet()) {
             keywordList.add(new KeywordType(NodeFactory.makeSpan(entry.getKey(), entry.getValue()), entry.getKey(), entry.getValue()));
@@ -287,20 +295,27 @@ public final class Types {
      * and a list of KeywordTypes.  Unlike {@link NodeFactory#makeDomain}, does
      * not assume that {@code argsType} was produced by the parser.
      */
-    public static Domain makeDomain(Type argsType, final List<KeywordType> keywords) {
-        return argsType.accept(new NodeAbstractVisitor<Domain>() {
-            @Override public Domain forVoidType(VoidType t) {
-                return new Domain(NodeFactory.makeSpan("Types_bogus_span_for_empty_list", keywords), Collections.<Type>emptyList(), keywords);
-            }
-            @Override public Domain forTupleType(TupleType t) {
-                if ( t.getVarargs().isNone() )
-                    return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
+    public static Type makeDomain(Type argsType, final List<KeywordType> keywords) {
+        return argsType.accept(new NodeAbstractVisitor<Type>() {
+            @Override public Type forVoidType(VoidType t) {
+                if ( keywords.isEmpty() )
+                    return t;
                 else
-                    return new Domain(NodeFactory.makeSpan(t, keywords), t.getElements(), t.getVarargs(),
-                                      keywords);
+                    return new TupleType(NodeFactory.makeSpan("Types_bogus_span_for_empty_list", keywords),
+                                         Collections.<Type>emptyList(), keywords);
             }
-            @Override public Domain forType(Type t) {
-                return new Domain(NodeFactory.makeSpan(t, keywords), Collections.singletonList(t), keywords);
+            @Override public Type forTupleType(TupleType t) {
+                if ( t.getVarargs().isNone() )
+                    return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
+                else
+                    return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), t.getVarargs(),
+                                         keywords);
+            }
+            @Override public Type forType(Type t) {
+                if ( keywords.isEmpty() )
+                    return t;
+                else
+                    return new TupleType(NodeFactory.makeSpan(t, keywords), Collections.singletonList(t), keywords);
             }
         });
     }

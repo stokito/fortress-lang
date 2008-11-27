@@ -110,13 +110,13 @@ public class TypeAnalyzerJUTest extends TestCase {
         assertEquals(type("B->A"), norm(t, "(B|C)->A"));
         assertEquals(type("(C->A)&(D->A)"), norm(t, "(C|D)->A"));
         assertEquals(type("C->A"), norm(t, "(B&C)->A"));
-        assertEquals(type("(C&D)->A"), norm(t, "(C&D)->A"));
+        assertEquals(type("C&D->A"), norm(t, "C&D->A"));
         assertEquals(type("&{C->C,C->D,D->C,D->D}"), norm(t, "(C|D)->(C&D)"));
         assertEquals(type("&{A->(C|E),A->(C|F),A->(D|E),A->(D|F)}"), norm(t, "A->(C&D)|(E&F)"));
         assertEquals(type("A->C throws E io"), norm(t, "A->C throws E io"));
         assertEquals(type("Any"), norm(t, "Bottom->C throws E io"));
         assertEquals(type("&{(A,C...)->E,(A,D...)->E}"), norm(t, "(A, (C|D)...)->E"));
-        assertEquals(type("((A,C...)&(A,D...))->E"), norm(t, "(A, (C&D)...)->E"));
+        assertEquals(type("(A,C...)&(A,D...)->E"), norm(t, "(A, (C&D)...)->E"));
         assertEquals(type("(C&D, foo=E&F, bar=G)->A"), norm(t, "(C&D, foo=E&F, bar=G)->A"));
         assertEquals(type("&{(C,foo=E,bar=G)->A,(C,foo=F,bar=G)->A,(D,foo=E,bar=G)->A,(D,foo=F,bar=G)->A}"),
                           norm(t, "(C|D, foo=E|F, bar=G)->A"));
@@ -519,7 +519,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             s = s + " "; // recognize a trailing "io"
             int effectStart = findAtTop(s, " throws ", " io ");
             if (effectStart == -1) { effectStart = s.length(); }
-            Domain d = parseDomain(s.substring(0, opIndex));
+            Type d = parseDomain(s.substring(0, opIndex));
             Type r = parseType(s.substring(opIndex+2, effectStart));
             Effect e = parseEffect(s.substring(effectStart));
             return new ArrowType(span, d, r, e);
@@ -576,7 +576,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         return NodeFactory.makeTraitType(s);
     }
 
-    private static Domain parseDomain(String s) {
+    private static Type parseDomain(String s) {
         s = s.trim();
         // check whether this is entirely enclosed in parens
         if (s.startsWith("(") && findAtTop(s, "->", "&", "|") == -1) {
@@ -598,10 +598,10 @@ public class TypeAnalyzerJUTest extends TestCase {
                     else { args.add(parseType(elt)); }
                 }
             }
-            return new Domain(span, args, varargs, keys);
+            return new TupleType(span, args, varargs, keys);
         }
         else {
-            return new Domain(span, Collections.singletonList(parseType(s)));
+            return parseType(s);
         }
     }
 
