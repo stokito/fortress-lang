@@ -32,7 +32,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\]
         comprises {NodeSet[\E\], EmptySet[\E\]}
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
-    getter asDebugString() = "Set: " || self.showTree()
+    getter asDebugString():String = "Set: " || self.showTree()
     seqgen[\R\](r: Reduction[\R\], body: E->R): R
     ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
     seq(self): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
@@ -114,13 +114,13 @@ opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: Set[\E\] =
 opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\T,Set[\T\]\](fn cc => fromCopiedArray(cc.toArray()))
 
-opr BIG {[\T extends StandardTotalOrder[\T\]\] g:Generator[\T\]} =
+opr BIG {[\T extends StandardTotalOrder[\T\]\] g:Generator[\T\]}:Set[\T\] =
     __bigOperatorSugar[\T,Set[\T\],AnyCovColl,AnyCovColl\](BIG {[\T\]}(), g)
 
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =
     BigReduction[\Set[\R\],Set[\R\]\](Union[\R\])
 
-opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]) =
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]):Set[\R\] =
     __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],Set[\R\]\](BIG UNION[\R\](), g)
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends CommutativeMonoidReduction[\Set[\E\]\]
@@ -133,7 +133,7 @@ opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
         BigReduction[\Set[\R\],AnyMaybe\] =
     BigReduction[\Set[\R\],AnyMaybe\](Intersection[\R\])
 
-opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]) =
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]):Set[\R\] =
     __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],AnyMaybe\](BIG INTERSECTION[\R\](), g)
 
 object Intersection[\E extends StandardTotalOrder[\E\]\]
@@ -423,7 +423,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         else (left,true,right)
         end
 
-    concat3(v:E, t2:NodeSet[\E\]) = do
+    concat3(v:E, t2:NodeSet[\E\]):NodeSet[\E\] = do
         v1 = val
         n1 = sz
         l1 = left
@@ -436,7 +436,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         elif weight n2 < n1 then balancedAdd(v1,l1,r1.concat3(v,t2))
         else NodeSet[\E\](v,self,t2) end
       end
-    concat3(v:E, t2:Set[\E\]) = add(v)
+    concat3(v:E, t2:Set[\E\]):NodeSet[\E\] = add(v)
 
     balancedAdd(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
         ln = |left'|
