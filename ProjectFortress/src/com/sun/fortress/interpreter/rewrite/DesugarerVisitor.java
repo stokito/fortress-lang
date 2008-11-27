@@ -665,11 +665,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<APIName> exports_result = recurOnListOfAPIName(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
+        decls_result.add( new _RewriteObjectExprDecl(com.getSpan(), objectExprs) );
+        decls_result.add( new _RewriteFunctionalMethodDecl(com.getSpan(), Useful.list(functionals)) );
+
         AbstractNode nn =
          new Component(com.getSpan(),
-                 name_result, imports_result, com.is_native(),
-                 exports_result, decls_result,
-                 objectExprs, Useful.list(functionals));
+                       name_result, imports_result, decls_result,
+                       com.is_native(), exports_result);
 
         if (debug && ! suppressDebugDump)
             System.err.println("AFTER\n" + NodeUtil.dump(nn));

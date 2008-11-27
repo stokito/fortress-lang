@@ -37,6 +37,22 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    public static List<_RewriteObjectExpr> getObjectExprs(Component comp) {
+        for ( Decl d : comp.getDecls() ) {
+            if ( d instanceof _RewriteObjectExprDecl )
+                return ((_RewriteObjectExprDecl)d).getObjectExprs();
+        }
+        return new ArrayList<_RewriteObjectExpr>();
+    }
+
+    public static List<String> getFunctionalMethodNames(Component comp) {
+        for ( Decl d : comp.getDecls() ) {
+            if ( d instanceof _RewriteFunctionalMethodDecl )
+                return ((_RewriteFunctionalMethodDecl)d).getFunctionalMethodNames();
+        }
+        return new ArrayList<String>();
+    }
+
     /* get the declared name of a component or api */
     public static APIName apiName(APIName name, File f) throws StaticError {
         CompilationUnit cu = Parser.preparseFileConvertExn(name, f);

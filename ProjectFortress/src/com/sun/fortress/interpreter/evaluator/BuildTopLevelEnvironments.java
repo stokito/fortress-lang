@@ -45,6 +45,8 @@ import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
+import com.sun.fortress.nodes._RewriteObjectExprDecl;
+import com.sun.fortress.nodes._RewriteFunctionalMethodDecl;
 import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -138,6 +140,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         }
         return null;
 
+    }
+
+    public Boolean for_RewriteObjectExprDecl(_RewriteObjectExprDecl x) {
+        return null;
+    }
+
+    public Boolean for_RewriteFunctionalMethodDecl(_RewriteFunctionalMethodDecl x) {
+        return null;
     }
 
     public Boolean for_RewriteFnOverloadDecl(_RewriteFnOverloadDecl x) {

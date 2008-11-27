@@ -61,7 +61,7 @@ public CompilationUnit File =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = new Component(span, name, a1, a2, a3);
+       yyValue = new Component(span, name, a1, a3, a2);
      }
    / _
      { Span span = createSpan(yyStart,yyCount);
@@ -95,9 +95,9 @@ private Component Component =
        List<Decl> a5 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
-           yyValue = new Component(span, a2, a3, a4, a5);
+           yyValue = new Component(span, a2, a3, a5, a4);
        else
-           yyValue = new Component(span, a2, a3, true, a4, a5);
+           yyValue = new Component(span, a2, a3, a5, true, a4);
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */

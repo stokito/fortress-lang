@@ -169,9 +169,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         return null;
     }
 
-
-
-
      protected static void doDefs(BuildEnvironments inner, List<Decl> defs) {
         for (Decl def : defs) {
             def.accept(inner);

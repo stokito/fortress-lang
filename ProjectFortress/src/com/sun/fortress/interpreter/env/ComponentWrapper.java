@@ -167,7 +167,7 @@ public class ComponentWrapper extends CUWrapper {
     protected void registerObjectExprs(Environment env) {
         Component comp = (Component) comp_unit;
 
-            for (_RewriteObjectExpr oe : comp.getObjectExprs()) {
+            for (_RewriteObjectExpr oe : NodeUtil.getObjectExprs( comp )) {
                 String name = oe.getGenSymName();
                 List<StaticParam> params = oe.getStaticParams();
                 if (params.isEmpty()) {
@@ -200,7 +200,7 @@ public class ComponentWrapper extends CUWrapper {
 
     public Set<String> getFunctionals() {
         if (transformed != null) {
-            return Useful.set(transformed.getFunctionalMethodNames());
+            return Useful.set(NodeUtil.getFunctionalMethodNames( transformed ));
         }
         return desugarer.functionals;
     }
