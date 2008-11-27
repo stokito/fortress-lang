@@ -571,8 +571,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forLValueOnly(LValue that,
                                           String name_result,
-                                          Option<String> type_result,
-                                          List<String> mods_result) {
+                                          List<String> mods_result,
+                                          Option<String> type_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( join(mods_result, " ") );
@@ -689,8 +689,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forParamOnly(Param that,
-                                         List<String> mods_result,
                                          String name_result,
+                                         List<String> mods_result,
                                          Option<String> type_result,
                                          Option<String> defaultExpr_result,
                                          Option<String> varargsType_result) {

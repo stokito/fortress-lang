@@ -44,11 +44,11 @@ import edu.rice.cs.plt.tuple.Option;
 public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
-	public Node forLValueOnly(LValue that, Id name_result,
-			Option<Type> type_result, List<Modifier> mods_result) {
+	public Node forLValueOnly(LValue that, Id name_result, List<Modifier> mods_result,
+                                  Option<Type> type_result) {
 		if( type_result.isNone() ) {
 			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
-			return new LValue(that.getSpan(),name_result,new_type,mods_result,that.isMutable());
+			return new LValue(that.getSpan(),name_result,mods_result,new_type,that.isMutable());
 		}
 		else {
 			return that;
@@ -78,8 +78,8 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	}
 
 	@Override
-	public Node forParamOnly(Param that,
-                                 List<Modifier> mods_result, Id name_result,
+	public Node forParamOnly(Param that, Id name_result,
+                                 List<Modifier> mods_result,
                                  Option<Type> type_result,
                                  Option<Expr> defaultExpr_result,
                                  Option<Type> varargsType_result) {
@@ -90,7 +90,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 						type_result;
 
-		return super.forParamOnly(that, mods_result, name_result, new_type,
+		return super.forParamOnly(that, name_result, mods_result, new_type,
                                           defaultExpr_result, varargsType_result);
             } else
                 return that;

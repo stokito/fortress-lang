@@ -304,8 +304,9 @@ public class Transform extends TemplateUpdateVisitor {
         public Param apply(Param value){
             final Transform transformer = Transform.this;
             return (Param) value.accept( new TemplateUpdateVisitor(){
-                public Node forParamOnly(Param that, List<Modifier> mods_result,
-                                         Id name_result, Option<Type> type_result,
+                public Node forParamOnly(Param that,
+                                         Id name_result, List<Modifier> mods_result,
+                                         Option<Type> type_result,
                                          Option<Expr> defaultExpr_result,
                                          Option<Type> varargsType_result) {
                     if ( varargsType_result.isNone() ) {
@@ -317,14 +318,14 @@ public class Transform extends TemplateUpdateVisitor {
                           Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                           extendSyntaxEnvironment(old, generatedId);
                         */
-                        return new Param(that.getSpan(), mods_result, generatedId, type_result, defaultExpr_result);
+                        return new Param(that.getSpan(), generatedId, mods_result, type_result, defaultExpr_result);
                     } else {
                         Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
                         Id old = (Id) name_result.accept(transformer);
                         Id generatedId = generateId(old);
                         Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                         extendSyntaxEnvironment(old, generatedId);
-                        return new Param(that.getSpan(), mods_result, generatedId, Option.<Type>none(), Option.<Expr>none(),
+                        return new Param(that.getSpan(), generatedId, mods_result, Option.<Type>none(), Option.<Expr>none(),
                                          varargsType_result);
                     }
                 }
@@ -374,12 +375,14 @@ public class Transform extends TemplateUpdateVisitor {
             List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
                 public LValue apply(LValue value){
                     return (LValue) value.accept( new TemplateUpdateVisitor(){
-                        public Node forLValueOnly(LValue that, Id name_result, Option<Type> type_result, List<Modifier> mods_result) {
+                        public Node forLValueOnly(LValue that, Id name_result,
+                                                  List<Modifier> mods_result,
+                                                  Option<Type> type_result) {
                             Id old = (Id) name_result.accept(transformer);
                             Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return new LValue(that.getSpan(), generatedId, type_result, mods_result);
+                            return new LValue(that.getSpan(), generatedId, mods_result, type_result);
                         }
                     });
                 }
