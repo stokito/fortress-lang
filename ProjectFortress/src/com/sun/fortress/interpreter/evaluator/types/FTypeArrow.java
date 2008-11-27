@@ -25,7 +25,7 @@ import com.sun.fortress.compiler.Types;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.Domain;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.EmptyLatticeIntervalError;
@@ -167,8 +167,9 @@ public class FTypeArrow extends FType {
         try {
             range.unify(env, tp_set, abm, arr.getRange());
             BoundingMap<String, FType, TypeLatticeOps> dual = abm.dual();
-            Domain valdom = arr.getDomain();
-            if (!valdom.getKeywords().isEmpty()) {
+            Type valdom = arr.getDomain();
+            if ( valdom instanceof TupleType &&
+                 ! ((TupleType)valdom).getKeywords().isEmpty()) {
                 return false;
                 // TODO: handle domains containing keywords
             }

@@ -835,7 +835,7 @@ public abstract class SubtypeChecker {
         }
     }
 
-    private Boolean subdomain(Domain s, Domain t, SubtypeHistory history) {
+    private Boolean subdomain(Type s, Type t, SubtypeHistory history) {
         if (subtype(stripKeywords(s), stripKeywords(t), history)) {
             Map<Id, Type> sMap = extractKeywords(s);
             Map<Id, Type> tMap = extractKeywords(t);

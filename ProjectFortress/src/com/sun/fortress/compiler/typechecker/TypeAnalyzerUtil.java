@@ -162,13 +162,19 @@ public class TypeAnalyzerUtil {
                 return false;
             }
             @Override public Boolean forArrowType(ArrowType t) {
-                Domain d = t.getDomain();
+                Type d = t.getDomain();
                 Effect e = t.getEffect();
-                return recurOnList(d.getArgs()) ||
-                    (d.getVarargs().isSome() && d.getVarargs().unwrap().accept(this)) ||
-                    recurOnKeywords(d.getKeywords()) ||
-                    t.getRange().accept(this) ||
-                    recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
+                if ( d instanceof TupleType ) {
+                    TupleType _d = (TupleType)d;
+                    return recurOnList(_d.getElements()) ||
+                        (_d.getVarargs().isSome() && _d.getVarargs().unwrap().accept(this)) ||
+                        recurOnKeywords(_d.getKeywords()) ||
+                        t.getRange().accept(this) ||
+                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
+                } else
+                    return d.accept(this) ||
+                        t.getRange().accept(this) ||
+                        recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
             }
             @Override public Boolean forTupleType(TupleType t) {
                 if ( t.getVarargs().isNone() )

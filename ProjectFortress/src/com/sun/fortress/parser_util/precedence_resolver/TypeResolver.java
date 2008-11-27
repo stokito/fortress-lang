@@ -242,7 +242,7 @@ public class TypeResolver {
         Type first = frame.getArg();
         if (isTypeOp(op)) {
             return new ArrowType(spanTwo(first, last), true,
-                                 typeToDomain(first),
+                                 first,
                                  typeToType(last), frame.getEffect());
         } else { // !(isTypeOp(op))
             try {
@@ -608,27 +608,6 @@ public class TypeResolver {
                                          t.getUnit());
             }
         });
-    }
-
-    private static Domain typeToDomain(Type type) {
-        if (type instanceof Domain) { return (Domain) type; }
-        else { // type instanceof Type
-            List<Type> args;
-            if (type instanceof VoidType) {
-                args = Collections.emptyList();
-            }
-            else if (type instanceof TupleType) {
-                TupleType tup = (TupleType) type;
-                args = new ArrayList<Type>(tup.getElements().size());
-                for (Type t : tup.getElements()) {
-                    args.add(typeToType(t));
-                }
-            }
-            else {
-                args = Collections.singletonList(typeToType(type));
-            }
-            return new Domain(type.getSpan(), args);
-        }
     }
 
     public static DimExpr typeToDim(Type type) throws TypeConvertFailure {

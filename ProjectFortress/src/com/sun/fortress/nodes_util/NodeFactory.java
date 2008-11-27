@@ -283,10 +283,6 @@ public class NodeFactory {
         return new OpDim(t.getSpan(), t.isParenthesized(), s, t.getOp());
     }
 
-//    public static ArrowType makeArrowType(ArrowType t, Domain domain, Type range, Effect effect) {
-//    return new ArrowType(t.getSpan(), t.isParenthesized(), domain, range, effect);
-//    }
-
     public static TraitType makeTraitType(TraitType t,
             List<StaticArg> args) {
         return new TraitType(t.getSpan(), t.isParenthesized(),
@@ -435,7 +431,7 @@ public class NodeFactory {
 //    }
 
     public static ArrowType makeArrowType(Span span, Type domain, Type range) {
-        return new ArrowType(span, makeDomain(domain), range, makeEffect(range.getSpan().getEnd()));
+        return new ArrowType(span, domain, range, makeEffect(range.getSpan().getEnd()));
     }
 
 //    public static AbstractArrowType makeGenericArrowType(Span span,
@@ -467,19 +463,19 @@ public class NodeFactory {
 //    Option.<List<Type>>none(), staticParams, new WhereClause());
 //    }
 
-    /** If args is a tuple or void, extract a list; otherwise, make a singleton */
-    public static Domain makeDomain(Type args) {
-        List<Type> argsList;
-        if (args instanceof VoidType) {
-            argsList = Collections.emptyList();
-        }
-        else if (args instanceof TupleType) {
-            argsList = ((TupleType) args).getElements();
-        }
-        else {
-            argsList = Collections.singletonList(args);
-        }
-        return new Domain(args.getSpan(), argsList);
+    public static Type makeDomain(Span span, List<Type> elements,
+                                    Option<Type> varargs,
+                                    List<KeywordType> keywords) {
+        if ( varargs.isNone() && keywords.isEmpty() ) {
+            int size = elements.size();
+            if ( size == 0 )
+                return makeVoidType(span);
+            else if ( size == 1 )
+                return elements.get(0);
+            else
+                return new TupleType(span, elements);
+        } else
+            return new TupleType(span, elements, varargs, keywords);
     }
 
     /** Create an "empty" effect at the given location. */

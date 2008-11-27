@@ -23,6 +23,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.TypeLatticeOps;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.ArrayType;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.MatrixType;
@@ -31,7 +32,6 @@ import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.VoidType;
-import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.useful.BoundingMap;
@@ -117,9 +117,10 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
     @Override
     public void forArrowType(ArrowType that) {
         that.getRange().accept(this);
-        Domain domain = that.getDomain();
+        Type domain = that.getDomain();
         // TODO: handle keywords
-        if (!domain.getKeywords().isEmpty()) {
+        if ( domain instanceof TupleType &&
+             ! ((TupleType)domain).getKeywords().isEmpty()) {
             NI.nyi("Can't yet handle keywords in arrow domains");
         }
         Types.stripKeywords(domain).accept(dual);

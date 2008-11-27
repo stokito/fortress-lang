@@ -65,7 +65,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             int arrowIndex = s.indexOf("->");
             Type left = parseType(s.substring(0, arrowIndex));
             Type right = parseType(s.substring(arrowIndex+2));
-            return new ArrowType(span, NodeFactory.makeDomain(left), right);
+            return new ArrowType(span, left, right);
         }
         if (s.startsWith("(")) {
             List<Type> types = new ArrayList<Type>();

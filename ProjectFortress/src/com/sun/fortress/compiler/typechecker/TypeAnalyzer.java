@@ -253,7 +253,8 @@ public class TypeAnalyzer {
             }
 
                 @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements,
-                                                       Option<Type> normalVarargs) {
+                                                       Option<Type> normalVarargs,
+                                                       List<KeywordType> keywords) {
                     if ( normalVarargs.isNone() ) {
                         Type result = handleAbstractTuple(normalElements, MAKE_TUPLE);
                         return t.equals(result) ? t : result;
@@ -282,6 +283,23 @@ public class TypeAnalyzer {
                     }
                 }
 
+                @Override public Type forTupleType(TupleType that) {
+                    if ( that.getKeywords().isEmpty() ) {
+                        List<Type> args_result = recurOnListOfType(that.getElements());
+                        Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
+                        List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
+                        return forTupleTypeOnly(that, args_result, varargs_result, keywords_result);
+                    } else {
+                        // recur on a single args type rather than each element individually
+                        Type args = stripKeywords(that);
+                        Type argsNorm = (Type) args.accept(this);
+                        List<KeywordType> ks = that.getKeywords();
+                        List<KeywordType> ksNorm = recurOnListOfKeywordType(ks);
+                        if (args == argsNorm && ks == ksNorm) { return that; }
+                        else { return makeDomain(argsNorm, ksNorm); }
+                    }
+                }
+
             private Type handleAbstractTuple(Iterable<Type> normalElements,
                                              final Lambda<Iterable<Type>, Type> factory) {
                 // push unions out:
@@ -298,14 +316,14 @@ public class TypeAnalyzer {
                 return makeUnion(map(cross(elementDisjuncts), handleDisjunct));
             }
 
-            @Override public Type forArrowTypeOnly(ArrowType t, Domain normalDomain, Type normalRange,
+            @Override public Type forArrowTypeOnly(ArrowType t, Type normalDomain, Type normalRange,
                                                    final Effect normalEffect) {
                 Type domainArg = stripKeywords(normalDomain);
                 final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
                 Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
                 // map a list of the length of domainTs back to a Domain:
-                Lambda<Iterable<Type>, Domain> domainFactory = new Lambda<Iterable<Type>, Domain>() {
-                    public Domain value(Iterable<Type> ts) {
+                Lambda<Iterable<Type>, Type> domainFactory = new Lambda<Iterable<Type>, Type>() {
+                    public Type value(Iterable<Type> ts) {
                         List<KeywordType> ks = new ArrayList<KeywordType>(domainKeys.size());
                         for (Pair<Id, Type> p : zip(domainKeys.keySet(), skipFirst(ts))) {
                             ks.add(new KeywordType(NodeFactory.makeSetSpan(p.first(), p.second()), p.first(), p.second()));
@@ -313,26 +331,16 @@ public class TypeAnalyzer {
                         return makeDomain(first(ts), ks);
                     }
                 };
-                Iterable<Domain> domains = map(cross(map(domainTs, DISJUNCTS)), domainFactory);
+                Iterable<Type> domains = map(cross(map(domainTs, DISJUNCTS)), domainFactory);
                 Iterable<Type> ranges = liftConjuncts(normalRange, history);
-                Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Domain, Type, Type>() {
-                    public Type value(Domain d, Type r) {
+                Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Type, Type, Type>() {
+                    public Type value(Type d, Type r) {
                         return new ArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect);
                     }
                 });
                 // don't meet, because the arrows here aren't subtypes of each other
                 Type result = makeIntersection(overloads);
                 return t.equals(result) ? t : result;
-            }
-
-            @Override public Domain forDomain(Domain d) {
-                // recur on a single args type rather than each element individually
-                Type args = stripKeywords(d);
-                Type argsNorm = (Type) args.accept(this);
-                List<KeywordType> ks = d.getKeywords();
-                List<KeywordType> ksNorm = recurOnListOfKeywordType(ks);
-                if (args == argsNorm && ks == ksNorm) { return d; }
-                else { return makeDomain(argsNorm, ksNorm); }
             }
 
             @Override public Effect forEffectOnly(Effect e,
@@ -1089,7 +1097,7 @@ public class TypeAnalyzer {
     }
 
     /** Subtyping for Domains. */
-    private ConstraintFormula sub(Domain s, Domain t, SubtypeHistory h) {
+    private ConstraintFormula sub(TupleType s, TupleType t, SubtypeHistory h) {
         Map<Id, Type> sMap = extractKeywords(s);
         Map<Id, Type> tMap = extractKeywords(t);
         if (tMap.keySet().containsAll(sMap.keySet())) {

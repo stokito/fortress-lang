@@ -2178,25 +2178,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forTupleTypeOnly(TupleType that,
-                                             List<String> elements_result,
-                                             Option<String> varargs_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( "(" );
-        s.append( join(elements_result, ", ") );
-        if ( varargs_result.isSome() ) {
-            s.append( "(* " );
-            s.append( ", " );
-            s.append( varargs_result.unwrap() );
-            s.append( "...)" );
-            s.append( " *)" );
-        }
-        s.append( ")" );
-
-        return s.toString();
-    }
-
     @Override public String forVoidTypeOnly(VoidType that) {
         return "()";
     }
@@ -2278,10 +2259,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "(* LabelType *)";
     }
 
-    @Override public String forDomainOnly(Domain that,
-                                          List<String> args_result,
-                                          Option<String> varargs_result,
-                                          List<String> keywords_result) {
+    @Override public String forTupleTypeOnly(TupleType that,
+                                             List<String> args_result,
+                                             Option<String> varargs_result,
+                                             List<String> keywords_result) {
         StringBuilder s = new StringBuilder();
 
         int args_size = args_result.size();

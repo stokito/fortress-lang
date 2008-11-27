@@ -79,11 +79,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             + effectString;
     }
 
-    public String forDomain(Domain node) {
+    public String forTupleType(TupleType node) {
         StringBuilder result = new StringBuilder();
         result.append("(");
         boolean first = true;
-        for (Type t : node.getArgs()) {
+        for (Type t : node.getElements()) {
             if (first) { first = false; }
             else { result.append(", "); }
             result.append(t.accept(this));
@@ -353,17 +353,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forTypeParam(TypeParam node) {
         return NodeUtil.nameString(node.getName());
-    }
-
-    public String forTupleType(TupleType node) {
-        if ( node.getVarargs().isNone() )
-            return Useful.listInDelimiters("(", mapSelf(node.getElements()), ")");
-        else
-            return
-                "(" +
-                Useful.listInDelimiters("", mapSelf(node.getElements()), "") +
-                node.getVarargs().unwrap().accept(this) + "..." +
-                ")";
     }
 
     public String forTypeArg(TypeArg node) {

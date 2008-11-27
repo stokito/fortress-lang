@@ -1355,12 +1355,6 @@ interface Node() extends HasAt;
                  * TupleType ::= ( Type, TypeList )
                  * e.g.) (ZZ32, String)
                  *
-                 * <varargs>
-                 * It has a varargs parameter if the varargs field is set.
-                 */
-                TupleType(List<Type> elements,
-                          Option<Type> varargs = Option.<Type>none());
-                /**
                  * domain of an arrow type
                  * ArgType ::=
                  *     ( (Type, )* (Type ... , )? KeywordType(, KeywordType)* )
@@ -1368,10 +1362,13 @@ interface Node() extends HasAt;
                  *   | TupleType
                  * e.g.) ZZ32
                  * e.g.) (String, ZZ32, String..., foo=ZZ32)
+                 *
+                 * <varargs>
+                 * It has a varargs parameter if the varargs field is set.
                  */
-                Domain(List<Type> args,
-                       Option<Type> varargs = Option.<Type>none(),
-                       List<KeywordType> keywords = Collections.<KeywordType>emptyList());
+                TupleType(List<Type> elements,
+                          Option<Type> varargs = Option.<Type>none(),
+                          List<KeywordType> keywords = Collections.<KeywordType>emptyList());
                 /**
                  * void type
                  * NonArrowType ::= ()
@@ -1381,7 +1378,7 @@ interface Node() extends HasAt;
                 /**
                  * arrow type
                  */
-                abstract AbstractArrowType(Domain domain, Type range,
+                abstract AbstractArrowType(Type domain, Type range,
                                            Effect effect = FortressUtil.emptyEffect());
                     /**
                      * arrow type

@@ -46,7 +46,6 @@ import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.Domain;
 import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
@@ -154,7 +153,7 @@ public abstract class TypeEnv {
     /**
      * Get a domain from a list of params.
      */
-    protected static Domain domainFromParams(List<Param> params) {
+    protected static Type domainFromParams(List<Param> params) {
         List<Type> paramTypes = new ArrayList<Type>();
         List<KeywordType> keywordTypes = new ArrayList<KeywordType>();
         Option<Type> varargsType = none();
@@ -181,7 +180,7 @@ public abstract class TypeEnv {
             }
         }
 
-        return new Domain(NodeFactory.makeSpan("TypeEnv_bogus_span_for_empty_list", params), paramTypes, varargsType, keywordTypes);
+        return NodeFactory.makeDomain(NodeFactory.makeSpan("TypeEnv_bogus_span_for_empty_list", params), paramTypes, varargsType, keywordTypes);
     }
 
     public static List<StaticArg> staticParamsToArgs(List<StaticParam> params) {
