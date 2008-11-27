@@ -276,9 +276,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     /* visit nodes ************************************************************/
     @Override public String forComponentOnly(Component that, String name_result,
                                              List<String> imports_result,
-                                             List<String> exports_result,
                                              List<String> decls_result,
-                                             List<String> objectExprs) {
+                                             List<String> exports_result) {
         inComponent = true;
         // note objectExprs parameter is a temporary hack.
         StringBuilder s = new StringBuilder();
@@ -595,6 +594,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "(* _RewriteFnOverloadDecl(" + name_result + ") *)";
     }
 
+    @Override public String for_RewriteObjectExprDeclOnly(_RewriteObjectExprDecl that,
+                                                          List<String> objExprs_result) {
+        return "(* _RewriteObjectExprDecl() *)";
+    }
+
+    @Override public String for_RewriteFunctionalMethodDeclOnly(_RewriteFunctionalMethodDecl that) {
+        return "(* _RewriteFunctionalMethodDecl() *)";
+    }
 
     /****************************************/
     @Override public String forFnDeclOnly(FnDecl that,

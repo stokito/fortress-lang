@@ -140,7 +140,8 @@ interface Node() extends HasAt;
              * compilation unit declaration
              * CompilationUnit ::= Component | Api
              */
-            abstract CompilationUnit(APIName name, List<Import> imports);
+            abstract CompilationUnit(APIName name, List<Import> imports,
+                                     List<Decl> decls);
                 /**
                  * component declaration
                  * Component ::= native? component APIName Imports? Exports Decls? end
@@ -150,14 +151,7 @@ interface Node() extends HasAt;
                  *         run(args:String...) = print "Hello, World!\n"
                  *       end
                  */
-                Component(boolean _native = false,
-                          List<APIName> exports, List<Decl> decls,
-                          List<_RewriteObjectExpr> objectExprs =
-                               Collections.<_RewriteObjectExpr>emptyList(),
-                          List<String> functionalMethodNames =
-                               Collections.<String>emptyList());
-                /* the list of object expressions is a temporary hack to allow
-                   progress towards earlier rewriting and caching of ASTs. -- DRC */
+                Component(boolean _native = false, List<APIName> exports);
                 /**
                  * API declaration
                  * Api ::= api APIName Imports? AbsDecls? end
@@ -165,7 +159,7 @@ interface Node() extends HasAt;
                  *         run(args:String...):()
                  *       end
                  */
-                Api(List<Decl> decls);
+                Api();
             /**
              * import statement
              * Import ::= import ImportedNames | import api AliasedAPINames
@@ -342,11 +336,6 @@ interface Node() extends HasAt;
                  */
                 VarDecl(List<LValue> lhs, Option<Expr> init);
                 /**
-                 * Overloading specification
-                 */
-                _RewriteFnOverloadDecl(IdOrOpName name,
-                                       List<IdOrOpName> fns);
-                /**
                  * functional declaration in components or APIs
                  * Names must be unqualified.
                  *
@@ -383,6 +372,20 @@ interface Node() extends HasAt;
                        Option<Expr> body,
                        Option<Id> implementsUnambiguousName = Option.<Id>none())
                       implements Applicable, GenericDecl;
+                /**
+                 * Overloading specification
+                 */
+                _RewriteFnOverloadDecl(IdOrOpName name, List<IdOrOpName> fns);
+                /* the list of object expressions is a temporary hack to allow
+                   progress towards earlier rewriting and caching of ASTs. -- DRC */
+                /**
+                 * Lifted object expressions
+                 */
+                _RewriteObjectExprDecl(List<_RewriteObjectExpr> objectExprs);
+                /**
+                 * Injected functional methods
+                 */
+                _RewriteFunctionalMethodDecl(List<String> functionalMethodNames);
                 /**
                  * dimension and unit declaration
                  * DimUnitDecl may represent a single dimension declaration, a single

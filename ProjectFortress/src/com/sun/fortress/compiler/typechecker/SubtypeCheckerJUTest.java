@@ -355,8 +355,8 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         }
         Component ast = new Component(span, NodeFactory.makeAPIName(span, name),
                                       Collections.<Import>emptyList(),
-                                      Collections.<APIName>emptyList(),
-                                      traitDecls);
+                                      traitDecls,
+                                      Collections.<APIName>emptyList());
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
                                   Collections.<VarDecl>emptySet(),

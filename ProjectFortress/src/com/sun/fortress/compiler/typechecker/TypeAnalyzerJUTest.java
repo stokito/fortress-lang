@@ -428,8 +428,8 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         Component ast = new Component(span, NodeFactory.makeAPIName(name),
                                       Collections.<Import>emptyList(),
-                                      Collections.<APIName>emptyList(),
-                                      traitDecls);
+                                      traitDecls,
+                                      Collections.<APIName>emptyList());
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
                                   Collections.<VarDecl>emptySet(),
