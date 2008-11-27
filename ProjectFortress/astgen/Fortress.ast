@@ -88,34 +88,18 @@ interface Node() extends HasAt;
          * object expressions in components or APIs
          */
         interface Generic(List<StaticParam> staticParams);
-            interface GenericWithParams() extends HasParams;
-            interface GenericDecl();
-                interface GenericDeclWithParams() extends GenericWithParams;
-
-        /**
-         * with value parameters
-         * implemented by object declarations and object expressions in components
-         * or APIs
-         */
-        interface HasParams(Option<List<Param>> params,
-                            List<Decl> decls);
-        /**
-         * with a where clause
-         * implemented by trait and object declarations in components or APIs
-         */
-        interface HasWhere(Option<WhereClause> where);
+            interface GenericWithParams(Option<List<Param>> params,
+                                        List<Decl> decls);
         /**
          * templates
          */
         interface TemplateGap(Id gapId, List<Id> templateParams);
-
         /**
          * A syntax transformation
          */
         interface _SyntaxTransformation(String syntaxTransformer,
                                         java.util.Map<String,Level> variables,
                                         java.util.List<String> syntaxParameters);
-
         /**
          * Repeated expression inside a syntax transformation template
          */
@@ -210,7 +194,7 @@ interface Node() extends HasAt;
                                          Option<WhereClause> where
                                              = Option.<WhereClause>none(),
                                          List<Decl> decls)
-                                         implements HasWhere, GenericDecl;
+                                         implements Generic;
                     /**
                      * trait declaration in components or APIs
                      *
@@ -256,7 +240,7 @@ interface Node() extends HasAt;
                      */
                     TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
                               Option<List<BaseType>> comprises
-                                  = Option.<List<BaseType>>none()) implements GenericDecl;
+                                  = Option.<List<BaseType>>none()) implements Generic;
                     /**
                      * object declaration in components or APIs
                      *
@@ -300,7 +284,7 @@ interface Node() extends HasAt;
                                Option<List<BaseType>> throwsClause
                                    = Option.<List<BaseType>>none(),
                                Option<Contract> contract = Option.<Contract>none())
-                              implements GenericDeclWithParams;
+                              implements GenericWithParams;
                 /**
                  * variable declaration in components or APIs
                  *
@@ -360,7 +344,7 @@ interface Node() extends HasAt;
                        Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
                        Option<Expr> body,
                        Option<Id> implementsUnambiguousName = Option.<Id>none())
-                      implements Applicable, GenericDecl;
+                      implements Applicable, Generic;
                 /**
                  * Overloading specification
                  */
