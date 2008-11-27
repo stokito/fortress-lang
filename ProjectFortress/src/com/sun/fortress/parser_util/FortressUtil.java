@@ -513,7 +513,7 @@ public final class FortressUtil {
                                            Option<Type> ty, boolean mutable) {
         List<LValue> lvs = new ArrayList<LValue>();
         for (Id id : ids) {
-            lvs.add(new LValue(id.getSpan(), id, ty, mods, mutable));
+            lvs.add(new LValue(id.getSpan(), id, mods, ty, mutable));
         }
         return lvs;
     }
@@ -541,8 +541,8 @@ public final class FortressUtil {
         List<LValue> lvs = new ArrayList<LValue>();
         int ind = 0;
         for (Id id : ids) {
-            lvs.add(new LValue(id.getSpan(), id, Option.some(tys.get(ind)),
-                                   mods, mutable));
+            lvs.add(new LValue(id.getSpan(), id, mods, Option.some(tys.get(ind)),
+                               mutable));
             ind += 1;
         }
         return lvs;
@@ -626,16 +626,14 @@ public final class FortressUtil {
     }
 
     public static LValue mkLValue(Span span, Id id, Type ty) {
-        return new LValue(span, id, Option.some(ty), emptyModifiers(),false);
+        return new LValue(span, id, emptyModifiers(), Option.some(ty), false);
     }
     public static LValue mkLValue(Span span, Id id) {
-        return new LValue(span, id, Option.<Type>none(),
-                              emptyModifiers(), false);
+        return new LValue(span, id, emptyModifiers(), Option.<Type>none(), false);
     }
     public static LValue mkLValue(Id id, Type ty,
-                                          List<Modifier> mods) {
-        return new LValue(id.getSpan(), id, Option.some(ty), mods,
-                              getMutable(mods));
+                                  List<Modifier> mods) {
+        return new LValue(id.getSpan(), id, mods, Option.some(ty), getMutable(mods));
     }
     public static LValue mkLValue(Id id, Type ty) {
         return mkLValue(id, ty, emptyModifiers());

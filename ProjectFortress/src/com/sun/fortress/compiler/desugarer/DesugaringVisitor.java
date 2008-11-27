@@ -77,7 +77,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         this.boxedRefMap = boxedRefMap;
     }
 
-    private boolean hidden(ImplicitGetterSetter field) {
+    private boolean hidden(Binding field) {
         for (Modifier mod : field.getMods()) {
             if (mod instanceof ModifierHidden) {
                 return true;
@@ -86,7 +86,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private boolean settable(ImplicitGetterSetter field) {
+    private boolean settable(Binding field) {
         for (Modifier mod : field.getMods()) {
             if (mod instanceof ModifierSettable) {
                 return true;
@@ -95,7 +95,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private boolean mutable(ImplicitGetterSetter field) {
+    private boolean mutable(Binding field) {
         if ( field instanceof LValue )
             return ((LValue)field).isMutable();
 
@@ -223,7 +223,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
-    private FnDecl makeGetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
+    private FnDecl makeGetter(boolean inTrait, Id owner, Binding field) {
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
             if (!(mod instanceof ModifierSettable) &&
@@ -260,7 +260,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                          field.getType(), body);
     }
 
-    private FnDecl makeSetter(boolean inTrait, Id owner, ImplicitGetterSetter field) {
+    private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
         Span span = field.getSpan();
         Type voidType = NodeFactory.makeVoidType(span);
         Option<Type> ty = field.getType();

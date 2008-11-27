@@ -92,8 +92,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     	NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
 			int traitNestingDepth = 0;
     		@Override
-			public Node forParamOnly(Param that,
-                                                 List<Modifier> mods_result, Id name_result,
+			public Node forParamOnly(Param that, Id name_result,
+                                                 List<Modifier> mods_result,
                                                  Option<Type> type_result,
                                                  Option<Expr> defaultExpr_result,
                                                  Option<Type> varargsType_result) {
@@ -106,8 +106,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     				new_type = type_result;
 
     			return new Param(that.getSpan(),
-                                         that.getMods(),
                                          that.getName(),
+                                         that.getMods(),
                                          new_type,
                                          that.getDefaultExpr(),
                                          that.getVarargsType());

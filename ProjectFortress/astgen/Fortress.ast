@@ -83,12 +83,6 @@ interface Node() extends HasAt;
          */
         interface Lhs();
         /**
-         * getter or setter declarations
-         */
-        interface ImplicitGetterSetter(Id name,
-                                       List<Modifier> mods = Collections.<Modifier>emptyList(),
-                                       Option<Type> type = Option.<Type>none());
-        /**
          * with static parameters
          * implemented by trait, object, and function declarations and
          * object expressions in components or APIs
@@ -628,38 +622,38 @@ interface Node() extends HasAt;
                      */
                     CharacterInterval(String begin, String end);
             /**
-             * left-hand side of variable declaration
-             * e.g.) var x: ZZ32
-             * Name must be unqualified.
+             * left-hand side of variable declaration or value parameter
              */
-            LValue(Id name, Option<Type> type = Option.<Type>none(),
-                   List<Modifier> mods = Collections.<Modifier>emptyList(),
-                   boolean mutable = false) implements Lhs, ImplicitGetterSetter;
-            /**
-             * value parameter of functional declarations and object declarations
-             * Names must be unqualified.
-             * ValParam := BindId
-             *           | ( Params? )
-             * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
-             *          | (Param, )* Varargs
-             *          | Param(, Param)*
-             * Keyword ::= Param = Expr
-             * Param ::= BindId IsType?
-             *         | Type
-             * Varargs ::= BindId : Type ...
-             * e.g.) x: ZZ32 = 3
-             * e.g.) self
-             * e.g.) x: String...
-             *
-             * <varargsType>
-             * It is a varargs parameter if the varargsType field is set.
-             */
-            Param(List<Modifier> mods = Collections.<Modifier>emptyList(),
-                  Id name,
-                  Option<Type> type = Option.<Type>none(),
-                  Option<Expr> defaultExpr = Option.<Expr>none(),
-                  Option<Type> varargsType = Option.<Type>none())
-                 implements Lhs, ImplicitGetterSetter;
+            abstract Binding(Id name,
+                             List<Modifier> mods = Collections.<Modifier>emptyList(),
+                             Option<Type> type = Option.<Type>none()) implements Lhs;
+                /**
+                 * left-hand side of variable declaration
+                 * e.g.) var x: ZZ32
+                 * Name must be unqualified.
+                 */
+                LValue(boolean mutable = false);
+                /**
+                 * value parameter of functional declarations and object declarations
+                 * Names must be unqualified.
+                 * ValParam := BindId
+                 *           | ( Params? )
+                 * Params ::= (Param, )* (Varargs, )? Keyword(, Keyword)*
+                 *          | (Param, )* Varargs
+                 *          | Param(, Param)*
+                 * Keyword ::= Param = Expr
+                 * Param ::= BindId IsType?
+                 *         | Type
+                 * Varargs ::= BindId : Type ...
+                 * e.g.) x: ZZ32 = 3
+                 * e.g.) self
+                 * e.g.) x: String...
+                 *
+                 * <varargsType>
+                 * It is a varargs parameter if the varargsType field is set.
+                 */
+                Param(Option<Expr> defaultExpr = Option.<Expr>none(),
+                      Option<Type> varargsType = Option.<Type>none());
             /**
              * expression
              */

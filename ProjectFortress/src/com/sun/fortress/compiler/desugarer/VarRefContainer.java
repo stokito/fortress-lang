@@ -149,8 +149,7 @@ public class VarRefContainer {
                                                Option<Type> typeOp) {
         List<Modifier> mods = new LinkedList<Modifier>();
         mods.add( new ModifierSettable(paramSpan) );
-        Param param = new Param(paramSpan, mods,
-                                var.getVar(), typeOp);
+        Param param = new Param(paramSpan, var.getVar(), mods, typeOp);
         return param;
     }
 
