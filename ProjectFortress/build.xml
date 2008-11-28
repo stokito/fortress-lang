@@ -242,6 +242,7 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
         <delete file="${instrumentation.outfile}"/>
         <delete file="${library}/FortressAst.fsi" />
         <delete file="${library}/FortressAst.fss" />
+        <delete file="${astgen.src}/FortressAst.scala" />
         <delete file="FortressLibrary.ast"/>
         <delete file="FortressLibrary.tfs"/>
         <delete file="testFile.txt"/>

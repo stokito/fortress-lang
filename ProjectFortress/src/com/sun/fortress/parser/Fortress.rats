@@ -19,8 +19,8 @@
  * A complete Fortress grammar.
  */
 module com.sun.fortress.parser.Fortress;
-modify com.sun.fortress.parser.Compilation(Declaration, Identifier, Keyword,
-                                           Symbol, Spacing);
+modify com.sun.fortress.parser.Compilation(Declaration, Literal, Identifier,
+                                           Keyword, Symbol, Spacing);
 instantiate com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
                                                 OtherDecl, Spacing, Syntax)
             as Declaration;

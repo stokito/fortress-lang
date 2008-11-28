@@ -18,10 +18,11 @@
 /*
  * Definition of Fortress components and APIs.
  */
-module com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol,
-                                           Spacing);
+module com.sun.fortress.parser.Compilation(Decl, Literal, Identifier, Keyword,
+                                           Symbol, Spacing);
 
 import Decl;
+import Literal;
 import Identifier;
 import Keyword;
 import Symbol;
@@ -157,57 +158,74 @@ private List<Import> Imports = a1:Import a2s:(br Import)*
      };
 
 /* Import ::=
-     import w api w AliasedAPINames
+     import (w ForeignLang)? w api w AliasedAPINames
    | import w ImportedNames
  */
 private List<Import> Import =
-     import w api w a1:AliasedAPINames
-     { Import imp = new ImportApi(createSpan(yyStart, yyCount), a1);
+     import a1:(w ForeignLang)? w api w a2:AliasedAPINames
+     { Option<String> fl;
+       if ( a1 == null ) fl = Option.<String>none();
+       else              fl = Option.<String>some(a1);
+       Import imp = new ImportApi(createSpan(yyStart, yyCount), fl, a2);
        yyValue = FortressUtil.mkList(imp);
      }
    / import w ImportedNames;
 
+/* ForeignLang ::= Id | StringLiteralExpr */
+private String ForeignLang =
+     !(Id w dot) a1:Id { yyValue = a1.getText(); }
+   / a1:StringLiteralExpr { yyValue = a1.getText(); };
+
 /* ImportedNames ::=
-     APIName . w { w ... w } (w except w SimpleNames)?
-   | APIName . w { w AliasedSimpleNameList (w , w ...)? w }
-   | QualifiedName (w as w Id)?
+     (ForeignLang w)? APIName . w { w ... w } (w except w SimpleNames)?
+   | (ForeignLang w)? APIName . w { w AliasedSimpleNameList (w , w ...)? w }
+   | (ForeignLang w)? QualifiedName (w as w Id)?
  */
 private List<Import> ImportedNames =
-     a1:APIName dot w opencurly w ellipses w closecurly
-     a2:(w except w SimpleNames)?
-     { if (a2 == null) a2 = Collections.<IdOrOpOrAnonymousName>emptyList();
+     a1:(ForeignLang w)? a2:APIName dot w opencurly w ellipses w closecurly
+     a3:(w except w SimpleNames)?
+     { Option<String> fl;
+       if ( a1 == null ) fl = Option.<String>none();
+       else              fl = Option.<String>some(a1);
+       if (a3 == null) a3 = Collections.<IdOrOpOrAnonymousName>emptyList();
        yyValue = FortressUtil.mkList((Import)new ImportStar(
-                                             createSpan(yyStart,yyCount),a1,a2));
+                                             createSpan(yyStart,yyCount),fl,a2,a3));
      }
-   / a1:APIName dot w opencurly w a2:AliasedSimpleNameList
-     a3:(w comma w ellipses)? w closecurly
-     { Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = FortressUtil.mkList((Import)new ImportNames(span,
-                                                                         a1,a2));
-       if (a3 != null)
-           imports.add((Import)new ImportStar(span, a1,
+   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
+     a4:(w comma w ellipses)? w closecurly
+     { Option<String> fl;
+       if ( a1 == null ) fl = Option.<String>none();
+       else              fl = Option.<String>some(a1);
+       Span span = createSpan(yyStart,yyCount);
+       List<Import> imports = FortressUtil.mkList((Import)new ImportNames(span,fl,
+                                                                         a2,a3));
+       if (a4 != null)
+           imports.add((Import)new ImportStar(span, fl,a2,
                                Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
-   / a1:Id dot a2:QualifiedName a3:(w as w Id)?
-     { APIName api;
+   / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w as w Id)?
+     { Option<String> fl;
+       if ( a1 == null ) fl = Option.<String>none();
+       else              fl = Option.<String>some(a1);
+       APIName api;
        Id id;
-       if (a2.getApi().isNone()) {
-           api = NodeFactory.makeAPIName(a1);
-           id = a2;
+       if (a3.getApi().isNone()) {
+           api = NodeFactory.makeAPIName(a2);
+           id = a3;
        } else {
-           api = NodeFactory.makeAPINameSkipLast(a1, a2);
-           id  = NodeFactory.makeIdFromLast(a2);
+           api = NodeFactory.makeAPINameSkipLast(a2, a3);
+           id  = NodeFactory.makeIdFromLast(a3);
        }
        AliasedSimpleName an;
-       if (a3 == null) an = NodeFactory.makeAliasedSimpleName(id);
-       else            an = NodeFactory.makeAliasedSimpleName(id, a3);
-       Import imp = new ImportNames(createSpan(yyStart,yyCount), api,
+       if (a4 == null) an = NodeFactory.makeAliasedSimpleName(id);
+       else            an = NodeFactory.makeAliasedSimpleName(id, a4);
+       Import imp = new ImportNames(createSpan(yyStart,yyCount), fl, api,
                                     FortressUtil.mkList(an));
        yyValue = FortressUtil.mkList(imp);
      }
    / <ErrorProduction>
-     a1:Id a2:(w as w Id)?
+     (ForeignLang w)? Id (w as w Id)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Syntax Error: Try 'import api APIName'");
      };
