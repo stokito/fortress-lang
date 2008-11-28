@@ -137,7 +137,7 @@ interface Node() extends HasAt;
              * import statement
              * Import ::= import ImportedNames | import api AliasedAPINames
              */
-            abstract Import(Option<String> foreignLanguage = Option.<String>none());
+            abstract Import(Option<String> foreignLanguage);
                 /**
                  * ImportedNames ::= APIName . {...} (except SimpleNames)?
                  *                 | APIName . { AliasedSimpleNameList (, ...)? }

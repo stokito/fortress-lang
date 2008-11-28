@@ -1301,7 +1301,7 @@ public class NodeFactory {
     }
 
     public static Import makeImportStar(APIName api, List<IdOrOpOrAnonymousName> excepts) {
-             return new ImportStar(makeSpan(api, excepts), api, excepts);
+        return new ImportStar(makeSpan(api, excepts), Option.<String>none(), api, excepts);
     }
 
     public static Expr makeOpRef(OpRef original, int lexicalNestedness) {

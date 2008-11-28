@@ -18,17 +18,18 @@
 /*
  * Definition of Fortress components and APIs.
  */
-module com.sun.fortress.parser.templateparser.Compilation(Decl, Identifier, Keyword, Symbol,
+module com.sun.fortress.parser.templateparser.Compilation(Decl, Literal, Identifier, Keyword, Symbol,
                                            Spacing);
 
 import Decl;
+import Literal;
 import Identifier;
 import Keyword;
 import Symbol;
 import Spacing;
 
 
-modify com.sun.fortress.parser.Compilation(Decl, Identifier, Keyword, Symbol, Spacing);
+modify com.sun.fortress.parser.Compilation(Decl, Literal, Identifier, Keyword, Symbol, Spacing);
 
 void initParser  := w;
 void closeParser := w EndOfFile;

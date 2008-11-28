@@ -19,7 +19,7 @@
  * A complete Fortress grammar with Gaps.
  */
 module com.sun.fortress.parser.templateparser.TemplateParser;
-modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Identifier, Keyword,
+modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Literal, Identifier, Keyword,
                                            Symbol, Spacing);
 instantiate com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
                                                 OtherDecl, Spacing, Syntax)
