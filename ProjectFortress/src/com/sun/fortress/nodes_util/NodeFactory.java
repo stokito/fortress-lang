@@ -844,14 +844,14 @@ public class NodeFactory {
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
-    private static Option<Fixity> infix = Option.<Fixity>some(new InFixity(makeSpan("singleton")));
-    private static Option<Fixity> prefix = Option.<Fixity>some(new PreFixity(makeSpan("singleton")));
-    private static Option<Fixity> postfix = Option.<Fixity>some(new PostFixity(makeSpan("singleton")));
-    private static Option<Fixity> nofix = Option.<Fixity>some(new NoFixity(makeSpan("singleton")));
-    private static Option<Fixity> multifix = Option.<Fixity>some(new MultiFixity(makeSpan("singleton")));
-    private static Option<Fixity> enclosing = Option.<Fixity>some(new EnclosingFixity(makeSpan("singleton")));
-    private static Option<Fixity> big = Option.<Fixity>some(new BigFixity(makeSpan("singleton")));
-    private static Option<Fixity> unknownFix = Option.<Fixity>none();
+    private static Fixity infix = new InFixity(makeSpan("singleton"));
+    private static Fixity prefix = new PreFixity(makeSpan("singleton"));
+    private static Fixity postfix = new PostFixity(makeSpan("singleton"));
+    private static Fixity nofix = new NoFixity(makeSpan("singleton"));
+    private static Fixity multifix = new MultiFixity(makeSpan("singleton"));
+    private static Fixity enclosing = new EnclosingFixity(makeSpan("singleton"));
+    private static Fixity big = new BigFixity(makeSpan("singleton"));
+    private static Fixity unknownFix = new UnknownFixity(makeSpan("singleton"));
 
     public static Op makeOp(String name) {
         return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix);
@@ -861,7 +861,7 @@ public class NodeFactory {
         return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
     }
 
-    public static Op makeOp(Span span, String name, Option<Fixity> fixity) {
+    public static Op makeOp(Span span, String name, Fixity fixity) {
         return new Op(span, PrecedenceMap.ONLY.canon(name), fixity);
     }
 
