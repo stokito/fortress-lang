@@ -659,7 +659,7 @@ public class ExprFactory {
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
-            BATree<String, StaticParam> implicit_type_parameters) {
+                                                            BATree<String, StaticParam> implicit_type_parameters) {
         List<StaticArg> staticArgs =
             new ArrayList<StaticArg>(implicit_type_parameters.size());
         List<StaticParam> stParams;
@@ -674,10 +674,10 @@ public class ExprFactory {
             }
         }
         return new _RewriteObjectExpr(expr.getSpan(), false,
-                expr.getExtendsClause(), expr.getDecls(),
-                implicit_type_parameters, WellKnownNames.objectExprName(expr),
-                stParams, staticArgs,
-                Option.some(Collections.<Param>emptyList()));
+                                      expr.getExtendsClause(), expr.getDecls(),
+                                      implicit_type_parameters, WellKnownNames.objectExprName(expr),
+                                      stParams, staticArgs,
+                                      Option.some(Collections.<Param>emptyList()));
     }
 
     public static Assignment makeAssignment(Span span, Option<Type> type,

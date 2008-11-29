@@ -630,9 +630,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
             @Override public String forOp(final Op opThat) {
                 final String oper = opThat.getText();
-                /* fixity shouldnt be null */
-                assert(opThat.getFixity().isSome());
-                return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
+                return opThat.getFixity().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
                         return "opr " + oper + sparams + inParentheses(vparams);
                     }
@@ -1815,9 +1813,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
             @Override public String forOp(final Op opThat) {
                 final String oper = canonicalOp( opThat.getText() );
-                /* fixity shouldnt be null */
-                assert(opThat.getFixity().isSome());
-                return opThat.getFixity().unwrap().accept( new NodeDepthFirstVisitor<String>(){
+                return opThat.getFixity().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
                         assert( args_result.size() == 1 );
                         return oper + inParentheses(args_result.get(0));
@@ -2745,7 +2741,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forOpOnly(Op that,
                                       Option<String> api_result,
-                                      Option<String> fixity_result) {
+                                      String fixity_result) {
         return canonicalOp( that.getText() );
     }
 

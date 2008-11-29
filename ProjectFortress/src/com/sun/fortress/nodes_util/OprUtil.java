@@ -23,6 +23,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.UnknownFixity;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
 import edu.rice.cs.plt.tuple.Option;
@@ -37,7 +38,7 @@ public final class OprUtil {
     }
 
     public static boolean isUnknownFixity(Op name) {
-        return name.getFixity().isNone();
+        return name.getFixity() instanceof UnknownFixity;
     }
 
     public static boolean isUnknownFixity(OpName name) {
@@ -47,7 +48,7 @@ public final class OprUtil {
     }
 
     private static boolean isPostfix(Op name) {
-        return name.getFixity().unwrap(null) instanceof PostFixity;
+        return name.getFixity() instanceof PostFixity;
     }
 
     public static boolean isPostfix(OpName name) {
@@ -131,11 +132,8 @@ public final class OprUtil {
         return n;
     }
 
-    public static String fixityDecorator(final Option<Fixity> of, final String s) {
-        if (of.isNone()) {
-            return s;
-        }
-        return of.unwrap().accept(new NodeAbstractVisitor<String>() {
+    public static String fixityDecorator(final Fixity of, final String s) {
+        return of.accept(new NodeAbstractVisitor<String>() {
 //            @Override public String forInFixity(InFixity that) {
 //                return "infix "+s;
 //            }

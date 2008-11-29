@@ -1895,8 +1895,7 @@ interface Node() extends HasAt;
                              * e.g.) COMPOSE
                              * e.g.) ===
                              */
-                            Op(String text,
-                               Option<Fixity> fixity = Option.<Fixity>none());
+                            Op(String text, Fixity fixity);
                             /**
                              * pair of enclosing operators
                              * Opening and closing Ops must be unqualified.
@@ -2100,6 +2099,11 @@ interface Node() extends HasAt;
                  * e.g.) SUM
                  */
                 BigFixity();
+                /**
+                 * Fixity is not yet known
+                 * This should not appear after parsing.
+                 */
+                UnknownFixity();
             /*
              * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
              * e.g.) < 5
