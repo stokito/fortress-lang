@@ -109,15 +109,15 @@ public class BufferedWriter extends NativeConstructor {
                 f(((BuffWriter) self).writer);
                 return FVoid.V;
             } catch (IOException e) {
-                return error("IOException on "+self.getString());
+                return error("IOException" + e.toString() + " on "+ self.getString());
             }
         }
     }
 
     public static final class toString extends w2S {
         @Override
-		protected final String f(BuffWriter r) {
-            return r.getString();
+		protected final String f(BuffWriter w) {
+            return w.getString();
         }
     }
 

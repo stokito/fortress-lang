@@ -48,7 +48,7 @@ public class Writer extends NativeConstructor {
     }
 
     @Override
-    protected FNativeObject makeNativeObject(List<FValue> args,
+	protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
         String name = args.get(0).getString();
         try {
@@ -83,7 +83,7 @@ public class Writer extends NativeConstructor {
         public OutputStreamWriter getWriter() {
             return writer;
         }
-
+        
         @Override
         public boolean seqv(FValue v) {
             return (v==this);
@@ -159,13 +159,14 @@ public class Writer extends NativeConstructor {
 
     private static abstract class v2w extends NativeFn0 {
         protected abstract FileDescriptor fileDescriptor();
+        protected abstract String dummyName();
 
         @Override
-        protected final PrimWriter act() {
-            FileOutputStream fd = new FileOutputStream(fileDescriptor());
-            OutputStreamWriter stdout = new OutputStreamWriter(fd, Charset
+        protected final FValue act() {
+            FileOutputStream fd = new FileOutputStream(this.fileDescriptor());
+            OutputStreamWriter out = new OutputStreamWriter(fd, Charset
                     .forName("UTF-8"));
-            return new PrimWriter("<stdout>", stdout);
+            return new PrimWriter(this.dummyName(), out);
         }
     }
 
@@ -174,6 +175,10 @@ public class Writer extends NativeConstructor {
         protected FileDescriptor fileDescriptor() {
             return FileDescriptor.out;
         }
+        @Override
+        protected String dummyName() {
+            return "<stdout>";
+        }
     }
 
     public static final class errorWriter extends v2w {
@@ -181,10 +186,16 @@ public class Writer extends NativeConstructor {
         protected FileDescriptor fileDescriptor() {
             return FileDescriptor.err;
         }
+        @Override
+        protected String dummyName() {
+            return "<stderr>";
+        }
     }
-
+    
     @Override
     protected void unregister() {
         con = null;
     }
+
 }
+
