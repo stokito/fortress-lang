@@ -53,7 +53,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 /* ExtensionDesugarer rewrites grammars to satisfy the
  * following postconditions:
- * 
+ *
  * - A nonterminal has at most one extension node
  *   (multiple extensions in a grammar are combined together)
  * - Every nonterminal with public extensions in some imported grammar
@@ -81,7 +81,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
     }
 
     public static List<NonterminalExtensionDef> createImplicitExtensions(List<GrammarIndex> grammars) {
-        return rewriteMembers(grammarExtensionMap(grammars), 
+        return rewriteMembers(grammarExtensionMap(grammars),
                               new HashMap<Id,List<NonterminalExtensionDef>>());
     }
 
@@ -90,8 +90,8 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
     }
 
     private Option<GrammarIndex> grammarIndex(Id name) {
-        if (name.getApi().isSome()) {
-            APIName api = name.getApi().unwrap();
+        if (name.getApiName().isSome()) {
+            APIName api = name.getApiName().unwrap();
             if (this._globalEnv.definesApi(api)) {
                 return Option.some(_globalEnv.api(api).grammars().get(name.getText()));
             } else {
@@ -115,7 +115,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         Option<GrammarIndex> index = this.grammarIndex(that.getName());
         if (index.isSome()) {
             return rewriteGrammar(that, index.unwrap());
-        } else { 
+        } else {
             error("Grammar "+that.getName()+" not found", that);
         }
         return super.forGrammarDef(that);
@@ -127,14 +127,14 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         List<GrammarMemberDecl> members = grammar.getMembers();
         List<GrammarMemberDecl> newMembers = new ArrayList<GrammarMemberDecl>();
-        Map<Id, List<NonterminalExtensionDef>> extMap = 
+        Map<Id, List<NonterminalExtensionDef>> extMap =
             new HashMap<Id, List<NonterminalExtensionDef>>();
 
         // Split into defs, extensions
         // Group extensions by extended nonterminal
         split(members, newMembers, extMap);
 
-        // Create mapping (NT => List<GrammarIndex>) of nonterminals 
+        // Create mapping (NT => List<GrammarIndex>) of nonterminals
         //   with public extensions in imported grammars
         Map<Id, List<GrammarIndex>> grammarExtensionMap =
             grammarExtensionMap(index);
@@ -151,7 +151,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return result;
     }
 
-    private static List<NonterminalExtensionDef> rewriteMembers(Map<Id, List<GrammarIndex>> grammarExtensionMap, 
+    private static List<NonterminalExtensionDef> rewriteMembers(Map<Id, List<GrammarIndex>> grammarExtensionMap,
                                                                 Map<Id, List<NonterminalExtensionDef>> extMap) {
 
         List<NonterminalExtensionDef> newMembers = new ArrayList<NonterminalExtensionDef>();
@@ -244,7 +244,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                                              " have already been included.");
                     } else {
                         throw new MacroError(decl,
-                                             "No extensions of " + name + 
+                                             "No extensions of " + name +
                                              " in grammar " + ssd.getGrammarId());
                     }
                 }

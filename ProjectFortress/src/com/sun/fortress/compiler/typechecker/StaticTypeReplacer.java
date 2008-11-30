@@ -106,26 +106,26 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     }
 
     private Node updateNode(Node that, Id name) {
-        if (name.getApi().isSome()) { return that; }
+        if (name.getApiName().isSome()) { return that; }
         StaticArg arg = parameterMap.get(name);
         if (arg == null) { return that; }
         else {
             // unwrap the StaticArg
             return arg.accept(new NodeAbstractVisitor<Node>() {
-                @Override public Node forTypeArg(TypeArg arg) { return arg.getType(); }
-                @Override public Node forIntArg(IntArg arg) { return arg.getVal(); }
-                @Override public Node forBoolArg(BoolArg arg) { return arg.getBool(); }
+                @Override public Node forTypeArg(TypeArg arg) { return arg.getTypeArg(); }
+                @Override public Node forIntArg(IntArg arg) { return arg.getIntVal(); }
+                @Override public Node forBoolArg(BoolArg arg) { return arg.getBoolArg(); }
                 @Override public Node forOpArg(OpArg arg) { return arg.getName(); }
-                @Override public Node forDimArg(DimArg arg) { return arg.getDim(); }
-                @Override public Node forUnitArg(UnitArg arg) { return arg.getUnit(); }
+                @Override public Node forDimArg(DimArg arg) { return arg.getDimArg(); }
+                @Override public Node forUnitArg(UnitArg arg) { return arg.getUnitArg(); }
             });
         }
     }
 
     // ----------- VISITOR METHODS ---------------
 
-    
-    
+
+
     @Override
     public Node forVarType(VarType that) {
         return updateNode(that, that.getName());
@@ -178,17 +178,17 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 		}
 		else {
 			ConstraintFormula valid= ConstraintFormula.TRUE;
-			
+
 			Iterable<Pair<StaticParam,StaticArg>> zip = IterUtil.zip(static_params, static_args);
 			for(Pair<StaticParam,StaticArg> temp : zip){
 				final StaticParam  param = temp.first();
-				final StaticArg arg = temp.second(); 
+				final StaticArg arg = temp.second();
 				NodeDepthFirstVisitor<Option<ConstraintFormula>> outer = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
 					@Override
 					public Option<ConstraintFormula> defaultCase(Node that) {
 						return InterpreterBug.bug("Static param has been extended since argMatchParams was written");
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forBoolParam(BoolParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -197,7 +197,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						};
 						return arg.accept(inner);
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forDimParam(DimParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -206,7 +206,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						};
 						return arg.accept(inner);
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forIntParam(IntParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -215,7 +215,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						};
 						return arg.accept(inner);
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forNatParam(NatParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -224,19 +224,19 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						};
 						return arg.accept(inner);
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forTypeParam(final TypeParam param) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
 							@Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
 							@Override public Option<ConstraintFormula> forTypeArg(TypeArg arg) {
 								Type upperbound = NodeFactory.makeIntersectionType(CollectUtil.asSet(param.getExtendsClause()));
-								return Option.some(subtype_checker.subtype(arg.getType(),upperbound));
+								return Option.some(subtype_checker.subtype(arg.getTypeArg(),upperbound));
 							}
 						};
 						return arg.accept(inner);
 					}
-	
+
 					@Override
 					public Option<ConstraintFormula> forUnitParam(UnitParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -245,7 +245,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						};
 						return arg.accept(inner);
 					}
-					
+
 					@Override
 					public Option<ConstraintFormula> forOpParam(OpParam that) {
 						NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -255,7 +255,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 						return arg.accept(inner);
 					}
 				};
-				
+
 				Option<ConstraintFormula> result = param.accept(outer);
 				if(result.isSome()){
 					valid = valid.and(result.unwrap(),subtype_checker.new SubtypeHistory());

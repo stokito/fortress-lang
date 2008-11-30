@@ -214,7 +214,7 @@ public class DesugarerUtil {
         if (binds.size() != args.size()) return null;
         for (Expr a : args) {
             if (!(a instanceof VarRef)) return null;
-            if (!(binds.get(i).equals(((VarRef)a).getVar()))) return null;
+            if (!(binds.get(i).equals(((VarRef)a).getVarId()))) return null;
             i++;
         }
         // FILTER SQUEEZE.  Want to generate a new clause of the form
@@ -261,7 +261,7 @@ public class DesugarerUtil {
         }
         // Make sure innermost generator is a single variable matching outerVar
         if (!(bodyOuterInit instanceof VarRef)) return false;
-        Id innerVar = ((VarRef)bodyOuterInit).getVar();
+        Id innerVar = ((VarRef)bodyOuterInit).getVarId();
         return (outerVar.equals(innerVar));
     }
 

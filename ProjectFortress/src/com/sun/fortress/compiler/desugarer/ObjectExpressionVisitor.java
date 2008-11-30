@@ -208,7 +208,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );
-                Pair<Id,Id> keyPair = new Pair<Id,Id>( that.getName(), var.getVar() );
+                Pair<Id,Id> keyPair = new Pair<Id,Id>( that.getName(), var.getVarId() );
                 // Use an empty span; the correct span will be filled in
                 // later at the use site
                 boxedRefMap.put( keyPair,
@@ -541,12 +541,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                         exprs.add( container.containerVarRef(var.getSpan()) );
                     } else {
                         throw new DesugarerError(objExpr.getSpan(),
-                            var.getVar() + " is mutable but not found in "
+                            var.getVarId() + " is mutable but not found in "
                             + "the mutableVarRefContainerMap!");
                     }
                 }  else {
                     VarRef newVar =
-                        ExprFactory.makeVarRef( var.getSpan(), var.getVar() );
+                        ExprFactory.makeVarRef( var.getSpan(), var.getVarId() );
                     exprs.add(newVar);
                 }
             }
@@ -734,7 +734,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                         params.add( container.containerTypeParam() );
                     } else {
                         throw new DesugarerError(target.getSpan(),
-                            var.getVar() + " is mutable but not found in "
+                            var.getVarId() + " is mutable but not found in "
                             + "the mutableVarRefContainerMap!");
                     }
                 }  else {
@@ -743,7 +743,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // FIXME: what span should I use?
                     type = var.getExprType();
                     param = NodeFactory.makeParam(var.getSpan(),
-                                                        var.getVar(), type);
+                                                        var.getVarId(), type);
                     params.add(param);
                 }
             }

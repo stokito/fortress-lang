@@ -210,7 +210,7 @@ private List<Import> ImportedNames =
        else              fl = Option.<String>some(a1);
        APIName api;
        Id id;
-       if (a3.getApi().isNone()) {
+       if (a3.getApiName().isNone()) {
            api = NodeFactory.makeAPIName(a2);
            id = a3;
        } else {

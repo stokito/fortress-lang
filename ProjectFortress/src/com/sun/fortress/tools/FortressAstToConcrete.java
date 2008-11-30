@@ -1375,8 +1375,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                String body_result) {
         StringBuilder s = new StringBuilder();
 
-        if ( that.getOpr() instanceof Enclosing) { // comprehensions
-            Enclosing _op = (Enclosing)that.getOpr();
+        if ( that.getAccOp() instanceof Enclosing) { // comprehensions
+            Enclosing _op = (Enclosing)that.getAccOp();
             String left = _op.getOpen().getText();
             String right = _op.getClose().getText();
             left = left.startsWith("BIG") ? left.substring(4, left.length()) : left;
@@ -2364,7 +2364,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forBoolConstantOnly(BoolConstant that) {
-        if ( that.isBool() )
+        if ( that.isBoolVal() )
             return handleParen( "true",
                                 that.isParenthesized() );
         else
@@ -2695,7 +2695,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
         s.append( name_result );
         s = optCurlyBraces(s, " extends ", extendsClause_result, "");
-        if ( that.isAbsorbs() ) {
+        if ( that.isAbsorbsParam() ) {
             s.append( " absorbs unit" );
         }
         return s.toString();
@@ -2709,7 +2709,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( dim_result.isSome() ) {
             s.append( handleType(dim_result.unwrap()) );
         }
-        if ( that.isAbsorbs() ) {
+        if ( that.isAbsorbsParam() ) {
             s.append( " absorbs unit" );
         }
         return s.toString();
@@ -2826,7 +2826,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( loc_result.isSome() ) {
             s.append( "at " ).append( loc_result.unwrap() ).append( " " );
         }
-        if ( that.isAtomic() ) {
+        if ( that.isAtomicBlock() ) {
             s.append( "atomic " );
         }
         s.append( "do\n" ).append( indent(expr_result) );

@@ -180,7 +180,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     @Override
 	public Node forAccumulator(Accumulator that) {
         return visitAccumulator(that.getSpan(), that.getGens(),
-                                that.getOpr(), that.getBody(),
+                                that.getAccOp(), that.getBody(),
                                 that.getStaticArgs());
     }
 

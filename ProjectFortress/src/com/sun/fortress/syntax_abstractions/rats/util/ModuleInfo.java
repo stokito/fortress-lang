@@ -40,10 +40,10 @@ public class ModuleInfo {
      */
     public static boolean isFortressModule(Id memberName) {
         Set<String> fortressModules = getFortressModuleNames();
-        if (memberName.getApi().isNone()) {
+        if (memberName.getApiName().isNone()) {
             return fortressModules.contains(memberName.getText());
         }
-        APIName api = memberName.getApi().unwrap();
+        APIName api = memberName.getApiName().unwrap();
         if (!api.getIds().get(0).getText().equals("FortressSyntax")) {
             return false;
         }

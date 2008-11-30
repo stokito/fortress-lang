@@ -168,7 +168,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
             List<StaticArg> params = ((TraitType)type).getArgs();
             if (params.size() == 1 && params.get(0) instanceof TypeArg) {
                 // FIXME: Check cast to BaseType
-                return (BaseType)((TypeArg)params.get(0)).getType();
+                return (BaseType)((TypeArg)params.get(0)).getTypeArg();
             }
         }
         throw new MacroError(type, "expected a List type, got: " + type);

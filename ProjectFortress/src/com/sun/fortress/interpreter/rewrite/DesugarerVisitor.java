@@ -214,7 +214,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
 
     static Id filterQID(Id qid) {
-        if (qid.getApi().isNone())
+        if (qid.getApiName().isNone())
             return qid;
         return bug("Not yet prepared for QIDs ref'd through self/parent, QID=" + NodeUtil.dump(qid));
     }
@@ -229,7 +229,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                         // rewrite.
                                         dottedReference(original.getSpan(),
                                                         objectNestingDepth - objectNestedness),
-                                        filterQID(original.getVar()));
+                                        filterQID(original.getVarId()));
         }
 
         public String toString() {
@@ -730,7 +730,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forVarType(VarType vre) {
         Id id = vre.getName();
         Node node = vre;
-        if (id.getApi().isNone()) {
+        if (id.getApiName().isNone()) {
             String s = NodeUtil.nameString(id);
             StaticParam tp = visibleGenericParameters.get(s);
             if (tp != null) {
@@ -807,7 +807,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             */
 
             WhereClause nwc = (WhereClause) visitNode(wc);
-            BaseType t = vre.getType();
+            BaseType t = vre.getBaseType();
             BaseType nt = (BaseType) recur(t);
             if (t == nt && wc == nwc)
                 return vre;
@@ -853,9 +853,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Option<List<EnsuresClause>> _ensures;
         Option<List<Expr>> _invariants;
         if ( _contract.isSome() ) {
-            _requires = _contract.unwrap().getRequires();
-            _ensures = _contract.unwrap().getEnsures();
-            _invariants = _contract.unwrap().getInvariants();
+            _requires = _contract.unwrap().getRequiresClause();
+            _ensures = _contract.unwrap().getEnsuresClause();
+            _invariants = _contract.unwrap().getInvariantsClause();
         } else {
             _requires = Option.<List<Expr>>none();
             _ensures = Option.<List<EnsuresClause>>none();
@@ -1072,7 +1072,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      **/
     @Override
     public Node forWhile(While w) {
-        GeneratorClause g = w.getTest();
+        GeneratorClause g = w.getTestExpr();
         if (g.getBind().size() > 0) {
             // while binds <- expr  do body end
             // desugars to
@@ -1160,7 +1160,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     private String vrToString(VarRef vre) {
-        Iterable<Id> ids = NodeUtil.getIds(vre.getVar());
+        Iterable<Id> ids = NodeUtil.getIds(vre.getVarId());
         // TODO this omits the leading API name
         String s = IterUtil.last(ids).getText();
         return s;
@@ -1189,7 +1189,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * The else clase can be null, or can be an if expression.
      **/
     private Expr addIfClause(IfClause c, Expr elsePart) {
-        GeneratorClause g = c.getTest();
+        GeneratorClause g = c.getTestClause();
         if (g.getBind().size() > 0) {
             // if binds <- expr then body else elsePart end desugars to
             // __cond(expr, fn (binds) => body, elsePart)
@@ -1521,7 +1521,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                    // TODO Way too many types; deal with them as necessary.
                     bug(t, errorMsg("Object extends something exciting: ", t));
                 }
-                boolean hasApi = name.getApi().isSome();
+                boolean hasApi = name.getApiName().isSome();
                 // The map is not consistent; the stored names lack API qualifiers.
                 // TODO fix this inconsistency.
                 if (true || !hasApi) {
@@ -1595,7 +1595,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     private AbstractNode translateJuxtOfDotted(Juxt node) {
         List<Expr> exprs = node.getExprs();
         VarRef first = (VarRef) exprs.get(0);
-        Id qidn = first.getVar();
+        Id qidn = first.getVarId();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
@@ -1608,7 +1608,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 return new MethodInvocation(node.getSpan(),
                         false,
                         ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
-                        (Id) vre.getVar(),
+                        (Id) vre.getVarId(),
                         visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                         visitedArgs.size() == 1 ? visitedArgs.get(0) :
                             new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
@@ -1634,7 +1634,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     private AbstractNode translateJuxtOfDotted(MathPrimary node) {
         VarRef first = (VarRef) node.getFront();
-        Id qidn = first.getVar();
+        Id qidn = first.getVarId();
 
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general

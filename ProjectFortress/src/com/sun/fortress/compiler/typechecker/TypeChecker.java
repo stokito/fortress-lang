@@ -589,7 +589,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			// Map to list of supertypes
 			for( TraitTypeWhere ttw : index.extendsTypes() ) {
-				Type t = ttw.getType();
+				Type t = ttw.getBaseType();
 				Type t_ = (Type)t.accept(new StaticTypeReplacer(trait_static_params, trait_static_args));
 				new_supers.addAll(traitTypesCallable(t_));
 			}
@@ -670,7 +670,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			// get all of the types this type extends. Note that because we can extend types with our own static args,
 			// we must visit the extended type with a static type replacer.
 			for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
-				Type t = (Type)ttw.getType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
+				Type t = (Type)ttw.getBaseType().accept(new StaticTypeReplacer(extended_type_params, extended_type_args));
 				new_supers.addAll(traitTypesCallable(t));
 			}
 
@@ -743,7 +743,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			// Map to list of supertypes
 			for( TraitTypeWhere ttw : trait_index.extendsTypes() ) {
-				new_supers.addAll(traitTypesCallable(ttw.getType()));
+				new_supers.addAll(traitTypesCallable(ttw.getBaseType()));
 			}
 
 			// check if trait has a getter
@@ -857,7 +857,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private static List<Pair<FnRef, Type>> destructFnOverloadings(List<_RewriteFnRefOverloading> overloadings) {
 		List<Pair<FnRef, Type>> result = new ArrayList<Pair<FnRef, Type>>(overloadings.size());
 		for( _RewriteFnRefOverloading overloading : overloadings ) {
-			result.add(Pair.make(overloading.getFn(), overloading.getTy()));
+			result.add(Pair.make(overloading.getFnRef(), overloading.getTy()));
 		}
 		return result;
 	}
@@ -1059,8 +1059,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Option<ConstraintFormula> constraint = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), index.staticParameters(), this.subtypeChecker);
 			if(constraint.isSome()){
 				TypeCheckerResult res=this.checkSubtype(element_result.type().unwrap(),
-						((TypeArg)that.getStaticArgs().get(0)).getType(), that,
-						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getType());
+						((TypeArg)that.getStaticArgs().get(0)).getTypeArg(), that,
+						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getTypeArg());
 				Type t=Types.makeArrayKType(1, that.getStaticArgs());
 				Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
 				return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result, res,
@@ -1093,10 +1093,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			for(int i=2; i<type.getArgs().size(); i+=2){
 				StaticArg arg = type.getArgs().get(i);
 				if(arg instanceof IntArg){
-					IntExpr iexpr = ((IntArg)arg).getVal();
+					IntExpr iexpr = ((IntArg)arg).getIntVal();
 					if(iexpr instanceof NumberConstraint){
-						IntLiteralExpr dim = ((NumberConstraint) iexpr).getVal();
-						BigInteger n = dim.getVal();
+						IntLiteralExpr dim = ((NumberConstraint) iexpr).getIntVal();
+						BigInteger n = dim.getIntVal();
 						dims.add(n);
 					}
 					else{
@@ -1109,7 +1109,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 			Type t;
 			if(type.getArgs().get(0) instanceof TypeArg){
-				t = ((TypeArg)type.getArgs().get(0)).getType();
+				t = ((TypeArg)type.getArgs().get(0)).getTypeArg();
 			}
 			else{
 				return InterpreterBug.bug("Array type changed");
@@ -1205,7 +1205,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(sargs, trait_index.staticParameters(), this.subtypeChecker);
 			if(constraints.isSome()) {
 				// First arg MUST BE a TypeArg, and it must be a supertype of the elements
-				Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getType();
+				Type declared_type = ((TypeArg)that.getStaticArgs().get(0)).getTypeArg();
 				all_results.add(this.checkSubtype(array_type, declared_type, that, "Array elements must be a subtype of explicity declared type" + declared_type + "."));
 				//Check infered dims against explicit dims
 				return_type = Types.makeArrayKType(dim, sargs);
@@ -1239,7 +1239,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forAsExpr(AsExpr that) {
-		Type ascriptedType = that.getType();
+		Type ascriptedType = that.getAnnType();
 		TypeCheckerResult expr_result = that.getExpr().accept(this);
 		Type exprType = expr_result.type().isSome() ? expr_result.type().unwrap() : Types.BOTTOM;
 		// node rebuilding handled in forTypeAnnotatedExprOnly
@@ -1251,7 +1251,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forAsIfExpr(AsIfExpr that) {
-		Type assumedType = that.getType();
+		Type assumedType = that.getAnnType();
 		TypeCheckerResult expr_result = that.getExpr().accept(this);
 		Type exprType = expr_result.type().isSome() ? expr_result.type().unwrap() : Types.BOTTOM;
 		// node rebuilding handled in forTypeAnnotatedExprOnly
@@ -1278,13 +1278,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return bug("requireTupleType should always return a list of types equal to the size it is passed.");
 
 		List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
-		List<OpRef> op_refs = that.getOpr().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
+		List<OpRef> op_refs = that.getAssignOp().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
 
 		// Go through LHS, checking each one
 		Iterator<Type> rhs_type_iter = rhs_types.iterator();
 		for( Lhs lhs : that.getLhs() ) {
 			Type rhs_type = rhs_type_iter.next();
-			Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getOpr());
+			Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getAssignOp());
 			lhs_results.add(p.second());
 
 			if( p.first().isSome() )
@@ -1292,13 +1292,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		Assignment new_node;
-		if( that.getOpr().isSome() ) {
+		if( that.getAssignOp().isSome() ) {
 			// Create a new Assignment, with an OpRef for each LHS
 			new_node = new Assignment(that.getSpan(),
                                                   that.isParenthesized(),
                                                   Option.<Type>some(Types.VOID),
                                                   (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-                                                  that.getOpr(),
+                                                  that.getAssignOp(),
                                                   (Expr)rhs_result.ast(),
                                                   Option.<List<OpRef>>some(op_refs));
 		}
@@ -1308,7 +1308,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					that.isParenthesized(),
 					Option.<Type>some(Types.VOID),
 					(List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-					that.getOpr(),
+					that.getAssignOp(),
 					(Expr)rhs_result.ast());
 		}
 		// This case could not result in open constraints: If there is an OpRef, this must not be
@@ -1331,13 +1331,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return bug("requireTupleType should always return a list of types equal to the size it is passed.");
 
 		List<TypeCheckerResult> lhs_results = new ArrayList<TypeCheckerResult>(that.getLhs().size());
-		List<OpRef> op_refs = that.getOpr().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
+		List<OpRef> op_refs = that.getAssignOp().isSome() ? new ArrayList<OpRef>(that.getLhs().size()) : Collections.<OpRef>emptyList();
 
 		// Go through LHS, checking each one
 		Iterator<Type> rhs_type_iter = rhs_types.iterator();
 		for( Lhs lhs : that.getLhs() ) {
 			Type rhs_type = rhs_type_iter.next();
-			Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getOpr());
+			Pair<Option<OpRef>, TypeCheckerResult> p = checkLhsAssignment(lhs, rhs_type, that.getAssignOp());
 			lhs_results.add(p.second());
 
 			if( p.first().isSome() )
@@ -1349,7 +1349,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                      that.isParenthesized(),
                                                      Option.<Type>some(Types.VOID),
                                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
-                                                     that.getOpr(),
+                                                     that.getAssignOp(),
                                                      (Expr)rhs_result.ast(),
                                                      Option.<List<OpRef>>some(op_refs));
 
@@ -1362,7 +1362,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Pair<Boolean,Node> temp = TypesUtil.closeConstraints(new_node, result);
 			new_node = (Assignment)temp.second();
 			if(!temp.first()){
-				String err = "No overloading for " + that.getOpr().unwrap();
+				String err = "No overloading for " + that.getAssignOp().unwrap();
 				successful = new TypeCheckerResult(that, TypeError.make(err,that));
 			}
 		}
@@ -1487,8 +1487,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				TypeCheckerResult sub_result = checkSubtype(rhs_type, var_result.type().unwrap(), lhs,
 						"Type of right-hand side of assignment, " +rhs_type+ ", must be subtype of left-hand side, " + var_result.type() + ".");
 
-				TypeEnv env = that.getVar().getApi().isSome() ? returnTypeEnvForApi(that.getVar().getApi().unwrap()) : typeEnv;
-				Option<BindingLookup> bl = env.binding(that.getVar());
+				TypeEnv env = that.getVarId().getApiName().isSome() ? returnTypeEnvForApi(that.getVarId().getApiName().unwrap()) : typeEnv;
+				Option<BindingLookup> bl = env.binding(that.getVarId());
 				if( bl.isNone() ) return bug("Inconsistent results from TypeEnv and typechecking VarRef");
 
 				// make sure it's immutable
@@ -1638,7 +1638,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			@Override
 			public Triple<CaseClause, TypeCheckerResult, TypeCheckerResult> forCaseClause(
 					CaseClause that) {
-				TypeCheckerResult match_result = that.getMatch().accept(TypeChecker.this);
+				TypeCheckerResult match_result = that.getMatchClause().accept(TypeChecker.this);
 				TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
 				CaseClause new_node = new CaseClause(that.getSpan(), (Expr)match_result.ast(), (Block)body_result.ast(),
                                                                      that.getOp());
@@ -1765,7 +1765,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 */
 	private Pair<Type, TypeCheckerResult> forCaseClauseRewriteAndGetType(CaseClause clause, Option<TypeCheckerResult> param_result_,
 			Option<TypeCheckerResult> compare_result_, TypeCheckerResult equals_result, TypeCheckerResult in_result) {
-		TypeCheckerResult match_result = recur(clause.getMatch());
+		TypeCheckerResult match_result = recur(clause.getMatchClause());
 		TypeCheckerResult block_result = recur(clause.getBody());
 
 		// make sure subexpressions were well-typed
@@ -1839,7 +1839,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             OpRef op = clause.getOp().unwrap();
 
-		TypeCheckerResult match_result = recur(clause.getMatch());
+		TypeCheckerResult match_result = recur(clause.getMatchClause());
 		TypeCheckerResult block_result = recur(clause.getBody());
 
 		// make sure subexpressions were well-typed
@@ -1941,13 +1941,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 */
 	private TypeCheckerResult forCatchClauseWithIdToBind(CatchClause that,
 			Id id_to_bind) {
-		TypeCheckerResult match_result = that.getMatch().accept(this);
+		TypeCheckerResult match_result = that.getMatchType().accept(this);
 		// type must be an exception
-		TypeCheckerResult is_exn_result = checkSubtype(that.getMatch(), Types.EXCEPTION, that.getMatch(),
-				"Catch clauses must catch sub-types of Exception, but " + that.getMatch() + " is not.");
+		TypeCheckerResult is_exn_result = checkSubtype(that.getMatchType(), Types.EXCEPTION, that.getMatchType(),
+				"Catch clauses must catch sub-types of Exception, but " + that.getMatchType() + " is not.");
 
 		// bind id and check the body
-		LValue lval = NodeFactory.makeLValue(id_to_bind, that.getMatch());
+		LValue lval = NodeFactory.makeLValue(id_to_bind, that.getMatchType());
 		TypeChecker extend_tc = this.extend(Collections.singletonList(lval));
 		TypeCheckerResult body_result = that.getBody().accept(extend_tc);
 
@@ -2005,7 +2005,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				that.isParenthesized(),
 				Option.<Type>some(Types.CHAR),
 				that.getText(),
-				that.getVal());
+				that.getCharVal());
 		return new TypeCheckerResult(new_node, Types.CHAR);
 	}
 
@@ -2068,7 +2068,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	public TypeCheckerResult forDoFront(DoFront that) {
 		TypeCheckerResult bodyResult =
-			that.isAtomic() ? forAtomic(
+			that.isAtomicBlock() ? forAtomic(
 					that.getExpr(),
 					errorMsg("A 'spawn' expression must not occur inside",
 					"an 'atomic' do block."))
@@ -2091,7 +2091,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					DoFront new_node = new DoFront(that.getSpan(),
 							(Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
-							that.isAtomic(),
+							that.isAtomicBlock(),
 							(Block)bodyResult.ast());
 					return TypeCheckerResult.compose(new_node,
 							bodyResult.type(),
@@ -2122,7 +2122,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forEnclosing(Enclosing that) {
-		Option<APIName> api = that.getApi();
+		Option<APIName> api = that.getApiName();
 		TypeEnv env = api.isSome() ? returnTypeEnvForApi(api.unwrap()) : this.typeEnv;
 
 		Option<BindingLookup> binding = env.binding(that);
@@ -2708,7 +2708,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forId(Id name) {
-		Option<APIName> apiName = name.getApi();
+		Option<APIName> apiName = name.getApiName();
 		if (apiName.isSome()) {
 			APIName api = apiName.unwrap();
 			TypeEnv apiTypeEnv = returnTypeEnvForApi(api);
@@ -2721,7 +2721,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					// Type was declared in that API, so it's not qualified;
 					// prepend it with the API.
-					if (_namedType.getName().getApi().isNone()) {
+					if (_namedType.getName().getApiName().isNone()) {
 						_type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
 					}
 				}
@@ -2756,7 +2756,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	private Pair<TypeCheckerResult, Option<Type>> forIfClauseWithType(IfClause that) {
 		// For generalized 'if' we must introduce new bindings.
 		Pair<TypeCheckerResult, List<LValue>> result_and_binds =
-			this.forGeneratorClauseGetBindings(that.getTest(), true);
+			this.forGeneratorClauseGetBindings(that.getTestClause(), true);
 
 		// Destruct result
 		TypeCheckerResult test_result = result_and_binds.first();
@@ -2853,7 +2853,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntLiteralExpr(IntLiteralExpr that) {
-		IntLiteralExpr new_node = new IntLiteralExpr(that.getSpan(), Option.<Type>some(Types.INT_LITERAL), that.getText(), that.getVal());
+		IntLiteralExpr new_node = new IntLiteralExpr(that.getSpan(), Option.<Type>some(Types.INT_LITERAL), that.getText(), that.getIntVal());
 		return new TypeCheckerResult(new_node, Types.INT_LITERAL);
 	}
 
@@ -3377,7 +3377,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			CollectUtil.makeList(
 					IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
 						public TypeCheckerResult value(TraitTypeWhere arg0) {
-							return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
+							return assertTrait(arg0.getBaseType(), that, "Objects can only extend traits.", arg0);
 						}}));
 
 		// Extend method checker with fields
@@ -3454,7 +3454,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<TypeCheckerResult> extends_traits_result = CollectUtil.makeList(
 				IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>() {
 					public TypeCheckerResult value(TraitTypeWhere arg0) {
-						return assertTrait(arg0.getType(), that, "Objects can only extend traits.", arg0);
+						return assertTrait(arg0.getBaseType(), that, "Objects can only extend traits.", arg0);
 					}}));
 
 		// Extend the type checker with all of the field decls
@@ -3510,7 +3510,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forOp(Op that) {
-		Option<APIName> api = that.getApi();
+		Option<APIName> api = that.getApiName();
 
 		Option<BindingLookup> binding;
 
@@ -3936,7 +3936,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<TypeCheckerResult> extends_trait_result = CollectUtil.makeList(
 				IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>(){
 					public TypeCheckerResult value(TraitTypeWhere arg0) {
-						return assertTrait(arg0.getType(), that, "Traits can only extend traits.", arg0);
+						return assertTrait(arg0.getBaseType(), that, "Traits can only extend traits.", arg0);
 					}}));
 
 		Option<List<TypeCheckerResult>> comprisesResult =  checker_with_sparams.recurOnOptionOfListOfBaseType(that.getComprisesClause());
@@ -4043,8 +4043,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult finally_result_ = finally_result.isSome() ? finally_result.unwrap() : new TypeCheckerResult(that);
 
 		// Check that all forbids are subtypes of exception
-		List<TypeCheckerResult> forbids_exn = new ArrayList<TypeCheckerResult>(that.getForbid().size());
-		for( Type t : that.getForbid() ) {
+		List<TypeCheckerResult> forbids_exn = new ArrayList<TypeCheckerResult>(that.getForbidClause().size());
+		for( Type t : that.getForbidClause() ) {
 			TypeCheckerResult r =
 				this.checkSubtype(t, Types.EXCEPTION, t,"All types in 'forbids' clause must be subtypes of " +
 						"Exception, but "+ t + " is not.");
@@ -4124,7 +4124,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return new TypeCheckerResult(that);
 		}
 
-		final Type annotatedType = that.getType();
+		final Type annotatedType = that.getAnnType();
 		Type exprType = expr_result.type().unwrap();
 
 		// Check that expression type <: annotated type.
@@ -4268,25 +4268,25 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	private TypeCheckerResult forTypecaseClauseWithBindings(TypecaseClause clause, List<Id> to_bind, Type original_type) {
 		//Assumption: forTypeCase assures that original_type is a tuple of the same size as to_bind.size()
-		List<TypeCheckerResult> match_result = recurOnListOfType(clause.getMatch());
+		List<TypeCheckerResult> match_result = recurOnListOfType(clause.getMatchType());
 		TypeChecker extend;
 		if(to_bind.size()==1){
 			Type meet;
-			if(clause.getMatch().size()>1){
-				meet=this.subtypeChecker.meet(NodeFactory.makeTupleType(clause.getMatch()),original_type);
+			if(clause.getMatchType().size()>1){
+				meet=this.subtypeChecker.meet(NodeFactory.makeTupleType(clause.getMatchType()),original_type);
 			}
 			else{
-				meet=this.subtypeChecker.meet(clause.getMatch().get(0),original_type);
+				meet=this.subtypeChecker.meet(clause.getMatchType().get(0),original_type);
 			}
 			LValue bind = NodeFactory.makeLValue(to_bind.get(0), meet);
 			extend=this.extend(Collections.singletonList(bind));
 		}else{
-			if(to_bind.size()!=clause.getMatch().size()){
+			if(to_bind.size()!=clause.getMatchType().size()){
 				return new TypeCheckerResult(clause, TypeError.make("Tuple sizes don't match",clause));
 			}
 			else{
 				List<LValue> binds=new ArrayList<LValue>(to_bind.size());
-				Iterator<Type> mitr=clause.getMatch().iterator();
+				Iterator<Type> mitr=clause.getMatchType().iterator();
 				assert(original_type instanceof TupleType);
 				TupleType tuple=(TupleType)original_type;
 				Iterator<Type> titr=tuple.getElements().iterator();
@@ -4394,7 +4394,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forWhile(While that) {
-		Pair<TypeCheckerResult,List<LValue>> res = this.forGeneratorClauseGetBindings(that.getTest(), true);
+		Pair<TypeCheckerResult,List<LValue>> res = this.forGeneratorClauseGetBindings(that.getTestExpr(), true);
 		TypeChecker extended = this.extend(res.second());
 		TypeCheckerResult body_result = that.getBody().accept(extended);
 
@@ -4471,7 +4471,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			//          new_supers.addAll(traitTypesCallable(t));
 			//          }
 
-			BaseType type_ = trait_.getType();
+			BaseType type_ = trait_.getBaseType();
 
 			if( h.hasExplored(type_) )
 				continue;

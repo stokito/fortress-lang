@@ -490,7 +490,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedTypeCons(Id name) {
-        Option<APIName> optApi= name.getApi();
+        Option<APIName> optApi= name.getApiName();
         if (optApi.isNone()) {
             bug(name, "Expected to have an API name.");
             return false;
@@ -503,7 +503,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedVariable(Id name) {
-        Option<APIName> optApi= name.getApi();
+        Option<APIName> optApi= name.getApiName();
         if (optApi.isNone())
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
@@ -514,7 +514,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedFunction(Id name) {
-        Option<APIName> optApi= name.getApi();
+        Option<APIName> optApi= name.getApiName();
         if (optApi.isNone())
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
@@ -525,7 +525,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public boolean hasQualifiedGrammar(Id name) {
-        Option<APIName> optApi= name.getApi();
+        Option<APIName> optApi= name.getApiName();
         if (optApi.isNone())
             bug(name, "Expected to have an API name.");
         APIName api = optApi.unwrap();
@@ -536,7 +536,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public TypeConsIndex typeConsIndex(final Id name) {
-        Option<APIName> api = name.getApi();
+        Option<APIName> api = name.getApiName();
         APIName actualApi;
         // If no API in name or it's the current API, use its own typeCons.
         // Otherwise, try to find the API in the global env and use its typeCons.
@@ -565,8 +565,8 @@ public class TopLevelEnv extends NameEnv {
 
     public Option<GrammarIndex> grammarIndex(final Id name) {
     	String uqname = name.getText();
-    	if (name.getApi().isSome()) {
-            APIName n = name.getApi().unwrap();
+    	if (name.getApiName().isSome()) {
+            APIName n = name.getApiName().unwrap();
             if (_filteredGlobalEnv.definesApi(n)) {
             	return Option.some(_filteredGlobalEnv.api(n).grammars().get(uqname));
             }

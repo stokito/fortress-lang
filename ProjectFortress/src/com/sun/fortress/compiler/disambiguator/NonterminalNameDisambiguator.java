@@ -97,8 +97,8 @@ public class NonterminalNameDisambiguator {
 	 */
         public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
             // If it is already fully qualified
-            if (name.getApi().isSome()) {
-                APIName originalApiGrammar = name.getApi().unwrap();
+            if (name.getApiName().isSome()) {
+                APIName originalApiGrammar = name.getApiName().unwrap();
                 Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
                 // Check that the qualifying part is a real grammar
                 if (realApiGrammarOpt.isNone()) {
@@ -122,7 +122,7 @@ public class NonterminalNameDisambiguator {
                 // Is it defined in the current grammar?
                 if (1 == names.size()) {
                     Id qname = IterUtil.first(names);
-                    return Option.some(qname);   
+                    return Option.some(qname);
                 }
                 // If the nonterminal is not defined in the current grammar then look
                 // among the inherited nonterminal names
@@ -142,7 +142,7 @@ public class NonterminalNameDisambiguator {
                     }
                     //				// We need to repatriating the nonterminal to this grammar
                     //				Id currentName = currentEnv.getGrammarIndex().getName();
-                    //                APIName currentApi = currentName.getApi().unwrap();
+                    //                APIName currentApi = currentName.getApiName().unwrap();
                     //				Id qname = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName.getText(), uqname);
                     Debug.debug( Debug.Type.SYNTAX, 4, uqname + " is qualified as " + IterUtil.first(names) );
                     return Option.some(IterUtil.first(names));

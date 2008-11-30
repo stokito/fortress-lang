@@ -113,8 +113,8 @@ public class Transform extends TemplateUpdateVisitor {
 
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
-        Id var_result = syntaxEnvironment.lookup(that.getVar());
-        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVar() + " in hygiene environment = " + var_result);
+        Id var_result = syntaxEnvironment.lookup(that.getVarId());
+        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() + " in hygiene environment = " + var_result);
         return forVarRefOnly(that, exprType_result, var_result);
     }
 
@@ -157,7 +157,7 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forIfClause(IfClause that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            GeneratorClause test_result = handleGeneratorClause(that.getTest());
+            GeneratorClause test_result = handleGeneratorClause(that.getTestClause());
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
             return forIfClauseOnly(that, test_result, body_result);
@@ -187,7 +187,7 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
-            GeneratorClause test_result = handleGeneratorClause(that.getTest());
+            GeneratorClause test_result = handleGeneratorClause(that.getTestExpr());
             Do body_result = (Do) recur(that.getBody());
             setSyntaxEnvironment(save);
             return forWhileOnly(that, exprType_result, test_result, body_result);
@@ -458,17 +458,17 @@ public class Transform extends TemplateUpdateVisitor {
                     return new _RepeatedExpr((List) binding);
                 }
                 */
-                Debug.debug( Debug.Type.SYNTAX, 2, "Found template gap " + binding.getObject() );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Found template gap " + binding.get_object() );
                 return binding;
             } else {
 
-                if ( ! (binding.getObject() instanceof CurriedTransformer) ){
+                if ( ! (binding.get_object() instanceof CurriedTransformer) ){
                     throw new MacroError("Parameterized template gap is not bound " +
 					 "to a CurriedTransformer, instead bound to " +
 					 binding.getClass().getName());
                 }
 
-                CurriedTransformer curried = (CurriedTransformer) binding.getObject();
+                CurriedTransformer curried = (CurriedTransformer) binding.get_object();
                 Map<String,Level> vars = new HashMap<String,Level>( curried.getVariables() );
                 if ( curried.getSyntaxParameters().size() != params.size() ){
                     throw new MacroError( "Passing " + params.size() +
@@ -499,8 +499,8 @@ public class Transform extends TemplateUpdateVisitor {
 					     List<Id> templateParams_result) {
         /* another annoying cast */
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
-        // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).getObject()).accept(this);
-        Node n = ((Node) lookupVariable(gapId_result, templateParams_result).getObject());
+        // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
+        Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object());
         // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
         Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result + " is " + n.getClass() + " " + n );
         return n;
@@ -540,7 +540,7 @@ public class Transform extends TemplateUpdateVisitor {
             Level obj = variables.get( name.getText() );
             if ( obj == null ){
                 throw new MacroError( "Can't find a binding for gap " + name );
-            } else if ( obj.getObject() instanceof CurriedTransformer ){
+            } else if ( obj.get_object() instanceof CurriedTransformer ){
                 throw new MacroError( name + " cannot accept parameters in a case expression" );
             }
             Debug.debug( Debug.Type.SYNTAX, 3, "Looking up variable in transformer evaluator: " + name + " and found " + obj );
@@ -581,8 +581,8 @@ public class Transform extends TemplateUpdateVisitor {
                                      "bad case transformer constructor: " + constructor);
 	    }
 
-	    if (toMatch.getObject() instanceof List) {
-		List<?> list = (List<?>)toMatch.getObject();
+	    if (toMatch.get_object() instanceof List) {
+		List<?> list = (List<?>)toMatch.get_object();
                 Debug.debug( Debug.Type.SYNTAX, 2, "Matching Cons constructor to list " + list );
 		if (constructor.equals("Cons")) {
 		    if (!list.isEmpty()) {
@@ -614,7 +614,7 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
         if ( partial instanceof Level ){
             Level l = (Level) partial;
-            return new Level(NodeFactory.makeSpan(l), l.getLevel(), traverse( l.getObject() ) );
+            return new Level(NodeFactory.makeSpan(l), l.getLevel(), traverse( l.get_object() ) );
         } else if ( partial instanceof List ){
             List<Object> all = new LinkedList<Object>();
             for ( Object o : (List<?>) partial ){
@@ -663,7 +663,7 @@ public class Transform extends TemplateUpdateVisitor {
             }
             */
             // Level level = var.getValue();
-            // Object argument = traverse( level.getObject() );
+            // Object argument = traverse( level.get_object() );
 
             /* argh, this cast shouldn't be needed */
             Level argument = (Level) traverse( var.getValue() );
@@ -723,7 +723,7 @@ public class Transform extends TemplateUpdateVisitor {
         // for ( Id var : env.getVars() ){
         for ( Id var : freeVariables ){
             if ( lookupLevel( var ) > 0 ){
-                int size = ((List) lookupVariable( var, new LinkedList<Id>() ).getObject()).size();
+                int size = ((List) lookupVariable( var, new LinkedList<Id>() ).get_object()).size();
                 Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
                 return size;
             }
@@ -748,7 +748,7 @@ public class Transform extends TemplateUpdateVisitor {
                 if ( value.getLevel() == 0 ){
                     newVars.put( var.getText(), new Level(NodeFactory.makeSpan(value),   value.getLevel(), value ) );
                 } else {
-                    List l = (List) value.getObject();
+                    List l = (List) value.get_object();
                     newVars.put( var.getText(), new Level(NodeFactory.makeSpan(value), value.getLevel() - 1, l.get( i ) ) );
                 }
             }

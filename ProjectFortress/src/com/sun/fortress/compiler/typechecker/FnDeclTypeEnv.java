@@ -65,7 +65,7 @@ class FnDeclTypeEnv extends TypeEnv {
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;
-                if (_var.getApi().isSome())
+                if (_var.getApiName().isSome())
                     return binding(new Id(_var.getSpan(), _var.getText()));
             }
             return parent.binding(var);
@@ -100,7 +100,7 @@ class FnDeclTypeEnv extends TypeEnv {
         if (fns.isEmpty()) {
             if (var instanceof Id) {
                 Id _var = (Id)var;
-                if (_var.getApi().isSome())
+                if (_var.getApiName().isSome())
                     return declarationSite(new Id(_var.getSpan(), _var.getText()));
             }
             return parent.declarationSite(var);

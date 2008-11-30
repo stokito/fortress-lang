@@ -43,7 +43,7 @@ public class FortressTypeToJavaType {
             @Override
             public String forTraitType(TraitType that) {
                 if (that.getArgs().size() == 0) {
-                    return that.getName().getText();                    
+                    return that.getName().getText();
                 }
                 if (that.getArgs().size() != 1) {
                     throw new MacroError(that,
@@ -67,7 +67,7 @@ public class FortressTypeToJavaType {
 
             @Override
             public String forTypeArg(TypeArg that) {
-                return that.getType().accept(this);
+                return that.getTypeArg().accept(this);
             }
 
         });

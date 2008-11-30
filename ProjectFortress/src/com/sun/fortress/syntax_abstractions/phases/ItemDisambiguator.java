@@ -68,8 +68,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     }
 
     private Option<GrammarIndex> grammarIndex(Id name) {
-        if (name.getApi().isSome()) {
-            APIName api = name.getApi().unwrap();
+        if (name.getApiName().isSome()) {
+            APIName api = name.getApiName().unwrap();
             if (this._globalEnv.definesApi(api)) {
                 return Option.some(_globalEnv.api(api).grammars().get(name.getText()));
             }
@@ -98,7 +98,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         Option<GrammarIndex> index = this.grammarIndex(that.getName());
         if (index.isSome()) {
             this._currentGrammarIndex = index.unwrap();
-        } else { 
+        } else {
             error("Grammar "+that.getName()+" not found", that);
         }
         return super.forGrammarDef(that);
@@ -106,8 +106,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
     @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
         NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-        Option<Id> oname = 
-            nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), 
+        Option<Id> oname =
+            nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex),
                                       that.getNonterminal());
         if (oname.isSome()) {
             return new UnparsedTransformer(NodeFactory.makeSpan(that, oname.unwrap()), that.getTransformer(), oname.unwrap());
@@ -129,7 +129,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         if (IdentifierUtil.validId(item.getItem())) {
             Id name = makeId(item.getSpan(), item.getItem());
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
-            Option<Id> oname = 
+            Option<Id> oname =
                 nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
 
             if (oname.isSome()) {

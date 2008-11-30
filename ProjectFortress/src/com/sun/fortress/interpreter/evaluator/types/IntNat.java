@@ -140,9 +140,9 @@ public class IntNat extends FTypeNat {
         if (FType.DUMP_UNIFY)
             System.out.println("unifying IntNat "+this+" and "+ val.getClass().getSimpleName() + " " + val);
         if (val instanceof IntArg) {
-            IntExpr n = ((IntArg)val).getVal();
+            IntExpr n = ((IntArg)val).getIntVal();
             if (n instanceof NumberConstraint) {
-                if (((NumberConstraint)n).getVal().getVal().intValue() == this.getValue()) {
+                if (((NumberConstraint)n).getIntVal().getIntVal().intValue() == this.getValue()) {
                     // no error
                     return;
                 }

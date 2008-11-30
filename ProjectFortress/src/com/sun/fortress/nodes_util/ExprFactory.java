@@ -436,7 +436,7 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(VarRef old, int depth) {
-        return new VarRef(old.getSpan(), old.isParenthesized(), old.getVar(), depth);
+        return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(), depth);
     }
 
     public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
@@ -709,14 +709,14 @@ public class ExprFactory {
                 return new _RewriteObjectRef(that.getSpan(),true,that.getObj(),that.getStaticArgs());
             }
         public Expr forAsExpr(AsExpr e) {
-            return new AsExpr(e.getSpan(), true, e.getExpr(), e.getType());
+            return new AsExpr(e.getSpan(), true, e.getExpr(), e.getAnnType());
         }
         public Expr forAsIfExpr(AsIfExpr e) {
-            return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getType());
+            return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getAnnType());
         }
 
         public Expr forAssignment(Assignment e) {
-            return new Assignment(e.getSpan(), true, e.getLhs(), e.getOpr(),
+            return new Assignment(e.getSpan(), true, e.getLhs(), e.getAssignOp(),
                                   e.getRhs());
         }
         public Expr forBlock(Block e) {
@@ -758,7 +758,7 @@ public class ExprFactory {
         }
         public Expr forTry(Try e) {
             return new Try(e.getSpan(), true, e.getBody(),
-                    e.getCatchClause(), e.getForbid(),
+                    e.getCatchClause(), e.getForbidClause(),
                     e.getFinallyClause());
         }
         public Expr forTupleExpr(TupleExpr e) {
@@ -770,11 +770,11 @@ public class ExprFactory {
                     e.getElseClause());
         }
         public Expr forWhile(While e) {
-            return new While(e.getSpan(), true, e.getTest(), e.getBody());
+            return new While(e.getSpan(), true, e.getTestExpr(), e.getBody());
         }
         public Expr forAccumulator(Accumulator e) {
             return new Accumulator(e.getSpan(), true, e.getStaticArgs(),
-                    e.getOpr(), e.getGens(), e.getBody());
+                    e.getAccOp(), e.getGens(), e.getBody());
         }
         public Expr forAtomicExpr(AtomicExpr e) {
             return new AtomicExpr(e.getSpan(), true, e.getExpr());
@@ -832,11 +832,11 @@ public class ExprFactory {
         }
         public Expr forIntLiteralExpr(IntLiteralExpr e) {
             return new IntLiteralExpr(e.getSpan(), true, e.getText(),
-                    e.getVal());
+                    e.getIntVal());
         }
         public Expr forCharLiteralExpr(CharLiteralExpr e) {
             return new CharLiteralExpr(e.getSpan(), true, e.getText(),
-                    e.getVal());
+                    e.getCharVal());
         }
         public Expr forStringLiteralExpr(StringLiteralExpr e) {
             return new StringLiteralExpr(e.getSpan(), true, e.getText());
@@ -845,7 +845,7 @@ public class ExprFactory {
             return new VoidLiteralExpr(e.getSpan(), true, e.getText());
         }
         public Expr forVarRef(VarRef e) {
-            return new VarRef(e.getSpan(), true, e.getVar());
+            return new VarRef(e.getSpan(), true, e.getVarId());
         }
         public Expr forArrayComprehension(ArrayComprehension e) {
             return new ArrayComprehension(e.getSpan(), true, e.getClauses());

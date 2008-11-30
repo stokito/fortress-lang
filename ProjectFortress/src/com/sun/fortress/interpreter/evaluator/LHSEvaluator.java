@@ -123,9 +123,9 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
     FValue value;
 
     public Voidoid forVarRef(VarRef x) {
-        String s = x.getVar().getText();
+        String s = x.getVarId().getText();
 
-        Environment e = evaluator.e.getHomeEnvironment(x.getVar());
+        Environment e = evaluator.e.getHomeEnvironment(x.getVarId());
         e = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth());
 
         FType ft = e.getVarTypeNull(s);

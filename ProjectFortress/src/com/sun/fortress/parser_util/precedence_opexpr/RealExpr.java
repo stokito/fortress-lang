@@ -77,9 +77,9 @@ public class RealExpr extends Object implements InfixOpExpr {
          writer.print("null");
       } else {
    if (temp_expr instanceof IntLiteralExpr) {
-      writer.print(((IntLiteralExpr)temp_expr).getVal().intValue());
+      writer.print(((IntLiteralExpr)temp_expr).getIntVal().intValue());
    } else if (temp_expr instanceof VarRef) {
-      writer.print(NodeUtil.nameString(((VarRef)temp_expr).getVar()));
+      writer.print(NodeUtil.nameString(((VarRef)temp_expr).getVarId()));
    } else {
       writer.print(temp_expr);
    }
