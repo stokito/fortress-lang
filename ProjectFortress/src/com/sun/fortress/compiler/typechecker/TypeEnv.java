@@ -130,7 +130,7 @@ public abstract class TypeEnv {
      */
     protected static Option<Type> typeFromParam(Param param) {
         if (param.getVarargsType().isNone()) {
-            return param.getType();
+            return param.getIdType();
         } else { // a varargs param
             // Convert the declared varargs type into a reference to
             // FortressBuiltin.ImmutableHeapSequence.
@@ -147,7 +147,7 @@ public abstract class TypeEnv {
                                             makeEffect(decl.getSpan().getEnd(),
                                                        decl.getThrowsClause()),
                                             decl.getStaticParams(),
-                                            decl.getWhere());
+                                            decl.getWhereClause());
     }
 
     /**
@@ -160,7 +160,7 @@ public abstract class TypeEnv {
 
         for (Param param: params) {
             if (param.getVarargsType().isNone()) {
-                Option<Type> maybeType = param.getType();
+                Option<Type> maybeType = param.getIdType();
 
                 if (maybeType.isSome()) { // An explicit type is declared.
                     if (param.getDefaultExpr().isSome()) { // We have a keyword param.
@@ -441,7 +441,7 @@ public abstract class TypeEnv {
 
         public BindingLookup(LValue binding) {
             var = binding.getName();
-            type = binding.getType();
+            type = binding.getIdType();
             mods = binding.getMods();
             mutable = binding.isMutable();
         }

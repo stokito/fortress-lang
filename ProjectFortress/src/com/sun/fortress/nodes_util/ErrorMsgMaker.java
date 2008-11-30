@@ -298,8 +298,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forLValue(LValue node) {
         String r = "";
-        if (node.getType().isSome()) {
-            r = ":" + node.getType().unwrap().accept(this);
+        if (node.getIdType().isSome()) {
+            r = ":" + node.getIdType().unwrap().accept(this);
         }
         return NodeUtil.nameString(node.getName()) + r;
     }
@@ -320,9 +320,9 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         StringBuffer sb = new StringBuffer();
         sb.append(NodeUtil.nameString(node.getName()));
         if ( node.getVarargsType().isNone() ) {
-            if (node.getType().isSome()) {
+            if (node.getIdType().isSome()) {
                 sb.append(":");
-                sb.append(node.getType().unwrap().accept(this));
+                sb.append(node.getIdType().unwrap().accept(this));
             }
             if (node.getDefaultExpr().isSome()) {
                 sb.append("=");

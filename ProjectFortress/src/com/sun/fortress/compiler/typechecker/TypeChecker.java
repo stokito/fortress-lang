@@ -131,7 +131,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 	static private Type getTypeOfLValue(LValue lval) {
-            return lval.getType().unwrap();
+            return lval.getIdType().unwrap();
 	}
 	private static boolean isExprMI(MathItem item) {
 		return item.accept(new NodeDepthFirstVisitor<Boolean>(){
@@ -151,8 +151,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<Type> results = new ArrayList<Type>();
 
 		for (LValue binding: bindings) {
-			if (binding.getType().isSome()) {
-				results.add(binding.getType().unwrap());
+			if (binding.getIdType().isSome()) {
+				results.add(binding.getIdType().unwrap());
 			} else
 				bug(binding, "Missing type.");
 		}
@@ -248,7 +248,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					public LinkedList<Type> value(LinkedList<Type> arg0, Param arg1) {
                                             if( arg1.getVarargsType().isNone() ) {
 							typeCount++;
-							arg0.add(arg1.getType().unwrap());
+							arg0.add(arg1.getIdType().unwrap());
 							return arg0;
 						}
                                             else { // a varargs param, add until the sizes are equal
@@ -618,7 +618,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 									@Override
 									public Type forParam(Param that) {
                                                                             if ( that.getVarargsType().isNone() )
-                                                                                return that.getType().unwrap();
+                                                                                return that.getIdType().unwrap();
                                                                             else
                                                                                 return that.getVarargsType().unwrap();
                                                                         }
@@ -629,7 +629,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						else if( field instanceof DeclaredVariable ) {
 							DeclaredVariable var = (DeclaredVariable)field;
 							LValue bind = var.ast();
-							return Option.some(bind.getType().unwrap());
+							return Option.some(bind.getIdType().unwrap());
 						}
 						else {
 							return bug("Field of an object should not be a Singleton Object." + field);
@@ -1404,7 +1404,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
 				}
 				else {
-					Type lhs_type = that.getType().unwrap();
+					Type lhs_type = that.getIdType().unwrap();
 					return Pair.make(checkSubtype(rhs_type,
 							lhs_type, that,
 							"Type of right-hand side of assignment, " + rhs_type + ", must be a sub-type of left-hand side, " + lhs_type + "."),
@@ -1420,7 +1420,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
 				}
 				else {
-					Type lhs_type = that.getType().unwrap();
+					Type lhs_type = that.getIdType().unwrap();
 					return Pair.make(checkSubtype(rhs_type,
 							lhs_type, that,
 							"Type of right-hand side of assignment, " + rhs_type + ", must be a sub-type of left-hand side, " + lhs_type + "."),
@@ -2280,7 +2280,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 if (that.getBody().isNone())
                     return super.forFnDecl(that);
 
-		TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
+		TypeChecker newChecker = this.extend(that.getStaticParams(), that.getParams(), that.getWhereClause());
 
 		TypeCheckerResult result = new TypeCheckerResult(that);
 		TypeCheckerResult contractResult;
@@ -2321,7 +2321,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                              that.getParams(),
                                              returnType,
                                              that.getThrowsClause(),
-                                             that.getWhere(),
+                                             that.getWhereClause(),
                                              contract,
                                              Option.<Expr>some((Expr)bodyResult.ast()));
 		return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
@@ -2357,8 +2357,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Boolean varargs=false;
 		for(Param p: that.getParams()){
                     if(p.getVarargsType().isNone()){
-                        if(p.getType().isSome()){
-                            dlist.add(p.getType().unwrap());
+                        if(p.getIdType().isSome()){
+                            dlist.add(p.getIdType().unwrap());
                         }
                         else{
                             NI.nyi();
@@ -2418,7 +2418,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				that.getStaticParams(),
 				that.getParams(),
 				(Option<Type>)TypeCheckerResult.astFromResult(returnType_result),
-				that.getWhere(),
+				that.getWhereClause(),
 				(Option<List<BaseType>>)TypeCheckerResult.astFromResults(throwsClause_result),
 				(Expr)body_result.ast() );
 
@@ -3344,14 +3344,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forObjectDecl(final ObjectDecl that) {
-		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getParams(), that.getWhere());
+		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getParams(), that.getWhereClause());
 		List<TypeCheckerResult> modsResult = checker_with_sparams.recurOnListOfModifier(that.getMods());
 		TypeCheckerResult nameResult = that.getName().accept(checker_with_sparams);
 		List<TypeCheckerResult> extendsClauseResult = checker_with_sparams.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		TypeCheckerResult whereResult;
 		Option<WhereClause> where;
-		if ( that.getWhere().isSome() ) {
-			whereResult = that.getWhere().unwrap().accept(checker_with_sparams);
+		if ( that.getWhereClause().isSome() ) {
+			whereResult = that.getWhereClause().unwrap().accept(checker_with_sparams);
 			where = Option.some((WhereClause)whereResult.ast());
 		} else {
 			whereResult = new TypeCheckerResult(that);
@@ -3917,20 +3917,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forTraitDecl(final TraitDecl that) {
-		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getWhere());
+		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getWhereClause());
 
 		List<TypeCheckerResult> modsResult = checker_with_sparams.recurOnListOfModifier(that.getMods());
 		List<TypeCheckerResult> extendsClauseResult = checker_with_sparams.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		TypeCheckerResult whereResult;
 		Option<WhereClause> where;
-		if ( that.getWhere().isSome() ) {
-			whereResult = that.getWhere().unwrap().accept(checker_with_sparams);
+		if ( that.getWhereClause().isSome() ) {
+			whereResult = that.getWhereClause().unwrap().accept(checker_with_sparams);
 			where = Option.some((WhereClause)whereResult.ast());
 		} else {
 			whereResult = new TypeCheckerResult(that);
 			where = Option.<WhereClause>none();
 		}
-		List<TypeCheckerResult> excludesResult = checker_with_sparams.recurOnListOfBaseType(that.getExcludes());
+		List<TypeCheckerResult> excludesResult = checker_with_sparams.recurOnListOfBaseType(that.getExcludesClause());
 
 		// Verify that this trait only extends other traits
 		List<TypeCheckerResult> extends_trait_result = CollectUtil.makeList(
@@ -3939,7 +3939,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						return assertTrait(arg0.getType(), that, "Traits can only extend traits.", arg0);
 					}}));
 
-		Option<List<TypeCheckerResult>> comprisesResult =  checker_with_sparams.recurOnOptionOfListOfBaseType(that.getComprises());
+		Option<List<TypeCheckerResult>> comprisesResult =  checker_with_sparams.recurOnOptionOfListOfBaseType(that.getComprisesClause());
 
 		TypeChecker method_checker = checker_with_sparams;
 		TypeChecker field_checker = method_checker;
@@ -4322,7 +4322,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult subtype_result;
 		if (lhs.size() == 1) { // We have a single variable binding, not a tuple binding
 			LValue var = lhs.get(0);
-			Option<Type> varType = var.getType();
+			Option<Type> varType = var.getIdType();
 			if (varType.isSome()) {
 				if (initResult.type().isNone()) {
 					// The right hand side could not be typed, which must have resulted in a

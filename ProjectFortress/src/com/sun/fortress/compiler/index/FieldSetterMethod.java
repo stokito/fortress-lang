@@ -60,7 +60,7 @@ public class FieldSetterMethod extends Method {
 	    Param p = new Param(_ast.getSpan(),
                                 new Id(_ast.getSpan(), "fakeParamForImplicitSetter"),
                                 Collections.<Modifier>emptyList(),
-                                _ast.getType(),
+                                _ast.getIdType(),
                                 Option.<Expr>none());
 		return Collections.singletonList(p);
 	}

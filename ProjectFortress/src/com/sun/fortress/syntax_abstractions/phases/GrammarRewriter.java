@@ -161,7 +161,7 @@ public class GrammarRewriter {
             for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
                 GrammarDef og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                for (Id n: og.getExtends()) {
+                for (Id n: og.getExtendsClause()) {
                     ls.add(grammars.get(n.getText()));
                 }
                 Debug.debug( Debug.Type.SYNTAX, 3, "Grammar " + e.getKey() + " extends " + ls );

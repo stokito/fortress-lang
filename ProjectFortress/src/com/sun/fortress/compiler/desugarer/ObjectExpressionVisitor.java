@@ -880,7 +880,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private VarRef makeVarRefFromParam(Param param) {
         VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
                                                 param.getName(),
-                                                param.getType() );
+                                                param.getIdType() );
         return varRef;
     }
 

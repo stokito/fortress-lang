@@ -142,7 +142,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     public void forVarDeclOnly(VarDecl that) {
         if ( that.getInit().isNone() ) { // variable declaration without a body expression
             for (LValue lvb : that.getLhs()) {
-                if ( lvb.getType().isNone() )
+                if ( lvb.getIdType().isNone() )
                     log(lvb, "The type of " + lvb.getName() + " is required.");
             }
         }
@@ -275,7 +275,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                 hasSelf = true;
             if ( (! hasBody) &&
                  p.getVarargsType().isNone() &&
-                 p.getType().isNone() &&
+                 p.getIdType().isNone() &&
                  ! p.getName().getText().equals("self") )
                 log(p, "The type of " + p.getName() + " is required.");
         }

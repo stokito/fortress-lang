@@ -706,7 +706,7 @@ public class TopLevelEnv extends NameEnv {
             public Boolean forImportApi(ImportApi that) {
                 Boolean implib = true;
                 for( AliasedAPIName api : that.getApis() ) {
-                    APIName name = api.getApi();
+                    APIName name = api.getApiName();
                     if(name.getText().equals(WellKnownNames.fortressLibrary))
                         implib=false;
                     if( !exceptions.containsKey(name) )
@@ -717,7 +717,7 @@ public class TopLevelEnv extends NameEnv {
 
             @Override
             public Boolean forImportNames(ImportNames that) {
-                APIName name = that.getApi();
+                APIName name = that.getApiName();
 
                 // TODO Handle these aliased names more thoroughly
                 List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(),
@@ -736,11 +736,11 @@ public class TopLevelEnv extends NameEnv {
 
             @Override
             public Boolean forImportStar(ImportStar that) {
-                APIName name = that.getApi();
+                APIName name = that.getApiName();
                 if( exceptions.containsKey(name) )
-                    exceptions.get(name).addAll(that.getExcept());
+                    exceptions.get(name).addAll(that.getExceptNames());
                 else
-                    exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExcept()));
+                    exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExceptNames()));
                 return !name.getText().equals(WellKnownNames.fortressLibrary);
             }
         };

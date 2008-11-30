@@ -231,11 +231,11 @@ public class TopLevelEnvGen {
             if (imports instanceof ImportApi) {
                 ImportApi importApi = (ImportApi) imports;
                 for (AliasedAPIName api : importApi.getApis()) {
-                    importedApiNames.add(NodeUtil.nameString(api.getApi()));
+                    importedApiNames.add(NodeUtil.nameString(api.getApiName()));
                 }
             } else if (imports instanceof ImportedNames) {
                 ImportedNames importNames = (ImportedNames) imports;
-                importedApiNames.add(NodeUtil.nameString(importNames.getApi()));
+                importedApiNames.add(NodeUtil.nameString(importNames.getApiName()));
             } else {
                 throw StaticError.make("Unrecognized import type in bytecode generation", imports);
             }

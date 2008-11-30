@@ -244,7 +244,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 VarRef obj = (VarRef)rewrite.getObj();
                 obj = ExprFactory.makeVarRef(obj, obj.getExprType(),
                                              mangleName(obj.getVar()));
-                body = (Expr)forFieldRefOnly(rewrite, field.getType(),
+                body = (Expr)forFieldRefOnly(rewrite, field.getIdType(),
                                              obj, rewrite.getField());
             } else {
                 body = ExprFactory.makeVarRef(span, mangleName(name));
@@ -254,16 +254,16 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         if ( inTrait )
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
-                                          field.getType(), Option.<Expr>none());
+                                          field.getIdType(), Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
-                                         field.getType(), body);
+                                         field.getIdType(), body);
     }
 
     private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
         Span span = field.getSpan();
         Type voidType = NodeFactory.makeVoidType(span);
-        Option<Type> ty = field.getType();
+        Option<Type> ty = field.getIdType();
         List<Modifier> mods = new LinkedList<Modifier>();
         for (Modifier mod : field.getMods()) {
             if (!(mod instanceof ModifierSettable) &&
@@ -580,7 +580,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         return forObjectDeclOnly(that, that.getMods(), that.getName(),
                                  that.getStaticParams(), that.getExtendsClause(),
-                                 that.getWhere(), gettersAndDecls, params_result,
+                                 that.getWhereClause(), gettersAndDecls, params_result,
                                  that.getThrowsClause(), contract_result);
     }
 
@@ -602,8 +602,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         return forTraitDeclOnly(that, that.getMods(), that.getName(),
                                 that.getStaticParams(), that.getExtendsClause(),
-                                that.getWhere(), gettersAndDecls,
-                                that.getExcludes(), that.getComprises());
+                                that.getWhereClause(), gettersAndDecls,
+                                that.getExcludesClause(), that.getComprisesClause());
     }
 
     @Override

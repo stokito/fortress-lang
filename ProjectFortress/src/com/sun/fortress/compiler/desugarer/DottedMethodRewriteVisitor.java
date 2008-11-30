@@ -50,7 +50,7 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
         List<Decl> decls_result = recurOnListOfDecl(that.getDecls());
         return super.forObjectDeclOnly(that, that.getMods(), that.getName(),
                                        that.getStaticParams(),
-                                       that.getExtendsClause(), that.getWhere(),
+                                       that.getExtendsClause(), that.getWhereClause(),
                                        decls_result, that.getParams(),
                                        that.getThrowsClause(), that.getContract());
     }

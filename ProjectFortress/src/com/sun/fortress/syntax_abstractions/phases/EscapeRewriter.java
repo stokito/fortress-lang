@@ -86,9 +86,9 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                 @Override
                 public List<CharacterSymbol> forCharacterInterval(CharacterInterval that) {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
-                    String begin = removeLeadingEscape(that.getBegin(), head);
+                    String begin = removeLeadingEscape(that.getBeginSymbol(), head);
                     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
-                    String end = removeTrailingEscape(that.getSpan(), that.getEnd(), tail);
+                    String end = removeTrailingEscape(that.getSpan(), that.getEndSymbol(), tail);
                     head.add(new CharacterInterval(that.getSpan(), begin, end));
                     head.addAll(tail);
                     return head;

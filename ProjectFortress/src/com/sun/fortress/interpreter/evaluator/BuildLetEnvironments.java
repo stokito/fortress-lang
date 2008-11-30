@@ -127,9 +127,9 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         } else {
             EvalType eval_type = new EvalType(containing);
             for (LValue lvb : lhs) {
-                if (lvb.isMutable() && lvb.getType().isSome()) {
+                if (lvb.isMutable() && lvb.getIdType().isSome()) {
                     FValue fv = lvb.accept(new_eval);
-                    FType fvt = lvb.getType().unwrap().accept(eval_type);
+                    FType fvt = lvb.getIdType().unwrap().accept(eval_type);
                     containing.putVariable(fv.getString(),fvt);
                 } else {
                     containing.putValue(lvb.accept(new_eval), new IndirectionCell());

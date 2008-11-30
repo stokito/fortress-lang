@@ -146,7 +146,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
      */
     static public List<FType> createSymbolicInstantiation(Environment bte, Applicable ap, HasAt location) throws Error {
         List<StaticParam> tpl = ap.getStaticParams();
-        Option<WhereClause> wcl = ap.getWhere();
+        Option<WhereClause> wcl = ap.getWhereClause();
 
         // The (possibly multiple and interrelated) symbolic
         // types must be created in an environment, but we don't

@@ -669,10 +669,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				extendsClause,
-                                v.recurOnOptionOfWhereClause(that.getWhere()),
+                                v.recurOnOptionOfWhereClause(that.getWhereClause()),
 				v.recurOnListOfDecl(that.getDecls()),
-				v.recurOnListOfBaseType(that.getExcludes()),
-				v.recurOnOptionOfListOfBaseType(that.getComprises()));
+				v.recurOnListOfBaseType(that.getExcludesClause()),
+				v.recurOnOptionOfListOfBaseType(that.getComprisesClause()));
     }
 
     /**
@@ -717,7 +717,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  (Id) that.getName().accept(v),
                                  v.recurOnListOfStaticParam(that.getStaticParams()),
                                  extendsClause,
-                                 v.recurOnOptionOfWhereClause(that.getWhere()),
+                                 v.recurOnOptionOfWhereClause(that.getWhereClause()),
                                  v.recurOnListOfDecl(that.getDecls()),
                                  v.recurOnOptionOfListOfParam(that.getParams()),
                                  v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
@@ -748,7 +748,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                             v.recurOnListOfParam(that.getParams()),
                             v.recurOnOptionOfType(that.getReturnType()),
                             v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                            v.recurOnOptionOfWhereClause(that.getWhere()),
+                            v.recurOnOptionOfWhereClause(that.getWhereClause()),
                             v.recurOnOptionOfContract(that.getContract()),
                             that.getUnambiguousName(),
                             v.recurOnOptionOfExpr(that.getBody()),
@@ -802,7 +802,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnListOfStaticParam(that.getStaticParams()),
                              v.recurOnListOfParam(that.getParams()),
                              v.recurOnOptionOfType(that.getReturnType()),
-                             v.recurOnOptionOfWhereClause(that.getWhere()),
+                             v.recurOnOptionOfWhereClause(that.getWhereClause()),
                              v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
                              (Expr) that.getBody().accept(v));
     }

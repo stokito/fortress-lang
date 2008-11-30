@@ -170,7 +170,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
             String pname = NodeUtil.nameString(idName);
             FType ptype;
             if (in_p.getVarargsType().isNone()) {
-                Option<Type> type = in_p.getType();
+                Option<Type> type = in_p.getIdType();
                 ptype = e.getFTypeFromOption(type, FTypeTop.ONLY);
             }
             else { // a varargs param

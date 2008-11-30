@@ -37,7 +37,7 @@ public class TypeAliasIndex extends TypeConsIndex {
     
     public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
     
-    public Type type() { return _ast.getType(); }
+    public Type type() { return _ast.getTypeDef(); }
 
 	@Override
 	public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {

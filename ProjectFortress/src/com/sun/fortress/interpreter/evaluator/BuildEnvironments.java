@@ -673,7 +673,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Expr init = x.getInit().unwrap();
         LValue lvb = lhs.get(0);
 
-          Option<Type> type = lvb.getType();
+          Option<Type> type = lvb.getIdType();
           Id name = lvb.getName();
           String sname = NodeUtil.nameString(name);
 
@@ -748,7 +748,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
          {
-                Option<Type> type = lvb.getType();
+                Option<Type> type = lvb.getIdType();
                 Id name = lvb.getName();
                 String sname = NodeUtil.nameString(name);
 
@@ -874,15 +874,15 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         // interior = interior.extendAt(x);
 
         EvalType et;
-        if ( x.getWhere().isSome() )
-            et = processWhereClauses(x.getWhere().unwrap(), interior);
+        if ( x.getWhereClause().isSome() )
+            et = processWhereClauses(x.getWhereClause().unwrap(), interior);
         else
             et = new EvalType(interior);
 
         List<FType> extl = et.getFTypeListFromList(extends_);
-        List<FType> excl = et.getFTypeListFromList(x.getExcludes());
+        List<FType> excl = et.getFTypeListFromList(x.getExcludesClause());
         ftt.setExtendsAndExcludes(extl, excl, interior);
-        Option<List<BaseType>> comprs = x.getComprises();
+        Option<List<BaseType>> comprs = x.getComprisesClause();
         if (!comprs.isNone()) {
             List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));
@@ -959,7 +959,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     public void finishObjectTrait(ObjectDecl x, FTypeObject ftt) {
         List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
-        finishObjectTrait(extends_, null, x.getWhere(), ftt, containing, x);
+        finishObjectTrait(extends_, null, x.getWhereClause(), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {

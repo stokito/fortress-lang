@@ -143,8 +143,8 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         // Recombine into GrammarDef
         GrammarDef result =
-            new GrammarDef(grammar.getSpan(), grammar.getName(), grammar.getExtends(),
-                           newMembers, grammar.getTransformers(), grammar.isNative());
+            new GrammarDef(grammar.getSpan(), grammar.getName(), grammar.getExtendsClause(),
+                           newMembers, grammar.getTransformers(), grammar.isNativeDef());
         Debug.debug(Debug.Type.SYNTAX, 3,
                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
 
@@ -232,7 +232,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                     resultDecls.add(decl);
                 } else if (decl instanceof SuperSyntaxDef) {
                     SuperSyntaxDef ssd = (SuperSyntaxDef) decl;
-                    Id superGrammarName = ssd.getGrammar();
+                    Id superGrammarName = ssd.getGrammarId();
                     if (availableGrammarNames.contains(superGrammarName)) {
                         availableGrammarNames.remove(superGrammarName);
                         usedGrammarNames.add(superGrammarName);
@@ -245,7 +245,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                     } else {
                         throw new MacroError(decl,
                                              "No extensions of " + name + 
-                                             " in grammar " + ssd.getGrammar());
+                                             " in grammar " + ssd.getGrammarId());
                     }
                 }
             }

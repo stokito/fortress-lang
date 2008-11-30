@@ -207,7 +207,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             }
             try {
                 if (p.getVarargsType().isNone()) {
-                    Option<Type> t = p.getType();
+                    Option<Type> t = p.getIdType();
                     // why can't we just skip if missing?
                     if (t.isNone()) {
                         /*

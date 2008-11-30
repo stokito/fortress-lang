@@ -141,10 +141,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (Id) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
+                v.recurOnOptionOfWhereClause(that.getWhereClause()),
                 v.recurOnListOfDecl(that.getDecls()),
-                v.recurOnListOfBaseType(that.getExcludes()),
-                v.recurOnOptionOfListOfBaseType(that.getComprises()));
+                v.recurOnListOfBaseType(that.getExcludesClause()),
+                v.recurOnOptionOfListOfBaseType(that.getComprisesClause()));
     }
 
     /**
@@ -159,7 +159,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 (Id) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
+                v.recurOnOptionOfWhereClause(that.getWhereClause()),
                 v.recurOnListOfDecl(that.getDecls()),
                 v.recurOnOptionOfListOfParam(that.getParams()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
@@ -180,7 +180,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfParam(that.getParams()),
                 v.recurOnOptionOfType(that.getReturnType()),
                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhere()),
+                v.recurOnOptionOfWhereClause(that.getWhereClause()),
                 v.recurOnOptionOfContract(that.getContract()),
                 that.getUnambiguousName(),
                 v.recurOnOptionOfExpr(that.getBody()),
@@ -440,7 +440,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
         List<Id> ls = new LinkedList<Id>();
         Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
-        for (Id name: that.getExtends()) {
+        for (Id name: that.getExtendsClause()) {
             Id nname = handleGrammarName(name);
             ls.add(nname);
             Option<GrammarIndex> gi = this._env.grammarIndex(nname);
@@ -469,7 +469,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers, that.isNative());
+        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers, that.isNativeDef());
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
 
@@ -535,9 +535,9 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     public Node forNonterminalHeader(NonterminalHeader that) {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
-//        System.err.println("T: "+that.getType());
+//        System.err.println("T: "+that.getParamType());
 
-        Option<Type> t = v.recurOnOptionOfType(that.getType());
+        Option<Type> t = v.recurOnOptionOfType(that.getParamType());
 //        System.err.println("t: "+t);
         return forNonterminalHeaderOnly(that,
             that.getModifier(),

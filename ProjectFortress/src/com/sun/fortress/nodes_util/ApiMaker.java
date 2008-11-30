@@ -126,10 +126,10 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                    that.getName(),
                                                    that.getStaticParams(),
                                                    that.getExtendsClause(),
-                                                   that.getWhere(),
+                                                   that.getWhereClause(),
                                                    absDecls,
-                                                   that.getExcludes(),
-                                                   that.getComprises()));
+                                                   that.getExcludesClause(),
+                                                   that.getComprisesClause()));
         } else return Option.<Node>none();
     }
 
@@ -143,7 +143,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                     that.getName(),
                                                     that.getStaticParams(),
                                                     that.getExtendsClause(),
-                                                    that.getWhere(),
+                                                    that.getWhereClause(),
                                                     absDecls,
                                                     that.getParams(),
                                                     that.getThrowsClause(),
@@ -158,7 +158,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
         if ( ! isPrivate(that) ) {
             List<LValue> lhs = new ArrayList<LValue>();
             for (LValue lvb : that.getLhs()) {
-                if ( lvb.getType().isNone() )
+                if ( lvb.getIdType().isNone() )
                     log(lvb, "The type of " + lvb.getName() + " is required.");
                 if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
                     List<Modifier> mods = new ArrayList<Modifier>();
@@ -180,7 +180,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             if ( that.getReturnType().isNone() )
                 log(that, "The return type of " + that.getName() + " is required.");
             for ( Param p : that.getParams() ) {
-                if ( p.getType().isNone() &&
+                if ( p.getIdType().isNone() &&
                      p.getVarargsType().isNone() &&
                      ! p.getName().getText().equals("self") )
                     log(p, "The type of " + p.getName() + " is required.");
@@ -199,7 +199,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                                                 that.getParams(),
                                                 that.getReturnType(),
                                                 that.getThrowsClause(),
-                                                that.getWhere(),
+                                                that.getWhereClause(),
                                                 that.getContract(),
                                                 Option.<Expr>none(),
                                                 Option.<Id>none()));

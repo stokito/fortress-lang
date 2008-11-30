@@ -1013,7 +1013,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         @Override
         public void forDimDecl(DimDecl that) {
-            decledNames.add(that.getDim());
+            decledNames.add(that.getDimId());
         }
 
         @Override

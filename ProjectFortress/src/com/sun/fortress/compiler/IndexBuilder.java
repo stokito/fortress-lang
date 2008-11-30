@@ -342,7 +342,7 @@ public class IndexBuilder {
                     ast.getStaticParams(),
                     ast.getParams(),
                     ast.getThrowsClause(),
-                    ast.getWhere());
+                    ast.getWhereClause());
             constructor = Option.some(c);
             functions.add(name, c);
         }
@@ -435,7 +435,7 @@ public class IndexBuilder {
      */
     private void buildDimension(DimDecl ast,
             Map<Id, Dimension> dimensions) {
-        dimensions.put(ast.getDim(), new Dimension(ast));
+        dimensions.put(ast.getDimId(), new Dimension(ast));
     }
 
     /**

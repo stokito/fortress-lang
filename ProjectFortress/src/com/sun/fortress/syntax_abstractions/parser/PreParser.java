@@ -85,21 +85,21 @@ public class PreParser {
                 }
 
                 @Override public void forImportStarOnly(ImportStar that) {
-                    if (env.definesApi(that.getApi())) {
-                        APIName api = that.getApi();
+                    if (env.definesApi(that.getApiName())) {
+                        APIName api = that.getApiName();
                         for (GrammarIndex g: env.api(api).grammars().values()) {
-                            if (!that.getExcept().contains(g.getName())) {
+                            if (!that.getExceptNames().contains(g.getName())) {
                                 grammars.add(g);
                             }
                         }
                     } else {
-                        StaticError.make("Undefined api: "+that.getApi(), that);
+                        StaticError.make("Undefined api: "+that.getApiName(), that);
                     }
                 }
 
                 @Override public void forImportNamesOnly(ImportNames that) {
-                    if (env.definesApi(that.getApi())) {
-                        ApiIndex api = env.api(that.getApi());
+                    if (env.definesApi(that.getApiName())) {
+                        ApiIndex api = env.api(that.getApiName());
                         for (AliasedSimpleName aliasedName: that.getAliasedNames()) {
                             if (aliasedName.getName() instanceof Id) {
                                 Id importedName = (Id) aliasedName.getName();
@@ -109,7 +109,7 @@ public class PreParser {
                             }
                         }
                     } else {
-                        StaticError.make("Undefined api: "+that.getApi(), that);
+                        StaticError.make("Undefined api: "+that.getApiName(), that);
                     }
                 }
             });

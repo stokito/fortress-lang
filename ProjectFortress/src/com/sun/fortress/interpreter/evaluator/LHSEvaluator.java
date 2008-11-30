@@ -143,7 +143,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
     public Voidoid forLValue(LValue x) {
         Id name = x.getName();
-        Option<Type> type = x.getType();
+        Option<Type> type = x.getIdType();
         String s = NodeUtil.nameString(name);
         boolean mutable = x.isMutable();
 
