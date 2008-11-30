@@ -143,12 +143,12 @@ interface Node() extends HasAt;
                  *                 | APIName . { AliasedSimpleNameList (, ...)? }
                  *                 | QualifiedName (as Id)?
                  */
-                abstract ImportedNames(APIName api);
+                abstract ImportedNames(APIName apiName);
                     /**
                      * Names must be unqualified.
                      * e.g.) import Set.{...} except {opr UNION, union}
                      */
-                    ImportStar(List<IdOrOpOrAnonymousName> except);
+                    ImportStar(List<IdOrOpOrAnonymousName> exceptNames);
                     /**
                      * e.g.) import Set.{empty, union}
                      */
@@ -174,7 +174,7 @@ interface Node() extends HasAt;
              * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
              * Alias must be unqualified.
              */
-            AliasedAPIName(APIName api,
+            AliasedAPIName(APIName apiName,
                            Option<Id> alias = Option.<Id>none());
             /**
              * declaration in components or APIs
@@ -191,7 +191,7 @@ interface Node() extends HasAt;
                                              = Collections.<StaticParam>emptyList(),
                                          List<TraitTypeWhere> extendsClause
                                              = Collections.<TraitTypeWhere>emptyList(),
-                                         Option<WhereClause> where
+                                         Option<WhereClause> whereClause
                                              = Option.<WhereClause>none(),
                                          List<Decl> decls)
                                          implements Generic;
@@ -238,8 +238,8 @@ interface Node() extends HasAt;
                      *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
                      *       end
                      */
-                    TraitDecl(List<BaseType> excludes = Collections.<BaseType>emptyList(),
-                              Option<List<BaseType>> comprises
+                    TraitDecl(List<BaseType> excludesClause = Collections.<BaseType>emptyList(),
+                              Option<List<BaseType>> comprisesClause
                                   = Option.<List<BaseType>>none()) implements Generic;
                     /**
                      * object declaration in components or APIs
@@ -339,7 +339,7 @@ interface Node() extends HasAt;
                        List<Param> params = Collections.<Param>emptyList(),
                        Option<Type> returnType = Option.<Type>none(),
                        Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-                       Option<WhereClause> where = Option.<WhereClause>none(),
+                       Option<WhereClause> whereClause = Option.<WhereClause>none(),
                        Option<Contract> contract = Option.<Contract>none(),
                        Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
                        Option<Expr> body,
@@ -373,8 +373,8 @@ interface Node() extends HasAt;
                      * Names for dim and default must be unqualified.
                      * e.g.) dim Length SI_unit meter meters m
                      */
-                    DimDecl(Id dim, Option<Type> derived = Option.<Type>none(),
-                            Option<Id> default = Option.<Id>none());
+                    DimDecl(Id dimId, Option<Type> derived = Option.<Type>none(),
+                            Option<Id> defaultId = Option.<Id>none());
                     /**
                      * unit declaration
                      * Names of units must be unqualified.
@@ -382,8 +382,8 @@ interface Node() extends HasAt;
                      */
                     UnitDecl(boolean si_unit = false,
                              List<Id> units = Collections.<Id>emptyList(),
-                             Option<Type> dim = Option.<Type>none(),
-                             Option<Expr> def);
+                             Option<Type> dimType = Option.<Type>none(),
+                             Option<Expr> defExpr);
                 /**
                  * test declaration
                  * Names must be unqualified.
@@ -407,17 +407,17 @@ interface Node() extends HasAt;
                 TypeAlias(Id name,
                           List<StaticParam> staticParams
                               = Collections.<StaticParam>emptyList(),
-                          Type type);
+                          Type typeDef);
                 /**
                  * grammar declaration
                  * Names (but not extends elements) must be unqualified.
                  */
-                abstract GrammarDecl(Id name, List<Id> extends);
+                abstract GrammarDecl(Id name, List<Id> extendsClause);
                     /**
                      * grammar definition
                      */
                     GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
-    	                   boolean native);
+                               boolean nativeDef);
                 /**
                  * grammar member (nonterminal or terminal) declaration
                  * Names and params must be unqualified.
@@ -444,14 +444,14 @@ interface Node() extends HasAt;
                               List<NonterminalParameter> params,
                               List<StaticParam> staticParams
                                 = Collections.<StaticParam>emptyList(),
-                              Option<Type> type,
+                              Option<Type> paramType,
                               Option<WhereClause> whereClause
                                 = Option.<WhereClause>none());
 
             /**
              * nonterminal parameter
              */
-            NonterminalParameter(Id name, BaseType type);
+            NonterminalParameter(Id name, BaseType paramType);
 
             /**
              * syntax declaration
@@ -463,7 +463,7 @@ interface Node() extends HasAt;
                 SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
                           TransformerDecl transformer);
 
-                SuperSyntaxDef(Id nonterminal, Id grammar);
+                SuperSyntaxDef(Id nonterminal, Id grammarId);
 
             /**
               * Transformation declaration
@@ -604,13 +604,13 @@ interface Node() extends HasAt;
                     /**
                      * character interval
                      */
-                    CharacterInterval(String begin, String end);
+                    CharacterInterval(String beginSymbol, String endSymbol);
             /**
              * left-hand side of variable declaration or value parameter
              */
             abstract Binding(Id name,
                              List<Modifier> mods = Collections.<Modifier>emptyList(),
-                             Option<Type> type = Option.<Type>none()) implements Lhs;
+                             Option<Type> idType = Option.<Type>none()) implements Lhs;
                 /**
                  * left-hand side of variable declaration
                  * e.g.) var x: ZZ32
@@ -895,7 +895,7 @@ interface Node() extends HasAt;
                        List<Param> params,
                        Option<Type> returnType
                            = Option.<Type>none(),
-                       Option<WhereClause> where
+                       Option<WhereClause> whereClause
                            = Option.<WhereClause>none(),
                        Option<List<BaseType>> throwsClause
                            = Option.<List<BaseType>>none(),
@@ -1369,7 +1369,7 @@ interface Node() extends HasAt;
                      */
                     _RewriteGenericArrowType(List<StaticParam> staticParams
                                               = Collections.<StaticParam>emptyList(),
-                                             Option<WhereClause> where
+                                             Option<WhereClause> whereClause
                                               = Option.<WhereClause>none());
                 /**
                  * inferred type
@@ -2018,7 +2018,7 @@ interface Node() extends HasAt;
              * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
              */
             TraitTypeWhere(BaseType type,
-                           Option<WhereClause> where
+                           Option<WhereClause> whereClause
                                = Option.<WhereClause>none());
             /**
              * array dimensionality
@@ -2138,6 +2138,6 @@ interface Node() extends HasAt;
                              List<StaticParam> staticParams,
                              List<Param> params,
                              Option<Type> returnType,
-                             Option<WhereClause> where);
+                             Option<WhereClause> whereClause);
 
 end;

@@ -771,12 +771,12 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(LValue lvb, Id name) {
-        return new LValue(lvb.getSpan(), name, lvb.getMods(), lvb.getType(),
+        return new LValue(lvb.getSpan(), name, lvb.getMods(), lvb.getIdType(),
                           lvb.isMutable());
     }
 
     public static LValue makeLValue(LValue lvb, boolean mutable) {
-        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getMods(), lvb.getType(),
+        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getMods(), lvb.getIdType(),
                           mutable);
     }
 
@@ -786,12 +786,12 @@ public class NodeFactory {
             if (m instanceof ModifierVar || m instanceof ModifierSettable)
                 mutable = true;
         }
-        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getType(), mutable);
+        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
 
     public static LValue makeLValue(LValue lvb, List<Modifier> mods,
             boolean mutable) {
-        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getType(), mutable);
+        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
 
     public static LValue makeLValue(LValue lvb, Type ty) {
@@ -818,7 +818,7 @@ public class NodeFactory {
 
     public static LValue makeLValue(Param param) {
         return new LValue(param.getSpan(), param.getName(),
-                          param.getMods(), param.getType(), false);
+                          param.getMods(), param.getIdType(), false);
     }
 
     public static MatrixType makeMatrixType(Span span, Type element,
@@ -990,17 +990,17 @@ public class NodeFactory {
 
     public static Param makeParam(Param param, Expr expr) {
         return new Param(param.getSpan(), param.getName(), param.getMods(),
-                         param.getType(), Option.some(expr));
+                         param.getIdType(), Option.some(expr));
     }
 
     public static Param makeParam(Param param, List<Modifier> mods) {
         return new Param(param.getSpan(), param.getName(), mods,
-                         param.getType(), param.getDefaultExpr());
+                         param.getIdType(), param.getDefaultExpr());
     }
 
     public static Param makeParam(Param param, Id newId) {
         return new Param(param.getSpan(), newId, param.getMods(),
-                         param.getType(), param.getDefaultExpr());
+                         param.getIdType(), param.getDefaultExpr());
     }
 
     public static TypeParam makeTypeParam(String name) {

@@ -216,7 +216,7 @@ public class Disambiguator {
             for (Map.Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
                 GrammarDef og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
-                for (Id n: og.getExtends()) {
+                for (Id n: og.getExtendsClause()) {
                     GrammarIndex g = grammars.get(n.getText());
                     if ( g == null ){
                         throw new RuntimeException( "Could not find grammar for " + n.getText() );

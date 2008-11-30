@@ -192,7 +192,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
 
 
     protected Option<WhereClause> getWhere() {
-        return fndef.getWhere();
+        return fndef.getWhereClause();
     }
 
      @Override

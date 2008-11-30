@@ -70,7 +70,7 @@ public abstract class CompilationUnitIndex {
         for (Import _import : ast().getImports()) {
             _import.accept(new NodeAbstractVisitor_void() {
                 public void forImportedNames(ImportedNames that) {
-                    result.add(that.getApi());
+                    result.add(that.getApiName());
                 }
             });
         }

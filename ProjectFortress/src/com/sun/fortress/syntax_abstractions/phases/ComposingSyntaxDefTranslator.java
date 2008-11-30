@@ -124,7 +124,7 @@ public class ComposingSyntaxDefTranslator {
             NamedTransformerDef def = (NamedTransformerDef) transformation;
             String parameters = collectParameters(def, code, indents);
             String name = def.getName();
-            code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);", 
+            code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);",
                                    type, name, BOUND_VARIABLES, parameters));
             indents.add(3);
         } else {
@@ -134,16 +134,16 @@ public class ComposingSyntaxDefTranslator {
         return new Action(code, indents);
     }
 
-    private static String collectParameters( NamedTransformerDef def, 
-					     List<String> code, 
+    private static String collectParameters( NamedTransformerDef def,
+					     List<String> code,
 					     List<Integer> indents ){
         String variable = FreshName.getFreshName("parameterList");
-        code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();", 
+        code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();",
 			       variable));
         indents.add(3);
         for ( NonterminalParameter parameter : def.getParameters() ){
-            code.add( String.format( "%s.add( \"%s\" );", 
-				     variable, 
+            code.add( String.format( "%s.add( \"%s\" );",
+				     variable,
 				     parameter.getName().getText() ) );
             indents.add(3);
         }
@@ -164,7 +164,7 @@ public class ComposingSyntaxDefTranslator {
             elements.add(new NonTerminal("_"));
         }
 
-        @Override 
+        @Override
         public void forNonterminalSymbol(NonterminalSymbol that) {
             Debug.debug( Debug.Type.SYNTAX, 3,
                          "NonterminalSymbol contains: " + that.getNonterminal());
@@ -226,13 +226,13 @@ public class ComposingSyntaxDefTranslator {
                 CharRange cr = c.accept(new NodeDepthFirstVisitor<CharRange>() {
                         @Override
                         public CharRange forCharacterInterval(CharacterInterval that) {
-                            if (that.getBegin().length() != 1) {
-                                new MacroError(mess +that.getBegin());
+                            if (that.getBeginSymbol().length() != 1) {
+                                new MacroError(mess +that.getBeginSymbol());
                             }
-                            if (that.getEnd().length() != 1) {
-                                new MacroError(mess+that.getEnd());
+                            if (that.getEndSymbol().length() != 1) {
+                                new MacroError(mess+that.getEndSymbol());
                             }
-                            return new CharRange(that.getBegin().charAt(0), that.getEnd().charAt(0));
+                            return new CharRange(that.getBeginSymbol().charAt(0), that.getEndSymbol().charAt(0));
                         }
 
                         @Override
@@ -417,7 +417,7 @@ public class ComposingSyntaxDefTranslator {
                 Id varId = varIds.get(index);
                 String varName = prefixJavaVariable(varId.getText());
                 String baseFortressType = inner.gapEnv.getJavaType(varId);
-                String fullType = varMap.get(varId).getType(baseFortressType); 
+                String fullType = varMap.get(varId).getType(baseFortressType);
                 indents2.add(1);
                 code2.add(modifier.unpackDecl(fullType, varName, packedName, index));
             }
@@ -450,7 +450,7 @@ public class ComposingSyntaxDefTranslator {
                                  packedName, rawName);
         }
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack(%s, %d);", 
+            return String.format("List<%s> %s = com.sun.fortress.syntax_abstractions.util.ArrayUnpacker.<%s>unpack(%s, %d);",
                                  fullType, varName, fullType, packedName, index);
         }
     }
@@ -472,8 +472,8 @@ public class ComposingSyntaxDefTranslator {
          * packedName is null otherwise set it to the index'th object.
          */
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
-            return String.format("%s %s = (%s)(%s == null ? null : %s[%d]);", 
-                                 fullType, varName, fullType, 
+            return String.format("%s %s = (%s)(%s == null ? null : %s[%d]);",
+                                 fullType, varName, fullType,
                                  packedName, packedName, index);
         }
     }
@@ -564,10 +564,10 @@ public class ComposingSyntaxDefTranslator {
             });
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\", new Level(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), %d, %s));", 
-                                   BOUND_VARIABLES, 
-                                   var, 
-                                   levelDepth, 
+            code.add(String.format("%s.put(\"%s\", new Level(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), %d, %s));",
+                                   BOUND_VARIABLES,
+                                   var,
+                                   levelDepth,
                                    prefixJavaVariable(resultVar)));
         }
     }
@@ -582,11 +582,11 @@ public class ComposingSyntaxDefTranslator {
         return "fortress_" + s;
     }
 
-    private static String convertToStringLiteralExpr(String id, List<String> code, 
+    private static String convertToStringLiteralExpr(String id, List<String> code,
                                                      List<Integer> indents) {
         String name = FreshName.getFreshName("stringLiteral");
         indents.add(3);
-        code.add("StringLiteralExpr " + prefixJavaVariable(name) + 
+        code.add("StringLiteralExpr " + prefixJavaVariable(name) +
                  " = new StringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
         return name;
     }

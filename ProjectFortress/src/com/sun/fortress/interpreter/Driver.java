@@ -294,7 +294,7 @@ public class Driver {
                              "try 'import APIName.{...}' instead."));
             } else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
-                APIName source = ix.getApi();
+                APIName source = ix.getApiName();
                 String from_apiname = NodeUtil.nameString(source);
 
                 ComponentWrapper from_cw = linker.get(from_apiname);
@@ -323,7 +323,7 @@ public class Driver {
                 } else if (ix instanceof ImportStar) {
                     /* All names BUT excepts, as they are listed. */
                     final List<IdOrOpOrAnonymousName> excepts = ((ImportStar) ix)
-                            .getExcept();
+                            .getExceptNames();
                     final Set<String> except_names = Useful.applyToAllInserting(
                             excepts,
                             new Fn<IdOrOpOrAnonymousName, String>() {
@@ -435,13 +435,13 @@ public class Driver {
                 ImportApi ix = (ImportApi) i;
                 List<AliasedAPIName> apis = ix.getApis();
                 for (AliasedAPIName adi : apis) {
-                    APIName id = adi.getApi();
+                    APIName id = adi.getApiName();
                     ensureApiImplemented(fr, linker, pile, id);
                 }
             }
             else if (i instanceof ImportedNames) {
                 ImportedNames ix = (ImportedNames) i;
-                APIName source = ix.getApi();
+                APIName source = ix.getApiName();
                 ensureApiImplemented(fr, linker, pile, source);
             }
             else {

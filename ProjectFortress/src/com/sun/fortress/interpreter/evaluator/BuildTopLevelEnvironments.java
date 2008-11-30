@@ -87,7 +87,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
     public Boolean forImportApi(ImportApi x) {
         List<AliasedAPIName> apis = x.getApis();
         for (AliasedAPIName aliased_api : apis) {
-            APIName imported = aliased_api.getApi();
+            APIName imported = aliased_api.getApiName();
             importAPIName(imported);
         }
         return null;
@@ -95,14 +95,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
 
   @Override
     public Boolean forImportNames(ImportNames x) {
-        APIName imported = x.getApi();
+        APIName imported = x.getApiName();
         importAPIName(imported);
         return null;
     }
 
     @Override
     public Boolean forImportStar(ImportStar x) {
-        APIName imported = x.getApi();
+        APIName imported = x.getApiName();
         importAPIName(imported);
         return null;
     }

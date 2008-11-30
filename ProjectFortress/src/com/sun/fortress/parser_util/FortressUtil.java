@@ -396,7 +396,7 @@ public final class FortressUtil {
 
     public static void allHaveTypes(List<LValue> vars) {
         for (LValue l : vars) {
-            if (l.getType().isNone())
+            if (l.getIdType().isNone())
                 syntaxError(l.getSpan(),
                             "Mutable variables should be declared with their types.");
         }

@@ -211,7 +211,7 @@ public class NodeComparator {
                         .compareTo(NodeUtil.nameString(right.getName()));
         if (x != 0) return x;
         if ((left.getVarargsType().isNone()) && (right.getVarargsType().isNone())) {
-            x = compareOptionalType(left.getType(), right.getType());
+            x = compareOptionalType(left.getIdType(), right.getIdType());
         }
         if ((left.getVarargsType().isSome()) && (right.getVarargsType().isSome())) {
             x = compareOptionalType(left.getVarargsType(), right.getVarargsType());

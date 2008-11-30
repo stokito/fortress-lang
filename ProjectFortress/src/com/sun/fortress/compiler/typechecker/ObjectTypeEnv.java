@@ -93,7 +93,7 @@ class ObjectTypeEnv extends TypeEnv {
                                                      domainFromParams(decl.getParams().unwrap()),
                                                      NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
                                                      decl.getStaticParams(),
-                                                     decl.getWhere());
+                                                     decl.getWhereClause());
             }
         }
 

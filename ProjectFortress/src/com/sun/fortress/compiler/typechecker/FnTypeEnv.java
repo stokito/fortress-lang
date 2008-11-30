@@ -85,7 +85,7 @@ class FnTypeEnv extends TypeEnv {
     	for( Param param : fn.getParams() ) {
     		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
                     if( param.getVarargsType().isNone() )
-    				self_type_ = param.getType();
+    				self_type_ = param.getIdType();
     			else
     				InterpreterBug.bug("self cannot be a varargs.");
     		}

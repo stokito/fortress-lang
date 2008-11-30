@@ -270,7 +270,7 @@ public class Transform extends TemplateUpdateVisitor {
             List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
             List<Param> params_result = Useful.applyToAll(that.getParams(), renameParam);
             Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
-            Option<WhereClause> where_result = recurOnOptionOfWhereClause(that.getWhere());
+            Option<WhereClause> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
             Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
             Expr body_result = (Expr) recur(that.getBody());
             Node ret = forFnExprOnly(that, exprType_result, name_result, staticParams_result, params_result, returnType_result, where_result, throwsClause_result, body_result);

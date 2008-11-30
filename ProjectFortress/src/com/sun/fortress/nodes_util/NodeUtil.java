@@ -87,11 +87,11 @@ public class NodeUtil {
         for (Import i : api.getImports()){
             if (i instanceof ImportedNames) {
                 ImportedNames names = (ImportedNames) i;
-                all.add( names.getApi() );
+                all.add( names.getApiName() );
             } else { // i instanceof ImportApi
                 ImportApi apis = (ImportApi) i;
                 for (AliasedAPIName a : apis.getApis()) {
-                    all.add(a.getApi());
+                    all.add(a.getApiName());
                 }
             }
         }
@@ -103,15 +103,15 @@ public class NodeUtil {
         comp.accept(new NodeDepthFirstVisitor_void(){
                 @Override
                 public void forImportedNamesDoFirst(ImportedNames that) {
-                    Debug.debug(Debug.Type.SYNTAX, 2, "Add import api ", that.getApi());
-                    all.add(that.getApi());
+                    Debug.debug(Debug.Type.SYNTAX, 2, "Add import api ", that.getApiName());
+                    all.add(that.getApiName());
                 }
 
                 @Override
                 public void forImportApi(ImportApi that){
                     for (AliasedAPIName api : that.getApis()){
-                        Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApi());
-                        all.add(api.getApi());
+                        Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApiName());
+                        all.add(api.getApiName());
                     }
                 }
             });
@@ -327,7 +327,7 @@ public class NodeUtil {
     /*
     public static String nameString(IdOrOpOrAnonymousName n) {
         final String last = n.accept(nameGetter);
-        Option<APIName> odn = n.getApi();
+        Option<APIName> odn = n.getApiName();
         return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
     }
     */
@@ -382,7 +382,7 @@ public class NodeUtil {
             }
             @Override
         public String forDimDecl(DimDecl node) {
-            return nameString(node.getDim());
+            return nameString(node.getDimId());
         }
             @Override
         public String forUnitDecl(UnitDecl node) {
@@ -444,7 +444,7 @@ public class NodeUtil {
     public static IterableOnce<String> stringNames(Decl decl) {
         return decl.accept(new NodeAbstractVisitor<IterableOnce<String>>() {
             public IterableOnce<String> forDimDecl(DimDecl d) {
-                return new UnitIterable<String>(d.getDim().getText());
+                return new UnitIterable<String>(d.getDimId().getText());
             }
             public IterableOnce<String> forUnitDecl(UnitDecl d) {
             List<Id> ids = d.getUnits();

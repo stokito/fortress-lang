@@ -116,8 +116,8 @@ class GrammarComposer {
             GrammarDef grammarDef = grammar.ast();
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Grammar " + grammarDef.getName() + 
-                        " native?: " + grammarDef.isNative());
-            if (grammarDef.isNative()) {
+                        " native?: " + grammarDef.isNativeDef());
+            if (grammarDef.isNativeDef()) {
                 // A native grammar can only contain nonterminal declarations
                 for (GrammarMemberDecl member : grammarDef.getMembers()) {
                     peg.nativeNonterminals.add(member.getName());
@@ -186,7 +186,7 @@ class GrammarComposer {
             defs.add(def);
         } else if (decl instanceof SuperSyntaxDef) {
             SuperSyntaxDef def = (SuperSyntaxDef) decl;
-            for (SyntaxDecl extension : findExtension(def.getNonterminal(), def.getGrammar())){
+            for (SyntaxDecl extension : findExtension(def.getNonterminal(), def.getGrammarId())){
                 resolveAndAdd(defs, extension, false);
             }
         } else {

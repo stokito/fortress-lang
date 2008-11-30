@@ -104,7 +104,7 @@ public abstract class NativeApp implements Applicable {
         return a.getStaticParams();
     }
     public IdOrOpOrAnonymousName getName() { return a.getName(); }
-    public Option<WhereClause> getWhere() { return a.getWhere(); }
+    public Option<WhereClause> getWhereClause() { return a.getWhereClause(); }
     public String at() { return a.at(); }
     public String stringName() { return a.stringName(); }
 

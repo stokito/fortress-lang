@@ -791,7 +791,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forTraitTypeWhere(TraitTypeWhere vre) {
         lexicalNestingDepth++;
-        Option<WhereClause> owc = vre.getWhere();
+        Option<WhereClause> owc = vre.getWhereClause();
         if (owc.isSome()) {
             WhereClause wc = owc.unwrap();
             boolean change = false;
@@ -879,7 +879,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                   fndef.getName(),
                                   fndef.getStaticParams(), fndef.getParams(),
                                   fndef.getReturnType(), fndef.getThrowsClause(),
-                                  fndef.getWhere(), Option.<Contract>none(), Option.<Expr>some(b));
+                                  fndef.getWhereClause(), Option.<Contract>none(), Option.<Expr>some(b));
 
             n = visitNode(f);
         } else {

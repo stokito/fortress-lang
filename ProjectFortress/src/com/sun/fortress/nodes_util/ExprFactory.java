@@ -795,7 +795,7 @@ public class ExprFactory {
         public Expr forFnExpr(FnExpr e) {
             return new FnExpr(e.getSpan(), true, e.getName(),
                               e.getStaticParams(), e.getParams(),
-                              e.getReturnType(), e.getWhere(),
+                              e.getReturnType(), e.getWhereClause(),
                               e.getThrowsClause(), e.getBody());
         }
         public Expr forGeneratedExpr(GeneratedExpr e) {

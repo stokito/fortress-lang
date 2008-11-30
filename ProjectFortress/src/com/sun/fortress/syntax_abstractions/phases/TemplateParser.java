@@ -61,7 +61,7 @@ public class TemplateParser {
         final Api raw = TemplateParser.rewriteTemplateVars((Api) api.ast(), ntEnv);
         return (Api) raw.accept(new NodeUpdateVisitor() {
                 @Override public Node forGrammarDef(GrammarDef that) {
-                    if (!that.isNative()){
+                    if (!that.isNativeDef()){
                         final Class<?> parser = createParser(findGrammar(that));
                         return that.accept(new NodeUpdateVisitor() {
                                 @Override 

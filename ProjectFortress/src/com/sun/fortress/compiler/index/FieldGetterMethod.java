@@ -73,7 +73,7 @@ public class FieldGetterMethod extends Method {
 
 	@Override
 	public Type getReturnType() {
-		return _ast.getType().unwrap();
+		return _ast.getIdType().unwrap();
 	}
 
 	@Override

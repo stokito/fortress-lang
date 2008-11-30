@@ -412,9 +412,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             String name_result = recur(that.getName());
             List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
-            List<String> excludes_result = recurOnListOfBaseType(that.getExcludes());
-            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprises());
+            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
+            List<String> excludes_result = recurOnListOfBaseType(that.getExcludesClause());
+            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprisesClause());
             List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
             return forTraitDeclOnly(that, mods_result, name_result,
                                     staticParams_result, extendsClause_result,
@@ -476,7 +476,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             String name_result = recur(that.getName());
             List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhere());
+            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
             Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
             Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
             Option<String> contract_result = recurOnOptionOfContract(that.getContract());
@@ -792,7 +792,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                               List<String> transformers_result) {
         StringBuilder s = new StringBuilder();
 
-        if ( that.isNative() ){
+        if ( that.isNativeDef() ){
             s.append( "native " );
         }
         increaseIndent();
@@ -1064,7 +1064,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forCharacterIntervalOnly(CharacterInterval that) {
-        return that.getBegin() + ":" + that.getEnd();
+        return that.getBeginSymbol() + ":" + that.getEndSymbol();
     }
 
     @Override public String defaultTemplateGap(TemplateGap t){
