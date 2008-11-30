@@ -647,7 +647,7 @@ interface Node() extends HasAt;
                 /**
                  * expression annotated with a type
                  */
-                abstract TypeAnnotatedExpr(Expr expr, Type type);
+                abstract TypeAnnotatedExpr(Expr expr, Type annType);
                     /**
                      * type ascription expression
                      * Expr ::= Expr as Type
@@ -677,7 +677,7 @@ interface Node() extends HasAt;
                  * Because different static args can be inferred for each Lhs assignment
                  * opr, this node gives a separate OpRef for each Lhs.
                  */
-                Assignment(List<Lhs> lhs, Option<OpRef> opr, Expr rhs,
+                Assignment(List<Lhs> lhs, Option<OpRef> assignOp, Expr rhs,
                            Option<List<OpRef>> opsForLhs = Option.<List<OpRef>>none());
                 /**
                  * sequence of block elements implicitly enclosed by do/end
@@ -785,7 +785,7 @@ interface Node() extends HasAt;
                  *       end
                  */
                 Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
-                    List<BaseType> forbid = Collections.<BaseType>emptyList(),
+                    List<BaseType> forbidClause = Collections.<BaseType>emptyList(),
                     Option<Block> finallyClause = Option.<Block>none());
                 /**
                  * labeled expression: tuple expression or argument expression
@@ -827,7 +827,7 @@ interface Node() extends HasAt;
                  * DelimitedExpr ::= while GeneratorClause Do
                  * e.g.) while x < 10 do print x; x += 1 end
                  */
-                While(GeneratorClause test, Do body);
+                While(GeneratorClause testExpr, Do body);
                 /**
                  * comprehension or accumulator
                  */
@@ -840,7 +840,7 @@ interface Node() extends HasAt;
                      * Accumulator ::= SUM | PROD | Big Op
                      * e.g.) PROD[i <- 1:n] i
                      */
-                    Accumulator(OpName opr, List<GeneratorClause> gens, Expr body);
+                    Accumulator(OpName accOp, List<GeneratorClause> gens, Expr body);
                     /**
                      * array comprehension
                      * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
@@ -980,13 +980,13 @@ interface Node() extends HasAt;
                                  * int literal
                                  * e.g.) 7
                                  */
-                                IntLiteralExpr(String text = in_val.toString(),
-                                               BigInteger val);
+                                IntLiteralExpr(String text = in_intVal.toString(),
+                                               BigInteger intVal);
                             /**
                              * char literal
                              * e.g.) 'c'
                              */
-                            CharLiteralExpr(int val = in_text.charAt(0));
+                            CharLiteralExpr(int charVal = in_text.charAt(0));
                             /**
                              * string literal
                              * e.g.) "string"
@@ -1003,7 +1003,7 @@ interface Node() extends HasAt;
                          * Primary ::= self
                          * e.g.) length
                          */
-                        VarRef(Id var, int lexicalDepth=-2147483648) implements Lhs;
+                        VarRef(Id varId, int lexicalDepth=-2147483648) implements Lhs;
                         /**
                          * A reference to a singleton object. Created at typechecking or disambiguation-time.
                          * Necessary because object references are initially parsed as FnRefs.
@@ -1048,9 +1048,9 @@ interface Node() extends HasAt;
                          * pre-interpretation may generalize the dotted
                          * list from a FnRef into something else.
                          */
-                        _RewriteFnRef(Expr fn,
-                                          List<StaticArg> staticArgs
-                                              = Collections.<StaticArg>emptyList());
+                        _RewriteFnRef(Expr fnExpr,
+                                      List<StaticArg> staticArgs
+                                          = Collections.<StaticArg>emptyList());
                         /**
                          * named functional in functional applications
                          */
@@ -1166,7 +1166,7 @@ interface Node() extends HasAt;
                          * internal node created by static analysis
                          * after inferring the implicit coercion invocations
                          */
-                        CoercionInvocation(BaseType type,
+                        CoercionInvocation(BaseType toType,
                                            List<StaticArg> staticArgs
                                                = Collections.<StaticArg>emptyList(),
                                            Expr arg);
@@ -1261,7 +1261,7 @@ interface Node() extends HasAt;
                      *           | DimExpr DimPostfixOp
                      * e.g.) Time squared
                      */
-                    OpDim(DimExpr val, Op op);
+                    OpDim(DimExpr dimVal, Op op);
                 /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */
@@ -1301,7 +1301,7 @@ interface Node() extends HasAt;
                     /**
                      * abbreviated type
                      */
-                    abstract AbbreviatedType(Type type);
+                    abstract AbbreviatedType(Type elemType);
                         /**
                          * array type
                          * TraitType ::= Type [ ArraySize? ]
@@ -1320,14 +1320,14 @@ interface Node() extends HasAt;
                          * DimType ::= Type DimExpr (in Expr)?
                          * e.g.) RR64 Length
                          */
-                        TaggedDimType(DimExpr dim,
-                                      Option<Expr> unit = Option.<Expr>none());
+                        TaggedDimType(DimExpr dimExpr,
+                                      Option<Expr> unitExpr = Option.<Expr>none());
                         /**
                          * type with unit
                          * DimType ::= Type Expr
                          * e.g.) RR64 meter
                          */
-                        TaggedUnitType(Expr unit);
+                        TaggedUnitType(Expr unitExpr);
                 /**
                  * tuple-like types
                  * TupleType ::= ( Type, TypeList )
@@ -1401,7 +1401,7 @@ interface Node() extends HasAt;
              * e.g.) throws FailCalled
              */
             Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-                   boolean io = false);
+                   boolean ioEffect = false);
             /**
              * static argument
              */
@@ -1411,19 +1411,19 @@ interface Node() extends HasAt;
                  * StaticArg ::= Type
                  * e.g.) List[\ZZ64\]
                  */
-                TypeArg(Type type);
+                TypeArg(Type typeArg);
                 /**
                  * integer used as static argument
                  * StaticArg ::= IntExpr
                  * e.g.) m + n
                  */
-                IntArg(IntExpr val);
+                IntArg(IntExpr intVal);
                 /**
                  * boolean used as static argument
                  * StaticArg ::= BoolExpr
                  * e.g.) ninf OR pinf
                  */
-                BoolArg(BoolExpr bool);
+                BoolArg(BoolExpr boolArg);
                 /**
                  * operator used as static argument
                  * StaticArg ::= Op
@@ -1435,13 +1435,13 @@ interface Node() extends HasAt;
                  * StaticArg ::= Type
                  * e.g.) Unity
                  */
-                DimArg(DimExpr dim);
+                DimArg(DimExpr dimArg);
                 /**
                  * unit used as static argument
                  * StaticArg ::= UnitExpr
                  * e.g.) dimensionless
                  */
-                UnitArg(UnitExpr unit);
+                UnitArg(UnitExpr unitArg);
             /**
              * static expression
              */
@@ -1461,7 +1461,7 @@ interface Node() extends HasAt;
                          * IntVal ::= IntLiteralExpr
                          * e.g.) 8
                          */
-                        NumberConstraint(IntLiteralExpr val);
+                        NumberConstraint(IntLiteralExpr intVal);
                         /**
                          * integer identifier
                          * IntVal ::= QualifiedName
@@ -1512,7 +1512,7 @@ interface Node() extends HasAt;
                          * BoolVal ::= true | false
                          * e.g.) true
                          */
-                        BoolConstant(boolean bool);
+                        BoolConstant(boolean boolVal);
                         /**
                          * boolean identiier
                          * BoolVal ::= QualifiedName
@@ -1529,7 +1529,7 @@ interface Node() extends HasAt;
                          * BoolConstraint ::= NOT BoolExpr
                          * e.g.) NOT ninf
                          */
-                        NotConstraint(BoolExpr bool);
+                        NotConstraint(BoolExpr boolVal);
                         /**
                          * binary boolean constraint
                          * BoolConstraint ::= BoolExpr OR BoolExpr
@@ -1717,10 +1717,10 @@ interface Node() extends HasAt;
              * CoercionContract ::= Ensures? Invariant?
              * e.g.) requires { n GE 0 } ensures { outcome GE 0 }
              */
-            Contract(Option<List<Expr>> requires = Option.<List<Expr>>none(),
-                     Option<List<EnsuresClause>> ensures =
+            Contract(Option<List<Expr>> requiresClause = Option.<List<Expr>>none(),
+                     Option<List<EnsuresClause>> ensuresClause =
                          Option.<List<EnsuresClause>>none(),
-                     Option<List<Expr>> invariants = Option.<List<Expr>>none());
+                     Option<List<Expr>> invariantsClause = Option.<List<Expr>>none());
             /**
              * ensures clause used in contracts
              * EnsuresClause ::= Expr (provided Expr)?
@@ -1848,14 +1848,14 @@ interface Node() extends HasAt;
                     */
                     TypeParam(List<BaseType> extendsClause =
                                   Collections.<BaseType>emptyList(),
-                              boolean absorbs = false);
+                              boolean absorbsParam = false);
                    /**
                     * unit parameter
                     * StaticParam ::= unit Id (: Type)? (absorbs unit)?
                     * e.g.) unit U absrbs unit
                     */
-                    UnitParam(Option<Type> dim = Option.<Type>none(),
-                              boolean absorbs = false);
+                    UnitParam(Option<Type> dimParam = Option.<Type>none(),
+                              boolean absorbsParam = false);
             /**
              * name used in declarations and references
              */
@@ -1875,7 +1875,7 @@ interface Node() extends HasAt;
                  *              | opr Op
                  *              | opr EncloserPair
                  */
-                abstract IdOrOpOrAnonymousName(Option<APIName> api
+                abstract IdOrOpOrAnonymousName(Option<APIName> apiName
                                                    = Option.<APIName>none());
                     /**
                      * identifier or operator name
@@ -1948,7 +1948,7 @@ interface Node() extends HasAt;
              * Created in typechecking,
              * because different ops can be chosen for different clauses.
              */
-            CaseClause(Expr match, Block body,
+            CaseClause(Expr matchClause, Block body,
                        Option<OpRef> op = Option.<OpRef>none());
             /**
              * catch clause used in try expressions
@@ -1962,13 +1962,14 @@ interface Node() extends HasAt;
              * CatchClause ::= TraitType => BlockElems
              * e.g.) IOException => throw ForbiddenException(e)
              */
-            CatchClause(BaseType match, Block body);
+            CatchClause(BaseType matchType, Block body);
             /**
              * block expression used in do expressions
              * DoFront ::= (at Expr)? atomic? do BlockElems?
              * e.g.) at a.region(j) do w := a_j
              */
-            DoFront(Option<Expr> loc = Option.<Expr>none(), boolean atomic = false,
+            DoFront(Option<Expr> loc = Option.<Expr>none(),
+                    boolean atomicBlock = false,
                     Block expr);
             /**
              * if clause used in if expressions
@@ -1976,7 +1977,7 @@ interface Node() extends HasAt;
              * Elif ::= elif Expr then BlockElems
              * e.g.) if x IN { 0, 1, 2 } then 0
              */
-            IfClause(GeneratorClause test, Block body);
+            IfClause(GeneratorClause testClause, Block body);
             /**
              * typecase clause used in typecase expressions
              * TypecaseClause ::= TypecaseTypes => BlockElems
@@ -1984,7 +1985,7 @@ interface Node() extends HasAt;
              *                 | Type
              * e.g.) String => x.append("foo")
              */
-            TypecaseClause(List<Type> match, Block body);
+            TypecaseClause(List<Type> matchType, Block body);
             /**
              * array and matrix size
              * ExtentRange ::= StaticArg? # StaticArg?
@@ -2011,13 +2012,13 @@ interface Node() extends HasAt;
              * KeywordType ::= BindId = Type
              * e.g.) x = String
              */
-            KeywordType(Id name, Type type);
+            KeywordType(Id name, Type keywordType);
             /**
              * trait type with a where clause used in extends clauses
              * TraitTypeWhere ::= TraitType Where?
              * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
              */
-            TraitTypeWhere(BaseType type,
+            TraitTypeWhere(BaseType baseType,
                            Option<WhereClause> whereClause
                                = Option.<WhereClause>none());
             /**
@@ -2114,11 +2115,11 @@ interface Node() extends HasAt;
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.
              */
-            Level(Integer level, Object object);
+            Level(Integer level, Object _object);
             /*
              * An overloading, and the type of that particular overloading.
              */
-            _RewriteFnRefOverloading(FnRef fn, Type ty);
+            _RewriteFnRefOverloading(FnRef fnRef, Type ty);
             /**
              * An operator overloading, and the tpye of that overloading.
              */

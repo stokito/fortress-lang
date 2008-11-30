@@ -203,7 +203,7 @@ public class NodeComparator {
 
     public static int compare(KeywordType left, KeywordType right) {
         return compare(left.getName(), right.getName(),
-                       left.getType(), right.getType());
+                       left.getKeywordType(), right.getKeywordType());
     }
 
     public static int compare(Param left, Param right) {
@@ -274,7 +274,7 @@ public class NodeComparator {
 
     /* subtypeCompareTo **************************************************/
     static int compare(ArrayType left, ArrayType right) {
-        return compare(left.getType(), right.getType(),
+        return compare(left.getElemType(), right.getElemType(),
                        left.getIndices(), right.getIndices());
     }
 
@@ -295,8 +295,8 @@ public class NodeComparator {
     }
 
     static int compare(Effect left, Effect right) {
-        if (left.isIo() != right.isIo())
-            return left.isIo() ? 1 : -1;
+        if (left.isIoEffect() != right.isIoEffect())
+            return left.isIoEffect() ? 1 : -1;
         if (left.getThrowsClause().isSome() != right.getThrowsClause().isSome())
             return left.getThrowsClause().isSome() ? 1 : -1;
         if (left.getThrowsClause().isSome()) {
@@ -307,13 +307,13 @@ public class NodeComparator {
     }
 
     static int compare(IntArg left, IntArg right) {
-        return subtypeCompareTo(left.getVal(), left.getVal());
+        return subtypeCompareTo(left.getIntVal(), left.getIntVal());
     }
 
     static int subtypeCompareTo(IntExpr left, IntExpr right) {
         if (left instanceof NumberConstraint && right instanceof NumberConstraint)
-            return ((NumberConstraint)left).getVal().getVal().intValue() -
-                   ((NumberConstraint)right).getVal().getVal().intValue();
+            return ((NumberConstraint)left).getIntVal().getIntVal().intValue() -
+                   ((NumberConstraint)right).getIntVal().getIntVal().intValue();
         /* nat types -- difference will not overflow */
         else return 0;
     }
@@ -334,7 +334,7 @@ public class NodeComparator {
     }
 
     static int compare(MatrixType left, MatrixType right) {
-        int y = compare(left.getType(), right.getType());
+        int y = compare(left.getElemType(), right.getElemType());
         if (y != 0) return y;
         return extentRangeListComparer.compare(left.getDimensions(),
                                                right.getDimensions());
@@ -368,8 +368,8 @@ public class NodeComparator {
         if (x != 0) {
             return x;
         }
-        if (left.isAbsorbs() != right.isAbsorbs()) {
-            return left.isAbsorbs() ? 1 : -1;
+        if (left.isAbsorbsParam() != right.isAbsorbsParam()) {
+            return left.isAbsorbsParam() ? 1 : -1;
         }
         List<BaseType> l = left.getExtendsClause();
         List<BaseType> ol = right.getExtendsClause();
@@ -381,7 +381,7 @@ public class NodeComparator {
     }
 
     static int compare(TypeArg left, TypeArg right) {
-        return compare(left.getType(), right.getType());
+        return compare(left.getTypeArg(), right.getTypeArg());
     }
 
     private static int subtypeCompareTo(StaticArg left, StaticArg right) {

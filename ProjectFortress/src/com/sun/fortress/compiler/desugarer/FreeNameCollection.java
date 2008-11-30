@@ -63,7 +63,7 @@ public final class FreeNameCollection {
     // This is set later via a call made by FreeNameCollector.
     private List<VarRef> freeMutableVarRefs = new LinkedList<VarRef>();
 
-    // free exit labels 
+    // free exit labels
     private List<Exit> freeExitLabels = new LinkedList<Exit>();
 
     // This is only set via a call made by FreeNameCollector;
@@ -89,7 +89,7 @@ public final class FreeNameCollection {
         this.freeVarTypes.addAll(other.freeVarTypes);
         this.freeMutableVarRefs.addAll(other.freeMutableVarRefs);
         this.freeExitLabels.addAll(other.freeExitLabels);
-        
+
         if( other.enclosingSelfType.isSome() ) {
             this.enclosingSelfType =
                 Option.<Type>some( other.enclosingSelfType.unwrap() );
@@ -128,15 +128,15 @@ public final class FreeNameCollection {
         List<VarRef> newFreeVarRefs = new LinkedList<VarRef>();
 
         for(VarRef var : freeVarRefs) {
-            Option<StaticParam> spOp = typeEnv.staticParam( var.getVar() );
+            Option<StaticParam> spOp = typeEnv.staticParam( var.getVarId() );
             if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
             } else if( spOp.unwrap() instanceof BoolParam ) {
-                this.add( new BoolRef(var.getSpan(), var.getVar()) );
+                this.add( new BoolRef(var.getSpan(), var.getVarId()) );
             } else if( spOp.unwrap() instanceof IntParam ) {
-                this.add( new IntRef(var.getSpan(), var.getVar()) );
+                this.add( new IntRef(var.getSpan(), var.getVarId()) );
             } else if( spOp.unwrap() instanceof NatParam ) {
-                this.add( new IntRef(var.getSpan(), var.getVar()) );
+                this.add( new IntRef(var.getSpan(), var.getVarId()) );
             } else {
                 throw new DesugarerError( "Unexpected Static Param type " +
                     "found: " + spOp.unwrap() );
@@ -210,9 +210,9 @@ public final class FreeNameCollection {
                 this.freeUnitRefs.equals( other.freeUnitRefs ) &&
                 this.freeIntRefs.equals( other.freeIntRefs ) &&
                 this.freeBoolRefs.equals( other.freeBoolRefs ) &&
-                this.freeVarTypes.equals( other.freeVarTypes ) && 
+                this.freeVarTypes.equals( other.freeVarTypes ) &&
                 this.freeMutableVarRefs.equals( other.freeMutableVarRefs ) &&
-                this.freeExitLabels.equals( other.freeExitLabels) ); 
+                this.freeExitLabels.equals( other.freeExitLabels) );
     }
 
     public FreeNameCollection add(VarRef n) {

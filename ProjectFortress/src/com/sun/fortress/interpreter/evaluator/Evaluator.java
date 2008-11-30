@@ -217,7 +217,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAsExpr(AsExpr x) {
         final Expr expr = x.getExpr();
         FValue val = expr.accept(this);
-        Type ty = x.getType();
+        Type ty = x.getAnnType();
         FType fty = EvalType.getFType(ty, e);
         if (val.type().subtypeOf(fty))
             return val;
@@ -229,7 +229,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forAsIfExpr(AsIfExpr x) {
         final Expr expr = x.getExpr();
         FValue val = expr.accept(this);
-        Type ty = x.getType();
+        Type ty = x.getAnnType();
         FType fty = EvalType.getFType(ty, e);
         if (val.type().subtypeOf(fty))
             return new FAsIf(val,fty);
@@ -241,7 +241,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
-        Option<OpRef> possOp = x.getOpr();
+        Option<OpRef> possOp = x.getAssignOp();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends Lhs> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
@@ -369,7 +369,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
-            if (f.isAtomic())
+            if (f.isAtomicBlock())
                 return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
                                                     f.getExpr()));
             return f.getExpr().accept(new Evaluator(this));
@@ -382,7 +382,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
            if (f.getLoc().isSome()) {
                locs.add(f.getLoc().unwrap());
            }
-           if (f.isAtomic())
+           if (f.isAtomicBlock())
                tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
                                                        f.getExpr()), this);
            else
@@ -507,13 +507,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Iterator<CaseClause> i = clauses.iterator();
 
         CaseClause c = i.next();
-        FValue winner = c.getMatch().accept(this);
+        FValue winner = c.getMatchClause().accept(this);
         CaseClause res = c;
 
         for (; i.hasNext();) {
             c = i.next();
             List<FValue> vargs = new ArrayList<FValue>(2);
-            FValue current = c.getMatch().accept(this);
+            FValue current = c.getMatchClause().accept(this);
             vargs.add(current);
             vargs.add(winner);
             FValue invoke = functionInvocation(vargs, fcn, x);
@@ -554,7 +554,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             for (Iterator<CaseClause> i = clauses.iterator(); i.hasNext();) {
                 CaseClause c = i.next();
                 // Evaluate the clause
-                FValue match = c.getMatch().accept(this);
+                FValue match = c.getMatchClause().accept(this);
                 List<FValue> vargs = new ArrayList<FValue>();
                 vargs.add(paramValue);
                 vargs.add(match);
@@ -618,7 +618,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private boolean isShadow(Expr expr, String name) {
         return (expr instanceof VarRef &&
-                NodeUtil.nameString(((VarRef)expr).getVar()).equals(name));
+                NodeUtil.nameString(((VarRef)expr).getVarId()).equals(name));
     }
 
     private boolean isShadow(Option<String> var, String name) {
@@ -631,7 +631,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     private Option<String> getName(Expr expr) {
         if (expr instanceof VarRef) {
-            return Option.some(NodeUtil.nameString(((VarRef)expr).getVar()));
+            return Option.some(NodeUtil.nameString(((VarRef)expr).getVarId()));
         } else { // !(expr instanceof VarRef)
             return Option.<String>none();
         }
@@ -705,9 +705,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     private boolean moreSpecificHelper(TypecaseClause candidate,
-            TypecaseClause current, Evaluator ev) {
-        List<Type> candType = candidate.getMatch();
-        List<Type> curType = current.getMatch();
+                                       TypecaseClause current, Evaluator ev) {
+        List<Type> candType = candidate.getMatchType();
+        List<Type> curType = current.getMatchType();
         List<FType> candMatch = EvalType.getFTypeListFromList(candType, ev.e);
         List<FType> curMatch = EvalType.getFTypeListFromList(curType, ev.e);
         boolean res = FTypeTuple.moreSpecificThan(candMatch, curMatch);
@@ -851,7 +851,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<IfClause> clause = x.getClauses();
         for (Iterator<IfClause> i = clause.iterator(); i.hasNext();) {
             IfClause ifclause = i.next();
-            GeneratorClause cond = ifclause.getTest();
+            GeneratorClause cond = ifclause.getTestClause();
             Expr testExpr;
             if (cond.getBind().isEmpty())
                 testExpr = cond.getInit();
@@ -1437,7 +1437,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // Note that ALL method references have been rewritten into
             // this.that form, so that bare var-ref is a function
             _RewriteFnRef rfr = (_RewriteFnRef) fcnExpr;
-            Expr fn = rfr.getFn();
+            Expr fn = rfr.getFnExpr();
             List<StaticArg> args = rfr.getStaticArgs();
             if (fn instanceof AbstractFieldRef) {
                 AbstractFieldRef arf = (AbstractFieldRef) fn;
@@ -1549,7 +1549,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Id name = _catch.getName();
             List<CatchClause> clauses = _catch.getClauses();
             for (CatchClause clause : clauses) {
-                BaseType match = clause.getMatch();
+                BaseType match = clause.getMatchType();
                 Block catchBody = clause.getBody();
                 FType foo = EvalType.getFType(match, e);
                 if (excType.subtypeOf(foo)) {
@@ -1563,7 +1563,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 }
             }
         }
-        for (BaseType forbidType : x.getForbid()) {
+        for (BaseType forbidType : x.getForbidClause()) {
             if (excType.subtypeOf(EvalType.getFType(forbidType,e))) {
                 Environment libE = Driver.getFortressLibrary();
                 FType ftype = libE.getRootTypeNull(WellKnownNames.forbiddenException); // toplevel
@@ -1621,7 +1621,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FType resTuple = FTypeTuple.make(res);
 
         for (TypecaseClause c : clauses) {
-            List<Type> match = c.getMatch();
+            List<Type> match = c.getMatchType();
             /* Technically, match and res need not be tuples; they could be
                singletons and the subtype test below ought to be correct. */
             FType matchTuple = EvalType.getFTypeFromList(match, ev.e);
@@ -1652,7 +1652,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //        }
         FValue res = BaseEnv.toContainingObjectEnv(e, x.getLexicalDepth()).getValueNull(x);
         if (res == null) {
-            Iterable<Id> names = NodeUtil.getIds(x.getVar());
+            Iterable<Id> names = NodeUtil.getIds(x.getVarId());
             error(x, e, errorMsg("undefined variable ", names));
         }
         return res;
@@ -1664,7 +1664,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forWhile(While x) {
         Expr body = x.getBody();
-        GeneratorClause cond = x.getTest();
+        GeneratorClause cond = x.getTestExpr();
         Expr test;
         if (cond.getBind().isEmpty())
             test = cond.getInit();
@@ -1694,7 +1694,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forCharLiteralExpr(CharLiteralExpr x) {
-        return FChar.make(x.getVal());
+        return FChar.make(x.getCharVal());
     }
 
     public FValue forFloatLiteralExpr(FloatLiteralExpr x) {
@@ -1705,7 +1705,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forIntLiteralExpr(IntLiteralExpr x) {
-        return FIntLiteral.make(x.getVal());
+        return FIntLiteral.make(x.getIntVal());
     }
 
     @Override
@@ -1729,7 +1729,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     @Override
     public FValue for_RewriteFnRef(_RewriteFnRef x) {
-        Expr name = x.getFn();
+        Expr name = x.getFnExpr();
         FValue g = name.accept(this);
         return applyToStaticArgs(g,x.getStaticArgs(),x);
     }

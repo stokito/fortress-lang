@@ -95,7 +95,7 @@ public abstract class SubtypeChecker {
         if (isArray(t)) {
             ArrayType tt = (ArrayType)t;
             Span span = tt.getSpan();
-            TypeArg elem = NodeFactory.makeTypeArg(tt.getType());
+            TypeArg elem = NodeFactory.makeTypeArg(tt.getElemType());
             IntArg zero = NodeFactory.makeIntArgVal("0");
             List<ExtentRange> dims = tt.getIndices().getExtents();
             try {
@@ -181,7 +181,7 @@ public abstract class SubtypeChecker {
                     Span span = tt.getSpan();
                     Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Matrix");
                     return NodeFactory.makeTraitType(span, false, name,
-                                                     NodeFactory.makeTypeArg(tt.getType()),
+                                                     NodeFactory.makeTypeArg(tt.getElemType()),
                                                      first.getSize().unwrap(),
                                                      second.getSize().unwrap());
                 }
@@ -209,7 +209,7 @@ public abstract class SubtypeChecker {
                 @Override public void forTypeParam(TypeParam p) {
                     if (isTypeArg(a))
                         typeSubs.put(p.getName(),
-                                     ((TypeArg) a).getType());
+                                     ((TypeArg) a).getTypeArg());
                     else error("A type parameter is instantiated with a " +
                                "non-type argument.");
                 }
@@ -222,35 +222,35 @@ public abstract class SubtypeChecker {
                 @Override public void forIntParam(IntParam p) {
                     if (isIntArg(a))
                         intSubs.put(p.getName(),
-                                    ((IntArg)a).getVal());
+                                    ((IntArg)a).getIntVal());
                     else error("An integer parameter is instantiated with a " +
                                "non-integer argument.");
                 }
                 @Override public void forNatParam(NatParam p) {
                     if (isIntArg(a))
                         intSubs.put(p.getName(),
-                                    ((IntArg)a).getVal());
+                                    ((IntArg)a).getIntVal());
                     else error("A nat parameter is instantiated with a " +
                                "non-nat argument.");
                 }
                 @Override public void forBoolParam(BoolParam p) {
                     if (isBoolArg(a))
                         boolSubs.put(p.getName(),
-                                     ((BoolArg)a).getBool());
+                                     ((BoolArg)a).getBoolArg());
                     else error("A bool parameter is instantiated with a " +
                                "non-bool argument.");
                 }
                 @Override public void forDimParam(DimParam p) {
                     if (isDimArg(a))
                         dimSubs.put(p.getName(),
-                                    ((DimArg)a).getDim());
+                                    ((DimArg)a).getDimArg());
                     else error("A dimension parameter is instantiated with a " +
                                "non-dimension argument.");
                 }
                 @Override public void forUnitParam(UnitParam p) {
                     if (isUnitArg(a))
                         unitSubs.put(p.getName(),
-                                     ((UnitArg)a).getUnit());
+                                     ((UnitArg)a).getUnitArg());
                     else error("A unit parameter is instantiated with a " +
                                "non-unit argument.");
                 }
@@ -315,8 +315,8 @@ public abstract class SubtypeChecker {
 
     private boolean isStaticParam(VarType t) {
         Id name = t.getName();
-        if (name.getApi().isSome()) return false;
-        else { // name.getApi().isNone()
+        if (name.getApiName().isSome()) return false;
+        else { // name.getApiName().isNone()
             return _staticParamEnv.binding(name).isSome();
         }
     }
@@ -324,7 +324,7 @@ public abstract class SubtypeChecker {
     private List<BaseType> getExtends(VarType t) {
         List<BaseType> _extends = new ArrayList<BaseType>();
         Id name = t.getName();
-        if (name.getApi().isNone()) {
+        if (name.getApiName().isNone()) {
             Option<StaticParam> result = _staticParamEnv.binding(name);
             if (result.isSome()) {
                 StaticParam sparam = result.unwrap();
@@ -470,7 +470,7 @@ public abstract class SubtypeChecker {
 
     private boolean equivalent(StaticArg s, StaticArg t, SubtypeHistory h) {
         if (isTypeArg(s) && isTypeArg(t)) {
-            return equivalent(((TypeArg)s).getType(), ((TypeArg)t).getType(), h);
+            return equivalent(((TypeArg)s).getTypeArg(), ((TypeArg)t).getTypeArg(), h);
         } else if (isOpArg(s) && isOpArg(t)) {
             return nameString(((OpArg)s).getName().getOriginalName()).equals(((OpArg)t).getName());
         } else {
@@ -777,7 +777,7 @@ public abstract class SubtypeChecker {
                     TraitIndex traitIndex = (TraitIndex)index;
                     if (isVarType(s)) {
                         for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                            BaseType sup = _sup.getType();
+                            BaseType sup = _sup.getBaseType();
                             if (subtype(sup, t, h)) return TRUE;
                         }
                         return FALSE;
@@ -787,7 +787,7 @@ public abstract class SubtypeChecker {
                                 makeSubst(traitIndex.staticParameters(),
                                           ((TraitType)s).getArgs());
                             for (TraitTypeWhere _sup : traitIndex.extendsTypes()) {
-                                BaseType sup = _sup.getType();
+                                BaseType sup = _sup.getBaseType();
                                 if (subtype(subst.value(sup), t, h))
                                     return TRUE;
                             }

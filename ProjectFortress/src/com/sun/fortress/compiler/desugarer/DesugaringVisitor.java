@@ -243,7 +243,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 assert( rewrite.getObj() instanceof VarRef );
                 VarRef obj = (VarRef)rewrite.getObj();
                 obj = ExprFactory.makeVarRef(obj, obj.getExprType(),
-                                             mangleName(obj.getVar()));
+                                             mangleName(obj.getVarId()));
                 body = (Expr)forFieldRefOnly(rewrite, field.getIdType(),
                                              obj, rewrite.getField());
             } else {
@@ -288,7 +288,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 assert( rewrite.getObj() instanceof VarRef );
                 VarRef obj = (VarRef)rewrite.getObj();
                 obj = ExprFactory.makeVarRef(obj, obj.getExprType(),
-                                             mangleName(obj.getVar()));
+                                             mangleName(obj.getVarId()));
                 assign = ExprFactory.makeMethodInvocation(rewrite.getSpan(), false,
                                                           Option.some(voidType), obj,
                                                           rewrite.getField(), rhs);
@@ -402,21 +402,21 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
                         return ExprFactory.makeAssignment(span, voidType, left,
-                                                          that.getOpr(), rhs_result);
+                                                          that.getAssignOp(), rhs_result);
                     }
                     public Node forSubscriptExpr(SubscriptExpr lhs_that) {
                         List<Lhs> left = new ArrayList<Lhs>();
                         left.add((Lhs)lhs_that.accept(DesugaringVisitor.this));
                         return ExprFactory.makeAssignment(span, voidType, left,
-                                                          that.getOpr(), rhs_result);
+                                                          that.getAssignOp(), rhs_result);
                     }
                     public Node forFieldRef(FieldRef lhs_that) {
                         Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
                         Expr rhs = rhs_result;
-                        if ( that.getOpr().isSome() ) {
+                        if ( that.getAssignOp().isSome() ) {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
                             rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
-                                                         that.getOpr().unwrap(),
+                                                         that.getAssignOp().unwrap(),
                                                          _lhs, rhs);
                         }
                         return ExprFactory.makeMethodInvocation(span, that.isParenthesized(),
@@ -428,10 +428,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         if ( lhs_that.getField() instanceof Id) {
                             Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
                             Expr rhs = rhs_result;
-                            if ( that.getOpr().isSome() ) {
+                            if ( that.getAssignOp().isSome() ) {
                                 Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
                                 rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
-                                                             that.getOpr().unwrap(),
+                                                             that.getAssignOp().unwrap(),
                                                              _lhs, rhs);
                             }
                             return ExprFactory.makeMethodInvocation(span,
@@ -442,7 +442,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         } else
                             return ExprFactory.makeAssignment(span, voidType,
                                                               that.getLhs(),
-                                                              that.getOpr(),
+                                                              that.getAssignOp(),
                                                               rhs_result);
                     }
                 });
@@ -466,7 +466,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                  (x := tuple0, y.f(tuple1), z := tuple2)
             */
             boolean paren = that.isParenthesized();
-            Option<OpRef> opr = that.getOpr();
+            Option<OpRef> opr = that.getAssignOp();
             List<Expr>   assigns   = new ArrayList<Expr>();
             List<LValue> secondLhs = new ArrayList<LValue>();
             // Possible shadowing!
@@ -499,7 +499,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     public Node forVarRefOnly(VarRef that, Option<Type> exprType_result,
                               Id varResult) {
         // After disambiguation, the Id in a VarRef should have an empty API.
-        assert(varResult.getApi().isNone());
+        assert(varResult.getApiName().isNone());
 
         if (fieldsInScope.contains(varResult)) {
             return ExprFactory.makeVarRef(that, exprType_result,
@@ -522,7 +522,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Id fnResult, List<Id> fns_result,
                              Option<List<_RewriteFnRefOverloading>> overloadings_result) {
         // After disambiguation, the Id in a FnRef should have an empty API.
-        assert(fnResult.getApi().isNone());
+        assert(fnResult.getApiName().isNone());
 
         if (fieldsInScope.contains(fnResult)) {
             List<Id> newFns = new ArrayList<Id>();

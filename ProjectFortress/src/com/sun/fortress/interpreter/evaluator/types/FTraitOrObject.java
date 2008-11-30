@@ -318,7 +318,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
                 t = param_ftype;
                 if (targ instanceof TypeArg) {
                     param_ftype.unify(env, tp_set, abm,
-                                      ((TypeArg)targ).getType());
+                                      ((TypeArg)targ).getTypeArg());
                 } else if (param_ftype instanceof FTypeNat) {
                     param_ftype.unifyStaticArg(env, tp_set, abm, targ);
                 } else {

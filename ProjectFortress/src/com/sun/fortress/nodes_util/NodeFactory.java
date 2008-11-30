@@ -180,8 +180,8 @@ public class NodeFactory {
         List<Id> ids = new ArrayList<Id>();
         Id last = first;
         ids.add(first);
-        if (rest.getApi().isSome()) {
-            List<Id> apiNames = rest.getApi().unwrap().getIds();
+        if (rest.getApiName().isSome()) {
+            List<Id> apiNames = rest.getApiName().unwrap().getIds();
             ids.addAll(apiNames);
             if (!IterUtil.isEmpty(apiNames)) last = IterUtil.last(apiNames);
         }
@@ -192,8 +192,8 @@ public class NodeFactory {
     public static APIName makeAPIName(Id first, Id rest) {
         List<Id> ids = new ArrayList<Id>();
         ids.add(first);
-        if (rest.getApi().isSome()) {
-            ids.addAll(rest.getApi().unwrap().getIds());
+        if (rest.getApiName().isSome()) {
+            ids.addAll(rest.getApiName().unwrap().getIds());
         }
         ids.add(new Id(rest.getSpan(), rest.getText()));
         ids = Useful.immutableTrimmedList(ids);
@@ -325,14 +325,14 @@ public class NodeFactory {
     }
 
     public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
-            DimExpr u) {
+                                                  DimExpr u) {
         return new TaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
-                t.getUnit());
+                                 t.getUnitExpr());
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
         return new TaggedUnitType(t.getSpan(), t.isParenthesized(), s,
-                t.getUnit());
+                                  t.getUnitExpr());
     }
 
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
@@ -584,7 +584,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(Id id, String newName) {
-        return new Id(id.getSpan(), id.getApi(), newName);
+        return new Id(id.getSpan(), id.getApiName(), newName);
     }
 
     public static Id makeId(Span span, String s) {
@@ -592,7 +592,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(Span span, Id id) {
-        return new Id(span, id.getApi(), id.getText());
+        return new Id(span, id.getApiName(), id.getText());
     }
 
     public static Id makeId(Iterable<Id> apiIds, Id id) {
@@ -881,7 +881,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpInfix(Op op) {
-        return new Op(op.getSpan(), op.getApi(), op.getText(), infix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), infix);
     }
 
     public static Op makeOpPrefix(Span span, String name) {
@@ -889,7 +889,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPrefix(Op op) {
-        return new Op(op.getSpan(), op.getApi(), op.getText(), prefix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), prefix);
     }
 
     public static Op makeOpPostfix(Span span, String name) {
@@ -897,7 +897,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(op.getSpan(), op.getApi(), op.getText(), postfix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), postfix);
     }
 
     /**
@@ -1139,13 +1139,13 @@ public class NodeFactory {
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
             public BoolExpr forBoolConstant(BoolConstant b) {
-                return new BoolConstant(b.getSpan(), true, b.isBool());
+                return new BoolConstant(b.getSpan(), true, b.isBoolVal());
             }
             public BoolExpr forBoolRef(BoolRef b) {
                 return new BoolRef(b.getSpan(), true, b.getName());
             }
             public BoolExpr forNotConstraint(NotConstraint b) {
-                return new NotConstraint(b.getSpan(), true, b.getBool());
+                return new NotConstraint(b.getSpan(), true, b.getBoolVal());
             }
             public BoolExpr forBinaryBoolConstraint(BinaryBoolConstraint b) {
                 return new BinaryBoolConstraint(b.getSpan(), true, b.getOp(),
@@ -1179,7 +1179,7 @@ public class NodeFactory {
                         t.getPower());
             }
             public DimExpr forOpDim(OpDim t) {
-                return new OpDim(t.getSpan(), true, t.getVal(), t.getOp());
+                return new OpDim(t.getSpan(), true, t.getDimVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
@@ -1191,7 +1191,7 @@ public class NodeFactory {
     public static IntExpr makeInParentheses(IntExpr ie) {
         return ie.accept(new NodeAbstractVisitor<IntExpr>() {
             public IntExpr forNumberConstraint(NumberConstraint i) {
-                return new NumberConstraint(i.getSpan(), true, i.getVal());
+                return new NumberConstraint(i.getSpan(), true, i.getIntVal());
             }
             public IntExpr forIntRef(IntRef i) {
                 return new IntRef(i.getSpan(), true, i.getName());
@@ -1250,14 +1250,14 @@ public class NodeFactory {
                         t.getRange(), t.getEffect());
             }
             public Type forArrayType(ArrayType t) {
-                return new ArrayType(t.getSpan(), true, t.getType(),
+                return new ArrayType(t.getSpan(), true, t.getElemType(),
                         t.getIndices());
             }
             public Type forVarType(VarType t) {
                 return new VarType(t.getSpan(), true, t.getName());
             }
             public Type forMatrixType(MatrixType t) {
-                return new MatrixType(t.getSpan(), true, t.getType(),
+                return new MatrixType(t.getSpan(), true, t.getElemType(),
                         t.getDimensions());
             }
             public Type forTraitType(TraitType t) {
@@ -1272,12 +1272,12 @@ public class NodeFactory {
                 return new VoidType(t.getSpan(), true);
             }
             public Type forTaggedDimType(TaggedDimType t) {
-                return new TaggedDimType(t.getSpan(), true, t.getType(),
-                        t.getDim(), t.getUnit());
+                return new TaggedDimType(t.getSpan(), true, t.getElemType(),
+                                         t.getDimExpr(), t.getUnitExpr());
             }
             public Type forTaggedUnitType(TaggedUnitType t) {
-                return new TaggedUnitType(t.getSpan(), true, t.getType(),
-                        t.getUnit());
+                return new TaggedUnitType(t.getSpan(), true, t.getElemType(),
+                                          t.getUnitExpr());
             }
             public Type forDimExpr(DimExpr t) {
                 return makeInParentheses(t);

@@ -163,7 +163,7 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
             String s = x.getName().stringName();
             OverloadedFunction of = (OverloadedFunction) bindInto.getRootValue(s);
             for (IdOrOpName fn : x.getFns()) {
-                Option<APIName> oapi = fn.getApi();
+                Option<APIName> oapi = fn.getApiName();
                 FValue oapi_val = null;
 
                 if (fn instanceof Id) {

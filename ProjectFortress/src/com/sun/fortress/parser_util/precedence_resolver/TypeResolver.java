@@ -66,21 +66,21 @@ public class TypeResolver {
 
     private static Type makeProductDim(Span span, TaggedDimType expr0,
                                        DimExpr expr2) throws TypeConvertFailure {
-        DimExpr dim = new ProductDim(span, true, dimToDim(expr0.getDim()),
+        DimExpr dim = new ProductDim(span, true, dimToDim(expr0.getDimExpr()),
                                      dimToDim(expr2));
         return new TaggedDimType(span, true,
-                                 typeToType(expr0.getType()), dim,
-                                 expr0.getUnit());
+                                 typeToType(expr0.getElemType()), dim,
+                                 expr0.getUnitExpr());
     }
 
     private static Type makeQuotientDim(Span span, TaggedDimType expr0,
                                         DimExpr expr2)
         throws TypeConvertFailure {
-        DimExpr dim = new QuotientDim(span, true, dimToDim(expr0.getDim()),
+        DimExpr dim = new QuotientDim(span, true, dimToDim(expr0.getDimExpr()),
                                       dimToDim(expr2));
         return new TaggedDimType(span, true,
-                                 typeToType(expr0.getType()), dim,
-                                 expr0.getUnit());
+                                 typeToType(expr0.getElemType()), dim,
+                                 expr0.getUnitExpr());
     }
 
     private static Type makeJuxt(Type first, Type second) throws ReadError {
@@ -603,9 +603,9 @@ public class TypeResolver {
             }
             public Type forTaggedDimType(TaggedDimType t) {
                 return new TaggedDimType(t.getSpan(), true,
-                                         typeToType(t.getType()),
-                                         makeInParentheses(dimToDim(t.getDim())),
-                                         t.getUnit());
+                                         typeToType(t.getElemType()),
+                                         makeInParentheses(dimToDim(t.getDimExpr())),
+                                         t.getUnitExpr());
             }
         });
     }
@@ -637,8 +637,8 @@ public class TypeResolver {
                         IntArg power = (IntArg)dimension.getSize().unwrap();
                         return new ExponentDim(t.getSpan(),
                                                t.isParenthesized(),
-                                               typeToDim(t.getType()),
-                                               power.getVal());
+                                               typeToDim(t.getElemType()),
+                                               power.getIntVal());
                     } catch (Throwable e) {
                         return error(t, "A dimension is expected but " +
                                      "a type is found.");
@@ -646,11 +646,11 @@ public class TypeResolver {
                 }
                 public DimExpr forTaggedDimType(TaggedDimType t) {
                     try {
-                        if (t.getUnit().isNone()) {
+                        if (t.getUnitExpr().isNone()) {
                             return new ProductDim(t.getSpan(),
                                                   t.isParenthesized(),
-                                                  typeToDim(t.getType()),
-                                                  t.getDim());
+                                                  typeToDim(t.getElemType()),
+                                                  t.getDimExpr());
                         } else
                             return error(t, "A dimension is expected " +
                                          "but a type is found.");
@@ -701,7 +701,7 @@ public class TypeResolver {
             public DimExpr forOpDim(OpDim d) {
                 return new OpDim(d.getSpan(),
                                  d.isParenthesized(),
-                                 dimToDim(d.getVal()),
+                                 dimToDim(d.getDimVal()),
                                  d.getOp());
             }
             public DimExpr defaultCase(Node x) {
@@ -756,9 +756,9 @@ public class TypeResolver {
             TaggedDimType _ty = (TaggedDimType)ty;
             return new TaggedDimType(_ty.getSpan(),
                                      _ty.isParenthesized(),
-                                     canonicalizeType(_ty.getType()),
-                                     canonicalizeDim(_ty.getDim()),
-                                     _ty.getUnit());
+                                     canonicalizeType(_ty.getElemType()),
+                                     canonicalizeDim(_ty.getDimExpr()),
+                                     _ty.getUnitExpr());
         } else return ty;
     }
 
@@ -795,7 +795,7 @@ public class TypeResolver {
             public DimExpr forOpDim(OpDim d) {
                 return new OpDim(d.getSpan(),
                                  d.isParenthesized(),
-                                 canonicalizeDim(d.getVal()),
+                                 canonicalizeDim(d.getDimVal()),
                                  d.getOp());
             }
             public DimExpr defaultCase(Node x) {

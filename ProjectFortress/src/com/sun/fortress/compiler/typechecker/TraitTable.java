@@ -42,12 +42,12 @@ public class TraitTable {
         TypeConsIndex result;
         Id simpleName = new Id(NodeFactory.makeSpan(name), name.getText());
         // TODO: Shouldn't qualified names only point to APIs? -- Dan
-        if (name.getApi().isNone() ||
-            currentCompilationUnit.ast().getName().equals(name.getApi().unwrap())) {
+        if (name.getApiName().isNone() ||
+            currentCompilationUnit.ast().getName().equals(name.getApiName().unwrap())) {
             result = currentCompilationUnit.typeConses().get(simpleName);
         }
         else {
-            ApiIndex api = globalEnv.api(name.getApi().unwrap());
+            ApiIndex api = globalEnv.api(name.getApiName().unwrap());
             if (api == null) {
             	return Option.none();
             }

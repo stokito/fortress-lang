@@ -54,30 +54,30 @@ public class TypeAnalyzerUtil {
             pair.first().accept(new NodeAbstractVisitor_void() {
                 @Override public void forTypeParam(TypeParam p) {
                     typeSubs.put(p.getName(),
-                                 ((TypeArg) a).getType());
+                                 ((TypeArg) a).getTypeArg());
                 }
                 @Override public void forOpParam(OpParam p) {
                     opSubs.put(p.getName(), (Op) ((OpArg) a).getName().getOriginalName());
                 }
                 @Override public void forIntParam(IntParam p) {
                     intSubs.put(p.getName(),
-                                ((IntArg) a).getVal());
+                                ((IntArg) a).getIntVal());
                 }
                 @Override public void forNatParam(NatParam p) {
                     intSubs.put(p.getName(),
-                                ((IntArg) a).getVal());
+                                ((IntArg) a).getIntVal());
                 }
                 @Override public void forBoolParam(BoolParam p) {
                     boolSubs.put(p.getName(),
-                                 ((BoolArg) a).getBool());
+                                 ((BoolArg) a).getBoolArg());
                 }
                 @Override public void forDimParam(DimParam p) {
                     dimSubs.put(p.getName(),
-                                ((DimArg) a).getDim());
+                                ((DimArg) a).getDimArg());
                 }
                 @Override public void forUnitParam(UnitParam p) {
                     unitSubs.put(p.getName(),
-                                 ((UnitArg) a).getUnit());
+                                 ((UnitArg) a).getUnitArg());
                 }
 
             });
@@ -157,7 +157,7 @@ public class TypeAnalyzerUtil {
             }
             private Boolean recurOnKeywords(List<KeywordType> ks) {
                 for (KeywordType k : ks) {
-                    if (k.getType().accept(this)) { return true; }
+                    if (k.getKeywordType().accept(this)) { return true; }
                 }
                 return false;
             }
@@ -185,7 +185,7 @@ public class TypeAnalyzerUtil {
             @Override public Boolean forAnyType(AnyType t) { return false; }
             @Override public Boolean forBottomType(BottomType t) { return false; }
             @Override public Boolean forVarType(VarType t) {
-                return t.getName().getApi().isNone() && names.contains(t.getName());
+                return t.getName().getApiName().isNone() && names.contains(t.getName());
             }
             @Override public Boolean forTraitType(TraitType t) {
                 for (StaticArg arg : t.getArgs()) {
@@ -198,7 +198,7 @@ public class TypeAnalyzerUtil {
             @Override public Boolean forBoundType(BoundType t) {
                 return recurOnList(t.getElements());
             }
-            @Override public Boolean forTypeArg(TypeArg t) { return t.getType().accept(this); }
+            @Override public Boolean forTypeArg(TypeArg t) { return t.getTypeArg().accept(this); }
             @Override public Boolean forIntArg(IntArg t) { return false; }
             @Override public Boolean forBoolArg(BoolArg t) { return false; }
             @Override public Boolean forOpArg(OpArg t) { return false; }

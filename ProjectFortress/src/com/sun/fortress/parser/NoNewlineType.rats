@@ -42,8 +42,8 @@ Type NoNewlineType =
        else {
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
-               yyValue = new TaggedDimType(_ty.getSpan(), _ty.getType(),
-                                           _ty.getDim(), Option.some(a2));
+               yyValue = new TaggedDimType(_ty.getSpan(), _ty.getElemType(),
+                                           _ty.getDimExpr(), Option.some(a2));
            } else {
                yyValue = syntaxError(ty.getSpan(),
                                      "A dimension type is expected.");

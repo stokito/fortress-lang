@@ -70,7 +70,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 abstract public class BaseEnv implements Environment, Iterable<String> {
 
     public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan) {
-        Option<APIName> oapi = ioooan.getApi();
+        Option<APIName> oapi = ioooan.getApiName();
         if (oapi.isNone())
             return this;
         return getApi(oapi.unwrap());
@@ -438,14 +438,14 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     public FType getLeafTypeNull(String name) {
         return getTypeNull(name); // temp hack
     }
-    
+
     public FType getRootTypeNull(String name) {
         return getTypeNull(name); // temp hack
     }
-    
+
     final public FType getTypeNull(Id name) {
         String local = NodeUtil.nameSuffixString(name);
-        Option<APIName> opt_api = name.getApi();
+        Option<APIName> opt_api = name.getApiName();
 
         if (opt_api.isSome()) {
             APIName api = opt_api.unwrap();
@@ -513,7 +513,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     static private BASet<String> missedNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
 
     final public  FValue getValueNull(VarRef vr) {
-        Id name = vr.getVar();
+        Id name = vr.getVarId();
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }
@@ -527,7 +527,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     final public FValue getValueNull(Id name, int l) throws CircularDependenceError {
         //String s = NodeUtil.nameString(name);
         String local = NodeUtil.nameSuffixString(name);
-        Option<APIName> opt_api = name.getApi();
+        Option<APIName> opt_api = name.getApiName();
         return getValueNullTail(name, l, local, opt_api);
     }
 
@@ -535,14 +535,14 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
             throws CircularDependenceError {
         // String s = NodeUtil.nameString(name);
         String local = NodeUtil.nameSuffixString(name);
-        Option<APIName> opt_api = name.getApi();
+        Option<APIName> opt_api = name.getApiName();
         return getValueNullTail(name, l, local, opt_api);
 
     }
       final public FValue getValue(Id name, int l) throws CircularDependenceError {
           //String s = NodeUtil.nameString(name);
           String local = NodeUtil.nameSuffixString(name);
-          Option<APIName> opt_api = name.getApi();
+          Option<APIName> opt_api = name.getApiName();
           return getValueTail(name, l, local, opt_api);
       }
 
@@ -550,7 +550,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
               throws CircularDependenceError {
           // String s = NodeUtil.nameString(name);
           String local = NodeUtil.nameSuffixString(name);
-          Option<APIName> opt_api = name.getApi();
+          Option<APIName> opt_api = name.getApiName();
           return getValueTail(name, l, local, opt_api);
 
       }
@@ -787,7 +787,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                 e = obj.getSelfEnv();
             }
         } else if (negative_object_depth == 0) {
-            e = e.getTopLevel(); 
+            e = e.getTopLevel();
         } else if (negative_object_depth < 0) {
             // True only for MIN_VALUE
             return e;

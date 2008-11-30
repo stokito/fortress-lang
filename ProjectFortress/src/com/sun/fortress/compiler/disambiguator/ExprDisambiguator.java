@@ -572,7 +572,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> methods = new HashSet<IdOrOpOrAnonymousName>();
         for( TraitTypeWhere trait_ : extended_traits ) {
 
-            BaseType type_ = trait_.getType();
+            BaseType type_ = trait_.getBaseType();
 
             if( h.hasExplored(type_) )
                 continue;
@@ -763,9 +763,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forTaggedDimType(TaggedDimType that) {
         return forTaggedDimTypeOnly(that,
-                                    (Type)that.getType().accept(this),
-                                    that.getDim(),
-                                    that.getUnit());
+                                    (Type)that.getElemType().accept(this),
+                                    that.getDimExpr(),
+                                    that.getUnitExpr());
     }
 
     /**
@@ -774,8 +774,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forTaggedUnitType(TaggedUnitType that) {
         return forTaggedUnitTypeOnly(that,
-                                     (Type)that.getType().accept(this),
-                                     that.getUnit());
+                                     (Type)that.getElemType().accept(this),
+                                     that.getUnitExpr());
     }
 
 
@@ -825,9 +825,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	public Node forContract(Contract that) {
         ExprDisambiguator v = extendWithOutcome(that.getSpan());
         return forContractOnly(that,
-                               v.recurOnOptionOfListOfExpr(that.getRequires()),
-                               v.recurOnOptionOfListOfEnsuresClause(that.getEnsures()),
-                               v.recurOnOptionOfListOfExpr(that.getInvariants()));
+                               v.recurOnOptionOfListOfExpr(that.getRequiresClause()),
+                               v.recurOnOptionOfListOfEnsuresClause(that.getEnsuresClause()),
+                               v.recurOnOptionOfListOfExpr(that.getInvariantsClause()));
     }
 
     @Override
@@ -849,7 +849,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forAccumulatorOnly(that, type_result,
                                   recurOnListOfStaticArg(that.getStaticArgs()),
-                                  (OpName)that.getOpr().accept(this),
+                                  (OpName)that.getAccOp().accept(this),
                                   pair.first(),
                                   (Expr)that.getBody().accept(extended_d));
     }
@@ -860,11 +860,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forIfClause(IfClause that) {
-        GeneratorClause gen = that.getTest();
+        GeneratorClause gen = that.getTestClause();
         ExprDisambiguator e_d = this.extendWithVars(Useful.set(gen.getBind()));
 
         return forIfClauseOnly(that,
-                               (GeneratorClause)that.getTest().accept(this),
+                               (GeneratorClause)that.getTestClause().accept(this),
                                (Block)that.getBody().accept(e_d));
     }
 
@@ -873,12 +873,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forWhile(While that) {
-        GeneratorClause gen = that.getTest();
+        GeneratorClause gen = that.getTestExpr();
         ExprDisambiguator e_d = this.extendWithVars(Useful.set(gen.getBind()));
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forWhileOnly(that, type_result,
-                            (GeneratorClause)that.getTest().accept(this),
+                            (GeneratorClause)that.getTestExpr().accept(this),
                             (Do)that.getBody().accept(e_d));
     }
 
@@ -960,8 +960,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
-        Id name = that.getVar();
-        Option<APIName> api = name.getApi();
+        Id name = that.getVarId();
+        Option<APIName> api = name.getApiName();
         ConsList<Id> fields = ConsList.empty();
         Expr result = null;
 
@@ -1012,7 +1012,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             if ( vars.size() == 1 && fns.isEmpty() && objs.isEmpty() ) {
                 Id newName = IterUtil.first(vars);
 
-                if (newName.getApi().isNone() && newName == name && fields.isEmpty()) {
+                if (newName.getApiName().isNone() && newName == name && fields.isEmpty()) {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }

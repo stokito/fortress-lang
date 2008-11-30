@@ -268,7 +268,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         if(mutableVars != null) {
             for(VarRef var : mutableVars) {
             	Option<Node> declNodeOp =
-                    objExprTypeEnv.declarationSite( var.getVar() );
+                    objExprTypeEnv.declarationSite( var.getVarId() );
         		if(declNodeOp.isNone()) {
         		    throw new DesugarerError( var.getSpan(),
                                 "Decl node for " + var + " is null!" );
@@ -401,21 +401,21 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         forVarRefDoFirst(that);
         recurOnOptionOfType(that.getExprType());
-        recur(that.getVar());
+        recur(that.getVarId());
 
 		Debug.debug(Debug.Type.COMPILER,
                     DEBUG_LEVEL0, "FreeNameCollector visiting ", that);
 
-        boolean isDecledInObjExpr = isDeclaredInObjExpr(that.getVar());
-        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(that.getVar());
+        boolean isDecledInObjExpr = isDeclaredInObjExpr(that.getVarId());
+        boolean isDecledAtTopLevel = isDeclaredAtTopLevel(that.getVarId());
         boolean isShadowed = false;
 
         if(enclosingTraitDecl.isSome()) {
             isShadowed = isShadowedInNode( enclosingTraitDecl.unwrap(),
-                                           that.getVar() );
+                                           that.getVarId() );
         } else if(enclosingObjectDecl.isSome()) {
             isShadowed = isShadowedInNode( enclosingObjectDecl.unwrap(),
-                                           that.getVar() );
+                                           that.getVarId() );
         }
 
         // Even if the binding is found at top level, still need to check
@@ -885,7 +885,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 		}
 
         for(VarRef var : freeVarRefs) {
-            Option<Boolean> isMutable = typeEnv.mutable( var.getVar() );
+            Option<Boolean> isMutable = typeEnv.mutable( var.getVarId() );
             if( isMutable.isNone() ) {
                 throw new DesugarerError("Binding for VarRef " +
                     var + " is not found!");
@@ -977,7 +977,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         @Override
         public void forTraitTypeWhere(TraitTypeWhere that) {
-            BaseType baseType = that.getType();
+            BaseType baseType = that.getBaseType();
             if( (baseType instanceof NamedType) == false ) {
                 throw new DesugarerError(that.getSpan(),
                         "Unexpected type found for TraitTypeWhere " + that +

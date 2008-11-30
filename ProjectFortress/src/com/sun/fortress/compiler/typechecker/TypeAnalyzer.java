@@ -349,12 +349,12 @@ public class TypeAnalyzer {
                 else {
                     List<BaseType> reduced = reduceDisjuncts(normalThrows.unwrap(),
                                                              _emptyHistory);
-                    if (reduced.isEmpty()) { return new Effect(NodeFactory.makeSpan(e), e.isIo()); }
+                    if (reduced.isEmpty()) { return new Effect(NodeFactory.makeSpan(e), e.isIoEffect()); }
                     else if (reduced.equals(e.getThrowsClause().unwrap())) {
                         return e;
                     }
                     else {
-                        return new Effect(NodeFactory.makeSetSpan(e, reduced), Option.some(reduced), e.isIo());
+                        return new Effect(NodeFactory.makeSetSpan(e, reduced), Option.some(reduced), e.isIoEffect());
                     }
                 }
             }
@@ -630,7 +630,7 @@ public class TypeAnalyzer {
     			}
     			if (!f.isFalse()) {
     				// TODO: optimize substitution/normalization?
-    				Type supT = sup.getType();
+    				Type supT = sup.getBaseType();
     				SubtypeHistory newH = containsVariable(supT, hidden) ? h.expand() : h;
     				Type supInstance = norm(subst.value(supT), newH);
     				f = f.and(sub(supInstance, t, newH), h);
@@ -1054,20 +1054,20 @@ public class TypeAnalyzer {
         return a1.accept(new NodeAbstractVisitor<ConstraintFormula>() {
             @Override public ConstraintFormula forTypeArg(TypeArg a1) {
                 if (a2 instanceof TypeArg) {
-                    return equiv(a1.getType(), ((TypeArg) a2).getType(), history);
+                    return equiv(a1.getTypeArg(), ((TypeArg) a2).getTypeArg(), history);
                 }
                 else { return FALSE; }
             }
             @Override public ConstraintFormula forIntArg(IntArg a1) {
                 if (a2 instanceof IntArg) {
-                    boolean result = a1.getVal().equals(((IntArg) a2).getVal());
+                    boolean result = a1.getIntVal().equals(((IntArg) a2).getIntVal());
                     return fromBoolean(result);
                 }
                 else { return FALSE; }
             }
             @Override public ConstraintFormula forBoolArg(BoolArg a1) {
                 if (a2 instanceof BoolArg) {
-                    boolean result = a1.getBool().equals(((BoolArg) a2).getBool());
+                    boolean result = a1.getBoolArg().equals(((BoolArg) a2).getBoolArg());
                     return fromBoolean(result);
                 }
                 else { return FALSE; }
@@ -1081,14 +1081,14 @@ public class TypeAnalyzer {
             }
             @Override public ConstraintFormula forDimArg(DimArg a1) {
                 if (a2 instanceof DimArg) {
-                    boolean result = a1.getDim().equals(((DimArg) a2).getDim());
+                    boolean result = a1.getDimArg().equals(((DimArg) a2).getDimArg());
                     return fromBoolean(result);
                 }
                 else { return FALSE; }
             }
             @Override public ConstraintFormula forUnitArg(UnitArg a1) {
                 if (a2 instanceof UnitArg) {
-                    boolean result = a1.getUnit().equals(((UnitArg) a2).getUnit());
+                    boolean result = a1.getUnitArg().equals(((UnitArg) a2).getUnitArg());
                     return fromBoolean(result);
                 }
                 else { return FALSE; }
@@ -1116,7 +1116,7 @@ public class TypeAnalyzer {
 
     /** Subtyping for Effects. */
     private ConstraintFormula sub(Effect s, Effect t, SubtypeHistory h) {
-        if (!s.isIo() || t.isIo()) {
+        if (!s.isIoEffect() || t.isIoEffect()) {
             List<BaseType> empty = Collections.<BaseType>emptyList();
             Type sThrows = makeUnion(IterUtil.<Type>relax(s.getThrowsClause().unwrap(empty)));
             Type tThrows = makeUnion(IterUtil.<Type>relax(s.getThrowsClause().unwrap(empty)));

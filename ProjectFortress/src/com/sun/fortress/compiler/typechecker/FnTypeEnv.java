@@ -102,7 +102,7 @@ class FnTypeEnv extends TypeEnv {
 				public Pair<StaticParam, StaticArg> value(StaticArg arg0) {
 					// Ugh..
 					TypeArg type_arg = (TypeArg)arg0;
-					VarType v = (VarType)type_arg.getType();
+					VarType v = (VarType)type_arg.getTypeArg();
 					StaticParam p = new TypeParam(NodeFactory.makeSpan(v), v.getName());
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
 					return Pair.make(p, a);
@@ -141,7 +141,7 @@ class FnTypeEnv extends TypeEnv {
                 final Constructor _fn = (Constructor)fn;
                 Span loc = _fn.declaringTrait().getSpan();
                 // Make trait name fully qualified, since Constructors are not.
-                Id qualified_trait_name = NodeFactory.makeId(var.getApi(), _fn.declaringTrait());
+                Id qualified_trait_name = NodeFactory.makeId(var.getApiName(), _fn.declaringTrait());
                 Type selfType = makeTraitType(qualified_trait_name,
                                               staticParamsToArgs(_fn.staticParameters()));
 

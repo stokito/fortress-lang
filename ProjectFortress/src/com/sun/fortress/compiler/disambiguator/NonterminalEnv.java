@@ -95,7 +95,7 @@ public class NonterminalEnv {
             });
         }
     }
-    
+
     /*
     private void initializeNonterminals() {
         initializeForGrammar(this.getGrammarIndex());
@@ -133,7 +133,7 @@ public class NonterminalEnv {
      * @return
      */
     private APIName constructNonterminalApi(Id grammarName) {
-        Option<APIName> optApi = grammarName.getApi();
+        Option<APIName> optApi = grammarName.getApiName();
         APIName api;
         if (optApi.isSome())
             api = optApi.unwrap();
@@ -147,11 +147,11 @@ public class NonterminalEnv {
 
     /**
      * Given a disambiguated name (aliases and imports have been resolved),
-     * determine whether a nonterminal exists.  Assumes {@code name.getApi().isSome()}.
+     * determine whether a nonterminal exists.  Assumes {@code name.getApiName().isSome()}.
      */
     public boolean hasQualifiedNonterminal(Id name) {
         Debug.debug( Debug.Type.SYNTAX, 3, "Find a qualified id for non-terminal " + name );
-        Option<APIName> optApi = name.getApi();
+        Option<APIName> optApi = name.getApiName();
         if (optApi.isNone())
             bug(name, "A qualified identifier is supposed to have an API name, but the api is not present");
         APIName api = getApi(optApi.unwrap());

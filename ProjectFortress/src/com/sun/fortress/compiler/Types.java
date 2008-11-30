@@ -270,7 +270,7 @@ public final class Types {
             else {
                 Map<Id, Type> result = new LinkedHashMap<Id, Type>(8);
                 for (KeywordType k : _d.getKeywords()) {
-                    result.put(k.getName(), k.getType());
+                    result.put(k.getName(), k.getKeywordType());
                 }
                 return result;
             }

@@ -107,7 +107,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forArrayType(ArrayType that) {
-        that.getType().accept(this);
+        that.getElemType().accept(this);
         // Skip indices, not yet dealing with numerical constraints.
     }
 
@@ -131,7 +131,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forMatrixType(MatrixType that) {
-        that.getType().accept(this);
+        that.getElemType().accept(this);
     }
 
     /* (non-Javadoc)

@@ -333,7 +333,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forBoolArg(BoolArg x) {
-        BoolExpr i = x.getBool();
+        BoolExpr i = x.getBoolArg();
         return i.accept(new NodeAbstractVisitor<FType>() {
             private boolean boolify(BoolExpr ie) {
                 FType t = ie.accept(this);
@@ -344,7 +344,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 return ((Bool)t).getBooleanValue();
             }
             public FType forBoolConstant(BoolConstant b) {
-                return Bool.make(b.isBool());
+                return Bool.make(b.isBoolVal());
             }
             public FType forBoolRef(BoolRef n) {
                 Id q = n.getName();
@@ -356,7 +356,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 }
             }
             public FType forNotConstraint(NotConstraint n) {
-                return Bool.make(!boolify(n.getBool()));
+                return Bool.make(!boolify(n.getBoolVal()));
             }
 
             private boolean boolOp(BinaryBoolConstraint n, String op, boolean left, boolean right) {
@@ -385,7 +385,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forBoolConstant(BoolConstant b) {
-        return Bool.make(b.isBool());
+        return Bool.make(b.isBoolVal());
     }
 
     public FType forVarType(VarType i) {
@@ -426,7 +426,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forIntArg(IntArg x) {
-        IntExpr i = x.getVal();
+        IntExpr i = x.getIntVal();
         return i.accept(new NodeAbstractVisitor<FType>() {
             private long longify(IntExpr ie) {
                 FType t = ie.accept(this);
@@ -437,7 +437,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 return ((IntNat)t).getValue();
             }
             public FType forNumberConstraint(NumberConstraint n) {
-                return IntNat.make(n.getVal().getVal().intValue());
+                return IntNat.make(n.getIntVal().getIntVal().intValue());
             }
             public FType forIntRef(IntRef n) {
                 Id q = n.getName();
@@ -500,7 +500,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     public FType forTypeArg(TypeArg x) {
         try {
-            return x.getType().accept(this);
+            return x.getTypeArg().accept(this);
         }
         catch (FortressException pe) {
             pe.setWhere(x);
@@ -536,7 +536,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      */
     @Override
     public FType forArrayType(ArrayType x) {
-        FType elt_type = x.getType().accept(this);
+        FType elt_type = x.getElemType().accept(this);
         Indices indices = x.getIndices();
 
         TypeFixedDimIndices f_indices = (TypeFixedDimIndices) indices.accept(evalIndices());
@@ -546,7 +546,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType forMatrixType(MatrixType x) {
-        FType elt_type = x.getType().accept(this);
+        FType elt_type = x.getElemType().accept(this);
         List<ExtentRange> dimensions = x.getDimensions();
         List<TypeRange> typeRanges = new ArrayList<TypeRange>();
         for (ExtentRange extent : dimensions) {

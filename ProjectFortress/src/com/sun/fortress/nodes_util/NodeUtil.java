@@ -60,7 +60,7 @@ public class NodeUtil {
     }
 
     public static Iterable<Id> getIds(final Id qName) {
-        return qName.getApi().apply(new OptionVisitor<APIName, Iterable<Id>>() {
+        return qName.getApiName().apply(new OptionVisitor<APIName, Iterable<Id>>() {
             public Iterable<Id> forSome(APIName apiName) {
                 return IterUtil.compose(apiName.getIds(), qName);
             }
@@ -241,16 +241,16 @@ public class NodeUtil {
             }
         public String forId(Id n) {
             final String last = n.getText();
-            Option<APIName> odn = n.getApi();
+            Option<APIName> odn = n.getApiName();
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
         public String forOp(Op n) {
-            Option<APIName> odn = n.getApi();
+            Option<APIName> odn = n.getApiName();
             String last = OprUtil.fixityDecorator(n.getFixity(), n.getText());
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
         public String forEnclosing(Enclosing n) {
-            Option<APIName> odn = n.getApi();
+            Option<APIName> odn = n.getApiName();
             // Interior space is REQUIRED
             String last = n.getOpen().getText() + " " + n.getClose().getText();
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
@@ -288,7 +288,7 @@ public class NodeUtil {
 
     public static String shortNameString(Id n) {
         final String last = n.getText();
-        Option<APIName> odn = n.getApi();
+        Option<APIName> odn = n.getApiName();
         if (odn.isSome()) {
             APIName _odn = odn.unwrap();
             if (_odn.getText().equals("FortressBuiltin")
@@ -304,7 +304,7 @@ public class NodeUtil {
 
     public static String nameString(Id n) {
         final String last = n.getText();
-        Option<APIName> odn = n.getApi();
+        Option<APIName> odn = n.getApiName();
         return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
     }
 
@@ -421,7 +421,7 @@ public class NodeUtil {
         }
             @Override
         public String forVarRef(VarRef node) {
-            return node.getVar().accept(this);
+            return node.getVarId().accept(this);
         }
 
             @Override
@@ -572,7 +572,7 @@ public class NodeUtil {
     public static List<BaseType> getTypes(List<TraitTypeWhere> l) {
         List<BaseType> t = new ArrayList<BaseType>(l.size());
         for (TraitTypeWhere tw : l) {
-            t.add(tw.getType());
+            t.add(tw.getBaseType());
         }
         return t;
     }

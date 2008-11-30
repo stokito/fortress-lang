@@ -133,7 +133,7 @@ public class TypesUtil {
     public static Option<Pair<Type,ConstraintFormula>> applicationType(final TypeAnalyzer checker,
             final Type fn_type,
             final ArgList args,
-            final List<StaticArg> staticArgs, 
+            final List<StaticArg> staticArgs,
             final ConstraintFormula existingConstraint) {
         // List of arrow types that statically match
         List<AbstractArrowType> matching_types = new ArrayList<AbstractArrowType>();
@@ -195,7 +195,7 @@ public class TypesUtil {
                         return this.arrowTypeHelper(that, Collections.<StaticParam>emptyList());
                     }
                 });
-            ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory()); 
+            ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory());
             if(temp.isSatisfiable() ) {
                 matching_types.add(pair.first().unwrap());
                 result_constraint = result_constraint.and(pair.second(), checker.new SubtypeHistory());
@@ -254,7 +254,7 @@ public class TypesUtil {
      */
     public static Option<Pair<Type,ConstraintFormula>> applicationType(final TypeAnalyzer checker,
             final Type fn,
-            final ArgList args, 
+            final ArgList args,
             final ConstraintFormula existingConstraint) {
         // Just a convenience method
         return applicationType(checker,fn,args,
@@ -371,7 +371,7 @@ public class TypesUtil {
             public void set(Boolean arg0) { b = arg0; }
             public Boolean value() { return b; }
         };
-        
+
         ast.accept(new NodeDepthFirstVisitor_void() {
             @Override
             public void for_InferenceVarType(_InferenceVarType that) {
@@ -380,7 +380,7 @@ public class TypesUtil {
                 }
             }
         });
-        
+
         return result_.value();
     }
 
@@ -392,7 +392,7 @@ public class TypesUtil {
     public static boolean containsInferenceVarTypes(Node ast) {
         return containsInferenceVarTypes(ast, null);
     }
-    
+
     /**
      * Attempts to apply the given static args to the given type, checking if the given type is
      * even a arrow type, and if so, if the number of args given is the number expected by the
@@ -414,7 +414,7 @@ public class TypesUtil {
     			public Option<Pair<Type,ConstraintFormula>> defaultCase(Node that) {
     				return Option.none();
     			}
-    			
+
     			@Override
     			public Option<Pair<Type,ConstraintFormula>> forIntersectionType(IntersectionType that) {
     				List<Option<Pair<Type,ConstraintFormula>>> results = this.recurOnListOfType(that.getElements());
@@ -435,9 +435,9 @@ public class TypesUtil {
     			@Override
     			public Option<Pair<Type,ConstraintFormula>> for_RewriteGenericArrowType(
     					_RewriteGenericArrowType that) {
-    				
+
     				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams(), subtype_checker);
-    				
+
     				if(constraints.isSome()) {
     					_RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
     					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
@@ -463,7 +463,7 @@ public class TypesUtil {
     	List<Type> extends_types = CollectUtil.makeList(IterUtil.map(obj.getExtendsClause(),
     			new Lambda<TraitTypeWhere,Type>(){
     		public Type value(TraitTypeWhere arg0) {
-    			return arg0.getType();
+    			return arg0.getBaseType();
     		}}));
     	Type self_type =
     		extends_types.isEmpty() ?
@@ -483,13 +483,13 @@ public class TypesUtil {
         Node new_node = node.accept(rep);
         return Pair.make(result.getNodeConstraints().isSatisfiable(), new_node);
     }
-    
+
     /**
      * Take a node with _InferenceVarType, and TypeCheckerResults, which containt
      * constraints on those inference vars, solve, and replace the inference vars
      * in the node.
      */
-    public static Pair<Boolean,Node> closeConstraints(Node node, 
+    public static Pair<Boolean,Node> closeConstraints(Node node,
             TypeAnalyzer subtypeChecker, TypeCheckerResult... results) {
         TypeCheckerResult result = TypeCheckerResult.compose(node, subtypeChecker, results);
         return closeConstraints(node, result);
@@ -498,7 +498,7 @@ public class TypesUtil {
     /** Given a list of Types, produce a list of static arguments, each one a TypeArg. */
     public static List<StaticArg> staticArgsFromTypes(List<Type> types) {
         if( types.isEmpty() ) return Collections.emptyList();
-        
+
         List<StaticArg> result = new ArrayList<StaticArg>(types.size());
         for( Type ty : types ) {
             result.add(NodeFactory.makeTypeArg(ty));

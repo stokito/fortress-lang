@@ -67,14 +67,14 @@ public class VarRefContainer {
     public Id containerDeclId() {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
             CONTAINER_DECL_PREFIX + "_" + uniqueSuffix +
-            "_" + origVar.getVar().getText();
+            "_" + origVar.getVarId().getText();
         return NodeFactory.makeId( origDeclNode.getSpan(), name );
     }
 
     public Id containerVarId() {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
             CONTAINER_FIELD_PREFIX + "_" + uniqueSuffix +
-            "_" + origVar.getVar().getText();
+            "_" + origVar.getVarId().getText();
         return NodeFactory.makeId( origDeclNode.getSpan(), name );
     }
 
@@ -130,7 +130,7 @@ public class VarRefContainer {
     public FieldRef containerFieldRef(Span varRefSpan) {
         return ExprFactory.makeFieldRef( varRefSpan,
                                          this.containerVarRef(varRefSpan),
-                                         origVar.getVar() );
+                                         origVar.getVarId() );
     }
 
     public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
@@ -149,7 +149,7 @@ public class VarRefContainer {
                                                Option<Type> typeOp) {
         List<Modifier> mods = new LinkedList<Modifier>();
         mods.add( new ModifierSettable(paramSpan) );
-        Param param = new Param(paramSpan, var.getVar(), mods, typeOp);
+        Param param = new Param(paramSpan, var.getVarId(), mods, typeOp);
         return param;
     }
 

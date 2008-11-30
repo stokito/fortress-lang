@@ -176,14 +176,14 @@ public class Printer extends NodeReflection {
             w.append("(");
             w.append("Some");
             w.append(")");
-           
+
         /* special case for the level node */
         } else if (o instanceof Level){
             Level level = (Level) o;
             w.append("(Level ");
             w.append(String.format("_level=%d ", level.getLevel()));
             w.append("_object=");
-            dump( level.getObject(), w, indent );
+            dump( level.get_object(), w, indent );
             w.append(")");
         } else if (o instanceof AbstractNode) {
             AbstractNode x = (AbstractNode) o;

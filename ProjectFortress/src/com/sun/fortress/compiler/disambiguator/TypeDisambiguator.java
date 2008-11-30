@@ -282,8 +282,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     private Type handleTypeName(Type that, Id n,
                                 Thunk<Type> variableHandler,
                                 Lambda<Id, Type> typeConsHandler) {
-        if (n.getApi().isSome()) {
-            APIName originalApi = n.getApi().unwrap();
+        if (n.getApiName().isSome()) {
+            APIName originalApi = n.getApiName().unwrap();
             Option<APIName> realApiOpt = _env.apiName(originalApi);
             if (realApiOpt.isNone()) {
                 error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
@@ -341,7 +341,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         StaticArg fixed = a.accept(new NodeAbstractVisitor<StaticArg>() {
 
             @Override public StaticArg forTypeArg(final TypeArg a) {
-                final Type t = a.getType();
+                final Type t = a.getTypeArg();
                 if (t instanceof VarType) {
                     final Span s = a.getSpan();
                     final Id name = ((VarType) t).getName();
@@ -481,8 +481,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     private Id handleGrammarName(Id name) {
-        if (name.getApi().isSome()) {
-            APIName originalApi = name.getApi().unwrap();
+        if (name.getApiName().isSome()) {
+            APIName originalApi = name.getApiName().unwrap();
             Option<APIName> realApiOpt = _env.apiName(originalApi);
             if (realApiOpt.isNone()) {
                 error("Undefined API: " + NodeUtil.nameString(originalApi), originalApi);
@@ -553,8 +553,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      */
 	@Override
 	public Node forTypeArgOnly(final TypeArg arg, final Type t) {
-		if(arg.getType() instanceof VarType){
-			Id name = ((VarType)arg.getType()).getName();
+		if(arg.getTypeArg() instanceof VarType){
+			Id name = ((VarType)arg.getTypeArg()).getName();
 			Option<StaticParam> param=this._env.hasTypeParam(name);
 			if(param.isSome()){
 				NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
