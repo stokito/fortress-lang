@@ -19,18 +19,26 @@ component ifGetter
 export Executable
 
 trait T
-  getter foo(): Boolean
+  getter foo(): Boolean  = true
 end
 
-object O extends T
-  getter foo(): Boolean = true
-  getter bar(): Boolean = true
+trait U extends T
+  getter bar(): Boolean = do
+     if foo then false else false end
+  end
+end
+
+object O extends U
+  getter obar(): Boolean = do
+     if foo then false else false end
+  end
 end
 
 run(args:String...) = do
   t:T = O;
-  println(if O.bar then "bar true" else "bar false" end)
+  println(if O.obar then "obar true" else "obar false" end)
   println(if t.foo then "foo true" else "foo false" end)
+  println(if O.bar then "bar true" else "bar false" end)
 
 end
 
