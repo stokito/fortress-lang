@@ -1608,25 +1608,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forBlockOnly(Block that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> exprs_result) {
-		// Type is type of last expression or void if none.
-		if ( exprs_result.isEmpty() ) {
-			Block new_node = new Block(that.getSpan(), that.isParenthesized(), Option.<Type>some(Types.VOID), Collections.<Expr>emptyList());
-			return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, exprs_result);
-		} else {
-			List<TypeCheckerResult> body_void = allVoidButLast(exprs_result,that.getExprs());
-			Option<Type> result_type = IterUtil.last(exprs_result).type();
-			Block new_node = new Block(that.getSpan(),
-					that.isParenthesized(),
-					result_type,
-					(List<Expr>)TypeCheckerResult.astFromResults(exprs_result));
-			return TypeCheckerResult.compose(new_node, result_type, subtypeChecker,
-					TypeCheckerResult.compose(new_node, subtypeChecker, body_void),
-					TypeCheckerResult.compose(new_node, subtypeChecker, exprs_result));
-		}
-	}
-
-	@Override
 	public TypeCheckerResult forCaseExpr(CaseExpr that) {
 		Option<TypeCheckerResult> param_result = this.recurOnOptionOfExpr(that.getParam());
 		Option<TypeCheckerResult> compare_result = this.recurOnOptionOfOpRef(that.getCompare());
@@ -2064,39 +2045,54 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				TypeCheckerResult.compose(new_node, subtypeChecker, invariants_result), result);
 	}
 
-	public TypeCheckerResult forDoFront(DoFront that) {
-		TypeCheckerResult bodyResult =
-			that.isAtomicBlock() ? forAtomic(
-					that.getExpr(),
-					errorMsg("A 'spawn' expression must not occur inside",
-					"an 'atomic' do block."))
-					: that.getExpr().accept(this);
+	public TypeCheckerResult forBlock(Block that) {
+            if ( that.isAtomicBlock() )
+                return forAtomic(new Block(that.getSpan(), that.isParenthesized(),
+                                                           that.getExprType(), that.getLoc(),
+                                                           false, that.isWithinDo(), that.getExprs()),
+                                                 errorMsg("A 'spawn' expression must not occur inside",
+                                                          "an 'atomic' do block."));
 
-					Option<TypeCheckerResult> loc_result_ = this.recurOnOptionOfExpr(that.getLoc());
-					TypeCheckerResult loc_result = loc_result_.isNone() ? new TypeCheckerResult(that) :
-						loc_result_.unwrap();
+            Option<TypeCheckerResult> loc_result_ = this.recurOnOptionOfExpr(that.getLoc());
+            TypeCheckerResult loc_result = loc_result_.isNone() ? new TypeCheckerResult(that) :
+                loc_result_.unwrap();
 
-					TypeCheckerResult region_result = new TypeCheckerResult(that);
-					if (loc_result_.isSome() && loc_result_.unwrap().type().isSome()) {
-						Type locType = loc_result_.unwrap().type().unwrap();
-						region_result = checkSubtype(locType,
-								Types.REGION,
-								that.getLoc().unwrap(),
-								errorMsg("Location of 'do' block must ",
-										"have type Region: ", locType));
-
-					}
-
-					DoFront new_node = new DoFront(that.getSpan(),
-							(Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
-							that.isAtomicBlock(),
-							(Block)bodyResult.ast());
-					return TypeCheckerResult.compose(new_node,
-							bodyResult.type(),
-							subtypeChecker,
-							bodyResult,
-							loc_result,
-							region_result);
+            TypeCheckerResult region_result = new TypeCheckerResult(that);
+            if (loc_result_.isSome() && loc_result_.unwrap().type().isSome()) {
+                Type locType = loc_result_.unwrap().type().unwrap();
+                region_result = checkSubtype(locType,
+                                             Types.REGION,
+                                             that.getLoc().unwrap(),
+                                             errorMsg("Location of 'do' block must ",
+                                                      "have type Region: ", locType));
+            }
+            List<TypeCheckerResult> exprs_result = this.recurOnListOfExpr(that.getExprs());
+            // Type is type of last expression or void if none.
+            Option<Type> result_type;
+            List<Expr> es;
+            List<TypeCheckerResult> body_void;
+            if ( exprs_result.isEmpty() ) {
+                result_type = Option.<Type>some(Types.VOID);
+                es = Collections.<Expr>emptyList();
+                body_void = Collections.<TypeCheckerResult>emptyList();
+            } else {
+                result_type = IterUtil.last(exprs_result).type();
+                es = (List<Expr>)TypeCheckerResult.astFromResults(exprs_result);
+                body_void = allVoidButLast(exprs_result,that.getExprs());
+            }
+            Block new_node = new Block(that.getSpan(),
+                                           that.isParenthesized(),
+                                           result_type,
+                                           (Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
+                                           that.isAtomicBlock(), that.isWithinDo(),
+                                           (List<Expr>)TypeCheckerResult.astFromResults(exprs_result));
+            return TypeCheckerResult.compose(new_node,
+                                             result_type,
+                                             subtypeChecker,
+                                             TypeCheckerResult.compose(new_node, subtypeChecker, body_void),
+                                             loc_result,
+                                             region_result,
+                                             TypeCheckerResult.compose(new_node, subtypeChecker, exprs_result));
 	}
 
 	@Override
@@ -2113,7 +2109,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Do new_node = new Do(that.getSpan(),
 				that.isParenthesized(),
 				some(result_type),
-				(List<DoFront>)TypeCheckerResult.astFromResults(fronts_result));
+				(List<Block>)TypeCheckerResult.astFromResults(fronts_result));
 
 		return TypeCheckerResult.compose(new_node, result_type, subtypeChecker, fronts_result);
 	}
@@ -2569,7 +2565,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				that.isParenthesized(),
 				Option.<Type>some(Types.VOID),
 				(List<GeneratorClause>)TypeCheckerResult.astFromResults(gens_result),
-				(DoFront)body_result.ast());
+				(Block)body_result.ast());
 
 		TypeCheckerResult result = TypeCheckerResult.compose(for_, subtypeChecker, body_void, body_result,
 				TypeCheckerResult.compose(for_, subtypeChecker, gens_result)).addNodeTypeEnvEntry(for_, typeEnv);

@@ -59,7 +59,6 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.EnsuresClause;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
@@ -1091,7 +1090,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFor(For f) {
-        DoFront df = f.getBody();
+        Block df = f.getBody();
         Do doBlock = new Do(df.getSpan(),Useful.list(df));
         return visitLoop(f.getSpan(), f.getGens(), doBlock);
     }

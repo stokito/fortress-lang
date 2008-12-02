@@ -87,7 +87,6 @@ import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.ExponentiationMI;
 import com.sun.fortress.nodes.Expr;
@@ -362,29 +361,29 @@ public class Evaluator extends EvaluatorBase<FValue> {
         int s = x.getFronts().size();
         if (s == 0) return FVoid.V;
         if (s == 1) {
-            DoFront f = x.getFronts().get(0);
+            Block f = x.getFronts().get(0);
             if (f.getLoc().isSome()) {
                 Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
             if (f.isAtomicBlock())
                 return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
-                                                    f.getExpr()));
-            return f.getExpr().accept(new Evaluator(this));
+                                                    f));
+            return f.accept(new Evaluator(this));
        }
 
        TupleTask[] tasks = new TupleTask[s];
        List<Expr> locs = new ArrayList<Expr>(0);
        for (int i = 0; i < s; i++) {
-           DoFront f = x.getFronts().get(i);
+           Block f = x.getFronts().get(i);
            if (f.getLoc().isSome()) {
                locs.add(f.getLoc().unwrap());
            }
            if (f.isAtomicBlock())
                tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
-                                                       f.getExpr()), this);
+                                                       f), this);
            else
-               tasks[i] = new TupleTask(f.getExpr(), new Evaluator(this));
+               tasks[i] = new TupleTask(f, new Evaluator(this));
        }
        if (locs.size()>0) {
            List<FValue> regions = evalExprListParallel(locs);

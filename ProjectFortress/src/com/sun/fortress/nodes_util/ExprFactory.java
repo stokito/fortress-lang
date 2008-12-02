@@ -576,7 +576,7 @@ public class ExprFactory {
     public static While makeWhile(Span sp, Expr cond) {
         // Might not work; empty Do may be naughty.
         return new While(sp, makeGeneratorClause(cond.getSpan(), cond),
-                new Do(sp, Collections.<DoFront>emptyList()));
+                new Do(sp, Collections.<Block>emptyList()));
     }
 
     public static Block makeBlock(Expr e) {
@@ -591,14 +591,14 @@ public class ExprFactory {
 
     public static Do makeDo(Span sp, Option<Type> t, Expr e) {
         List<Expr> b = Collections.singletonList(e);
-        List<DoFront> body = new ArrayList<DoFront>(1);
-        body.add(new DoFront(sp, new Block(sp, t, b)));
+        List<Block> body = new ArrayList<Block>(1);
+        body.add(new Block(sp, t, false, true, b));
         return new Do(sp, t, body);
     }
 
     public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
-        List<DoFront> body = new ArrayList<DoFront>(1);
-        body.add(new DoFront(sp, new Block(sp, t, exprs)));
+        List<Block> body = new ArrayList<Block>(1);
+        body.add(new Block(sp, t, false, true, exprs));
         return new Do(sp, t, body);
     }
 
