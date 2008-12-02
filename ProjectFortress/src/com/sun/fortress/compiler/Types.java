@@ -59,7 +59,7 @@ public final class Types {
 
     public static final Type BOTTOM_DOMAIN = BOTTOM;
 
-    public static final VoidType VOID = new VoidType(span);
+    public static final TupleType VOID = NodeFactory.makeVoidType(span);
     public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
     public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
     public static final TraitType ZZ32 = makeTraitType(fortressLibrary, "ZZ32");
@@ -297,13 +297,6 @@ public final class Types {
      */
     public static Type makeDomain(Type argsType, final List<KeywordType> keywords) {
         return argsType.accept(new NodeAbstractVisitor<Type>() {
-            @Override public Type forVoidType(VoidType t) {
-                if ( keywords.isEmpty() )
-                    return t;
-                else
-                    return new TupleType(NodeFactory.makeSpan("Types_bogus_span_for_empty_list", keywords),
-                                         Collections.<Type>emptyList(), keywords);
-            }
             @Override public Type forTupleType(TupleType t) {
                 if ( t.getVarargs().isNone() )
                     return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);

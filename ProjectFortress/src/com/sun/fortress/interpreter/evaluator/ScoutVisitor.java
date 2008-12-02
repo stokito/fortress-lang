@@ -36,7 +36,6 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes.WhereExtends;
 
 public class ScoutVisitor extends NodeAbstractVisitor_void {
@@ -164,15 +163,6 @@ public class ScoutVisitor extends NodeAbstractVisitor_void {
     public void forType(Type that) {
         // TODO Auto-generated method stub
         super.forType(that);
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVoidType(com.sun.fortress.nodes.VoidType)
-     */
-    @Override
-    public void forVoidType(VoidType that) {
-        // TODO Auto-generated method stub
-        super.forVoidType(that);
     }
 
     /* (non-Javadoc)

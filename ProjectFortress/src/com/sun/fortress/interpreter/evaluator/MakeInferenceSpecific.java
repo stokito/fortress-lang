@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TupleType;
-import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.useful.BoundingMap;
@@ -146,15 +145,4 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
             acceptList(that.getElements(), this);
         }
     }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor_void#forVoidType(com.sun.fortress.nodes.VoidType)
-     */
-    @Override
-    public void forVoidType(VoidType that) {
-        // do nothing
-    }
-
-
-
 }

@@ -411,10 +411,10 @@ public class NodeComparator {
 
         if (left instanceof ArrowType) {
             return compare((ArrowType) left, (ArrowType) right);
-        } else if (left instanceof VoidType) {
-            return 0;
         } else if (left instanceof TupleType) {
-            return compare((TupleType) left, (TupleType) right);
+            if ( NodeUtil.isVoidType((TupleType)left) )
+                return 0;
+            else return compare((TupleType) left, (TupleType) right);
         } else if (left instanceof TaggedDimType) {
             return compare((TaggedDimType) left, (TaggedDimType) right);
         } else if (left instanceof TaggedUnitType) {
@@ -435,10 +435,5 @@ public class NodeComparator {
         throw new InterpreterBug(left,
                                  "subtypeCompareTo(" + left.getClass() + " " +
                                  right.getClass() + ") is not implemented!");
-    }
-
-    static int subtypeCompareTo(VoidType left, VoidType right) {
-        // All voids are equal
-        return 0;
     }
 }

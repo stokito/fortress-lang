@@ -230,8 +230,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		final int arg_size;
 		if( arg_type instanceof TupleType )
 			arg_size = ((TupleType)arg_type).getElements().size();
-		else if( arg_type instanceof VoidType )
-			arg_size = 0;
 		else
 			arg_size = 1;
 

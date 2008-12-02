@@ -167,6 +167,16 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean isVoidType(Type t) {
+        if ( t instanceof TupleType ) {
+            TupleType _t = (TupleType)t;
+            return ( _t.getElements().isEmpty() &&
+                     _t.getVarargs().isNone() &&
+                     _t.getKeywords().isEmpty() );
+        } else
+            return false;
+    }
+
     /* for Param ***********************************************************/
     public static boolean isMultifix(List<Param> params) {
         for (Param p : params) {

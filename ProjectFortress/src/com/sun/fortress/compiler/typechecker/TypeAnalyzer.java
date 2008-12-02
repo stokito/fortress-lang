@@ -477,9 +477,6 @@ public class TypeAnalyzer {
                         @Override public ConstraintFormula forTraitType(TraitType s) {
                             return traitSubVararg(s, t, h);
                         }
-                        @Override public ConstraintFormula forVoidType(VoidType s) {
-                            return voidSubVararg(s, t, h);
-                        }
                         @Override public ConstraintFormula forTupleType(TupleType s) {
                             if ( s.getVarargs().isSome() )
                                 return varargSubVararg(s, t, h);
@@ -666,10 +663,6 @@ public class TypeAnalyzer {
             return f;
         }
         else { return FALSE; }
-    }
-
-    private ConstraintFormula voidSubVararg(VoidType s, TupleType t, SubtypeHistory h) {
-        return sub(s, varargDisjunct(t, 0), h);
     }
 
     private ConstraintFormula traitSubVararg(TraitType s, TupleType t, SubtypeHistory h) {
