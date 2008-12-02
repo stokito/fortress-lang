@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
@@ -123,7 +123,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public Closure getClosure(String toBeRun) {
+    public FunctionClosure getClosure(String toBeRun) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -188,7 +188,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public Closure getRunClosure() {
+    public FunctionClosure getRunClosure() {
         // TODO Auto-generated method stub
         return null;
     }

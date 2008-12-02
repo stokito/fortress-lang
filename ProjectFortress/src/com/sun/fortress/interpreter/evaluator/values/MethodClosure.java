@@ -33,7 +33,7 @@ import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Hasher;
 import com.sun.fortress.useful.Useful;
 
-public class MethodClosure extends Closure implements Method {
+public class MethodClosure extends FunctionClosure implements Method {
 
     final int selfParameterIndex;
 

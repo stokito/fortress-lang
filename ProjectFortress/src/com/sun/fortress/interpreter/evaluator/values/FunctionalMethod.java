@@ -31,7 +31,7 @@ import com.sun.fortress.useful.AssignedList;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
-public class FunctionalMethod extends Closure implements HasSelfParameter {
+public class FunctionalMethod extends FunctionClosure implements HasSelfParameter {
 
     final private int selfParameterIndex;
     final private FTraitOrObjectOrGeneric selfParameterType;
