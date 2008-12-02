@@ -82,14 +82,14 @@ public class GHashMap<K, V> implements Map<K,V>, Cloneable {
         }
     }
 
-    private final Fn<WrappedKey, K> unmapper = new Fn<WrappedKey, K>() {
+    private final F<WrappedKey, K> unmapper = new F<WrappedKey, K>() {
         public K apply(WrappedKey e) {
             return e == null ? null : e.value;
         }
     };
 
-    private final Fn<Map.Entry<WrappedKey,V>, Map.Entry<K,V>> entryUnmapper =
-        new Fn<Map.Entry<WrappedKey,V>, Map.Entry<K,V>>() {
+    private final F<Map.Entry<WrappedKey,V>, Map.Entry<K,V>> entryUnmapper =
+        new F<Map.Entry<WrappedKey,V>, Map.Entry<K,V>>() {
         /* (non-Javadoc)
          * @see com.sun.fortress.interpreter.useful.Fn#apply(T)
          */

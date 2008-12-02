@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>> {
+public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>, T> {
 
     public T x;
     List<TopSortItemImpl<T>> succs;

@@ -48,11 +48,6 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.rice.cs.plt.collect.ConsList;
-import edu.rice.cs.plt.collect.ImmutableRelation;
-import edu.rice.cs.plt.collect.IndexedRelation;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.iter.IterUtil;
 
 /*
  * Created on Feb 3, 2006
@@ -80,59 +75,7 @@ public class Useful {
     	return result;
     }
     
-    public static <K,V> IMultiMap<K,V> shrinkMultiMap(IMultiMap<K,V> map) {
-        if( map.isEmpty() )
-            return emptyMultiMap();
-        else if( map.size() == 1 ) {
-            Map.Entry<K,Set<V>> r = IterUtil.first(map.entrySet());
-            if( r.getValue().isEmpty() ) {
-                return singletonMultiMap(r.getKey(), Collections.<V>emptySet());
-            }
-            else if( r.getValue().size() == 1 ) {
-                return singletonMultiMap(r.getKey(), IterUtil.first(r.getValue()));
-            }
-            else {
-                return singletonMultiMap(r.getKey(), r.getValue());
-            }
-        }
-        else
-            return map;
-    }
-    
-    public static <K,V> IMultiMap<K,V> emptyMultiMap() {
-        return (IMultiMap<K,V>)IMultiMap.EMPTY_MULTIMAP;
-    }
-    
-    public static <K,V> IMultiMap<K,V> singletonMultiMap(final K key, final V value) {
-        return singletonMultiMap(key, Collections.singleton(value));
-    }
-    
-    public static <K,V> IMultiMap<K,V> singletonMultiMap(final K key, final Set<V> value) {
-        return new IMultiMap<K,V>() {
-            private final Map<K,Set<V>> singleton = Collections.singletonMap(key, value);
-            private <T> T error() { throw new IllegalStateException("Singleton IMultiMap is immutable."); }
-            public void clear() { singleton.clear(); }
-            public boolean containsKey(Object key) { return singleton.containsKey(key); }
-            public boolean containsValue(Object value) { return singleton.containsValue(value); }
-            public Set<Entry<K, Set<V>>> entrySet() { return singleton.entrySet(); }
-            public boolean equals(Object o) { return singleton.equals(o); }
-            public Set<V> get(Object key) { return singleton.get(key); }
-            public int hashCode() { return singleton.hashCode(); }
-            public boolean isEmpty() { return false; }
-            public Set<K> keySet() { return singleton.keySet(); }
-            public Set<V> put(K key, Set<V> value) { return singleton.put(key, value); }
-            public void putAll(Map<? extends K, ? extends Set<V>> t) { singleton.putAll(t); }
-            public Set<V> remove(Object key) { return singleton.remove(key); }
-            public int size() { return 1; }
-            public Collection<Set<V>> values() { return singleton.values(); }
-            public void addInverse(Map<V, K> m) { error(); }
-            public Set<V> putItem(K k, V v) { return error(); }
-            public Set<V> putItems(K k, Set<V> vs) { return error(); }
-            public Set<V> removeItem(K k, V v) { return error(); }
-            };
-    }
-    
-    /**
+     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by commas, all surrounded by parentheses.
      * @param <T>
@@ -356,7 +299,7 @@ public class Useful {
          * @return
          */
 
-    public static <T, U> Set<U> applyToAll(Set<T> s, Fn<T, U> verb) {
+    public static <T, U> Set<U> applyToAll(Set<T> s, F<T, U> verb) {
         HashSet<U> result = new HashSet<U>();
         for (T i : s)
             result.add(verb.apply(i));
@@ -374,7 +317,7 @@ public class Useful {
      * @return
      */
 
-    public static <T, U> List<U> applyToAll(List<T> s, Fn<T, U> verb) {
+    public static <T, U> List<U> applyToAll(List<T> s, F<T, U> verb) {
         ArrayList<U> result = new ArrayList<U>();
         for (T i : s)
             result.add(verb.apply(i));
@@ -391,7 +334,7 @@ public class Useful {
      * @param verb
      * @return
      */
-   public static <T, U> List<U> applyToAllAppending(Collection<T> s, Fn<T, U> verb, List<U> result) {
+   public static <T, U> List<U> applyToAllAppending(Collection<T> s, F<T, U> verb, List<U> result) {
         for (T i : s)
             result.add(verb.apply(i));
         return result;
@@ -407,7 +350,7 @@ public class Useful {
     * @param verb
     * @return
     */
-   public static <T, U> Set<U> applyToAllInserting(Collection<T> s, Fn<T, U> verb, Set<U> result) {
+   public static <T, U> Set<U> applyToAllInserting(Collection<T> s, F<T, U> verb, Set<U> result) {
         for (T i : s)
             result.add(verb.apply(i));
         return result;
@@ -422,18 +365,7 @@ public class Useful {
       return result;
     }
 
-    /**
-     * Returns an immutable {@code Relation} with the same contents as the given
-     * {@code Map}.
-     */
-    public static <K,V> Relation<K,V> relation(Map<? extends K, ? extends V> map) {
-    	IndexedRelation<K,V> result = new IndexedRelation<K,V>();
-    	for( Map.Entry<? extends K, ? extends V> entry : map.entrySet() ) {
-    		result.add(entry.getKey(), entry.getValue());
-    	}
-    	return new ImmutableRelation<K,V>(result);
-    }
-
+ 
     public static <T> Set<T> set() {
         return Collections.emptySet();
       }
@@ -543,7 +475,7 @@ public class Useful {
      * @return
      */
 
-   public static <T,U> List<U> filteredList(Iterable<? extends T> l, Fn<T,U> f) {
+   public static <T,U> List<U> filteredList(Iterable<? extends T> l, F<T,U> f) {
         ArrayList<U> result = new ArrayList<U>();
         for (T t : l) {
             U u = f.apply(t);
@@ -563,8 +495,8 @@ public class Useful {
      * @return
      */
 
-   public static <T> List<T> filter( final Iterable<? extends T> l, final Fn<T,Boolean> f){
-       return filteredList(l, new Fn<T,T>(){
+   public static <T> List<T> filter( final Iterable<? extends T> l, final F<T,Boolean> f){
+       return filteredList(l, new F<T,T>(){
            public T apply( T t ){
                if ( f.apply( t ) ){
                    return t;
@@ -584,7 +516,7 @@ public class Useful {
    }
 
    public static <T,U> List<T> convertList( Iterable<? extends U> list ){
-       return filteredList( list, new Fn<U,T>(){
+       return filteredList( list, new F<U,T>(){
            public T apply( U u ){
                return (T) u;
            }
@@ -601,7 +533,7 @@ public class Useful {
     * @return
     */
 
-   public static <T,U> SortedSet<U>  filteredSortedSet(Iterable<? extends T> l, Fn<T,U> f, Comparator<U> c) {
+   public static <T,U> SortedSet<U>  filteredSortedSet(Iterable<? extends T> l, F<T,U> f, Comparator<U> c) {
         SortedSet<U> result = new TreeSet<U>(c);
         for (T t : l) {
             U u = f.apply(t);
@@ -695,7 +627,7 @@ public class Useful {
         return result;
     }
 
-    public static <T,U> List<U> prependMapped(T x, List<T> y, Fn<T,U> f) {
+    public static <T,U> List<U> prependMapped(T x, List<T> y, F<T,U> f) {
         ArrayList<U> result = new ArrayList<U>(1 + y.size());
         result.add(f.apply(x));
         for (T t : y) result.add(f.apply(t));
@@ -1065,19 +997,7 @@ public class Useful {
         return e;
     }
 
-    /**
-     * Does the given ConsList contain the given element?
-     */
-	public static <T> boolean consListContains(T item, ConsList<? extends T> list) {
-		Iterator<? extends T> iter = list.iterator();
-		while( iter.hasNext() ) {
-			T t = iter.next();
-			if( t.equals(item) )
-				return true;
-		}
-		return false;
-	}
-
+   
 	/**
          * Gets a string representing the pid of this program - Java VM
          */
