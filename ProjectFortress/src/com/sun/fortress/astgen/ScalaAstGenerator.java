@@ -115,7 +115,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         buffer.append(superName.name());
 
         // Classes defined outside ASTGen and extended by an ASTGen class
-        // are required to have a zeroary constructor, such as UIDObject.
+        // are required to have a zeroary constructor.
         buffer.append("(");
         boolean first = true;
         for (Field f : superFields) {
@@ -151,10 +151,10 @@ public class ScalaAstGenerator extends CodeGenerator {
                 String name = t.name();
                 String method;
                 if ( name.equals("int") ){
-                    return "int";
+                    return "Int";
                 }
                 if ( name.equals("boolean") ){
-                    return "boolean";
+                    return "Boolean";
                 }
                 throw new RuntimeException("Unknown primitive " + name);
             }
@@ -191,7 +191,16 @@ public class ScalaAstGenerator extends CodeGenerator {
 
             /** A type for which none of the other cases apply. */
             public String forGeneralClass(ClassName t){
-                StringBuffer name = new StringBuffer(t.className());
+                StringBuffer name = new StringBuffer();
+
+                // Handle types for which ASTGen provides no hooks,
+                // but that we still want to treat specially.
+                if (t.className().equals("java.util.Map")) { 
+                    name.append("Map");
+                } else { 
+                    name.append(t.className());
+                }
+
                 boolean first = true;
                 for (TypeArgumentName arg : t.typeArguments()) {
                     if (first) {
@@ -349,6 +358,26 @@ public class ScalaAstGenerator extends CodeGenerator {
         }
     }
 
+    private String wrappedFieldCalls(String wrapper, NodeType box) {
+        if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
+            return "";
+        } else {
+            StringBuffer buffer = new StringBuffer();
+            buffer.append("(");
+            int i = 0;
+            for ( Field field : filterFields(box.allFields(ast)) ){
+                if ( i != 0 ){
+                    buffer.append( ", " );
+                }
+                i += 1;
+                buffer.append(sub("@wrapper(@name).asInstanceOf", 
+                                  "@wrapper", wrapper, "@name", field.getGetterName()));
+            }
+            buffer.append(")");
+            return buffer.toString();
+        }
+    }
+
 
     /* a nice function for string replacement.
      * sub( "foo @bar @baz", "@bar", "1", "@baz", "2" ) ->
@@ -415,9 +444,34 @@ public class ScalaAstGenerator extends CodeGenerator {
             if ( c.isAbstract() ){
                 writer.println(sub( "abstract class @name @fields @extends", "@name", c.name(), "@fields", fields(c), "@extends", extendsClause(c) ));
             } else {
-                writer.println(sub( "case class @name @fields @extends", "@name", c.name(), "@fields", fields(c), "@extends", extendsClause(c)  ));
+                writer.println(sub( "case class @name @fields @extends", 
+                                    "@name", c.name(), "@fields", fields(c), "@extends", extendsClause(c)  ));
             }
         }
+        // Generate translator
+        writer.println();
+        writer.println("object Translator {");
+        writer.println("   def toJavaAst(node:Any):Any = {");
+        writer.println("       node match {");
+        for ( NodeClass c : sort(ast.classes()) ) {
+            if ( ignoreClass(c.name()) ){
+                continue;
+            }
+            if ( c.isAbstract() ){
+                continue;
+            } else {
+                writer.println(sub( "         case @name @fieldsNoTypes =>", 
+                                    "@name", c.name(), "@fieldsNoTypes", fieldsNoTypes(c)));
+                writer.println(sub("             new com.sun.fortress.nodes.@name @fieldsNoTypes",
+                                   "@name", c.name(), "@fieldsNoTypes", wrappedFieldCalls("toJavaAst", c)));
+
+            }
+        }
+        writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
+        writer.println("         case _ => node");
+        writer.println("      }");
+        writer.println("   }");
+        writer.println("}");
     }
 
     private void generateFile( String file, String preamble) {
@@ -457,10 +511,12 @@ public class ScalaAstGenerator extends CodeGenerator {
 
     private void generateScalaFile() {
         generateFile("FortressAst.scala", 
+                     "package com.sun.fortress.scalasrc.nodes\n" +
+                     "import com.sun.fortress.scalasrc.useful._\n" + 
                      "import com.sun.fortress.nodes_util._\n" +
-                     "import scala.collection.mutable.ListBuffer\n" +
                      "import com.sun.fortress.useful.HasAt\n" +
-                     "import java.math.BigInteger\n");
+                     "import _root_.scala.collection.mutable.ListBuffer\n" +
+                     "import _root_.java.math.BigInteger\n");
     }
 
     public void generateAdditionalCode(){
