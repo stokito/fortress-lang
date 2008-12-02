@@ -59,4 +59,4 @@ n=$?
 if [ $n -ne 0 ]; then
         exit $n
 fi
-"$ant_exec" -noclasspath -lib third_party/junit:third_party/scala/scala-library-2.7.1.jar:third_party/scala/scala-compiler-2.7.1.jar "$@"
+"$ant_exec" -noclasspath -lib third_party/junit "$@"
