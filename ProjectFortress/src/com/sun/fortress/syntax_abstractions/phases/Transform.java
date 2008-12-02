@@ -175,7 +175,7 @@ public class Transform extends TemplateUpdateVisitor {
                     return handleGeneratorClause(value);
                 }
             });
-            DoFront body_result = (DoFront) recur(that.getBody());
+            Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
             return forForOnly(that, exprType_result, gens_result, body_result);
         } else {

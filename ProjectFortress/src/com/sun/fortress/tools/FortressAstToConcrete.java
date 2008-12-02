@@ -1124,9 +1124,23 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forBlockOnly(Block that, Option<String> exprType_result,
+                                         Option<String> loc_result,
                                          List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
+
+        increaseIndent();
+        if ( loc_result.isSome() ) {
+            s.append( "at " ).append( loc_result.unwrap() ).append( " " );
+        }
+        if ( that.isAtomicBlock() ) {
+            s.append( "atomic " );
+        }
+        if ( that.isWithinDo() ) {
+            s.append( "do\n" );
+        }
         s.append( join( exprs_result, "\n" ) );
+        decreaseIndent();
+
         return handleParen( s.toString(),
                             that.isParenthesized() );
     }
@@ -2810,25 +2824,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( match_result );
         s.append( " => " );
         s.append( body_result );
-        return s.toString();
-    }
-
-    @Override public String forDoFrontOnly(DoFront that,
-                                           Option<String> loc_result,
-                                           String expr_result) {
-        StringBuilder s = new StringBuilder();
-        increaseIndent();
-
-        if ( loc_result.isSome() ) {
-            s.append( "at " ).append( loc_result.unwrap() ).append( " " );
-        }
-        if ( that.isAtomicBlock() ) {
-            s.append( "atomic " );
-        }
-        s.append( "do\n" ).append( indent(expr_result) );
-
-        decreaseIndent();
-
         return s.toString();
     }
 

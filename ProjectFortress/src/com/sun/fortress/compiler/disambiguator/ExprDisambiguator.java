@@ -41,7 +41,6 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.Do;
-import com.sun.fortress.nodes.DoFront;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
@@ -937,7 +936,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator new_disambiguator = this.extendWithVars(pair.second());
         return forForOnly(that, type_result,
                           pair.first(),
-                          (DoFront)that.getBody().accept(new_disambiguator));
+                          (Block)that.getBody().accept(new_disambiguator));
     }
 
     /** LetFns introduce local functions in scope within the body. */

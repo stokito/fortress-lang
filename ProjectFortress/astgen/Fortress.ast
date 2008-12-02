@@ -682,11 +682,28 @@ interface Node() extends HasAt;
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
+                 * DoFront ::= (at Expr)? atomic? do BlockElems?
                  * e.g.) y = x
                  *       z = 2x
                  *       y + z
+                 * e.g.) at a.region(j) do w := a_j
                  */
-                Block(List<Expr> exprs);
+                Block(Option<Expr> loc = Option.<Expr>none(),
+                      boolean atomicBlock = false,
+                      boolean withinDo = false,
+                      List<Expr> exprs);
+                /**
+                 * do expression
+                 * Do ::= (DoFront also)* DoFront end
+                 * e.g.) do
+                 *         accum += treeSum(t.left)
+                 *       also do
+                 *         accum += treeSum(t.right)
+                 *       also do
+                 *         accum += t.datum
+                 *       end
+                 */
+                Do(List<Block> fronts);
                 /**
                  * case expression or extremum expression
                  * DelimitedExpr ::= case Expr Op? of CaseClauses CaseElse? end
@@ -705,25 +722,13 @@ interface Node() extends HasAt;
                          List<CaseClause> clauses,
                          Option<Block> elseClause = Option.<Block>none());
                 /**
-                 * do expression
-                 * Do ::= (DoFront also)* DoFront end
-                 * e.g.) do
-                 *         accum += treeSum(t.left)
-                 *       also do
-                 *         accum += treeSum(t.right)
-                 *       also do
-                 *         accum += t.datum
-                 *       end
-                 */
-                Do(List<DoFront> fronts);
-                /**
                  * for expression
                  * DelimitedExpr ::= for GeneratorClauseList DoFront end
                  * e.g.) for i <- sequential(1:5) do
                  *         print (i " ")
                  *       end
                  */
-                For(List<GeneratorClause> gens, DoFront body);
+                For(List<GeneratorClause> gens, Block body);
                 /**
                  * if expression
                  * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
@@ -1956,14 +1961,6 @@ interface Node() extends HasAt;
              * e.g.) IOException => throw ForbiddenException(e)
              */
             CatchClause(BaseType matchType, Block body);
-            /**
-             * block expression used in do expressions
-             * DoFront ::= (at Expr)? atomic? do BlockElems?
-             * e.g.) at a.region(j) do w := a_j
-             */
-            DoFront(Option<Expr> loc = Option.<Expr>none(),
-                    boolean atomicBlock = false,
-                    Block expr);
             /**
              * if clause used in if expressions
              * DelimitedExpr ::= if Expr then BlockElems Elifs? Else? end

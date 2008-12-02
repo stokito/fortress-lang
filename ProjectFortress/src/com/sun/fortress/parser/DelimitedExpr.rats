@@ -167,13 +167,15 @@ Do Do = a1s:(DoFront w also w)* a2:DoFront w end
      };
 
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
-private DoFront DoFront =
+private Block DoFront =
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
      { Span span = createSpan(yyStart,yyCount);
        Option<Expr> at = Option.wrap(a1);
        boolean atomic = (a2 == null) ? false : true;
-       if (a3 == null) a3 = FortressUtil.doBlock(span);
-       yyValue = new DoFront(span, at, atomic, a3);
+       List<Expr> es;
+       if (a3 == null) es = Collections.<Expr>emptyList();
+       else es = a3.getExprs();
+       yyValue = new Block(span, false, Option.<Type>none(), at, atomic, true, es);
      };
 
 /* ArgExpr ::=
