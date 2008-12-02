@@ -2115,7 +2115,8 @@ interface Node() extends HasAt;
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.
              */
-            Level(Integer level, Object _object);
+            Level(int level, Object _object);
+
             /*
              * An overloading, and the type of that particular overloading.
              */

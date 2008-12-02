@@ -1,104 +1,184 @@
 <?xml version="1.0" ?>
 
 <!--
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
-    All rights reserved.
+Copyright 2008 Sun Microsystems, Inc.,
+4150 Network Circle, Santa Clara, California 95054, U.S.A.
+All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+U.S. Government Rights - Commercial software.
+Government users are subject to the Sun Microsystems, Inc. standard
+license agreement and applicable provisions of the FAR and its supplements.
 
-    Use is subject to license terms.
+Use is subject to license terms.
 
-    This distribution may include materials developed by third parties.
+This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries. -->
+Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+trademarks of Sun Microsystems, Inc. in the U.S. and other countries. 
+-->
 
+<!-- 
+This is the main Ant build file for the Fortress reference
+implementation. Declarations are separated by type (e.g., taskdefs,
+properties, targets, etc.). To add a new declaration, please find the
+appropriate place in the file. For the sake of readability, please
+maintain proper indentation. 
+--> 
 
 <project name="Fortress" default="help">
-    <description>
-        The Fortress interpreter, implemented in Java.
-    </description>
+  <description>
+    A reference implementation of the Fortress programming language. 
+  </description>
 
-    <!-- test -->
 
-<!-- Set global properties for this build. -->
- <property name="packagePrefix" value="com/sun/fortress"/>
- <property name="package.prefix" value="com.sun.fortress"/>
- <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
- <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
- <!-- Directories in the ${basedir} directory -->
- <property name="cache0" location="${basedir}/../default_repository/caches"/>
- <property name="cache1" location="${basedir}/../.fortress_cache"/>
- <property name="cache2" location="${basedir}/../.interpreter_cache"/>
- <property name="cache3" location="${basedir}/.interpreter_cache"/>
- <property name="cache4" location="${basedir}/../.syntax_cache"/>
- <property name="cache5" location="${basedir}/.syntax_cache"/>
- <property name="cache6" location="${basedir}/../.analyzed_cache"/>
- <property name="cache7" location="${basedir}/.analyzed_cache"/>
- <property name="cache8" location="${basedir}/../.presyntax_cache"/>
- <property name="cache9" location="${basedir}/.presyntax_cache"/>
- <property name="cache10" location="${basedir}/../.bytecode_cache"/>
- <property name="cache11" location="${basedir}/.bytecode_cache"/>
- <property name="cache12" location="${basedir}/../local_repository/caches"/>
- <property name="astgen.src" location="${basedir}/astgen"/>
- <property name="build" location="${basedir}/build"/>
- <property name="docs" location="${basedir}/docs"/>
- <property name="src" location="${basedir}/src"/>
- <property name="library" location="${basedir}/../Library"/>
- <property name="astgen.generators.src" location="${src}/${packagePrefix}/astgen"/>
- <!-- Third party jar files -->
- <property name="asm" location="${basedir}/third_party/asm"/>
- <!-- property name="astgen.third" location="${basedir}/../../astgen/jar"/ -->
- <property name="astgen.third" location="${basedir}/third_party/astgen"/>
- <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
- <property name="junit" location="${basedir}/third_party/junit"/>
- <property name="plt" location="${basedir}/third_party/plt"/>
- <property name="unicode.third" location="${basedir}/third_party/unicode"/>
- <property name="xtc" location="${basedir}/third_party/xtc"/>
- <property name="unsigned" location="${basedir}/third_party/unsigned"/>
- <!-- astgen -->
- <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
- <!-- nodes -->
- <property name="nodesPackage" value="${packagePrefix}/nodes"/>
- <property name="nodes"  location="${src}/${nodesPackage}"/>
- <property name="nodesBuild" location="${build}/${nodesPackage}"/>
- <!-- nodes_util -->
- <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
- <!-- parser -->
- <property name="parser"  location="${src}/${packagePrefix}/parser"/>
- <property name="preparser" location="${src}/${packagePrefix}/parser/preparser"/>
- <property name="templateparser"  location="${src}/${packagePrefix}/parser/templateparser"/>
- <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
- <property name="precedence" location="${parserUtil}/precedence"/>
- <property name="precedenceResolver" location="${parserUtil}/precedence_resolver"/>
- <!-- unicode -->
- <property name="unicodePackage" value="${packagePrefix}/unicode"/>
- <property name="unicode" location="${src}/${packagePrefix}/unicode"/>
- <property name="unicodeBuild" location="${build}/${unicodePackage}"/>
- <!-- useful -->
- <property name="usefulPackage" value="${packagePrefix}/useful"/>
- <!-- for fortress installation -->
- <property name="testFortress" location=".TEST_FORTRESS"/>
- <property name="installerDir" location=".installer"/>
- <property name="protofortress" location="${basedir}/fortress/FORTRESS"/>
- <property name="protofortress.lib" location="${protofortress}/lib"/>
-<!-- for tests -->
- <property name="test.results" location="${basedir}/TEST-RESULTS"/>
-<!-- other setting -->
- <property name="junitMem" value="768m"/>
- <property name="junit.dir" value="junit-results"/>
- <property environment="env"/>
+  <!-- 
+       Taskdefs 
+  --> 
+  <taskdef resource="scala/tools/ant/antlib.xml">
+    <classpath refid="scala.classpath"/>
+  </taskdef>
 
- <path id="astgen.path">
-     <pathelement location="${astgen.third}/astgen.jar" />
-     <pathelement location="${build}" />
- </path>
 
- <path id="compile.classpath">
-    <pathelement location="${java.home}/../lib/tools.jar"/>
+  <!-- 
+       Properties
+  --> 
+
+  <!-- Global properties for this build. -->
+  <property name="packagePrefix" value="com/sun/fortress"/>
+  <property name="package.prefix" value="com.sun.fortress"/>
+  <property name="interpreterPrefix" value="com/sun/fortress/interpreter"/>
+  <property name="interpreter.prefix" value="com.sun.fortress.interpreter"/>
+  <property name="blahblahblah" value="com/sun/fortress"/>
+
+  <!-- Directories in the ${basedir} directory -->
+  <property name="cache0" location="${basedir}/../default_repository/caches"/>
+  <property name="cache1" location="${basedir}/../.fortress_cache"/>
+  <property name="cache2" location="${basedir}/../.interpreter_cache"/>
+  <property name="cache3" location="${basedir}/.interpreter_cache"/>
+  <property name="cache4" location="${basedir}/../.syntax_cache"/>
+  <property name="cache5" location="${basedir}/.syntax_cache"/>
+  <property name="cache6" location="${basedir}/../.analyzed_cache"/>
+  <property name="cache7" location="${basedir}/.analyzed_cache"/>
+  <property name="cache8" location="${basedir}/../.presyntax_cache"/>
+  <property name="cache9" location="${basedir}/.presyntax_cache"/>
+  <property name="cache10" location="${basedir}/../.bytecode_cache"/>
+  <property name="cache11" location="${basedir}/.bytecode_cache"/>
+  <property name="cache12" location="${basedir}/../local_repository/caches"/>
+  <property name="astgen.src" location="${basedir}/astgen"/>
+  <property name="build" location="${basedir}/build"/>
+  <property name="docs" location="${basedir}/docs"/>
+  <property name="src" location="${basedir}/src"/>
+  <property name="library" location="${basedir}/../Library"/>
+  <property name="astgen.generators.src" 
+            location="${src}/${packagePrefix}/astgen"/>
+
+  <!-- Third party jar files -->
+  <property name="asm" location="${basedir}/third_party/asm"/>
+  <property name="astgen.third" location="${basedir}/third_party/astgen"/>
+  <property name="jsr166y" location="${basedir}/third_party/jsr166y"/>
+  <property name="junit" location="${basedir}/third_party/junit"/>
+  <property name="plt" location="${basedir}/third_party/plt"/>
+  <property name="unicode.third" location="${basedir}/third_party/unicode"/>
+  <property name="xtc" location="${basedir}/third_party/xtc"/>
+  <property name="unsigned" location="${basedir}/third_party/unsigned"/>
+
+  <!-- Scala jar files -->
+  <property name="scala-compiler.jar" 
+            value="${basedir}/third_party/scala/scala-compiler-2.7.1.jar"/>
+  <property name="scala-library.jar" 
+            value="${basedir}/third_party/scala/scala-library-2.7.1.jar"/>
+
+  <!-- ASTGen -->
+  <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
+  
+  <!-- Package nodes -->
+  <property name="nodesPackage" value="${packagePrefix}/nodes"/>
+  <property name="scala.nodes.package" value="${packagePrefix}/scalasrc/nodes"/>
+  <property name="nodes"  location="${src}/${nodesPackage}"/>
+  <property name="scala.nodes"  location="${src}/${scala.nodes.package}"/>
+  <property name="nodesBuild" location="${build}/${nodesPackage}"/>
+  
+  <!-- Package nodes_util -->
+  <property name="nodesUtil"  location="${src}/${packagePrefix}/nodes_util"/>
+  
+  <!-- Parser packages -->
+  <property name="parser"  location="${src}/${packagePrefix}/parser"/>
+  <property name="preparser" location="${src}/${packagePrefix}/parser/preparser"/>
+  <property name="templateparser"  
+            location="${src}/${packagePrefix}/parser/templateparser"/>
+  <property name="parserUtil"  location="${src}/${packagePrefix}/parser_util"/>
+  <property name="precedence" location="${parserUtil}/precedence"/>
+  <property name="precedenceResolver" 
+            location="${parserUtil}/precedence_resolver"/>
+  
+  <!-- Unicode packages -->
+  <property name="unicodePackage" value="${packagePrefix}/unicode"/>
+  <property name="unicode" location="${src}/${packagePrefix}/unicode"/>
+  <property name="unicodeBuild" location="${build}/${unicodePackage}"/>
+  
+  <!-- Package useful -->
+  <property name="usefulPackage" value="${packagePrefix}/useful"/>
+  
+  <!-- For fortress installation -->
+  <property name="testFortress" location=".TEST_FORTRESS"/>
+  <property name="installerDir" location=".installer"/>
+  <property name="protofortress" location="${basedir}/fortress/FORTRESS"/>
+  <property name="protofortress.lib" location="${protofortress}/lib"/>
+
+  <!-- Instrumentation --> 
+  <property name="instrumentation.package"
+            value="${package.prefix}.parser_util.instrumentation"/>
+  <property name="instrumentationPackage"
+            value="${packagePrefix}/parser_util/instrumentation"/>
+  <property name="instrumentation.outfile"
+            location="${parserUtil}/instrumentation/coverage-report.txt"/>
+  <property name="instrumentation.transient"
+            location="${parserUtil}/instrumentation/transient.txt"/>
+  
+  <!-- For tests -->
+  <property name="test.results" location="${basedir}/TEST-RESULTS"/>
+  
+  <!-- Other settings -->
+  <property name="junitMem" value="768m"/>
+  <property name="junit.dir" value="junit-results"/>
+  <property environment="env"/>
+  <condition property="correct.environment">
+    <and>
+      <equals arg1="${ant.java.version}" arg2="1.5"/>
+      <equals arg1="${env.ANT_CALLED_FROM_SCRIPT}" arg2='yes'/>
+    </and>
+  </condition>
+
+
+  <!-- 
+       Paths
+  -->
+  <path id="scala.classpath">
+    <pathelement location="${scala-compiler.jar}"/>
+    <pathelement location="${scala-library.jar}"/>
+  </path>
+
+  <path id="astgen.path">
+    <path refid="scala.classpath"/>
+    <pathelement location="${astgen.third}/astgen.jar" />
+    <pathelement location="${build}" />
+  </path>
+
+  <path id="astgen.classpath">
+    <path refid="scala.classpath"/>
+    <pathelement location="${build}"/>
+    <pathelement location="${astgen.third}/astgen.jar"/>
+  </path>
+  
+  <path id="instrumentedparser.classpath">
+    <path refid="scala.classpath"/>
+    <pathelement location="${build}"/>
+    <pathelement location="${xtc}/xtc.jar"/>
+    <pathelement location="${plt}/plt.jar"/>
+  </path>
+
+  <path id="compile.classpath">
+    <path refid="scala.classpath"/>
     <pathelement location="${build}"/>
     <pathelement location="${asm}/asm-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
@@ -108,1072 +188,1012 @@
     <pathelement location="${astgen.third}/astgen.jar" />
     <pathelement location="${junit}/junit.jar"/>
     <pathelement location="${ant.home}/lib/ant.jar"/>
-</path>
+  </path>
+  
 
- <path id="astgen.classpath">
-    <pathelement location="${build}"/>
-    <pathelement location="${astgen.third}/astgen.jar"/>
-</path>
+  <!-- 
+       Targets
+  -->
+  <target name="help">
+    <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
+                   checkParserUptodate, clean, cleanCache, compile,
+                   compileCommon, compileCommonLint, compileLint, doc,
+                   grammarCoverage, help, init, interpreter-jar,
+                   makeAST, operatorsGen, fortressparser, preparser,
+                   parser, reportNotPassing, systemProperties, test,
+                   testAll, testDemos, testSystem, testOnly
+                   -DtestPattern='some pattern', testCruiseControl"/> 
+    <echo message="If you are building Fortress, you want ant compile or ant test."/> 
+  </target>
 
- <property name="instrumentation.package"
-           value="${package.prefix}.parser_util.instrumentation"/>
- <property name="instrumentationPackage"
-           value="${packagePrefix}/parser_util/instrumentation"/>
- <property name="instrumentation.outfile"
-           location="${parserUtil}/instrumentation/coverage-report.txt"/>
- <property name="instrumentation.transient"
-           location="${parserUtil}/instrumentation/transient.txt"/>
+  <target name="systemProperties">
+    <echo message="Environment variables set correctly? ${correct.environment}"/>
+    <echo message="Ant Java version: ${ant.java.version}"/>
+    <echo message="Ant called from script? ${env.ANT_CALLED_FROM_SCRIPT}"/>
+    <echo message="ANT_ARGS: ${env.ANT_ARGS}"/>
+    <echo message="ANT_OPTS: ${env.ANT_OPTS}"/>
+    <echo message="Java Runtime Environment
+                   version: ${java.version}"/>
+    <echo message="Java Runtime Environment
+                   vendor: ${java.vendor}"/>
+    <echo message="Java Runtime Environment
+                   vendor URL: ${java.vendor.url}"/>
+    <echo message="Java installation
+                   directory: ${java.home}"/>
+    <echo message="Java Virtual Machine
+                   specification version:
+                   ${java.vm.specification.version}"/>
+    <echo message="Java Virtual Machine
+                   specification vendor:
+                   ${java.vm.specification.vendor}"/>
+    <echo message="Java Virtual Machine
+                   specification name:
+                   ${java.vm.specification.name}"/>
+    <echo message="Java Virtual Machine
+                   implementation version:
+                   ${java.vm.version}"/>
+    <echo message="Java Virtual Machine
+                   implementation vendor:
+                   ${java.vm.vendor}"/>
+    <echo message="Java Virtual Machine
+                   implementation name: ${java.vm.name}"/>
+    <echo message="Java Runtime Environment
+                   specification version:
+                   ${java.specification.version}"/>
+    <echo message="Java Runtime Environment
+                   specification vendor:
+                   ${java.specification.vendor}"/>
+    <echo message="Java Runtime Environment
+                   specification name:
+                   ${java.specification.name}"/>
+    <echo message="Java class format version
+                   number: ${java.class.version}"/>
+    <echo message="Java class path:
+                   ${java.class.path}"/>
+    <echo message="List of paths to search when
+                   loading libraries: ${java.library.path}"/>
+    <echo message="Path of extension directory
+                   or directories: ${java.ext.dirs}"/>
+    <echo message="Default temp file path:
+                   ${java.io.tmpdir}"/>
+    <echo message="Operating system name:
+                   ${os.name}"/>
+    <echo message="Operating system
+                   architecture: ${os.arch}"/>
+    <echo message="Operating system version:
+                   ${os.version}"/>
+  </target>
+  
+  <target name="checkEnv">
+    <echo message="Environment variables set correctly? ${correct.environment}"/>
+    <fail unless="correct.environment"
+          message="ERROR: This build script requires specific command-line arguments to Ant. Please call it using the script provided at ${basedir}/ant."/>
+  </target>
+  
+  <target name="init">
+    <echo message="basedir: ${basedir}"/>
+    <!-- Create the time stamp. -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile. -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${junit.dir}"/>
+  </target>
+  
+  <target name="clean" depends="cleanCache"
+          description="Delete the ${build} directory tree and generated files.">
+    <delete dir="${build}"/>
+    <delete dir="${nodes}"/>
+    <delete dir="${junit.dir}"/>
+    
+    <!-- No longer needed, but eases the upgrade-->
+    <delete file="${nodesUtil}/BaseNodeMaker.java"/>
+    <!-- No longer needed, but eases the upgrade-->
+    <delete file="${nodesUtil}/InterfaceMaker.java"/>
+    <delete file="${parser}/Fortress.java"/>
+    <delete file="${parser}/FortressInstrumented.java"/>
+    <delete file="${preparser}/PreFortress.java"/>
+    <delete file="${templateparser}/TemplateParser.java"/>
+    <delete file="${precedenceResolver}/Operators.java"/>
+    <!-- No longer needed, but eases the upgrade-->
+    <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/>
+    <delete file="${instrumentation.outfile}"/>
+    <delete file="${library}/FortressAst.fsi" />
+    <delete file="${library}/FortressAst.fss" />
+    <delete file="${astgen.src}/FortressAst.scala" />
+    <delete file="FortressLibrary.ast"/>
+    <delete file="FortressLibrary.tfs"/>
+    <delete file="testFile.txt"/>
+    <delete dir="${basedir}/test-tmp" />
+    <delete>
+      <fileset dir="src" includes="**/*.class" />
+    </delete>
+  </target>
 
- <path id="instrumentedparser.classpath">
-    <pathelement location="${build}"/>
-    <pathelement location="${xtc}/xtc.jar"/>
-    <pathelement location="${plt}/plt.jar"/>
- </path>
-
- <property name="blahblahblah" value="com/sun/fortress"/>
-
-    <target name="help">
-        <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
-checkParserUptodate, clean, cleanCache, compile, compileCommon, compileCommonLint,
-compileLint, doc, grammarCoverage, help, init, interpreter-jar, makeAST, operatorsGen,
-fortressparser, preparser, parser, reportNotPassing, systemProperties,
-test, testAll, testDemos, testSystem,
-testOnly -DtestPattern='some pattern', testCruiseControl"/>
-        <echo message="If you are building Fortress, you want ant compile or ant test."/>
-    </target>
-
-    <condition property="correct.environment">
-        <and>
-            <equals arg1="${ant.java.version}" arg2="1.5"/>
-            <equals arg1="${env.ANT_CALLED_FROM_SCRIPT}" arg2='yes'/>
-        </and>
+  <target name="cleanCache"
+          description="Delete any cached Fortress ASTs in the development tree">
+    <delete dir="${cache0}"/>
+    <delete dir="${cache1}"/>
+    <delete dir="${cache2}"/>
+    <delete dir="${cache3}"/>
+    <delete dir="${cache4}"/>
+    <delete dir="${cache5}"/>
+    <delete dir="${cache6}"/>
+    <delete dir="${cache7}"/>
+    <delete dir="${cache8}"/>
+    <delete dir="${cache9}"/>
+    <delete dir="${cache10}"/>
+    <delete dir="${cache11}"/>
+    <delete dir="${cache12}"/>
+  </target>
+  
+  <!-- Generation of Operators.java depends only on the files listed below.
+       Note that there are class files it depends on; if these class files are
+       not up to date with respect to their sources, they are themselves
+       recompiled by the compileCommon target.-->
+  <target name="checkOperatorsUptodate" depends="init, compileCommon">
+    <condition property="operators.uptodate">
+      <and>
+        <uptodate srcfile="${unicode.third}/UnicodeData.500.txt"
+                  targetfile="${precedenceResolver}/Operators.java"/>
+        <uptodate srcfile="${precedenceResolver}/operators.txt"
+                  targetfile="${precedenceResolver}/Operators.java"/>
+        <uptodate srcfile="${unicodeBuild}/OperatorStuffGenerator.class"
+                  targetfile="${precedenceResolver}/Operators.java"/>
+        <uptodate srcfile="${unicodeBuild}/Element.class"
+                  targetfile="${precedenceResolver}/Operators.java"/>
+      </and>
     </condition>
-
-    <target name="systemProperties">
-        <echo message="Environment variables set correctly? ${correct.environment}"/>
-        <echo message="Ant Java version: ${ant.java.version}"/>
-        <echo message="Ant called from script? ${env.ANT_CALLED_FROM_SCRIPT}"/>
-        <echo message="ANT_ARGS: ${env.ANT_ARGS}"/>
-        <echo message="ANT_OPTS: ${env.ANT_OPTS}"/>
-        <echo message="Java Runtime Environment
-        version: ${java.version}"/>
-        <echo message="Java Runtime Environment
-        vendor: ${java.vendor}"/>
-        <echo message="Java Runtime Environment
-        vendor URL: ${java.vendor.url}"/>
-        <echo message="Java installation
-        directory: ${java.home}"/>
-        <echo message="Java Virtual Machine
-              specification version:
-        ${java.vm.specification.version}"/>
-        <echo message="Java Virtual Machine
-              specification vendor:
-        ${java.vm.specification.vendor}"/>
-        <echo message="Java Virtual Machine
-              specification name:
-        ${java.vm.specification.name}"/>
-        <echo message="Java Virtual Machine
-              implementation version:
-        ${java.vm.version}"/>
-        <echo message="Java Virtual Machine
-              implementation vendor:
-        ${java.vm.vendor}"/>
-        <echo message="Java Virtual Machine
-        implementation name: ${java.vm.name}"/>
-        <echo message="Java Runtime Environment
-              specification version:
-        ${java.specification.version}"/>
-        <echo message="Java Runtime Environment
-              specification vendor:
-        ${java.specification.vendor}"/>
-        <echo message="Java Runtime Environment
-              specification name:
-        ${java.specification.name}"/>
-        <echo message="Java class format version
-        number: ${java.class.version}"/>
-        <echo message="Java class path:
-        ${java.class.path}"/>
-        <echo message="List of paths to search when
-        loading libraries: ${java.library.path}"/>
-        <echo message="Path of extension directory
-        or directories: ${java.ext.dirs}"/>
-        <echo message="Default temp file path:
-        ${java.io.tmpdir}"/>
-        <echo message="Operating system name:
-        ${os.name}"/>
-        <echo message="Operating system
-        architecture: ${os.arch}"/>
-        <echo message="Operating system version:
-        ${os.version}"/>
-    </target>
-
-    <target name="checkEnv">
-        <echo message="Environment variables set correctly? ${correct.environment}"/>
-        <fail unless="correct.environment"
-              message='ERROR: This build script requires specific command-line arguments to Ant. Please call it using the script provided at ${basedir}/ant.'/>
-    </target>
-
-    <target name="init">
-        <echo message="basedir: ${basedir}"/>
-        <!-- Create the time stamp. -->
-        <tstamp/>
-        <!-- Create the build directory structure used by compile. -->
-        <mkdir dir="${build}"/>
-        <mkdir dir="${junit.dir}"/>
-    </target>
-
-    <target name="clean" depends="cleanCache"
-            description="Delete the ${build} directory tree and generated files.">
-        <delete dir="${build}"/>
-        <delete dir="${nodes}"/>
-        <delete dir="${junit.dir}"/>
-
-        <!-- No longer needed, but eases the upgrade-->
-        <delete file="${nodesUtil}/BaseNodeMaker.java"/>
-        <!-- No longer needed, but eases the upgrade-->
-        <delete file="${nodesUtil}/InterfaceMaker.java"/>
-        <delete file="${parser}/Fortress.java"/>
-        <delete file="${parser}/FortressInstrumented.java"/>
-        <delete file="${preparser}/PreFortress.java"/>
-        <delete file="${templateparser}/TemplateParser.java"/>
-        <delete file="${precedenceResolver}/Operators.java"/>
-        <!-- No longer needed, but eases the upgrade-->
-        <delete file="${src}/com/sun/fortress/parser/precedence/resolver/Operators.java"/>
-        <delete file="${instrumentation.outfile}"/>
-        <delete file="${library}/FortressAst.fsi" />
-        <delete file="${library}/FortressAst.fss" />
-        <delete file="${astgen.src}/FortressAst.scala" />
-        <delete file="FortressLibrary.ast"/>
-        <delete file="FortressLibrary.tfs"/>
-        <delete file="testFile.txt"/>
-	<delete dir="${basedir}/test-tmp" />
-        <delete>
-            <fileset dir="src" includes="**/*.class" />
-        </delete>
-    </target>
-
-    <target name="cleanCache"
-            description="Delete any cached Fortress ASTs in the development tree">
-        <delete dir="${cache0}"/>
-    	<delete dir="${cache1}"/>
-    	<delete dir="${cache2}"/>
-    	<delete dir="${cache3}"/>
-    	<delete dir="${cache4}"/>
-    	<delete dir="${cache5}"/>
-    	<delete dir="${cache6}"/>
-    	<delete dir="${cache7}"/>
-    	<delete dir="${cache8}"/>
-    	<delete dir="${cache9}"/>
-    	<delete dir="${cache10}"/>
-    	<delete dir="${cache11}"/>
-        <delete dir="${cache12}"/>
-    </target>
-
-    <!-- Generation of Operators.java depends only on the files listed below.
-         Note that there are class files it depends on; if these class files are
-         not up to date with respect to their sources, they are themselves
-	 recompiled by the compileCommon target.-->
-    <target name="checkOperatorsUptodate" depends="init, compileCommon">
-        <condition property="operators.uptodate">
-            <and>
-                <uptodate srcfile="${unicode.third}/UnicodeData.500.txt"
-                          targetfile="${precedenceResolver}/Operators.java"/>
-                <uptodate srcfile="${precedenceResolver}/operators.txt"
-                          targetfile="${precedenceResolver}/Operators.java"/>
-                <uptodate srcfile="${unicodeBuild}/OperatorStuffGenerator.class"
-                          targetfile="${precedenceResolver}/Operators.java"/>
-                <uptodate srcfile="${unicodeBuild}/Element.class"
-                          targetfile="${precedenceResolver}/Operators.java"/>
-            </and>
-        </condition>
-        <echo message="Operators up to date? ${operators.uptodate}"/>
-    </target>
-
-	   <target name="operatorsGen"  unless="operators.uptodate"
-		    depends="init, compileCommon, checkOperatorsUptodate"
-	     description="Automatically generate visitors for AST nodes.">
-	        <echo message="Regenerating operators"/>
-	        <java classname="${package.prefix}.unicode.OperatorStuffGenerator"
-		      fork="true">
-	            <classpath>
-	                <pathelement location="${build}"/>
-			<pathelement location="${basedir}/third_party/plt/plt.jar"/>
-	            </classpath>
-	        </java>
-	    </target>
-
-	   <target name="DumpProperties"
-	     description="Dump properties as seen by a Java program.">
-            <java classname="${package.prefix}.repository.DumpProperties"
-		      fork="true">
-            	<sysproperty key="DEBUG" value="true"/>
-	            <classpath>
-	                <pathelement location="${build}"/>
-	            </classpath>
-	        </java>
-	    </target>
-
-    <target name="checkAstgen">
-        <condition property="astgenerators.uptodate">
-                <uptodate targetfile="${basedir}/build/com/sun/fortress/astgen/FortressAstGenerator.class">
-                    <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="*.java"/>
-                </uptodate>
-        </condition>
-    </target>
-
-    <target name="astGenerators" unless="astgenerators.uptodate" depends="init,checkAstgen"
-     description="Compile all AstGen custom generators.">
-        <depend srcdir="${astgen.generators.src}"
-         destdir="${build}"
-         closure="yes"
-         cache="${basedir}/.dependencies"/>
-        <javac
-            srcdir="${astgen.generators.src}"
+    <echo message="Operators up to date? ${operators.uptodate}"/>
+  </target>
+  
+  <target name="operatorsGen"  unless="operators.uptodate"
+          depends="init, compileCommon, checkOperatorsUptodate"
+          description="Automatically generate visitors for AST nodes.">
+    <echo message="Regenerating operators"/>
+    <java classname="${package.prefix}.unicode.OperatorStuffGenerator"
+          fork="true">
+      <classpath>
+        <pathelement location="${build}"/>
+        <pathelement location="${basedir}/third_party/plt/plt.jar"/>
+      </classpath>
+    </java>
+  </target>
+  
+  <target name="DumpProperties"
+          description="Dump properties as seen by a Java program.">
+    <java classname="${package.prefix}.repository.DumpProperties"
+          fork="true">
+      <sysproperty key="DEBUG" value="true"/>
+      <classpath>
+        <pathelement location="${build}"/>
+      </classpath>
+    </java>
+  </target>
+  
+  <target name="checkAstgen">
+    <condition property="astgenerators.uptodate">
+      <uptodate targetfile="${basedir}/build/com/sun/fortress/astgen/FortressAstGenerator.class">
+        <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="*.java"/>
+      </uptodate>
+    </condition>
+  </target>
+  
+  <target name="astGenerators" 
+          unless="astgenerators.uptodate" 
+          depends="init,checkAstgen"
+          description="Compile all ASTGen custom generators.">
+    <depend srcdir="${astgen.generators.src}"
             destdir="${build}"
-            source="1.5"
-            debug="true"
-            includeantruntime="false"
-            fork="true"
-            memorymaximumsize="256M">
-            <!-- Uncomment the following line to print unchecked warnings
-                 (here and in the 'compileCommon' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/> -->
-            <classpath refid="astgen.classpath"/>
-            <include name="**/*.java"/>
-            <exclude name="${usefulPackage}/*.java"/>
-            <exclude name="${unicodePackage}/*.java"/>
-        </javac>
-    </target>
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${astgen.generators.src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true"
+        memorymaximumsize="256M">
+      <!-- Uncomment the following line to print unchecked warnings
+           (here and in the 'compileCommon' target. -->
+      <!-- <compilerarg value="-Xlint:unchecked"/> -->
+      <classpath refid="astgen.classpath"/>
+      <include name="**/*.java"/>
+      <exclude name="${usefulPackage}/*.java"/>
+      <exclude name="${unicodePackage}/*.java"/>
+    </javac>
+    <scalac
+        srcdir="${astgen.generators.src}"
+        destdir="${build}"
+        classpathref="astgen.classpath">
+      <include name="**/*.scala"/>
+      <exclude name="${usefulPackage}/*.scala"/>
+      <exclude name="${unicodePackage}/*.scala"/>
+    </scalac>
+  </target>
+  
+  <target name="checkNodesUptodate" depends="astGenerators">
+    <condition property="nodes.uptodate">
+      <and>
+        <available file="${nodes}/AbstractNode.java"/>
+        <uptodate srcfile="${astgen.src}/Fortress.ast"
+                  targetfile="${nodes}/AbstractNode.java"/>
+        <available file="${library}/FortressAst.fsi" />
+        <uptodate srcfile="${astgen.src}/Fortress.ast"
+                  targetfile="${library}/FortressAst.fsi" />
+        <available file="${library}/FortressAst.fss" />
+        <uptodate srcfile="${astgen.src}/Fortress.ast"
+                  targetfile="${library}/FortressAst.fss" />
+        <uptodate targetfile="${library}/FortressAst.fsi">
+          <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="**/*.java"/>
+        </uptodate>
+      </and>
+    </condition>
+    <echo message="Nodes up to date? ${nodes.uptodate}"/>
+  </target>
+  
+  <taskdef name="astgen" classpath="${astgen.third}/astgen.jar;${build}"
+           classname="edu.rice.cs.astgen.AntTask"/>
+  
+  <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
+          description="Automatically generate AST nodes.">
+    <echo message="Processing ${generate-sourcefile}" />
+    <astgen file="${generate-sourcefile}" />
+    <move todir="${nodes}">
+      <fileset dir="${astgen.src}">
+        <include name="**/*.java"/>
+        <exclude name="**/Fortress.ast"/>
+      </fileset>
+    </move>
+    <move todir="${library}">
+      <fileset dir="${astgen.src}">
+        <include name="FortressAst.fss" />
+        <include name="FortressAst.fsi" />
+      </fileset>
+    </move>
+    <move todir="${scala.nodes}">
+      <fileset dir="${astgen.src}">
+        <include name="FortressAst.scala" />
+      </fileset>
+    </move>
+  </target>
+  
+  <target name="compile" depends="compileCommon, makeAST, parser, operatorsGen"
+          description="Compile all Fortress code.">
+    <depend srcdir="${src}"
+            destdir="${build}"
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true"
+        memorymaximumsize="256M">
+      <!-- Uncomment the following line to print unchecked warnings
+           (here and in the 'compileCommon' target. -->
+      <!-- <compilerarg value="-Xlint:unchecked"/> -->
+      <classpath refid="compile.classpath"/>
+      <include name="**/*.java"/>
+      <exclude name="${usefulPackage}/*.java"/>
+      <exclude name="${unicodePackage}/*.java"/>
+    </javac>
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="**/*.scala"/>
+    </scalac>
+  </target>
+  
+  <target name="check.blas" depends="init">
+    <javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics">
+      <classpath refid="compile.classpath"/>
+    </javac>
+    <scalac
+        srcdir="${src}/com/sun/fortress/numerics"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="**/*.scala"/>
+    </scalac>
 
-    <target name="checkNodesUptodate" depends="astGenerators">
-        <condition property="nodes.uptodate">
+    <java failonerror="true" 
+          classname="com.sun.fortress.numerics.CheckBlasEnvironment">
+      <classpath refid="compile.classpath"/>
+    </java>
+  </target>
+  
+  <target name="check.linux">
+    <condition property="blas.islinux">
+      <equals arg1="${os.name}" arg2="Linux" />
+    </condition>
+  </target>
+  
+  <target name="blas.linux" depends="check.linux" if="blas.islinux">
+    <echo message="Generating C header and stub files." />
+    <javah class="com.sun.fortress.numerics.Blas"
+           destdir="c"
+           classpath="build"
+           />
+    <echo message="Now compiling C stubs for blas on arch linux."/>
+    <exec executable="gcc" failonerror="true">
+      <arg value="-fPIC" />
+      <arg value="-Ic" />
+      <arg value="-I${env.BLAS_INCLUDE}" />
+      <arg value="-L${env.BLAS_LIB}" />
+      <arg value="-I${env.JAVA_HOME}/include" />
+      <arg value="-I${env.JAVA_HOME}/include/linux" />
+      <arg value="c/blas.c" />
+      <arg value="-lcblas" />
+      <arg value="-lblas" />
+      <arg value="-shared" />
+      <arg value="-olibblas.so" />
+    </exec>
+  </target>
+  
+  <target name="check.osx">
+    <condition property="blas.is.osx">
+      <equals arg1="${os.name}" arg2="Mac OS X" />
+    </condition>
+  </target>
+  
+  <target name="blas.osx" depends="check.osx" if="blas.is.osx">
+    <echo message="Generating C header and stub files." />
+    <javah class="com.sun.fortress.numerics.Blas"
+           destdir="c"
+           classpath="build"
+           />
+    <echo message="Now compiling C stubs for blas on arch OS X."/>
+    <exec executable="gcc" failonerror="true">
+      <arg line="-D OSX" />
+      <arg value="-fPIC" />
+      <arg value="-Ic" />
+      <arg line="-framework Accelerate" />
+      <arg value="-I${env.JAVA_LIB}/Headers" />
+      <arg value="c/blas.c" />
+      <arg value="-lcblas" />
+      <arg value="-lblas" />
+      <arg value="-shared" />
+      <arg value="-bundle" />
+      <arg line="-o libblas.dylib" />
+    </exec>
+  </target>
+  
+  <target name="check.sunos">
+    <condition property="blas.is.sunos">
+      <equals arg1="${os.name}" arg2="SunOS" />
+    </condition>
+  </target>
+  
+  <target name="blas.sunos" depends="check.sunos" if="blas.is.sunos">
+    <echo message="Generating C header and stub files." />
+    <javah class="com.sun.fortress.numerics.Blas"
+           destdir="c"
+           classpath="build"
+           />
+    <echo message="Now compiling C stubs for blas on arch SunOS."/>
+    <exec executable="cc" failonerror="true">
+      <arg line="-D SUNOS" />
+      <arg value="-fPIC" />
+      <arg value="-Ic" />
+      <arg value="-I${env.JAVA_HOME}/include" />
+      <arg value="-I${env.JAVA_HOME}/include/solaris" />
+      <arg value="c/sunperf_blas.c" />
+      <arg value="-shared" />
+      <arg value="-dalign" />
+      <arg value="-xlic_lib=sunperf" />
+      <arg value="-olibblas.so" />
+    </exec>
+  </target>
+  
+  <target name="blas" depends="check.blas,blas.linux,blas.osx,blas.sunos"></target>
+  
+  <target name="compileLint" 
+          depends="compileCommonLint, makeAST, parser, operatorsGen"
+          description="Compile all interpreter code.">
+    <depend srcdir="${src}"
+            destdir="${build}"
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true"
+        memorymaximumsize="256M">
+      <!-- Uncomment the following line to print unchecked warnings. -->
+      <classpath refid="compile.classpath"/>
+      <compilerarg value="-Xlint:unchecked"/>
+      <include name="**/*.java"/>
+      <exclude name="${usefulPackage}/*.java"/>
+      <exclude name="${unicodePackage}/*.java"/>
+    </javac>
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="**/*.scala"/>
+      <exclude name="${usefulPackage}/*.scala"/>
+      <exclude name="${unicodePackage}/*.scala"/>
+    </scalac>
+  </target>
+  
+  <target name="compileCommon" depends="init"
+          description="Compile interpreter-indepedent code.">
+    <depend srcdir="${src}"
+            destdir="${build}"
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true">
+      <!-- Uncomment the following line to print unchecked warnings. -->
+      <!-- <compilerarg value="-Xlint:unchecked"/>  -->
+      <classpath refid="compile.classpath"/>
+      <include name="${blahblahblah}/useful/*.java"/>
+      <include name="${blahblahblah}/unicode/*.java"/>
+    </javac>
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="${blahblahblah}/useful/*.scala"/>
+      <include name="${blahblahblah}/unicode/*.scala"/>
+    </scalac>
+  </target>
+  
+  <target name="compileCommonLint" depends="init"
+          description="Compile interpreter-indepedent code.">
+    <depend srcdir="${src}"
+            destdir="${build}"
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true">
+      <classpath refid="compile.classpath"/>      
+      <!-- Uncomment the following line to print unchecked warnings. -->
+      <compilerarg value="-Xlint:unchecked"/>
+      <include name="${usefulPackage}/*.java"/>
+      <include name="${unicodePackage}/*.java"/>
+    </javac>
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="${usefulPackage}/*.scala"/>
+      <include name="${unicodePackage}/*.scala"/>
+    </scalac>
+  </target>
+  
+
+  <target name="interpreter-jar" depends="compile"
+          description="Package up the interpreter in a jar.">
+    <jar
+        destfile="../bin/interpreter.jar"
+        basedir="${build}"
+        includes="**/*"/>
+  </target>
+
+  <target name="testOnly" depends="compile"
+          description="Run specific tests (use -DtestPattern=...).">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="off"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="false"/>
+      <syspropertyset>
+        <propertyref prefix="plt." />
+      </syspropertyset>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
           <and>
-            <available file="${nodes}/AbstractNode.java"/>
-            <uptodate srcfile="${astgen.src}/Fortress.ast"
-                      targetfile="${nodes}/AbstractNode.java"/>
-	    <available file="${library}/FortressAst.fsi" />
-	    <uptodate srcfile="${astgen.src}/Fortress.ast"
-		    targetfile="${library}/FortressAst.fsi" />
-	    <available file="${library}/FortressAst.fss" />
-	    <uptodate srcfile="${astgen.src}/Fortress.ast"
-		    targetfile="${library}/FortressAst.fss" />
-            <uptodate targetfile="${library}/FortressAst.fsi">
-	          <srcfiles dir="${basedir}/src/com/sun/fortress/astgen/" includes="**/*.java"/>
-            </uptodate>
+            <filename name="**/*${testPattern}*/**" />
+            <or>
+              <filename name="**/*JUTest.class" />
+              <filename name="**/*JxTest.class" />
+            </or>
           </and>
-        </condition>
-        <echo message="Nodes up to date? ${nodes.uptodate}"/>
-    </target>
+          <exclude name="**/*$*.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
 
-    <taskdef name="astgen" classpath="${astgen.third}/astgen.jar;${build}"
-	     classname="edu.rice.cs.astgen.AntTask"/>
-
-    <target name="makeAST" unless="nodes.uptodate" depends="checkNodesUptodate"
-     description="Automatically generate AST nodes.">
-        <echo message="Processing ${generate-sourcefile}" />
-        <astgen file="${generate-sourcefile}" />
-        <move todir="${nodes}">
-          <fileset dir="${astgen.src}">
-            <include name="**/*.java"/>
-            <exclude name="**/Fortress.ast"/>
-          </fileset>
-        </move>
-        <move todir="${library}">
-          <fileset dir="${astgen.src}">
-            <include name="FortressAst.fss" />
-            <include name="FortressAst.fsi" />
-          </fileset>
-        </move>
-        <move todir="${astgen.src}">
-          <fileset dir="${astgen.src}">
-            <include name="FortressAst.scala" />
-          </fileset>
-        </move>
-    </target>
-
-    <target name="compile" depends="compileCommon, makeAST, parser, operatorsGen"
-     description="Compile all Fortress code.">
-        <depend srcdir="${src}"
-         destdir="${build}"
-         closure="yes"
-         cache="${basedir}/.dependencies"/>
-        <javac
-            srcdir="${src}"
-            destdir="${build}"
-            source="1.5"
-            debug="true"
-            includeantruntime="false"
-            fork="true"
-            memorymaximumsize="256M">
-            <!-- Uncomment the following line to print unchecked warnings
-                 (here and in the 'compileCommon' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/> -->
-            <classpath refid="compile.classpath"/>
-            <include name="**/*.java"/>
-            <exclude name="${usefulPackage}/*.java"/>
-            <exclude name="${unicodePackage}/*.java"/>
-        </javac>
-    </target>
-
-    <target name="check.blas" depends="init">
-	<javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics">
-            <classpath refid="compile.classpath"/>
-        </javac>
-	<java failonerror="true" classname="com.sun.fortress.numerics.CheckBlasEnvironment">
-            <classpath refid="compile.classpath"/>
-	</java>
-    </target>
-
-    <target name="check.linux">
-        <condition property="blas.islinux">
-             <equals arg1="${os.name}" arg2="Linux" />
-        </condition>
-    </target>
-
-    <target name="blas.linux" depends="check.linux" if="blas.islinux">
-	    <echo message="Generating C header and stub files." />
-	    <javah class="com.sun.fortress.numerics.Blas"
-		   destdir="c"
-		   classpath="build"
-		    />
-	    <echo message="Now compiling C stubs for blas on arch linux."/>
-	    <exec executable="gcc" failonerror="true">
-		    <arg value="-fPIC" />
-		    <arg value="-Ic" />
-		    <arg value="-I${env.BLAS_INCLUDE}" />
-		    <arg value="-L${env.BLAS_LIB}" />
-		    <arg value="-I${env.JAVA_HOME}/include" />
-		    <arg value="-I${env.JAVA_HOME}/include/linux" />
-		    <arg value="c/blas.c" />
-		    <arg value="-lcblas" />
-		    <arg value="-lblas" />
-		    <arg value="-shared" />
-		    <arg value="-olibblas.so" />
-	    </exec>
-    </target>
-
-    <target name="check.osx">
-        <condition property="blas.is.osx">
-             <equals arg1="${os.name}" arg2="Mac OS X" />
-        </condition>
-    </target>
-
-    <target name="blas.osx" depends="check.osx" if="blas.is.osx">
-	    <echo message="Generating C header and stub files." />
-	    <javah class="com.sun.fortress.numerics.Blas"
-		   destdir="c"
-		   classpath="build"
-		    />
-	    <echo message="Now compiling C stubs for blas on arch OS X."/>
-	    <exec executable="gcc" failonerror="true">
-		    <arg line="-D OSX" />
-		    <arg value="-fPIC" />
-		    <arg value="-Ic" />
-		    <arg line="-framework Accelerate" />
-		    <arg value="-I${env.JAVA_LIB}/Headers" />
-		    <arg value="c/blas.c" />
-		    <arg value="-lcblas" />
-		    <arg value="-lblas" />
-		    <arg value="-shared" />
-		    <arg value="-bundle" />
-		    <arg line="-o libblas.dylib" />
-	    </exec>
-    </target>
-
-    <target name="check.sunos">
-        <condition property="blas.is.sunos">
-             <equals arg1="${os.name}" arg2="SunOS" />
-        </condition>
-    </target>
-
-    <target name="blas.sunos" depends="check.sunos" if="blas.is.sunos">
-            <echo message="Generating C header and stub files." />
-            <javah class="com.sun.fortress.numerics.Blas"
-                   destdir="c"
-                   classpath="build"
-                    />
-            <echo message="Now compiling C stubs for blas on arch SunOS."/>
-            <exec executable="cc" failonerror="true">
-		    <arg line="-D SUNOS" />
-                    <arg value="-fPIC" />
-                    <arg value="-Ic" />
-                    <arg value="-I${env.JAVA_HOME}/include" />
-                    <arg value="-I${env.JAVA_HOME}/include/solaris" />
-                    <arg value="c/sunperf_blas.c" />
-                    <arg value="-shared" />
-		    <arg value="-dalign" />
-                    <arg value="-xlic_lib=sunperf" />
-                    <arg value="-olibblas.so" />
-            </exec>
-    </target>
-
-    <target name="blas" depends="check.blas,blas.linux,blas.osx,blas.sunos"></target>
-
-    <target name="compileLint" depends="compileCommonLint, makeAST, parser, operatorsGen"
-     description="Compile all interpreter code.">
-        <depend srcdir="${src}"
-         destdir="${build}"
-         closure="yes"
-         cache="${basedir}/.dependencies"/>
-        <javac
-            srcdir="${src}"
-            destdir="${build}"
-            source="1.5"
-            debug="true"
-            includeantruntime="false"
-            fork="true"
-            memorymaximumsize="256M">
-            <!-- Uncomment the following line to print unchecked warnings
-                 (here and in the 'compileCommon' target. -->
-            <classpath refid="compile.classpath"/>
-            <compilerarg value="-Xlint:unchecked"/>
-            <include name="**/*.java"/>
-            <exclude name="${usefulPackage}/*.java"/>
-            <exclude name="${unicodePackage}/*.java"/>
-        </javac>
-    </target>
-
-    <target name="compileCommon" depends="init"
-      description="Compile interpreter-indepedent code.">
-         <depend srcdir="${src}"
-          destdir="${build}"
-          closure="yes"
-          cache="${basedir}/.dependencies"/>
-         <javac
-             srcdir="${src}"
-             destdir="${build}"
-             source="1.5"
-             debug="true"
-             includeantruntime="false"
-             fork="true">
-
-             <!-- Uncomment the following line to print unchecked warnings
-                  (here and in the 'compile' target. -->
-             <!-- <compilerarg value="-Xlint:unchecked"/>  -->
-            <classpath refid="compile.classpath"/>
-<!--
-             <include name="${usefulPackage}/*.java"/>
-             <include name="${unicodePackage}/*.java"/>
--->
-             <include name="${blahblahblah}/useful/*.java"/>
-             <!-- <include name="${blahblahblah}/astgen/*.java"/> -->
-             <include name="${blahblahblah}/unicode/*.java"/>
-         </javac>
-     </target>
-
-    <target name="compileCommonLint" depends="init"
-      description="Compile interpreter-indepedent code.">
-         <depend srcdir="${src}"
-          destdir="${build}"
-          closure="yes"
-          cache="${basedir}/.dependencies"/>
-         <javac
-             srcdir="${src}"
-             destdir="${build}"
-             source="1.5"
-             debug="true"
-             includeantruntime="false"
-             fork="true">
-
-             <!-- Uncomment the following line to print unchecked warnings
-                  (here and in the 'compile' target. -->
-            <classpath refid="compile.classpath"/>
-            <compilerarg value="-Xlint:unchecked"/>
-            <include name="${usefulPackage}/*.java"/>
-            <include name="${unicodePackage}/*.java"/>
-         </javac>
-     </target>
-
-     <target name="interpreter-jar" depends="compile"
-            description="Package up the interpreter in a jar.">
-        <jar
-            destfile="../bin/interpreter.jar"
-            basedir="${build}"
-            includes="**/*"/>
-    </target>
-
-
-    <target name="testOnly" depends="compile"
-            description="Run specific tests (use -DtestPattern=...).">
-        <mkdir dir="${test.results}"/>
-	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="off"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="false"/>
-            <syspropertyset>
-                <propertyref prefix="plt." />
-            </syspropertyset>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <and>
-                      <filename name="**/*${testPattern}*/**" />
-			<or>
-                          <filename name="**/*JUTest.class" />
-			  <filename name="**/*JxTest.class" />
-			</or>
-                    </and>
-                    <exclude name="**/*$*.class"/>
-                </fileset>
-             </batchtest>
-        </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="test" depends="compile"
-            description="Run all unit and system tests expected to pass.">
-        <mkdir dir="${test.results}"/>
-	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/*JUTest.class"/>
-                    <include name="**/*JUTests.class"/>
-                    <exclude name="**/*$*.class"/>
-                    <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
-		    <exclude name="**/tools/AstJUTest.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testCruiseControl" depends="compile"
-            description="Run all unit and system tests expected to pass.">
-        <mkdir dir="${test.results}"/>
-	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${junit.dir}">
-                <formatter type="brief" usefile="false" />
-                <formatter type="xml" />
-                <fileset dir="${build}">
-                    <include name="**/*JUTest.class"/>
-                    <include name="**/*JUTests.class"/>
-                    <exclude name="**/*$*.class"/>
-                    <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
-		    <exclude name="**/tools/AstJUTest.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
-	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testNotPassing" depends="compile"
-            description="Run system tests that aren't passing yet.">
-        <mkdir dir="${test.results}"/>
- 	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="brief" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/*NotPassingYet.class"/>
-                </fileset>
-            </batchtest>
-        </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to fail are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testSpecData" depends="compile"
-            description="Run SpecDataJUTests.">
-        <mkdir dir="${test.results}"/>
- 	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/SpecDataJUTest.class"/>
-                </fileset>
-            </batchtest>
-      </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testSystem" depends="compile"
-            description="Run SystemJUTests.">
-        <mkdir dir="${test.results}"/>
- 	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/SystemJUTest.class"/>
-                </fileset>
-            </batchtest>
-      </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testblas" depends="compile,blas" description="Test blas">
- 	<mkdir dir="${basedir}/test-tmp" />
-	    <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/BlasJxTest.class"/>
-                </fileset>
-            </batchtest>
-      </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testsyntax" depends="compile"
-            description="Run SyntaxAbstractionJUTests.">
-        <mkdir dir="${test.results}"/>
-	<mkdir dir="${basedir}/test-tmp" />
-        <junit printsummary="on"
-               haltonerror="off"
-               haltonfailure="off"
-               showoutput="yes"
-               fork="true"
-               maxmemory="${junitMem}"
-               errorProperty="tests.failed"
-               failureProperty="tests.failed">
-            <classpath refid="compile.classpath"/>
-	    <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-            <formatter type="plain" usefile="true"/>
-            <batchtest fork="true" todir="${test.results}">
-                <fileset dir="${build}">
-                    <include name="**/SyntaxAbstractionJUTest.class"/>
-		    <!--
-                    <include name="**/SyntaxAbstractionJUTestAll.class"/>
-		    -->
-                </fileset>
-            </batchtest>
-      </junit>
-	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-    </target>
-
-    <target name="testDemos" depends="compile"
-             description="Run demos in a test harness.">
-         <mkdir dir="${test.results}"/>
- 	<mkdir dir="${basedir}/test-tmp" />
-         <junit printsummary="on"
-                haltonerror="off"
-                haltonfailure="off"
-                showoutput="yes"
-                fork="true"
-                maxmemory="${junitMem}"
-                errorProperty="tests.failed"
-                failureProperty="tests.failed">
-             <classpath refid="compile.classpath"/>
-	     <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
-             <formatter type="brief" usefile="true"/>
-             <batchtest fork="true" todir="${test.results}">
-                 <fileset dir="${build}">
-                     <include name="**/DemoTests.class"/>
-                 </fileset>
-             </batchtest>
-        </junit>
- 	<delete dir="${basedir}/test-tmp" />
-        <fail message="Tests expected to pass are failing!" if="tests.failed"/>
-     </target>
-
-    <target name="testAll" depends="test, testNotPassing, testDemos, reportNotPassing"
-            description="Run all tests, including those known not to pass yet.">
-    </target>
-
-    <target name="testNightly" depends="test, testDemos, testsyntax"
-            description="Run tests, demos, and syntax abstraction tests.">
-    </target>
-
-    <target name="reportNotPassing"
-	    if="not.passing.yet"
-	    depends="test,testNotPassing">
-        <echo message="Some tests expected to fail still aren't passing."/>
-    </target>
-
-    <!-- If the generated file Fortress.java is no older than all rats files
+  <target name="test" depends="compile"
+          description="Run all unit and system tests expected to pass.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/*JUTest.class"/>
+          <include name="**/*JUTests.class"/>
+          <exclude name="**/*$*.class"/>
+          <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+          <exclude name="**/tools/AstJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testCruiseControl" depends="compile"
+          description="Run all unit and system tests expected to pass.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${junit.dir}">
+        <formatter type="brief" usefile="false" />
+        <formatter type="xml" />
+        <fileset dir="${build}">
+          <include name="**/*JUTest.class"/>
+          <include name="**/*JUTests.class"/>
+          <exclude name="**/*$*.class"/>
+          <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
+          <exclude name="**/tools/AstJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testNotPassing" depends="compile"
+          description="Run system tests that aren't passing yet.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="brief" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/*NotPassingYet.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to fail are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testSpecData" depends="compile"
+          description="Run SpecDataJUTests.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/SpecDataJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testSystem" depends="compile"
+          description="Run SystemJUTests.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/SystemJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testblas" depends="compile,blas" description="Test blas">
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/BlasJxTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testsyntax" depends="compile"
+          description="Run SyntaxAbstractionJUTests.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/SyntaxAbstractionJUTest.class"/>
+          <!--
+              <include name="**/SyntaxAbstractionJUTestAll.class"/>
+          -->
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testDemos" depends="compile"
+          description="Run demos in a test harness.">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${basedir}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${basedir}/test-tmp" />
+      <formatter type="brief" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/DemoTests.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${basedir}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+  
+  <target name="testAll" 
+          depends="test, testNotPassing, testDemos, reportNotPassing"
+          description="Run all tests, including those known not to pass yet.">
+  </target>
+  
+  <target name="testNightly" depends="test, testDemos, testsyntax"
+          description="Run tests, demos, and syntax abstraction tests.">
+  </target>
+  
+  <target name="reportNotPassing"
+          if="not.passing.yet"
+          depends="test,testNotPassing">
+    <echo message="Some tests expected to fail still aren't passing."/>
+  </target>
+  
+  <!-- If the generated file Fortress.java is no older than all rats files
        in the parser directory, then the parser must be up to date.
        This is a conservative test; a more precise test would perform a
        dependency analysis over Rats! code.-->
-    <target name="checkParserUptodate" depends="init">
-        <condition property="parser.uptodate">
-            <and>
-                <uptodate targetfile="${parser}/Fortress.java">
-                    <srcfiles dir="${parser}" includes="**/*.rats"/>
-                </uptodate>
-                <uptodate targetfile="${preparser}/PreFortress.java">
-                    <srcfiles dir="${parser}" includes="**/*.rats"/>
-                    <srcfiles dir="${preparser}" includes="**/*.rats"/>
-                </uptodate>
-                <uptodate targetfile="${templateparser}/TemplateParser.java">
-                    <srcfiles dir="${parser}" includes="**/*.rats"/>
-                    <srcfiles dir="${templateparser}" includes="**/*.rats"/>
-                </uptodate>
-            </and>
-        </condition>
-        <echo>Parser up to date? ${parser.uptodate}</echo>
-    </target>
-
-    <target name="checkFortressParserUptodate" depends="init">
-        <uptodate property="fortressparser.uptodate" targetfile="${parser}/Fortress.java">
-            <srcfiles dir="${parser}" includes="**/*.rats"/>
+  <target name="checkParserUptodate" depends="init">
+    <condition property="parser.uptodate">
+      <and>
+        <uptodate targetfile="${parser}/Fortress.java">
+          <srcfiles dir="${parser}" includes="**/*.rats"/>
         </uptodate>
-        <echo>Fortress parser up to date? ${parser.uptodate}</echo>
-    </target>
-
-    <target name="checkPreparserUptodate" depends="init">
-        <uptodate property="preparser.uptodate" targetfile="${preparser}/PreFortress.java">
-            <srcfiles dir="${parser}" includes="**/*.rats"/>
-            <srcfiles dir="${preparser}" includes="**/*.rats"/>
+        <uptodate targetfile="${preparser}/PreFortress.java">
+          <srcfiles dir="${parser}" includes="**/*.rats"/>
+          <srcfiles dir="${preparser}" includes="**/*.rats"/>
         </uptodate>
-        <echo>Preparser up to date? ${preparser.uptodate}</echo>
-    </target>
-
-    <target name="checkTemplateparserUptodate" depends="init">
-        <uptodate property="templateparser.uptodate" targetfile="${templateparser}/TemplateParser.java">
-            <srcfiles dir="${parser}" includes="**/*.rats"/>
-            <srcfiles dir="${templateparser}" includes="**/*.rats"/>
+        <uptodate targetfile="${templateparser}/TemplateParser.java">
+          <srcfiles dir="${parser}" includes="**/*.rats"/>
+          <srcfiles dir="${templateparser}" includes="**/*.rats"/>
         </uptodate>
-        <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
-    </target>
-
-    <target name="checkInstrumentedParserUptodate" depends="init">
-        <uptodate property="instrumentedparser.uptodate"
-                  targetfile="${parser}/FortressInstrumented.java">
-            <srcfiles dir="${parser}" includes="**/*.rats"/>
-            <srcfiles dir="${src}/${instrumentationPackage}"
-                      includes="*.java"/>
-        </uptodate>
-        <echo>Fortress parser up to date? ${parser.uptodate}</echo>
-    </target>
-
-    <macrodef name="buildparser">
-	      <attribute name="name" />
-	      <attribute name="file" />
-	      <attribute name="dir" />
-	      <sequential>
-		      <echo message="Rebuilding @{name}..."/>
-		      <java fork="yes"
-			    failonerror="yes"
-			    dir="@{dir}"
-			    classname="xtc.parser.Rats"
-			    classpath="${xtc}/xtc.jar">
-			    <arg value="-in"/>
-			    <arg value="${src}"/>
-			    <arg value="@{file}"/>
-		      </java>
-	      </sequential>
-    </macrodef>
-
-    <target name="fortressparser" unless="fortressparser.uptodate"
-            depends="checkFortressParserUptodate"
-            description="Fortress Parser">
-	    <buildparser name="Fortress" dir="${parser}" file="Fortress.rats" />
-    </target>
-
-    <!--
-    <target name="fortressparser" unless="fortreeparser.uptodate"
-            depends="checkFortressParserUptodate"
-            description="Fortress Parser">
-        <echo message="Rebuilding parser..."/>
-       <java fork="yes"
-             failonerror="yes"
-             dir="${parser}"
-             classname="xtc.parser.Rats"
-             classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="Fortress.rats"/>
-        </java>
-    </target>
-    -->
-
-    <target name="preparser" unless="preparser.uptodate"
-            depends="checkPreparserUptodate"
-            description="Preparser">
-	    <buildparser name="preparser" dir="${preparser}" file="PreFortress.rats" />
-    </target>
-
-    <!--
-    <target name="preparser" unless="preparser.uptodate"
-            depends="checkPreparserUptodate"
-            description="Preparser">
-        <echo message="Rebuilding preparser..."/>
-       <java fork="yes"
-             failonerror="yes"
-             dir="${preparser}"
-             classname="xtc.parser.Rats"
-             classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="PreFortress.rats"/>
-        </java>
-    </target>
-    -->
-
-    <target name="templateparser" unless="templateparser.uptodate"
-            depends="checkTemplateparserUptodate"
-            description="Templateparser">
-	    <buildparser name="template parser" dir="${templateparser}"
-		         file="TemplateParser.rats" />
-    </target>
-    <!--
-    <target name="templateparser" unless="templateparser.uptodate"
-            depends="checkTemplateparserUptodate"
-            description="Templateparser">
-        <echo message="Rebuilding template parser..."/>
-       <java fork="yes"
-             failonerror="yes"
-             dir="${templateparser}"
-             classname="xtc.parser.Rats"
-             classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="TemplateParser.rats"/>
-        </java>
-    </target>
-    -->
-
-    <target name="instrumentedparser" unless="instrumentedparser.uptodate"
-            depends="compile, checkInstrumentedParserUptodate"
-            description="Instrumented Parser">
-            <java fork="yes"
-                  maxmemory="256m"
-                  failonerror="yes"
-                  classname="${instrumentation.package}.InstrumentedParserGenerator">
-                <classpath refid="instrumentedparser.classpath"/>
-                <arg value="${parser}"/> <!-- input dir -->
-                <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
-            </java>
-    </target>
-
-    <target name="optimizeParser"
-            depends="compile"
-            description="Optimized Parser">
-            <java fork="yes"
-                  maxmemory="256m"
-                  failonerror="yes"
-                  classname="${instrumentation.package}.OptimizedParserGenerator">
-                <classpath refid="instrumentedparser.classpath"/>
-                <arg value="${parser}"/> <!-- input dir -->
-                <arg value="${parser}"/> <!-- output dir for Fortress.java -->
-                <arg value="${instrumentation.transient}"/>
-            </java>
-            <ant target="compile"/>
-    </target>
-
-    <target name="parser" unless="parser.uptodate"
-            depends="checkParserUptodate, operatorsGen"
-            description="Fortress Parser">
-
-	    <ant target="fortressparser" />
-	    <ant target="preparser" />
-	    <ant target="templateparser" />
-
-	    <!--
-       <echo message="Rebuilding parser..."/>
-       <java fork="yes"
-             failonerror="yes"
-             dir="${parser}"
-             classname="xtc.parser.Rats"
-             classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="Fortress.rats"/>
-        </java>
-        <echo message="Rebuilding the preparser..."/>
-        <java fork="yes"
+      </and>
+    </condition>
+    <echo>Parser up to date? ${parser.uptodate}</echo>
+  </target>
+  
+  <target name="checkFortressParserUptodate" depends="init">
+    <uptodate property="fortressparser.uptodate"
+              targetfile="${parser}/Fortress.java">
+      <srcfiles dir="${parser}" includes="**/*.rats"/>
+    </uptodate>
+    <echo>Fortress parser up to date? ${parser.uptodate}</echo>
+  </target>
+  
+  <target name="checkPreparserUptodate" depends="init">
+    <uptodate property="preparser.uptodate" 
+              targetfile="${preparser}/PreFortress.java">
+      <srcfiles dir="${parser}" includes="**/*.rats"/>
+      <srcfiles dir="${preparser}" includes="**/*.rats"/>
+    </uptodate>
+    <echo>Preparser up to date? ${preparser.uptodate}</echo>
+  </target>
+  
+  <target name="checkTemplateparserUptodate" depends="init">
+    <uptodate property="templateparser.uptodate" 
+              targetfile="${templateparser}/TemplateParser.java">
+      <srcfiles dir="${parser}" includes="**/*.rats"/>
+      <srcfiles dir="${templateparser}" includes="**/*.rats"/>
+    </uptodate>
+    <echo>Templateparser up to date? ${templateparser.uptodate}</echo>
+  </target>
+  
+  <target name="checkInstrumentedParserUptodate" depends="init">
+    <uptodate property="instrumentedparser.uptodate"
+              targetfile="${parser}/FortressInstrumented.java">
+      <srcfiles dir="${parser}" includes="**/*.rats"/>
+      <srcfiles dir="${src}/${instrumentationPackage}"
+                includes="*.java"/>
+    </uptodate>
+    <echo>Fortress parser up to date? ${parser.uptodate}</echo>
+  </target>
+  
+  <macrodef name="buildparser">
+    <attribute name="name" />
+    <attribute name="file" />
+    <attribute name="dir" />
+    <sequential>
+      <echo message="Rebuilding @{name}..."/>
+      <java fork="yes"
             failonerror="yes"
-            dir="${preparser}"
+            dir="@{dir}"
             classname="xtc.parser.Rats"
             classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="PreFortress.rats"/>
-        </java>
-        <echo message="Rebuilding the templateparser..."/>
-        <java fork="yes"
-            failonerror="yes"
-            dir="${templateparser}"
-            classname="xtc.parser.Rats"
-            classpath="${xtc}/xtc.jar">
-            <arg value="-in"/>
-            <arg value="${src}"/>
-            <arg value="TemplateParser.rats"/>
-        </java>
-	-->
-    </target>
-
-    <target name="compileGrammarCoverage" depends="compile, instrumentedparser">
-        <depend srcdir="${src}"
-         destdir="${build}"
-         closure="yes"
-         cache="${basedir}/.dependencies"/>
-        <javac
-            srcdir="${src}"
+        <arg value="-in"/>
+        <arg value="${src}"/>
+        <arg value="@{file}"/>
+      </java>
+    </sequential>
+  </macrodef>
+  
+  <target name="fortressparser" unless="fortressparser.uptodate"
+          depends="checkFortressParserUptodate"
+          description="Fortress Parser">
+    <buildparser name="Fortress" dir="${parser}" file="Fortress.rats" />
+  </target>
+  
+  <target name="preparser" unless="preparser.uptodate"
+          depends="checkPreparserUptodate"
+          description="Preparser">
+    <buildparser name="preparser" dir="${preparser}" file="PreFortress.rats" />
+  </target>
+  
+  <target name="templateparser" unless="templateparser.uptodate"
+          depends="checkTemplateparserUptodate"
+          description="Templateparser">
+    <buildparser name="template parser" dir="${templateparser}"
+                 file="TemplateParser.rats" />
+  </target>
+  
+  <target name="instrumentedparser" unless="instrumentedparser.uptodate"
+          depends="compile, checkInstrumentedParserUptodate"
+          description="Instrumented Parser">
+    <java fork="yes"
+          maxmemory="256m"
+          failonerror="yes"
+          classname="${instrumentation.package}.InstrumentedParserGenerator">
+      <classpath refid="instrumentedparser.classpath"/>
+      <arg value="${parser}"/> <!-- input dir -->
+      <arg value="${parser}"/> <!-- output dir for FortressInstrumented.java -->
+    </java>
+  </target>
+  
+  <target name="optimizeParser"
+          depends="compile"
+          description="Optimized Parser">
+    <java fork="yes"
+          maxmemory="256m"
+          failonerror="yes"
+          classname="${instrumentation.package}.OptimizedParserGenerator">
+      <classpath refid="instrumentedparser.classpath"/>
+      <arg value="${parser}"/> <!-- input dir -->
+      <arg value="${parser}"/> <!-- output dir for Fortress.java -->
+      <arg value="${instrumentation.transient}"/>
+    </java>
+    <ant target="compile"/>
+  </target>
+  
+  <target name="parser" unless="parser.uptodate"
+          depends="checkParserUptodate, operatorsGen"
+          description="Fortress Parser">
+    <ant target="fortressparser" />
+    <ant target="preparser" />
+    <ant target="templateparser" />
+  </target>
+  
+  <target name="compileGrammarCoverage" depends="compile, instrumentedparser">
+    <depend srcdir="${src}"
             destdir="${build}"
-            source="1.5"
-            debug="true"
-            includeantruntime="false"
-            fork="true"
-            memorymaximumsize="256M">
-            <!-- Uncomment the following line to print unchecked warnings
-                 (here and in the 'compileCommon' target. -->
-            <!-- <compilerarg value="-Xlint:unchecked"/> -->
-            <classpath refid="compile.classpath"/>
-            <include name="${packagePrefix}/parser/FortressInstrumented.java"/>
-        </javac>
-    </target>
-
-    <target name="grammarCoverage" depends="compileGrammarCoverage">
-        <java fork="yes"
-              failonerror="yes"
-              classname="${instrumentation.package}.Coverage"
-              output="${instrumentation.outfile}">
-          <classpath refid="compile.classpath"/>
-        </java>
-        <echo message="Wrote grammar coverage report to ${instrumentation.outfile}"/>
-    </target>
-
-    <target name="doc" depends="compile">
-        <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="256M">
-            <classpath refid="compile.classpath"/>
-            <packageset dir="${src}">
-                <include name="**/*"/>
-            </packageset>
-
-            <header><![CDATA[Fortress Interpreter]]></header>
-            <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
-            <group title="Evaluator Packages" packages="com.sun.fortress.interpreter.evaluator.*"/>
-
-            <link href="http://junit.org/junit/javadoc/3.8.1/"/>
-            <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
-            <link href="http://drjava.org/javadoc/plt/"/>
-        </javadoc>
-
-    </target>
-
+            closure="yes"
+            cache="${basedir}/.dependencies"/>
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true"
+        memorymaximumsize="256M">
+      <!-- Uncomment the following line to print unchecked warnings
+           (here and in the 'compileCommon' target. -->
+      <!-- <compilerarg value="-Xlint:unchecked"/> -->
+      <classpath refid="compile.classpath"/>
+      <include name="${packagePrefix}/parser/FortressInstrumented.java"/>
+    </javac>
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="${packagePrefix}/parser/FortressInstrumented.scala"/>
+    </scalac>
+  </target>
+  
+  <target name="grammarCoverage" depends="compileGrammarCoverage">
+    <java fork="yes"
+          failonerror="yes"
+          classname="${instrumentation.package}.Coverage"
+          output="${instrumentation.outfile}">
+      <classpath refid="compile.classpath"/>
+    </java>
+    <echo message="Wrote grammar coverage report to ${instrumentation.outfile}"/>
+  </target>
+  
+  <target name="doc" depends="compile">
+    <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="256M">
+      <classpath refid="compile.classpath"/>
+      <packageset dir="${src}">
+        <include name="**/*"/>
+      </packageset>
+      <header><![CDATA[Fortress Interpreter]]></header>
+      <doctitle><![CDATA[<h1>Fortress Interpreter Source Code</h1>]]></doctitle>
+      <group title="Evaluator Packages" 
+             packages="com.sun.fortress.interpreter.evaluator.*"/>
+      <link href="http://junit.org/junit/javadoc/3.8.1/"/>
+      <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+      <link href="http://drjava.org/javadoc/plt/"/>
+    </javadoc>
+  </target>
+  
   <target name="jar"
-	  depends="compile"
-	  description="Package up a Fortress distribution as a self-extracting jar.">
+          depends="compile"
+          description="Package up a Fortress distribution as a self-extracting jar.">
     <tstamp>
       <format
-	  property="jar.DSTAMP"
-	  timezone="GMT"
-	  pattern="yyyy_MMdd_hhmm"/>
+          property="jar.DSTAMP"
+          timezone="GMT"
+          pattern="yyyy_MMdd_hhmm"/>
     </tstamp>
-
+    
     <!-- Extract Ant jars into build directory to be packaged up.-->
     <unjar src="${protofortress}/lib/ant.jar" dest="${build}"/>
     <unjar src="${protofortress}/lib/ant-launcher.jar" dest="${build}"/>
-
+    
     <!-- Place anthooks.jar in the protofortress. -->
-    <copy file="${src}/com/sun/fortress/shell/anthooks.xml" todir="${protofortress}/bin"/>
-
+    <copy file="${src}/com/sun/fortress/shell/anthooks.xml" 
+          todir="${protofortress}/bin"/>
+    
     <!-- Package up class files as a new shell.jar,
-	 and place them in the protofortress. -->
+         and place them in the protofortress. -->
     <jar
-	destfile="fortress/FORTRESS/lib/shell.jar"
-	basedir="${build}"
-	includes="**/*"/>
-
+        destfile="fortress/FORTRESS/lib/shell.jar"
+        basedir="${build}"
+        includes="**/*"/>
+    
     <!-- Then package up the protofortress and place it
-	 in the build directory (so it can be extracted later). -->
+         in the build directory (so it can be extracted later). -->
     <jar
-	destfile="${build}/com/sun/fortress/shell/fortress.jar"
-	basedir="fortress"
-	includes="**/*" />
-
-    <!-- Write timestamp of jar creation to a file for retrieval during extraction. -->
+        destfile="${build}/com/sun/fortress/shell/fortress.jar"
+        basedir="fortress"
+        includes="**/*" />
+    
+    <!-- Write timestamp of jar creation to a file for retrieval during 
+         extraction. --> 
     <echo message="${jar.DSTAMP}" file="${build}/TIMESTAMP"/>
-
+    
     <!-- Finally, package up the build directory into a jar that
-	 extracts the protofortress at a destination site. -->
+         extracts the protofortress at a destination site. -->
     <jar
-	destfile="Fortress_${jar.DSTAMP}.jar"
-	basedir="${build}"
-	includes="**/*" >
+        destfile="Fortress_${jar.DSTAMP}.jar"
+        basedir="${build}"
+        includes="**/*" >
       <manifest>
-	<attribute name="Manifest-Version" value="${jar.DSTAMP}"/>
-	<attribute name="Created-By" value="Sun Microsystems, Inc."/>
-	<attribute name="Main-Class" value="com.sun.fortress.shell.Extractor"/>
-	<section name="common/class1.class">
-	  <attribute name="Sealed" value="false"/>
-	</section>
+        <attribute name="Manifest-Version" value="${jar.DSTAMP}"/>
+        <attribute name="Created-By" value="Sun Microsystems, Inc."/>
+        <attribute name="Main-Class" value="com.sun.fortress.shell.Extractor"/>
+        <section name="common/class1.class">
+          <attribute name="Sealed" value="false"/>
+        </section>
       </manifest>
     </jar>
   </target>
-
+  
   <target name="copy.anthooks" depends="init" unless="anthooks.uptodate">
     <copy file="${src}/com/sun/fortress/shell/anthooks.xml"
-	  todir="${build}/com/sun/fortress/shell"
-	  overwrite="false"/>
+          todir="${build}/com/sun/fortress/shell"
+          overwrite="false"/>
   </target>
-
+  
   <target name="installer" depends="compile"
-	  description="build a new installer as a jar">
+          description="build a new installer as a jar">
     <delete dir="${installerDir}"/>
     <mkdir dir="${installerDir}/fortress"/>
     <copy todir="${installerDir}/fortress/FORTRESS">
@@ -1184,29 +1204,29 @@ testOnly -DtestPattern='some pattern', testCruiseControl"/>
     </copy>
     <copy file="docs/installer/README.txt" todir="${installerDir}/fortress"/>
     <tar
-	destfile="fortress.tar.gz"
-	basedir="${installerDir}"
-	longfile="fail"
-	compression="gzip"
-	/>
+        destfile="fortress.tar.gz"
+        basedir="${installerDir}"
+        longfile="fail"
+        compression="gzip"
+        />
     <delete dir="${installerDir}"/>
   </target>
-
+  
   <target name="createNestedJarUpgrade"
-	  description="wrap up a jar for inclusion in a mock upgrade">
+          description="wrap up a jar for inclusion in a mock upgrade">
     <jar
-	destfile="jars/fortress_mock_upgrade/java/mock_upgrade.jar"
-	basedir="jars/nested_jar_upgrade"
-	includes="**/*"
-	/>
+        destfile="jars/fortress_mock_upgrade/java/mock_upgrade.jar"
+        basedir="jars/nested_jar_upgrade"
+        includes="**/*"
+        />
   </target>
-
+  
   <target name="createMockUpgrade" depends="createNestedJarUpgrade"
-	  description="build a mock upgrade file for testing selfupgrade">
+          description="build a mock upgrade file for testing selfupgrade">
     <jar
-	destfile="FORTRESS/test/fortress_mock_upgrade.jar"
-	basedir="jars/fortress_mock_upgrade"
-	includes="**/*"
-	/>
+        destfile="FORTRESS/test/fortress_mock_upgrade.jar"
+        basedir="jars/fortress_mock_upgrade"
+        includes="**/*"
+        />
   </target>
 </project>

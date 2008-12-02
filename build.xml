@@ -4,30 +4,51 @@
 <project name="ProjectFortress"
         default="compile"
         basedir="ProjectFortress">
-    <target name="compile">
-        <ant target="compile"/>
-    	<ant dir="../scala" target="compile"/>
-    </target>
-    <target name="blas">
-	<ant target="blas"/>
-    </target>
-    <target name="test">
-        <ant target="test"/>
-    </target>
-    <target name="clean">
-        <ant target="clean"/>
-        <ant dir="../scala" target="clean"/>
-    </target>
-    <target name="cleanCache">
-        <ant target="cleanCache"/>
-    </target>
-    <target name="testSystem">
-        <ant target="testSystem"/>
-    </target>
-    <target name="testOnly">
-        <ant target="testOnly" />
-    </target>
-    <target name="testsyntax">
-        <ant target="testsyntax" />
-    </target>
+  <!-- 
+       Taskdefs 
+  --> 
+  <taskdef resource="scala/tools/ant/antlib.xml">
+    <classpath refid="scala.classpath"/>
+  </taskdef>
+
+  <!-- 
+       Paths
+  -->
+  <path id="scala.classpath">
+    <pathelement location="${scala-compiler.jar}"/>
+    <pathelement location="${scala-library.jar}"/>
+  </path>
+
+  <!-- Scala jar files -->
+  <property name="scala-compiler.jar" 
+            value="${basedir}/third_party/scala/scala-compiler-2.7.1.jar"/>
+  <property name="scala-library.jar" 
+            value="${basedir}/third_party/scala/scala-library-2.7.1.jar"/>
+
+  <target name="compile">
+    <ant target="compile"/>
+    <ant dir="../scala" target="compile"/>
+  </target>
+  <target name="blas">
+    <ant target="blas"/>
+  </target>
+  <target name="test">
+    <ant target="test"/>
+  </target>
+  <target name="clean">
+    <ant target="clean"/>
+    <ant dir="../scala" target="clean"/>
+  </target>
+  <target name="cleanCache">
+    <ant target="cleanCache"/>
+  </target>
+  <target name="testSystem">
+    <ant target="testSystem"/>
+  </target>
+  <target name="testOnly">
+    <ant target="testOnly" />
+  </target>
+  <target name="testsyntax">
+    <ant target="testsyntax" />
+  </target>
 </project>
