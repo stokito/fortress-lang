@@ -47,6 +47,7 @@ import com.sun.fortress.useful.IMultiMap;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.UsefulPLT;
 import com.sun.tools.apt.mirror.type.TypeMaker;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -304,8 +305,8 @@ public abstract class ConstraintFormula {
                 }
             }	
 
-            this.ivarLowerBounds = Useful.shrinkMultiMap(newlowers);
-            this.ivarUpperBounds = Useful.shrinkMultiMap(newuppers);
+            this.ivarLowerBounds = UsefulPLT.shrinkMultiMap(newlowers);
+            this.ivarUpperBounds = UsefulPLT.shrinkMultiMap(newuppers);
             history = h;
         }
     	
@@ -353,7 +354,7 @@ public abstract class ConstraintFormula {
 					@Override
 					public Option<ConsList<_InferenceVarType>> for_InferenceVarType(_InferenceVarType that) {
 						// See if this var forms a cycle, and if not recur
-						if( Useful.consListContains(that, cur_path) && cur_path.size() > 1 ) 
+						if( UsefulPLT.consListContains(that, cur_path) && cur_path.size() > 1 ) 
 							return Option.some(cur_path);
 						else 
 							return findCycle(that, ConsList.cons(that, cur_path));
@@ -954,8 +955,8 @@ public abstract class ConstraintFormula {
 //            IMultiMap<_InferenceVarType,Type> lowers = new MultiMap<_InferenceVarType,Type>();
 //            lowers.putItem(var, bound);
             ConstraintFormula result =
-                new ConjunctiveFormula(Useful.<_InferenceVarType,Type>emptyMultiMap(), 
-                        Useful.singletonMultiMap(var, bound), history);
+                new ConjunctiveFormula(UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(), 
+                        UsefulPLT.singletonMultiMap(var, bound), history);
             debug.logEnd("result", result);
             return result;
         }
@@ -969,8 +970,8 @@ public abstract class ConstraintFormula {
         }
         else{
             ConstraintFormula result =
-                new ConjunctiveFormula(Useful.singletonMultiMap(var, bound), 
-                        Useful.<_InferenceVarType,Type>emptyMultiMap(), history);
+                new ConjunctiveFormula(UsefulPLT.singletonMultiMap(var, bound), 
+                        UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(), history);
             debug.logEnd("result", result);
             return result;
         }

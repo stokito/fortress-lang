@@ -19,7 +19,5 @@ package com.sun.fortress.useful;
 
 import edu.rice.cs.plt.lambda.Lambda;
 
-public abstract class Fn<T, U> implements Lambda<T, U> {
-    public abstract U apply(T x);
-    public U value(T arg) { return apply(arg); }
+public abstract class Fn<T, U> extends F<T,U> implements Lambda<T, U> {
 }

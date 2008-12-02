@@ -249,7 +249,7 @@ abstract public class FTraitOrObject extends FTraitOrObjectOrGeneric {
         ArrayList<TopSortItemImpl<FType>> unsorted = new ArrayList<TopSortItemImpl<FType>>();
         HashMap<FType, TopSortItemImpl<FType>> toItems = new HashMap<FType, TopSortItemImpl<FType>>();
         visitTrait(this, unsorted, toItems);
-        List<TopSortItemImpl<FType>> sorted = TopSort.<TopSortItemImpl<FType>>breadthFirst(unsorted);
+        List<TopSortItemImpl<FType>> sorted = TopSort.<TopSortItemImpl<FType>, FType>breadthFirst(unsorted);
         ArrayList<FType> l = new ArrayList<FType>(sorted.size());
         for (TopSortItemImpl<FType> x : sorted) l.add(x.x);
         return l;

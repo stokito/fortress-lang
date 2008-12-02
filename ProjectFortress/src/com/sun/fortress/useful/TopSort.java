@@ -40,7 +40,7 @@ public class TopSort {
      * @param unsorted Unordered list of items
      * @return breadth-first topologically ordered list of items.
      */
-    public static <T extends TopSortItem<T>> List<T> breadthFirst(Iterable<T> unsorted) {
+    public static <T extends TopSortItem<T, U>, U> List<T> breadthFirst(Iterable<T> unsorted) {
         Iterator<T> i = unsorted.iterator();
 
         ArrayList<T> sorted = new ArrayList<T>();
@@ -75,7 +75,7 @@ public class TopSort {
         return sorted;
     }
 
-    public static <T extends TopSortItem<T> > List<T> depthFirst(Iterable<T> unsorted) {
+    public static <T extends TopSortItem<T, U>, U> List<T> depthFirst(Iterable<T> unsorted) {
         Iterator<T> i = unsorted.iterator();
 
         int n = 0;

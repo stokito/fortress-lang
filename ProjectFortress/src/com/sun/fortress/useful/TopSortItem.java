@@ -19,7 +19,7 @@ package com.sun.fortress.useful;
 
 import java.util.Iterator;
 
-public interface TopSortItem<T extends TopSortItem<T>>  {
+public interface TopSortItem<T extends TopSortItem<T, U>, U>  {
     /**
      * Returns an iterator over the successors of this node.
      */
