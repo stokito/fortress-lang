@@ -489,10 +489,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         forOpRefDoFirst(that);
         recurOnOptionOfType(that.getExprType());
         recur(that.getOriginalName());
-        recurOnListOfOpName(that.getOps());
+        recurOnListOfOp(that.getOps());
         recurOnListOfStaticArg(that.getStaticArgs());
 
-        OpName op = that.getOriginalName();
+        Op op = that.getOriginalName();
         // Not handling
         if( (op instanceof Op) == false &&
             (op instanceof Enclosing) == false ) {
@@ -697,7 +697,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         return traitIndex.dottedMethods().containsFirst(fnRef.getOriginalName());
     }
 
-	private boolean isDeclaredInObjExpr(IdOrOpName name) {
+	private boolean isDeclaredInObjExpr(IdOrOp name) {
         ObjectExpr innerMostObjExpr = objExprStack.peek();
         Span objExprSpan = innerMostObjExpr.getSpan();
 		TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(innerMostObjExpr);
@@ -712,8 +712,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         Option<BindingLookup> bindingOutside = Option.<BindingLookup>none();
 		if(name instanceof Id) {
 		    bindingOutside = objExprTypeEnv.binding((Id) name);
-		} else if(name instanceof OpName) {
-		    bindingOutside = objExprTypeEnv.binding((OpName)name);
+		} else if(name instanceof Op) {
+		    bindingOutside = objExprTypeEnv.binding((Op)name);
 		} else {
 		    throw new DesugarerError("Querying binding from TypeEnv with" +
 		                " type " + name.getClass().toString() +
@@ -790,7 +790,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 		return false;
 	} */
 
-	private boolean isDeclaredAtTopLevel(IdOrOpName idOrOpName) {
+	private boolean isDeclaredAtTopLevel(IdOrOp idOrOp) {
 		// The first node in this stack must be declared at a top level
 		// Its corresponding environment must be the top level environment
 		Node topLevelNode = scopeStack.get(0);
@@ -803,43 +803,43 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 		if(topLevelEnv == null) {
 		    throw new DesugarerError("TypeEnv associated with "
 		            + topLevelNode + " is not found when querying for " +
-                    "type info for " + idOrOpName);
+                    "type info for " + idOrOp);
 		}
 
 	    Option<BindingLookup> binding = Option.<BindingLookup>none();
 	    Option<StaticParam> staticParam = Option.<StaticParam>none();
 
-	    if(idOrOpName instanceof Id) {
-	        binding = topLevelEnv.binding( (Id)idOrOpName );
-	        staticParam = topLevelEnv.staticParam( (Id)idOrOpName );
-	    } else if(idOrOpName instanceof OpName) {
-	        binding = topLevelEnv.binding( (OpName)idOrOpName );
+	    if(idOrOp instanceof Id) {
+	        binding = topLevelEnv.binding( (Id)idOrOp );
+	        staticParam = topLevelEnv.staticParam( (Id)idOrOp );
+	    } else if(idOrOp instanceof Op) {
+	        binding = topLevelEnv.binding( (Op)idOrOp );
 	    } else {
 	        throw new DesugarerError("Querying binding from TypeEnv with" +
-	                    " type " + idOrOpName.getClass().toString() +
+	                    " type " + idOrOp.getClass().toString() +
 	                    " is not supported.");
 	    }
 
 		if( binding.isNone() && staticParam.isNone() ) {
 			Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL,
-			        idOrOpName, " is NOT declared in top level env.");
+			        idOrOp, " is NOT declared in top level env.");
 			return false;
 		}
 
 		Debug.debug(Debug.Type.COMPILER, DEBUG_LEVEL,
-		            idOrOpName, " is declared in top level env.");
+		            idOrOp, " is declared in top level env.");
 
 		return true;
 	}
 
-    private boolean isShadowedInNode(Node enclosing, IdOrOpName idOrOpName) {
+    private boolean isShadowedInNode(Node enclosing, IdOrOp idOrOp) {
         Id name = null;
-        if(idOrOpName instanceof Id) {
-            name = (Id) idOrOpName;
+        if(idOrOp instanceof Id) {
+            name = (Id) idOrOp;
         } else { // FIXME: Need to support Op name later ...
             throw new DesugarerError("isShadowedInNode does not support " +
                 "checking name shadowing where the name is not an Id type: " +
-                idOrOpName);
+                idOrOp);
         }
 
         DecledNamesCollector collector = new DecledNamesCollector(enclosing);

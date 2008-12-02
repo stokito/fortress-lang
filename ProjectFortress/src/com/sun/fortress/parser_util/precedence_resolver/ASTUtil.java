@@ -28,13 +28,11 @@ import java.util.List;
 
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.ChainExpr;
-import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -59,8 +57,8 @@ public class ASTUtil {
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
         return ExprFactory.makeOpExpr(span, NodeFactory.makeOpInfix(op),
                                        left, right);
-    }   
-    
+    }
+
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
@@ -78,17 +76,17 @@ public class ASTUtil {
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
         Op infix_op_ = NodeFactory.makeOpInfix(op);
-        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,  Collections.<OpName>singletonList(infix_op_)); 
-        
+        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,  Collections.<Op>singletonList(infix_op_));
+
         Op multifix_op_ = NodeFactory.makeOpMultifix(op);
-        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,  Collections.<OpName>singletonList(multifix_op_));
-        
+        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,  Collections.<Op>singletonList(multifix_op_));
+
         if (args.size() > 2) {
         	return new AmbiguousMultifixOpExpr(span, false, infix_op, multifix_op, args);
-        } 
+        }
         else if (args.size() == 2) {
         	return new OpExpr(span, false, infix_op, args);
-              
+
         }
         else {
         	return error(op, "Operator fixity is invalid in its application.");
@@ -106,11 +104,11 @@ public class ASTUtil {
                                  List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
-            Enclosing en = new Enclosing(s, left, right);
+            Op en = NodeFactory.makeEnclosing(s, left.getText(), right.getText());
             OpRef ref = new OpRef(s,
-                    sargs,
-                    en,
-                                  Collections.<OpName>singletonList(en));
+                                  sargs,
+                                  en,
+                                  Collections.<Op>singletonList(en));
             return new OpExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +

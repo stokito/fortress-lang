@@ -164,10 +164,10 @@ FnHeaderFront OpHeaderFront =
             left.equals("\u007b|->") || left.equals("\u007b\u21a6")) &&
            (right.equals("}") || right.equals("\u007d"))) {
            if (big != null) {
-               leftOp = NodeFactory.makeOpBig(leftOp.getSpan(), "BIG " + left);
-               opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
+               left  = "BIG " + left;
+               right = "BIG " + right;
            }
-           name = new Enclosing(span, leftOp, opa4);
+           name = NodeFactory.makeEnclosing(span, left, right);
        } else
            name = syntaxError(leftOp.getSpan(),
                               "Mismatched enclosing operator definition: " +
@@ -238,10 +238,10 @@ FnHeaderFront AbsOpHeaderFront =
        if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
            left.equals("{|->") && right.equals("}")) {
            if (big != null) {
-               leftOp = NodeFactory.makeOpBig(leftOp.getSpan(), "BIG " + left);
-               opa4 = NodeFactory.makeOpBig(opa4.getSpan(), "BIG " + right);
+               left  = "BIG " + left;
+               right = "BIG " + right;
            }
-           name = new Enclosing(span, leftOp, opa4);
+           name = NodeFactory.makeEnclosing(span, left, right);
        } else
            name = syntaxError(leftOp.getSpan(),
                               "Mismatched enclosing operator definition: " +

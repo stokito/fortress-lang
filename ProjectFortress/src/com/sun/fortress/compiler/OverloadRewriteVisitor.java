@@ -32,7 +32,7 @@ import edu.rice.cs.plt.tuple.Option;
 public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     final private Map<String, List<Id>> overloadedFunctions = new HashMap<String, List<Id>>();
-    final private Map<String, List<OpName>> overloadedOperators = new HashMap<String, List<OpName>>();
+    final private Map<String, List<Op>> overloadedOperators = new HashMap<String, List<Op>>();
 
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
@@ -64,10 +64,10 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
-                             List<StaticArg> staticArgs, OpName originalName, List<OpName> ops,
+                             List<StaticArg> staticArgs, Op originalName, List<Op> ops,
                              Option<List<_RewriteOpRefOverloading>> overloadings) {
         if (ops.size() > 1) {
-            Collections.<OpName>sort(ops, NodeComparator.opNameComparer);
+            Collections.<Op>sort(ops, NodeComparator.opNameComparer);
             StringBuffer buffer = new StringBuffer();
             buffer.append(NodeUtil.nameString(originalName));
             buffer.append('{');
@@ -82,8 +82,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             if (!overloadedOperators.containsKey(overloadingName)) {
                 overloadedOperators.put(overloadingName, ops);
             }
-            OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
-            ops = Collections.unmodifiableList(Collections.singletonList(overloadingOpName));
+            Op overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
+            ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
         return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops,
                                   overloadings);
@@ -94,7 +94,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
         return overloadedFunctions;
     }
 
-    public Map<String, List<OpName>> getOverloadedOperators() {
+    public Map<String, List<Op>> getOverloadedOperators() {
         return overloadedOperators;
     }
 

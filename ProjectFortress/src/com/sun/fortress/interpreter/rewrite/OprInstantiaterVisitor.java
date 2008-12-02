@@ -25,7 +25,6 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
@@ -62,14 +61,14 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forOpRef(OpRef op) {
-        final OpName originalName = op.getOriginalName();
-        final List<OpName> ops = op.getOps();
+        final Op originalName = op.getOriginalName();
+        final List<Op> ops = op.getOps();
         final List<StaticArg> args = op.getStaticArgs();
         final Option<Type> otype = op.getExprType();
         final Type type = otype.isNone() ? null : otype.unwrap();
 
-        OpName n_originalName = (OpName) recur(originalName);
-        List<OpName> n_ops = recurOnListOfOpName(ops);
+        Op n_originalName = (Op) recur(originalName);
+        List<Op> n_ops = recurOnListOfOp(ops);
         List<StaticArg> n_args = recurOnListOfStaticArg(args);
         Type n_type = type == null ? (Type) null : (Type) recur(type);
 

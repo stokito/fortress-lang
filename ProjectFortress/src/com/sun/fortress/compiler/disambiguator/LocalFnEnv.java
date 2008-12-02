@@ -23,7 +23,7 @@ import java.util.Collections;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -43,7 +43,7 @@ public class LocalFnEnv extends DelegatingNameEnv {
         else { return super.explicitFunctionNames(name); }
     }
 
-    @Override public Set<OpName> explicitFunctionNames(OpName name) {
+    @Override public Set<Op> explicitFunctionNames(Op name) {
         if (_fns.contains(name)) {
             return Collections.singleton(name);
         }

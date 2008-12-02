@@ -262,9 +262,9 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         boolean isOprMethod = false;
         IdOrOpOrAnonymousName name = that.getName();
         if ( (inTrait || inObject) &&
-             (name instanceof OpName) ) {
-            isOprMethod = (! (name instanceof Enclosing) ) ||
-                          ((Enclosing)name).getOpen().getText().equals("|");
+             (name instanceof Op) ) {
+            isOprMethod = (! (((Op)name).isEnclosing()) ) ||
+                           ((Op)name).getText().equals("| |");
         }
         boolean hasSelf = false;
         if ( (! hasBody) && that.getReturnType().isNone() )

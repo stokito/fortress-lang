@@ -24,7 +24,7 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.index.GrammarIndex;
@@ -40,7 +40,7 @@ public abstract class TypeNameEnv {
     public abstract Option<APIName> apiName(APIName name);
 
     /** Determine whether a type parameter with the given name is defined. */
-    public abstract Option<StaticParam> hasTypeParam(IdOrOpName name);
+    public abstract Option<StaticParam> hasTypeParam(IdOrOp name);
 
     /**
      * Produce the set of unaliased qualified names corresponding to the given

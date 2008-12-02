@@ -41,10 +41,10 @@ import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
@@ -519,7 +519,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     final public  FValue getValueNull(OpRef vr) {
-        OpName name = vr.getOps().get(0);
+        Op name = vr.getOps().get(0);
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }
@@ -531,7 +531,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return getValueNullTail(name, l, local, opt_api);
     }
 
-      final public FValue getValueNull(OpName name, int l)
+      final public FValue getValueNull(Op name, int l)
             throws CircularDependenceError {
         // String s = NodeUtil.nameString(name);
         String local = NodeUtil.nameSuffixString(name);
@@ -546,7 +546,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
           return getValueTail(name, l, local, opt_api);
       }
 
-        final public FValue getValue(OpName name, int l)
+        final public FValue getValue(Op name, int l)
               throws CircularDependenceError {
           // String s = NodeUtil.nameString(name);
           String local = NodeUtil.nameSuffixString(name);
@@ -554,7 +554,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
           return getValueTail(name, l, local, opt_api);
 
       }
-        private FValue getValueTail(IdOrOpName name, int l, String local,
+        private FValue getValueTail(IdOrOp name, int l, String local,
               Option<APIName> opt_api) throws OptionUnwrapException,
               CircularDependenceError {
           FValue v = getValueNullTail(name, l, local, opt_api);
@@ -565,7 +565,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
                   (FValue) error(errorMsg("Missing value: ", local," in environment:\n",this));
     }
 
-      private FValue getValueNullTail(IdOrOpName name, int l, String local,
+      private FValue getValueNullTail(IdOrOp name, int l, String local,
               Option<APIName> opt_api) throws OptionUnwrapException,
               CircularDependenceError {
           if (opt_api.isSome()) {

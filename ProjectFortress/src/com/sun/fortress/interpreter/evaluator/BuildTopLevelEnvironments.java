@@ -34,14 +34,14 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
@@ -162,14 +162,14 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
         case 3: {
             String s = x.getName().stringName();
             OverloadedFunction of = (OverloadedFunction) bindInto.getRootValue(s);
-            for (IdOrOpName fn : x.getFns()) {
+            for (IdOrOp fn : x.getFns()) {
                 Option<APIName> oapi = fn.getApiName();
                 FValue oapi_val = null;
 
                 if (fn instanceof Id) {
                     oapi_val = bindInto.getValueNull((Id) fn, Environment.TOP_LEVEL); // top-level reference
-                } else if (fn instanceof OpName) {
-                    oapi_val = bindInto.getValueNull((OpName) fn, Environment.TOP_LEVEL); // top-level reference
+                } else if (fn instanceof Op) {
+                    oapi_val = bindInto.getValueNull((Op) fn, Environment.TOP_LEVEL); // top-level reference
                 } else {
                     bug("Unexpected change to AST node hierarchy");
                 }

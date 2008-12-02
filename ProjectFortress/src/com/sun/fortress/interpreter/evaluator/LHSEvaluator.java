@@ -43,6 +43,7 @@ import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.Name;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExtentRange;
@@ -50,7 +51,6 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
-import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
@@ -76,7 +76,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         List<FValue> args = new ArrayList<FValue>(1+indices.size());
         args.add(value);
         args.addAll(indices);
-        Option<Enclosing> op = x.getOp();
+        Option<Op> op = x.getOp();
         // Should evaluate obj.[](subs, value)
         String opString = "[]=";
         if (op.isSome()) {

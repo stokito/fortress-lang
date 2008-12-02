@@ -88,7 +88,6 @@ import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.DoFront;
-import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.ExponentiationMI;
 import com.sun.fortress.nodes.Expr;
@@ -120,7 +119,6 @@ import com.sun.fortress.nodes.NonExprMI;
 import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpName;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.ParenthesisDelimitedMI;
@@ -251,7 +249,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
             OpRef opr_ = possOp.unwrap();
-            //OpName opr = opr_.getOriginalName();
+            //Op opr = opr_.getOriginalName();
             Fcn fcn = (Fcn) getOp(opr_);// opr.accept(this);
             FValue lhsValue;
             if (lhsSize > 1) {
@@ -1058,7 +1056,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
 
-            OpName name = ref.getOriginalName();
+            Op name = ref.getOriginalName();
             if (!(name instanceof Op)) return false;
             else return (((Op)name).getText().equals("^") ||
                          OprUtil.isPostfix(name));
@@ -1084,7 +1082,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
 
-        OpName op = ref.getOriginalName();
+        Op op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = getOp(ref); //op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
@@ -1132,7 +1130,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                            " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
-        if (s <= 2 || (op instanceof Enclosing)) {
+        if (s <= 2 || op.isEnclosing()) {
             res = functionInvocation(vargs, fcn, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);
@@ -1170,7 +1168,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr obj = x.getObj();
         FValue arr = obj.accept(this);
         List<FValue> subs = evalExprListParallel(x.getSubs());
-        Option<Enclosing> op = x.getOp();
+        Option<Op> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
         String opString = "[]";
         if (op.isSome()) {
@@ -1271,7 +1269,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                        MathItem loc) {
         if (opr instanceof ExponentiationMI) {
             ExponentiationMI expo = (ExponentiationMI)opr;
-            OpName op = expo.getOp().getOriginalName();
+            Op op = expo.getOp().getOriginalName();
             FValue fvalue = getOp(expo.getOp()); //op.accept(this);
             if (!isFunction(fvalue))
                 return error(op, errorMsg("Operator ", op.stringName(),

@@ -172,7 +172,7 @@ public class NodeFactory {
         return makeId("$$bogus_name$$");
     }
 
-    public static OpName makeTemporaryOpName() {
+    public static Op makeTemporaryOp() {
         return makeOp("$$bogus_name$$");
     }
 
@@ -221,15 +221,15 @@ public class NodeFactory {
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
-            IdOrOpOrAnonymousName name) {
+                                                          IdOrOpOrAnonymousName name) {
         return new AliasedSimpleName(span, name, Option.<IdOrOpOrAnonymousName>none());
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span,
-            IdOrOpOrAnonymousName name,
-            Id alias) {
+                                                          IdOrOpOrAnonymousName name,
+                                                          Id alias) {
         return new AliasedSimpleName(span, name,
-                Option.<IdOrOpOrAnonymousName>some(alias));
+                                     Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id) {
@@ -237,17 +237,17 @@ public class NodeFactory {
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id,
-            Id alias) {
+                                                          Id alias) {
         return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     /** Alternatively, you can invoke the FnDecl constructor without an alias */
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op) {
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, Op op) {
         return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>none());
     }
 
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, OpName op,
-            OpName alias) {
+    public static AliasedSimpleName makeAliasedSimpleName(Span span, Op op,
+                                                          Op alias) {
         return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
@@ -839,8 +839,9 @@ public class NodeFactory {
         return new MatrixType(span, element, dims);
     }
 
-    public static Enclosing makeEnclosing(Span in_span, Op in_open, Op in_close) {
-        return new Enclosing(in_span, in_open, in_close);
+    public static Op makeEnclosing(Span in_span, String in_open, String in_close) {
+        return new Op(in_span, PrecedenceMap.ONLY.canon(in_open + " " + in_close),
+                      enclosing, true);
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
@@ -854,95 +855,92 @@ public class NodeFactory {
     private static Fixity unknownFix = new UnknownFixity(makeSpan("singleton"));
 
     public static Op makeOp(String name) {
-        return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix);
+        return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
     public static Op makeOp(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
     public static Op makeOp(Span span, String name, Fixity fixity) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), fixity);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), fixity, false);
     }
 
     public static Op makeOp(Op op, String name) {
         return new Op(op.getSpan(), PrecedenceMap.ONLY.canon(name),
-                op.getFixity());
+                      op.getFixity(), op.isEnclosing());
     }
 
     public static Op makeOpInfix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), infix);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), infix, false);
     }
 
     public static Op makeOpInfix(Span span, String apiName, String name) {
-        Op op =  new Op(span, Option.some(NodeFactory.makeAPIName(apiName)), PrecedenceMap.ONLY.canon(name), infix);
+        Op op =  new Op(span, Option.some(NodeFactory.makeAPIName(apiName)),
+                        PrecedenceMap.ONLY.canon(name), infix, false);
         return op;
 
     }
 
     public static Op makeOpInfix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), infix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), infix, op.isEnclosing());
     }
 
     public static Op makeOpPrefix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), prefix);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), prefix, false);
     }
 
     public static Op makeOpPrefix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), prefix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), prefix, op.isEnclosing());
     }
 
     public static Op makeOpPostfix(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), postfix);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), postfix, false);
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), postfix);
+        return new Op(op.getSpan(), op.getApiName(), op.getText(), postfix, op.isEnclosing());
     }
 
     /**
-     * Rewrites the given OpName with the given api. Dispatches on the
-     * type of op, so that the same subtype of OpName is created.
+     * Rewrites the given Op with the given api. Dispatches on the
+     * type of op, so that the same subtype of Op is created.
      */
-    public static OpName makeOpName(final APIName api, OpName op) {
-        return op.accept(new NodeAbstractVisitor<OpName>(){
-            @Override
-            public OpName forEnclosing(Enclosing that) { return new Enclosing(that.getSpan(), Option.some(api), that.getOpen(), that.getClose()); }
-            @Override
-            public OpName forOp(Op that) { return new Op(that.getSpan(), Option.some(api), that.getText(), that.getFixity() ); }
-            @Override
-            public OpName forOpName(OpName that) { return bug("A case was missed in the implementation of makeOpName."); }
-
-        });
+    public static Op makeOp(final APIName api, Op op) {
+        return new Op(op.getSpan(), Option.some(api),
+                      op.getText(), op.getFixity(), op.isEnclosing() );
     }
 
     public static Op makeOpNofix(Op op) {
-        return new Op(op.getSpan(), op.getText(), nofix);
+        return new Op(op.getSpan(), op.getText(), nofix, op.isEnclosing());
     }
 
     public static Op makeOpMultifix(Op op) {
-        return new Op(op.getSpan(), op.getText(), multifix);
+        return new Op(op.getSpan(), op.getText(), multifix, op.isEnclosing());
     }
 
     public static Op makeOpEnclosing(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), enclosing);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), enclosing, false);
     }
 
     public static Op makeOpBig(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), big);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), big, false);
     }
 
     public static Op makeOpUnknown(Span span, String name) {
-        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix);
+        return new Op(span, PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
-        public static Op makeBig(Op op) {
-            return new Op(op.getSpan(), PrecedenceMap.ONLY.canon("BIG " + op.getText()), big);
-        }
-
-        public static Enclosing makeBig(Enclosing op) {
-            return new Enclosing(op.getSpan(), makeBig(op.getOpen()), makeBig(op.getClose()));
-        }
+    public static Op makeBig(Op op) {
+        if ( op.isEnclosing() ) {
+            String _op = op.getText();
+            String left  = _op.split(" ")[0];
+            String right = "BIG " + _op.substring(left.length()+1);
+            left  = "BIG " + left;
+            return makeEnclosing(op.getSpan(), left, right);
+        } else
+            return new Op(op.getSpan(), PrecedenceMap.ONLY.canon("BIG " + op.getText()), big, op.isEnclosing() );
+    }
 
     public static Param makeVarargsParam(Id name, Type type) {
         return new Param(name.getSpan(), name, Collections.<Modifier>emptyList(),
@@ -1322,10 +1320,8 @@ public class NodeFactory {
         return new IntRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
     }
 
-    public static OpName makeListOpName(Span span) {
-        Op open = NodeFactory.makeOpEnclosing(span, "<|");
-        Op close = NodeFactory.makeOpEnclosing(span, "|>");
-        return new Enclosing(FortressUtil.spanTwo(open,close), open,close);
+    public static Op makeListOp(Span span) {
+        return makeEnclosing(span, "<|", "|>");
     }
 
     public static NamedType makeNamedType(APIName api, NamedType type) {

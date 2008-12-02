@@ -112,7 +112,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 	public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
         // If there is a colon at all, the operator is no longer ambiguous:
         // It must be infix.
-        OpName op_name = IterUtil.first(that.getInfix_op().getOps());
+        Op op_name = IterUtil.first(that.getInfix_op().getOps());
         boolean prefix = OprUtil.hasPrefixColon(op_name);
         boolean suffix = OprUtil.hasSuffixColon(op_name);
 
@@ -151,7 +151,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         List<Expr> args = opExp.getArgs();
 
         if (args.size() <= 1) return opExp;
-        OpName qop = IterUtil.first(ref.getOps());
+        Op qop = IterUtil.first(ref.getOps());
 
         if (OprUtil.isEnclosing(qop)) return opExp;
         if (OprUtil.isUnknownFixity(qop))
@@ -185,7 +185,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
-                                  OpName op, Expr body,
+                                  Op op, Expr body,
                                   List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
         Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);

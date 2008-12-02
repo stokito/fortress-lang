@@ -356,7 +356,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                      String name_result,
                                                      Option<String> alias_result) {
         StringBuilder s = new StringBuilder();
-        if ( that.getName() instanceof OpName) {
+        if ( that.getName() instanceof Op) {
             s.append( "opr " ).append( name_result );
         } else {
             s.append( name_result );
@@ -630,6 +630,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
             @Override public String forOp(final Op opThat) {
                 final String oper = opThat.getText();
+                if ( opThat.isEnclosing() ) {
+                    String left  = oper.split(" ")[0];
+                    String right = oper.substring(left.length()+1);
+                    right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
+                    String params = vparams.equals("()") ? "" : vparams;
+                    params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
+                    return "opr " + left + sparams + " " + params + " " + right;
+                }
                 return opThat.getFixity().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
                         return "opr " + oper + sparams + inParentheses(vparams);
@@ -655,15 +663,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                         return "opr " + oper + sparams + inParentheses(vparams);
                     }
                 });
-            }
-
-            @Override public String forEnclosing(Enclosing that) {
-                String left = that.getOpen().getText();
-                String right = that.getClose().getText();
-                right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
-                String params = vparams.equals("()") ? "" : vparams;
-                params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
-                return "opr " + left + sparams + " " + params + " " + right;
             }
         }));
 
@@ -1375,10 +1374,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                String body_result) {
         StringBuilder s = new StringBuilder();
 
-        if ( that.getAccOp() instanceof Enclosing) { // comprehensions
-            Enclosing _op = (Enclosing)that.getAccOp();
-            String left = _op.getOpen().getText();
-            String right = _op.getClose().getText();
+        if ( that.getAccOp().isEnclosing()) { // comprehensions
+            Op _op = that.getAccOp();
+            String op = _op.getText();
+            String left  = op.split(" ")[0];
+            String right = op.substring(left.length()+1);
             left = left.startsWith("BIG") ? left.substring(4, left.length()) : left;
             String closing = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
             String sargs = inOxfordBrackets(staticArgs_result);
@@ -1813,6 +1813,44 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( that.getOp().getOriginalName().accept( new NodeDepthFirstVisitor<String>(){
             @Override public String forOp(final Op opThat) {
                 final String oper = canonicalOp( opThat.getText() );
+                if ( opThat.isEnclosing() ) {
+                    String op = opThat.getText();
+                    String left  = op.split(" ")[0];
+                    String right = op.substring(left.length()+1);
+                    String staticArgs = "";
+                    List<StaticArg> sargs = that.getOp().getStaticArgs();
+                    if ( ! sargs.isEmpty() ) {
+                        List<String> _sargs = new ArrayList<String>();
+                        for (StaticArg sarg : sargs) {
+                            _sargs.add( sarg.accept(visitor) );
+                        }
+                        staticArgs = inOxfordBrackets(_sargs);
+                    }
+                    if ( left.equals("{|->") ) {
+                        StringBuilder s = new StringBuilder();
+
+                        s.append( "{" );
+                        s.append( staticArgs );
+                        s.append( " " );
+                        List<Expr> exprs = that.getArgs();
+                        if ( ! exprs.isEmpty() ) {
+                            for ( Expr expr : IterUtil.skipLast(exprs) ) {
+                                s.append( handleMapElem(expr, that,
+                                                        visitor) );
+                                s.append( ", " );
+                            }
+                            s.append( handleMapElem(IterUtil.last(exprs),
+                                                    that, visitor) );
+                        }
+                        s.append( " }" );
+                        return s.toString();
+                    } else {
+                        return (left + staticArgs +
+                                join(args_result, ", ").trim() +
+                                right);
+                    }
+                }
+
                 return opThat.getFixity().accept( new NodeDepthFirstVisitor<String>(){
                     @Override public String forPreFixityOnly(PreFixity that) {
                         assert( args_result.size() == 1 );
@@ -1847,44 +1885,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                         return oper + inParentheses( args_result );
                     }
                 });
-            }
-
-            @Override public String forEnclosing(Enclosing opThat) {
-                String left = opThat.getOpen().getText();
-                String right = opThat.getClose().getText();
-                String staticArgs = "";
-                List<StaticArg> sargs = that.getOp().getStaticArgs();
-                if ( ! sargs.isEmpty() ) {
-                    List<String> _sargs = new ArrayList<String>();
-                    for (StaticArg sarg : sargs) {
-                        _sargs.add( sarg.accept(visitor) );
-                    }
-                    staticArgs = inOxfordBrackets(_sargs);
-                }
-                if ( left.equals("{|->") ) {
-                    StringBuilder s = new StringBuilder();
-
-                    s.append( "{" );
-                    s.append( staticArgs );
-                    s.append( " " );
-                    List<Expr> exprs = that.getArgs();
-                    if ( ! exprs.isEmpty() ) {
-                        for ( Expr expr : IterUtil.skipLast(exprs) ) {
-                            s.append( handleMapElem(expr, that,
-                                                    visitor) );
-                            s.append( ", " );
-                        }
-                        s.append( handleMapElem(IterUtil.last(exprs),
-                                                that, visitor) );
-                    }
-                    s.append( " }" );
-
-                    return s.toString();
-                } else {
-                    return (left + staticArgs +
-                            join(args_result, ", ").trim() +
-                            right);
-                }
             }
         }));
 
@@ -2742,22 +2742,22 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forOpOnly(Op that,
                                       Option<String> api_result,
                                       String fixity_result) {
+        if ( that.isEnclosing() ) {
+            StringBuilder s = new StringBuilder();
+
+            String op = that.getText();
+            String left  = op.split(" ")[0];
+            String right = op.substring(left.length()+1);
+
+            s.append( left );
+            s.append( " " );
+            s.append( right.startsWith("BIG") ?
+                      right.substring(4, right.length()) :
+                      right );
+
+            return s.toString();
+        }
         return canonicalOp( that.getText() );
-    }
-
-    @Override public String forEnclosingOnly(Enclosing that,
-                                             Option<String> api_result,
-                                             String open_result,
-                                             String close_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( open_result );
-        s.append( " " );
-        s.append( close_result.startsWith("BIG") ?
-                  close_result.substring(4, close_result.length()) :
-                  close_result );
-
-        return s.toString();
     }
 
     @Override public String forAnonymousFnNameOnly(AnonymousFnName that,
@@ -2956,12 +2956,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                   List<String> staticArgs_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( that.getOp().getOpen().getText() );
+        String op = that.getOp().getText();
+        String left  = op.split(" ")[0];
+        String right = op.substring(left.length()+1);
+        s.append( left );
         inOxfordBrackets(s,  staticArgs_result );
         s.append( " " );
         s.append( join(exprs_result, ", ") );
         s.append( " " );
-        s.append( that.getOp().getClose().getText() );
+        s.append( right );
 
         return s.toString();
     }
