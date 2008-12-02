@@ -32,14 +32,6 @@ maintain proper indentation.
 
 
   <!-- 
-       Taskdefs 
-  --> 
-  <taskdef resource="scala/tools/ant/antlib.xml">
-    <classpath refid="scala.classpath"/>
-  </taskdef>
-
-
-  <!-- 
        Properties
   --> 
 
@@ -189,7 +181,15 @@ maintain proper indentation.
     <pathelement location="${junit}/junit.jar"/>
     <pathelement location="${ant.home}/lib/ant.jar"/>
   </path>
-  
+
+
+  <!-- 
+       Taskdefs 
+  --> 
+  <taskdef resource="scala/tools/ant/antlib.xml">
+    <classpath refid="scala.classpath"/>
+  </taskdef>
+
 
   <!-- 
        Targets
@@ -208,6 +208,7 @@ maintain proper indentation.
 
   <target name="systemProperties">
     <echo message="Environment variables set correctly? ${correct.environment}"/>
+    <echo message="basedir: ${basedir}"/>
     <echo message="Ant Java version: ${ant.java.version}"/>
     <echo message="Ant called from script? ${env.ANT_CALLED_FROM_SCRIPT}"/>
     <echo message="ANT_ARGS: ${env.ANT_ARGS}"/>
