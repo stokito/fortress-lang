@@ -1,4 +1,4 @@
-package com.sun.fortress.scalasrc.useful
+package com.sun.fortress.scala_src.useful
 import _root_.scala.{List => ScalaList}
 import _root_.java.util.{LinkedList => JavaLinkedList}
 import _root_.java.util.{List => JavaList}
