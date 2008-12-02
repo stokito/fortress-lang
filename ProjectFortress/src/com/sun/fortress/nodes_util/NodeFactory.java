@@ -1055,8 +1055,10 @@ public class NodeFactory {
         return new TupleType(span, elements);
     }
 
-    public static VoidType makeVoidType(Span span) {
-        return new VoidType(span, false);
+    public static TupleType makeVoidType(Span span) {
+        return new TupleType(span, false, Collections.<Type>emptyList(),
+                             Option.<Type>none(),
+                             Collections.<KeywordType>emptyList());
     }
 
     public static TypeArg makeTypeArg(Type ty) {
@@ -1264,10 +1266,7 @@ public class NodeFactory {
             }
             public Type forTupleType(TupleType t) {
                 return new TupleType(t.getSpan(), true, t.getElements(),
-                                     t.getVarargs());
-            }
-            public Type forVoidType(VoidType t) {
-                return new VoidType(t.getSpan(), true);
+                                     t.getVarargs(), t.getKeywords());
             }
             public Type forTaggedDimType(TaggedDimType t) {
                 return new TaggedDimType(t.getSpan(), true, t.getElemType(),

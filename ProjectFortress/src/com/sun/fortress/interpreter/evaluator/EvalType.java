@@ -126,7 +126,8 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
 
     public List<FType> getFTypeListFromList(List<? extends Type> l) {
-        if (l == null || l.size() == 1 && (l.get(0) instanceof VoidType)) {
+        if (l == null ||
+            l.size() == 1 && NodeUtil.isVoidType(l.get(0))) {
             // Flatten out voids.
             // Should this be mutable?
             return Collections.<FType>emptyList();
@@ -326,8 +327,6 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         return FTypeOpr.make(NodeUtil.nameString(b.getName().getOriginalName()));
     }
 
-    public FType forVoidType(VoidType v) { return FTypeVoid.ONLY; }
-
     /* (non-Javadoc)
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forIntArg(com.sun.fortress.interpreter.nodes.IntArg)
      */
@@ -411,7 +410,9 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType forTupleType(TupleType tt) {
-        if ( tt.getVarargs().isNone() ) {
+        if ( NodeUtil.isVoidType(tt) )
+            return FTypeVoid.ONLY;
+        else if ( tt.getVarargs().isNone() ) {
             List<FType> elts = getFTypeListFromList(tt.getElements());
             return FTypeTuple.make(elts);
         } else {

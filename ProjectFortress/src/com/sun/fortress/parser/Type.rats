@@ -215,7 +215,7 @@ private Type TypeRef =
 /* VoidType ::= ( w ) */
 private Type VoidType =
      openparen w closeparen
-     { yyValue = new VoidType(createSpan(yyStart,yyCount)); };
+     { yyValue = NodeFactory.makeVoidType(createSpan(yyStart,yyCount)); };
 
 /* TypeTail ::=
      ArrayTypeSize

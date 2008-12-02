@@ -2174,10 +2174,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forVoidTypeOnly(VoidType that) {
-        return "()";
-    }
-
     @Override public String forArrowTypeOnly(ArrowType that,
                                              String domain_result,
                                              String range_result,

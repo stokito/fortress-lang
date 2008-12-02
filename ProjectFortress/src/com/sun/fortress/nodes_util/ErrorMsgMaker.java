@@ -117,10 +117,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "()";
     }
 
-    public String forVoidType(VoidType t) {
-        return "()";
-    }
-
     public String forNumberConstraint(NumberConstraint node) {
         return node.getIntVal().accept(this);
     }

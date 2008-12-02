@@ -125,7 +125,7 @@ api FortressSyntax
     LeftEncloser : Op
     RightEncloser : Op
     ExponentOp : Op
-    EncloserPair : Enclosing
+    EncloserPair : Op
     Op : Op
     CompoundOp : Op
     Accumulator : Op

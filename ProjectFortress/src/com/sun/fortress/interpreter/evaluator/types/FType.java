@@ -37,9 +37,9 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.VoidType;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BoundingMap;
@@ -490,7 +490,8 @@ abstract public class FType implements Comparable<FType> {
         FType other = null;
         if (! (val instanceof VarType)) {
             if (DUMP_UNIFY) System.out.print("builtin ");
-            if (val instanceof VoidType) {
+            if (val instanceof TupleType &&
+                NodeUtil.isVoidType((TupleType)val)) {
                 other = FTypeVoid.ONLY;
             }
         } else if (name.equals(NodeUtil.nameString(((VarType)val).getName()))) {
@@ -499,8 +500,8 @@ abstract public class FType implements Comparable<FType> {
         } else {
             VarType vtval = (VarType)val;
             other = env.getTypeNull(vtval);
-            
-                
+
+
             if (DUMP_UNIFY && other==null) System.out.print("undef second ");
         }
         if (!rc) {

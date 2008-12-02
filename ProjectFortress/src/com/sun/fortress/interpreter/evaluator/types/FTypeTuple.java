@@ -33,7 +33,7 @@ import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.VoidType;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BoundingMap;
 import com.sun.fortress.useful.Factory1;
 import com.sun.fortress.useful.Memo1C;
@@ -375,13 +375,12 @@ public class FTypeTuple extends FType {
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
         List<Type> elements;
         Option<Type> vargs;
-        if (val instanceof VoidType) {
-            elements = Collections.emptyList();
-            vargs = Option.none();
-        }
-        else if (val instanceof TupleType) {
+        if (val instanceof TupleType) {
             TupleType _val = (TupleType) val;
-            if ( _val.getVarargs().isNone() ) {
+            if ( NodeUtil.isVoidType(_val) ) {
+                elements = Collections.emptyList();
+                vargs = Option.none();
+            } else if ( _val.getVarargs().isNone() ) {
                 elements = _val.getElements();
                 vargs = Option.none();
             } else {

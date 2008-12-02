@@ -1341,18 +1341,18 @@ interface Node() extends HasAt;
                  * e.g.) ZZ32
                  * e.g.) (String, ZZ32, String..., foo=ZZ32)
                  *
+                 * If this tuple type does not have any elements,
+                 * it is a void type.
+                 * void type
+                 * NonArrowType ::= ()
+                 * e.g.) ()
+                 *
                  * <varargs>
                  * It has a varargs parameter if the varargs field is set.
                  */
                 TupleType(List<Type> elements,
                           Option<Type> varargs = Option.<Type>none(),
                           List<KeywordType> keywords = Collections.<KeywordType>emptyList());
-                /**
-                 * void type
-                 * NonArrowType ::= ()
-                 * e.g.) ()
-                 */
-                VoidType();
                 /**
                  * arrow type
                  */
