@@ -106,7 +106,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
     public boolean seqv(FValue v) { return false; }
 
     protected Simple_fcn newClosure(Environment clenv, List<FType> args) {
-        Closure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new Closure(clenv, fndef, args);
+        FunctionClosure cl = FType.anyAreSymbolic(args) ? new ClosureInstance(clenv, fndef, args, this) : new FunctionClosure(clenv, fndef, args);
         cl.finishInitializing();
         return cl;
     }

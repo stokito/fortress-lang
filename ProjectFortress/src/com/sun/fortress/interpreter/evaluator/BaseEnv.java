@@ -29,7 +29,7 @@ import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
@@ -381,8 +381,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
 
     abstract public  Number getNatNull(String str);
 
-    public Closure getRunClosure() {
-        return (Closure) getRootValue("run");
+    public FunctionClosure getRunClosure() {
+        return (FunctionClosure) getRootValue("run");
     }
 
     final public  FType getType(VarType q)  {
@@ -626,8 +626,8 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     // TODO this needs to be level-disambiguated
-    public Closure getClosure(String s) {
-        return (Closure) getLeafValue(s);
+    public FunctionClosure getClosure(String s) {
+        return (FunctionClosure) getLeafValue(s);
     }
 
     public void putVariable(String str, FValue f2) {

@@ -52,23 +52,23 @@ import edu.rice.cs.plt.tuple.Option;
 /**
  * A Closure value is a function, plus some environment information.
  */
-public class Closure extends NonPrimitive implements Scope {
+public class FunctionClosure extends NonPrimitive implements Scope {
 
     protected FType returnType;
     protected List<FType> instArgs;
     protected Applicable def;
 
-    public Closure(Environment e, Applicable fndef) {
+    public FunctionClosure(Environment e, Applicable fndef) {
         super(e); // TODO verify that this is the proper environment
         def = NativeApp.checkAndLoadNative(fndef);
     }
 
-    public Closure(Environment e, Applicable fndef, boolean isFunctionalMethod) {
+    public FunctionClosure(Environment e, Applicable fndef, boolean isFunctionalMethod) {
         super(e); // TODO verify that this is the proper environment
         def = NativeApp.checkAndLoadNative(fndef,isFunctionalMethod);
     }
 
-    protected Closure(Environment e, Applicable fndef, List<FType> args) {
+    protected FunctionClosure(Environment e, Applicable fndef, List<FType> args) {
         super(e);
         def = NativeApp.checkAndLoadNative(fndef);
         instArgs = args;
@@ -77,7 +77,7 @@ public class Closure extends NonPrimitive implements Scope {
     /*
      * Just like the PartiallyDefinedMethod, but used a specific environemnt
      */
-    public Closure(TraitMethod method, Environment environment) {
+    public FunctionClosure(TraitMethod method, Environment environment) {
         super(environment);
         def = NativeApp.checkAndLoadNative(method.def);
         instArgs = method.instArgs;
@@ -137,8 +137,8 @@ public class Closure extends NonPrimitive implements Scope {
     }
 
     public boolean seqv(FValue v) {
-        if (!(v instanceof Closure)) return false;
-        Closure c = (Closure) v;
+        if (!(v instanceof FunctionClosure)) return false;
+        FunctionClosure c = (FunctionClosure) v;
         if (getDef() != c.getDef()) return false;
         if (type()   != c.type()) return false;
         if (getEnv() == c.getEnv()) return true;
@@ -156,7 +156,7 @@ public class Closure extends NonPrimitive implements Scope {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass().equals(this.getClass())) {
-            Closure oc = (Closure) o;
+            FunctionClosure oc = (FunctionClosure) o;
             return def == oc.def &&
             getEnv() == oc.getEnv() &&
             (instArgs == null ? (oc.instArgs == null) :

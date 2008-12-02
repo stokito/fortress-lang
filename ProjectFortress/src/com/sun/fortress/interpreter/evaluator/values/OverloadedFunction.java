@@ -156,8 +156,8 @@ public class  OverloadedFunction extends Fcn
 
             String ps = ol.ps != null ? String.valueOf(ol.ps) + " " : "";
 
-            if (sfcn instanceof Closure)  {
-                Closure cl = (Closure) sfcn;
+            if (sfcn instanceof FunctionClosure)  {
+                FunctionClosure cl = (FunctionClosure) sfcn;
                 if (! cl.getFinished())
                     cl.finishInitializing();
 

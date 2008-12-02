@@ -41,7 +41,7 @@ import com.sun.fortress.interpreter.evaluator.tasks.TupleTask;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.interpreter.evaluator.values.FAsIf;
@@ -832,7 +832,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forFnExpr(FnExpr x) {
         Option<Type> return_type = x.getReturnType();
         List<Param> params = x.getParams();
-        Closure cl = new Closure(e, x); // , return_type, params);
+        FunctionClosure cl = new FunctionClosure(e, x); // , return_type, params);
         cl.finishInitializing();
         return cl;
     }

@@ -26,7 +26,7 @@ import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.env.IndirectionCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
@@ -71,7 +71,7 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
             List<Param> params = fn.getParams();
             Option<Type> retType = fn.getReturnType();
 
-            Closure cl = new Closure(containing, fn);
+            FunctionClosure cl = new FunctionClosure(containing, fn);
             try {
                 containing.putValue(fname, cl);
             } catch (FortressException pe) {

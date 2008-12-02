@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
@@ -74,7 +74,7 @@ public interface Environment  {
 
     //public boolean hasType(String str);
 
-    public abstract Closure getClosure(String toBeRun);
+    public abstract FunctionClosure getClosure(String toBeRun);
 
     public abstract Number getIntNull(String s); // 1 trivial ref
 
@@ -85,7 +85,7 @@ public interface Environment  {
     public abstract Number getNatNull(String s);
     // used only by getNat (above)
 
-    public abstract Closure getRunClosure();
+    public abstract FunctionClosure getRunClosure();
     // top-level environment reference
 
     /* Type names take the form ID or Api.ID */

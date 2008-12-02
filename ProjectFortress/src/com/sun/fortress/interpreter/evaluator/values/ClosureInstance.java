@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.Applicable;
  * which is very much like a closure.
  * @author chase
  */
-public class ClosureInstance extends Closure {
+public class ClosureInstance extends FunctionClosure {
 
     public ClosureInstance(Environment e, Applicable fndef, List<FType> args, FGenericFunction generator) {
         super(e, fndef, args);

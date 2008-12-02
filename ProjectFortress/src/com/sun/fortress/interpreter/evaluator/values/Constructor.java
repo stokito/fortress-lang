@@ -645,7 +645,7 @@ public class Constructor extends NonPrimitive {
         // For each method, attach the appropriate environment from the array
         for (int i = 1; i < methodsArray.length; i++) {
             // Closure cl = methodsArray[i].completeClosure(trait_envs[traitIndexForMethod[i]]);
-            Closure cl = closuresArray[i]; // methodsArray[i].completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
+            FunctionClosure cl = closuresArray[i]; // methodsArray[i].completeClosure(traitArray[traitIndexForMethod[i]].getEnv());
             int j = overloadMembership[i];
             // Check to see if the new closure should be bound now or
             // placed in an overload.

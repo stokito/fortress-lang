@@ -51,7 +51,7 @@ import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObject;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FType;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -526,7 +526,7 @@ public class Driver {
 
         Environment e = evalComponent(p, fr);
 
-        Closure run_fn = e.getClosure(toBeRun);
+        FunctionClosure run_fn = e.getClosure(toBeRun);
         Toplevel toplevel = new Toplevel();
         ArrayList<FValue> fvalueArgs = new ArrayList<FValue>();
         for (String s : args) {

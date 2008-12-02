@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTrait;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicWhereType;
 import com.sun.fortress.interpreter.evaluator.types.TypeGeneric;
-import com.sun.fortress.interpreter.evaluator.values.Closure;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FGenericFunction;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -157,7 +157,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         return containing;
     }
 
-    static Closure instantiate(FGenericFunction x) {
+    static FunctionClosure instantiate(FGenericFunction x) {
         return null;
     }
 
@@ -419,7 +419,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 //    }
 
     protected Simple_fcn newClosure(Environment e, Applicable x) {
-        return new Closure(e, x);
+        return new FunctionClosure(e, x);
     }
 
     private void putFunction(Environment e, IdOrOpOrAnonymousName name, FValue f, HasAt x) {
