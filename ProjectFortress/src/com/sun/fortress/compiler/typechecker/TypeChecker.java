@@ -2288,12 +2288,24 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			if (returnType.isNone()) {
 				returnType = wrap(bodyType);
 			}
-
+                        
+//                         System.err.println("Location: " + that.getSpan());
+//                         System.err.println("body type: " + bodyType.getClass() + ":" + bodyType);
+//                         if (bodyType instanceof TraitType) { 
+//                             System.err.println("name: " + ((TraitType)bodyType).getName());
+//                             System.err.println("args:" + ((TraitType)bodyType).getArgs());
+//                         }
+//                         System.err.println("return type: " + returnType.unwrap().getClass() + ":" + returnType.unwrap());
+//                         if (returnType.unwrap() instanceof TraitType) { 
+//                             System.err.println("name: " + ((TraitType)returnType.unwrap()).getName());
+//                             System.err.println("args:" + ((TraitType)returnType.unwrap()).getArgs());
+//                         }
+//                         System.err.println("equal? " + bodyType.equals(returnType.unwrap()));
 			result = newChecker.checkSubtype(bodyType,
-					returnType.unwrap(),
-					that,
-					errorMsg("Function body has type ", bodyType, ", but ",
-							"declared return type is ", returnType.unwrap()));
+                                                         returnType.unwrap(),
+                                                         that,
+                                                         errorMsg("Function body has type ", bodyType, ", but ",
+                                                                  "declared return type is ", returnType.unwrap()));
 		}
 
 		FnDecl new_node = new FnDecl(that.getSpan(),
@@ -2624,12 +2636,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					that.getBind(),
 					(Expr)init_result.ast());
 
+                        
 			// If bindings are empty, then init_result must be of type boolean, a filter, 13.14
-			TypeCheckerResult bool_result =
-				this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(),
-						"Filter expressions in generator clauses must have type boolean, but " +
-						that.getInit() + " had type " + init_result.type().unwrap() + ".");
+                        TypeCheckerResult bool_result;
 
+                        if (init_result.type().isNone()) { 
+                            String err = "Filter expressions in generator clauses must have type boolean, but " +
+                                that.getInit() + " was not well typed.";
+                            bool_result = new TypeCheckerResult(that.getInit(), TypeError.make(err, that.getInit()));
+                        } else { 
+                            bool_result =
+				this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(),
+						"Filter expressions in generator clauses must have type " + Types.BOOLEAN + ", but " +
+						that.getInit() + " had type " + init_result.type().unwrap() + ".");
+                        }
 			return Pair.make(TypeCheckerResult.compose(new_node, subtypeChecker, init_result, bool_result),
 					Collections.<LValue>emptyList());
 		}
