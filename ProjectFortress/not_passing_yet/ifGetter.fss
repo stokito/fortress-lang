@@ -24,13 +24,13 @@ end
 
 trait U extends T
   getter bar(): Boolean = do
-     if foo then false else false end
+     if self.foo then false else false end
   end
 end
 
 object O extends U
   getter obar(): Boolean = do
-     if foo then false else false end
+     if self.foo then false else false end
   end
 end
 
