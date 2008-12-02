@@ -511,8 +511,8 @@ public class ScalaAstGenerator extends CodeGenerator {
 
     private void generateScalaFile() {
         generateFile("FortressAst.scala", 
-                     "package com.sun.fortress.scalasrc.nodes\n" +
-                     "import com.sun.fortress.scalasrc.useful._\n" + 
+                     "package com.sun.fortress.scala_src.nodes\n" +
+                     "import com.sun.fortress.scala_src.useful._\n" + 
                      "import com.sun.fortress.nodes_util._\n" +
                      "import com.sun.fortress.useful.HasAt\n" +
                      "import _root_.scala.collection.mutable.ListBuffer\n" +

@@ -85,7 +85,7 @@ maintain proper indentation.
 
   <!-- Package nodes -->
   <property name="nodesPackage" value="${packagePrefix}/nodes"/>
-  <property name="scala.nodes.package" value="${packagePrefix}/scalasrc/nodes"/>
+  <property name="scala.nodes.package" value="${packagePrefix}/scala_src/nodes"/>
   <property name="nodes"  location="${src}/${nodesPackage}"/>
   <property name="scala.nodes"  location="${src}/${scala.nodes.package}"/>
   <property name="nodesBuild" location="${build}/${nodesPackage}"/>
