@@ -27,7 +27,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
@@ -91,12 +91,12 @@ public interface Environment  {
     /* Type names take the form ID or Api.ID */
     public abstract FType getType(Id d); // 3
     // BoolRef, IntRef, and the TL name of a (generic) trait.
-    
+
     public abstract FType getTypeNull(VarType q); // 2
     public abstract FType getType(VarType q); // 2
     // forTraitType, forVarType (these have lexical depth)
     public abstract FType getType(TraitType q); // toplevel, possible api
-    
+
     public abstract FType getRootType(String str); // 10 refs
     public abstract FType getLeafType(String str); // 4 refs
 
@@ -106,16 +106,16 @@ public interface Environment  {
     public abstract FType getLeafTypeNull(String name); // 16 refs
     public abstract FType getRootTypeNull(String name); // 4 refs
     public FType getTypeNull(String name); // 3 refs -- keep this name because of compiled code.
-    
+
     /**
      * Level-tagged version of getTypeNull
-     * 
+     *
      * @param name
      * @param level
      * @return
      */
     public FType getTypeNull(String name, int level);
-    
+
     //public abstract FValue getValue(FValue f1);
 
     /* Variables/values -- these are more complex.
@@ -133,7 +133,7 @@ public interface Environment  {
      * @param str
      */
     public abstract FValue getLeafValue(String str); // 25 refs
-    
+
     /**
      * Get a value from top-level environment.
      * Throws an Error if not found.
@@ -147,28 +147,28 @@ public interface Environment  {
      */
     public abstract FValue getLeafValueNull(String s); // 6 refs
     public abstract FValue getRootValueNull(String s); // 5 refs
-    
+
     /**
      * Similar to the string version, but able to deal with
      * depth information on the VarRef.
-     * 
+     *
      * @param vr
      * @return
      */
     public abstract FValue getValueNull(VarRef vr); // 2 refs
-    
+
     public abstract FValue getValueNull(OpRef vr); // 2 refs
 
     public abstract FValue getValueNull(Id name, int l); // 3 refs
-        
-    public abstract FValue getValueNull(OpName name, int l); // 2 refs
-    
+
+    public abstract FValue getValueNull(Op name, int l); // 2 refs
+
     public abstract FValue getValue(Id name, int l); // 0 refs
-    
-    public abstract FValue getValue(OpName name, int l); // 1 ref
-    
+
+    public abstract FValue getValue(Op name, int l); // 1 ref
+
     public abstract FValue getValue(VarRef vr); // 0 refs
-    
+
     public abstract FValue getValue(OpRef vr); // 2 refs
 
     // Reference from tests, BaseEnv, and BuildApiEnvironment
@@ -176,20 +176,20 @@ public interface Environment  {
     public abstract FValue getValueRaw(String s); // 20 refs
 
     public abstract FType getVarTypeNull(String str); // 2 refs
-    // Leaf in baseenv, 
+    // Leaf in baseenv,
     // Can be level-indexed in LHSEvaluator
-    
+
     public abstract Environment installPrimitives();
 
     public boolean isTopLevel();
-    
+
     // A notable name -- for overloading later, I think.
     public abstract void noteName(String s);
 
     public abstract void putBool(String str, Boolean f2);
 
     public void putBoolRaw(String str, Boolean f2) ;
-    
+
     public abstract void putFunctionalMethodInstance(String fndodname, FValue cl); // Fcn?
 
     public abstract void putInt(String add_as, Number cnnf);
@@ -213,7 +213,7 @@ public interface Environment  {
     public abstract void putType(String str, FType f2);
 
     public abstract void putTypeRaw(String str, FType f2);
-    
+
     /**
      * Put a value in the top-most scope.
      * Return true if successful, false if already defined.
@@ -251,11 +251,11 @@ public interface Environment  {
     public abstract void putVariablePlaceholder(String sname);
 
     public abstract void removeType(String s);
-    
+
     public abstract void removeVar(String name);
 
     public abstract void setTopLevel();
-    
+
     // Fix the untyped variable
     public abstract void storeType(HasAt x, String sname, FType ft);
     public void visit(Visitor2<String, FType> vt,
@@ -265,28 +265,28 @@ public interface Environment  {
             Visitor2<String, Boolean> vb);
     public abstract void visit(Visitor2<String, Object> nameCollector);
     /**
-     * Returns the names of vars in the most recently added frame (everything 
+     * Returns the names of vars in the most recently added frame (everything
      * added since this environment was created with a call to "extend()" ).
      */
-    
+
     public Iterable<String> youngestFrame() ;
-  
+
     /**
      * Level-tagged version of getValueRaw
-     * 
+     *
      * @param s
      * @param level
      * @return
      */
     public FValue getValueRaw(String s, int level);
-    
+
     public Environment getApi(String s);
     public Environment getApi(APIName s);
-    public Environment getApi(List<Id> s);    
+    public Environment getApi(List<Id> s);
     public Environment getApiNull(String apiName);
     public void putApi(String apiName, Environment env);
-    
+
     public Environment getHomeEnvironment(IdOrOpOrAnonymousName ioooan);
-    
+
     public Environment getTopLevel();
 }

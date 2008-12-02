@@ -28,7 +28,7 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
@@ -45,17 +45,17 @@ public class IndexedEnv implements Environment {
 
     public void assignValue(HasAt loc, String str, FValue f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void bless() {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void debugPrint(String debugString) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public Appendable dump(Appendable a) throws IOException {
@@ -233,7 +233,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValue(OpName name, int l) {
+    public FValue getValue(Op name, int l) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -253,7 +253,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValueNull(OpName name, int l) {
+    public FValue getValueNull(Op name, int l) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -295,144 +295,144 @@ public class IndexedEnv implements Environment {
 
     public void noteName(String s) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putApi(String apiName, Environment env) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putBool(String str, Boolean f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putBoolRaw(String str, Boolean f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putFunctionalMethodInstance(String fndodname, FValue cl) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putInt(String add_as, Number cnnf) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putIntRaw(String str, Number f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putNat(String str, Number f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putNatRaw(String str, Number f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putType(Id d, FType x) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putType(String str, FType f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putTypeRaw(String str, FType f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValue(FValue f1, FValue f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValue(Id d, FValue x) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValue(String str, FValue f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValueNoShadowFn(String fndodname, FValue cl) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValueRaw(String str, FValue f2) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putValueRaw(String name, FValue value, FType ft) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putVariable(String string, FType fvt) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putVariable(String s, FValue value) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putVariable(String str, FValue f2, FType ft) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void putVariablePlaceholder(String sname) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void removeType(String s) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void removeVar(String name) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void setTopLevel() {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void storeType(HasAt x, String sname, FType ft) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void visit(Visitor2<String, FType> vt, Visitor2<String, Number> vn,
             Visitor2<String, Number> vi, Visitor2<String, FValue> vv,
             Visitor2<String, Boolean> vb) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public void visit(Visitor2<String, Object> nameCollector) {
         // TODO Auto-generated method stub
-        
+
     }
 
     public Iterable<String> youngestFrame() {
@@ -440,5 +440,5 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-  
+
 }

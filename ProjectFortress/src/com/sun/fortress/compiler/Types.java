@@ -324,7 +324,7 @@ public final class Types {
      * Given A and Op, returns the type
      * TotalOperatorOrder[\A,<,<=,>=,>,Op]
      */
- public static Type makeTotalOperatorOrder(Type A, OpName op) {
+ public static Type makeTotalOperatorOrder(Type A, Op op) {
 //  NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
 //  NodeFactory.makeOpArg("whoa");
 

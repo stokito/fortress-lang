@@ -46,7 +46,6 @@ import com.sun.fortress.nodes.ConstructorFnName;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
-import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -220,24 +219,16 @@ public abstract class TypeEnv {
     	return NodeFactory.makeIdFromLast(id);
     }
 
-    static Enclosing removeApi(Enclosing id) {
-    	return NodeFactory.makeEnclosing(id.getSpan(), id.getOpen(), id.getClose());
-    }
-
     static Op removeApi(Op id) {
-    	return NodeFactory.makeOp(id.getSpan(), id.getText(), id.getFixity());
+    	return new Op(id.getSpan(), id.getText(), id.getFixity(), id.isEnclosing());
     }
 
     static IdOrOpOrAnonymousName removeApi(IdOrOpOrAnonymousName id) {
     	return id.accept(new NodeDepthFirstVisitor<IdOrOpOrAnonymousName>(){
-			@Override
-			public IdOrOpOrAnonymousName forEnclosing(Enclosing that) {
-				return NodeFactory.makeEnclosing(that.getSpan(), that.getOpen(), that.getClose());
-			}
 			@Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
 			@Override
 			public IdOrOpOrAnonymousName forOp(Op that) {
-				return NodeFactory.makeOp(that.getSpan(), that.getText(), that.getFixity());
+                            return new Op(that.getSpan(), that.getText(), that.getFixity(), that.isEnclosing());
 			}
 			@Override
 			public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {

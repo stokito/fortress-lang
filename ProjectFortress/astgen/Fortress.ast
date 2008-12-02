@@ -348,7 +348,7 @@ interface Node() extends HasAt;
                 /**
                  * Overloading specification
                  */
-                _RewriteFnOverloadDecl(IdOrOpName name, List<IdOrOpName> fns);
+                _RewriteFnOverloadDecl(IdOrOp name, List<IdOrOp> fns);
                 /* the list of object expressions is a temporary hack to allow
                    progress towards earlier rewriting and caching of ASTs. -- DRC */
                 /**
@@ -840,7 +840,7 @@ interface Node() extends HasAt;
                      * Accumulator ::= SUM | PROD | Big Op
                      * e.g.) PROD[i <- 1:n] i
                      */
-                    Accumulator(OpName accOp, List<GeneratorClause> gens, Expr body);
+                    Accumulator(Op accOp, List<GeneratorClause> gens, Expr body);
                     /**
                      * array comprehension
                      * Comprehension ::= BIG? [ StaticArgs? ArrayComprehensionClause+
@@ -951,7 +951,7 @@ interface Node() extends HasAt;
                      * e.g.) a[i]
                      */
                     SubscriptExpr(Expr obj, List<Expr> subs,
-                                  Option<Enclosing> op = Option.<Enclosing>none(),
+                                  Option<Op> op = Option.<Op>none(),
                                   List<StaticArg> staticArgs
                                       = Collections.<StaticArg>emptyList())
                                   implements Lhs;
@@ -1083,8 +1083,8 @@ interface Node() extends HasAt;
                              * passes of the typechecker. Holds several different instantiations of static args,
                              * one of which may be the correct insantiation.
                              */
-                            OpRef(OpName originalName,
-                                  List<OpName> ops = Collections.<OpName>singletonList(in_originalName),
+                            OpRef(Op originalName,
+                                  List<Op> ops = Collections.<Op>singletonList(in_originalName),
                                   Option<List<_RewriteOpRefOverloading>> overloadings
                                       = Option.<List<_RewriteOpRefOverloading>>none());
                         /**
@@ -1880,30 +1880,23 @@ interface Node() extends HasAt;
                     /**
                      * identifier or operator name
                      */
-                    abstract IdOrOpName();
+                    abstract IdOrOp(String text);
                         /**
                          * identifier name
                          * e.g.) hashCode
                          */
-                        Id(String text);
+                        Id();
                         /**
                          * operator name
+                         *
+                         * Opening and closing Ops must be unqualified.
+                         * EncloserPair ::= (LeftEncloser | Encloser)
+                         *                    (RightEncloser | Encloser)
+                         * e.g.) COMPOSE
+                         * e.g.) ===
+                         * e.g.) </ />
                          */
-                        abstract OpName();
-                            /**
-                             * non-enclosing operator
-                             * e.g.) COMPOSE
-                             * e.g.) ===
-                             */
-                            Op(String text, Fixity fixity);
-                            /**
-                             * pair of enclosing operators
-                             * Opening and closing Ops must be unqualified.
-                             * EncloserPair ::= (LeftEncloser | Encloser)
-                             *                    (RightEncloser | Encloser)
-                             * e.g.) </ />
-                             */
-                            Enclosing(Op open, Op close);
+                        Op(Fixity fixity, boolean enclosing);
                     /**
                      * anonymous name; used internally
                      */
@@ -2064,7 +2057,7 @@ interface Node() extends HasAt;
                      * MathItem ::= Subscripting
                      * e.g.) [3, 4]
                      */
-                    SubscriptingMI(Enclosing op, List<Expr> exprs,
+                    SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
             /**
              * operator fixity

@@ -25,7 +25,7 @@ import java.util.Map;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.IntParam;
@@ -47,14 +47,14 @@ import edu.rice.cs.plt.tuple.Pair;
  * useable too. (Note that op params have not yet been implemented.)
  */
 public class StaticParamTypeEnv extends TypeEnv {
-	
+
 	final static Type STATIC_INT_TYPE = Types.INT_LITERAL;
 	final static Type STATIC_NAT_TYPE = Types.INT_LITERAL;
 	final static Type STATIC_BOOL_TYPE = Types.BOOLEAN;
-	
+
 	final List<StaticParam> entries;
 	final private TypeEnv parent;
-	
+
 	public StaticParamTypeEnv(List<StaticParam> _static, TypeEnv _parent) {
 		entries=Collections.unmodifiableList(new ArrayList<StaticParam>(_static));
 		parent=_parent;
@@ -62,25 +62,25 @@ public class StaticParamTypeEnv extends TypeEnv {
 
 	private Option<Pair<StaticParam,Type>> findParam(Id _var) {
         Id no_api_var = removeApi(_var);
-        for (StaticParam param : entries) {        	
-        	IdOrOpName name = nameFromStaticParam(param);
+        for (StaticParam param : entries) {
+        	IdOrOp name = nameFromStaticParam(param);
         	if(name.equals(no_api_var) || name.equals(_var) ){
 	        	Option<Type> type_ = typeOfStaticParam(param);
-	        	
+
 	        	if( type_.isSome() )
 	        		return Option.some(Pair.make(param, type_.unwrap()));
         	}
         }
         return Option.none();
     }
-	
+
 	@Override
 	public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.binding(var); }
         Id _var = (Id)var;
-       
+
         Option<Pair<StaticParam,Type>> p = findParam(_var);
-        
+
         if( p.isSome() ) {
         	Type type_ = p.unwrap().second();
         	return Option.some(new BindingLookup(var, type_));
@@ -95,8 +95,8 @@ public class StaticParamTypeEnv extends TypeEnv {
 		Id _var = (Id)id;
 
 		Id no_api_var = removeApi(_var);
-		for (StaticParam param : entries) {        	
-			IdOrOpName name = nameFromStaticParam(param);
+		for (StaticParam param : entries) {
+			IdOrOp name = nameFromStaticParam(param);
 
 			if(name.equals(no_api_var) || name.equals(_var) ){
 				return Option.some(param);
@@ -104,25 +104,25 @@ public class StaticParamTypeEnv extends TypeEnv {
 		}
 		return parent.staticParam(id);
 	}
-	
-	private static IdOrOpName nameFromStaticParam(StaticParam param) {
-		NodeAbstractVisitor<IdOrOpName> get_name = new NodeAbstractVisitor<IdOrOpName>(){
-			@Override public IdOrOpName forIdStaticParam(IdStaticParam that) { return that.getName(); }
-			@Override public IdOrOpName forOpParam(OpParam that) { return that.getName(); }
+
+	private static IdOrOp nameFromStaticParam(StaticParam param) {
+		NodeAbstractVisitor<IdOrOp> get_name = new NodeAbstractVisitor<IdOrOp>(){
+			@Override public IdOrOp forIdStaticParam(IdStaticParam that) { return that.getName(); }
+			@Override public IdOrOp forOpParam(OpParam that) { return that.getName(); }
 		};
-		
-		IdOrOpName name = param.accept(get_name);
+
+		IdOrOp name = param.accept(get_name);
 		return name;
 	}
 
 	private static Option<Type> typeOfStaticParam(StaticParam param) {
 		NodeAbstractVisitor<Option<Type>> get_type = new NodeAbstractVisitor<Option<Type>>(){
 
-			@Override 
+			@Override
 			public Option<Type> defaultCase(Node node) {
 				return Option.none();
 			}
-			
+
 			@Override
 			public Option<Type> forBoolParam(BoolParam that) {
 				return Option.some(STATIC_BOOL_TYPE);
@@ -146,7 +146,7 @@ public class StaticParamTypeEnv extends TypeEnv {
 	@Override
 	public List<BindingLookup> contents() {
 		List<BindingLookup> result = new ArrayList<BindingLookup>();
-		
+
 		for( StaticParam param : entries ) {
 			Option<Type> type_ = typeOfStaticParam(param);
 			if( type_.isSome() )
@@ -159,7 +159,7 @@ public class StaticParamTypeEnv extends TypeEnv {
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName var) {
         if (!(var instanceof Id)) { return parent.declarationSite(var); }
         Id _var = (Id)var;
-       
+
         Option<Pair<StaticParam,Type>> p = findParam(_var);
         if( p.isSome() )
         	return Option.<Node>some(p.unwrap().first());
@@ -171,11 +171,11 @@ public class StaticParamTypeEnv extends TypeEnv {
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
 		List<StaticParam> new_entries = new ArrayList<StaticParam>(entries.size());
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		for( StaticParam entry : entries ) {
 			new_entries.add((StaticParam)entry.accept(rep));
 		}
-		
+
 		return new StaticParamTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 }

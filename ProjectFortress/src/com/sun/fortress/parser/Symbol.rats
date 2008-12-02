@@ -46,13 +46,13 @@ Op ExponentOp = a1:exponentOp
 /* EncloserPair ::=
      (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)
  */
-Enclosing EncloserPair =
+Op EncloserPair =
      a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
      { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount), a1.getText(), a2.getText());
        else {
            log(a2.getSpan(), "Mismatched Enclosers: " + a1 + " and " + a2);
-           yyValue = new Enclosing(createSpan(yyStart,yyCount), a1, a2);
+           yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount), a1.getText(), a2.getText());
        }
      };
 

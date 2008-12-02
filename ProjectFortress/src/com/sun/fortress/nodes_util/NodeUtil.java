@@ -215,11 +215,9 @@ public class NodeUtil {
             return n.getText();
         }
         public String forOp(Op n) {
-            return OprUtil.fixityDecorator(n.getFixity(), n.getText());
-        }
-        public String forEnclosing(Enclosing n) {
-            // Interior space is REQUIRED
-            return n.getOpen().getText() + " " + n.getClose().getText();
+            if ( n.isEnclosing() )
+                return n.getText();
+            else return OprUtil.fixityDecorator(n.getFixity(), n.getText());
         }
         public String forAnonymousFnName(AnonymousFnName n) {
             return n.getSpan().toString();
@@ -245,16 +243,15 @@ public class NodeUtil {
             return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
         }
         public String forOp(Op n) {
-            Option<APIName> odn = n.getApiName();
-            String last = OprUtil.fixityDecorator(n.getFixity(), n.getText());
-            return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
-        }
-        public String forEnclosing(Enclosing n) {
-            Option<APIName> odn = n.getApiName();
-            // Interior space is REQUIRED
-            String last = n.getOpen().getText() + " " + n.getClose().getText();
-            return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
-
+            if ( n.isEnclosing() ) {
+                Option<APIName> odn = n.getApiName();
+                String last = n.getText();
+                return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
+            } else {
+                Option<APIName> odn = n.getApiName();
+                String last = OprUtil.fixityDecorator(n.getFixity(), n.getText());
+                return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
+            }
         }
         public String forAnonymousFnName(AnonymousFnName n) {
             return n.getSpan().toString();
@@ -309,12 +306,9 @@ public class NodeUtil {
     }
 
     public static String nameString(Op n) {
-        return OprUtil.fixityDecorator(n.getFixity(), n.getText());
-    }
-
-    public static String nameString(Enclosing n) {
-        // Interior space is REQUIRED
-        return n.getOpen().getText() + " " + n.getClose().getText();
+        if ( n.isEnclosing() )
+            return n.getText();
+        else return OprUtil.fixityDecorator(n.getFixity(), n.getText());
     }
     public static String nameString(AnonymousFnName n) {
         return n.getSpan().toString();
@@ -372,13 +366,9 @@ public class NodeUtil {
             }
             @Override
             public String forOp(Op that) {
-               return OprUtil.fixityDecorator(that.getFixity(), that.getText());
-            }
-            @Override
-            public String forEnclosing(Enclosing that) {
-                String o = that.getOpen().accept(this);
-                String c = that.getClose().accept(this);
-                return o + " " + c;
+                if ( that.isEnclosing() )
+                    return that.getText();
+                else return OprUtil.fixityDecorator(that.getFixity(), that.getText());
             }
             @Override
         public String forDimDecl(DimDecl node) {

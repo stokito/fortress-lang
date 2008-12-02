@@ -28,8 +28,8 @@ import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -76,18 +76,18 @@ public class OverloadRewriter {
         // Add rewritten overloaded functions
         Map<String, List<Id>> overloadedFunctions = visitor.getOverloadedFunctions();
         for (Map.Entry<String, List<Id>> overload : overloadedFunctions.entrySet()) {
-            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
+            List<IdOrOp> overloadings = new ArrayList<IdOrOp>(overload.getValue());
             Id overloadingId = NodeFactory.makeId(overload.getKey());
             _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingId, overloadings);
             decls.add(newDecl);
         }
 
         // Add rewritten overloaded operators
-        Map<String, List<OpName>> overloadedOperators = visitor.getOverloadedOperators();
-        for (Map.Entry<String, List<OpName>> overload : overloadedOperators.entrySet()) {
-            List<IdOrOpName> overloadings = new ArrayList<IdOrOpName>(overload.getValue());
-            OpName overloadingOpName = NodeFactory.makeOp(NodeFactory.makeSpan("impossible", overload.getValue()), overload.getKey());
-            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingOpName, overloadings);
+        Map<String, List<Op>> overloadedOperators = visitor.getOverloadedOperators();
+        for (Map.Entry<String, List<Op>> overload : overloadedOperators.entrySet()) {
+            List<IdOrOp> overloadings = new ArrayList<IdOrOp>(overload.getValue());
+            Op overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan("impossible", overload.getValue()), overload.getKey());
+            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingOp, overloadings);
             decls.add(newDecl);
         }
         return comp;

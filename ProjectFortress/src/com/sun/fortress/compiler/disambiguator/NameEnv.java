@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 
 public abstract class NameEnv extends TypeNameEnv {
 
@@ -32,7 +32,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * than 1.
      */
     public abstract Set<Id> explicitVariableNames(Id name);
-    /** 
+    /**
      * Produce the set of all unaliased expilcit variable names in this environment.
      */
     public abstract List<Id> explicitVariableNames();
@@ -47,7 +47,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * operator name; on-demand imports are ignored.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<OpName> explicitFunctionNames(OpName name);
+    public abstract Set<Op> explicitFunctionNames(Op name);
 
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
@@ -67,7 +67,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * that correspond to the given operator name.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<OpName> onDemandFunctionNames(OpName name);
+    public abstract Set<Op> onDemandFunctionNames(Op name);
 
     /**
      * Given a disambiguated name (aliases and imports have been resolved),

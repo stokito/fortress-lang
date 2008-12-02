@@ -793,7 +793,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	 * Given a list of functional refs and the argument to which they are to be applied, find the FunctionalRef
 	 * whose type is the statically most applicable to the given arg.
 	 */
-	private TypeCheckerResult findStaticallyMostApplicableFn(List<? extends Pair<? extends FunctionalRef, Type>> fns, Type arg_type, FunctionalRef ref, IdOrOpName name) {
+	private TypeCheckerResult findStaticallyMostApplicableFn(List<? extends Pair<? extends FunctionalRef, Type>> fns, Type arg_type, FunctionalRef ref, IdOrOp name) {
 		final List<Pair<FunctionalRef, Type>> pruned_fns = new ArrayList<Pair<FunctionalRef, Type>>(fns.size());
 		// prune down the list of fns to just the ones that apply
 		for( Pair<? extends FunctionalRef, Type> fn : fns ) {
@@ -2121,22 +2121,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forEnclosing(Enclosing that) {
-		Option<APIName> api = that.getApiName();
-		TypeEnv env = api.isSome() ? returnTypeEnvForApi(api.unwrap()) : this.typeEnv;
-
-		Option<BindingLookup> binding = env.binding(that);
-		if( binding.isSome() ) {
-			return new TypeCheckerResult(that, binding.unwrap().getType());
-		} else {
-			return new TypeCheckerResult(that,
-					TypeError.make(errorMsg("Enclosing operator not found: ",
-							that),
-							that));
-		}
-	}
-
-	@Override
 	public TypeCheckerResult forEnclosingFixity(EnclosingFixity that) {
 		return new TypeCheckerResult(that);
 	}
@@ -2728,7 +2712,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return new TypeCheckerResult(name, _type);
 			} else {
 				// Operators are never qualified in source code, so if 'name' is qualified and not
-				// found, it must be a Id, not a OpName.
+				// found, it must be a Id, not a Op.
 				StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", name),
 						name);
 				return new TypeCheckerResult(name, error);
@@ -3512,6 +3496,20 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult forOp(Op that) {
 		Option<APIName> api = that.getApiName();
 
+                if ( that.isEnclosing() ) {
+                    TypeEnv env = api.isSome() ? returnTypeEnvForApi(api.unwrap()) : this.typeEnv;
+
+                    Option<BindingLookup> binding = env.binding(that);
+                    if( binding.isSome() ) {
+			return new TypeCheckerResult(that, binding.unwrap().getType());
+                    } else {
+			return new TypeCheckerResult(that,
+                                                     TypeError.make(errorMsg("Enclosing operator not found: ",
+                                                                             that),
+                                                                    that));
+                    }
+                }
+
 		Option<BindingLookup> binding;
 
 		if( api.isSome() ) {
@@ -3604,7 +3602,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if (app_result.isNone()) {
 			// Guaranteed at least one operator because all the overloaded operators
 			// are created by disambiguation, not by the user.
-			OpName opName = IterUtil.first(that.getOp().getOps());
+			Op opName = IterUtil.first(that.getOp().getOps());
 			return TypeCheckerResult.compose(that, subtypeChecker,
 					op_result,
 					TypeCheckerResult.compose(that, subtypeChecker, args_result),
@@ -3749,7 +3747,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                         (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-							(List<OpName>)TypeCheckerResult.astFromResults(ops_result));
+							(List<Op>)TypeCheckerResult.astFromResults(ops_result));
 		}
 
 
@@ -3807,7 +3805,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(that.getExprType());
 		TypeCheckerResult obj_result = recur(that.getObj());
 		List<TypeCheckerResult> subs_result = recurOnListOfExpr(that.getSubs());
-		Option<TypeCheckerResult> op_result = recurOnOptionOfEnclosing(that.getOp());
+		Option<TypeCheckerResult> op_result = recurOnOptionOfOp(that.getOp());
 		List<TypeCheckerResult> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
 
 		// Typecheck the subscript expression with constraints from its arguments, which can
@@ -4655,7 +4653,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return TypeEnv.make(table.compilationUnit(api));
 	}
 
-	private TypeCheckerResult subscriptHelper(Node that, Option<Enclosing> op,
+	private TypeCheckerResult subscriptHelper(Node that, Option<Op> op,
 			Type obj_type, List<Type> subs_types, List<StaticArg> static_args) {
 		List<TraitType> traits = traitTypesCallable(obj_type);
 		// we need to have a trait otherwise we can't see its methods.

@@ -136,13 +136,13 @@ public class NodeComparator {
     }
     public final static IdComparer idComparer = new IdComparer();
 
-    static class OpNameComparer implements Comparator<OpName> {
-        public int compare(OpName left, OpName right) {
+    static class OpComparer implements Comparator<Op> {
+        public int compare(Op left, Op right) {
             return NodeComparator.compare(left, right);
         }
     }
 
-    public final static OpNameComparer opNameComparer = new OpNameComparer();
+    public final static OpComparer opNameComparer = new OpComparer();
 
     /* comparing lists ***************************************************/
     public static int compare(List<StaticParam> left, List<StaticParam> right) {

@@ -22,8 +22,8 @@ import java.util.Set;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.compiler.index.TypeConsIndex;
@@ -39,7 +39,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
         return _parent.apiName(name);
     }
 
-    public Option<StaticParam> hasTypeParam(IdOrOpName name) {
+    public Option<StaticParam> hasTypeParam(IdOrOp name) {
         return _parent.hasTypeParam(name);
     }
 
@@ -50,12 +50,12 @@ public abstract class DelegatingNameEnv extends NameEnv {
         return _parent.explicitVariableNames(name);
     }
     public List<Id> explicitVariableNames() {
-        return _parent.explicitVariableNames(); 
+        return _parent.explicitVariableNames();
     }
     public Set<Id> explicitFunctionNames(Id name) {
         return _parent.explicitFunctionNames(name);
     }
-    public Set<OpName> explicitFunctionNames(OpName name) {
+    public Set<Op> explicitFunctionNames(Op name) {
         return _parent.explicitFunctionNames(name);
     }
 
@@ -68,7 +68,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public Set<Id> onDemandFunctionNames(Id name) {
         return _parent.onDemandFunctionNames(name);
     }
-    public Set<OpName> onDemandFunctionNames(OpName name) {
+    public Set<Op> onDemandFunctionNames(Op name) {
         return _parent.onDemandFunctionNames(name);
     }
 

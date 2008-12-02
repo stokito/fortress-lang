@@ -44,9 +44,8 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.Enclosing;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOpName;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
 import com.sun.fortress.nodes.ImportApi;
@@ -55,7 +54,7 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -86,7 +85,7 @@ public class TopLevelEnv extends NameEnv {
     private final Map<Id, Set<Id>> _onDemandTypeConsNames;
     private final Map<Id, Set<Id>> _onDemandVariableNames;
     private final Map<Id, Set<Id>> _onDemandFunctionIdNames;
-    private final Map<OpName, Set<OpName>> _onDemandFunctionOpNames;
+    private final Map<Op, Set<Op>> _onDemandFunctionOps;
     private final Map<String, Set<Id>> _onDemandGrammarNames;
 
     public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
@@ -113,10 +112,10 @@ public class TopLevelEnv extends NameEnv {
         _onDemandImportedApis = Collections.unmodifiableMap(initializeOnDemandImportedApis(filtered_global_env, current));
         _onDemandTypeConsNames = Collections.unmodifiableMap(initializeOnDemandTypeConsNames(_onDemandImportedApis));
         _onDemandVariableNames = Collections.unmodifiableMap(initializeOnDemandVariableNames(_onDemandImportedApis));
-        Pair<Map<Id, Set<Id>>, Map<OpName, Set<OpName>>> functions_and_ops =
+        Pair<Map<Id, Set<Id>>, Map<Op, Set<Op>>> functions_and_ops =
             initializeOnDemandFunctionNames(_onDemandImportedApis);
         _onDemandFunctionIdNames = functions_and_ops.first();
-        _onDemandFunctionOpNames = functions_and_ops.second();
+        _onDemandFunctionOps = functions_and_ops.second();
         _onDemandGrammarNames = Collections.unmodifiableMap(initializeOnDemandGrammarNames(_onDemandImportedApis));
     }
 
@@ -213,27 +212,23 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    private static OpName copyOpNameWithNewAPIName(OpName op, final APIName api) {
-    	OpName result =
-    		op.accept(new NodeDepthFirstVisitor<OpName>(){
+    private static Op copyOpWithNewAPIName(Op op, final APIName api) {
+    	Op result =
+    		op.accept(new NodeDepthFirstVisitor<Op>(){
     			@Override
-    			public OpName defaultCase(Node that) {
-    				return bug("Unexpected sub-type of OpName.");
+    			public Op defaultCase(Node that) {
+    				return bug("Unexpected sub-type of Op.");
     			}
     			@Override
-    			public OpName forEnclosing(Enclosing that) {
-    				return new Enclosing(that.getSpan(),Option.some(api),that.getOpen(),that.getClose());
-    			}
-    			@Override
-    			public OpName forOp(Op that) {
-    				return new Op(that.getSpan(),Option.some(api),that.getText(),that.getFixity());
+    			public Op forOp(Op that) {
+                            return new Op(that.getSpan(),Option.some(api),that.getText(),that.getFixity(), that.isEnclosing());
     			}});
     	return result;
     }
 
-    private static Pair<Map<Id, Set<Id>>, Map<OpName, Set<OpName>>> initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) {
+    private static Pair<Map<Id, Set<Id>>, Map<Op, Set<Op>>> initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) {
         Map<Id, Set<Id>> fun_result = new HashMap<Id, Set<Id>>();
-        Map<OpName, Set<OpName>> ops_result =  new HashMap<OpName, Set<OpName>>();
+        Map<Op, Set<Op>> ops_result =  new HashMap<Op, Set<Op>>();
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
@@ -252,15 +247,15 @@ public class TopLevelEnv extends NameEnv {
                         fun_result.put(_fnName, matches);
                     }
                 }
-                else { // fnName instanceof OpName
-                    OpName _opName = (OpName)fnName;
-                    OpName name = copyOpNameWithNewAPIName(_opName, apiEntry.getKey());
-                    // NEB: I put this code here because I don't see why we shouldn't qualify OpNames as well...
+                else { // fnName instanceof Op
+                    Op _opName = (Op)fnName;
+                    Op name = copyOpWithNewAPIName(_opName, apiEntry.getKey());
+                    // NEB: I put this code here because I don't see why we shouldn't qualify Ops as well...
 
                     if (ops_result.containsKey(_opName)) {
                         ops_result.get(_opName).add(name);
                     } else {
-                        Set<OpName> matches = new HashSet<OpName>();
+                        Set<Op> matches = new HashSet<Op>();
                         matches.add(name);
                         ops_result.put(_opName, matches);
                     }
@@ -299,7 +294,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     @Override
-    public Option<StaticParam> hasTypeParam(IdOrOpName name) {
+    public Option<StaticParam> hasTypeParam(IdOrOp name) {
         return Option.none();
     }
 
@@ -411,15 +406,15 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    public Set<OpName> explicitFunctionNames(OpName name) {
-        Set<OpName> result = Collections.emptySet();
+    public Set<Op> explicitFunctionNames(Op name) {
+        Set<Op> result = Collections.emptySet();
 
         // Add ops in this component
         if( _current.functions().containsFirst(name)) {
             // Only qualify name with an API if we are inside of an API
-            OpName result_id;
+            Op result_id;
             if( _current instanceof ApiIndex )
-                result_id = NodeFactory.makeOpName(_current.ast().getName(), name);
+                result_id = NodeFactory.makeOp(_current.ast().getName(), name);
             else
                 result_id = name;
 
@@ -473,11 +468,11 @@ public class TopLevelEnv extends NameEnv {
         }
     }
 
-    public Set<OpName> onDemandFunctionNames(OpName name) {
-        if (_onDemandFunctionOpNames.containsKey(name)) {
-            return _onDemandFunctionOpNames.get(name);
+    public Set<Op> onDemandFunctionNames(Op name) {
+        if (_onDemandFunctionOps.containsKey(name)) {
+            return _onDemandFunctionOps.get(name);
         } else {
-            return new HashSet<OpName>();
+            return new HashSet<Op>();
         }
     }
 

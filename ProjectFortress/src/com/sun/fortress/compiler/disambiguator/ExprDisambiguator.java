@@ -70,7 +70,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpName;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -849,7 +849,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forAccumulatorOnly(that, type_result,
                                   recurOnListOfStaticArg(that.getStaticArgs()),
-                                  (OpName)that.getAccOp().accept(this),
+                                  (Op)that.getAccOp().accept(this),
                                   pair.first(),
                                   (Expr)that.getBody().accept(extended_d));
     }
@@ -1117,8 +1117,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * if they want to report an error.
      */
     private Option<OpRef> opRefHelper(OpRef that) {
-        OpName op_name = IterUtil.first(that.getOps());
-        Set<OpName> ops = _env.explicitFunctionNames(op_name);
+        Op op_name = IterUtil.first(that.getOps());
+        Set<Op> ops = _env.explicitFunctionNames(op_name);
         if (ops.isEmpty()) {
             ops = _env.onDemandFunctionNames(op_name);
         }

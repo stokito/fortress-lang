@@ -255,15 +255,15 @@ public class ExprFactory {
     }
 
     public static OpRef makeOpRef(Span span, String name) {
-        OpName op = NodeFactory.makeOpInfix(span, name);
+        Op op = NodeFactory.makeOpInfix(span, name);
         return new OpRef(span, op, Collections.singletonList(op));
     }
 
-    public static OpRef makeOpRef(OpName op) {
+    public static OpRef makeOpRef(Op op) {
         return new OpRef(op.getSpan(), op, Collections.singletonList(op));
     }
 
-    public static OpRef makeOpRef(OpName op, List<StaticArg> staticArgs) {
+    public static OpRef makeOpRef(Op op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), staticArgs, op, Collections.singletonList(op));
     }
 
@@ -272,26 +272,26 @@ public class ExprFactory {
         return new OpExpr(span, false, ty, op, Arrays.asList(first, second));
     }
 
-    public static OpExpr makeOpExpr(Span span, OpName op) {
+    public static OpExpr makeOpExpr(Span span, Op op) {
         return new OpExpr(span, false, makeOpRef(op));
     }
 
-    public static OpExpr makeOpExpr(Span span, OpName op, Expr arg) {
+    public static OpExpr makeOpExpr(Span span, Op op, Expr arg) {
         return new OpExpr(span, false, makeOpRef(op),
                 Collections.singletonList(arg));
     }
 
-    public static OpExpr makeOpExpr(Span span, OpName op, Expr first,
+    public static OpExpr makeOpExpr(Span span, Op op, Expr first,
                                     Expr second) {
         return new OpExpr(span, false, makeOpRef(op),
                           Arrays.asList(first, second));
     }
 
-    public static OpExpr makeOpExpr(Span span, OpName op, List<StaticArg> staticArgs) {
+    public static OpExpr makeOpExpr(Span span, Op op, List<StaticArg> staticArgs) {
         return new OpExpr(span, false, makeOpRef(op, staticArgs));
     }
 
-    public static OpExpr makeOpExpr(Span span, OpName op, Expr arg,
+    public static OpExpr makeOpExpr(Span span, Op op, Expr arg,
             List<StaticArg> staticArgs) {
         return new OpExpr(span, false, makeOpRef(op, staticArgs),
                 Collections.singletonList(arg));
@@ -374,20 +374,20 @@ public class ExprFactory {
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
             List<Expr> subs) {
         return new SubscriptExpr(span, false, obj, subs,
-                Option.<Enclosing>none(),
-                Collections.<StaticArg>emptyList());
+                                 Option.<Op>none(),
+                                 Collections.<StaticArg>emptyList());
     }
 
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-            List<Expr> subs,
-            Option<Enclosing> op,
-            List<StaticArg> sargs) {
+                                                  List<Expr> subs,
+                                                  Option<Op> op,
+                                                  List<StaticArg> sargs) {
         return new SubscriptExpr(span, false, obj, Useful.immutableTrimmedList(subs), op, sargs);
     }
 
     public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-            List<Expr> subs,
-            Option<Enclosing> op) {
+                                                  List<Expr> subs,
+                                                  Option<Op> op) {
         return new SubscriptExpr(span, false, obj, subs, op,
                 Collections.<StaticArg>emptyList());
     }
@@ -903,16 +903,16 @@ public class ExprFactory {
      * made into an infix operator.
      */
     private static Expr makeInfixOpExpr(Span s, Expr lhs, OpRef op, Expr rhs) {
-     List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
-   public Op value(OpName arg0) {
-    if( arg0 instanceof Enclosing )
+     List<Op> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<Op,Op>(){
+   public Op value(Op arg0) {
+       if( arg0.isEnclosing() )
      return bug("Can't make an infix operator out of an enclosing operator.");
     else
      return NodeFactory.makeOpInfix((Op)arg0);
    }}));
      // We are remaking this because we think that the Interpreter expects originalName to be infix
      Op new_original_name;
-     if( op.getOriginalName() instanceof Enclosing )
+     if( op.getOriginalName().isEnclosing() )
       return bug("Can't make an infix operator out of an enclosing operator.");
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
@@ -922,16 +922,16 @@ public class ExprFactory {
     }
 
     private static Expr makePostfixOpExpr(Span s, Expr e, OpRef op) {
-     List<OpName> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<OpName,OpName>(){
-   public Op value(OpName arg0) {
-    if( arg0 instanceof Enclosing )
+     List<Op> new_ops = CollectUtil.makeList(IterUtil.map(op.getOps(), new Lambda<Op,Op>(){
+   public Op value(Op arg0) {
+       if( arg0.isEnclosing() )
      return bug("Can't make an postfix operator out of an enclosing operator.");
     else
      return NodeFactory.makeOpPostfix((Op)arg0);
    }}));
      // We are remaking this because we think that the Interpreter expects originalName to be postfix
      Op new_original_name;
-     if( op.getOriginalName() instanceof Enclosing )
+     if( op.getOriginalName().isEnclosing() )
       return bug("Can't make an postfix operator out of an enclosing operator.");
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
