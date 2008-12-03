@@ -18,6 +18,8 @@
 package com.sun.fortress.useful;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class TopSort {
      * @param unsorted Unordered list of items
      * @return breadth-first topologically ordered list of items.
      */
-    public static <T extends TopSortItem<T, U>, U> List<T> breadthFirst(Iterable<T> unsorted) {
+    public static <T extends TopSortItem<T>> List<T> breadthFirst(Iterable<T> unsorted) {
         Iterator<T> i = unsorted.iterator();
 
         ArrayList<T> sorted = new ArrayList<T>();
@@ -75,7 +77,48 @@ public class TopSort {
         return sorted;
     }
 
-    public static <T extends TopSortItem<T, U>, U> List<T> depthFirst(Iterable<T> unsorted) {
+    /**
+     * @param unsorted Unordered list of items
+     * @return topologically ordered list of items, prioritized by comparator comp
+     */
+    public static <T extends TopSortItem<T>> List<T>
+       prioritized(Iterable<T> unsorted, Comparator<T> comp) {
+        Iterator<T> i = unsorted.iterator();
+
+        ArrayList<T> sorted = new ArrayList<T>();
+        BASet<T> pending = new BASet<T>(comp);
+        int n = 0;
+
+        while (i.hasNext()) {
+            T it = i.next();
+            n++;
+            if (it.predecessorCount() == 0)
+                pending.add(it);
+        }
+
+        int j = 0;
+        while (pending.size() > 0) {
+            T it = pending.first();
+            pending.remove(it);
+            j++;
+            sorted.add(it);
+            Iterator<T> iti = it.successors();
+            while (iti.hasNext()) {
+                T succ = iti.next();
+                if (succ.decrementPredecessors() == 0) {
+                    pending.add(succ);
+                }
+            }
+        }
+
+        if (n != sorted.size())
+            throw new IllegalArgumentException("No order exists; input contains cycle");
+
+        return sorted;
+    }
+
+    
+    public static <T extends TopSortItem<T>> List<T> depthFirst(Iterable<T> unsorted) {
         Iterator<T> i = unsorted.iterator();
 
         int n = 0;

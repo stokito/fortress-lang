@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2007 Sun Microsystems, Inc.,
+    Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,20 +17,19 @@
 
 package com.sun.fortress.useful;
 
-import java.util.Iterator;
+import java.util.Comparator;
 
-public interface TopSortItem<T extends TopSortItem<T>>  {
-    /**
-     * Returns an iterator over the successors of this node.
-     */
-    Iterator<T> successors();
+public final class ComposedComparator<T> implements Comparator<T> {
 
-    /**
-     * Returns this node's current predecessor count.
-     */
-    int predecessorCount();
-    /**
-     * Decrements this node's predecessor count and returns the new value.
-     */
-    int decrementPredecessors();
+    final Comparator<T> first;
+    final Comparator<T> second;
+    
+    public ComposedComparator(Comparator<T> first, Comparator<T> second) {
+        this.first = first; this.second = second;
+    }
+    
+    public int compare(T o1, T o2) {
+        return Useful.compare(o1, o2, first, second);
+    }
+
 }

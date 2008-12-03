@@ -20,9 +20,11 @@ package com.sun.fortress.useful;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 public class MacPortsHelper {
 
@@ -40,7 +42,7 @@ public class MacPortsHelper {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
+        if (args.length < 1) {
             System.err
                     .println("MacPortsHelper takes a directory expected to contain files named <portname>.");
             System.err
@@ -79,8 +81,41 @@ public class MacPortsHelper {
                     b = br.readLine();
                 }
             }
-            List<TopSortItemImpl<String>> ordered = TopSort.breadthFirst(table
-                    .values());
+            
+            final HashSet<String> preferred = new HashSet<String>();
+            
+            if (args.length > 1) {
+                String s = args[1];
+                BufferedReader br = Useful.utf8BufferedFileReader(s);
+                String b = br.readLine();
+                while (b != null) {
+                    b = b.trim();
+                    preferred.add(new StringTokenizer(b).nextToken());
+                    b = br.readLine();
+                }
+            }
+            
+            Comparator<TopSortItemImpl<String>> order = new ComposedComparator<TopSortItemImpl<String>>(
+                    new PredicateComparator<TopSortItemImpl<String>>(new F<TopSortItemImpl<String>, Boolean>() {
+
+                        @Override
+                        public Boolean apply(TopSortItemImpl<String> x) {
+                            return preferred.contains(x.x);
+                        }
+                        
+                    }),
+                    new Comparator<TopSortItemImpl<String>>() {
+
+                        public int compare(TopSortItemImpl<String> o1,
+                                TopSortItemImpl<String> o2) {
+                            return o1.x.compareTo(o2.x);
+                        }
+                        
+                    }
+                    );
+            
+            List<TopSortItemImpl<String>> ordered = TopSort.prioritized(table
+                    .values(), order);
             for (TopSortItemImpl i : ordered) {
                 System.out.println(i.x);
             }

@@ -97,7 +97,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      */
     public static Simple_fcn inferAndInstantiateGenericFunction(
             List<FValue> args, GenericFunctionOrMethod appliedThing, HasAt loc,
-            Environment e) throws ProgramError {
+            Environment envForInference) throws ProgramError {
 
         if (DUMP_INFERENCE)
             System.err.println("IAIGF " + appliedThing + " with " + args);
@@ -120,7 +120,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         break;
                     }
                 }
-                e = selfType.getWithin();
+                envForInference = selfType.getWithin();
             } else
                 return error(loc,
                         errorMsg(
@@ -219,7 +219,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                             // Use precomputed selfType that will match declared
                             GenericTypeInstance gi = (GenericTypeInstance) selfType;
 
-                            at.unify(e,
+                            at.unify(envForInference,
                                      tp_set,
                                      abm,
                                      gi.getGeneric()
@@ -234,17 +234,17 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         Type ty = t.unwrap();
                         if (DUMP_INFERENCE)
                             System.err.println("Unifying "+at+" and "+ty);
-                        at.unify(e, tp_set, abm, ty);
+                        at.unify(envForInference, tp_set, abm, ty);
                     }
                 } else { // a varargs param
                     Type ty = p.getVarargsType().unwrap();
                     if (DUMP_INFERENCE)
                         System.err.println("Unifying "+at+" and vararg type "+ty);
-                    at.unify(e, tp_set, abm, ty);
+                    at.unify(envForInference, tp_set, abm, ty);
                 }
             } catch (FortressException ex) {
                 /* Give decent feedback when unification fails. */
-                throw ex.setContext(loc, e);
+                throw ex.setContext(loc, envForInference);
             }
         }
 
@@ -301,7 +301,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                                            "\n    with its bound "+tr+
                                            " "+tr.getClass());
                     }
-                    t.unify(e, tp_set, abm, tr);
+                    t.unify(envForInference, tp_set, abm, tr);
                 }
             }
         }
