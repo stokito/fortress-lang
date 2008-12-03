@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>, T> {
+public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>> {
 
     public T x;
     List<TopSortItemImpl<T>> succs;
@@ -46,6 +46,10 @@ public class TopSortItemImpl<T> implements TopSortItem<TopSortItemImpl<T>, T> {
 
     public int decrementPredecessors() {
         return --pcount;
+    }
+    
+    public String toString() {
+        return x.toString();
     }
 
 }
