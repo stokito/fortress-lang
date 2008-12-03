@@ -33,7 +33,6 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetFn;
@@ -126,13 +125,6 @@ public class TypeCheckerOutput {
 				// TODO Auto-generated method stub
 				removed.remove(Pair.make(that,that.getSpan()));
 				super.forForOnly(that);
-			}
-
-			@Override
-			public void forGeneratedExpr(GeneratedExpr that) {
-				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
-				super.forGeneratedExpr(that);
 			}
 
 			@Override

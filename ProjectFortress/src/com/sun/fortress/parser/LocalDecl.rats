@@ -64,8 +64,8 @@ private Expr BlockElem =
      LocalVarFnDecl
    / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorClauseList)?
      { if (a2 == null) yyValue = a1;
-       else yyValue = new GeneratedExpr(createSpan(yyStart,yyCount), false,
-                                        a1, a2);
+       else yyValue = new For(createSpan(yyStart,yyCount), false,
+                              a2, ExprFactory.makeBlock(a1));
      };
 
 /* LocalVarFnDecl ::=

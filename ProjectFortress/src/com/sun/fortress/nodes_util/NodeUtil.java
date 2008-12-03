@@ -458,9 +458,6 @@ public class NodeUtil {
             public IterableOnce<String> forFnDecl(FnDecl d) {
                 return new UnitIterable<String>(nameString(d.getName()));
             }
-            public IterableOnce<String> forGeneratedExpr(GeneratedExpr d) {
-                return new UnitIterable<String>("GeneratedExpr");
-            }
             public IterableOnce<String> forLetFn(LetFn d) {
                 return new UnitIterable<String>(d.getClass().getSimpleName());
             }

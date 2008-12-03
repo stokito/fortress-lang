@@ -67,7 +67,6 @@ import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -1093,11 +1092,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Block df = f.getBody();
         Do doBlock = new Do(df.getSpan(),Useful.list(df));
         return visitLoop(f.getSpan(), f.getGens(), doBlock);
-    }
-
-    @Override
-    public Node forGeneratedExpr(GeneratedExpr ge) {
-        return visitLoop(ge.getSpan(), ge.getGens(), ge.getExpr());
     }
 
     @Override

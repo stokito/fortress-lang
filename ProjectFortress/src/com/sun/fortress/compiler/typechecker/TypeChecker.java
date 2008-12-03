@@ -2284,15 +2284,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			if (returnType.isNone()) {
 				returnType = wrap(bodyType);
 			}
-                        
+
 //                         System.err.println("Location: " + that.getSpan());
 //                         System.err.println("body type: " + bodyType.getClass() + ":" + bodyType);
-//                         if (bodyType instanceof TraitType) { 
+//                         if (bodyType instanceof TraitType) {
 //                             System.err.println("name: " + ((TraitType)bodyType).getName());
 //                             System.err.println("args:" + ((TraitType)bodyType).getArgs());
 //                         }
 //                         System.err.println("return type: " + returnType.unwrap().getClass() + ":" + returnType.unwrap());
-//                         if (returnType.unwrap() instanceof TraitType) { 
+//                         if (returnType.unwrap() instanceof TraitType) {
 //                             System.err.println("name: " + ((TraitType)returnType.unwrap()).getName());
 //                             System.err.println("args:" + ((TraitType)returnType.unwrap()).getArgs());
 //                         }
@@ -2573,32 +2573,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return TypeCheckerResult.compose(for_, Types.VOID, subtypeChecker, result);
 	}
 
-	@Override
-	public TypeCheckerResult forGeneratedExpr(GeneratedExpr that) {
-		Pair<List<TypeCheckerResult>,List<LValue>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
-		TypeChecker extend = this.extend(pair.second());
-		TypeCheckerResult body_result = that.getExpr().accept(extend);
-		List<TypeCheckerResult> res = pair.first();
-
-		// make sure body type-checked
-		if( !body_result.isSuccessful() )
-			return TypeCheckerResult.compose(that, subtypeChecker, body_result);
-
-		//make sure body has type void?
-		String err = "Body of generated expression must have type VOID but had type " + body_result.type().unwrap();
-		TypeCheckerResult void_body = checkSubtype(body_result.type().unwrap(), Types.VOID, that.getExpr(), err);
-
-		GeneratedExpr new_node = new GeneratedExpr(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(Types.VOID),
-				(Expr)body_result.ast(),
-				(List<GeneratorClause>)TypeCheckerResult.astFromResults(res));
-
-		TypeCheckerResult result = TypeCheckerResult.compose(new_node, subtypeChecker, body_result, void_body,
-				TypeCheckerResult.compose(new_node, subtypeChecker, res)).addNodeTypeEnvEntry(new_node, typeEnv);
-		return TypeCheckerResult.compose(new_node, Types.VOID, subtypeChecker, result);
-	}
-
 	private Pair<TypeCheckerResult, List<LValue>> forGeneratorClauseGetBindings(GeneratorClause that,
 			boolean mustBeCondition) {
 		TypeCheckerResult init_result = that.getInit().accept(this);
@@ -2632,15 +2606,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					that.getBind(),
 					(Expr)init_result.ast());
 
-                        
+
 			// If bindings are empty, then init_result must be of type boolean, a filter, 13.14
                         TypeCheckerResult bool_result;
 
-                        if (init_result.type().isNone()) { 
+                        if (init_result.type().isNone()) {
                             String err = "Filter expressions in generator clauses must have type boolean, but " +
                                 that.getInit() + " was not well typed.";
                             bool_result = new TypeCheckerResult(that.getInit(), TypeError.make(err, that.getInit()));
-                        } else { 
+                        } else {
                             bool_result =
 				this.checkSubtype(init_result.type().unwrap(), Types.BOOLEAN, that.getInit(),
 						"Filter expressions in generator clauses must have type " + Types.BOOLEAN + ", but " +

@@ -47,7 +47,6 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.For;
-import com.sun.fortress.nodes.GeneratedExpr;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
@@ -828,17 +827,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                v.recurOnOptionOfListOfEnsuresClause(that.getEnsuresClause()),
                                v.recurOnOptionOfListOfExpr(that.getInvariantsClause()));
     }
-
-    @Override
-	public Node forGeneratedExpr(GeneratedExpr that) {
-        Pair<List<GeneratorClause>,Set<Id>> pair = bindInListGenClauses(this, that.getGens());
-        ExprDisambiguator extended_d = this.extendWithVars(pair.second());
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forGeneratedExprOnly(that, type_result,
-                                    (Expr)that.getExpr().accept(extended_d),
-                                    pair.first());
-    }
-
 
     @Override
 	public Node forAccumulator(Accumulator that) {

@@ -136,7 +136,6 @@ public class Transform extends TemplateUpdateVisitor {
      *    For - done
      *    While - done
      *    Accumulator -
-     *    GeneratedExpr
      *    ArrayComprehensionClause
      *    IfClause - done
      */

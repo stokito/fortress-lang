@@ -359,14 +359,6 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forGeneratedExpr(GeneratedExpr that) {
-        scopeStack.push(that);
-        Node returnValue = super.forGeneratedExpr(that);
-        scopeStack.pop();
-        return returnValue;
-    }
-
-    @Override
 	public Node forWhile(While that) {
 		scopeStack.push(that);
 		Node returnValue = super.forWhile(that);
