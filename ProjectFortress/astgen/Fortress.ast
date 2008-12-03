@@ -90,20 +90,6 @@ interface Node() extends HasAt;
         interface Generic(List<StaticParam> staticParams);
             interface GenericWithParams(Option<List<Param>> params,
                                         List<Decl> decls);
-        /**
-         * templates
-         */
-        interface TemplateGap(Id gapId, List<Id> templateParams);
-        /**
-         * A syntax transformation
-         */
-        interface _SyntaxTransformation(String syntaxTransformer,
-                                        java.util.Map<String,Level> variables,
-                                        java.util.List<String> syntaxParameters);
-        /**
-         * Repeated expression inside a syntax transformation template
-         */
-        interface _Ellipses(AbstractNode repeatedNode);
 
         /**
          * top-level node abstract class
@@ -2129,5 +2115,19 @@ interface Node() extends HasAt;
                              List<Param> params,
                              Option<Type> returnType,
                              Option<WhereClause> whereClause);
+        /**
+         * templates
+         */
+        interface TemplateGap(Id gapId, List<Id> templateParams);
+        /**
+         * A syntax transformation
+         */
+        interface _SyntaxTransformation(String syntaxTransformer,
+                                        java.util.Map<String,Level> variables,
+                                        java.util.List<String> syntaxParameters);
+        /**
+         * Repeated expression inside a syntax transformation template
+         */
+        interface _Ellipses(AbstractNode repeatedNode);
 
 end;
