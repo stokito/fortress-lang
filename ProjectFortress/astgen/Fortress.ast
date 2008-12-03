@@ -722,14 +722,6 @@ interface Node() extends HasAt;
                          List<CaseClause> clauses,
                          Option<Block> elseClause = Option.<Block>none());
                 /**
-                 * for expression
-                 * DelimitedExpr ::= for GeneratorClauseList DoFront end
-                 * e.g.) for i <- sequential(1:5) do
-                 *         print (i " ")
-                 *       end
-                 */
-                For(List<GeneratorClause> gens, Block body);
-                /**
                  * if expression
                  * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
                  *                 | ( if CondExpr then BlockElems Elifs? Else end? )
@@ -833,6 +825,18 @@ interface Node() extends HasAt;
                  * e.g.) while x < 10 do print x; x += 1 end
                  */
                 While(GeneratorClause testExpr, Do body);
+                /**
+                 * for expression
+                 * DelimitedExpr ::= for GeneratorClauseList DoFront end
+                 * e.g.) for i <- sequential(1:5) do
+                 *         print (i " ")
+                 *       end
+                 *
+                 * generated expression
+                 * BlockElem ::= Expr(, GeneratorClauseList)?
+                 * e.g.) print (i " "), i <- sequential(1:5)
+                 */
+                For(List<GeneratorClause> gens, Block body);
                 /**
                  * comprehension or accumulator
                  */
@@ -939,12 +943,6 @@ interface Node() extends HasAt;
                      */
                     LocalVarDecl(List<LValue> lhs,
                                  Option<Expr> rhs = Option.<Expr>none());
-                /**
-                 * generated expression
-                 * BlockElem ::= Expr(, GeneratorClauseList)?
-                 * e.g.) print (i " "), i <- sequential(1:5)
-                 */
-                GeneratedExpr(Expr expr, List<GeneratorClause> gens);
                 /**
                  * expression that is simple or using operators
                  * Expr ::= OpExpr

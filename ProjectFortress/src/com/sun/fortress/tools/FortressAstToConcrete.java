@@ -1576,21 +1576,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forGeneratedExprOnly(GeneratedExpr that, Option<String> exprType_result,
-                                                 String expr_result,
-                                                 List<String> gens_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( expr_result );
-        if ( ! gens_result.isEmpty() ) {
-            s.append( ", " );
-            s.append( join(gens_result, ", ") );
-        }
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-    }
-
     @Override public String forSubscriptExprOnly(SubscriptExpr that, Option<String> exprType_result,
                                                  String obj_result,
                                                  List<String> subs_result,

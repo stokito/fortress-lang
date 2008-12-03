@@ -44,7 +44,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     private TypeCheckerOutput typeCheckerOutput;
     // A stack keeping track of all nodes that can create new scope
     // TraitDecl, ObjectDecl, FnDecl, FnExpr, IfClause, For, LetFn, LocalVarDecl,
-    // Label, Catch, Typecase, GeneratedExpr, While, and ObjectExpr
+    // Label, Catch, Typecase, While, and ObjectExpr
     private Stack<Node> scopeStack;
     // A stack keeping track of (potentially nested) object exprs
     private Stack<ObjectExpr> objExprStack;
@@ -207,13 +207,6 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     public void forTypecase(Typecase that) {
         scopeStack.push(that);
         super.forTypecase(that);
-        scopeStack.pop();
-    }
-
-    @Override
-    public void forGeneratedExpr(GeneratedExpr that) {
-        scopeStack.push(that);
-        super.forGeneratedExpr(that);
         scopeStack.pop();
     }
 

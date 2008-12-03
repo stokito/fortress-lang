@@ -798,10 +798,6 @@ public class ExprFactory {
                               e.getReturnType(), e.getWhereClause(),
                               e.getThrowsClause(), e.getBody());
         }
-        public Expr forGeneratedExpr(GeneratedExpr e) {
-            return new GeneratedExpr(e.getSpan(), true,
-                    e.getExpr(), e.getGens());
-        }
         public Expr forLetFn(LetFn e) {
             return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
         }
