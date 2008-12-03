@@ -532,7 +532,7 @@ public class Driver {
         for (String s : args) {
             fvalueArgs.add(FString.make(s));
         }
-        FValue ret = run_fn.apply(fvalueArgs, toplevel, e);
+        FValue ret = run_fn.applyPossiblyGeneric(fvalueArgs, toplevel, e);
         // try {
         // e.dump(System.out);
         // } catch (IOException ioe) {

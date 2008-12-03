@@ -38,6 +38,11 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
     }
     
     @Override
+    public boolean needsInference() {
+        return true;
+    }
+    
+    @Override
     public List<FType> getDomain() {
         return getSymbolic().getDomain();
 
@@ -50,14 +55,14 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
     }
     
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
         Simple_fcn foo = cache.get(args);
         if (foo == null) {
             foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
             cache.syncPut(args, foo);
         }
 //        Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
-        return foo.apply(args, loc, envForInference);
+        return foo.applyPossiblyGeneric(args, loc, envForInference);
     }
 
 

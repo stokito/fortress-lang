@@ -194,7 +194,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     }
 
 
-    public FValue applyInner(List<FValue> args, HasAt loc,
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc,
                              Environment envForInference) {
         if (def instanceof NativeApp) {
             args = typecheckParams(args,loc);

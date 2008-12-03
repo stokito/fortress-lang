@@ -1194,7 +1194,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         DottedMethodApplication app0 =
             DottedMethodApplication.make(receiver,mname,mname,x);
         DottedMethodApplication app = app0.applyToStaticArgs(sargs,x,e);
-        return app.apply(args,x,e);
+        return app.applyPossiblyGeneric(args,x,e);
     }
 
     private boolean isFunction(FValue val) { return (val instanceof Fcn); }
@@ -1569,7 +1569,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
                 // Can we get a better HasAt?
                 HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
-                FObject f = (FObject) c.apply(args, at, e);
+                FObject f = (FObject) c.applyPossiblyGeneric(args, at, e);
                 FortressError f_exc = new FortressError(x,e,f);
                 throw f_exc;
             }

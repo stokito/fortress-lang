@@ -48,6 +48,10 @@ abstract public class Fcn extends FValue {
     public Environment getWithin() {
         return within;
     }
+    
+    public boolean needsInference() {
+        return false;
+    }
 
     /**
      * Getter for ftype.  Should always be non-null, but right now
@@ -92,14 +96,14 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue apply(List<FValue> args, HasAt loc, Environment envForInference) {
+    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
-            return check(applyInner(unwrapped, loc, envForInference));
+            return check(applyInnerPossiblyGeneric(unwrapped, loc, envForInference));
         } catch (UnificationError u) {
             if (unwrapped != args) {
                 try {
-                    return check(applyInner(args, loc, envForInference));
+                    return check(applyInnerPossiblyGeneric(args, loc, envForInference));
                 } catch (UnificationError u1) {
                     throw u;
                 }
@@ -116,7 +120,7 @@ abstract public class Fcn extends FValue {
         return args;
     }
 
-    abstract public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference);
+    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference);
 
     public boolean hasSelfDotMethodInvocation() {
         return false;

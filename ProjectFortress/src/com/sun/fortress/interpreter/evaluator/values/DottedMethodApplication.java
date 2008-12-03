@@ -129,7 +129,7 @@ public final class DottedMethodApplication extends Fcn {
                                       HasAt x, Environment envForInference) {
         DottedMethodApplication app =
             DottedMethodApplication.make(receiver,prettyName,mname,x);
-        return app.apply(args,x,envForInference);
+        return app.applyPossiblyGeneric(args,x,envForInference);
     }
 
     public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt x,
@@ -177,7 +177,7 @@ public final class DottedMethodApplication extends Fcn {
         // Do nothing.
     }
 
-    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
         try {
             return cl.applyMethod(args, self, loc, envForInference);
         } catch (FortressException ex) {

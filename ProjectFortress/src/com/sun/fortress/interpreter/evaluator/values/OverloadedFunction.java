@@ -67,7 +67,8 @@ public class  OverloadedFunction extends Fcn
     protected volatile List<Overload> overloads = new ArrayList<Overload>();
     protected List<Overload> pendingOverloads = new ArrayList<Overload>();
     private Map<Overload, Overload> allOverloadsEver = new Hashtable<Overload, Overload>();
-
+    private volatile boolean needsInference;
+    
     protected volatile boolean finishedFirst = true; // an empty overload is consistent
     protected volatile boolean finishedSecond = true;
     protected IdOrOpOrAnonymousName fnName;
@@ -104,6 +105,11 @@ public class  OverloadedFunction extends Fcn
     BATreeEC<List<FValue>, List<FType>, SingleFcn> cache =
         new BATreeEC<List<FValue>, List<FType>, SingleFcn>(FValue.asTypesList);
 
+    @Override
+    public boolean needsInference() {
+        return needsInference;
+    }
+    
     public String getString() {
         if (pendingOverloads.size() > 0) {
             return Useful.listInDelimiters("{\n\t",overloads,
@@ -250,7 +256,9 @@ public class  OverloadedFunction extends Fcn
         for (int i = 0; i< new_overloads.size(); i++) {
             Overload o1 = new_overloads.get(i);
             Fcn fn = o1.getFn();
-            if (!(fn instanceof FGenericFunction)) {
+            if (fn instanceof GenericFunctionOrConstructor) {
+                needsInference = true;
+            } else {
                 FType ty = fn.type();
                 if (ty != null) ftalist.add(ty);
             }
@@ -753,7 +761,7 @@ public class  OverloadedFunction extends Fcn
 
     // TODO continue audit of functions in here.
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
 
         SingleFcn best_f = cache.get(args);
 
@@ -769,6 +777,9 @@ public class  OverloadedFunction extends Fcn
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
                 best_f = fm.getApplicableClosure(args,loc,envForInference);
+            } else if (best_f instanceof GenericFunctionOrMethod) {
+                GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
+                best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args, gsfn, loc, best_f.getWithin());
             }
             if (best_f instanceof GenericFunctionOrMethod) {
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
@@ -781,7 +792,7 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.apply(args, loc, best_f.getWithin()); // was envForInference
+        return best_f.applyPossiblyGeneric(args, loc, best_f.getWithin()); // was envForInference
     }
 
      /**

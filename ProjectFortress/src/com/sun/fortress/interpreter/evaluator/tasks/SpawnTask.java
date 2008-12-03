@@ -39,7 +39,7 @@ public class SpawnTask extends BaseTask {
         List<FValue> args = new ArrayList<FValue>();
         HasAt loc = new HasAt.FromString("SpawnTask");
         Environment e = eval.e;
-        val = fcn.apply(args, loc, e);
+        val = fcn.applyPossiblyGeneric(args, loc, e);
         resultIsReady = true;
         fcn = null;
         eval = null;

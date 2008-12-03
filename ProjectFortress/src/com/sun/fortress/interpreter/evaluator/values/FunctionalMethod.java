@@ -76,7 +76,7 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
      * @see com.sun.fortress.interpreter.evaluator.values.Closure#applyInner(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)
      */
     @Override
-    public FValue applyInner(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
         FValue selfVal = args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
         return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args,

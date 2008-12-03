@@ -48,7 +48,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         public FObject make(List<FType> args, HasAt location) {
             return (FObject)
             genericConstructor.typeApply(location, args).
-            apply(Collections.<FValue>emptyList(),
+            applyPossiblyGeneric(Collections.<FValue>emptyList(),
                     location,
                     genericConstructor.getWithin());
         }
