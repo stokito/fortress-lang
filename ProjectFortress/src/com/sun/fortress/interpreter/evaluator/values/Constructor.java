@@ -560,7 +560,7 @@ public class Constructor extends NonPrimitive {
     }
 
     @Override
-    public FValue applyInner(
+    public FValue applyInnerPossiblyGeneric(
             List<FValue> args, HasAt loc, Environment envForInference) {
         return applyConstructor(args, loc);
     }

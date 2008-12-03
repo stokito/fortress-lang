@@ -698,9 +698,6 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
      */
     public void putFunctionalMethodInstance(String str, FValue f2) {
         if (f2 instanceof Fcn) {
-//            if (str.contains("seq")) {
-//                System.err.println("seq " + f2);
-//            }
             putFunction(str, (Fcn) f2, "Var/value", true, true);
         } else
             error(str + " must be a functional method instance ");

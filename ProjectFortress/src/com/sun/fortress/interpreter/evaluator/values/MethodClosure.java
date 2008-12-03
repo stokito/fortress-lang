@@ -108,7 +108,7 @@ public class MethodClosure extends FunctionClosure implements Method {
      *   In that case we can strip "AsIf" information from self, as
      *      we've already dealt with the type information.
      */
-    public FValue applyInner(List<FValue> args, HasAt loc,
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc,
                              Environment envForInference) {
         if (selfParameterIndex == -1) {
             return bug(loc,errorMsg("MethodClosure for dotted method ",this,

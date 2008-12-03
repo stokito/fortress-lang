@@ -82,7 +82,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return foo.apply(args, loc, foo.getWithin());
+            return foo.applyPossiblyGeneric(args, loc, foo.getWithin());
         } catch (FortressException ex) {
             throw ex.setContext(loc,e);
         } catch (StackOverflowError soe) {
