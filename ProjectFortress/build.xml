@@ -408,7 +408,8 @@ maintain proper indentation.
     <scalac
         srcdir="${astgen.generators.src}"
         destdir="${build}"
-        classpathref="astgen.classpath">
+        classpathref="astgen.classpath"
+        addparams="">
       <include name="**/*.scala"/>
       <exclude name="${usefulPackage}/*.scala"/>
       <exclude name="${unicodePackage}/*.scala"/>
@@ -486,7 +487,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="**/*.scala"/>
     </scalac>
   </target>
@@ -498,7 +500,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}/com/sun/fortress/numerics"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="**/*.scala"/>
     </scalac>
 
@@ -618,7 +621,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="**/*.scala"/>
       <exclude name="${usefulPackage}/*.scala"/>
       <exclude name="${unicodePackage}/*.scala"/>
@@ -647,7 +651,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="${blahblahblah}/useful/*.scala"/>
       <include name="${blahblahblah}/unicode/*.scala"/>
     </scalac>
@@ -675,7 +680,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="${usefulPackage}/*.scala"/>
       <include name="${unicodePackage}/*.scala"/>
     </scalac>
@@ -1105,7 +1111,8 @@ maintain proper indentation.
     <scalac
         srcdir="${src}"
         destdir="${build}"
-        classpathref="compile.classpath">
+        classpathref="compile.classpath"
+        addparams="">
       <include name="${packagePrefix}/parser/FortressInstrumented.scala"/>
     </scalac>
   </target>

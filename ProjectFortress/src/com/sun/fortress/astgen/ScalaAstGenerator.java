@@ -58,61 +58,67 @@ public class ScalaAstGenerator extends CodeGenerator {
         super(ast);
     }
 
-    public Iterable<Class<? extends CodeGenerator>> dependencies(){
+    @Override
+    public Iterable<Class<? extends CodeGenerator>> dependencies() {
         return new ArrayList<Class<? extends CodeGenerator>>();
     }
 
     @Override
-    public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i) {
-    }
+    public void generateInterfaceMembers(TabPrintWriter writer, NodeInterface i) {}
 
     @Override
-    public void generateClassMembers(TabPrintWriter writer, NodeClass c) {
-    }
+    public void generateClassMembers(TabPrintWriter writer, NodeClass c) {}
 
-    private List<? extends NodeInterface> getInterfaces(){
+    private List<? extends NodeInterface> getInterfaces() {
         return mkList(ast.interfaces());
     }
 
-    private String extendsClause( NodeInterface box ){
-        List<TypeName> interfaces = box.interfaces();
-        if ( interfaces.isEmpty() ){
-            return "";
+    /**
+     * Given a NodeInterface, construct its extends clause as a string.
+     */
+    private String extendsClause(NodeInterface box) {
+        List<TypeName> interfaces = box.interfaces(); 
+
+        if (interfaces.isEmpty()) { 
+            return ""; 
         }
-        if ( interfaces.size() == 1 ){
+        if (interfaces.size() == 1) { 
             return "extends " + fieldType(interfaces.get(0));
         }
-        StringBuffer buffer = new StringBuffer();
-        buffer.append( "extends " );
-        int i = 0;
-        for ( TypeName name : interfaces ){
-            if ( i != 0 ){
-                buffer.append( " with " );
-            }
-            i += 1;
-            buffer.append( fieldType(name) );
+
+        StringBuffer buffer = new StringBuffer("extends ");
+        boolean first = true;
+
+        for (TypeName name : interfaces) {
+            if (first) { first = false; }
+            else { buffer.append( " with " ); }
+
+            buffer.append(fieldType(name));
         }
 
         return buffer.toString();
     }
 
-    private String extendsClause( NodeClass box ){
-
+    /** 
+     * Given a NodeClass, construct its extends clause as a string.
+     */
+    private String extendsClause(NodeClass box) {
         Option<NodeType> parent = ast.parent(box);
+
         Iterable<Field> superFields = IterUtil.empty();
+
         if (parent.isSome() && parent.unwrap() instanceof NodeClass) {
+            // Parent has fields that we need to initialize during construction.
             superFields = parent.unwrap().allFields(ast);
         }
+        
         Iterable<Field> allFields = box.allFields(ast);
         Iterable<Field> declaredFields = box.declaredFields(ast);
 
         TypeName superName = box.superClass();
-        // System.err.println(box.name() + " <: " + superName.name());
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = new StringBuffer("extends " + superName.name());
 
-        buffer.append("extends ");
-        buffer.append(superName.name());
 
         // Classes defined outside ASTGen and extended by an ASTGen class
         // are required to have a zeroary constructor.
@@ -125,13 +131,14 @@ public class ScalaAstGenerator extends CodeGenerator {
         }
         buffer.append(")");
 
-
         List<String> names = new ArrayList<String>();
 
-        for ( TypeName name : box.interfaces() ){
+        // Collect superinterface names.
+        for (TypeName name : box.interfaces()) {
             names.add(fieldType(name));
         }
 
+        // Add superinterfaces to extends clause as mixins. 
         for ( String name : names ){
             buffer.append( " with " );
             buffer.append( name );
@@ -139,171 +146,143 @@ public class ScalaAstGenerator extends CodeGenerator {
         return buffer.toString();
     }
 
+
+    /** 
+     * Given a TypeName, return a string representation of the corresponding
+     * type in Scala.
+     */
     private String fieldType(TypeName type) {
         return type.accept(new TypeNameVisitor<String>() {
-            /** A type declared in the AST.  Has 0 type arguments. */
-            public String forTreeNode(ClassName t) {
-                return t.name();
-            }
 
-            /** A primitive type. */
-            public String forPrimitive(PrimitiveName t) {
-                String name = t.name();
-                String method;
-                if ( name.equals("int") ){
-                    return "Int";
-                }
-                if ( name.equals("boolean") ){
-                    return "Boolean";
-                }
-                throw new RuntimeException("Unknown primitive " + name);
-            }
-
-            /** A {@code java.lang.String}.  Has 0 type arguments. */
-            public String forString(ClassName t){
-                return "String";
-            }
-
-            /** An array of primitives. */
-            public String forPrimitiveArray(PrimitiveArrayName t){
-                throw new RuntimeException("Can't handle primitive array");
-            }
-
-            /** An array of reference types (non-primitives). */
-            public String forReferenceArray(ReferenceArrayName t){
-                throw new RuntimeException("Can't handle reference array");
-            }
-
-            /** A list, set, or other subtype of {@code java.lang.Iterable}. */
-            public String forSequenceClass(SequenceClassName t){
-                return sub("List[@type]", "@type", t.elementType().accept(this));
-            }
-
-            /** A {@code edu.rice.cs.plt.tuple.Option}.  Has 1 type argument. */
-            public String forOptionClass(OptionClassName t){
-                return sub("Option[@type]", "@type", t.elementType().accept(this));
-            }
-
-            /** A tuple (see definition in {@link TupleName} documentation). */
-            public String forTupleClass(TupleClassName t){
-                throw new RuntimeException("Can't handle tuple");
-            }
-
-            /** A type for which none of the other cases apply. */
-            public String forGeneralClass(ClassName t){
-                StringBuffer name = new StringBuffer();
-
-                // Handle types for which ASTGen provides no hooks,
-                // but that we still want to treat specially.
-                if (t.className().equals("java.util.Map")) { 
-                    name.append("Map");
-                } else { 
-                    name.append(t.className());
+                // A type declared in the AST.  Has 0 type arguments.        
+                public String forTreeNode(ClassName t) {
+                    return t.name();
                 }
 
-                boolean first = true;
-                for (TypeArgumentName arg : t.typeArguments()) {
-                    if (first) {
-                        name.append("["); 
-                        first = false;
-                    } else {
-                        name.append(", ");
+                // A primitive type
+                public String forPrimitive(PrimitiveName t) {
+                    String name = t.name();
+
+                    if (name.equals("int")) {
+                        return "Int";
                     }
+                    if (name.equals("boolean")) {
+                        return "Boolean";
+                    }
+                    throw new RuntimeException("Unknown primitive " + name);
+                }
+
+                // A String.  Has 0 type arguments. 
+                public String forString(ClassName t) {
+                    return "String";
+                }
+
+                // An array of primitives. 
+                public String forPrimitiveArray(PrimitiveArrayName t) {
+                    throw new RuntimeException("Can't handle primitive array");
+                }
+
+                // An array of reference types (non-primitives). 
+                public String forReferenceArray(ReferenceArrayName t) {
+                    throw new RuntimeException("Can't handle reference array");
+                }
+
+                // A list, set, or other subtype of java.lang.Iterable.
+                public String forSequenceClass(SequenceClassName t) {
+                    return sub("List[@type]", "@type", t.elementType().accept(this));
+                }
+
+                // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument. 
+                public String forOptionClass(OptionClassName t) {
+                    return sub("Option[@type]", "@type", t.elementType().accept(this));
+                }
+
+                // A tuple (see definition in TupleName documentation). 
+                public String forTupleClass(TupleClassName t) {
+                    throw new RuntimeException("Can't handle tuple");
+                }
+
+                // A type for which none of the other cases apply. 
+                public String forGeneralClass(ClassName t) {
+                    StringBuffer name = new StringBuffer();
+
+                    // Handle types for which ASTGen provides no hooks,
+                    // but that we still want to treat specially.
+                    if (t.className().equals("java.util.Map")) { name.append("Map"); }
+                    else { name.append(t.className()); }
+
+                    // Handle type arguments.
                     // Note: This will not work with nested generic types. 
                     // ASTGen does not provide a facility for recursive deconstruction 
                     // of nested generic type arguments. 
-                    name.append(arg.name());
-                }
-                if (! first) {
-                    name.append("]");
-                }
-                return name.toString();
-            }
+                    boolean first = true;
+                    for (TypeArgumentName arg : t.typeArguments()) {
+                        if (first) {
+                            name.append("["); 
+                            first = false;
+                        } else {
+                            name.append(", ");
+                        }
+                        name.append(arg.name());
+                    }
+                    if (! first) { name.append("]"); }
 
-        });
+                    return name.toString();
+                }
+
+            });
     }
 
-    /* return true if some fields should be ignored.
-     * List:
-     *  span
+    /** 
+     * Given a list of fields, return the corresponding 
+     * field declarations in String form.
      */
-    private boolean ignoreField( Field field ){
-//         if ( field.name().equals( "span" ) ){
-//             return true;
-//         }
-//         if ( field.name().equals( "parenthesized" ) ){
-//             return true;
-//         }
-
-        return false;
-    }
-
-    /* remove ignored fields */
-    private Iterable<Field> filterFields(Iterable<Field> fields){
-        List<Field> ok = new ArrayList<Field>();
-
-        for ( Field field : fields ){
-            if ( ! ignoreField( field ) ){
-                ok.add( field );
-            }
-        }
-
-        return ok;
-    }
-
-    private String capitalize(String s) {
-        if (s.length() == 0) { return s; }
-        else { return s.substring(0,1).toUpperCase() + s.substring(1); }
-    }
-
     private String traitFields( List<Field> fields ) {
         StringBuffer buffer = new StringBuffer();
         boolean first = true;
-        for ( Field field : filterFields(fields) ){
-            if ( first ){
+        for (Field field : fields) {
+            if (first) {
                 buffer.append( "\n" );
                 first = false;
             }
-            buffer.append(sub("  def @name:@type\n", "@name", field.getGetterName(), "@type", fieldType(field.type()) ));
+            buffer.append(sub("  def @name:@type\n", 
+                              "@name", field.getGetterName(), 
+                              "@type", fieldType(field.type())));
         }
         return buffer.toString();
     }
 
-    private String fields( NodeInterface box ) {
+    /** 
+     * Given a NodeInterface, return its fields in String form.
+     */
+    private String fields(NodeInterface box) {
         return traitFields(box.fields());
     }
 
-    private String fields( NodeClass box ) {
-        if ( mkList(box.allFields(ast)).isEmpty() ){
-            return "";
-        } else {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("(");
-            int i = 0;
-            for ( Field field : box.allFields(ast) ){
-                if ( i != 0 ){
-                    buffer.append( ", " );
-                }
-                i += 1;
-                buffer.append(sub("@name:@type", "@name", field.getGetterName(), "@type", fieldType(field.type()) ));
-            }
-            buffer.append(")");
-            return buffer.toString();
-        }
+    /**
+     * Given a NodeClass, return its fields in String form. 
+     */
+    private String fields(NodeClass box) {
+        return "(" + fieldsNoParens(box, true) + ")";
     }
 
-    private String fieldsNoParens( NodeClass box, boolean firstPass ) {
-        if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
+    /**
+     * Given a NodeClass, return its fields in String form
+     * (without parentheses).
+     */
+    private String fieldsNoParens(NodeClass box, boolean firstPass) {
+        if (mkList(box.allFields(ast)).isEmpty()) {
             return "";
         } else {
             StringBuffer buffer = new StringBuffer();
 
-            for ( Field field : filterFields(box.allFields(ast)) ){
-                if ( ! firstPass ){
-                    buffer.append( ", " );
-                }
-                firstPass = false;
-                buffer.append(sub("@name:@type", "@name", field.getGetterName(), "@type", fieldType(field.type()) ));
+            for (Field field : box.allFields(ast)) {
+                if (firstPass) { firstPass = false; }
+                else { buffer.append(", "); }
+
+                buffer.append(sub("@name:@type", 
+                                  "@name", field.getGetterName(), 
+                                  "@type", fieldType(field.type())));
             }
             return buffer.toString();
         }
@@ -316,41 +295,52 @@ public class ScalaAstGenerator extends CodeGenerator {
         return "(" + allFieldsNoParens(box, true) + ")";
     }
 
+    /** 
+     * Return a string including all field declarations, including inherited declarations,
+     * without enclosing parentheses.
+     */
     private StringBuffer allFieldsNoParens(NodeClass box, boolean firstPass) {
             StringBuffer buffer = new StringBuffer();
 
-            if (ast.isTopClass(box)) { return new StringBuffer(""); }
+            if (ast.isTopClass(box)) { return buffer; }
 
-            for ( Field field : filterFields(box.allFields(ast)) ){
-                if (! firstPass) {
-                    buffer.append( ", " );
-                }
-                firstPass = false;
-                buffer.append(sub("@name:@type", "@name", field.getGetterName(), "@type", fieldType(field.type()) ));
+            for (Field field : box.allFields(ast)) {
+                if (firstPass) {  firstPass = false; }
+                else { buffer.append( ", " ); }
+
+                buffer.append(sub("@name:@type", 
+                                  "@name", field.getGetterName(), 
+                                  "@type", fieldType(field.type())));
             }
+
             // If the supertype has no definition, there is a bug in Fortress.ast or ASTGen.
             // If the defined supertype is not a class, there is a bug in Fortress.ast or ASTGen.
             try {
-                buffer.append(fieldsNoParens((NodeClass)ast.typeForName(box.superClass()).unwrap(), firstPass));
+                buffer.append
+                    (fieldsNoParens((NodeClass)ast.typeForName(box.superClass()).unwrap(), 
+                                    firstPass));
             } catch (OptionUnwrapException e) {
-                throw new RuntimeException("Missing supertype definition in Fortress.ast: " + box.superClass());
+                throw new RuntimeException("Missing supertype definition in Fortress.ast: " + 
+                                           box.superClass());
             }
             return buffer;
     }
 
 
-    private String fieldsNoTypes( NodeType box ) {
-        if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
+    /**
+     * Given a NodeType, return a string consisting of references to the fields of that type,
+     * separated by commas and enclosed in parentheses.
+     */
+    private String fieldsNoTypes(NodeType box) {
+        if (mkList(box.allFields(ast)).isEmpty()) {
             return "";
         } else {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("(");
-            int i = 0;
-            for ( Field field : filterFields(box.allFields(ast)) ){
-                if ( i != 0 ){
-                    buffer.append( ", " );
-                }
-                i += 1;
+            StringBuffer buffer = new StringBuffer("(");
+            boolean first = true;
+            for ( Field field : box.allFields(ast)) {
+                if (first) { first = false; }
+                else { buffer.append( ", " ); }
+
                 buffer.append(sub("@name", "@name", field.getGetterName()));
             }
             buffer.append(")");
@@ -358,20 +348,26 @@ public class ScalaAstGenerator extends CodeGenerator {
         }
     }
 
+    /**
+     * Given a String denoting a wrapper function and a NodeType, return a String consisting 
+     * of a sequence of calls to the wrapper function, passing each field of the given type to 
+     * the wrapper function in turn. Calls are separated by commas and enclosed in 
+     * parentheses. 
+     */
     private String wrappedFieldCalls(String wrapper, NodeType box) {
-        if ( mkList(filterFields(box.allFields(ast))).isEmpty() ){
+        if ( mkList(box.allFields(ast)).isEmpty() ){
             return "";
         } else {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("(");
-            int i = 0;
-            for ( Field field : filterFields(box.allFields(ast)) ){
-                if ( i != 0 ){
-                    buffer.append( ", " );
-                }
-                i += 1;
+            StringBuffer buffer = new StringBuffer("(");
+            boolean first = true;
+
+            for ( Field field : box.allFields(ast)) {
+                if (first) { first = false; }
+                else { buffer.append( ", " ); }
+
                 buffer.append(sub("@wrapper(@name).asInstanceOf", 
-                                  "@wrapper", wrapper, "@name", field.getGetterName()));
+                                  "@wrapper", wrapper, 
+                                  "@name", field.getGetterName()));
             }
             buffer.append(")");
             return buffer.toString();
@@ -379,31 +375,30 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
 
-    /* a nice function for string replacement.
+    /**
+     * A nice function for string replacement.
      * sub( "foo @bar @baz", "@bar", "1", "@baz", "2" ) ->
      * "foo 1 2"
      */
-    private String sub( String s, String... args ){
-        if ( args.length == 0 ){
-            return s;
-        } else {
-            Map<String,String> map = new HashMap<String,String>();
-            return sub(String.format(s.replaceAll( args[ 0 ], "%1\\$s" ), args[ 1 ]), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
-            // return sub( s.replaceAll( args[ 0 ], args[ 1 ] ), Arrays.asList( args ).subList( 2, args.length ).toArray(new String[0]) );
-        }
+    private String sub(String s, String... args) {
+        if ( args.length == 0 ) { return s; }
+
+        Map<String,String> map = new HashMap<String,String>();
+
+        return sub(String.format(s.replaceAll(args[0], "%1\\$s"), args[1]), 
+                   Arrays.asList(args).subList(2, args.length).toArray(new String[0]));
     }
 
-    /* Iterable -> List */
-    private <T> List<T> mkList(Iterable<T> iter){
+    /**
+     * Iterable -> List 
+     */
+    private <T> List<T> mkList(Iterable<T> iter) {
         List<T> list = new ArrayList<T>();
-        for ( T i : iter ){
-            list.add(i);
-        }
-
+        for (T i : iter) { list.add(i); }
         return list;
     }
 
-    private <T extends NodeType> Iterable<T> sort(Iterable<T> boxes){
+    private <T extends NodeType> Iterable<T> sort(Iterable<T> boxes) {
         List<T> list = mkList(boxes);
         Collections.sort(list, new Comparator<NodeType>(){
             public int compare( NodeType b1, NodeType b2 ){
@@ -413,17 +408,16 @@ public class ScalaAstGenerator extends CodeGenerator {
         return list;
     }
 
-    private boolean ignoreClass( String name ){
-        if (name.startsWith( "_Rewrite" ) ) {
+    private boolean ignoreClass(String name) {
+        if (name.startsWith("_Rewrite")) {
             return false;
         }
-        if (name.startsWith( "_SyntaxTransformation" ) ) {
+        if (name.startsWith("_SyntaxTransformation")) {
             return true; 
         }
-        if (name.startsWith( "_Ellipses" ) ) {
+        if (name.startsWith("_Ellipses")) {
             return true; 
         }
-
         /* TODO: this won't be needed once TemplateGap's are removed from Fortress.ast */
         if ( name.startsWith( "TemplateGap" ) ){
             return true;
@@ -432,58 +426,93 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
 
+    /**
+     * Given a PrintWriter, write out all Scala declarations for Fortress.ast.
+     */
     private void generateBody(PrintWriter writer) {
-        for ( NodeInterface box : sort(getInterfaces()) ){
-            writer.println(sub("trait @name @extends {@fields}", "@name", box.name(), "@extends", extendsClause(box), "@fields", fields(box) ));
+        // Generate type definitions.
+        for (NodeInterface box : sort(getInterfaces())) {
+            writer.println(sub("trait @name @extends {@fields}",
+                               "@name", box.name(), 
+                               "@extends", extendsClause(box), 
+                               "@fields", fields(box)));
+        }
+        for (NodeClass c : sort(ast.classes())) {
+            if (ignoreClass(c.name())) { continue; }
+
+            if (c.isAbstract()) {
+                writer.println(sub("abstract class @name @fields @extends", 
+                                   "@name", c.name(), 
+                                   "@fields", fields(c), 
+                                   "@extends", extendsClause(c)));
+            } else {
+                writer.println(sub("case class @name @fields @extends", 
+                                   "@name", c.name(), 
+                                   "@fields", fields(c), 
+                                   "@extends", extendsClause(c)));
+            }
         }
 
-        for ( NodeClass c : sort(ast.classes()) ){
-            if ( ignoreClass(c.name()) ){
-                continue;
-            }
-            if ( c.isAbstract() ){
-                writer.println(sub( "abstract class @name @fields @extends", "@name", c.name(), "@fields", fields(c), "@extends", extendsClause(c) ));
-            } else {
-                writer.println(sub( "case class @name @fields @extends", 
-                                    "@name", c.name(), "@fields", fields(c), "@extends", extendsClause(c)  ));
-            }
-        }
-        // Generate translator
+        // Generate translator.
         writer.println();
         writer.println("object Translator {");
         writer.println("   def toJavaAst(node:Any):Any = {");
         writer.println("       node match {");
-        for ( NodeClass c : sort(ast.classes()) ) {
-            if ( ignoreClass(c.name()) ){
-                continue;
-            }
-            if ( c.isAbstract() ){
-                continue;
-            } else {
-                writer.println(sub( "         case @name @fieldsNoTypes =>", 
-                                    "@name", c.name(), "@fieldsNoTypes", fieldsNoTypes(c)));
-                writer.println(sub("             new com.sun.fortress.nodes.@name @fieldsNoTypes",
-                                   "@name", c.name(), "@fieldsNoTypes", wrappedFieldCalls("toJavaAst", c)));
+        for (NodeClass c : sort(ast.classes())) {
+            if (ignoreClass(c.name())) { continue; }
+            if ( c.isAbstract() ){ continue; } 
 
-            }
+            writer.println(sub( "         case @name @fieldsNoTypes =>", 
+                                "@name", c.name(), 
+                                "@fieldsNoTypes", fieldsNoTypes(c)));
+            writer.println(sub("             new com.sun.fortress.nodes.@name @fieldsNoTypes",
+                               "@name", c.name(), 
+                               "@fieldsNoTypes", wrappedFieldCalls("toJavaAst", c)));
         }
         writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
         writer.println("         case _ => node");
         writer.println("      }");
         writer.println("   }");
         writer.println("}");
+
+        // Generate walker.
+        writer.println();
+        writer.println("trait Walker {");
+        writer.println("   def walk(node:Any):Any = {");
+        writer.println("       node match {");
+        for (NodeClass c : sort(ast.classes())) {
+            if (ignoreClass(c.name())) { continue; }
+            if ( c.isAbstract() ){ continue; } 
+
+            writer.println(sub( "         case @name @fieldsNoTypes =>", 
+                                "@name", c.name(), 
+                                "@fieldsNoTypes", fieldsNoTypes(c)));
+            writer.println(sub("             @name @fieldsNoTypes",
+                               "@name", c.name(), 
+                               "@fieldsNoTypes", wrappedFieldCalls("walk", c)));
+        }
+        writer.println("         case xs:List[_] => xs.map(walk _)");
+        writer.println("         case _ => node");
+        writer.println("      }");
+        writer.println("   }");
+        writer.println("}");
     }
 
-    private void generateFile( String file, String preamble) {
+    /** 
+     * Given a String denoting a file name, and a preamble (e.g., a copyright notice)
+     * write out the contents of the preamble along with all Scala code to that file.
+     */
+    private void generateFile(String file, String preamble) {
         FileWriter out = null;
         PrintWriter writer = null;
-        try{
-            out = options.createFileInOutDir( file );
+        try {
+            out = options.createFileInOutDir(file);
+
             writer = new PrintWriter(out);
 
-            writer.println( copyright() );
+            writer.println(copyright());
 
-            writer.println( preamble );
+            writer.println(preamble);
 
             writer.println();
 
@@ -492,19 +521,17 @@ public class ScalaAstGenerator extends CodeGenerator {
             writer.println();
 
             writer.close();
+
             out.close();
-        } catch ( IOException ie ){
+
+        } catch (IOException ie) {
             ie.printStackTrace();
         } finally {
-            try{
-                if ( out != null ){
-                    out.close();
-                }
-                if ( writer != null ){
-                    writer.close();
-                }
-            } catch ( IOException ie ){
-                ie.printStackTrace();
+            try {
+                if (out != null) { out.close(); }
+                if (writer != null) { writer.close(); }
+            } catch (IOException ie) { 
+                ie.printStackTrace(); 
             }
         }
     }
@@ -519,15 +546,16 @@ public class ScalaAstGenerator extends CodeGenerator {
                      "import _root_.java.math.BigInteger\n");
     }
 
-    public void generateAdditionalCode(){
+    public void generateAdditionalCode() {
         generateScalaFile();
     }
 
-    private String copyright(){
+    private String copyright() {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter( string );
         writer.println("/* THIS FILE WAS AUTOMATICALLY GENERATED BY");
-        writer.println(sub("   @class FROM Fortress.ast */", "@class", this.getClass().getName()));
+        writer.println(sub("   @class FROM Fortress.ast */", 
+                           "@class", this.getClass().getName()));
         return string.toString();
     }
 }
