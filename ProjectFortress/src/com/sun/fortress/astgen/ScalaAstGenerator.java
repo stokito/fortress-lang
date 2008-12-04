@@ -355,9 +355,23 @@ public class ScalaAstGenerator extends CodeGenerator {
      * parentheses. 
      */
     private String wrappedFieldCalls(String wrapper, NodeType box) {
+        return wrappedFieldCalls("", wrapper, box);
+    }
+
+
+    /**
+     * Given a String denoting a receiver, a String denoting a wrapper function, and a NodeType, 
+     * return a String consisting of a sequence of calls to the wrapper function, passing each 
+     * field of the given type to the wrapper function in turn. Calls are separated by commas 
+     * and wrapped in parentheses. 
+     */
+    private String wrappedFieldCalls(String receiver, String wrapper, NodeType box) {
         if ( mkList(box.allFields(ast)).isEmpty() ){
             return "";
         } else {
+            // For convenience, automatically add a dot to end of non-empty receiver.
+            if (! receiver.equals("")) { receiver = receiver + "."; }
+
             StringBuffer buffer = new StringBuffer("(");
             boolean first = true;
 
@@ -365,15 +379,16 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("@wrapper(@name).asInstanceOf", 
+                buffer.append(sub("@wrapper(@receiver@name).asInstanceOf", 
                                   "@wrapper", wrapper, 
+                                  "@receiver", receiver,
                                   "@name", field.getGetterName()));
             }
             buffer.append(")");
             return buffer.toString();
         }
     }
-
+    
 
     /**
      * A nice function for string replacement.
@@ -465,9 +480,25 @@ public class ScalaAstGenerator extends CodeGenerator {
             writer.println(sub( "         case @name @fieldsNoTypes =>", 
                                 "@name", c.name(), 
                                 "@fieldsNoTypes", fieldsNoTypes(c)));
-            writer.println(sub("             new com.sun.fortress.nodes.@name @fieldsNoTypes",
+            writer.println(sub("             new com.sun.fortress.nodes.@name@wrappedFieldCalls",
                                "@name", c.name(), 
-                               "@fieldsNoTypes", wrappedFieldCalls("toJavaAst", c)));
+                               "@wrappedFieldCalls", wrappedFieldCalls("toJavaAst", c)));
+        }
+        writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
+        writer.println("         case _ => node");
+        writer.println("      }");
+        writer.println("   }");
+        writer.println();
+        writer.println("   def toScalaAst(node:Any):Any = {");
+        writer.println("       node match {");
+        for (NodeClass c : sort(ast.classes())) {
+            if (ignoreClass(c.name())) { continue; }
+            if ( c.isAbstract() ){ continue; } 
+
+            writer.println(sub( "         case a_@name:com.sun.fortress.nodes.@name =>", "@name", c.name()));
+            writer.println(sub("             @name@wrappedFieldCalls",
+                               "@name", c.name(), 
+                               "@wrappedFieldCalls", wrappedFieldCalls("a_" + c.name(), "toScalaAst", c)));
         }
         writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
         writer.println("         case _ => node");
