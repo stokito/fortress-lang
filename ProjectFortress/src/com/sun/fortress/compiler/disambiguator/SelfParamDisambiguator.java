@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -97,7 +98,7 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
                                                  Option<Type> type_result,
                                                  Option<Expr> defaultExpr_result,
                                                  Option<Type> varargsType_result) {
-                    if ( varargsType_result.isNone() ) {
+                    if ( ! NodeUtil.isVarargsParam(that) ) {
     			// my type is broken I need to qualify the type name
     			Option<Type> new_type;
     			if( name_result.equals(SELF_NAME) )

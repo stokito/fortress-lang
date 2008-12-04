@@ -167,6 +167,10 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean isVarargsParam(Param p) {
+        return (! p.getVarargsType().isNone());
+    }
+
     public static boolean isSingletonObject(VarRef v) {
         return (! v.getStaticArgs().isEmpty());
     }
@@ -188,7 +192,7 @@ public class NodeUtil {
     /* for Param ***********************************************************/
     public static boolean isMultifix(List<Param> params) {
         for (Param p : params) {
-            if ( p.getVarargsType().isSome() )
+            if ( isVarargsParam(p) )
                 return true;
         }
         return (params.size() > 2);

@@ -210,10 +210,10 @@ public class NodeComparator {
         int x = NodeUtil.nameString(left.getName())
                         .compareTo(NodeUtil.nameString(right.getName()));
         if (x != 0) return x;
-        if ((left.getVarargsType().isNone()) && (right.getVarargsType().isNone())) {
+        if ( ! NodeUtil.isVarargsParam(left) && ! NodeUtil.isVarargsParam(right)) {
             x = compareOptionalType(left.getIdType(), right.getIdType());
         }
-        if ((left.getVarargsType().isSome()) && (right.getVarargsType().isSome())) {
+        if ( NodeUtil.isVarargsParam(left) && NodeUtil.isVarargsParam(right)) {
             x = compareOptionalType(left.getVarargsType(), right.getVarargsType());
         }
         if (x != 0) return x;

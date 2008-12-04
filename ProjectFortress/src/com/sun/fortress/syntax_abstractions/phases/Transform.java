@@ -33,6 +33,7 @@ import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
 
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
@@ -308,7 +309,7 @@ public class Transform extends TemplateUpdateVisitor {
                                          Option<Type> type_result,
                                          Option<Expr> defaultExpr_result,
                                          Option<Type> varargsType_result) {
-                    if ( varargsType_result.isNone() ) {
+                    if ( ! NodeUtil.isVarargsParam(that) ) {
                         Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
                         Id generatedId = renameId(name_result);
                         /*

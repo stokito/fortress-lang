@@ -179,7 +179,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             Iterator<Param> pit = params.iterator();
             Param pa = pit.next();
 
-            if ( pa.getVarargsType().isNone() ) {
+            if ( ! NodeUtil.isVarargsParam(pa) ) {
                 /* Tuple (or even re-tuple) arguments when inferring type
                  * if passing different # of args to 1-arg function. */
                 if (DUMP_INFERENCE) {
@@ -206,7 +206,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         " given to 0-argument generic function ", appliedThing));
             }
             try {
-                if (p.getVarargsType().isNone()) {
+                if ( ! NodeUtil.isVarargsParam(p) ) {
                     Option<Type> t = p.getIdType();
                     // why can't we just skip if missing?
                     if (t.isNone()) {

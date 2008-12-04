@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -84,10 +85,10 @@ class FnTypeEnv extends TypeEnv {
     	Option<Type> self_type_ = Option.none();
     	for( Param param : fn.getParams() ) {
     		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
-                    if( param.getVarargsType().isNone() )
-    				self_type_ = param.getIdType();
-    			else
-    				InterpreterBug.bug("self cannot be a varargs.");
+                    if( ! NodeUtil.isVarargsParam(param) )
+                        self_type_ = param.getIdType();
+                    else
+                        InterpreterBug.bug("self cannot be a varargs.");
     		}
     	}
     	if( self_type_.isNone() )

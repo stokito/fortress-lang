@@ -74,7 +74,7 @@ public class IsAnArrowName extends NodeAbstractVisitor<ArrowOrFunctional> {
      */
     @Override
     public ArrowOrFunctional forParam(Param that) {
-        if ( that.getVarargsType().isNone() )
+        if ( ! NodeUtil.isVarargsParam(that) )
             return optionTypeIsArrow(that.getIdType());
         else
             return ArrowOrFunctional.NEITHER;
