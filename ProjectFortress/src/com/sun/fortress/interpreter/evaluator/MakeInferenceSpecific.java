@@ -138,7 +138,7 @@ public class MakeInferenceSpecific extends NodeAbstractVisitor_void {
      */
     @Override
     public void forTupleType(TupleType that) {
-        if ( that.getVarargs().isSome() ) {
+        if ( NodeUtil.hasVarargs(that) ) {
             // TODO: implement
             NI.nyi("Can't yet handle varargs tuples");
         } else {

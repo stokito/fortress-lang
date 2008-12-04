@@ -167,6 +167,10 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean hasVarargs(TupleType t) {
+        return (! t.getVarargs().isNone() );
+    }
+
     public static boolean isVarargsParam(Param p) {
         return (! p.getVarargsType().isNone());
     }

@@ -28,6 +28,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
@@ -167,7 +168,8 @@ public class TypeAnalyzerUtil {
                 if ( d instanceof TupleType ) {
                     TupleType _d = (TupleType)d;
                     return recurOnList(_d.getElements()) ||
-                        (_d.getVarargs().isSome() && _d.getVarargs().unwrap().accept(this)) ||
+                        (NodeUtil.hasVarargs(_d) &&
+                         _d.getVarargs().unwrap().accept(this)) ||
                         recurOnKeywords(_d.getKeywords()) ||
                         t.getRange().accept(this) ||
                         recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
@@ -177,7 +179,7 @@ public class TypeAnalyzerUtil {
                         recurOnList(t.getEffect().getThrowsClause().unwrap(Collections.<BaseType>emptyList()));
             }
             @Override public Boolean forTupleType(TupleType t) {
-                if ( t.getVarargs().isNone() )
+                if ( ! NodeUtil.hasVarargs(t) )
                     return recurOnList(t.getElements());
                 else
                     return recurOnList(t.getElements()) || t.getVarargs().unwrap().accept(this);

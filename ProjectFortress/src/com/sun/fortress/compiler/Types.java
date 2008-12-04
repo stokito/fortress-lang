@@ -19,6 +19,7 @@ package com.sun.fortress.compiler;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
@@ -243,7 +244,7 @@ public final class Types {
     public static Type stripKeywords(Type d) {
         if ( d instanceof TupleType ) {
             TupleType _d = (TupleType)d;
-            if (_d.getVarargs().isSome()) {
+            if ( NodeUtil.hasVarargs(_d)) {
                 return new TupleType(NodeFactory.makeSpan(_d.getElements(), _d.getVarargs().unwrap()), _d.getElements(), _d.getVarargs());
             }
             else {
@@ -298,7 +299,7 @@ public final class Types {
     public static Type makeDomain(Type argsType, final List<KeywordType> keywords) {
         return argsType.accept(new NodeAbstractVisitor<Type>() {
             @Override public Type forTupleType(TupleType t) {
-                if ( t.getVarargs().isNone() )
+                if ( ! NodeUtil.hasVarargs(t) )
                     return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
                 else
                     return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), t.getVarargs(),

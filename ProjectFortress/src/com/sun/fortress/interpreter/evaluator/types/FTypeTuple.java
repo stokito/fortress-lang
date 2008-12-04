@@ -380,7 +380,7 @@ public class FTypeTuple extends FType {
             if ( NodeUtil.isVoidType(_val) ) {
                 elements = Collections.emptyList();
                 vargs = Option.none();
-            } else if ( _val.getVarargs().isNone() ) {
+            } else if ( ! NodeUtil.hasVarargs(_val) ) {
                 elements = _val.getElements();
                 vargs = Option.none();
             } else {

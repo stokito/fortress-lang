@@ -397,7 +397,7 @@ public abstract class SubtypeChecker {
     }
     private boolean isVarargTupleType(Type t) {
         return (t instanceof TupleType &&
-                ((TupleType)t).getVarargs().isSome());
+                NodeUtil.hasVarargs((TupleType)t));
     }
 
     private boolean isTypeArg(StaticArg t) {
@@ -707,7 +707,7 @@ public abstract class SubtypeChecker {
             if (isTuple(s) && isTuple(t)) {
                 TupleType ss = (TupleType)s;
                 TupleType tt = (TupleType)t;
-                if (ss.getVarargs().isSome() && tt.getVarargs().isSome()) {
+                if (NodeUtil.hasVarargs(ss) && NodeUtil.hasVarargs(tt)) {
                     List<Type> stypes = ss.getElements();
                     List<Type> ttypes = tt.getElements();
                     int padLength = Math.max(stypes.size(), ttypes.size());
@@ -723,7 +723,7 @@ public abstract class SubtypeChecker {
                         return FALSE;
                     }
                     return TRUE;
-                } else if (ss.getVarargs().isSome() || tt.getVarargs().isSome()) {
+                } else if (NodeUtil.hasVarargs(ss) || NodeUtil.hasVarargs(tt)) {
                     // only one has a varargs parameter
                     return FALSE;
                 } else { // s instanceof TupleType && s instanceof TupleType

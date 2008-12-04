@@ -412,7 +412,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     public FType forTupleType(TupleType tt) {
         if ( NodeUtil.isVoidType(tt) )
             return FTypeVoid.ONLY;
-        else if ( tt.getVarargs().isNone() ) {
+        else if ( ! NodeUtil.hasVarargs(tt) ) {
             List<FType> elts = getFTypeListFromList(tt.getElements());
             return FTypeTuple.make(elts);
         } else {
