@@ -845,14 +845,14 @@ public class NodeFactory {
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
-    private static Fixity infix = new InFixity(makeSpan("singleton"));
-    private static Fixity prefix = new PreFixity(makeSpan("singleton"));
-    private static Fixity postfix = new PostFixity(makeSpan("singleton"));
-    private static Fixity nofix = new NoFixity(makeSpan("singleton"));
-    private static Fixity multifix = new MultiFixity(makeSpan("singleton"));
-    private static Fixity enclosing = new EnclosingFixity(makeSpan("singleton"));
-    private static Fixity big = new BigFixity(makeSpan("singleton"));
-    private static Fixity unknownFix = new UnknownFixity(makeSpan("singleton"));
+    private static Fixity infix = new InFixity();
+    private static Fixity prefix = new PreFixity();
+    private static Fixity postfix = new PostFixity();
+    private static Fixity nofix = new NoFixity();
+    private static Fixity multifix = new MultiFixity();
+    private static Fixity enclosing = new EnclosingFixity();
+    private static Fixity big = new BigFixity();
+    private static Fixity unknownFix = new UnknownFixity();
 
     public static Op makeOp(String name) {
         return new Op(new Span(), PrecedenceMap.ONLY.canon(name), unknownFix, false);

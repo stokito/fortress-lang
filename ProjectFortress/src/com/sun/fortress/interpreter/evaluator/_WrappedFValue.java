@@ -66,12 +66,21 @@ public class _WrappedFValue extends Expr {
                                                getClass().getName());
         }
     }
+    public <RetType> RetType accept(AbstractNodeVisitor<RetType> visitor) {
+        return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
+                                           visitor.getClass().getName() + " does not support visiting values of type " +
+                                           getClass().getName());
+    }
     public <RetType> RetType accept(ExprVisitor<RetType> visitor) {
         return InterpreterBug.<RetType>bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " +
                                            visitor.getClass().getName() + " does not support visiting values of type " +
                                            getClass().getName());
     }
     public void accept(NodeVisitor_void visitor) {
+        InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
+                           " does not support visiting values of type " + getClass().getName());
+    }
+    public void accept(AbstractNodeVisitor_void visitor) {
         InterpreterBug.bug("_WrappedFValue is an intermediate node only for the evaluator. Visitor " + visitor.getClass().getName() +
                            " does not support visiting values of type " + getClass().getName());
     }

@@ -32,8 +32,18 @@ import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.Level;
+import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.InFixity;
+import com.sun.fortress.nodes.PreFixity;
+import com.sun.fortress.nodes.PostFixity;
+import com.sun.fortress.nodes.NoFixity;
+import com.sun.fortress.nodes.MultiFixity;
+import com.sun.fortress.nodes.EnclosingFixity;
+import com.sun.fortress.nodes.BigFixity;
+import com.sun.fortress.nodes.UnknownFixity;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -225,7 +235,7 @@ public class Unprinter extends NodeReflection {
      *         of its substructure.
      * @throws IOException
      */
-    public AbstractNode read() throws IOException {
+    public Node read() throws IOException {
         l.lp();
         return readNode(l.name());
     }
@@ -239,10 +249,10 @@ public class Unprinter extends NodeReflection {
      *         of its substructure.
      * @throws IOException
      */
-    public AbstractNode readNode(String class_name) throws IOException {
+    public Node readNode(String class_name) throws IOException {
         classFor(class_name); // Loads other tables as a side-effect
 
-        AbstractNode node = null;
+        Node node = null;
         String next = l.name();
 
         // Next token is either a field, or a span.
@@ -309,6 +319,8 @@ public class Unprinter extends NodeReflection {
                     f.set(node, readBigInteger(l.name()));
                 } else if (Option.class.isAssignableFrom(f.getType())) {
                     f.set(node, readOption());
+                } else if (Fixity.class.isAssignableFrom(f.getType())) {
+                    f.set(node, readFixity());
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
                         || Lhs.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");
@@ -566,7 +578,31 @@ public class Unprinter extends NodeReflection {
         expectPrefix(")");
 
             // TODO Why don't levels write their spans out?
-        return new Level(lastSpan, level, obj.unwrap() );
+        return new Level(level, obj.unwrap() );
+    }
+
+    public Fixity readFixity() throws IOException {
+        expectPrefix("(");
+        String s = l.name();
+        Fixity fixity;
+        if ( "InFixity".equals(s) )
+            fixity = new InFixity();
+        else if ( "PreFixity".equals(s) )
+            fixity = new PreFixity();
+        else if ( "PostFixity".equals(s) )
+            fixity = new PostFixity();
+        else if ( "NoFixity".equals(s) )
+            fixity = new NoFixity();
+        else if ( "MultiFixity".equals(s) )
+            fixity = new MultiFixity();
+        else if ( "EnclosingFixity".equals(s) )
+            fixity = new EnclosingFixity();
+        else if ( "BigFixity".equals(s) )
+            fixity = new BigFixity();
+        else
+            fixity = new UnknownFixity();
+        expectPrefix(")");
+        return fixity;
     }
 
     public Map<String,Object> readMap() throws IOException {

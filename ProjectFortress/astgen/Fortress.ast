@@ -94,7 +94,7 @@ interface Node() extends HasAt;
         /**
          * top-level node abstract class
          */
-        abstract AbstractNode() extends UIDObject;
+        root abstract AbstractNode() extends UIDObject;
             /**
              * compilation unit declaration
              * CompilationUnit ::= Component | Api
@@ -2040,6 +2040,58 @@ interface Node() extends HasAt;
                      */
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
+            /*
+             * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
+             * e.g.) < 5
+             */
+            Link(OpRef op, Expr expr);
+            /*
+             * An overloading, and the type of that particular overloading.
+             */
+            _RewriteFnRefOverloading(FnRef fnRef, Type ty);
+            /**
+             * An operator overloading, and the tpye of that overloading.
+             */
+            _RewriteOpRefOverloading(OpRef op, Type ty);
+
+    /**
+     * top-level information interface
+     */
+    interface Info();
+        /**
+         * functional declaration or function expression
+         * nodes_util.NodeUtil declares the following static methods:
+         *  - String nameAsMethod(Applicable)
+         *  - Option<Expr> getBody(Applicable)
+         */
+        interface Applicable(IdOrOpOrAnonymousName name,
+                             List<StaticParam> staticParams,
+                             List<Param> params,
+                             Option<Type> returnType,
+                             Option<WhereClause> whereClause);
+        /**
+         * templates
+         */
+        interface TemplateGap(Id gapId, List<Id> templateParams);
+        /**
+         * A syntax transformation
+         */
+        interface _SyntaxTransformation(String syntaxTransformer,
+                                        java.util.Map<String,Level> variables,
+                                        java.util.List<String> syntaxParameters);
+        /**
+         * Repeated expression inside a syntax transformation template
+         */
+        interface _Ellipses(AbstractNode repeatedNode);
+        /*
+         * root class for information nodes
+         */
+        abstract InfoNode() extends UIDObject;
+            /*
+             * Keeps track of ellipses properties. This is special cased
+             * in the Printer and UnPrinter so be careful if Level is changed.
+             */
+            Level(int level, Object _object);
             /**
              * operator fixity
              */
@@ -2079,55 +2131,5 @@ interface Node() extends HasAt;
                  * This should not appear after parsing.
                  */
                 UnknownFixity();
-            /*
-             * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
-             * e.g.) < 5
-             */
-            Link(OpRef op, Expr expr);
-
-            /*
-             * Keeps track of ellipses properties. This is special cased
-             * in the Printer and UnPrinter so be careful if Level is changed.
-             */
-            Level(int level, Object _object);
-
-            /*
-             * An overloading, and the type of that particular overloading.
-             */
-            _RewriteFnRefOverloading(FnRef fnRef, Type ty);
-            /**
-             * An operator overloading, and the tpye of that overloading.
-             */
-            _RewriteOpRefOverloading(OpRef op, Type ty);
-
-    /**
-     * top-level information interface
-     */
-    interface Info();
-        /**
-         * functional declaration or function expression
-         * nodes_util.NodeUtil declares the following static methods:
-         *  - String nameAsMethod(Applicable)
-         *  - Option<Expr> getBody(Applicable)
-         */
-        interface Applicable(IdOrOpOrAnonymousName name,
-                             List<StaticParam> staticParams,
-                             List<Param> params,
-                             Option<Type> returnType,
-                             Option<WhereClause> whereClause);
-        /**
-         * templates
-         */
-        interface TemplateGap(Id gapId, List<Id> templateParams);
-        /**
-         * A syntax transformation
-         */
-        interface _SyntaxTransformation(String syntaxTransformer,
-                                        java.util.Map<String,Level> variables,
-                                        java.util.List<String> syntaxParameters);
-        /**
-         * Repeated expression inside a syntax transformation template
-         */
-        interface _Ellipses(AbstractNode repeatedNode);
 
 end;

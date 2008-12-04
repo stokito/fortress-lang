@@ -50,7 +50,11 @@ public class RewriteHackList extends AbstractNode {
     public <RetType> RetType accept(NodeVisitor<RetType> visitor) {
         return NI.<RetType>na("Instances of this helper class should never be spliced into an AST");
     }
+    public <RetType> RetType accept(AbstractNodeVisitor<RetType> visitor) {
+        return NI.<RetType>na("Instances of this helper class should never be spliced into an AST");
+    }
     public void accept(NodeVisitor_void visitor) {}
+    public void accept(AbstractNodeVisitor_void visitor) {}
     public void output(java.io.Writer writer) {}
     public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }

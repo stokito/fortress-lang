@@ -28,7 +28,7 @@ import junit.framework.Assert;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Printer;
 import com.sun.fortress.nodes_util.Unprinter;
 import com.sun.fortress.exceptions.FortressException;
@@ -285,7 +285,7 @@ public class ASTJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         Lex l = new Lex(bs(s));
         Unprinter up = new Unprinter(l);
         l.name(); // Reading "("
-        AbstractNode x = up.readNode(l.name()); // Reading name of class
+        Node x = up.readNode(l.name()); // Reading name of class
 
         assertTrue (x instanceof com.sun.fortress.nodes.Contract);
         (new com.sun.fortress.nodes_util.Printer(true, true, true)).dump(x, out, 0);
