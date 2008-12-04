@@ -477,7 +477,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             if (ignoreClass(c.name())) { continue; }
             if ( c.isAbstract() ){ continue; } 
 
-            writer.println(sub( "         case @name @fieldsNoTypes =>", 
+            writer.println(sub( "         case @name@fieldsNoTypes =>", 
                                 "@name", c.name(), 
                                 "@fieldsNoTypes", fieldsNoTypes(c)));
             writer.println(sub("             new com.sun.fortress.nodes.@name@wrappedFieldCalls",
@@ -494,11 +494,12 @@ public class ScalaAstGenerator extends CodeGenerator {
         for (NodeClass c : sort(ast.classes())) {
             if (ignoreClass(c.name())) { continue; }
             if ( c.isAbstract() ){ continue; } 
+            String caseName = "a" + c.name();
 
-            writer.println(sub( "         case a_@name:com.sun.fortress.nodes.@name =>", "@name", c.name()));
+            writer.println(sub( "         case @caseName:com.sun.fortress.nodes.@name =>", "@caseName", caseName, "@name", c.name()));
             writer.println(sub("             @name@wrappedFieldCalls",
                                "@name", c.name(), 
-                               "@wrappedFieldCalls", wrappedFieldCalls("a_" + c.name(), "toScalaAst", c)));
+                               "@wrappedFieldCalls", wrappedFieldCalls(caseName, "toScalaAst", c)));
         }
         writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
         writer.println("         case _ => node");
@@ -515,10 +516,10 @@ public class ScalaAstGenerator extends CodeGenerator {
             if (ignoreClass(c.name())) { continue; }
             if ( c.isAbstract() ){ continue; } 
 
-            writer.println(sub( "         case @name @fieldsNoTypes =>", 
+            writer.println(sub( "         case @name@fieldsNoTypes =>", 
                                 "@name", c.name(), 
                                 "@fieldsNoTypes", fieldsNoTypes(c)));
-            writer.println(sub("             @name @fieldsNoTypes",
+            writer.println(sub("             @name@fieldsNoTypes",
                                "@name", c.name(), 
                                "@fieldsNoTypes", wrappedFieldCalls("walk", c)));
         }
