@@ -109,6 +109,19 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             graph.addNode( api );
         }
+        
+        for ( String root : roots ) {
+            ApiGraphNode node = new ApiGraphNode(NodeFactory.makeAPIName(root));
+            node = (ApiGraphNode) graph.find(node);
+            try{
+                for ( APIName api : dependencies(node) ){
+                    Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
+                    graph.addEdge(node, addApiGraph(api));
+                }
+            } catch ( FileNotFoundException e ){
+            } catch ( IOException e ){
+            }
+        }
     }
 
     public Map<APIName, ApiIndex> apis() {
