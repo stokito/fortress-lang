@@ -56,8 +56,14 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     public void run() {
         TypeName templateGapName = Types.parse("TemplateGap", ast);
         List<Pair<NodeType, NodeType>> templateGaps = new LinkedList<Pair<NodeType, NodeType>>();
+        NodeType abstractNode;
+        if ( ast.typeForName("AbstractNode").isNone() )
+            throw new RuntimeException("Fortress.ast does not define AbstractNode!");
+        else
+            abstractNode = ast.typeForName("AbstractNode").unwrap();
         for (NodeClass nodeClass: ast.classes()) {
-            if ( nodeClass.getClass() == NodeClass.class ){
+            if ( nodeClass.getClass() == NodeClass.class &&
+                 ast.isDescendent(abstractNode, nodeClass) ){
                 List<TypeName> interfaces = new LinkedList<TypeName>();
                 interfaces.add(templateGapName);
                 List<Field> fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
@@ -68,7 +74,7 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
         }
         for (Pair<NodeType, NodeType> p: templateGaps) {
             ast.addType(p.first(), false, p.second());
-        }        
+        }
     }
 
     @Override

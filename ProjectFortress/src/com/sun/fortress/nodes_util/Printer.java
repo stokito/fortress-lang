@@ -185,6 +185,10 @@ public class Printer extends NodeReflection {
             w.append("_object=");
             dump( level.get_object(), w, indent );
             w.append(")");
+        } else if (o instanceof Fixity){
+            w.append("(");
+            w.append(o.getClass().getSimpleName());
+            w.append(")");
         } else if (o instanceof AbstractNode) {
             AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();
@@ -200,7 +204,6 @@ public class Printer extends NodeReflection {
             w.append("(");
             w.append(clname);
             dumpSpan(x.getSpan(), w);
-
             dumpFields(w, indent, x, oneLiner, fields, true);
             w.append(")");
             oneLinerNesting -= oneLinerNestingInc;

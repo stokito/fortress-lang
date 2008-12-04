@@ -22,6 +22,7 @@ import edu.rice.cs.astgen.ASTModel;
 import edu.rice.cs.astgen.CodeGenerator;
 import edu.rice.cs.astgen.Field;
 import edu.rice.cs.astgen.NodeClass;
+import edu.rice.cs.astgen.NodeType;
 import edu.rice.cs.astgen.NodeInterface;
 import edu.rice.cs.astgen.TabPrintWriter;
 import edu.rice.cs.astgen.Types.*;
@@ -32,7 +33,15 @@ import edu.rice.cs.astgen.Types.*;
  */
 public class SingleSpanConstructorGenerator extends CodeGenerator {
 
-  public SingleSpanConstructorGenerator(ASTModel ast) { super(ast); }
+    private NodeType abstractNode;
+
+    public SingleSpanConstructorGenerator(ASTModel ast) {
+        super(ast);
+        if ( ast.typeForName("AbstractNode").isNone() )
+            throw new RuntimeException("Fortress.ast does not define AbstractNode!");
+        else
+            abstractNode = ast.typeForName("AbstractNode").unwrap();
+    }
 
   public Iterable<Class<? extends CodeGenerator>> dependencies() { return IterUtil.empty(); }
 
@@ -53,7 +62,8 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
 
     // if (!hasSingleSpanConstructor) {
     // 1 is the Span field, which is known not to be defaulted
-    if (nonDefault > 1) {
+    if ( nonDefault > 1 &&
+         ast.isDescendent(abstractNode, c) ){
       writer.startLine("/**");
       writer.startLine(" * Single Span constructor, for template gap access.  Clients are ");
       writer.startLine(" * responsible for never accessing other fields than the gapId and ");

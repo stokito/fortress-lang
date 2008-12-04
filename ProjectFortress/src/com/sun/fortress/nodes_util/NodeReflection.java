@@ -17,7 +17,10 @@
 
 package com.sun.fortress.nodes_util;
 
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.InfoNode;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes._Ellipses;
@@ -103,18 +106,23 @@ abstract public class NodeReflection {
      * @throws InstantiationException
      * @throws IllegalArgumentException
      */
-    protected AbstractNode makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    protected Node makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
         // try {
         Constructor con = s != null ? constructorZeroFor(s) : constructorZeroFor(c);
         if (con != null) {
-            AbstractNode node = (AbstractNode) con.newInstance(args0);
-            spanField.set(node, span);
-            return node;
+            if ( con.newInstance(args0) instanceof ASTNode ) {
+                ASTNode node = (ASTNode) con.newInstance(args0);
+                spanField.set(node, span);
+                return node;
+            } else {
+                Node node = (Node) con.newInstance(args0);
+                return node;
+            }
         }
         con = s != null ? constructorFor(s) : constructorFor(c);
         Object[] args = new Object[1];
         args[0] = span;
-        return (AbstractNode) con.newInstance(args);
+        return (Node) con.newInstance(args);
     }
 
 
@@ -213,11 +221,12 @@ abstract public class NodeReflection {
         Field[] fields;
         ArrayList<Field> fal = new ArrayList<Field>();
         Class icl = cl;
-        // Is it an ordinary AbstractNode, or a Template Gap/Ellipses?
+        // Is it an ordinary Node, or a Template Gap/Ellipses?
         boolean isTemplate = isTemplateGap(icl);
         boolean isEllipses = isEllipses(icl);
         if (!isTemplate && !isEllipses) {
-            while (icl != AbstractNode.class && icl != Object.class) {
+            while (icl != AbstractNode.class && icl != Object.class &&
+                   icl != InfoNode.class) {
                 fields = icl.getDeclaredFields();
                 handleFields(fields, fal);
                 icl = icl.getSuperclass();

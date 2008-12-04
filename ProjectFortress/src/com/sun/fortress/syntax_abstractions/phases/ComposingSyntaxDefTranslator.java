@@ -564,7 +564,7 @@ public class ComposingSyntaxDefTranslator {
             });
 
             indents.add(3);
-            code.add(String.format("%s.put(\"%s\", new Level(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), %d, %s));",
+            code.add(String.format("%s.put(\"%s\", new Level(%d, %s));",
                                    BOUND_VARIABLES,
                                    var,
                                    levelDepth,

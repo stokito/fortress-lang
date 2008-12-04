@@ -48,7 +48,7 @@ public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
     public EllipsesNodeCreator(ASTModel ast) {
         super(ast);
     }
-    
+
     @Override
     public Iterable<Class<? extends CodeGenerator>> dependencies() {
         return new LinkedList<Class<? extends CodeGenerator>>();
@@ -56,8 +56,14 @@ public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
 
     public void run() {
         List<Pair<NodeType, NodeType>> all = new LinkedList<Pair<NodeType, NodeType>>();
+        NodeType abstractNode;
+        if ( ast.typeForName("AbstractNode").isNone() )
+            throw new RuntimeException("Fortress.ast does not define AbstractNode!");
+        else
+            abstractNode = ast.typeForName("AbstractNode").unwrap();
         for ( NodeType n : ast.classes() ){
-            if ( n.getClass() == NodeClass.class ){
+            if ( n.getClass() == NodeClass.class &&
+                 ast.isDescendent(abstractNode, n) ){
                 NodeType child = new EllipsesNode((NodeClass) n,ast);
                 all.add( new Pair<NodeType,NodeType>( child, n ) );
             }
