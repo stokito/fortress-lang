@@ -167,6 +167,10 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean isSingletonObject(VarRef v) {
+        return (! v.getStaticArgs().isEmpty());
+    }
+
     public static boolean isGenericSingletonType(TraitType t) {
         return (! t.getStaticParams().isEmpty());
     }

@@ -221,7 +221,12 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forVarRef(VarRef node) {
-        return NodeUtil.nameString(node.getVarId());
+        List<StaticArg> sargs = node.getStaticArgs();
+        if ( NodeUtil.isSingletonObject(node) )
+            return forId(node.getVarId()) +
+                (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
+        else
+            return NodeUtil.nameString(node.getVarId());
     }
 
     private String forOpConstraint(IntOpExpr node, String op) {
@@ -242,12 +247,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forExponentConstraint(ExponentConstraint node) {
         return forOpConstraint(node, "^");
-    }
-
-    public String for_RewriteObjectRef(_RewriteObjectRef node) {
-        List<StaticArg> sargs = node.getStaticArgs();
-        return forId(node.getObj()) +
-               (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
     }
 
     public String forFieldRef(FieldRef node) {

@@ -141,7 +141,6 @@ import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectExprRef;
-import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
@@ -1642,6 +1641,12 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forVarRef(VarRef x) {
+        if ( NodeUtil.isSingletonObject(x) ) {
+            Id name = x.getVarId();
+            FValue g = forIdOfTLRef(name);
+            return applyToActualStaticArgs(g,x.getStaticArgs(),x);
+        }
+
 //        Id id = x.getVar();
 //        String s= id.getText();
 //        if (s.contains("$self")) {
@@ -1703,17 +1708,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     public FValue forIntLiteralExpr(IntLiteralExpr x) {
         return FIntLiteral.make(x.getIntVal());
-    }
-
-    @Override
-    public FValue for_RewriteObjectRef(_RewriteObjectRef that) {
-        Id name = that.getObj();
-        FValue g = forIdOfTLRef(name);
-
-        if( that.getStaticArgs().isEmpty() )
-            return g;
-        else
-            return applyToActualStaticArgs(g,that.getStaticArgs(),that);
     }
 
     private FValue forIdOfTLRef(Id x) {

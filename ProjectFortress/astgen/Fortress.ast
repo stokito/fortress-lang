@@ -991,16 +991,17 @@ interface Node() extends HasAt;
                          * VarOrFnRef ::= Id
                          * Primary ::= self
                          * e.g.) length
-                         */
-                        VarRef(Id varId, int lexicalDepth=-2147483648) implements Lhs;
-                        /**
+                         *
+                         * <staticArgs>
                          * A reference to a singleton object. Created at typechecking or disambiguation-time.
                          * Necessary because object references are initially parsed as FnRefs.
                          * e.g.) Foo[\ZZ32\]
                          * where Foo was defined as
                          * object Foo[\T\] ... end
                          */
-                        _RewriteObjectRef(Id obj, List<StaticArg> staticArgs);
+                        VarRef(Id varId,
+                               List<StaticArg> staticArgs,
+                               int lexicalDepth=-2147483648) implements Lhs;
                         /**
                          * Temporarily, until closure conversion is always on-line,
                          * object exprs are simply hoisted to top-level, but retain

@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.rewrite;
 
 import java.util.List;
+import java.util.Collections;
 
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
@@ -39,7 +40,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forFnRef(FnRef fr) {
-        
+
         List<Id> fns = fr.getFns(); // ignore this for now.
         List<StaticArg> sargs = fr.getStaticArgs();
         Id idn = fns.get(0);
@@ -47,15 +48,17 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
         if (sargs.size() > 0)
             return (new _RewriteFnRef(fr.getSpan(),
                 fr.isParenthesized(),
-                                           new VarRef(idn.getSpan(),
-                                                      idn),
+                                      new VarRef(idn.getSpan(),
+                                                 idn,
+                                                 Collections.<StaticArg>emptyList()),
                 sargs)).accept(this);
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
-            return (new VarRef(idn.getSpan(), fr.isParenthesized(), idn)).accept(this);
+            return (new VarRef(idn.getSpan(), fr.isParenthesized(), idn,
+                               Collections.<StaticArg>emptyList())).accept(this);
         }
-        
+
     }
 
     @Override
