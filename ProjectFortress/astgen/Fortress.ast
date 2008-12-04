@@ -1019,20 +1019,6 @@ interface Node() extends HasAt;
                              * e.g.) Empty.length
                              */
                             FieldRef(Id field);
-                            /**
-                             * A rewritten field ref (not a getter/setter)
-                             * also used to disambiguate lexical references to self/parent
-                             * and within objectexprs to get access to outer scopes
-                             * where the vars in the outer scopes may in turn have been
-                             * API-qualified.
-                             *
-                             * If the reference to outer scope can be "fixed" (there is
-                             * only one out scope) then it might be good to narrow this
-                             * back down to an Id.
-                             *
-                             * Names of "field" must be unqualified.
-                             */
-                            _RewriteFieldRef(Name field);
                         /**
                          * The rewriting to explicitly name self and parent
                          * pre-interpretation may generalize the dotted

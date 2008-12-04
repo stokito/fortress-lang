@@ -428,13 +428,6 @@ public class ExprFactory {
                                     field, expr);
     }
 
-    public static MethodInvocation makeMethodInvocation(_RewriteFieldRef that,
-                                                        Expr obj, Id field,
-                                                        Expr expr) {
-        return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj,
-                                    field, expr);
-    }
-
     public static VarRef makeVarRef(VarRef old, int depth) {
         return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(),
                           Collections.<StaticArg>emptyList(),
@@ -518,10 +511,10 @@ public class ExprFactory {
                             expr.getExprType(), receiver, field);
     }
 
-    public static _RewriteFieldRef make_RewriteFieldRef(_RewriteFieldRef expr,
-                                                        Expr receiver, Name field) {
-        return new _RewriteFieldRef(expr.getSpan(), expr.isParenthesized(),
-                                    expr.getExprType(), receiver, field);
+    public static FieldRef make_RewriteFieldRef(FieldRef expr,
+                                                Expr receiver, Id field) {
+        return new FieldRef(expr.getSpan(), expr.isParenthesized(),
+                            expr.getExprType(), receiver, field);
     }
 
     public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {

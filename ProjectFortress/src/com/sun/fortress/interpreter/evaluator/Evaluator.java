@@ -136,7 +136,6 @@ import com.sun.fortress.nodes.TypecaseClause;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
@@ -782,14 +781,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return forFieldRefCommon(x, x.getField());
     }
 
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor#for_RewriteFieldRef(com.sun.fortress.nodes._RewriteFieldRef)
-     */
-    @Override
-    public FValue for_RewriteFieldRef(_RewriteFieldRef x) {
-        return forFieldRefCommon(x, x.getField());
-    }
-
     private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressException,
             ProgramError {
         String fname = NodeUtil.nameString(fld);
@@ -1384,10 +1375,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (arf instanceof FieldRef) {
             return ((FieldRef)arf).getField();
         }
-        if (arf instanceof _RewriteFieldRef) {
-            return ((_RewriteFieldRef)arf).getField();
-
-        }
         return bug("Unexpected AbstractFieldRef " + arf);
 
     }
@@ -1414,20 +1401,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue fobj = obj.accept(this);
             return juxtMemberSelection(x, fobj, fld, exprs);
 
-        } else if (fcnExpr instanceof _RewriteFieldRef) {
-            // In this case, open code the FieldRef evaluation
-            // so that the object can be preserved. Alternate
-            // strategy might be to generate a closure from
-            // the field selection.
-            _RewriteFieldRef fld_sel = (_RewriteFieldRef) fcnExpr;
-            Expr obj = fld_sel.getObj();
-            Name fld = fld_sel.getField();
-            if (fld instanceof Id) {
-                FValue fobj = obj.accept(this);
-                return juxtMemberSelection(x, fobj, (Id) fld, exprs);
-            } else {
-                NI.nyi("Field selector of dotted");
-            }
         } else if (fcnExpr instanceof _RewriteFnRef) {
             // Only come here if there are static args -- must be generic
             // Note that ALL method references have been rewritten into

@@ -54,7 +54,6 @@ import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
@@ -105,14 +104,6 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
     @Override
     public Voidoid forFieldRef(FieldRef x) {
-        return forFieldRefCommon(x, x.getField());
-    }
-
-    /* (non-Javadoc)
-     * @see com.sun.fortress.nodes.NodeAbstractVisitor#for_RewriteFieldRef(com.sun.fortress.nodes._RewriteFieldRef)
-     */
-    @Override
-    public Voidoid for_RewriteFieldRef(_RewriteFieldRef x) {
         return forFieldRefCommon(x, x.getField());
     }
 

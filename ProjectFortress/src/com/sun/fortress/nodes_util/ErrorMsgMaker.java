@@ -253,10 +253,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getObj().accept(this) + "." + forId(node.getField());
     }
 
-    public String for_RewriteFieldRef(FieldRef node) {
-        return node.getObj().accept(this) + "." + forName(node.getField());
-    }
-
     public String forFnRef(FnRef node) {
         List<StaticArg> sargs = node.getStaticArgs();
         return forId(node.getOriginalName()) +
