@@ -33,7 +33,6 @@ import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.useful.NI;
@@ -104,14 +103,6 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
         return ExprFactory.makeFieldRef(x.getSpan(), from, x.getField());
-    }
-
-
-    @Override
-    public Lhs for_RewriteFieldRef(_RewriteFieldRef x) {
-        Expr from = wrapEval(x.getObj(), "Non-object in field selection");
-        // TODO need to generalize to dotted names.
-        return new _RewriteFieldRef(x.getSpan(), false, from, x.getField());
     }
 
     public Lhs forVarRef(VarRef x) {

@@ -1666,17 +1666,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String for_RewriteFieldRefOnly(_RewriteFieldRef that, Option<String> exprType_result,
-                                                    String obj_result,
-                                                    String field_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( obj_result ).append( "." ).append( field_result ) ;
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-    }
-
     @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result,
                                          List<String> staticArgs_result,
                                          String originalName_result,

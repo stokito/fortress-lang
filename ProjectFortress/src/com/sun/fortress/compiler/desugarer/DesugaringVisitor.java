@@ -424,27 +424,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                                 lhs_that.getField(),
                                                                 rhs);
                     }
-                    public Node for_RewriteFieldRef(_RewriteFieldRef lhs_that) {
-                        if ( lhs_that.getField() instanceof Id) {
-                            Expr obj = (Expr) lhs_that.getObj().accept(DesugaringVisitor.this);
-                            Expr rhs = rhs_result;
-                            if ( that.getAssignOp().isSome() ) {
-                                Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
-                                rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
-                                                             that.getAssignOp().unwrap(),
-                                                             _lhs, rhs);
-                            }
-                            return ExprFactory.makeMethodInvocation(span,
-                                                                    that.isParenthesized(),
-                                                                    voidType, obj,
-                                                                    (Id)lhs_that.getField(),
-                                                                    rhs);
-                        } else
-                            return ExprFactory.makeAssignment(span, voidType,
-                                                              that.getLhs(),
-                                                              that.getAssignOp(),
-                                                              rhs_result);
-                    }
                 });
     }
 
@@ -536,17 +515,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         } else {
             return that;
         }
-    }
-
-    @Override
-    public Node for_RewriteFieldRefOnly(_RewriteFieldRef that, Option<Type> exprType_result,
-                                        Expr obj_result, Name field_result) {
-        if ( field_result instanceof Id)
-            return ExprFactory.makeMethodInvocation(that, obj_result, (Id)field_result,
-                                                    ExprFactory.makeVoidLiteralExpr(that.getSpan()));
-        else
-            return ExprFactory.make_RewriteFieldRef(that, obj_result,
-                                                    field_result);
     }
 
     @Override

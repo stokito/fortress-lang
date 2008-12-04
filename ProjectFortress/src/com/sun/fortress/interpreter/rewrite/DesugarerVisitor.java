@@ -108,7 +108,6 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.useful.BATree;
@@ -220,13 +219,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Member() { super(); }
         @Override
         Expr replacement(VarRef original) {
-            return new _RewriteFieldRef(original.getSpan(), false,
-                                        // Use this constructor
-                                        // here because it is a
-                                        // rewrite.
-                                        dottedReference(original.getSpan(),
-                                                        objectNestingDepth - objectNestedness),
-                                        filterQID(original.getVarId()));
+            return new FieldRef(original.getSpan(), false,
+                                // Use this constructor
+                                // here because it is a
+                                // rewrite.
+                                dottedReference(original.getSpan(),
+                                                objectNestingDepth - objectNestedness),
+                                filterQID(original.getVarId()));
         }
 
         public String toString() {
@@ -458,8 +457,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName, -1);
         }
         if (i > 0) {
-            return new _RewriteFieldRef(s, false, dottedReference(s, i - 1),
-                                      new Id(s,WellKnownNames.secretParentName));
+            return new FieldRef(s, false, dottedReference(s, i - 1),
+                                new Id(s,WellKnownNames.secretParentName));
         } else {
             throw new Error("Confusion in member reference numbering.");
         }
@@ -910,7 +909,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             for (LValue lv : lhs) {
                 Id newName = new Id(at, "$" + element_index);
                 newdecls.add(new VarDecl(at, Useful.list(lv),
-                                         Option.<Expr>some(new _RewriteFieldRef(at, false, init, newName))));
+                                         Option.<Expr>some(new FieldRef(at, false, init, newName))));
                 element_index++;
             }
             return new RewriteHackList(newdecls);
@@ -1608,14 +1607,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                             new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
                                     visitedArgs));
             }
-        } else  if (expr instanceof _RewriteFieldRef) {
+        } else  if (expr instanceof FieldRef) {
 
-            _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
+            FieldRef selfDotSomething = (FieldRef) visit(first);
 
             return new MethodInvocation(node.getSpan(),
                                     false,
                                     selfDotSomething.getObj(), // this will rewrite in the future.
-                                    (Id) selfDotSomething.getField(),
+                                    selfDotSomething.getField(),
                                     visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                                     visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                         new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs), visitedArgs));
@@ -1633,14 +1632,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         // Optimistic casts here, will need revisiting in the future,
         // perhaps FieldRefs are too general
         // Recursive visits here
-        _RewriteFieldRef selfDotSomething = (_RewriteFieldRef) visit(first);
+        FieldRef selfDotSomething = (FieldRef) visit(first);
         //        List<MathItem> visitedArgs = visitList(exprs);
         Node arg = visit(((ExprMI)node.getRest().get(0)).getExpr());
 
         return new MethodInvocation(node.getSpan(),
                                 false,
                                 selfDotSomething.getObj(), // this will rewrite in the future.
-                                (Id) selfDotSomething.getField(),
+                                selfDotSomething.getField(),
                                     (Expr)arg
                                     /*
                                 visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
