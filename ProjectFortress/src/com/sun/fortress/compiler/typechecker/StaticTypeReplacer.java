@@ -54,7 +54,6 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
-import com.sun.fortress.nodes._RewriteGenericSingletonType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
 

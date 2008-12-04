@@ -1280,13 +1280,15 @@ interface Node() extends HasAt;
                          * without params are referenced with an empty arg list
                          * TraitType ::= QualifiedName [\StaticArgList\]
                          * e.g.) List[\ZZ32\]
+                         *
+                         * <staticParams>
+                         * If the staticParams field is set,
+                         * it is the type of a generic singleton
+                         * used during static checking
                          */
                         TraitType(List<StaticArg> args
-                                   = Collections.<StaticArg>emptyList());
-                        /**
-                         * type of a generic singleton, used during static checking
-                         */
-                        _RewriteGenericSingletonType(List<StaticParam> staticParams);
+                                      = Collections.<StaticArg>emptyList(),
+                                  List<StaticParam> staticParams);
                     /**
                      * abbreviated type
                      */

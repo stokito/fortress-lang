@@ -209,7 +209,8 @@ private Type TypeRef =
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
             yyValue = new VarType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new TraitType(createSpan(yyStart,yyCount),a1,a2);
+       else yyValue = new TraitType(createSpan(yyStart,yyCount),a1,a2,
+                                    Collections.<StaticParam>emptyList());
      };
 
 /* VoidType ::= ( w ) */

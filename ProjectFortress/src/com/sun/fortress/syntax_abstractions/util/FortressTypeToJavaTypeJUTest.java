@@ -19,11 +19,13 @@ package com.sun.fortress.syntax_abstractions.util;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collections;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -34,7 +36,7 @@ import junit.framework.TestCase;
 public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     private Span span = NodeFactory.makeSpan("bogus");
-    
+
     private VarType stringType = new VarType(span, NodeFactory.makeId("FortressBuiltin", "String"));
     private String stringTypeResult = "String";
     private VarType fortressASTType = new VarType(span, NodeFactory.makeId("FortressAst", "Decl"));
@@ -44,7 +46,7 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
         Id name = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(new TypeArg(span, typeArg));
-        return new TraitType(span, name, args);
+        return new TraitType(span, name, args, Collections.<StaticParam>emptyList());
     }
 
     public void testTypeTranslatorVarTypeString() {

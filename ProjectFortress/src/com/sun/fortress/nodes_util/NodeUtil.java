@@ -167,6 +167,10 @@ public class NodeUtil {
         else { return Option.none(); }
     }
 
+    public static boolean isGenericSingletonType(TraitType t) {
+        return (! t.getStaticParams().isEmpty());
+    }
+
     public static boolean isVoidType(Type t) {
         if ( t instanceof TupleType ) {
             TupleType _t = (TupleType)t;
