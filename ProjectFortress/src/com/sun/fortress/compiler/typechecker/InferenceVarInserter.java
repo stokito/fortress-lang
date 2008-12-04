@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -83,7 +84,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
                                  Option<Type> type_result,
                                  Option<Expr> defaultExpr_result,
                                  Option<Type> varargsType_result) {
-            if ( varargsType_result.isNone() ) {
+            if ( ! NodeUtil.isVarargsParam(that) ) {
 		// Is the type given?
 		Option<Type> new_type =
 			type_result.isNone() ?

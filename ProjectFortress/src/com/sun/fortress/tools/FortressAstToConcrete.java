@@ -698,7 +698,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( name_result );
 
-        if ( varargsType_result.isNone() ) {
+        if ( ! NodeUtil.isVarargsParam(that) ) {
             if (type_result.isSome() &&
                 !name_result.equals("self"))
                 s.append( handleType(type_result.unwrap()) );

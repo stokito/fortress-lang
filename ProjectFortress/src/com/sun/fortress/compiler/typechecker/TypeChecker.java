@@ -244,7 +244,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					int typeCount = 0;
 
 					public LinkedList<Type> value(LinkedList<Type> arg0, Param arg1) {
-                                            if( arg1.getVarargsType().isNone() ) {
+                                            if( ! NodeUtil.isVarargsParam(arg1) ) {
 							typeCount++;
 							arg0.add(arg1.getIdType().unwrap());
 							return arg0;
@@ -260,7 +260,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					}});
 
 			//handle defaults (nyi)
-			if(params.get(params.size()-1).getVarargsType().isNone()
+			if( NodeUtil.isVarargsParam(params.get(params.size()-1))
                            && params.get(params.size()-1).getDefaultExpr().isSome()){
 				return NI.nyi();
 			}
@@ -615,7 +615,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 								field_node.accept(new NodeAbstractVisitor<Type>() {
 									@Override
 									public Type forParam(Param that) {
-                                                                            if ( that.getVarargsType().isNone() )
+                                                                            if ( NodeUtil.isVarargsParam(that) )
                                                                                 return that.getIdType().unwrap();
                                                                             else
                                                                                 return that.getVarargsType().unwrap();
@@ -1419,7 +1419,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			@Override
 			public Pair<TypeCheckerResult, Type> forParam(Param that) {
-                            if ( that.getVarargsType().isNone() ) {
+                            if ( ! NodeUtil.isVarargsParam(that) ) {
 				if( !NodeUtil.isMutable(that) ) {
 					String err = "Left-hand side of assignment must be mutable.";
 					return Pair.<TypeCheckerResult,Type>make(new TypeCheckerResult(that, TypeError.make(err, that)), Types.BOTTOM);
@@ -2353,7 +2353,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		List<Type> dlist = new ArrayList<Type>();
 		Boolean varargs=false;
 		for(Param p: that.getParams()){
-                    if(p.getVarargsType().isNone()){
+                    if( ! NodeUtil.isVarargsParam(p) ){
                         if(p.getIdType().isSome()){
                             dlist.add(p.getIdType().unwrap());
                         }

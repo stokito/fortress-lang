@@ -274,7 +274,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
             if ( p.getName().getText().equals("self") )
                 hasSelf = true;
             if ( (! hasBody) &&
-                 p.getVarargsType().isNone() &&
+                 (! NodeUtil.isVarargsParam(p)) &&
                  p.getIdType().isNone() &&
                  ! p.getName().getText().equals("self") )
                 log(p, "The type of " + p.getName() + " is required.");

@@ -79,6 +79,7 @@ import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.collect.Relation;
@@ -128,7 +129,7 @@ public abstract class TypeEnv {
      * Get a type from a Param.
      */
     protected static Option<Type> typeFromParam(Param param) {
-        if (param.getVarargsType().isNone()) {
+        if ( ! NodeUtil.isVarargsParam(param) ) {
             return param.getIdType();
         } else { // a varargs param
             // Convert the declared varargs type into a reference to
@@ -158,7 +159,7 @@ public abstract class TypeEnv {
         Option<Type> varargsType = none();
 
         for (Param param: params) {
-            if (param.getVarargsType().isNone()) {
+            if ( ! NodeUtil.isVarargsParam(param) ) {
                 Option<Type> maybeType = param.getIdType();
 
                 if (maybeType.isSome()) { // An explicit type is declared.

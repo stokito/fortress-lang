@@ -159,7 +159,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private static Option<List<Param>> mangleParams(Option<List<Param>> params) {
         return new NodeUpdateVisitor() {
             public Node forParam(Param that) {
-                if ( that.getVarargsType().isNone() )
+                if ( ! NodeUtil.isVarargsParam(that) )
                     return NodeFactory.makeParam(that, mangleName(that.getName()));
                 else
                     return that;
@@ -175,7 +175,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         if (params.isSome()) {
             for (Param param: params.unwrap()) {
-                if ( param.getVarargsType().isNone() )
+                if ( ! NodeUtil.isVarargsParam(param) )
                     newScope.add(param.getName());
             }
         }
@@ -318,7 +318,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         final LinkedList<Decl> result = new LinkedList<Decl>();
         if (params.isSome()) {
             for (Param param : params.unwrap()) {
-                if ( param.getVarargsType().isNone() ) {
+                if ( ! NodeUtil.isVarargsParam(param) ) {
                     if (! hidden(param) &&
                         ! hasExplicitGetter(param.getName(), decls))
                         result.add(makeGetter(false, owner, param));
