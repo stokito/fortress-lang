@@ -2165,7 +2165,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     @Override public String forArrowTypeOnly(ArrowType that,
                                              String domain_result,
                                              String range_result,
-                                             String effect_result) {
+                                             String effect_result,
+                                             List<String> staticParams_result,
+                                             Option<String> whereClause_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( domain_result );
@@ -2175,24 +2177,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
-    }
-
-    @Override public String for_RewriteGenericArrowTypeOnly(_RewriteGenericArrowType that,
-                                                            String domain_result,
-                                                            String range_result,
-                                                            String effect_result,
-                                                            List<String> staticParams_result,
-                                                            Option<String> where_result) {
-        StringBuilder s = new StringBuilder();
-
-        inOxfordBrackets(s, staticParams_result );
-        s.append( domain_result );
-        s.append( " -> " );
-        s.append( range_result );
-        s.append( effect_result );
-
-        return "(* " + handleParen( s.toString(),
-                                    that.isParenthesized() ) + " *)";
     }
 
     @Override public String for_InferenceVarTypeOnly(_InferenceVarType that) {

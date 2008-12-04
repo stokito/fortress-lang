@@ -375,7 +375,7 @@ public abstract class SubtypeChecker {
         return (t instanceof VarType);
     }
     private boolean isArrow(Type t) {
-        return (t instanceof AbstractArrowType);
+        return (t instanceof ArrowType);
     }
     private boolean isTuple(Type t) {
         return (t instanceof TupleType);
@@ -692,25 +692,12 @@ public abstract class SubtypeChecker {
             //           p; Delta |- s1 -> s2 <: t1 -> t2
             if (isArrow(s) && isArrow(t)) {
                 if (s instanceof ArrowType) {
-                    if (t instanceof ArrowType) {
-                        ArrowType ss = (ArrowType)s;
-                        ArrowType tt = (ArrowType)t;
-                        return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
-                                subtype(ss.getRange(), tt.getRange(), h));
-                    } else { // t instanceof _RewriteGenericArrowType
-                        return FALSE;
-                    }
-                } else { // s instanceof _RewriteGenericArrowType
-                    if (t instanceof ArrowType) {
-                        return FALSE;
-                    } else { // t instanceof _RewriteGenericArrowType
-                        _RewriteGenericArrowType ss = (_RewriteGenericArrowType)s;
-                        _RewriteGenericArrowType tt = (_RewriteGenericArrowType)t;
-                        return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
-                                subtype(ss.getRange(), tt.getRange(), h) &&
-                                equivalentStaticParams(ss.getStaticParams(),
-                                                       tt.getStaticParams(), h));
-                    }
+                    ArrowType ss = (ArrowType)s;
+                    ArrowType tt = (ArrowType)t;
+                    return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
+                            subtype(ss.getRange(), tt.getRange(), h) &&
+                            equivalentStaticParams(ss.getStaticParams(),
+                                                   tt.getStaticParams(), h));
                 }
             }
             // [S-Tuple] p; Delta |- si <: ti

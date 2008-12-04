@@ -1346,22 +1346,19 @@ interface Node() extends HasAt;
                           List<KeywordType> keywords = Collections.<KeywordType>emptyList());
                 /**
                  * arrow type
+                 * Type ::= Type -> Type Throws?
+                 * e.g.) (String, NN..., p = Printer) -> NN throws IOException
+                 *
+                 * <staticParams>
+                 * <whereClause>
+                 * type of a generic function, used during static checking
                  */
-                abstract AbstractArrowType(Type domain, Type range,
-                                           Effect effect = FortressUtil.emptyEffect());
-                    /**
-                     * arrow type
-                     * Type ::= Type -> Type Throws?
-                     * e.g.) (String, NN..., p = Printer) -> NN throws IOException
-                     */
-                    ArrowType();
-                    /**
-                     * type of a generic function, used during static checking
-                     */
-                    _RewriteGenericArrowType(List<StaticParam> staticParams
-                                              = Collections.<StaticParam>emptyList(),
-                                             Option<WhereClause> whereClause
-                                              = Option.<WhereClause>none());
+                ArrowType(Type domain, Type range,
+                          Effect effect = FortressUtil.emptyEffect(),
+                          List<StaticParam> staticParams
+                              = Collections.<StaticParam>emptyList(),
+                          Option<WhereClause> whereClause
+                              = Option.<WhereClause>none());
                 /**
                  * inferred type
                  * Used internally for type analysis

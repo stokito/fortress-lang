@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.nodes.AbstractArrowType;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BottomType;
@@ -39,6 +38,7 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.ObjectExpr;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
@@ -49,7 +49,6 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
 
@@ -136,22 +135,22 @@ public class TypesUtil {
             final List<StaticArg> staticArgs,
             final ConstraintFormula existingConstraint) {
         // List of arrow types that statically match
-        List<AbstractArrowType> matching_types = new ArrayList<AbstractArrowType>();
+        List<ArrowType> matching_types = new ArrayList<ArrowType>();
         // The constraint formed from all matching arrows
         ConstraintFormula result_constraint = ConstraintFormula.TRUE;
         for( Type arrow : conjuncts(fn_type) ) {
             // create instantiated arrow types using visitor
-            Pair<Option<AbstractArrowType>,ConstraintFormula> pair =
-                arrow.accept(new NodeDepthFirstVisitor<Pair<Option<AbstractArrowType>,ConstraintFormula>>() {
+            Pair<Option<ArrowType>,ConstraintFormula> pair =
+                arrow.accept(new NodeDepthFirstVisitor<Pair<Option<ArrowType>,ConstraintFormula>>() {
                     @Override
-                    public Pair<Option<AbstractArrowType>, ConstraintFormula> defaultCase(
+                    public Pair<Option<ArrowType>, ConstraintFormula> defaultCase(
                             Node that) {
-                        return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE);
+                        return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
                     }
 
                     // apply (inferring if necessary) static arguments and checking sub-typing
-                    private Pair<Option<AbstractArrowType>,ConstraintFormula>
-                    arrowTypeHelper(AbstractArrowType that, List<StaticParam> static_params) {
+                    private Pair<Option<ArrowType>,ConstraintFormula>
+                    arrowTypeHelper(ArrowType that, List<StaticParam> static_params) {
                         int num_static_params = static_params.size();
                         int num_static_args = staticArgs.size();
 
@@ -162,7 +161,7 @@ public class TypesUtil {
                             // TODO if parameters are anything but TypeParam, we don't know
                             // how to infer it yet.
                             for( StaticParam p : static_params )
-                                if( !(p instanceof TypeParam) ) return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE);
+                                if( !(p instanceof TypeParam) ) return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
 
                             static_args_to_apply =
                                 CollectUtil.makeList(IterUtil.map(static_params,
@@ -175,24 +174,19 @@ public class TypesUtil {
                         }
                         else if( num_static_params != num_static_args ) {
                             // just not the right method
-                            return Pair.make(Option.<AbstractArrowType>none(), ConstraintFormula.FALSE);
+                            return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
                         }
                         // now apply the static arguments,
-                        that = (AbstractArrowType)
+                        that = (ArrowType)
                         that.accept(new StaticTypeReplacer(static_params,static_args_to_apply));
                         // and then check parameter sub-typing
                         ConstraintFormula valid = checker.subtype(args.argType(), Types.stripKeywords(that.getDomain()));
                         return Pair.make(Option.some(that), valid);
                     }
                     @Override
-                    public Pair<Option<AbstractArrowType>, ConstraintFormula> for_RewriteGenericArrowType(
-                            _RewriteGenericArrowType that) {
-                        return this.arrowTypeHelper(that, that.getStaticParams());
-                    }
-                    @Override
-                    public Pair<Option<AbstractArrowType>, ConstraintFormula> forArrowType(
+                    public Pair<Option<ArrowType>, ConstraintFormula> forArrowType(
                             ArrowType that) {
-                        return this.arrowTypeHelper(that, Collections.<StaticParam>emptyList());
+                        return this.arrowTypeHelper(that, that.getStaticParams());
                     }
                 });
             ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory());
@@ -209,8 +203,8 @@ public class TypesUtil {
         else {
             // Now, take all the matching ones and join their ranges to be the result range type.
             Iterable<Type> ranges =
-                IterUtil.map(matching_types, new Lambda<AbstractArrowType, Type>(){
-                    public Type value(AbstractArrowType arg0) {
+                IterUtil.map(matching_types, new Lambda<ArrowType, Type>(){
+                    public Type value(ArrowType arg0) {
                         return arg0.getRange();
                     }});
             Type range_type = checker.meet(ranges);
@@ -229,7 +223,6 @@ public class TypesUtil {
     	for(Type t: conjuncts(type)){
     		valid&=t.accept(new NodeDepthFirstVisitor<Boolean>(){
     			@Override public Boolean defaultCase(Node that) {return false;    }
-    			@Override public Boolean for_RewriteGenericArrowType(_RewriteGenericArrowType that) {return true;}
     			@Override public Boolean forArrowType(ArrowType that) {return true;}
     		});
     	}
@@ -243,7 +236,7 @@ public class TypesUtil {
      * we may have to (in the future)
      * return a ConstraintFormula instead of a type.
      * @param checker the SubtypeChecker to use for any type comparisons
-     * @param fn the type of the function, which can be some AbstractArrowType,
+     * @param fn the type of the function, which can be some ArrowType,
      *           or an intersection of such (in the case of an overloaded
      *           function)
      * @param existingConstraint Any additional constraints that should be taken into
@@ -264,7 +257,7 @@ public class TypesUtil {
     /**
      * Figure out the static type of a non-generic function application.
      * @param checker the SubtypeChecker to use for any type comparisons
-     * @param fn the type of the function, which can be some AbstractArrowType,
+     * @param fn the type of the function, which can be some ArrowType,
      *           or an intersection of such (in the case of an overloaded
      *           function)
      * @param arg the argument to apply to this function
@@ -297,9 +290,6 @@ public class TypesUtil {
                         }
                     }
                     return valid ? some(that) : Option.<ArrowType>none();
-                }
-                @Override public Option<ArrowType> for_RewriteGenericArrowType(_RewriteGenericArrowType that) {
-                    return NI.nyi();
                 }
                 @Override public Option<ArrowType> defaultCase(Node that) {
                     return none();
@@ -433,23 +423,21 @@ public class TypesUtil {
     			}
 
     			@Override
-    			public Option<Pair<Type,ConstraintFormula>> for_RewriteGenericArrowType(
-    					_RewriteGenericArrowType that) {
+    			public Option<Pair<Type,ConstraintFormula>> forArrowType(ArrowType that) {
 
     				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams(), subtype_checker);
 
     				if(constraints.isSome()) {
-    					_RewriteGenericArrowType temp = (_RewriteGenericArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
-    					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),temp.getDomain(),temp.getRange(), temp.getEffect());
+    					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
+    					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),
+                                                                      temp.getDomain(),temp.getRange(), temp.getEffect(),
+                                                                      Collections.<StaticParam>emptyList(),
+                                                                      Option.<WhereClause>none());
     					return Option.some(Pair.make(new_type,constraints.unwrap()));
     				}
     				else {
     					return Option.none();
     				}
-    			}
-    			@Override
-    			public Option<Pair<Type,ConstraintFormula>> forArrowType(ArrowType that) {
-    				return Option.none();
     			}
     		});
     	}
@@ -510,7 +498,7 @@ public class TypesUtil {
         for(Type overloaded_type : overloaded_types ) {
             for( Type conj : conjuncts(overloaded_type) ) {
                 Boolean b = conj.accept(new TypeAbstractVisitor<Boolean>(){
-                    @Override public Boolean for_RewriteGenericArrowType(_RewriteGenericArrowType that) { return !that.getStaticParams().isEmpty(); }
+                    @Override public Boolean forArrowType(ArrowType that) { return !that.getStaticParams().isEmpty(); }
                     @Override public Boolean forType(Type that) { return Boolean.FALSE; }
                 });
                 if( b ) return true;
