@@ -497,7 +497,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
      */
     @Override
     public Node forVarRefOnly(VarRef that, Option<Type> exprType_result,
-                              Id varResult) {
+                              Id varResult, List<StaticArg> staticArg_result) {
         // After disambiguation, the Id in a VarRef should have an empty API.
         assert(varResult.getApiName().isNone());
 

@@ -945,8 +945,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				subtypeChecker, function_result, argument_result, result, successful);
 	}
 
-	@Override
-	public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult for_RewriteObjectRefOnly(VarRef that, Option<TypeCheckerResult> exprType_result,
                                                           TypeCheckerResult obj_result,
                                                           List<TypeCheckerResult> staticArgs_result) {
             Type t;
@@ -985,10 +984,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return bug("Unexpected type for ObjectRef.");
             }
 
-            Node new_node = new _RewriteObjectRef(that.getSpan(), that.isParenthesized(),
-                                                  Option.<Type>some(t),
-                                                  (Id) obj_result.ast(),
-                                                  (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
+            Node new_node = new VarRef(that.getSpan(), that.isParenthesized(),
+                                       Option.<Type>some(t),
+                                       (Id) obj_result.ast(),
+                                       (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
             return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
                                              TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
                                              new TypeCheckerResult(new_node,accumulated_constraints));
@@ -4361,14 +4360,22 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forVarRefOnly(VarRef that, Option<TypeCheckerResult> exprType_result, TypeCheckerResult var_result) {
-		Option<Type> varType = var_result.type();
+	public TypeCheckerResult forVarRefOnly(VarRef that,
+                                               Option<TypeCheckerResult> exprType_result,
+                                               TypeCheckerResult var_result,
+                                               List<TypeCheckerResult> staticArgs_result) {
+            if ( NodeUtil.isSingletonObject(that) )
+                return for_RewriteObjectRefOnly(that, exprType_result, var_result,
+                                                staticArgs_result);
 
-		VarRef new_node = new VarRef(that.getSpan(),
-				varType,
-				(Id)var_result.ast());
+            Option<Type> varType = var_result.type();
 
-		return TypeCheckerResult.compose(new_node, varType, subtypeChecker, var_result);
+            VarRef new_node = new VarRef(that.getSpan(),
+                                         varType,
+                                         (Id)var_result.ast(),
+                                         Collections.<StaticArg>emptyList());
+
+            return TypeCheckerResult.compose(new_node, varType, subtypeChecker, var_result);
 	}
 
 	@Override

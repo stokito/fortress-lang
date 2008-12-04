@@ -111,7 +111,6 @@ import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFieldRef;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
-import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
@@ -370,13 +369,21 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     Expr newName(VarRef vre, String s) {
         Thing t = rewrites.get(s);
-        if (t == null) {
-            noteUse(s, vre);
+
+        if ( NodeUtil.isSingletonObject(vre) ) {
+            if (t == null) {
+                return vre;
+            } else {
+            }
             return vre;
         } else {
-            return t.replacement(vre);
+            if (t == null) {
+                noteUse(s, vre);
+                return vre;
+            } else {
+                return t.replacement(vre);
+            }
         }
-
     }
 
     Expr newName(OpRef vre, String s) {
@@ -407,15 +414,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return t.replacement(vre);
         }
 
-    }
-
-    Expr newName(_RewriteObjectRef vre, String s) {
-        Thing t = rewrites.get(s);
-        if (t == null) {
-            return vre;
-        } else {
-        }
-        return vre;
     }
 
    NamedType newType(VarType nt, String s) {
@@ -677,11 +675,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
        return nn;
     }
     @Override
-    public Node for_RewriteObjectRef(_RewriteObjectRef vre) {
-        String s = NodeUtil.stringName(vre.getObj());
-        return visitNode(newName(vre, s));
-    }
-    @Override
     public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr op) {
      // NEB: This code is temporary. Very soon the static end will
         // remove these nodes and they should never appear at this
@@ -714,8 +707,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         IntRef expr = newName(vre, s);
         return visitNode(expr);
     }
+
     @Override
     public Node forVarRef(VarRef vre) {
+        if ( NodeUtil.isSingletonObject(vre) ) {
+            String s = NodeUtil.stringName(vre.getVarId());
+            return visitNode(newName(vre, s));
+        }
+
         String s = vrToString(vre);
         StaticParam tp = visibleGenericParameters.get(s);
         if (tp != null) {
@@ -1103,7 +1102,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Node rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin, WellKnownNames.thread));
+        Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
+                                                       WellKnownNames.thread),
+                                Collections.<StaticArg>emptyList());
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(sp,new VarType(sp,
                 NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),

@@ -1640,21 +1640,19 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forVarRefOnly(VarRef that, Option<String> exprType_result,
-                                          String var_result) {
-        return handleParen( var_result,
-                            that.isParenthesized() );
-    }
+                                          String var_result,
+                                          List<String> staticArgs_result) {
+        if ( NodeUtil.isSingletonObject( that ) ) {
+            StringBuilder s = new StringBuilder();
 
-    @Override public String for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<String> exprType_result,
-                                                     String obj_result,
-                                                     List<String> staticArgs_result) {
-        StringBuilder s = new StringBuilder();
+            s.append( var_result );
+            inOxfordBrackets(s, staticArgs_result);
 
-        s.append( obj_result );
-        inOxfordBrackets(s, staticArgs_result);
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
+            return handleParen( s.toString(),
+                                that.isParenthesized() );
+        } else
+            return handleParen( var_result,
+                                that.isParenthesized() );
     }
 
     @Override public String forFieldRefOnly(FieldRef that, Option<String> exprType_result,

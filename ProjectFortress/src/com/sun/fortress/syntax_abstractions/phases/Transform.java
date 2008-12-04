@@ -115,7 +115,7 @@ public class Transform extends TemplateUpdateVisitor {
         Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
         Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() + " in hygiene environment = " + var_result);
-        return forVarRefOnly(that, exprType_result, var_result);
+        return forVarRefOnly(that, exprType_result, var_result, that.getStaticArgs());
     }
 
     /*

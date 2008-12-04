@@ -71,6 +71,7 @@ import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TaggedDimType;
 import com.sun.fortress.nodes.TaggedUnitType;
@@ -86,7 +87,6 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
-import com.sun.fortress.nodes._RewriteObjectRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -948,6 +948,26 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     /** VarRefs can be made qualified or translated into FnRefs. */
     @Override public Node forVarRef(VarRef that) {
         Id name = that.getVarId();
+
+        // singleton object
+        if ( NodeUtil.isSingletonObject(that) ) {
+            Set<Id> objs = _env.explicitTypeConsNames(name);
+            if( objs.isEmpty() ) {
+                objs = _env.onDemandTypeConsNames(name);
+            }
+
+            if( objs.isEmpty() ) {
+                return that;
+            }
+            else if( objs.size() == 1 ) {
+                return new VarRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
+            }
+            else {
+                error("Name may refer to: " + NodeUtil.namesString(objs), that);
+                return that;
+            }
+        }
+
         Option<APIName> api = name.getApiName();
         ConsList<Id> fields = ConsList.empty();
         Expr result = null;
@@ -965,7 +985,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                         // no change -- no need to recreate the VarRef
                         return that;
                     }
-                    else { result = new VarRef(newId.getSpan(), newId); }
+                    else { result = new VarRef(newId.getSpan(), newId,
+                                               Collections.<StaticArg>emptyList()); }
                 }
                 else if (_env.hasQualifiedFunction(newId)) {
                     result = ExprFactory.makeFnRef(newId, name);
@@ -1003,7 +1024,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
-                else { result = new VarRef(that.getSpan(), newName); }
+                else { result = new VarRef(that.getSpan(), newName,
+                                           Collections.<StaticArg>emptyList()); }
             }
             else if (vars.isEmpty() && !fns.isEmpty() ) {
                 result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
@@ -1028,7 +1050,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return that;
                 }
                 else {
-                    result = new VarRef(name.getSpan(), name);
+                    result = new VarRef(name.getSpan(), name,
+                                        Collections.<StaticArg>emptyList());
                 }
                 // error("Unrecognized name: " + NodeUtil.nameString(name), that);
                 // return that;
@@ -1048,27 +1071,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 
     @Override
-	public Node for_RewriteObjectRef(_RewriteObjectRef that) {
-        Id obj_name = that.getObj();
-
-        Set<Id> objs = _env.explicitTypeConsNames(obj_name);
-        if( objs.isEmpty() ) {
-            objs = _env.onDemandTypeConsNames(obj_name);
-        }
-
-        if( objs.isEmpty() ) {
-            return that;
-        }
-        else if( objs.size() == 1 ) {
-            return new _RewriteObjectRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
-        }
-        else {
-            error("Name may refer to: " + NodeUtil.namesString(objs), that);
-            return that;
-        }
-    }
-
-    @Override
 	public Node forFnRef(FnRef that) {
         // Many FnRefs will be covered by the VarRef case, since many functions are parsed
         // as variables. FnRefs can be parsed if, for example, explicit static arguments are
@@ -1082,7 +1084,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             Set<Id> types = _env.explicitTypeConsNames(fn_name);
             if( !types.isEmpty() ) {
                 // create _RewriteObjectRef
-                _RewriteObjectRef obj = new _RewriteObjectRef(that.getSpan(), fn_name, that.getStaticArgs());
+                VarRef obj = new VarRef(that.getSpan(), fn_name, that.getStaticArgs());
                 return obj.accept(this);
             }
             else {
