@@ -284,9 +284,10 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(TraitType t,
-            List<StaticArg> args) {
+                                          List<StaticArg> args) {
         return new TraitType(t.getSpan(), t.isParenthesized(),
-                t.getName(), args);
+                             t.getName(), args,
+                             Collections.<StaticParam>emptyList());
     }
 
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
@@ -369,8 +370,9 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(Span span, boolean isParenthesized,
-            Id name, List<StaticArg> args) {
-        return new TraitType(span, isParenthesized, name, args);
+                                          Id name, List<StaticArg> args) {
+        return new TraitType(span, isParenthesized, name, args,
+                             Collections.<StaticParam>emptyList());
     }
 
     public static TraitType makeTraitType(Span span, boolean isParenthesized,
@@ -390,18 +392,21 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(String name,
-            List<StaticArg> sargs) {
+                                          List<StaticArg> sargs) {
         // System.err.println("Please don't makeTraitType with a bogus span");
-        return new TraitType(new Span(),makeId(name),sargs);
+        return new TraitType(new Span(),makeId(name),sargs,
+                             Collections.<StaticParam>emptyList());
     }
 
     public static TraitType makeTraitType(Id name,
-            List<StaticArg> sargs) {
-        return new TraitType(name.getSpan(), name, sargs);
+                                          List<StaticArg> sargs) {
+        return new TraitType(name.getSpan(), name, sargs,
+                             Collections.<StaticParam>emptyList());
     }
 
     public static TraitType makeTraitType(Id name) {
-        return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList());
+        return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList(),
+                             Collections.<StaticParam>emptyList());
     }
 
     public static IntersectionType makeIntersectionType(Type t1, Type t2) {
@@ -1262,7 +1267,7 @@ public class NodeFactory {
             }
             public Type forTraitType(TraitType t) {
                 return new TraitType(t.getSpan(), true, t.getName(),
-                        t.getArgs());
+                                     t.getArgs(), t.getStaticParams());
             }
             public Type forTupleType(TupleType t) {
                 return new TupleType(t.getSpan(), true, t.getElements(),
@@ -1329,24 +1334,18 @@ public class NodeFactory {
                     type.isParenthesized(),
                     makeId(api, type.getName()));
         }
-        else if( type instanceof _RewriteGenericSingletonType ) {
-            _RewriteGenericSingletonType rgs_type = (_RewriteGenericSingletonType)type;
-            return new _RewriteGenericSingletonType(rgs_type.getSpan(),
-                    rgs_type.isParenthesized(),
-                    makeId(api,rgs_type.getName()),
-                    rgs_type.getStaticParams());
-        }
         else { // type instanceof TraitType
             TraitType _type = (TraitType)type;
             return new TraitType(_type.getSpan(),
-                    _type.isParenthesized(),
-                    makeId(api, _type.getName()),
-                    _type.getArgs());
+                                 _type.isParenthesized(),
+                                 makeId(api, _type.getName()),
+                                 _type.getArgs(),
+                                 _type.getStaticParams());
         }
     }
 
-    public static _RewriteGenericSingletonType makeGenericSingletonType(Id name, List<StaticParam> params) {
-        return new _RewriteGenericSingletonType(name.getSpan(), name, params);
+    public static TraitType makeGenericSingletonType(Id name, List<StaticParam> params) {
+        return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList(), params);
     }
 
     public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
@@ -1360,7 +1359,9 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(TraitType original) {
-        return new TraitType(original.getSpan(), original.isParenthesized(), original.getName(), original.getArgs());
+        return new TraitType(original.getSpan(), original.isParenthesized(),
+                             original.getName(), original.getArgs(),
+                             Collections.<StaticParam>emptyList());
 
     }
 

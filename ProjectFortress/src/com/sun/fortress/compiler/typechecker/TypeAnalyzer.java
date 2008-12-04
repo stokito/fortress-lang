@@ -225,7 +225,8 @@ public class TypeAnalyzer {
         debug.logStart("t", t);
         Type result = (Type) t.accept(new NodeUpdateVisitor() {
 
-            @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs) {
+                @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs,
+                                                           List<StaticParam> normalParams) {
                 Option<TypeConsIndex> ind = _table.typeCons(name);
              if(ind.isNone()){
               throw new IllegalArgumentException("Unrecognized name: " + name);
@@ -242,7 +243,7 @@ public class TypeAnalyzer {
                     return (BaseType) subst.value(aliasIndex.type()).accept(this);
                 }
                 else if (index instanceof TraitIndex) {
-                    return (BaseType) super.forTraitTypeOnly(t, name, normalArgs);
+                    return (BaseType) super.forTraitTypeOnly(t, name, normalArgs, normalParams);
                 }
                 else if (index == null) {
                     throw new IllegalArgumentException("Unrecognized name: " + name);

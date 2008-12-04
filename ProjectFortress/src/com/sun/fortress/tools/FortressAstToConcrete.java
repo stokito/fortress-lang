@@ -2084,25 +2084,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forTraitTypeOnly(TraitType that,
                                              String name_result,
-                                             List<String> args_result) {
+                                             List<String> args_result,
+                                             List<String> params_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( name_result );
         inOxfordBrackets(s, args_result );
 
         return s.toString();
-    }
-
-    @Override public String for_RewriteGenericSingletonTypeOnly(_RewriteGenericSingletonType that,
-                                                                String name_result,
-                                                                List<String> staticParams_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( name_result );
-        inOxfordBrackets(s, staticParams_result );
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
     }
 
     @Override public String forArrayTypeOnly(ArrayType that,

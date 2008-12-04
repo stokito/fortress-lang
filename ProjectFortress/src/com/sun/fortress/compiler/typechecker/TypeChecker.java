@@ -947,43 +947,51 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult for_RewriteObjectRefOnly(_RewriteObjectRef that, Option<TypeCheckerResult> exprType_result,
-			TypeCheckerResult obj_result,
-			List<TypeCheckerResult> staticArgs_result) {
-		Type t;
-		ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
-		if( obj_result.type().isNone() ) {
-			return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
-					TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-		}
-		else if( (obj_result.type().unwrap() instanceof TraitType) ) {
-			t=obj_result.type().unwrap();
-		}
-		else if( (obj_result.type().unwrap() instanceof _RewriteGenericSingletonType) ) {
-			// instantiate with static parameters
-			_RewriteGenericSingletonType uninstantiated_t = (_RewriteGenericSingletonType)obj_result.type().unwrap();
-			Option<ConstraintFormula> constraint = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(), uninstantiated_t.getStaticParams(), this.subtypeChecker);
-			if(constraint.isSome()) {
-				// make a trait type that is GenericType instantiated
-				t = NodeFactory.makeTraitType(uninstantiated_t.getSpan(),
-						uninstantiated_t.isParenthesized(), uninstantiated_t.getName(), that.getStaticArgs());
-				accumulated_constraints = constraint.unwrap();
-			}
-			else {
-				// error
-				String err = "Generic object, " + uninstantiated_t + " instantiated with invalid arguments, " + that.getStaticArgs();
-				TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
-				return TypeCheckerResult.compose(that, subtypeChecker, obj_result, e_result,
-						TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
-			}
-		}
-		else {
-			return bug("Unexpected type for ObjectRef.");
-		}
+                                                          TypeCheckerResult obj_result,
+                                                          List<TypeCheckerResult> staticArgs_result) {
+            Type t;
+            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+            if( obj_result.type().isNone() ) {
+                return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
+                                                 TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+            }
+            else if( (obj_result.type().unwrap() instanceof TraitType) ) {
+                t=obj_result.type().unwrap();
+                TraitType _t = (TraitType)t;
 
-		Node new_node = new _RewriteObjectRef(that.getSpan(), that.isParenthesized(), Option.<Type>some(t), (Id) obj_result.ast(), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
-		return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
-				TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
-				new TypeCheckerResult(new_node,accumulated_constraints));
+                if ( NodeUtil.isGenericSingletonType(_t) ) {
+                    // instantiate with static parameters
+                    Option<ConstraintFormula> constraint = StaticTypeReplacer.argsMatchParams(that.getStaticArgs(),
+                                                                                              _t.getStaticParams(),
+                                                                                              this.subtypeChecker);
+                    if(constraint.isSome()) {
+                        // make a trait type that is GenericType instantiated
+                        t = NodeFactory.makeTraitType(_t.getSpan(),
+                                                      _t.isParenthesized(),
+                                                      _t.getName(),
+                                                      that.getStaticArgs());
+                        accumulated_constraints = constraint.unwrap();
+                    }
+                    else {
+                        // error
+                        String err = "Generic object, " + _t + " instantiated with invalid arguments, " + that.getStaticArgs();
+                        TypeCheckerResult e_result = new TypeCheckerResult(that, TypeError.make(err, that));
+                        return TypeCheckerResult.compose(that, subtypeChecker, obj_result, e_result,
+                                                         TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
+                    }
+                }
+            }
+            else {
+                return bug("Unexpected type for ObjectRef.");
+            }
+
+            Node new_node = new _RewriteObjectRef(that.getSpan(), that.isParenthesized(),
+                                                  Option.<Type>some(t),
+                                                  (Id) obj_result.ast(),
+                                                  (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
+            return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
+                                             TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
+                                             new TypeCheckerResult(new_node,accumulated_constraints));
 	}
 
 	@Override
@@ -2967,85 +2975,85 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forLooseJuxtOnly(LooseJuxt that, Option<TypeCheckerResult> exprType_result,
-			TypeCheckerResult multiJuxt_result,
-			TypeCheckerResult infixJuxt_result,
-			List<TypeCheckerResult> exprs_result) {
-		// The implementation of this method is very similar to tight juxt except
-		// the ordering of association is different.
-		// Notice also that tightJuxt has to be recursive, but loose juxt is not, due to specification.
+                                                  TypeCheckerResult multiJuxt_result,
+                                                  TypeCheckerResult infixJuxt_result,
+                                                  List<TypeCheckerResult> exprs_result) {
+            // The implementation of this method is very similar to tight juxt except
+            // the ordering of association is different.
+            // Notice also that tightJuxt has to be recursive, but loose juxt is not, due to specification.
 
-		// Did any subexpressions fail to typecheck?
-		for( TypeCheckerResult r : exprs_result ) {
-			if( r.type().isNone())
-				return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
-		}
+            // Did any subexpressions fail to typecheck?
+            for( TypeCheckerResult r : exprs_result ) {
+                if( r.type().isNone())
+                    return TypeCheckerResult.compose(that, subtypeChecker, exprs_result);
+            }
 
-		if( that.getExprs().size() != exprs_result.size() ) {
-			bug("Number of types don't match number of sub-expressions");
-		}
-		// Specification describes chunks, which are elements group together. Chunking process goes first.
-		List<Pair<TypeCheckerResult,Expr>> checked_chunks = new LinkedList<Pair<TypeCheckerResult,Expr>>();
-		{
-			List<Pair<TypeCheckerResult,Expr>> cur_chunk = new LinkedList<Pair<TypeCheckerResult,Expr>>();
-			Iterator<Expr> expr_iter = that.getExprs().iterator();
-			boolean seen_non_fn = false;
-			// First the loose juxtaposition is broken into nonempty chunks; wherever there is a non-function element followed
-			// by a function element, the latter begins a new chunk. Thus a chunk consists of some number (possibly zero) of
-			// functions followed by some number (possibly zero) of non-functions.
-			for( TypeCheckerResult r : exprs_result ) {
-				boolean is_arrow = TypesUtil.isArrows(r.type().unwrap());
-				if( is_arrow && seen_non_fn ) {
-					// finished last chunk
-					Pair<TypeCheckerResult,Expr> checked_chunk = this.checkChunk(cur_chunk, that.getInfixJuxt());
-					checked_chunks.add(checked_chunk);
-					cur_chunk.clear();
-					seen_non_fn = false;
-				}
-				if( is_arrow ){
-					cur_chunk.add(Pair.make(r, expr_iter.next()));
-				}
-				else {
-					seen_non_fn = true;
-					cur_chunk.add(Pair.make(r, expr_iter.next()));
-				}
-			}
-			// Last chunk needs to be checked, if there is one
-			if( !cur_chunk.isEmpty() ) {
-				checked_chunks.add(checkChunk(cur_chunk, that.getInfixJuxt()));
-			}
-		}
-		// After chunking
-		List<Expr> new_juxt_exprs = CollectUtil.makeList(IterUtil.pairSeconds(checked_chunks));
-		List<TypeCheckerResult> new_juxt_results = CollectUtil.makeList(IterUtil.pairFirsts(checked_chunks));
+            if( that.getExprs().size() != exprs_result.size() ) {
+                bug("Number of types don't match number of sub-expressions");
+            }
+            // Specification describes chunks, which are elements group together. Chunking process goes first.
+            List<Pair<TypeCheckerResult,Expr>> checked_chunks = new LinkedList<Pair<TypeCheckerResult,Expr>>();
+            {
+                List<Pair<TypeCheckerResult,Expr>> cur_chunk = new LinkedList<Pair<TypeCheckerResult,Expr>>();
+                Iterator<Expr> expr_iter = that.getExprs().iterator();
+                boolean seen_non_fn = false;
+                // First the loose juxtaposition is broken into nonempty chunks; wherever there is a non-function element followed
+                // by a function element, the latter begins a new chunk. Thus a chunk consists of some number (possibly zero) of
+                // functions followed by some number (possibly zero) of non-functions.
+                for( TypeCheckerResult r : exprs_result ) {
+                    boolean is_arrow = TypesUtil.isArrows(r.type().unwrap());
+                    if( is_arrow && seen_non_fn ) {
+                        // finished last chunk
+                        Pair<TypeCheckerResult,Expr> checked_chunk = this.checkChunk(cur_chunk, that.getInfixJuxt());
+                        checked_chunks.add(checked_chunk);
+                        cur_chunk.clear();
+                        seen_non_fn = false;
+                    }
+                    if( is_arrow ){
+                        cur_chunk.add(Pair.make(r, expr_iter.next()));
+                    }
+                    else {
+                        seen_non_fn = true;
+                        cur_chunk.add(Pair.make(r, expr_iter.next()));
+                    }
+                }
+                // Last chunk needs to be checked, if there is one
+                if( !cur_chunk.isEmpty() ) {
+                    checked_chunks.add(checkChunk(cur_chunk, that.getInfixJuxt()));
+                }
+            }
+            // After chunking
+            List<Expr> new_juxt_exprs = CollectUtil.makeList(IterUtil.pairSeconds(checked_chunks));
+            List<TypeCheckerResult> new_juxt_results = CollectUtil.makeList(IterUtil.pairFirsts(checked_chunks));
 
-		if( checked_chunks.size() == 1 ) {
-			Expr expr = IterUtil.first(new_juxt_exprs);
-			TypeCheckerResult expr_result = expr.accept(this); // Is it bad to re-typecheck all args?
-			return TypeCheckerResult.compose(expr_result.ast(), expr_result.type(), subtypeChecker, expr_result,
-					TypeCheckerResult.compose(expr_result.ast(), subtypeChecker, new_juxt_results));
-		}
-		// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
-		// TODO: Separate pass?
-		// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
-		OpExpr multi_op_expr = new OpExpr(that.getSpan(), that.getMultiJuxt(), new_juxt_exprs);
-		TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
-		if( multi_op_result.type().isSome() ) {
-			return TypeCheckerResult.compose(multi_op_result.ast(), multi_op_result.type(), subtypeChecker,
-					TypeCheckerResult.compose(multi_op_result.ast(), subtypeChecker, new_juxt_results));
-		}
-		// if an applicable method cannot be found for the entire expression, then it is left-associated.
-		Iterator<Expr> expr_iter = new_juxt_exprs.iterator();
-		Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
-		Expr expr_2 = expr_iter.next();
-		OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
-		while( expr_iter.hasNext() ) {
-			Expr next_expr = expr_iter.next();
-			cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
-		}
-		// typecheck this result instead
-		TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
-		return TypeCheckerResult.compose(op_expr_result.ast(), op_expr_result.type(), subtypeChecker, op_expr_result,
-				TypeCheckerResult.compose(op_expr_result.ast(), subtypeChecker, new_juxt_results));
+            if( checked_chunks.size() == 1 ) {
+                Expr expr = IterUtil.first(new_juxt_exprs);
+                TypeCheckerResult expr_result = expr.accept(this); // Is it bad to re-typecheck all args?
+                return TypeCheckerResult.compose(expr_result.ast(), expr_result.type(), subtypeChecker, expr_result,
+                                                 TypeCheckerResult.compose(expr_result.ast(), subtypeChecker, new_juxt_results));
+            }
+            // (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
+            // TODO: Separate pass?
+            // (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
+            OpExpr multi_op_expr = new OpExpr(that.getSpan(), that.getMultiJuxt(), new_juxt_exprs);
+            TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
+            if( multi_op_result.type().isSome() ) {
+                return TypeCheckerResult.compose(multi_op_result.ast(), multi_op_result.type(), subtypeChecker,
+                                                 TypeCheckerResult.compose(multi_op_result.ast(), subtypeChecker, new_juxt_results));
+            }
+            // if an applicable method cannot be found for the entire expression, then it is left-associated.
+            Iterator<Expr> expr_iter = new_juxt_exprs.iterator();
+            Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
+            Expr expr_2 = expr_iter.next();
+            OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
+            while( expr_iter.hasNext() ) {
+                Expr next_expr = expr_iter.next();
+                cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
+            }
+            // typecheck this result instead
+            TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
+            return TypeCheckerResult.compose(op_expr_result.ast(), op_expr_result.type(), subtypeChecker, op_expr_result,
+                                             TypeCheckerResult.compose(op_expr_result.ast(), subtypeChecker, new_juxt_results));
 	}
 
 	// Math primary, which is the more general case, is going to be called for both TightJuxt and MathPrimary
@@ -3857,47 +3865,51 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forTightJuxt(TightJuxt that) {
-		// Just create a MathPrimary
-		Expr front = IterUtil.first(that.getExprs());
+            // Just create a MathPrimary
+            Expr front = IterUtil.first(that.getExprs());
 
-		// If this juxt is actually a fn app, then rewrite to a fn app.
-		if (that.isFnApp()) {
-			// Make sure it is just two exprs.
-			if (that.getExprs().size() != 2) {
-				bug(String.format("TightJuxt denoted as function application but has %d (!= 2) exprs.", that.getExprs().size()));
-			}
-			Expr arg = that.getExprs().get(1);
-			_RewriteFnApp fnApp = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
-					front, arg);
+            // If this juxt is actually a fn app, then rewrite to a fn app.
+            if (that.isFnApp()) {
+                // Make sure it is just two exprs.
+                if (that.getExprs().size() != 2) {
+                    bug(String.format("TightJuxt denoted as function application but has %d (!= 2) exprs.", that.getExprs().size()));
+                }
+                Expr arg = that.getExprs().get(1);
+                _RewriteFnApp fnApp = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
+                                                        front, arg);
 
-			// Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
-			Type freshArrow = NodeFactory.makeArrowType(new Span(),
-					NodeFactory.make_InferenceVarType(that.getSpan()),
-					NodeFactory.make_InferenceVarType(that.getSpan()));
-			TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);
+                // Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
+                Type freshArrow = NodeFactory.makeArrowType(new Span(),
+                                                            NodeFactory.make_InferenceVarType(that.getSpan()),
+                                                            NodeFactory.make_InferenceVarType(that.getSpan()));
+                TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);
 
-			// Type check the other nodes and recur on the fn app.
-			Option<TypeCheckerResult> exprType_result = this.recurOnOptionOfType(that.getExprType());
-			TypeCheckerResult arg_result = arg.accept(this);
-			TypeCheckerResult fnApp_result = this.for_RewriteFnAppOnly(fnApp,
-					exprType_result,
-					front_result,
-					arg_result);
-			return TypeCheckerResult.compose(that,
-					fnApp_result.type(),
-					subtypeChecker,
-					fnApp_result);
-		}
+                // Type check the other nodes and recur on the fn app.
+                Option<TypeCheckerResult> exprType_result = this.recurOnOptionOfType(that.getExprType());
+                TypeCheckerResult arg_result = arg.accept(this);
+                TypeCheckerResult fnApp_result = this.for_RewriteFnAppOnly(fnApp,
+                                                                           exprType_result,
+                                                                           front_result,
+                                                                           arg_result);
+                return TypeCheckerResult.compose(that,
+                                                 fnApp_result.type(),
+                                                 subtypeChecker,
+                                                 fnApp_result);
+            }
 
-		Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
-		List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
+            Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
+            List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
 			public MathItem value(Expr arg0) {
-				if( arg0.isParenthesized() || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
-					return new ParenthesisDelimitedMI(arg0.getSpan(),arg0);
-				else
-					return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
+                            if( arg0.isParenthesized() || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
+                                return new ParenthesisDelimitedMI(arg0.getSpan(),arg0);
+                            else
+                                return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
 			}}));
-		MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),front,items);
+            MathPrimary new_primary = new MathPrimary(that.getSpan(),
+                                                      that.isParenthesized(),
+                                                      that.getMultiJuxt(),
+                                                      that.getInfixJuxt(),
+                                                      front,items);
 		return new_primary.accept(this);
 	}
 

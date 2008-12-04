@@ -24,6 +24,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
@@ -150,7 +151,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     public Type getInstantiationForFunctionalMethodInference() {
         List<StaticArg> statics = paramsToArgs();
         Id in = NodeFactory.makeId(def.getSpan(), name);
-        TraitType inst_type = new TraitType(NodeFactory.makeSpan(in, statics), in, statics);
+        TraitType inst_type = new TraitType(NodeFactory.makeSpan(in, statics), in, statics,
+                                            Collections.<StaticParam>emptyList());
         return inst_type;
     }
 
