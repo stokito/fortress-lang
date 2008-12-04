@@ -396,7 +396,7 @@ maintain proper indentation.
         debug="true"
         includeantruntime="false"
         fork="true"
-        memorymaximumsize="256M">
+        memorymaximumsize="${junitMem}">
       <!-- Uncomment the following line to print unchecked warnings
            (here and in the 'compileCommon' target. -->
       <!-- <compilerarg value="-Xlint:unchecked"/> -->
@@ -475,7 +475,7 @@ maintain proper indentation.
         debug="true"
         includeantruntime="false"
         fork="true"
-        memorymaximumsize="256M">
+        memorymaximumsize="${junitMem}">
       <!-- Uncomment the following line to print unchecked warnings
            (here and in the 'compileCommon' target. -->
       <!-- <compilerarg value="-Xlint:unchecked"/> -->
@@ -610,7 +610,7 @@ maintain proper indentation.
         debug="true"
         includeantruntime="false"
         fork="true"
-        memorymaximumsize="256M">
+        memorymaximumsize="${junitMem}">
       <!-- Uncomment the following line to print unchecked warnings. -->
       <classpath refid="compile.classpath"/>
       <compilerarg value="-Xlint:unchecked"/>
@@ -1057,7 +1057,7 @@ maintain proper indentation.
           depends="compile, checkInstrumentedParserUptodate"
           description="Instrumented Parser">
     <java fork="yes"
-          maxmemory="256m"
+          maxmemory="512m"
           failonerror="yes"
           classname="${instrumentation.package}.InstrumentedParserGenerator">
       <classpath refid="instrumentedparser.classpath"/>
@@ -1070,7 +1070,7 @@ maintain proper indentation.
           depends="compile"
           description="Optimized Parser">
     <java fork="yes"
-          maxmemory="256m"
+          maxmemory="512m"
           failonerror="yes"
           classname="${instrumentation.package}.OptimizedParserGenerator">
       <classpath refid="instrumentedparser.classpath"/>
@@ -1101,7 +1101,7 @@ maintain proper indentation.
         debug="true"
         includeantruntime="false"
         fork="true"
-        memorymaximumsize="256M">
+        memorymaximumsize="${junitMem}">
       <!-- Uncomment the following line to print unchecked warnings
            (here and in the 'compileCommon' target. -->
       <!-- <compilerarg value="-Xlint:unchecked"/> -->
@@ -1128,7 +1128,7 @@ maintain proper indentation.
   </target>
 
   <target name="doc" depends="compile">
-    <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="256M">
+    <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="${junitMem}">
       <classpath refid="compile.classpath"/>
       <packageset dir="${src}">
         <include name="**/*"/>
