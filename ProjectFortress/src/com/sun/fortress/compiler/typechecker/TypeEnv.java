@@ -52,6 +52,7 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
 import com.sun.fortress.nodes.LValue;
@@ -76,7 +77,6 @@ import com.sun.fortress.nodes.UnitArg;
 import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -138,15 +138,15 @@ public abstract class TypeEnv {
         }
     }
 
-    protected static _RewriteGenericArrowType genericArrowFromDecl(FnDecl decl) {
-        return new _RewriteGenericArrowType(decl.getSpan(),
-                                            domainFromParams(decl.getParams()),
-                                            // all types have been filled in at this point
-                                            decl.getReturnType().unwrap(),
-                                            makeEffect(decl.getSpan().getEnd(),
-                                                       decl.getThrowsClause()),
-                                            decl.getStaticParams(),
-                                            decl.getWhereClause());
+    protected static ArrowType genericArrowFromDecl(FnDecl decl) {
+        return new ArrowType(decl.getSpan(),
+                             domainFromParams(decl.getParams()),
+                             // all types have been filled in at this point
+                             decl.getReturnType().unwrap(),
+                             makeEffect(decl.getSpan().getEnd(),
+                                        decl.getThrowsClause()),
+                             decl.getStaticParams(),
+                             decl.getWhereClause());
     }
 
     /**

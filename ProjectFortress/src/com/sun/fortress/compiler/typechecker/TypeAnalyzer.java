@@ -318,7 +318,9 @@ public class TypeAnalyzer {
             }
 
             @Override public Type forArrowTypeOnly(ArrowType t, Type normalDomain, Type normalRange,
-                                                   final Effect normalEffect) {
+                                                   final Effect normalEffect,
+                                                   List<StaticParam> staticParams,
+                                                   Option<WhereClause> whereClause) {
                 Type domainArg = stripKeywords(normalDomain);
                 final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
                 Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
@@ -559,9 +561,9 @@ public class TypeAnalyzer {
                         }
                         else { return FALSE; }
                     }
-                    @Override public ConstraintFormula forAbstractArrowType(AbstractArrowType s) {
-                        if (t instanceof AbstractArrowType) {
-                            return arrowSubArrow(s, (AbstractArrowType) t, h);
+                    @Override public ConstraintFormula forArrowType(ArrowType s) {
+                        if (t instanceof ArrowType) {
+                            return arrowSubArrow(s, (ArrowType) t, h);
                         }
                         else { return FALSE; }
                     }
@@ -643,7 +645,7 @@ public class TypeAnalyzer {
     	return result;
     }
 
-    private ConstraintFormula arrowSubArrow(AbstractArrowType s, AbstractArrowType t, SubtypeHistory h) {
+    private ConstraintFormula arrowSubArrow(ArrowType s, ArrowType t, SubtypeHistory h) {
         ConstraintFormula f = sub(t.getDomain(), s.getDomain(), h);
         if (!f.isFalse()) {
             f = f.and(sub(s.getRange(), t.getRange(), h), h);

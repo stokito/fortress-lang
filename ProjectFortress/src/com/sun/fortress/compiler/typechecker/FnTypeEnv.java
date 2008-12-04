@@ -48,7 +48,7 @@ import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -147,12 +147,12 @@ class FnTypeEnv extends TypeEnv {
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                overloadedTypes.add(new _RewriteGenericArrowType(loc,
-                                                                 domainFromParams(_fn.parameters()),
-                                                                 selfType,
-                                                                 makeEffect(loc.getEnd(), CollectUtil.makeList(_fn.thrownTypes())),
-                                                                 _fn.staticParameters(),
-                                                                 _fn.where()));
+                overloadedTypes.add(new ArrowType(loc,
+                                                  domainFromParams(_fn.parameters()),
+                                                  selfType,
+                                                  makeEffect(loc.getEnd(), CollectUtil.makeList(_fn.thrownTypes())),
+                                                  _fn.staticParameters(),
+                                                  _fn.where()));
             }
         }
         return Option.some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));

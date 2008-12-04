@@ -196,7 +196,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             domainResult = (Type) domain.accept(this);
         Type rangeResult = (Type) that.getRange().accept(this);
         Effect effectResult = (Effect) that.getEffect().accept(this);
-        return forArrowTypeOnly(that, domainResult, rangeResult, effectResult);
+        return forArrowTypeOnly(that, domainResult, rangeResult, effectResult,
+                                that.getStaticParams(), that.getWhereClause());
     }
 
     @Override public Node forVarType(final VarType that) {

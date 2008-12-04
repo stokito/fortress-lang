@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
-import com.sun.fortress.nodes._RewriteGenericArrowType;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -88,12 +88,11 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type =
-                	new _RewriteGenericArrowType(decl.getSpan(),
-                                                     domainFromParams(decl.getParams().unwrap()),
-                                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
-                                                     decl.getStaticParams(),
-                                                     decl.getWhereClause());
+                type = new ArrowType(decl.getSpan(),
+                                     domainFromParams(decl.getParams().unwrap()),
+                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
+                                     decl.getStaticParams(),
+                                     decl.getWhereClause());
             }
         }
 

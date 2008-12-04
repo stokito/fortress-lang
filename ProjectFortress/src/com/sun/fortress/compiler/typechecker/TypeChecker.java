@@ -820,7 +820,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			for( final Type cur_type : TypesUtil.conjuncts(cur_type_) ) {
 				cur_type.accept(new TypeAbstractVisitor_void() {
 					@Override
-					public void forAbstractArrowType(final AbstractArrowType cur_type) {
+					public void forArrowType(final ArrowType cur_type) {
 						if( most_applicable.value().isNone() ) {
 							most_applicable.set(some(Pair.<FunctionalRef,Type>make(pruned_fn.first(), cur_type)));
 							return;
@@ -828,7 +828,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						// do some gnarly double dispatch
 						most_applicable.value().unwrap().second().accept(new TypeAbstractVisitor_void() {
 							@Override
-							public void forAbstractArrowType(AbstractArrowType most_appl) {
+							public void forArrowType(ArrowType most_appl) {
 								// Where is arg of cur_type <: arg of most_appl?
 								ConstraintFormula sub =
 									subtypeChecker.subtype(Types.stripKeywords(cur_type.getDomain()),
@@ -2459,8 +2459,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>> new_type_and_args_ =
 						overloading.accept(new TypeAbstractVisitor<Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>>>() {
 							@Override
-							public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> for_RewriteGenericArrowType(
-									_RewriteGenericArrowType gen_arr_type) {
+							public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forArrowType(
+									ArrowType gen_arr_type) {
 								// If the arrow type is generic, it needs static args, so make up inference variables
 								List<StaticArg> new_args =
 									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
@@ -3668,8 +3668,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option<Pair<Pair<Type, ConstraintFormula>, List<StaticArg>>> new_type_and_args_ =
 						overloading.accept(new TypeAbstractVisitor<Option<Pair<Pair<Type,ConstraintFormula>,List<StaticArg>>>>() {
 							@Override
-							public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> for_RewriteGenericArrowType(
-									_RewriteGenericArrowType gen_arr_type) {
+							public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forArrowType(
+									ArrowType gen_arr_type) {
 								// If the arrow type is generic, it needs static args, so make up inference variables
 								List<StaticArg> new_args =
 									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
