@@ -31,6 +31,7 @@ import edu.rice.cs.plt.lambda.Lambda2;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -467,7 +468,7 @@ public class TypeAnalyzer {
 
                 @Override public
                 ConstraintFormula forTupleType(final TupleType t) {
-                    if ( t.getVarargs().isSome() ) {
+                    if ( NodeUtil.hasVarargs(t) ) {
 
                     return s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
                         @Override public ConstraintFormula forType(Type s) {
@@ -481,7 +482,7 @@ public class TypeAnalyzer {
                             return traitSubVararg(s, t, h);
                         }
                         @Override public ConstraintFormula forTupleType(TupleType s) {
-                            if ( s.getVarargs().isSome() )
+                            if ( NodeUtil.hasVarargs(s) )
                                 return varargSubVararg(s, t, h);
                             else return tupleSubVararg(s, t, h);
                         }

@@ -96,6 +96,14 @@ import edu.rice.cs.plt.tuple.Triple;
  */
 public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
+    private static boolean isPostInference(FnRef fnref) {
+        return fnref.getOverloadings().isSome();
+    }
+
+    private static boolean isPostInference(OpRef opref) {
+        return opref.getOverloadings().isSome();
+    }
+
 	private static TypeChecker addSelf(Option<APIName> api_, Id name, TypeChecker newChecker, List<StaticParam> static_params){
 		Id type_name;
 		if( api_.isSome() )
@@ -865,7 +873,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult arg_result = recur(that.getArgument());
 
 		if( postInference && that.getFunction() instanceof FnRef &&
-                    ((FnRef)that.getFunction()).getOverloadings().isSome() ) {
+                    isPostInference((FnRef)that.getFunction()) ) {
                     FnRef fns = (FnRef)that.getFunction();
 			// if we have finished typechecking, and we have encountered a reference to an overloaded function
 
@@ -1512,7 +1520,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// Find the arrow type of the opr, if it is some
 		Option<TypeCheckerResult> opr_type = (new NodeDepthFirstVisitor<TypeCheckerResult>() {
 			@Override public TypeCheckerResult forOpRef(OpRef that) {
-                            if ( that.getOverloadings().isSome() ) {
+                            if ( isPostInference(that) ) {
 				Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
 				return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()), args_type, that, that.getOriginalName());
                             }
@@ -1836,7 +1844,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Type block_type = block_result.type().unwrap();
 		Type param_type = param_result_.unwrap().type().unwrap();
 
-		if( op.getOverloadings().isSome() ) {
+		if( isPostInference(op) ) {
 			// Our operator is an overloading, so we should find the statically most applicable one and rewrite
 			Type arg_type = NodeFactory.makeTupleType(Useful.list(param_type, match_type));
 			TypeCheckerResult app_result_1 =
@@ -3541,7 +3549,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
                 OpRef ops = that.getOp();
 
-		if( postInference && ops.getOverloadings().isSome() ) {
+		if( postInference && isPostInference(ops) ) {
 			// if we have finished typechecking, and we have encountered a reference to an overloaded op
 
 			for( TypeCheckerResult r : args_result ) {

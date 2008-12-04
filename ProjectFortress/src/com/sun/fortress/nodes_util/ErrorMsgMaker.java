@@ -88,7 +88,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             else { result.append(", "); }
             result.append(t.accept(this));
         }
-        if (node.getVarargs().isSome()) {
+        if ( NodeUtil.hasVarargs(node) ) {
             if (first) { first = false; }
             else { result.append(", "); }
             result.append(node.getVarargs().unwrap().accept(this));
