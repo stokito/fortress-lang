@@ -890,8 +890,8 @@ public final class Shell {
     /* run all the analysis available */
     public static AnalyzeResult analyze(final FortressRepository repository,
                                         final GlobalEnvironment env,
-                                        List<Api> apis,
-                                        List<Component> components,
+                                        Iterable<Api> apis,
+                                        Iterable<Component> components,
                                         final long lastModified) throws StaticError {
     	AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
     	return result;
