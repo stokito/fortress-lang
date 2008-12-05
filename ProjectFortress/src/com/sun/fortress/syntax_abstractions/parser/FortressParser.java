@@ -53,7 +53,7 @@ public class FortressParser {
                                GlobalEnvironment env, 
                                boolean verbose) {
         try {
-            if ( Shell.getPreparse() ) {
+            if (Shell.getPreparse() ) {
                 return parseInner(api_name, f, env, verbose);
             } else {
                 return new Result(Parser.parseFileConvertExn(api_name, f),

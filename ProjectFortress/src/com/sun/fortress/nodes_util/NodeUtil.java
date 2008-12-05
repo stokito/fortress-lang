@@ -100,21 +100,26 @@ public class NodeUtil {
 
     public static List<APIName> collectComponentImports(Component comp){
         final List<APIName> all = new ArrayList<APIName>();
-        comp.accept(new NodeDepthFirstVisitor_void(){
-                @Override
-                public void forImportedNamesDoFirst(ImportedNames that) {
-                    Debug.debug(Debug.Type.SYNTAX, 2, "Add import api ", that.getApiName());
-                    all.add(that.getApiName());
-                }
+        NodeDepthFirstVisitor_void collector = new NodeDepthFirstVisitor_void(){
+            @Override
+            public void forImportedNamesDoFirst(ImportedNames that) {
+                Debug.debug(Debug.Type.SYNTAX, 2, "Add import api ", that.getApiName());
+                all.add(that.getApiName());
+            }
 
-                @Override
-                public void forImportApi(ImportApi that){
-                    for (AliasedAPIName api : that.getApis()){
-                        Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApiName());
-                        all.add(api.getApiName());
-                    }
+            @Override
+            public void forImportApi(ImportApi that){
+                for (AliasedAPIName api : that.getApis()){
+                    Debug.debug(Debug.Type.SYNTAX, 2, "Add aliased api ", api.getApiName());
+                    all.add(api.getApiName());
                 }
-            });
+            }
+        };
+        
+        for (Import imp  : comp.getImports()) {
+            imp.accept(collector);
+        }
+        
         for (APIName api : comp.getExports()) {
             all.add(api);
         }
