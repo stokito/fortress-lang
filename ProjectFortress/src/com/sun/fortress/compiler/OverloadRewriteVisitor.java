@@ -37,7 +37,8 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
                              List<StaticArg> staticArgs, Id originalName, List<Id> fns,
-                             Option<List<_RewriteFnRefOverloading>> overloadings) {
+                             Option<List<FnRef>> overloadings,
+                             Option<Type> type_result) {
         if (fns.size() > 1) {
             Collections.<Id>sort(fns, NodeComparator.idComparer);
             StringBuffer buffer = new StringBuffer();
@@ -58,14 +59,15 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
         return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns,
-                                  overloadings);
+                                  overloadings, type_result);
     }
 
 
     @Override
     public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
                              List<StaticArg> staticArgs, Op originalName, List<Op> ops,
-                             Option<List<_RewriteOpRefOverloading>> overloadings) {
+                             Option<List<OpRef>> overloadings,
+                             Option<Type> type_result) {
         if (ops.size() > 1) {
             Collections.<Op>sort(ops, NodeComparator.opNameComparer);
             StringBuffer buffer = new StringBuffer();
@@ -86,7 +88,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
         return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops,
-                                  overloadings);
+                                  overloadings, type_result);
     }
 
 
