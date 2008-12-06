@@ -161,7 +161,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return ExprFactory.makeFnRef(original, lexicalNestedness);
         }
         Expr replacement(OpRef original) {
-            return NodeFactory.makeOpRef(original, lexicalNestedness);
+            return ExprFactory.makeOpRef(original, lexicalNestedness);
         }
         VarType replacement(VarType original) {
              return NodeFactory.makeVarType(original, lexicalNestedness);

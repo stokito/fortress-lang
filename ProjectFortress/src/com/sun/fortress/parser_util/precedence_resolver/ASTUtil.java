@@ -25,6 +25,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.List;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.ChainExpr;
@@ -35,6 +36,7 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
@@ -76,10 +78,14 @@ public class ASTUtil {
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
         Op infix_op_ = NodeFactory.makeOpInfix(op);
-        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,  Collections.<Op>singletonList(infix_op_));
+        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,
+                                   Collections.<Op>singletonList(infix_op_),
+                                   Option.<Type>none());
 
         Op multifix_op_ = NodeFactory.makeOpMultifix(op);
-        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,  Collections.<Op>singletonList(multifix_op_));
+        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,
+                                      Collections.<Op>singletonList(multifix_op_),
+                                      Option.<Type>none());
 
         if (args.size() > 2) {
         	return new AmbiguousMultifixOpExpr(span, false, infix_op, multifix_op, args);
@@ -108,7 +114,8 @@ public class ASTUtil {
             OpRef ref = new OpRef(s,
                                   sargs,
                                   en,
-                                  Collections.<Op>singletonList(en));
+                                  Collections.<Op>singletonList(en),
+                                  Option.<Type>none());
             return new OpExpr(span, false, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +

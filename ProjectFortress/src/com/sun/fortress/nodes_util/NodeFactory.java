@@ -1306,15 +1306,6 @@ public class NodeFactory {
         return new ImportStar(makeSpan(api, excepts), Option.<String>none(), api, excepts);
     }
 
-    public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
-            return new OpRef(original.getSpan(), original.isParenthesized(), original.getStaticArgs(), lexicalNestedness, original.getOriginalName(), original.getOps());
-
-    }
-
-    public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs) {
-        return new TightJuxt(span, Useful.immutableTrimmedList(exprs));
-    }
-
     public static BoolRef makeBoolRef(BoolRef old, int depth) {
         return new BoolRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
     }
@@ -1346,12 +1337,6 @@ public class NodeFactory {
 
     public static TraitType makeGenericSingletonType(Id name, List<StaticParam> params) {
         return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList(), params);
-    }
-
-    public static ChainExpr makeChainExpr(Expr lhs, Op op, Expr rhs) {
-        List<Link> links = new ArrayList<Link>(1);
-        links.add(new Link(new Span(op.getSpan(), rhs.getSpan()), ExprFactory.makeOpRef(NodeFactory.makeOpInfix(op)), rhs));
-        return new ChainExpr(new Span(lhs.getSpan(), rhs.getSpan()), lhs, links);
     }
 
     public static VarType makeVarType(VarType original, int lexicalNestedness) {
