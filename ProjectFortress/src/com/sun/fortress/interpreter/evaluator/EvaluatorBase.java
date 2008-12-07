@@ -82,7 +82,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return foo.applyPossiblyGeneric(args, site, foo.getWithin());
+            return foo.applyPossiblyGeneric(args, site);
         } catch (FortressException ex) {
             throw ex.setContext(site,e);
         } catch (StackOverflowError soe) {
@@ -129,12 +129,11 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                                 appliedThing));
         }
 
-        GenericFunctionOrMethod bar = (GenericFunctionOrMethod) appliedThing;
-        List<StaticParam> tparams = bar.getStaticParams();
-        List<Param> params = bar.getParams();
+        List<StaticParam> tparams = appliedThing.getStaticParams();
+        List<Param> params = appliedThing.getParams();
         // Must use the right environment for unifying against the generic.
         // It was "e", which is wrong.
-        EvalType et = new EvalType(bar.getWithin());// e);
+        EvalType et = new EvalType(appliedThing.getWithin());// e);
         // The types of the actual parameters ought to unify with the
         // types of the formal parameters.
         BoundingMap<String, FType, TypeLatticeOps> abm = new
@@ -215,7 +214,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                          * invocation.
                          */
                         if (p.getName().toString().equals("self")
-                                && bar instanceof GenericFunctionalMethod) {
+                                && appliedThing instanceof GenericFunctionalMethod) {
                             // Use precomputed selfType that will match declared
                             GenericTypeInstance gi = (GenericTypeInstance) selfType;
 
@@ -267,7 +266,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         // if (DUMP_INFERENCE)
         // System.err.println("ABM 1={" + abm + "}");
 
-        Option<Type> opt_rt = bar.getReturnType();
+        Option<Type> opt_rt = appliedThing.getReturnType();
 
         if (opt_rt.isSome())
             opt_rt.unwrap().accept(mis);
@@ -317,7 +316,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 t = BottomType.ONLY;
             tl.add(t);
         }
-        Simple_fcn sfcn = bar.typeApply(site, tl);
+        Simple_fcn sfcn = appliedThing.typeApply(site, tl);
         if (DUMP_INFERENCE)
             System.err.println("Result " + sfcn);
         return sfcn;

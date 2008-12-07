@@ -57,7 +57,7 @@ public class Dummy_fcn extends Simple_fcn {
 
     public List<FType> getDomain() {return domain;}
 
-    public FValue applyInnerPossiblyGeneric(List<FValue> vals, HasAt site, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> vals, HasAt site) {
         return NI.nyi("Dummy_fcn.apply_inner");
     }
 

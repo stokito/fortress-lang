@@ -126,20 +126,20 @@ public final class DottedMethodApplication extends Fcn {
     /** Perform a full method invocation. */
     public static FValue invokeMethod(FValue receiver, String prettyName,
                                       String mname, List<FValue> args,
-                                      HasAt site, Environment envForInference) {
+                                      HasAt site) {
         DottedMethodApplication app =
             DottedMethodApplication.make(receiver,prettyName,mname,site);
-        return app.applyPossiblyGeneric(args,site,envForInference);
+        return app.applyPossiblyGeneric(args,site);
     }
 
-    public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt x,
+    public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt site,
             Environment envForInference) {
         Method cl = getMethod();
         FObject self = getSelf();
         Environment selfEnv = getWithin();
 
         if (cl instanceof OverloadedMethod) {
-            return bug(x, selfEnv,
+            return bug(site, selfEnv,
                        "Don't actually resolve overloading of generic methods yet.");
         } else if (cl instanceof MethodInstance) {
             // What gets retrieved is the symbolic instantiation of
@@ -148,10 +148,10 @@ public final class DottedMethodApplication extends Fcn {
             // create an "instance"
             // if the parameters are non-symbolic.
             GenericMethod gm = ((MethodInstance) cl).getGenerator();
-            MethodClosure actual = gm.typeApply(sargs,envForInference,x);
+            MethodClosure actual = gm.typeApply(sargs,envForInference,site);
             return new DottedMethodApplication(self,actual,selfEnv);
         } else {
-            return error(x, selfEnv,
+            return error(site, selfEnv,
                          errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ",
                                   cl));
         }
@@ -177,9 +177,9 @@ public final class DottedMethodApplication extends Fcn {
         // Do nothing.
     }
 
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
         try {
-            return cl.applyMethod(args, self, site, envForInference);
+            return cl.applyMethod(args, self, site);
         } catch (FortressException ex) {
             throw ex.setContext(site, getWithin());
         } catch (StackOverflowError soe) {

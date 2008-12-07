@@ -89,8 +89,7 @@ public class Reflect extends NativeConstructor {
                          "\\]; constructor not invoked from Fortress yet.");
         }
         Simple_fcn con = gcon.typeApply(gcon,Useful.list(t));
-        return (ReflectedType)con.applyPossiblyGeneric(Collections.<FValue>emptyList(), gcon,
-                                        BetterEnv.blessedEmpty());
+        return (ReflectedType)con.applyPossiblyGeneric(Collections.<FValue>emptyList(), gcon);
     }
 
     public static final class Join extends NativeApp {

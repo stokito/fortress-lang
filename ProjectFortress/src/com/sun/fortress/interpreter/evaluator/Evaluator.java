@@ -1171,7 +1171,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // Non-static version provides the obvious arguments.
     public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
                                HasAt site) {
-        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,site,e);
+        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,site);
     }
 
     // Version that evaluates arguments first.
@@ -1186,7 +1186,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         DottedMethodApplication app0 =
             DottedMethodApplication.make(receiver,mname,mname,site);
         DottedMethodApplication app = app0.applyToStaticArgs(sargs,site,e);
-        return app.applyPossiblyGeneric(args,site,e);
+        return app.applyPossiblyGeneric(args,site);
     }
 
     private boolean isFunction(FValue val) { return (val instanceof Fcn); }
@@ -1539,7 +1539,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
                 // Can we get a better HasAt?
                 HasAt site = new HasAt.FromString(WellKnownNames.forbiddenException);
-                FObject f = (FObject) c.applyPossiblyGeneric(args, site, e);
+                FObject f = (FObject) c.applyPossiblyGeneric(args, site);
                 FortressError f_exc = new FortressError(x,e,f);
                 throw f_exc;
             }

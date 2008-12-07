@@ -70,8 +70,7 @@ public class MethodClosure extends FunctionClosure implements Method {
         return selfValue.getLexicalEnv();
     }
 
-    public FValue applyMethod(List<FValue> args, FObject selfValue,
-                              HasAt site, Environment envForInference) {
+    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site) {
         args = conditionallyUnwrapTupledArgs(args);
         Expr body = getBodyNull();
 
@@ -93,7 +92,7 @@ public class MethodClosure extends FunctionClosure implements Method {
             eval.e.putValueRaw(selfName(), selfValue);
             return eval.eval(body);
         } else if (def instanceof Method) {
-            return ((Method)def).applyMethod(args, selfValue, site, envForInference);
+            return ((Method)def).applyMethod(args, selfValue, site);
         } else {
             return bug(site,errorMsg("MethodClosure ",this,
                                      " has neither body nor def instanceof Method"));
@@ -108,8 +107,7 @@ public class MethodClosure extends FunctionClosure implements Method {
      *   In that case we can strip "AsIf" information from self, as
      *      we've already dealt with the type information.
      */
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site,
-                             Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
         if (selfParameterIndex == -1) {
             return bug(site,errorMsg("MethodClosure for dotted method ",this,
                                     " was invoked as if it were a functional method."));
@@ -118,7 +116,7 @@ public class MethodClosure extends FunctionClosure implements Method {
         // chain to applyMethod.
         FObject self = (FObject)args.get(selfParameterIndex).getValue();
         args = Useful.removeIndex(selfParameterIndex,args);
-        return applyMethod(args,self,site,envForInference);
+        return applyMethod(args,self,site);
     }
 
     public String selfName() {
