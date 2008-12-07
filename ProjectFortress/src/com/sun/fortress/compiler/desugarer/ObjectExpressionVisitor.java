@@ -439,7 +439,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                           FreeNameCollection freeNames) {
         Span span = objExpr.getSpan();
         Id originalName = lifted.getName();
-        List<Id> fns = new LinkedList<Id>();
+        List<IdOrOp> fns = new LinkedList<IdOrOp>();
         fns.add(originalName);
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
         VarRef enclosingSelf = null;
@@ -747,8 +747,11 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // FIXME: What if it has a type that's not visible at top level?
                 // FIXME: what span should I use?
                 type = fn.getExprType();
+                IdOrOp name = fn.getOriginalName();
+                if ( ! (name instanceof Id) )
+                    bug(name, "The name field of FnRef should be Id.");
                 param = NodeFactory.makeParam(fn.getSpan(),
-                                                    fn.getOriginalName(), type);
+                                              (Id)name, type);
                 params.add(param);
             }
         }

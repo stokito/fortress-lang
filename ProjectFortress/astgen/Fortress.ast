@@ -1031,8 +1031,14 @@ interface Node() extends HasAt;
                          * named functional in functional applications
                          */
                         abstract FunctionalRef(List<StaticArg> staticArgs
-                                                 = Collections.<StaticArg>emptyList(),
-                                               int lexicalDepth=-2147483648);
+                                                   = Collections.<StaticArg>emptyList(),
+                                               int lexicalDepth=-2147483648,
+                                               IdOrOp originalName,
+                                               List<IdOrOp> names
+                                                   = Collections.<IdOrOp>singletonList(in_originalName),
+                                               Option<List<FunctionalRef>> overloadings
+                                                   = Option.<List<FunctionalRef>>none(),
+                                               Option<Type> overloadingType);
                             /**
                              * expression with static instantiations
                              * list of ids allows cross-API overloading
@@ -1047,11 +1053,7 @@ interface Node() extends HasAt;
                              * <overloadingType>
                              * type of a particular overloading
                              */
-                            FnRef(Id originalName,
-                                  List<Id> fns = Collections.<Id>singletonList(in_originalName),
-                                  Option<List<FnRef>> overloadings
-                                      = Option.<List<FnRef>>none(),
-                                  Option<Type> overloadingType);
+                            FnRef();
                             /**
                              * operator name with (inferred) static instantiations
                              * list of operators allows cross-API overloading
@@ -1067,11 +1069,7 @@ interface Node() extends HasAt;
                              * <overloadingType>
                              * type of a particular overloading
                              */
-                            OpRef(Op originalName,
-                                  List<Op> ops = Collections.<Op>singletonList(in_originalName),
-                                  Option<List<OpRef>> overloadings
-                                      = Option.<List<OpRef>>none(),
-                                  Option<Type> overloadingType);
+                            OpRef();
                         /**
                          * juxtaposition of expressions
                          * If this node turns out to actually be a juxtaposition,

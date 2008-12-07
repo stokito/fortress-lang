@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
@@ -248,12 +249,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValueNull(Id name, int l) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public FValue getValueNull(Op name, int l) {
+    public FValue getValueNull(IdOrOp name, int l) {
         // TODO Auto-generated method stub
         return null;
     }

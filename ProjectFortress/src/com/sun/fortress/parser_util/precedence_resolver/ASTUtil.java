@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpRef;
@@ -79,12 +80,12 @@ public class ASTUtil {
     static Expr multifix(Span span, Op op, List<Expr> args) {
         Op infix_op_ = NodeFactory.makeOpInfix(op);
         OpRef infix_op = new OpRef(op.getSpan(), infix_op_,
-                                   Collections.<Op>singletonList(infix_op_),
+                                   Collections.<IdOrOp>singletonList(infix_op_),
                                    Option.<Type>none());
 
         Op multifix_op_ = NodeFactory.makeOpMultifix(op);
         OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,
-                                      Collections.<Op>singletonList(multifix_op_),
+                                      Collections.<IdOrOp>singletonList(multifix_op_),
                                       Option.<Type>none());
 
         if (args.size() > 2) {
@@ -114,7 +115,7 @@ public class ASTUtil {
             OpRef ref = new OpRef(s,
                                   sargs,
                                   en,
-                                  Collections.<Op>singletonList(en),
+                                  Collections.<IdOrOp>singletonList(en),
                                   Option.<Type>none());
             return new OpExpr(span, false, ref, args);
         } else {

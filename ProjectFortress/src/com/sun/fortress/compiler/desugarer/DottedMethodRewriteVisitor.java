@@ -21,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
@@ -33,7 +35,7 @@ import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes_util.ExprFactory;
-
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
     private VarRef receiver;
@@ -98,9 +100,12 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
 
         if(function instanceof FnRef && methodRefs.contains(function)) {
            FnRef fnRef = (FnRef) function;
+           IdOrOp name = fnRef.getOriginalName();
+           if ( ! (name instanceof Id) )
+               bug(name, "The name field of FnRef should be Id.");
            MethodInvocation mi = new MethodInvocation( fnRef.getSpan(),
-                    fnRef.isParenthesized(), fnRef.getExprType(), receiver,
-                    fnRef.getOriginalName(), fnRef.getStaticArgs(), arg );
+                                                       fnRef.isParenthesized(), fnRef.getExprType(), receiver,
+                                                       (Id)name, fnRef.getStaticArgs(), arg );
            return mi;
         }
 
@@ -117,9 +122,13 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
         } else {
             argExpr = ExprFactory.makeTuple(fnRef.getSpan(), args);
         }
+        IdOrOp name = fnRef.getOriginalName();
+        if ( ! (name instanceof Id) )
+            bug(name, "The name field of FnRef should be Id.");
+
         mi = new MethodInvocation( fnRef.getSpan(),
-                fnRef.isParenthesized(), fnRef.getExprType(), receiver,
-                fnRef.getOriginalName(), fnRef.getStaticArgs(), argExpr );
+                                   fnRef.isParenthesized(), fnRef.getExprType(), receiver,
+                                   (Id)name, fnRef.getStaticArgs(), argExpr );
 
         return mi;
     }

@@ -31,16 +31,16 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
-    final private Map<String, List<Id>> overloadedFunctions = new HashMap<String, List<Id>>();
-    final private Map<String, List<Op>> overloadedOperators = new HashMap<String, List<Op>>();
+    final private Map<String, List<IdOrOp>> overloadedFunctions = new HashMap<String, List<IdOrOp>>();
+    final private Map<String, List<IdOrOp>> overloadedOperators = new HashMap<String, List<IdOrOp>>();
 
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
-                             List<StaticArg> staticArgs, Id originalName, List<Id> fns,
-                             Option<List<FnRef>> overloadings,
+                             List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
+                             Option<List<FunctionalRef>> overloadings,
                              Option<Type> type_result) {
         if (fns.size() > 1) {
-            Collections.<Id>sort(fns, NodeComparator.idComparer);
+            Collections.<IdOrOp>sort(fns, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
             buffer.append(NodeUtil.nameString(originalName));
             buffer.append('{');
@@ -55,7 +55,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             if (!overloadedFunctions.containsKey(overloadingName)) {
                 overloadedFunctions.put(overloadingName, fns);
             }
-            Id overloadingId = NodeFactory.makeId(overloadingName);
+            IdOrOp overloadingId = NodeFactory.makeId(overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
         return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns,
@@ -65,11 +65,11 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
-                             List<StaticArg> staticArgs, Op originalName, List<Op> ops,
-                             Option<List<OpRef>> overloadings,
+                             List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
+                             Option<List<FunctionalRef>> overloadings,
                              Option<Type> type_result) {
         if (ops.size() > 1) {
-            Collections.<Op>sort(ops, NodeComparator.opNameComparer);
+            Collections.<IdOrOp>sort(ops, NodeComparator.idOrOpComparer);
             StringBuffer buffer = new StringBuffer();
             buffer.append(NodeUtil.nameString(originalName));
             buffer.append('{');
@@ -84,7 +84,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             if (!overloadedOperators.containsKey(overloadingName)) {
                 overloadedOperators.put(overloadingName, ops);
             }
-            Op overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
+            IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
         return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops,
@@ -92,11 +92,11 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     }
 
 
-    public Map<String, List<Id>> getOverloadedFunctions() {
+    public Map<String, List<IdOrOp>> getOverloadedFunctions() {
         return overloadedFunctions;
     }
 
-    public Map<String, List<Op>> getOverloadedOperators() {
+    public Map<String, List<IdOrOp>> getOverloadedOperators() {
         return overloadedOperators;
     }
 

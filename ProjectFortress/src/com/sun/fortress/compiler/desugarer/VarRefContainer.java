@@ -26,6 +26,7 @@ import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
@@ -154,12 +155,12 @@ public class VarRefContainer {
     }
 
     private TightJuxt makeCallToContainerObj() {
-        List<Id> fns = new LinkedList<Id>();
+        List<IdOrOp> fns = new LinkedList<IdOrOp>();
         Span origSpan = origDeclNode.getSpan();
 
         fns.add( containerDeclId() );
         FnRef fnRefToDecl = ExprFactory.makeFnRef( origSpan, false,
-                containerDeclId(), fns, Collections.<StaticArg>emptyList() );
+                                                   containerDeclId(), fns, Collections.<StaticArg>emptyList() );
 
         List<Expr> exprs = new LinkedList<Expr>();
         exprs.add(fnRefToDecl);

@@ -148,6 +148,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forModifierWidens(ModifierWidens node) { return "widens"; }
     public String forModifierWrapped(ModifierWrapped node) { return "wrapped"; }
 
+    public String forIdOrOp(IdOrOp node) {
+        if ( node instanceof Id )
+            return forId((Id)node);
+        else
+            return forOp((Op)node);
+    }
+
     public String forId(Id node) {
         return NodeUtil.nameString(node);
     }
@@ -255,7 +262,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forFnRef(FnRef node) {
         List<StaticArg> sargs = node.getStaticArgs();
-        return forId(node.getOriginalName()) +
+        return forIdOrOp(node.getOriginalName()) +
                (sargs.size() > 0 ? Useful.listInOxfords(sargs) : "");
     }
 

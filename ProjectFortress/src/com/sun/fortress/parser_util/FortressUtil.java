@@ -855,7 +855,7 @@ public final class FortressUtil {
             ChainExpr e = (ChainExpr)expr;
             List<Link> links = e.getLinks();
             if (links.size() == 1) {
-                Op op = links.get(0).getOp().getOriginalName();
+                IdOrOp op = links.get(0).getOp().getOriginalName();
                 return (op instanceof Op && ((Op)op).getText().equals("="));
             } else return false;
         } else return false;
