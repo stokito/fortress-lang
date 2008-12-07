@@ -1003,30 +1003,13 @@ interface Node() extends HasAt;
                                List<StaticArg> staticArgs,
                                int lexicalDepth=-2147483648) implements Lhs;
                         /**
-                         * Temporarily, until closure conversion is always on-line,
-                         * object exprs are simply hoisted to top-level, but retain
-                         * access to their original lexical scope.
-                         */
-                        _RewriteObjectExprRef(String genSymName, List<StaticArg> staticArgs);
-                        /**
                          * field selection expression
+                         * A field selection, unless it is a method reference
+                         * Names of "field" must be unqualified.
                          * Primary ::= Primary . Id
+                         * e.g.) Empty.length
                          */
-                        abstract AbstractFieldRef(Expr obj) implements Lhs;
-                            /**
-                             * A field selection, unless it is a method reference
-                             * Names of "field" must be unqualified.
-                             * e.g.) Empty.length
-                             */
-                            FieldRef(Id field);
-                        /**
-                         * The rewriting to explicitly name self and parent
-                         * pre-interpretation may generalize the dotted
-                         * list from a FnRef into something else.
-                         */
-                        _RewriteFnRef(Expr fnExpr,
-                                      List<StaticArg> staticArgs
-                                          = Collections.<StaticArg>emptyList());
+                        FieldRef(Expr obj, Id field) implements Lhs;
                         /**
                          * named functional in functional applications
                          */
@@ -1070,6 +1053,20 @@ interface Node() extends HasAt;
                              * type of a particular overloading
                              */
                             OpRef();
+                        /**
+                         * The rewriting to explicitly name self and parent
+                         * pre-interpretation may generalize the dotted
+                         * list from a FnRef into something else.
+                         */
+                        _RewriteFnRef(Expr fnExpr,
+                                      List<StaticArg> staticArgs
+                                          = Collections.<StaticArg>emptyList());
+                        /**
+                         * Temporarily, until closure conversion is always on-line,
+                         * object exprs are simply hoisted to top-level, but retain
+                         * access to their original lexical scope.
+                         */
+                        _RewriteObjectExprRef(String genSymName, List<StaticArg> staticArgs);
                         /**
                          * juxtaposition of expressions
                          * If this node turns out to actually be a juxtaposition,

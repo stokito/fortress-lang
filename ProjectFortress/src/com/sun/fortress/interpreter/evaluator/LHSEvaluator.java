@@ -41,7 +41,6 @@ import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -85,7 +84,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
         return null;
     }
 
-    public Voidoid forFieldRefCommon(AbstractFieldRef x, Name what) {
+    public Voidoid forFieldRefCommon(FieldRef x, Name what) {
         Expr from = x.getObj();
         // TODO need to generalize to dotted names.
         FValue val = from.accept(evaluator);
