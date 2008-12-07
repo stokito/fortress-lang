@@ -226,7 +226,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                         natParams, site);
 
                 FValue theArray = f
-                        .applyPossiblyGeneric(Collections.<FValue> emptyList(), site, env);
+                        .applyPossiblyGeneric(Collections.<FValue> emptyList(), site);
                 if (!(theArray instanceof FObject))
                     return bug(site,errorMsg(f," returned non-FObject ",theArray));
                 // Use a wrapper to simplify our life

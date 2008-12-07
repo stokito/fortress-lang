@@ -53,8 +53,7 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
         // TODO Auto-generated constructor stub
     }
 
-    public MethodClosure getApplicableClosure(List<FValue> args0,
-                                              HasAt loc, Environment envForInference) {
+    public MethodClosure getApplicableClosure(List<FValue> args0, HasAt loc) {
         FValue selfVal = args0.get(selfParameterIndex);
         DottedMethodApplication ma =
             DottedMethodApplication.make(selfVal,s(def),mname,loc);
@@ -64,9 +63,9 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
         } else if (cl instanceof OverloadedMethod) {
             List<FValue> args = Useful.removeIndex(selfParameterIndex,args0);
             OverloadedMethod om = (OverloadedMethod)cl;
-            return om.getApplicableMethod(args,loc,envForInference);
+            return om.getApplicableMethod(args,loc);
         } else {
-            return bug(loc,envForInference,
+            return bug(loc,getWithin(),
                        errorMsg("Functional method resolution for ",this,args0,
                                 " yields non-MethodClosure ",cl));
         }
@@ -76,11 +75,10 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
      * @see com.sun.fortress.interpreter.evaluator.values.FunctionClosure#applyInnerPossiblyGeneric(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)
      */
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
         FValue selfVal = args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
-        return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args,
-                                                    site, envForInference);
+        return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args, site);
     }
 
     @Override

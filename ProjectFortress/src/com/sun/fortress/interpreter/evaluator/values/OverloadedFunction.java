@@ -761,19 +761,19 @@ public class  OverloadedFunction extends Fcn
 
     // TODO continue audit of functions in here.
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
 
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
 
-            best_f = bestMatch(args, site, envForInference, overloads);
+            best_f = bestMatch(args, site, overloads);
 
             if (best_f instanceof FunctionalMethod) {
                 FunctionalMethod fm = (FunctionalMethod)best_f;
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
-                best_f = fm.getApplicableClosure(args,site,envForInference);
+                best_f = fm.getApplicableClosure(args,site);
             }
             if (best_f instanceof GenericFunctionOrMethod) {
                 return bug(site,errorMsg("overload res yielded generic ",best_f));
@@ -784,18 +784,19 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.applyPossiblyGeneric(args, site, best_f.getWithin()); // was envForInference
+        return best_f.applyPossiblyGeneric(args, site);
     }
 
     /**
      * Returns index of best match for args among the overloaded functions.
      * @throws Error
      */
-    public SingleFcn bestMatch(List<FValue> args, HasAt loc, Environment envForInference, List<Overload> someOverloads) throws Error {
+    public SingleFcn bestMatch(List<FValue> args, HasAt loc,
+                               List<Overload> someOverloads) throws Error {
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
 
-        SingleFcn best = bestMatchInternal(args, loc, envForInference, someOverloads);
+        SingleFcn best = bestMatchInternal(args, loc, someOverloads);
         if (best == null) {
             // TODO add checks for COERCE, right here.
             // Replay the test for debugging
@@ -808,7 +809,7 @@ public class  OverloadedFunction extends Fcn
     }
 
     private SingleFcn bestMatchInternal(List<FValue> args, HasAt loc,
-            Environment envForInference, List<Overload> someOverloads) {
+                                        List<Overload> someOverloads) {
         SingleFcn best_sfn = null;
 
         if (debugMatch) {
@@ -826,7 +827,7 @@ public class  OverloadedFunction extends Fcn
             if (sfn instanceof GenericFunctionOrMethod) {
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) sfn;
                 try {
-                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, gsfn.getWithin()); // envForInference);
+                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, gsfn.getWithin());
                     if (debugMatch)
                         System.err.println("Inferred from " + gsfn + " to " + sfn);
                 } catch (FortressException pe) {

@@ -96,14 +96,14 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
+    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt site) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
-            return check(applyInnerPossiblyGeneric(unwrapped, site, envForInference));
+            return check(applyInnerPossiblyGeneric(unwrapped, site));
         } catch (UnificationError u) {
             if (unwrapped != args) {
                 try {
-                    return check(applyInnerPossiblyGeneric(args, site, envForInference));
+                    return check(applyInnerPossiblyGeneric(args, site));
                 } catch (UnificationError u1) {
                     throw u;
                 }
@@ -120,7 +120,7 @@ abstract public class Fcn extends FValue {
         return args;
     }
 
-    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference);
+    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site);
 
     public boolean hasSelfDotMethodInvocation() {
         return false;

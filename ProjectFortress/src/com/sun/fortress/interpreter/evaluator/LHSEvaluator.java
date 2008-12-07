@@ -184,7 +184,7 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
                     Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams, x);
                     // Now invoke f.
-                    FValue theArray = f.applyPossiblyGeneric(Collections.<FValue>emptyList(), x, evaluator.e);
+                    FValue theArray = f.applyPossiblyGeneric(Collections.<FValue>emptyList(), x);
                     // Do the copy.
                     iuo_tuple.copyTo(new IndexedArrayWrapper(theArray, x));
                     evaluator.e.putValue(s, theArray);

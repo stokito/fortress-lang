@@ -77,7 +77,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         List<FValue> vals = new ArrayList<FValue>();
         for(FType t: dynamic_types)
             vals.add(new DummyValue(t));
-        return fcn.bestMatch(vals, null, null, fcn.getOverloads());
+        return fcn.bestMatch(vals, null, fcn.getOverloads());
     }
 
     private static <T> List<T> l(T... args) { return Arrays.asList(args); }

@@ -373,22 +373,20 @@ public class FTypeTuple extends FType {
             BoundingMap<String, FType, TypeLatticeOps> abm, Type val) {
         if (FType.DUMP_UNIFY)
             System.out.println("unify tuple "+this+" and "+val+", abm="+abm);
+        if (!(val instanceof TupleType)) return false;
         List<Type> elements;
         Option<Type> vargs;
-        if (val instanceof TupleType) {
-            TupleType _val = (TupleType) val;
-            if ( NodeUtil.isVoidType(_val) ) {
-                elements = Collections.emptyList();
-                vargs = Option.none();
-            } else if ( ! NodeUtil.hasVarargs(_val) ) {
-                elements = _val.getElements();
-                vargs = Option.none();
-            } else {
-                elements = _val.getElements();
-                vargs = Option.some(_val.getVarargs().unwrap());
-            }
+        TupleType _val = (TupleType) val;
+        if ( NodeUtil.isVoidType(_val) ) {
+            elements = Collections.emptyList();
+            vargs = Option.none();
+        } else if ( ! NodeUtil.hasVarargs(_val) ) {
+            elements = _val.getElements();
+            vargs = Option.none();
+        } else {
+            elements = _val.getElements();
+            vargs = Option.some(_val.getVarargs().unwrap());
         }
-        else { return false; }
         return unifyTuple(env, tp_set, abm, elements, vargs);
     }
 

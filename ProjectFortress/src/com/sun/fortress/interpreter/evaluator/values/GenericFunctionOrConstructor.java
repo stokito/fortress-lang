@@ -55,13 +55,13 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
     }
 
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
         Simple_fcn foo = cache.get(args);
         if (foo == null) {
-            foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, site, envForInference);
+            foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, site, getWithin());
             cache.syncPut(args, foo);
         }
-        return foo.applyPossiblyGeneric(args, site, envForInference);
+        return foo.applyPossiblyGeneric(args, site);
     }
 
 
