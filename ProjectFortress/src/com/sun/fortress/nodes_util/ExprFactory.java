@@ -337,7 +337,7 @@ public class ExprFactory {
 
     public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
         return new FnRef(original.getSpan(), original.isParenthesized(),
-                         original.getStaticArgs(), original.getLexicalDepth(),
+                         original.getStaticArgs(), lexicalNestedness,
                          original.getOriginalName(), original.getNames(),
                          Option.<Type>none());
     }
