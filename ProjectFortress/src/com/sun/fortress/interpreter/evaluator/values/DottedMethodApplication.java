@@ -177,13 +177,13 @@ public final class DottedMethodApplication extends Fcn {
         // Do nothing.
     }
 
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
         try {
-            return cl.applyMethod(args, self, loc, envForInference);
+            return cl.applyMethod(args, self, site, envForInference);
         } catch (FortressException ex) {
-            throw ex.setContext(loc, getWithin());
+            throw ex.setContext(site, getWithin());
         } catch (StackOverflowError soe) {
-            return error(loc, getWithin(), errorMsg("Stack overflow on ",loc));
+            return error(site, getWithin(), errorMsg("Stack overflow on ",site));
         }
     }
 

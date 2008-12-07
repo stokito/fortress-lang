@@ -49,7 +49,7 @@ public abstract class NativeMeth extends NativeApp implements Method {
      *  uses the location information to label any FortressError that
      *  is thrown. */
     public final FValue applyMethod(List<FValue> args, FObject selfValue,
-                                    HasAt loc, Environment envForInference) {
+                                    HasAt site, Environment envForInference) {
         return applyMethod(args,selfValue);
     }
 

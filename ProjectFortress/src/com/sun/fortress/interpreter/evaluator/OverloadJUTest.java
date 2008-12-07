@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
 import com.sun.fortress.interpreter.evaluator.values.DummyValue;
 import com.sun.fortress.interpreter.evaluator.values.Dummy_fcn;
+import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Overload;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
@@ -42,9 +43,9 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     private void makeDispatchTest(List<FType> dynamic_types, List<List<FType>> clauses, List<FType> result) {
         try {
-            int idx = overloadDispatch(dynamic_types, clauses);
-            assertTrue(idx >= 0);
-            assertEquals(result, clauses.get(idx));
+            SingleFcn idx = overloadDispatch(dynamic_types, clauses);
+            assertTrue(idx != null);
+            assertEquals(result, idx.getDomain());
         }
         catch (FortressException pe) {
             assertFalse("CompilationUnit error related to overloading: " +
@@ -56,9 +57,9 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     private void makeDispatchFailTest(List<FType> dynamic_types, List<List<FType>> clauses) {
         try {
-            int idx = overloadDispatch(dynamic_types, clauses);
+            SingleFcn idx = overloadDispatch(dynamic_types, clauses);
             assertTrue("Dispatch found candidate "+idx+ " when it shouldn't",
-                       idx == -1);
+                       idx == null);
         }
         catch (FortressException pe) {
             assertTrue("CompilationUnit error was not related to overloading: "+
@@ -66,7 +67,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         }
     }
 
-    private int overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {
+    private SingleFcn overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {
         OverloadedFunction fcn = new OverloadedFunction(
               NodeFactory.makeId("dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
         for(List<FType> cl: clauses) {
@@ -76,7 +77,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         List<FValue> vals = new ArrayList<FValue>();
         for(FType t: dynamic_types)
             vals.add(new DummyValue(t));
-        return fcn.bestMatchIndex(vals, null, null, fcn.getOverloads());
+        return fcn.bestMatch(vals, null, null, fcn.getOverloads());
     }
 
     private static <T> List<T> l(T... args) { return Arrays.asList(args); }

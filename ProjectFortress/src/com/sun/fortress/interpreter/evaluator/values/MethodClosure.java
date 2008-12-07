@@ -71,7 +71,7 @@ public class MethodClosure extends FunctionClosure implements Method {
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue,
-                              HasAt loc, Environment envForInference) {
+                              HasAt site, Environment envForInference) {
         args = conditionallyUnwrapTupledArgs(args);
         Expr body = getBodyNull();
 
@@ -86,17 +86,17 @@ public class MethodClosure extends FunctionClosure implements Method {
             // instantiation of some generic? It seems like signatures etc will
             // depend on this.
             Evaluator eval =
-                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue,loc),
-                                                       args, loc));
+                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue,site),
+                                                       args, site));
             // selfName() was rewritten to our special "$self", and
             // we don't care about shadowing here.
             eval.e.putValueRaw(selfName(), selfValue);
             return eval.eval(body);
         } else if (def instanceof Method) {
-            return ((Method)def).applyMethod(args, selfValue, loc, envForInference);
+            return ((Method)def).applyMethod(args, selfValue, site, envForInference);
         } else {
-            return bug(loc,errorMsg("MethodClosure ",this,
-                                    " has neither body nor def instanceof Method"));
+            return bug(site,errorMsg("MethodClosure ",this,
+                                     " has neither body nor def instanceof Method"));
 
         }
     }
@@ -108,17 +108,17 @@ public class MethodClosure extends FunctionClosure implements Method {
      *   In that case we can strip "AsIf" information from self, as
      *      we've already dealt with the type information.
      */
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc,
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site,
                              Environment envForInference) {
         if (selfParameterIndex == -1) {
-            return bug(loc,errorMsg("MethodClosure for dotted method ",this,
+            return bug(site,errorMsg("MethodClosure for dotted method ",this,
                                     " was invoked as if it were a functional method."));
         }
         // We're a functional method instance, so fish out self and
         // chain to applyMethod.
         FObject self = (FObject)args.get(selfParameterIndex).getValue();
         args = Useful.removeIndex(selfParameterIndex,args);
-        return applyMethod(args,self,loc,envForInference);
+        return applyMethod(args,self,site,envForInference);
     }
 
     public String selfName() {
