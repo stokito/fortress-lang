@@ -25,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
@@ -159,9 +160,7 @@ public interface Environment  {
 
     public abstract FValue getValueNull(OpRef vr); // 2 refs
 
-    public abstract FValue getValueNull(Id name, int l); // 3 refs
-
-    public abstract FValue getValueNull(Op name, int l); // 2 refs
+    public abstract FValue getValueNull(IdOrOp name, int l); // 3 refs
 
     public abstract FValue getValue(Id name, int l); // 0 refs
 

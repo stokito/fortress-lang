@@ -52,10 +52,7 @@ public abstract class DelegatingNameEnv extends NameEnv {
     public List<Id> explicitVariableNames() {
         return _parent.explicitVariableNames();
     }
-    public Set<Id> explicitFunctionNames(Id name) {
-        return _parent.explicitFunctionNames(name);
-    }
-    public Set<Op> explicitFunctionNames(Op name) {
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
         return _parent.explicitFunctionNames(name);
     }
 

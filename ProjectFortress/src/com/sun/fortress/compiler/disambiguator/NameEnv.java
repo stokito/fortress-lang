@@ -20,6 +20,7 @@ package com.sun.fortress.compiler.disambiguator;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Op;
 
@@ -41,13 +42,7 @@ public abstract class NameEnv extends TypeNameEnv {
      * function name; on-demand imports are ignored.  An undefined reference
      * produces an empty set.
      */
-    public abstract Set<Id> explicitFunctionNames(Id name);
-    /**
-     * Produce the set of unaliased qualified names corresponding to the given
-     * operator name; on-demand imports are ignored.  An undefined reference
-     * produces an empty set.
-     */
-    public abstract Set<Op> explicitFunctionNames(Op name);
+    public abstract Set<IdOrOp> explicitFunctionNames(IdOrOp name);
 
     /**
      * Produce the set of unaliased qualified names available via on-demand imports

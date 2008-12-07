@@ -385,40 +385,22 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    public Set<Id> explicitFunctionNames(Id name) {
-    	Set<Id> result = Collections.emptySet();
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
+    	Set<IdOrOp> result = Collections.emptySet();
 
-    	// Add fns from this component
+    	// Add fns/ops from this component
         if (_current.functions().containsFirst(name)) {
             // Only qualify name with an API if we are indeed inside of an API
-            Id result_id;
-            if( _current instanceof ApiIndex )
-                result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
-            else
+            IdOrOp result_id;
+            if( _current instanceof ApiIndex ) {
+                if ( name instanceof Id )
+                    result_id = NodeFactory.makeId(_current.ast().getName(), (Id)name, name.getSpan());
+                else
+                    result_id = NodeFactory.makeOp(_current.ast().getName(), (Op)name);
+            } else
                 result_id = name;
 
-            result = CollectUtil.union(result, Collections.singleton(result_id));
-        }
-
-        // Also add imports
-        result = CollectUtil.union(result, this.onDemandFunctionNames(name));
-
-        return result;
-    }
-
-    public Set<Op> explicitFunctionNames(Op name) {
-        Set<Op> result = Collections.emptySet();
-
-        // Add ops in this component
-        if( _current.functions().containsFirst(name)) {
-            // Only qualify name with an API if we are inside of an API
-            Op result_id;
-            if( _current instanceof ApiIndex )
-                result_id = NodeFactory.makeOp(_current.ast().getName(), name);
-            else
-                result_id = name;
-
-            result = CollectUtil.union(result, Collections.singleton(result_id));
+            result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_id));
         }
 
         // Also add imports
@@ -458,6 +440,13 @@ public class TopLevelEnv extends NameEnv {
 
     public Set<Id> onDemandVariableNames(Id name) {
         return onDemandNames(name, _onDemandVariableNames);
+    }
+
+    public Set<? extends IdOrOp> onDemandFunctionNames(IdOrOp name) {
+        if ( name instanceof Id )
+            return onDemandFunctionNames((Id)name);
+        else
+            return onDemandFunctionNames((Op)name);
     }
 
     public Set<Id> onDemandFunctionNames(Id name) {

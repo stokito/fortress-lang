@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.StaticArg;
@@ -29,6 +30,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteFnRef;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
@@ -41,21 +43,25 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnRef(FnRef fr) {
 
-        List<Id> fns = fr.getFns(); // ignore this for now.
+        List<IdOrOp> fns = fr.getNames(); // ignore this for now.
         List<StaticArg> sargs = fr.getStaticArgs();
-        Id idn = fns.get(0);
+        IdOrOp idn = fns.get(0);
+        if ( ! (idn instanceof Id) ) {
+            bug(idn, "The name field of FnRef should be Id.");
+        }
+        Id id = (Id)idn;
 
         if (sargs.size() > 0)
             return (new _RewriteFnRef(fr.getSpan(),
                 fr.isParenthesized(),
-                                      new VarRef(idn.getSpan(),
-                                                 idn,
+                                      new VarRef(id.getSpan(),
+                                                 id,
                                                  Collections.<StaticArg>emptyList()),
                 sargs)).accept(this);
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
-            return (new VarRef(idn.getSpan(), fr.isParenthesized(), idn,
+            return (new VarRef(id.getSpan(), fr.isParenthesized(), id,
                                Collections.<StaticArg>emptyList())).accept(this);
         }
 

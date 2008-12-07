@@ -431,11 +431,14 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             return;
         }
 
-        Id name = that.getOriginalName();
+        IdOrOp n = that.getOriginalName();
+        if ( ! (n instanceof Id) )
+            bug(n, "The name field of FnRef should be Id.");
+        Id name = (Id)n;
         forFnRefDoFirst(that);
         recurOnOptionOfType(that.getExprType());
         recur(name);
-        recurOnListOfId(that.getFns());
+        recurOnListOfIdOrOp(that.getNames());
         recurOnListOfStaticArg(that.getStaticArgs());
 
 		Debug.debug(Debug.Type.COMPILER,

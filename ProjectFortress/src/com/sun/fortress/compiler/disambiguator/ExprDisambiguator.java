@@ -50,6 +50,7 @@ import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.IfClause;
@@ -1014,7 +1015,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (result == null) {
             // api.isNone() must be true
             Set<Id> vars = _env.explicitVariableNames(name);
-            Set<Id> fns = _env.explicitFunctionNames(name);
+            Set<IdOrOp> fns = _env.explicitFunctionNames(name);
             Set<Id> objs = _env.explicitTypeConsNames(name);
 
             if ( vars.size() == 1 && fns.isEmpty() && objs.isEmpty() ) {
@@ -1076,26 +1077,27 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // as variables. FnRefs can be parsed if, for example, explicit static arguments are
         // provided. These function references must still be disambiguated.
 
-        Id fn_name = IterUtil.first(that.getFns());
-        Set<Id> fns = _env.explicitFunctionNames(fn_name);
+        IdOrOp fn_name = IterUtil.first(that.getNames());
+        Set<IdOrOp> fns = _env.explicitFunctionNames(fn_name);
 
         if( fns.isEmpty() ) {
-            // Could be a singleton object with static arguments.
-            Set<Id> types = _env.explicitTypeConsNames(fn_name);
-            if( !types.isEmpty() ) {
-                // create _RewriteObjectRef
-                VarRef obj = new VarRef(that.getSpan(), fn_name, that.getStaticArgs());
-                return obj.accept(this);
-            }
-            else {
+            if ( fn_name instanceof Id ) {
+                // Could be a singleton object with static arguments.
+                Set<Id> types = _env.explicitTypeConsNames((Id)fn_name);
+                if( !types.isEmpty() ) {
+                    // create _RewriteObjectRef
+                    VarRef obj = new VarRef(that.getSpan(), (Id)fn_name, that.getStaticArgs());
+                    return obj.accept(this);
+                }
+            } else {
                 //error("Function " + that + " could not be disambiguated.", that);
                 // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-                return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
-                                             that.getFns(), that.getStaticArgs());
+                return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), (Id)fn_name,
+                                             that.getNames(), that.getStaticArgs());
             }
         }
 
-        return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), fn_name,
+        return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), (Id)fn_name,
                                      CollectUtil.makeList(fns), that.getStaticArgs());
     }
 
@@ -1106,8 +1108,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * if they want to report an error.
      */
     private Option<OpRef> opRefHelper(OpRef that) {
-        Op op_name = IterUtil.first(that.getOps());
-        Set<Op> ops = _env.explicitFunctionNames(op_name);
+        Op op_name = (Op)IterUtil.first(that.getNames());
+        Set<? extends IdOrOp> ops = _env.explicitFunctionNames(op_name);
         if (ops.isEmpty()) {
             ops = _env.onDemandFunctionNames(op_name);
         }
@@ -1134,7 +1136,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             op_result = (OpRef)_op_result.unwrap();
         }
         else {
-            String op_name = IterUtil.first(that.getOp().getOps()).stringName();
+            String op_name = IterUtil.first(that.getOp().getNames()).stringName();
             error("Operator " + op_name + " cannot be disambiguated.", that.getOp());
             op_result = (OpRef)recur(that.getOp());
         }
@@ -1150,8 +1152,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if ( result_.isNone() ) {
             // Make sure to populate the 'originalName' field.
             return new OpRef(that.getSpan(),that.isParenthesized(),
-                             that.getStaticArgs(),IterUtil.first(that.getOps()),
-                             that.getOps(), Option.<Type>none());
+                             that.getStaticArgs(),(Op)IterUtil.first(that.getNames()),
+                             that.getNames(), Option.<Type>none());
         }
         else {
             return result_.unwrap();

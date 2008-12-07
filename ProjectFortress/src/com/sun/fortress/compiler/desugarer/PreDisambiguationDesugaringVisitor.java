@@ -112,7 +112,10 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 	public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
         // If there is a colon at all, the operator is no longer ambiguous:
         // It must be infix.
-        Op op_name = IterUtil.first(that.getInfix_op().getOps());
+        IdOrOp name = IterUtil.first(that.getInfix_op().getNames());
+        if ( ! (name instanceof Op) )
+            return bug(name, "The name field of OpRef should be Op.");
+        Op op_name = (Op)name;
         boolean prefix = OprUtil.hasPrefixColon(op_name);
         boolean suffix = OprUtil.hasSuffixColon(op_name);
 
@@ -151,7 +154,10 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         List<Expr> args = opExp.getArgs();
 
         if (args.size() <= 1) return opExp;
-        Op qop = IterUtil.first(ref.getOps());
+        IdOrOp name = IterUtil.first(ref.getNames());
+        if ( ! (name instanceof Op) )
+            return bug(name, "The name field of OpRef should be Op.");
+        Op qop = (Op)name;
 
         if (OprUtil.isEnclosing(qop)) return opExp;
         if (OprUtil.isUnknownFixity(qop))

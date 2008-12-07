@@ -860,9 +860,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return new TypeCheckerResult(most_applicable.value().unwrap().first(), most_applicable.value().unwrap().second());
 	}
 
-	private static List<Pair<FnRef, Type>> destructFnOverloadings(List<FnRef> overloadings) {
-		List<Pair<FnRef, Type>> result = new ArrayList<Pair<FnRef, Type>>(overloadings.size());
-		for( FnRef overloading : overloadings ) {
+	private static List<Pair<FunctionalRef, Type>> destructFnOverloadings(List<FunctionalRef> overloadings) {
+		List<Pair<FunctionalRef, Type>> result = new ArrayList<Pair<FunctionalRef, Type>>(overloadings.size());
+		for( FunctionalRef overloading : overloadings ) {
                     if ( overloading.getOverloadingType().isNone() )
                         bug(overloading,
                             "Type checker should have type for the overloading of "
@@ -2200,7 +2200,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }});
 
 		Type union_of_candidate_types = this.subtypeChecker.join(candidate_types);
-		Type total_op_order = Types.makeTotalOperatorOrder(union_of_candidate_types, that.getCompare().unwrap().getOriginalName());
+		Type total_op_order = Types.makeTotalOperatorOrder(union_of_candidate_types,
+                                                                   (Op)that.getCompare().unwrap().getOriginalName());
 
 		TypeCheckerResult total_result = checkSubtype(union_of_candidate_types, total_op_order, that,
 				"In an extremum expression, the union of all candidate types must be a subtype of " +
@@ -2462,7 +2463,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if( that.getStaticArgs().isEmpty()  && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
 			// if there is an overloading that requires static args, and we don't have any, we'll
 			// create a _FnInstantitedOverloading
-			List<FnRef> fn_overloadings = new ArrayList<FnRef>();
+			List<FunctionalRef> fn_overloadings = new ArrayList<FunctionalRef>();
 			List<Type> arrow_types = new ArrayList<Type>();
 			ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
 			for( Type overloaded_type : overloaded_types ) {
@@ -2502,7 +2503,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                         new_args,
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-                                                                 that.getFns(),
+                                                                 that.getNames(),
                                                                  Option.<Type>none());
 					fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(that.getSpan(), fn_ref, new_type));
 					arrow_types.add(new_type);
@@ -2520,8 +2521,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                              that.getStaticArgs(),
                                                              that.getLexicalDepth(),
                                                              that.getOriginalName(),
-                                                             that.getFns(),
-                                                             Option.<List<FnRef>>some(fn_overloadings),
+                                                             that.getNames(),
+                                                             Option.<List<FunctionalRef>>some(fn_overloadings),
                                                              Option.<Type>none());
 		}
 		else {
@@ -2553,7 +2554,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                         that.getStaticArgs(),
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-                                                             that.getFns(),
+                                                             that.getNames(),
                                                              Option.<Type>none());
 		}
 
@@ -3543,9 +3544,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 
-	private static List<Pair<OpRef, Type>> destructOpOverLoading(List<OpRef> overloadings){
-		List<Pair<OpRef, Type>> result = new ArrayList<Pair<OpRef,Type>>(overloadings.size());
-		for(OpRef o: overloadings){
+	private static List<Pair<FunctionalRef, Type>> destructOpOverLoading(List<FunctionalRef> overloadings){
+		List<Pair<FunctionalRef, Type>> result = new ArrayList<Pair<FunctionalRef,Type>>(overloadings.size());
+		for(FunctionalRef o: overloadings){
                     if ( o.getOverloadingType().isNone() )
                         bug(o, "Type checker should have type for the overloading of "
                             + o.getOriginalName());
@@ -3616,7 +3617,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if (app_result.isNone()) {
 			// Guaranteed at least one operator because all the overloaded operators
 			// are created by disambiguation, not by the user.
-			Op opName = IterUtil.first(that.getOp().getOps());
+			IdOrOp opName = IterUtil.first(that.getOp().getNames());
 			return TypeCheckerResult.compose(that, subtypeChecker,
 					op_result,
 					TypeCheckerResult.compose(that, subtypeChecker, args_result),
@@ -3678,7 +3679,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// If no static args are given, but overloadings require them, we'll create a
 		// OpRef with the overloading field set.
 		if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
-			List<OpRef> overloadings = new ArrayList<OpRef>();
+			List<FunctionalRef> overloadings = new ArrayList<FunctionalRef>();
 			List<Type> arrow_types = new ArrayList<Type>();
 			ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
 			for( Type overloaded_type : overloaded_types ) {
@@ -3719,7 +3720,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                         new_args,
 							that.getLexicalDepth(),
 							that.getOriginalName(),
-                                                                     that.getOps(),
+                                                                     that.getNames(),
                                                                      Option.<Type>none());
 
 					overloadings.add(ExprFactory.make_RewriteOpRefOverloading(that.getSpan(), new_op_ref, new_type));
@@ -3736,8 +3737,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                              that.getStaticArgs(),
                                                              that.getLexicalDepth(),
                                                              that.getOriginalName(),
-                                                             that.getOps(),
-                                                             Option.<List<OpRef>>some(overloadings),
+                                                             that.getNames(),
+                                                             Option.<List<FunctionalRef>>some(overloadings),
                                                              Option.<Type>none());
 					constraints = accumulated_constraints;
 		}
@@ -3759,12 +3760,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					constraints = accumulated_constraints;
 					new_node = new OpRef(that.getSpan(),
-							that.isParenthesized(),
-							type,
-                                                        (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-                                                             (List<Op>)TypeCheckerResult.astFromResults(ops_result),
+                                                             that.isParenthesized(),
+                                                             type,
+                                                             (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
+                                                             that.getLexicalDepth(),
+                                                             that.getOriginalName(),
+                                                             (List<IdOrOp>)TypeCheckerResult.astFromResults(ops_result),
                                                              Option.<Type>none());
 		}
 

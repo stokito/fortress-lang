@@ -116,6 +116,7 @@ import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NonExprMI;
 import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
 import com.sun.fortress.nodes.OpRef;
@@ -1023,10 +1024,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
             if (op.getLexicalDepth() != Environment.TOP_LEVEL) {
                 bug("Expect all oprefs to be top level " + op);
             }
-            if (op.getOps().size() != 1)
+            if (op.getNames().size() != 1)
                 bug("Should have rewritten ops to length 1, op="+
-                        op + ", list =" + op.getOps());
-            FValue v = e.getValue(op.getOps().get(0), Environment.TOP_LEVEL);
+                        op + ", list =" + op.getNames());
+            IdOrOp name = op.getNames().get(0);
+            if ( ! (name instanceof Op) )
+                bug("The name field of OpRef should be Op.");
+            FValue v = e.getValue((Op)name, Environment.TOP_LEVEL);
             return v;
             //return e.getValue(op);
         } catch (FortressException ex) {
@@ -1045,11 +1049,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private boolean isExponentiation(OpExpr expr) {
         OpRef ref = expr.getOp();
 
-            Op name = ref.getOriginalName();
-            if (!(name instanceof Op)) return false;
-            else return (((Op)name).getText().equals("^") ||
-                         OprUtil.isPostfix(name));
-
+        IdOrOp name = ref.getOriginalName();
+        if (!(name instanceof Op)) return false;
+        else return (((Op)name).getText().equals("^") ||
+                     OprUtil.isPostfix((Op)name));
     }
 
 
@@ -1071,7 +1074,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forOpExpr(OpExpr x) {
         OpRef ref = x.getOp();
 
-        Op op = ref.getOriginalName();
+        IdOrOp op = ref.getOriginalName();
         List<Expr> args = x.getArgs();
         FValue fvalue = getOp(ref); //op.accept(this);
         fvalue = applyToStaticArgs(fvalue,ref.getStaticArgs(),ref);
@@ -1080,7 +1083,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue res = FVoid.V;
         List<FValue> vargs;
 
-        if (op instanceof Op && OprUtil.isPostfix(op) &&
+        if (op instanceof Op && OprUtil.isPostfix((Op)op) &&
             args.size() == 1) {
         // It is a static error if a function argument is immediately followed
         // by a non-expression element.  For example, f(x)!
@@ -1119,7 +1122,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                            " has a non-function value ", fvalue));
         }
         Fcn fcn = (Fcn) fvalue;
-        if (s <= 2 || op.isEnclosing()) {
+        if (s <= 2 || ((Op)op).isEnclosing()) {
             res = functionInvocation(vargs, fcn, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);
@@ -1258,7 +1261,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                        MathItem loc) {
         if (opr instanceof ExponentiationMI) {
             ExponentiationMI expo = (ExponentiationMI)opr;
-            Op op = expo.getOp().getOriginalName();
+            IdOrOp op = expo.getOp().getOriginalName();
             FValue fvalue = getOp(expo.getOp()); //op.accept(this);
             if (!isFunction(fvalue))
                 return error(op, errorMsg("Operator ", op.stringName(),

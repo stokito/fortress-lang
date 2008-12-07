@@ -519,19 +519,12 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
     }
 
     final public  FValue getValueNull(OpRef vr) {
-        Op name = vr.getOps().get(0);
+        IdOrOp name = vr.getNames().get(0);
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);
     }
 
-    final public FValue getValueNull(Id name, int l) throws CircularDependenceError {
-        //String s = NodeUtil.nameString(name);
-        String local = NodeUtil.nameSuffixString(name);
-        Option<APIName> opt_api = name.getApiName();
-        return getValueNullTail(name, l, local, opt_api);
-    }
-
-      final public FValue getValueNull(Op name, int l)
+      final public FValue getValueNull(IdOrOp name, int l)
             throws CircularDependenceError {
         // String s = NodeUtil.nameString(name);
         String local = NodeUtil.nameSuffixString(name);

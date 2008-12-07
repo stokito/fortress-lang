@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /* Getter/setter desugaring
  */
@@ -498,20 +499,25 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
                              List<StaticArg> staticArgs_result,
-                             Id fnResult, List<Id> fns_result,
-                             Option<List<FnRef>> overloadings_result,
+                             IdOrOp fnResult, List<IdOrOp> fns_result,
+                             Option<List<FunctionalRef>> overloadings_result,
                              Option<Type> type_result) {
         // After disambiguation, the Id in a FnRef should have an empty API.
         assert(fnResult.getApiName().isNone());
+        if ( ! (fnResult instanceof Id) )
+            bug(fnResult, "The name field of FnRef should be Id.");
+        Id name = (Id)fnResult;
 
-        if (fieldsInScope.contains(fnResult)) {
-            List<Id> newFns = new ArrayList<Id>();
-            for (Id id : fns_result) {
-                newFns.add(mangleName(id));
+        if (fieldsInScope.contains(name)) {
+            List<IdOrOp> newFns = new ArrayList<IdOrOp>();
+            for (IdOrOp n : fns_result) {
+                if ( ! (n instanceof Id) )
+                    return bug(n, "The name field of FnRef should be Id.");
+                newFns.add(mangleName((Id)n));
             }
 
             return ExprFactory.makeFnRef(that, exprType_result,
-                                         mangleName(fnResult), newFns,
+                                         mangleName(name), newFns,
                                          staticArgs_result, overloadings_result);
         } else {
             return that;
