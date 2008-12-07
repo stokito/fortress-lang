@@ -189,19 +189,19 @@ public abstract class NonPrimitive extends Simple_fcn {
      * Intended to be called from Closure.
      * @throws Error
      */
-    public Environment buildEnvFromParams(List<FValue> args, HasAt loc)
+    public Environment buildEnvFromParams(List<FValue> args, HasAt site)
             throws Error {
         Environment env = within.extendAt(getAt());
-        return buildEnvFromParams(args, env, loc);
+        return buildEnvFromParams(args, env, site);
     }
 
-    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args, HasAt loc)
+    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args, HasAt site)
             throws Error {
         env = env.extendAt(getAt());
-        return buildEnvFromParams(args, env, loc);
+        return buildEnvFromParams(args, env, site);
     }
 
-    public Environment buildEnvFromParams(List<FValue> args, Environment env,
+    private Environment buildEnvFromParams(List<FValue> args, Environment env,
             HasAt site) throws Error {
         // TODO Here is where we deal with rest parameters.
         args = fixupArgCount(args,site);
@@ -220,7 +220,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 natParams[0] = args.size() - i;
 
                 Environment wknInstantiationEnv = Driver.getFortressLibrary();
-                
+
                 Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
                         genericName, ((FTypeRest) paramType).getType(),
                         natParams, site);

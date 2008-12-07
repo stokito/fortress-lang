@@ -561,8 +561,8 @@ public class Constructor extends NonPrimitive {
 
     @Override
     public FValue applyInnerPossiblyGeneric(
-            List<FValue> args, HasAt loc, Environment envForInference) {
-        return applyConstructor(args, loc);
+            List<FValue> args, HasAt site, Environment envForInference) {
+        return applyConstructor(args, site);
     }
     /**
      *
@@ -572,12 +572,12 @@ public class Constructor extends NonPrimitive {
      *
      */
     public FValue applyConstructor(
-            List<FValue> args, HasAt loc) {
+            List<FValue> args, HasAt site) {
         // Problem -- we need to detach self-env from other env.
         if (methodsEnv == null)
             bug("Null methods env for " + this);
 
-        Environment self_env = buildEnvFromEnvAndParams(methodsEnv, args, loc);
+        Environment self_env = buildEnvFromEnvAndParams(methodsEnv, args, site);
 
         Environment lex_env = getWithin();
         FObject theObject = makeAnObject(lex_env, self_env);

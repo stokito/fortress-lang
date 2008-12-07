@@ -54,14 +54,14 @@ public class TraitMethodInstance extends TraitMethod  implements MethodInstance 
 
     // I think this should not be called; the com.sun.fortress.interpreter.evaluator is supposed to short-circuit
     // around this to generate a specific, corrected instance of a generic method.
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt loc) {
+    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site) {
         args = conditionallyUnwrapTupledArgs(args);
         // TraitMethods do not get their environment from the object.
         Evaluator eval = new Evaluator(buildEnvFromEnvAndParams(
                 evaluationEnv, // getWithin(),
-                args, loc));
+                args, site));
         eval.e.putValue(selfName(), selfValue);
-         return eval.eval(getBody());
-     }
+        return eval.eval(getBody());
+    }
 
 }

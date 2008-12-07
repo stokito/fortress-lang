@@ -766,25 +766,17 @@ public class  OverloadedFunction extends Fcn
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
-            List<Overload>  someOverloads = overloads;
 
-            int best = bestMatchIndex(args, site, envForInference, someOverloads);
-
-            best_f = someOverloads.get(best).getFn();
+            best_f = bestMatch(args, site, envForInference, overloads);
 
             if (best_f instanceof FunctionalMethod) {
                 FunctionalMethod fm = (FunctionalMethod)best_f;
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
                 best_f = fm.getApplicableClosure(args,site,envForInference);
-            // } else if (best_f instanceof GenericFunctionOrMethod) {
-            //     GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
-            //     best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args, gsfn, site, best_f.getWithin());
             }
             if (best_f instanceof GenericFunctionOrMethod) {
-                GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
-                best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args,
-                        gsfn, site, best_f.getWithin());
+                return bug(site,errorMsg("overload res yielded generic ",best_f));
             }
 
             if (debugMatch)
@@ -795,38 +787,35 @@ public class  OverloadedFunction extends Fcn
         return best_f.applyPossiblyGeneric(args, site, best_f.getWithin()); // was envForInference
     }
 
-     /**
+    /**
      * Returns index of best match for args among the overloaded functions.
      * @throws Error
      */
-     public int bestMatchIndex(List<FValue> args, HasAt loc, Environment envForInference, List<Overload> someOverloads) throws Error {
+    public SingleFcn bestMatch(List<FValue> args, HasAt loc, Environment envForInference, List<Overload> someOverloads) throws Error {
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
             bug(loc, "Cannot call before 'setFinished()'");
 
-        int best = bestMatchIndexInternal(args, loc, envForInference,
-                someOverloads);
-        if (best == -1) {
+        SingleFcn best = bestMatchInternal(args, loc, envForInference, someOverloads);
+        if (best == null) {
             // TODO add checks for COERCE, right here.
             // Replay the test for debugging
-            best = bestMatchIndexInternal(args, loc, envForInference,
-                    someOverloads);
+            // best = bestMatchInternal(args, loc, envForInference,
+            //         someOverloads);
             error(loc,errorMsg("Failed to find any matching overload, args = ",
                     Useful.listInParens(args), ", overload = ", this));
         }
         return best;
     }
 
-    private int bestMatchIndexInternal(List<FValue> args, HasAt loc,
+    private SingleFcn bestMatchInternal(List<FValue> args, HasAt loc,
             Environment envForInference, List<Overload> someOverloads) {
-        int best = -1;
         SingleFcn best_sfn = null;
 
         if (debugMatch) {
             System.err.println("Seeking best match for "+args);
         }
 
-        for (int i = 0; i < someOverloads.size(); i++) {
-            Overload o = someOverloads.get(i);
+        for (Overload o : someOverloads) {
             if (o.getParams() == null) {
                 bug(loc, errorMsg("Unfinished overloaded function ", this));
             }
@@ -855,14 +844,13 @@ public class  OverloadedFunction extends Fcn
             // Non-generic, old code.
             if (oargs != null &&
                 argsMatchTypes(oargs,  sfn.getDomain()) &&
-                (best == -1 ||
+                (best_sfn == null ||
                  FTypeTuple.moreSpecificThan(sfn.getDomain(), best_sfn.getDomain()))) {
-                best = i;
                 best_sfn = sfn;
             }
 
         }
-        return best;
+        return best_sfn;
     }
 
     /**

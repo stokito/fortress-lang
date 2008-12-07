@@ -45,9 +45,6 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
         // TODO Auto-generated constructor stub
     }
 
-    // ??? This appears to be for debugging purposes???
-    static int lastBest;
-
     /** We separate out getApplicableMethod so that overloaded
      *  functional method invocations can perform end-to-end caching
      *  of the applicable method.
@@ -56,20 +53,15 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
             Environment envForInference) {
         MethodClosure best_f = mcache.get(args);
         if (best_f == null) {
-            List<Overload>  someOverloads = overloads;
-            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
-            lastBest = best;
-
-            best_f = ((MethodClosure)someOverloads.get(best).getFn());
-            mcache.syncPut(args, best_f);
+            best_f = (MethodClosure)bestMatch(args, loc, envForInference, overloads);
         }
         return best_f;
     }
 
     public FValue applyMethod(List<FValue> args, FObject selfValue,
-                              HasAt loc, Environment envForInference) {
-        Method best_f = getApplicableMethod(args,loc,envForInference);
-        return best_f.applyMethod(args, selfValue, loc, envForInference);
+                              HasAt site, Environment envForInference) {
+        Method best_f = getApplicableMethod(args,site,envForInference);
+        return best_f.applyMethod(args, selfValue, site, envForInference);
     }
 
     public void bless() {

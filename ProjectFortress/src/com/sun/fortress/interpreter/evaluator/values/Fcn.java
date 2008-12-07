@@ -120,7 +120,7 @@ abstract public class Fcn extends FValue {
         return args;
     }
 
-    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference);
+    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference);
 
     public boolean hasSelfDotMethodInvocation() {
         return false;
