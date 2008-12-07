@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -608,7 +609,7 @@ public class Resolver {
   private static PureList<Link>
       buildLinks(Op first, PureList<ExprOpPair> links, Expr last)
   {
-      OpRef _first = ExprFactory.makeOpRef(first);
+      FunctionalRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
         return PureList.<Link>make(new Link(new Span(_first.getSpan(), last.getSpan()),_first,last));
     }

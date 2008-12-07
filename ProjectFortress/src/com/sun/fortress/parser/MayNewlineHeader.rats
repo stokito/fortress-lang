@@ -207,22 +207,22 @@ transient private BoolConstraint BoolConstraintFront =
      { yyValue = new NotConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:BoolConstraintHead w OR w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       OpRef op = ExprFactory.makeOpRef(span, "OR");
+       FunctionalRef op = ExprFactory.makeOpRef(span, "OR");
        yyValue = new BinaryBoolConstraint(span, op, a1, a2);
      }
    / a1:BoolConstraintHead w AND w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       OpRef op = ExprFactory.makeOpRef(span, "AND");
+       FunctionalRef op = ExprFactory.makeOpRef(span, "AND");
        yyValue = new BinaryBoolConstraint(span, op, a1, a2);
      }
    / a1:BoolConstraintHead w IMPLIES w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       OpRef op = ExprFactory.makeOpRef(span, "IMPLIES");
+       FunctionalRef op = ExprFactory.makeOpRef(span, "IMPLIES");
        yyValue = new BinaryBoolConstraint(span, op, a1, a2);
      }
    / a1:BoolConstraintHead w equals w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
-       OpRef op = ExprFactory.makeOpRef(span, "=");
+       FunctionalRef op = ExprFactory.makeOpRef(span, "=");
        yyValue = new BinaryBoolConstraint(span, op, a1, a2);
      };
 
@@ -243,7 +243,7 @@ private constant inline Action<BoolConstraint> OrBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "OR");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "OR");
                return new BinaryBoolConstraint(span, op, (BoolConstraint)base, a1);
            }};
      };
@@ -253,7 +253,7 @@ private constant inline Action<BoolConstraint> AndBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "AND");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "AND");
                return new BinaryBoolConstraint(span, op, (BoolConstraint)base, a1);
            }};
      };
@@ -263,7 +263,7 @@ private constant inline Action<BoolConstraint> ImpliesBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "IMPLIES");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "IMPLIES");
                return new BinaryBoolConstraint(span, op, (BoolConstraint)base, a1);
            }};
      };
@@ -273,7 +273,7 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
      { yyValue = new Action<BoolConstraint>() {
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "");
                return new BinaryBoolConstraint(span, op, (BoolConstraint)base, a1);
            }};
      };
@@ -321,7 +321,7 @@ private constant inline Action<BoolExpr> OrBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "OR");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "OR");
                return new BinaryBoolConstraint(span, op, (BoolExpr)base, a1);
            }};
      };
@@ -331,7 +331,7 @@ private constant inline Action<BoolExpr> AndBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "AND");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "AND");
                return new BinaryBoolConstraint(span, op, (BoolExpr)base, a1);
            }};
      };
@@ -341,7 +341,7 @@ private constant inline Action<BoolExpr> ImpliesBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "IMPLIES");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "IMPLIES");
                return new BinaryBoolConstraint(span, op, (BoolExpr)base, a1);
            }};
      };
@@ -351,7 +351,7 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
      { yyValue = new Action<BoolExpr>() {
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
-               OpRef op = ExprFactory.makeOpRef(span, "=");
+               FunctionalRef op = ExprFactory.makeOpRef(span, "=");
                return new BinaryBoolConstraint(span, op, (BoolExpr)base, a1);
            }};
      };

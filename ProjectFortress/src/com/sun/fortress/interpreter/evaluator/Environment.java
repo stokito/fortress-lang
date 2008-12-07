@@ -29,7 +29,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
@@ -158,7 +158,7 @@ public interface Environment  {
      */
     public abstract FValue getValueNull(VarRef vr); // 2 refs
 
-    public abstract FValue getValueNull(OpRef vr); // 2 refs
+    public abstract FValue getValueNull(FunctionalRef vr); // 2 refs
 
     public abstract FValue getValueNull(IdOrOp name, int l); // 3 refs
 
@@ -168,7 +168,7 @@ public interface Environment  {
 
     public abstract FValue getValue(VarRef vr); // 0 refs
 
-    public abstract FValue getValue(OpRef vr); // 2 refs
+    public abstract FValue getValue(FunctionalRef vr); // 2 refs
 
     // Reference from tests, BaseEnv, and BuildApiEnvironment
     // BaseEnv accesses are internal-use-only, BAE references link snapping etc.

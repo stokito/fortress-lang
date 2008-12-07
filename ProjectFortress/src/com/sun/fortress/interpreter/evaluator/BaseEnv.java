@@ -45,7 +45,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
@@ -487,7 +487,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return getValueTail(vr, x);
     }
 
-    final public  FValue getValue(OpRef vr) {
+    final public  FValue getValue(FunctionalRef vr) {
         FValue x = getValueNull(vr);
         return getValueTail(vr, x);
     }
@@ -518,7 +518,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return getValueNull(name, l);
     }
 
-    final public  FValue getValueNull(OpRef vr) {
+    final public  FValue getValueNull(FunctionalRef vr) {
         IdOrOp name = vr.getNames().get(0);
         int l = vr.getLexicalDepth();
         return getValueNull(name, l);

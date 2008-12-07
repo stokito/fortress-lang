@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
 import com.sun.fortress.nodes.GrammarDef;
@@ -1069,10 +1070,21 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         return result;
     }
 
+    @Override public Node forOpRef(OpRef that) {
+        Option<FunctionalRef> result_ = opRefHelper((FunctionalRef)that);
 
+        if ( result_.isNone() ) {
+            // Make sure to populate the 'originalName' field.
+            return new OpRef(that.getSpan(),that.isParenthesized(),
+                             that.getStaticArgs(),(Op)IterUtil.first(that.getNames()),
+                             that.getNames(), Option.<Type>none());
+        }
+        else {
+            return result_.unwrap();
+        }
+    }
 
-    @Override
-	public Node forFnRef(FnRef that) {
+    @Override public Node forFnRef(FnRef that) {
         // Many FnRefs will be covered by the VarRef case, since many functions are parsed
         // as variables. FnRefs can be parsed if, for example, explicit static arguments are
         // provided. These function references must still be disambiguated.
@@ -1101,13 +1113,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                      CollectUtil.makeList(fns), that.getStaticArgs());
     }
 
-
     /**
      * Disambiguates an OpRef, but instead of reporting an error if it cannot be
      * disambiguated, it returns NONE, which other methods can then used to decide
      * if they want to report an error.
      */
-    private Option<OpRef> opRefHelper(OpRef that) {
+    private Option<FunctionalRef> opRefHelper(FunctionalRef that) {
         Op op_name = (Op)IterUtil.first(that.getNames());
         Set<? extends IdOrOp> ops = _env.explicitFunctionNames(op_name);
         if (ops.isEmpty()) {
@@ -1118,11 +1129,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
 
-        OpRef result = new OpRef(that.getSpan(),that.isParenthesized(),
+        FunctionalRef result = new OpRef(that.getSpan(),that.isParenthesized(),
                                  that.getStaticArgs(),op_name,
                                  CollectUtil.makeList(ops),
                                  Option.<Type>none());
-        return Option.<OpRef>some(result);
+        return Option.<FunctionalRef>some(result);
     }
 
 
@@ -1130,34 +1141,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	public Node forOpExpr(OpExpr that) {
         // OpExpr checks to make sure its OpRef can be disambiguated, since
         // forOpRef will not automatically report an error.
-        OpRef op_result;
-        Option<OpRef> _op_result = opRefHelper(that.getOp());
+        FunctionalRef op_result;
+        Option<FunctionalRef> _op_result = opRefHelper(that.getOp());
         if( _op_result.isSome() ) {
-            op_result = (OpRef)_op_result.unwrap();
+            op_result = (FunctionalRef)_op_result.unwrap();
         }
         else {
             String op_name = IterUtil.first(that.getOp().getNames()).stringName();
             error("Operator " + op_name + " cannot be disambiguated.", that.getOp());
-            op_result = (OpRef)recur(that.getOp());
+            op_result = (FunctionalRef)recur(that.getOp());
         }
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
         return forOpExprOnly(that, type_result, op_result, args_result);
-    }
-
-    @Override public Node forOpRef(OpRef that) {
-        Option<OpRef> result_ = opRefHelper(that);
-
-
-        if ( result_.isNone() ) {
-            // Make sure to populate the 'originalName' field.
-            return new OpRef(that.getSpan(),that.isParenthesized(),
-                             that.getStaticArgs(),(Op)IterUtil.first(that.getNames()),
-                             that.getNames(), Option.<Type>none());
-        }
-        else {
-            return result_.unwrap();
-        }
     }
 
     @Override public Node forLabel(Label that) {
