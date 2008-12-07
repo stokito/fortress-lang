@@ -190,7 +190,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             */
             List<Modifier> mods = that.getMods();
             if ( inTrait && that.getBody().isNone() ) {
-                mods.add(0, new ModifierAbstract(that.getSpan()));
+                mods.add(0, new ModifierAbstract());
             }
             return Option.<Node>some(new FnDecl(that.getSpan(),
                                                 mods,

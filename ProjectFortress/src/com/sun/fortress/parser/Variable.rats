@@ -105,7 +105,7 @@ VarDecl VarDecl =
 /* VarMods ::= (VarMod w)+ */
 transient List<Modifier> VarMods = a1s:(VarMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),yyValue);
      };
 
 /* Each modifier cannot appear more than once. */
@@ -113,20 +113,20 @@ transient List<Modifier> VarMods = a1s:(VarMod w)+
 transient List<Modifier> VarImmutableMods =
      a1s:(VarImmutableMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),yyValue);
      };
 
 /* VarMod ::= AbsVarMod | private */
 transient private Modifier VarMod =
      AbsVarMod
    / a1:private
-     { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+     { yyValue = new ModifierPrivate(); };
 
 /* VarImmutableMod ::= AbsVarImmutableMod | private */
 transient private Modifier VarImmutableMod =
      AbsVarImmutableMod
    / a1:private
-     { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+     { yyValue = new ModifierPrivate(); };
 
 /* VarMayTypes ::=
      VarMayType
@@ -187,14 +187,14 @@ VarDecl AbsVarDecl =
 /* AbsVarMods ::= (AbsVarMod w)+ */
 transient List<Modifier> AbsVarMods = a1s:(AbsVarMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),yyValue);
      };
 
 /* AbsVarMod ::= var | AbsVarImmutableMod */
 transient private Modifier AbsVarMod =
-     a1:var  { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
+     a1:var  { yyValue = new ModifierVar(); }
    / AbsVarImmutableMod ;
 
 /* AbsVarImmutableMod ::= test */
 transient private Modifier AbsVarImmutableMod =
-     a1:test { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
+     a1:test { yyValue = new ModifierTest(); };

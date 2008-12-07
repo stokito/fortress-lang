@@ -115,7 +115,7 @@ private NonterminalHeader NonterminalHeader =
         };
 
 private Option<ModifierPrivate> NonTermMod =
-        private {yyValue = Option.some(new ModifierPrivate(createSpan(yyStart,yyCount)));};
+        private {yyValue = Option.some(new ModifierPrivate());};
 
 private List<NonterminalParameter> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;

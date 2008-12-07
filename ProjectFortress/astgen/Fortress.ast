@@ -1707,81 +1707,6 @@ interface Node() extends HasAt;
              */
             EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
             /**
-             * modifier
-             * TraitMod      ::= AbsTraitMod | private
-             * AbsTraitMod   ::= value | test
-             * ObjectMods    ::= TraitMods
-             * AbsObjectMods ::= AbsTraitMods
-             * MdMod         ::= FnMod | override
-             * AbsMdMod      ::= AbsFnMod | override
-             * FnMod         ::= AbsFnMod | private
-             * AbsFnMod      ::= LocalFnMod | test
-             * LocalFnMod    ::= atomic | io
-             * ParamFldMod   ::= var | hidden | settable | wrapped
-             * VarMod        ::= AbsVarMod | private
-             * AbsVarMod     ::= var | test
-             * FldMod        ::= var | AbsFldMod
-             * AbsFldMod     ::= ApiFldMod | wrapped | private
-             * ApiFldMod     ::= hidden | settable | test
-             */
-            abstract Modifier();
-                /**
-                 * e.g.) abstract m(x: ZZ32): ()
-                 */
-                ModifierAbstract();
-                /**
-                 * e.g.) atomic f(x: ZZ32): ()
-                 */
-                ModifierAtomic();
-                /**
-                 * e.g.) getter velocity(): (RR Velocity)^3
-                 */
-                ModifierGetter();
-                /**
-                 * e.g.) hidden x: ZZ32
-                 */
-                ModifierHidden();
-                /**
-                 * e.g.) io print(s: String): ()
-                 */
-                ModifierIO();
-                /**
-                 * e.g.) override m(x: ZZ32): ()
-                 */
-                ModifierOverride();
-                /**
-                 * e.g.) private f(): ()
-                 */
-                ModifierPrivate();
-                /**
-                 * e.g.) settable message: Maybe[\String\]
-                 */
-                ModifierSettable();
-                /**
-                 * e.g.) setter velocity(v: (RR Velocity)^3): ()
-                 */
-                ModifierSetter();
-                /**
-                 * e.g.) test object TestSuite(testFunctions = {}) end
-                 */
-                ModifierTest();
-                /**
-                 * e.g.) value object IntEmpty extends List[\ZZ32\] end
-                 */
-                ModifierValue();
-                /**
-                 * e.g.) var x: ZZ32
-                 */
-                ModifierVar();
-                /**
-                 * e.g.) coerce (x: RR32) widens = ...
-                 */
-                ModifierWidens();
-                /**
-                 * e.g.) wrapped val: Dictionary[\T\]
-                 */
-                ModifierWrapped();
-            /**
              * static parameter
              */
             abstract StaticParam();
@@ -2074,6 +1999,81 @@ interface Node() extends HasAt;
              * in the Printer and UnPrinter so be careful if Level is changed.
              */
             Level(int level, Object _object);
+            /**
+             * modifier
+             * TraitMod      ::= AbsTraitMod | private
+             * AbsTraitMod   ::= value | test
+             * ObjectMods    ::= TraitMods
+             * AbsObjectMods ::= AbsTraitMods
+             * MdMod         ::= FnMod | override
+             * AbsMdMod      ::= AbsFnMod | override
+             * FnMod         ::= AbsFnMod | private
+             * AbsFnMod      ::= LocalFnMod | test
+             * LocalFnMod    ::= atomic | io
+             * ParamFldMod   ::= var | hidden | settable | wrapped
+             * VarMod        ::= AbsVarMod | private
+             * AbsVarMod     ::= var | test
+             * FldMod        ::= var | AbsFldMod
+             * AbsFldMod     ::= ApiFldMod | wrapped | private
+             * ApiFldMod     ::= hidden | settable | test
+             */
+            abstract Modifier();
+                /**
+                 * e.g.) abstract m(x: ZZ32): ()
+                 */
+                ModifierAbstract();
+                /**
+                 * e.g.) atomic f(x: ZZ32): ()
+                 */
+                ModifierAtomic();
+                /**
+                 * e.g.) getter velocity(): (RR Velocity)^3
+                 */
+                ModifierGetter();
+                /**
+                 * e.g.) hidden x: ZZ32
+                 */
+                ModifierHidden();
+                /**
+                 * e.g.) io print(s: String): ()
+                 */
+                ModifierIO();
+                /**
+                 * e.g.) override m(x: ZZ32): ()
+                 */
+                ModifierOverride();
+                /**
+                 * e.g.) private f(): ()
+                 */
+                ModifierPrivate();
+                /**
+                 * e.g.) settable message: Maybe[\String\]
+                 */
+                ModifierSettable();
+                /**
+                 * e.g.) setter velocity(v: (RR Velocity)^3): ()
+                 */
+                ModifierSetter();
+                /**
+                 * e.g.) test object TestSuite(testFunctions = {}) end
+                 */
+                ModifierTest();
+                /**
+                 * e.g.) value object IntEmpty extends List[\ZZ32\] end
+                 */
+                ModifierValue();
+                /**
+                 * e.g.) var x: ZZ32
+                 */
+                ModifierVar();
+                /**
+                 * e.g.) coerce (x: RR32) widens = ...
+                 */
+                ModifierWidens();
+                /**
+                 * e.g.) wrapped val: Dictionary[\T\]
+                 */
+                ModifierWrapped();
             /**
              * operator fixity
              */

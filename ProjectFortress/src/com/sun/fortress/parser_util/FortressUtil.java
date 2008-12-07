@@ -167,9 +167,9 @@ public final class FortressUtil {
         return new SubscriptExpr(span, false, base, es, Option.some(op), sargs);
     }
 
-    private static void multiple(Modifier m) {
+    private static void multiple(Span span, Modifier m) {
         resetMods();
-        syntaxError(m.getSpan(), "A modifier must not occur multiple times");
+        syntaxError(span, "A modifier must not occur multiple times");
     }
     static boolean m_atomic   = false;
     static boolean m_getter   = false;
@@ -197,55 +197,55 @@ public final class FortressUtil {
         m_widens   = false;
         m_wrapped  = false;
     }
-    public static void noDuplicate(List<Modifier> mods) {
+    public static void noDuplicate(final Span span, List<Modifier> mods) {
         for (Modifier mod : mods) {
             mod.accept(new NodeDepthFirstVisitor_void() {
                     public void forModifierAtomic(ModifierAtomic m) {
-                        if (m_atomic) multiple(m);
+                        if (m_atomic) multiple(span, m);
                         else m_atomic = true;
                     }
                     public void forModifierGetter(ModifierGetter m) {
-                        if (m_getter) multiple(m);
+                        if (m_getter) multiple(span, m);
                         else m_getter = true;
                     }
                     public void forModifierHidden(ModifierHidden m) {
-                        if (m_hidden) multiple(m);
+                        if (m_hidden) multiple(span, m);
                         else m_hidden = true;
                     }
                     public void forModifierIO(ModifierIO m) {
-                        if (m_io) multiple(m);
+                        if (m_io) multiple(span, m);
                         else m_io = true;
                     }
                     public void forModifierPrivate(ModifierPrivate m) {
-                        if (m_private) multiple(m);
+                        if (m_private) multiple(span, m);
                         else m_private = true;
                     }
                     public void forModifierSettable(ModifierSettable m) {
-                        if (m_settable) multiple(m);
+                        if (m_settable) multiple(span, m);
                         else m_settable = true;
                     }
                     public void forModifierSetter(ModifierSetter m) {
-                        if (m_setter) multiple(m);
+                        if (m_setter) multiple(span, m);
                         else m_setter = true;
                     }
                     public void forModifierTest(ModifierTest m) {
-                        if (m_test) multiple(m);
+                        if (m_test) multiple(span, m);
                         else m_test = true;
                     }
                     public void forModifierValue(ModifierValue m) {
-                        if (m_value) multiple(m);
+                        if (m_value) multiple(span, m);
                         else m_value = true;
                     }
                     public void forModifierVar(ModifierVar m) {
-                        if (m_var) multiple(m);
+                        if (m_var) multiple(span, m);
                         else m_var = true;
                     }
                     public void forModifierWidens(ModifierWidens m) {
-                        if (m_widens) multiple(m);
+                        if (m_widens) multiple(span, m);
                         else m_widens = true;
                     }
                     public void forModifierWrapped(ModifierWrapped m) {
-                        if (m_wrapped) multiple(m);
+                        if (m_wrapped) multiple(span, m);
                         else m_wrapped = true;
                     }
                 });
@@ -259,7 +259,7 @@ public final class FortressUtil {
             for ( Param param : params ) {
                 for ( Modifier mod : param.getMods() ) {
                     if ( mod instanceof ModifierWrapped )
-                        syntaxError(mod.getSpan(),
+                        syntaxError(param.getSpan(),
                                     "The modifier \"wrapped\" cannot " +
                                     "appear in an API.");
                 }
@@ -390,7 +390,7 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar(span));
+            mods.add(new ModifierVar());
             result.add(NodeFactory.makeLValue(l, mods));
         }
         return result;
@@ -418,7 +418,7 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar(span));
+            mods.add(new ModifierVar());
             result.add(NodeFactory.makeLValue(l, mods));
         }
         return result;
@@ -455,7 +455,7 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar(span));
+            mods.add(new ModifierVar());
             result.add(NodeFactory.makeLValue(l, ty, mods));
         }
         return result;
@@ -478,7 +478,7 @@ public final class FortressUtil {
         int ind = 0;
         for (LValue l : vars) {
             List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar(span));
+            mods.add(new ModifierVar());
             result.add(NodeFactory.makeLValue(l, tys.get(ind), mods));
             ind += 1;
         }
