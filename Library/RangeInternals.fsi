@@ -573,6 +573,8 @@ fullScalarRangeInter[\I extends Integral[\I\]\](l: I, r: I, str: I, p: I): FullS
 
 fullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\](l_i: I, l_j: J, r_i: I, r_j: J, str_i: I, str_j: J): FullRange2D[\I, J\]
 
+fullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\]
+           (l_i:I, l_j:J, l_k:K, r_i:I, r_j:J, r_k:K, str_i:I, str_j:J, str_k:K): FullRange3D[\I,J,K\]
 emptyScalarRange[\I\](): FullScalarRange[\I\]
 
 sized1Range[\I extends AnyIntegral\](_: I, lo: I, ex: I): CompactFullParScalarRange[\I\]

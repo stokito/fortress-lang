@@ -761,14 +761,14 @@ public class  OverloadedFunction extends Fcn
 
     // TODO continue audit of functions in here.
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
 
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
             List<Overload>  someOverloads = overloads;
 
-            int best = bestMatchIndex(args, loc, envForInference, someOverloads);
+            int best = bestMatchIndex(args, site, envForInference, someOverloads);
 
             best_f = someOverloads.get(best).getFn();
 
@@ -776,15 +776,15 @@ public class  OverloadedFunction extends Fcn
                 FunctionalMethod fm = (FunctionalMethod)best_f;
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
-                best_f = fm.getApplicableClosure(args,loc,envForInference);
-            } else if (best_f instanceof GenericFunctionOrMethod) {
-                GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
-                best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args, gsfn, loc, best_f.getWithin());
+                best_f = fm.getApplicableClosure(args,site,envForInference);
+            // } else if (best_f instanceof GenericFunctionOrMethod) {
+            //     GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
+            //     best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args, gsfn, site, best_f.getWithin());
             }
             if (best_f instanceof GenericFunctionOrMethod) {
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) best_f;
                 best_f = EvaluatorBase.inferAndInstantiateGenericFunction(args,
-                        gsfn, loc, best_f.getWithin());
+                        gsfn, site, best_f.getWithin());
             }
 
             if (debugMatch)
@@ -792,7 +792,7 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.applyPossiblyGeneric(args, loc, best_f.getWithin()); // was envForInference
+        return best_f.applyPossiblyGeneric(args, site, best_f.getWithin()); // was envForInference
     }
 
      /**

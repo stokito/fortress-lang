@@ -78,19 +78,19 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         }
     }
 
-    protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode loc) {
+    protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode site) {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return foo.applyPossiblyGeneric(args, loc, foo.getWithin());
+            return foo.applyPossiblyGeneric(args, site, foo.getWithin());
         } catch (FortressException ex) {
-            throw ex.setContext(loc,e);
+            throw ex.setContext(site,e);
         } catch (StackOverflowError soe) {
-            return error(loc,e,errorMsg("Stack overflow on ",foo));
+            return error(site,e,errorMsg("Stack overflow on ",foo));
         }
     }
 
-   /**
+    /**
      * Given args, infers the appropriate instantiation of a generic function.
      *
      * @throws ProgramError

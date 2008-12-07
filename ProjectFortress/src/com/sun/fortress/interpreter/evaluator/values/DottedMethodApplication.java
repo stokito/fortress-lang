@@ -126,10 +126,10 @@ public final class DottedMethodApplication extends Fcn {
     /** Perform a full method invocation. */
     public static FValue invokeMethod(FValue receiver, String prettyName,
                                       String mname, List<FValue> args,
-                                      HasAt x, Environment envForInference) {
+                                      HasAt site, Environment envForInference) {
         DottedMethodApplication app =
-            DottedMethodApplication.make(receiver,prettyName,mname,x);
-        return app.applyPossiblyGeneric(args,x,envForInference);
+            DottedMethodApplication.make(receiver,prettyName,mname,site);
+        return app.applyPossiblyGeneric(args,site,envForInference);
     }
 
     public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt x,
