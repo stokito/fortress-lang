@@ -446,7 +446,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                  (x := tuple0, y.f(tuple1), z := tuple2)
             */
             boolean paren = that.isParenthesized();
-            Option<OpRef> opr = that.getAssignOp();
+            Option<FunctionalRef> opr = that.getAssignOp();
             List<Expr>   assigns   = new ArrayList<Expr>();
             List<LValue> secondLhs = new ArrayList<LValue>();
             // Possible shadowing!

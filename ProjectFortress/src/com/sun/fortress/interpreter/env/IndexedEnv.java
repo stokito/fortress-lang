@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
@@ -239,7 +239,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValue(OpRef vr) {
+    public FValue getValue(FunctionalRef vr) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -254,7 +254,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public FValue getValueNull(OpRef vr) {
+    public FValue getValueNull(FunctionalRef vr) {
         // TODO Auto-generated method stub
         return null;
     }

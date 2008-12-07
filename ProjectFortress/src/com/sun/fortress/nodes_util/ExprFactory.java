@@ -238,30 +238,30 @@ public class ExprFactory {
         return makeTuple(Arrays.asList(exprs));
     }
 
-    public static OpRef make_RewriteOpRefOverloading(Span span, OpRef original, Type type) {
+    public static FunctionalRef make_RewriteOpRefOverloading(Span span, FunctionalRef original, Type type) {
         return new OpRef(span, original.isParenthesized(), original.getExprType(),
                          original.getStaticArgs(), original.getLexicalDepth(),
                          original.getOriginalName(), original.getNames(),
                          original.getOverloadings(), Option.<Type>some(type));
     }
 
-    public static OpRef makeMultiJuxt() {
+    public static FunctionalRef makeMultiJuxt() {
         return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp("juxtaposition")));
     }
 
-    public static OpRef makeInfixJuxt() {
+    public static FunctionalRef makeInfixJuxt() {
         return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
     }
 
-    public static OpRef makeInfixEq(){
+    public static FunctionalRef makeInfixEq(){
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
     }
 
-    public static OpRef makeInfixIn(){
+    public static FunctionalRef makeInfixIn(){
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
     }
 
-    public static Expr makeOpRef(OpRef original, int lexicalNestedness) {
+    public static Expr makeOpRef(FunctionalRef original, int lexicalNestedness) {
             return new OpRef(original.getSpan(), original.isParenthesized(),
                              original.getStaticArgs(), lexicalNestedness,
                              original.getOriginalName(), original.getNames(),
@@ -269,20 +269,20 @@ public class ExprFactory {
 
     }
 
-    public static OpRef makeOpRef(Span span, String name) {
+    public static FunctionalRef makeOpRef(Span span, String name) {
         Op op = NodeFactory.makeOpInfix(span, name);
         return new OpRef(span, op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
     }
 
-    public static OpRef makeOpRef(Op op) {
+    public static FunctionalRef makeOpRef(Op op) {
         return new OpRef(op.getSpan(), op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
     }
 
-    public static OpRef makeOpRef(Op op, List<StaticArg> staticArgs) {
+    public static FunctionalRef makeOpRef(Op op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), staticArgs, op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
     }
 
-    public static OpExpr makeOpExpr(Span span, Option<Type> ty, OpRef op,
+    public static OpExpr makeOpExpr(Span span, Option<Type> ty, FunctionalRef op,
                                     Expr first, Expr second) {
         return new OpExpr(span, false, ty, op, Arrays.asList(first, second));
     }
@@ -315,11 +315,11 @@ public class ExprFactory {
     /**
      * Creates an OpExpr using the Spans from e_1 and e_2.
      */
-    public static OpExpr makeOpExpr(OpRef op, Expr e_1, Expr e_2) {
+    public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1, Expr e_2) {
      return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
     }
 
-    public static OpExpr makeOpExpr(Expr e,OpRef op) {
+    public static OpExpr makeOpExpr(Expr e,FunctionalRef op) {
      return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
 
@@ -433,7 +433,7 @@ public class ExprFactory {
         return new TightJuxt(span, isParenthesized, Useful.immutableTrimmedList(exprs));
     }
 
-    public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, OpRef infixJuxt, OpRef multiJuxt){
+    public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, FunctionalRef infixJuxt, FunctionalRef multiJuxt){
      return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,Useful.immutableTrimmedList(exprs));
     }
 
@@ -719,14 +719,14 @@ public class ExprFactory {
     }
 
     public static Assignment makeAssignment(Span span, Option<Type> type,
-                                            List<Lhs> lhs, Option<OpRef> op,
+                                            List<Lhs> lhs, Option<FunctionalRef> op,
                                             Expr rhs) {
         return new Assignment(span, false, type, lhs, op, rhs);
     }
 
     public static Assignment makeAssignment(Span span, Option<Type> type,
                                             List<Lhs> lhs, Expr rhs) {
-        return new Assignment(span, false, type, lhs, Option.<OpRef>none(), rhs);
+        return new Assignment(span, false, type, lhs, Option.<FunctionalRef>none(), rhs);
     }
 
     /**
@@ -935,7 +935,7 @@ public class ExprFactory {
      * Creates an OpExpr where every Op in OpRef, including original name, is
      * made into an infix operator.
      */
-    private static Expr makeInfixOpExpr(Span s, Expr lhs, OpRef op, Expr rhs) {
+    private static Expr makeInfixOpExpr(Span s, Expr lhs, FunctionalRef op, Expr rhs) {
         List<IdOrOp> new_ops = CollectUtil.makeList(IterUtil.map(op.getNames(), new Lambda<IdOrOp,IdOrOp>(){
                     public IdOrOp value(IdOrOp arg0) {
                         if( ! (arg0 instanceof Op) )
@@ -952,13 +952,13 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
 
-     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
+     FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
                               op.getLexicalDepth(),new_original_name,new_ops,
                               Option.<Type>none());
      return ExprFactory.makeOpExpr(new_op, lhs, rhs);
     }
 
-    private static Expr makePostfixOpExpr(Span s, Expr e, OpRef op) {
+    private static Expr makePostfixOpExpr(Span s, Expr e, FunctionalRef op) {
         List<IdOrOp> new_ops = CollectUtil.makeList(IterUtil.map(op.getNames(), new Lambda<IdOrOp,IdOrOp>(){
                     public IdOrOp value(IdOrOp arg0) {
                         if( ! (arg0 instanceof Op) )
@@ -975,7 +975,7 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
 
-     OpRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
+     FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
                               op.getLexicalDepth(),new_original_name,new_ops,
                               Option.<Type>none());
      return ExprFactory.makeOpExpr(e, new_op);

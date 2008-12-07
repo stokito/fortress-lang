@@ -118,7 +118,7 @@ import com.sun.fortress.nodes.NonParenthesisDelimitedMI;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.ParenthesisDelimitedMI;
 import com.sun.fortress.nodes.StaticArg;
@@ -236,7 +236,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
     public FValue forAssignment(Assignment x) {
-        Option<OpRef> possOp = x.getAssignOp();
+        Option<FunctionalRef> possOp = x.getAssignOp();
         LHSToLValue getLValue = new LHSToLValue(this);
         List<? extends Lhs> lhses = getLValue.inParallel(x.getLhs());
         int lhsSize = lhses.size();
@@ -245,7 +245,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (possOp.isSome()) {
             // We created an lvalue for lhses above, so there should
             // be no fear of duplicate evaluation.
-            OpRef opr_ = possOp.unwrap();
+            FunctionalRef opr_ = possOp.unwrap();
             //Op opr = opr_.getOriginalName();
             Fcn fcn = (Fcn) getOp(opr_);// opr.accept(this);
             FValue lhsValue;
@@ -529,7 +529,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<CaseClause> clauses = x.getClauses();
         Option<Expr> param = x.getParam();
         if (param.isNone()) {
-            Option<OpRef> compare = x.getCompare();
+            Option<FunctionalRef> compare = x.getCompare();
             if (compare.isSome()) {
                 FValue op = getOp(compare.unwrap());
                 return forBlock(findExtremum(x,(Fcn) op).getBody());
@@ -541,7 +541,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue paramValue = param.unwrap().accept(this);
             // Assign a comparison function
             Fcn fcn = (Fcn) e.getValue(x.getEqualsOp());
-            Option<OpRef> compare = x.getCompare();
+            Option<FunctionalRef> compare = x.getCompare();
             if (compare.isSome())
                 fcn = (Fcn) getOp(compare.unwrap());
 
@@ -1018,7 +1018,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     }
 
-    private FValue getOp(OpRef op) {
+    private FValue getOp(FunctionalRef op) {
         try {
             if (op.getLexicalDepth() != Environment.TOP_LEVEL) {
                 bug("Expect all oprefs to be top level " + op);
@@ -1046,7 +1046,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 //    }
 
     private boolean isExponentiation(OpExpr expr) {
-        OpRef ref = expr.getOp();
+        FunctionalRef ref = expr.getOp();
 
         IdOrOp name = ref.getOriginalName();
         if (!(name instanceof Op)) return false;
@@ -1071,7 +1071,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * moment it appears that this is true for every OpExpr node that
      * is ever created. */
     public FValue forOpExpr(OpExpr x) {
-        OpRef ref = x.getOp();
+        FunctionalRef ref = x.getOp();
 
         IdOrOp op = ref.getOriginalName();
         List<Expr> args = x.getArgs();

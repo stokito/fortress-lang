@@ -130,7 +130,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
 	public Node forOpExpr(OpExpr that) {
-        OpRef op_result = (OpRef) recur(that.getOp());
+        FunctionalRef op_result = (FunctionalRef) recur(that.getOp());
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
 
         OpExpr new_op;
@@ -149,7 +149,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private Expr cleanupOpExpr(OpExpr opExp) {
-        OpRef ref = opExp.getOp();
+        FunctionalRef ref = opExp.getOp();
 
         List<Expr> args = opExp.getArgs();
 

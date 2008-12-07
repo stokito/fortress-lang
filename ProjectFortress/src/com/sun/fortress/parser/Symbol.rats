@@ -173,7 +173,7 @@ String op =
    / multiOp
    / singleOp ;
 
-OpRef CompoundOp =
+FunctionalRef CompoundOp =
      a1:(encloser / op) equalsOp
      { yyValue = ExprFactory.makeOpRef(NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1)); };
 
@@ -234,9 +234,9 @@ transient void comma = ",";
 transient void dot   = ".";
 
 /* AssignOp ::= := | Op= */
-transient Option<OpRef> AssignOp =
-     colonequals   { yyValue = Option.none(); }
-   / a1:CompoundOp { yyValue = Option.some(a1); };
+transient Option<FunctionalRef> AssignOp =
+     colonequals   { yyValue = Option.<FunctionalRef>none(); }
+   / a1:CompoundOp { yyValue = Option.<FunctionalRef>some(a1); };
 
 transient Op SUM = "SUM"
      { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); };

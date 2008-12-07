@@ -661,10 +661,10 @@ interface Node() extends HasAt;
                  * <opsForLhs>
                  * An assignment that has passed typechecking, and uses an operator.
                  * Because different static args can be inferred for each Lhs assignment
-                 * opr, this node gives a separate OpRef for each Lhs.
+                 * opr, this node gives a separate FunctionalRef for each Lhs.
                  */
-                Assignment(List<Lhs> lhs, Option<OpRef> assignOp, Expr rhs,
-                           Option<List<OpRef>> opsForLhs = Option.<List<OpRef>>none());
+                Assignment(List<Lhs> lhs, Option<FunctionalRef> assignOp, Expr rhs,
+                           Option<List<FunctionalRef>> opsForLhs = Option.<List<FunctionalRef>>none());
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
@@ -702,9 +702,9 @@ interface Node() extends HasAt;
                  *  eqOp and inOp are to help with disambiguation
                  */
                 CaseExpr(Option<Expr> param,
-                         Option<OpRef> compare = Option.<OpRef>none(),
-                         OpRef equalsOp = ExprFactory.makeInfixEq(),
-                         OpRef inOp= ExprFactory.makeInfixIn(),
+                         Option<FunctionalRef> compare = Option.<FunctionalRef>none(),
+                         FunctionalRef equalsOp = ExprFactory.makeInfixEq(),
+                         FunctionalRef inOp= ExprFactory.makeInfixIn(),
                          List<CaseClause> clauses,
                          Option<Block> elseClause = Option.<Block>none());
                 /**
@@ -1084,8 +1084,8 @@ interface Node() extends HasAt;
                          * e.g.) myString.replace("foo", "few")
                          * e.g.) log log n
                          */
-                        abstract Juxt(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                      OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
+                        abstract Juxt(FunctionalRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                      FunctionalRef infixJuxt = ExprFactory.makeInfixJuxt(),
                                       List<Expr> exprs = new LinkedList<Expr>());
                             /**
                              * juxtaposition with intervening whitespace
@@ -1119,7 +1119,7 @@ interface Node() extends HasAt;
                          *           | Primary ExponentOp
                          * e.g.) 3 + 5
                          */
-                        OpExpr(OpRef op,
+                        OpExpr(FunctionalRef op,
                                List<Expr> args = Collections.<Expr>emptyList());
                         /**
                          * If an expression uses and operator, and that operator
@@ -1131,7 +1131,7 @@ interface Node() extends HasAt;
                          *
                          * e.g.) 3+4+5+6
                          */
-                        AmbiguousMultifixOpExpr(OpRef infix_op, OpRef multifix_op,
+                        AmbiguousMultifixOpExpr(FunctionalRef infix_op, FunctionalRef multifix_op,
                                                 List<Expr> args = Collections.<Expr>emptyList());
                         /**
                          * chain expression
@@ -1167,8 +1167,8 @@ interface Node() extends HasAt;
                          * MathPrimary ::= PrimaryFront MathItem*
                          * e.g.) a[3, 4]
                          */
-                        MathPrimary(OpRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                    OpRef infixJuxt = ExprFactory.makeInfixJuxt(),
+                        MathPrimary(FunctionalRef multiJuxt = ExprFactory.makeMultiJuxt(),
+                                    FunctionalRef infixJuxt = ExprFactory.makeInfixJuxt(),
                                     Expr front, List<MathItem> rest);
                         /**
                          * array expression
@@ -1408,7 +1408,7 @@ interface Node() extends HasAt;
                  * StaticArg ::= Op
                  * e.g.) +
                  */
-                OpArg(OpRef name);
+                OpArg(FunctionalRef name);
                 /**
                  * dimension used as static argument
                  * StaticArg ::= Type
@@ -1517,7 +1517,7 @@ interface Node() extends HasAt;
                          *                  | BoolExpr = BoolExpr
                          * e.g.) ninf OR pinf
                          */
-                        BinaryBoolConstraint(OpRef op, BoolExpr left, BoolExpr right);
+                        BinaryBoolConstraint(FunctionalRef op, BoolExpr left, BoolExpr right);
                 /**
                  * unit expression
                  * StaticExpr ::= UnitExpr
@@ -1921,7 +1921,7 @@ interface Node() extends HasAt;
              * because different ops can be chosen for different clauses.
              */
             CaseClause(Expr matchClause, Block body,
-                       Option<OpRef> op = Option.<OpRef>none());
+                       Option<FunctionalRef> op = Option.<FunctionalRef>none());
             /**
              * catch clause used in try expressions
              * Names must be unqualified.
@@ -2022,7 +2022,7 @@ interface Node() extends HasAt;
                      * MathItem ::= Exponentiation
                      * e.g.) ^3
                      */
-                    ExponentiationMI(OpRef op, Option<Expr> expr);
+                    ExponentiationMI(FunctionalRef op, Option<Expr> expr);
                     /**
                      * mathematical item that is a subscripting
                      * MathItem ::= Subscripting
@@ -2031,10 +2031,10 @@ interface Node() extends HasAt;
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
             /*
-             * A Link in a ChainExpr is a pair of OpRef and the next Expr in the chain.
+             * A Link in a ChainExpr is a pair of FunctionalRef and the next Expr in the chain.
              * e.g.) < 5
              */
-            Link(OpRef op, Expr expr);
+            Link(FunctionalRef op, Expr expr);
 
     /**
      * top-level information interface
