@@ -40,15 +40,15 @@ public class TypeEnvJUTest extends TestCase {
                                                   makeLValue("z", BAR));
 
     private final TypeEnv moreExtended =
-        extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar(span))),
+        extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar())),
                         makeLValue("b",
                                    BAZ,
-                                   Useful.<Modifier>list(new ModifierAbstract(span))),
+                                   Useful.<Modifier>list(new ModifierAbstract())),
                         makeLValue("c",
                                    BAR,
-                                   Useful.<Modifier>list(new ModifierWrapped(span),
-                                                         new ModifierHidden(span),
-                                                         new ModifierSettable(span))));
+                                   Useful.<Modifier>list(new ModifierWrapped(),
+                                                         new ModifierHidden(),
+                                                         new ModifierSettable())));
 
     public void testEmptyTypeEnv() {
         assertEquals(none(), TypeEnv.make().type(makeId("x")));
@@ -66,7 +66,7 @@ public class TypeEnvJUTest extends TestCase {
 
     public void testLookupMods() {
         assertEquals(0, moreExtended.mods("x").unwrap().size());
-        assertEquals(Useful.<Modifier>list(new ModifierAbstract(span)),
+        assertEquals(Useful.<Modifier>list(new ModifierAbstract()),
                      moreExtended.mods("b").unwrap());
     }
 

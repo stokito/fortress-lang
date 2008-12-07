@@ -239,90 +239,96 @@ private List<BaseType> MayTraitTypes =
 /* Mods ::= (Mod w)+ */
 transient List<Modifier> Mods = a1s:(Mod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* Mod ::=
    atomic | hidden | io | override | private | settable | test | value | var | wrapped
  */
 transient Modifier Mod =
-     atomic   { yyValue = new ModifierAtomic(createSpan(yyStart,yyCount)); }
-   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / io       { yyValue = new ModifierIO(createSpan(yyStart,yyCount)); }
-   / override { yyValue = new ModifierOverride(createSpan(yyStart,yyCount)); }
-   / private  { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); }
-   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
-   / test     { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); }
-   / value    { yyValue = new ModifierValue(createSpan(yyStart,yyCount)); }
-   / var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
+     atomic   { yyValue = new ModifierAtomic(); }
+   / hidden   { yyValue = new ModifierHidden(); }
+   / io       { yyValue = new ModifierIO(); }
+   / override { yyValue = new ModifierOverride(); }
+   / private  { yyValue = new ModifierPrivate(); }
+   / settable { yyValue = new ModifierSettable(); }
+   / test     { yyValue = new ModifierTest(); }
+   / value    { yyValue = new ModifierValue(); }
+   / var      { yyValue = new ModifierVar(); }
+   / wrapped  { yyValue = new ModifierWrapped(); };
 
 
 /* Each modifier cannot appear more than once. */
 /* ParamFldMods ::= (ParamFldMod w)+ */
 transient List<Modifier> ParamFldMods = a1s:(ParamFldMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* ParamFldMod ::= var | hidden | settable | wrapped */
 transient private Modifier ParamFldMod =
-     var      { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
-   / hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
-   / wrapped  { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); };
+     var      { yyValue = new ModifierVar(); }
+   / hidden   { yyValue = new ModifierHidden(); }
+   / settable { yyValue = new ModifierSettable(); }
+   / wrapped  { yyValue = new ModifierWrapped(); };
 
 /* Each modifier cannot appear more than once. */
 /* FldMods ::= (FldMod w)+ */
 transient List<Modifier> FldMods = a1s:(FldMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* Each modifier cannot appear more than once. */
 /* FldImmutableMods ::= (FldImmutableMod w)+ */
 transient List<Modifier> FldImmutableMods = a1s:(FldImmutableMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* FldMod ::= var | AbsFldMod */
 transient private Modifier FldMod =
-     var { yyValue = new ModifierVar(createSpan(yyStart,yyCount)); }
+     var { yyValue = new ModifierVar(); }
    / AbsFldMod ;
 
 /* FldImmutableMod ::= hidden / test / wrapped / private */
 transient private Modifier FldImmutableMod =
-     hidden  { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / test    { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); }
-   / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
-   / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+     hidden  { yyValue = new ModifierHidden(); }
+   / test    { yyValue = new ModifierTest(); }
+   / wrapped { yyValue = new ModifierWrapped(); }
+   / private { yyValue = new ModifierPrivate(); };
 
 /* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= (AbsFldMod w)+ */
 transient List<Modifier> AbsFldMods = a1s:(AbsFldMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* AbsFldMod ::= ApiFldMod | wrapped | private */
 transient private Modifier AbsFldMod =
       ApiFldMod
-    / wrapped { yyValue = new ModifierWrapped(createSpan(yyStart,yyCount)); }
-    / private { yyValue = new ModifierPrivate(createSpan(yyStart,yyCount)); };
+    / wrapped { yyValue = new ModifierWrapped(); }
+    / private { yyValue = new ModifierPrivate(); };
 
 /* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= (ApiFldMod w)+ */
 transient List<Modifier> ApiFldMods = a1s:(ApiFldMod w)+
      { yyValue = FortressUtil.mkList(a1s.list());
-       FortressUtil.noDuplicate(yyValue);
+       FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+                                yyValue);
      };
 
 /* ApiFldMod ::= hidden | settable | test */
 transient private Modifier ApiFldMod =
-     hidden   { yyValue = new ModifierHidden(createSpan(yyStart,yyCount)); }
-   / settable { yyValue = new ModifierSettable(createSpan(yyStart,yyCount)); }
-   / test     { yyValue = new ModifierTest(createSpan(yyStart,yyCount)); };
+     hidden   { yyValue = new ModifierHidden(); }
+   / settable { yyValue = new ModifierSettable(); }
+   / test     { yyValue = new ModifierTest(); };
 
 /* StaticParams ::= [\ w StaticParamList w \] */
 List<StaticParam> StaticParams =
