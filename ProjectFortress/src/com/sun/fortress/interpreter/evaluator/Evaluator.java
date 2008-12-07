@@ -66,7 +66,6 @@ import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AbstractFieldRef;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.ArrayComprehension;
@@ -782,7 +781,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return forFieldRefCommon(x, x.getField());
     }
 
-    private FValue forFieldRefCommon(AbstractFieldRef x, Name fld) throws FortressException,
+    private FValue forFieldRefCommon(FieldRef x, Name fld) throws FortressException,
             ProgramError {
         String fname = NodeUtil.nameString(fld);
         Expr obj = x.getObj();
@@ -1374,12 +1373,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return fval;
     }
 
-    Name fldName(AbstractFieldRef arf) {
-        if (arf instanceof FieldRef) {
-            return ((FieldRef)arf).getField();
-        }
-        return bug("Unexpected AbstractFieldRef " + arf);
-
+    Name fldName(FieldRef arf) {
+        return arf.getField();
     }
 
     /** Assumes wrapped FnRefs have ids fields of length 1. */
@@ -1411,8 +1406,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
             _RewriteFnRef rfr = (_RewriteFnRef) fcnExpr;
             Expr fn = rfr.getFnExpr();
             List<StaticArg> args = rfr.getStaticArgs();
-            if (fn instanceof AbstractFieldRef) {
-                AbstractFieldRef arf = (AbstractFieldRef) fn;
+            if (fn instanceof FieldRef) {
+                FieldRef arf = (FieldRef) fn;
                 FValue fobj = arf.getObj().accept(this);
                 return invokeGenericMethod(fobj,
                                            NodeUtil.nameString(fldName(arf)),
