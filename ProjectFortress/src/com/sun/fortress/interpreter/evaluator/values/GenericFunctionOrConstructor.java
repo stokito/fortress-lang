@@ -29,19 +29,19 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
 
     BATreeEC<List<FValue>, List<FType>, Simple_fcn> cache =
         new BATreeEC<List<FValue>, List<FType>, Simple_fcn>(FValue.asTypesList);
-    
+
     volatile Simple_fcn symbolicInstantiation;
-    
+
     public GenericFunctionOrConstructor(Environment within) {
         super(within);
         // TODO Auto-generated constructor stub
     }
-    
+
     @Override
     public boolean needsInference() {
         return true;
     }
-    
+
     @Override
     public List<FType> getDomain() {
         return getSymbolic().getDomain();
@@ -53,16 +53,15 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
         return getSymbolic().getRange();
 
     }
-    
+
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
         Simple_fcn foo = cache.get(args);
         if (foo == null) {
-            foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
+            foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, site, envForInference);
             cache.syncPut(args, foo);
         }
-//        Simple_fcn foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, loc, envForInference);
-        return foo.applyPossiblyGeneric(args, loc, envForInference);
+        return foo.applyPossiblyGeneric(args, site, envForInference);
     }
 
 

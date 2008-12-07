@@ -202,9 +202,9 @@ public abstract class NonPrimitive extends Simple_fcn {
     }
 
     public Environment buildEnvFromParams(List<FValue> args, Environment env,
-            HasAt loc) throws Error {
+            HasAt site) throws Error {
         // TODO Here is where we deal with rest parameters.
-        args = fixupArgCount(args,loc);
+        args = fixupArgCount(args,site);
         Iterator<FValue> argsIter = args.iterator();
         FValue arg = null;
         int i = 0;
@@ -223,14 +223,14 @@ public abstract class NonPrimitive extends Simple_fcn {
                 
                 Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
                         genericName, ((FTypeRest) paramType).getType(),
-                        natParams, loc);
+                        natParams, site);
 
                 FValue theArray = f
-                        .applyPossiblyGeneric(Collections.<FValue> emptyList(), loc, env);
+                        .applyPossiblyGeneric(Collections.<FValue> emptyList(), site, env);
                 if (!(theArray instanceof FObject))
-                    return bug(loc,errorMsg(f," returned non-FObject ",theArray));
+                    return bug(site,errorMsg(f," returned non-FObject ",theArray));
                 // Use a wrapper to simplify our life
-                IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray, loc);
+                IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray, site);
                 int j = 0;
                 while (argsIter.hasNext()) {
                     arg = argsIter.next();
@@ -244,7 +244,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = argsIter.next();
                 i++;
                 if (!paramType.typeMatch(arg)) {
-                    unificationError(loc, env,
+                    unificationError(site, env,
                           errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
                                    " param ", i, " (",
@@ -261,7 +261,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                         env.putValueRaw(param.getName(), arg);
                     }
                 } catch (FortressException ex) {
-                    throw ex.setContext(loc,env);
+                    throw ex.setContext(site,env);
                 }
             }
 

@@ -101,7 +101,7 @@ public class MethodClosure extends FunctionClosure implements Method {
         }
     }
 
-    /* A MethodClosure should be invoked via applyInner iff:
+    /* A MethodClosure should be invoked via applyInnerPossiblyGeneric iff:
      *   The corresponding FunctionalMethod closure is an overloading at top level.
      *   We're obtaining the MethodClosure from the overloading table,
      *      where it was cached during a previous call.

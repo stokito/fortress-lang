@@ -96,14 +96,14 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt loc, Environment envForInference) {
+    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt site, Environment envForInference) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
-            return check(applyInnerPossiblyGeneric(unwrapped, loc, envForInference));
+            return check(applyInnerPossiblyGeneric(unwrapped, site, envForInference));
         } catch (UnificationError u) {
             if (unwrapped != args) {
                 try {
-                    return check(applyInnerPossiblyGeneric(args, loc, envForInference));
+                    return check(applyInnerPossiblyGeneric(args, site, envForInference));
                 } catch (UnificationError u1) {
                     throw u;
                 }
@@ -116,7 +116,7 @@ abstract public class Fcn extends FValue {
         // TODO This ought not be necessary.
         if (args.size() == 1 && (args.get(0) instanceof FTuple)) {
             args =  ((FTuple) args.get(0)).getVals();
-         }
+        }
         return args;
     }
 

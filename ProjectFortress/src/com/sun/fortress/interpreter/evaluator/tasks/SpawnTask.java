@@ -37,9 +37,9 @@ public class SpawnTask extends BaseTask {
     public void compute() {
         FortressTaskRunner.setCurrentTask(this);
         List<FValue> args = new ArrayList<FValue>();
-        HasAt loc = new HasAt.FromString("SpawnTask");
+        HasAt site = new HasAt.FromString("SpawnTask");
         Environment e = eval.e;
-        val = fcn.applyPossiblyGeneric(args, loc, e);
+        val = fcn.applyPossiblyGeneric(args, site, e);
         resultIsReady = true;
         fcn = null;
         eval = null;

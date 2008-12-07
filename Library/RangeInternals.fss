@@ -908,17 +908,14 @@ trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends I
         self.range1.indices.cross[\J\](self.range2.indices).cross[\K\](self.range3.indices).map[\(I,J,K)\](
             tupleFlatten[\I,J,K\])
     opr |self|: ZZ32 = |self.range1| |self.range2| |self.range3|
-(*
     flip(): FullRange3D[\I,J,K\] = do
         (l_i,l_j,l_k) = self.left.get
         (r_i,r_j,r_k) = self.right.get
         (str_i,str_j,str_k) = self.stride.get
-        fullRange3D[\ZZ32,ZZ32\](r_i,r_j,r_k,l_i,l_j,l_k,-str_i,-str_j,-str_k)
+        fullRange3D[\ZZ32,ZZ32,ZZ32\](r_i,r_j,r_k,l_i,l_j,l_k,-str_i,-str_j,-str_k)
       end
-*)
     opr[ij:(I,J,K)]: (I,J,K) =
         do (i,j,k) = ij; (self.range1[i],self.range2[j],self.range3[k]) end
-(*
     opr[r:Range[\(I,J,K)\]]: FullRange3D[\I,J,K\] = do
         f = self.bounds.narrowToRange(r)
         (l1,l2,l3) = self.left.get
@@ -928,7 +925,6 @@ trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends I
         (fs1,fs2,fs3) = f.stride
         fullRange3D[\I,J,K\](l1 + fl1 s1, l2 + fl2 s2, l3 + fl3 s3, fs1 s1, fs2 s2, fs3 s3)
       end
-*)
 end
 
 trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRange[\I\], CompactFullRange[\I\] }
@@ -1353,6 +1349,14 @@ fullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
         CompactFullRange2D[\I,J\](l_i,l_j,r_i,r_j).check()
     else
         StridedFullRange2D[\I,J\](l_i,l_j,r_i,r_j,str_i,str_j).check()
+    end
+
+fullRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\]
+           (l_i:I, l_j:J, l_k:K, r_i:I, r_j:J, r_k:K, str_i:I, str_j:J, str_k:K): FullRange3D[\I,J,K\] =
+    if str_i=1 AND str_j=1 AND str_k=1 then
+        CompactFullRange3D[\I,J,K\](l_i,l_j,l_k,r_i,r_j,r_k).check()
+    else
+        StridedFullRange3D[\I,J,K\](l_i,l_j,l_k,r_i,r_j,r_k,str_i,str_j,str_k).check()
     end
 
 emptyScalarRange[\I\]() : FullScalarRange[\I\] = CompactFullParScalarRange[\I\](0,-1)

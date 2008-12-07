@@ -1170,23 +1170,23 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     // Non-static version provides the obvious arguments.
     public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
-                               HasAt x) {
-        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,x,e);
+                               HasAt site) {
+        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,site,e);
     }
 
     // Version that evaluates arguments first.
     public FValue evalAndInvokeMethod(FValue receiver, String mname, List<Expr> args,
-                                      HasAt x) {
-        return invokeMethod(receiver,mname,evalInvocationArgs(args),x);
+                                      HasAt site) {
+        return invokeMethod(receiver,mname,evalInvocationArgs(args),site);
     }
 
     public FValue invokeGenericMethod(FValue receiver, String mname,
                                       List<StaticArg> sargs, List<FValue> args,
-                                      HasAt x) {
+                                      HasAt site) {
         DottedMethodApplication app0 =
-            DottedMethodApplication.make(receiver,mname,mname,x);
-        DottedMethodApplication app = app0.applyToStaticArgs(sargs,x,e);
-        return app.applyPossiblyGeneric(args,x,e);
+            DottedMethodApplication.make(receiver,mname,mname,site);
+        DottedMethodApplication app = app0.applyToStaticArgs(sargs,site,e);
+        return app.applyPossiblyGeneric(args,site,e);
     }
 
     private boolean isFunction(FValue val) { return (val instanceof Fcn); }
@@ -1538,8 +1538,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 args.add(exc);
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
                 // Can we get a better HasAt?
-                HasAt at = new HasAt.FromString(WellKnownNames.forbiddenException);
-                FObject f = (FObject) c.applyPossiblyGeneric(args, at, e);
+                HasAt site = new HasAt.FromString(WellKnownNames.forbiddenException);
+                FObject f = (FObject) c.applyPossiblyGeneric(args, site, e);
                 FortressError f_exc = new FortressError(x,e,f);
                 throw f_exc;
             }
