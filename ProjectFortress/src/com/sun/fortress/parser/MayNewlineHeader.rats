@@ -398,8 +398,9 @@ private constant inline Action<UnitExpr> ProductUnitExpr =
      (w DOT w / sr) a1:UnitExpr
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
-               return new ProductUnit(createSpan(yyStart,yyCount),
-                                      (UnitExpr)base, a1);
+               Op product = NodeFactory.makeOpInfix(a1.getSpan(), " ");
+               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+                                       (UnitExpr)base, a1, product);
            }};
      };
 
@@ -407,8 +408,9 @@ private constant inline Action<UnitExpr> QuotientUnitExpr =
      (slash / per) a1:UnitExpr
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
-               return new QuotientUnit(createSpan(yyStart,yyCount),
-                                      (UnitExpr)base, a1);
+               Op quotient = NodeFactory.makeOpInfix(a1.getSpan(), "/");
+               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+                                       (UnitExpr)base, a1, quotient);
            }};
      };
 
@@ -416,8 +418,9 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
      caret a1:UnitExpr
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
-               return new ExponentUnit(createSpan(yyStart,yyCount),
-                                      (UnitExpr)base, a1);
+               Op exponent = NodeFactory.makeOpInfix(a1.getSpan(), "^");
+               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+                                       (UnitExpr)base, a1, exponent);
            }};
      };
 
