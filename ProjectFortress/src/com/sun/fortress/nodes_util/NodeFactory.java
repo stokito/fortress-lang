@@ -261,26 +261,17 @@ public class NodeFactory {
         return new DimDecl(span, dim);
     }
 
-    public static ExponentType makeExponentType(ExponentType t, Type s) {
-        return new ExponentType(t.getSpan(), t.isParenthesized(), s,
-                t.getPower());
+    public static DimExponent makeDimExponent(DimExponent t, Type s) {
+        return new DimExponent(t.getSpan(), t.isParenthesized(), s,
+                               t.getPower());
     }
 
-    public static ProductDim makeProductDim(ProductDim t, DimExpr s, DimExpr u) {
-        return new ProductDim(t.getSpan(), t.isParenthesized(), s, u);
+    public static DimBinaryOp makeDimBinaryOp(DimBinaryOp t, DimExpr s, DimExpr u, Op o) {
+        return new DimBinaryOp(t.getSpan(), t.isParenthesized(), s, u, o);
     }
 
-    public static QuotientDim makeQuotientDim(QuotientDim t, DimExpr s, DimExpr u) {
-        return new QuotientDim(t.getSpan(), t.isParenthesized(), s, u);
-    }
-
-    public static ExponentDim makeExponentDim(ExponentDim t, DimExpr s) {
-        return new ExponentDim(t.getSpan(), t.isParenthesized(), s,
-                t.getPower());
-    }
-
-    public static OpDim makeOpDim(OpDim t, DimExpr s) {
-        return new OpDim(t.getSpan(), t.isParenthesized(), s, t.getOp());
+    public static DimUnaryOp makeDimUnaryOp(DimUnaryOp t, DimExpr s) {
+        return new DimUnaryOp(t.getSpan(), t.isParenthesized(), s, t.getOp());
     }
 
     public static TraitType makeTraitType(TraitType t,
@@ -1165,26 +1156,22 @@ public class NodeFactory {
 
     public static DimExpr makeInParentheses(DimExpr dim) {
         return dim.accept(new NodeAbstractVisitor<DimExpr>() {
-            public DimExpr forBaseDim(BaseDim t) {
-                return new BaseDim(t.getSpan(), true);
+            public DimExpr forDimBase(DimBase t) {
+                return new DimBase(t.getSpan(), true);
             }
             public DimExpr forDimRef(DimRef t) {
                 return new DimRef(t.getSpan(), true, t.getName());
             }
-            public DimExpr forProductDim(ProductDim t) {
-                return new ProductDim(t.getSpan(), true, t.getMultiplier(),
-                                      t.getMultiplicand());
+            public DimExpr forDimBinaryOp(DimBinaryOp t) {
+                return new DimBinaryOp(t.getSpan(), true, t.getLeft(),
+                                       t.getRight(), t.getOp());
             }
-            public DimExpr forQuotientDim(QuotientDim t) {
-                return new QuotientDim(t.getSpan(), true, t.getNumerator(),
-                        t.getDenominator());
-            }
-            public DimExpr forExponentDim(ExponentDim t) {
-                return new ExponentDim(t.getSpan(), true, t.getBase(),
+            public DimExpr forDimExponent(DimExponent t) {
+                return new DimExponent(t.getSpan(), true, t.getBase(),
                         t.getPower());
             }
-            public DimExpr forOpDim(OpDim t) {
-                return new OpDim(t.getSpan(), true, t.getDimVal(), t.getOp());
+            public DimExpr forDimUnaryOp(DimUnaryOp t) {
+                return new DimUnaryOp(t.getSpan(), true, t.getDimVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +

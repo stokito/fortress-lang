@@ -1964,20 +1964,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forExponentTypeOnly(ExponentType that,
-                                                String base_result,
-                                                String power_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( base_result );
-        s.append( "^" );
-        s.append( power_result );
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-    }
-
-    @Override public String forBaseDimOnly(BaseDim that) {
+    @Override public String forDimBaseOnly(DimBase that) {
         return handleParen( "Unity",
                             that.isParenthesized() );
     }
@@ -1988,31 +1975,21 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forProductDimOnly(ProductDim that,
-                                              String multiplier_result,
-                                              String multiplicand_result) {
+    @Override public String forDimBinaryOpOnly(DimBinaryOp that,
+                                               String left,
+                                               String right,
+                                               String op) {
         StringBuilder s = new StringBuilder();
 
-        s.append( multiplier_result ).append( " " );
-        s.append( multiplicand_result );
+        s.append( left );
+        s.append( op );
+        s.append( right );
 
         return handleParen( s.toString(),
                             that.isParenthesized() );
     }
 
-    @Override public String forQuotientDimOnly(QuotientDim that,
-                                               String numerator_result,
-                                               String denominator_result) {
-        StringBuilder s = new StringBuilder();
-
-        s.append( numerator_result ).append( "/" );
-        s.append( denominator_result );
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-    }
-
-    @Override public String forExponentDimOnly(ExponentDim that,
+    @Override public String forDimExponentOnly(DimExponent that,
                                                String base_result,
                                                String power_result) {
         StringBuilder s = new StringBuilder();
@@ -2024,9 +2001,9 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forOpDimOnly(OpDim that,
-                                         String val_result,
-                                         String op_result) {
+    @Override public String forDimUnaryOpOnly(DimUnaryOp that,
+                                              String val_result,
+                                              String op_result) {
         StringBuilder s = new StringBuilder();
 
         if ( op_result.equals("square") ||

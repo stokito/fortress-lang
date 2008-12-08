@@ -599,12 +599,10 @@ public abstract class SubtypeChecker {
      *
      *        _InferenceVarType(Object id, int index = -1);
      *        abstract DimExpr();
-     *            ExponentType(Type base, IntExpr power);
-     *            BaseDim();
+     *            DimBase();
      *            DimRef(Id name);
-     *            ProductDim(DimExpr multiplier, DimExpr multiplicand);
-     *            QuotientDim(DimExpr numerator, DimExpr denominator);
-     *            OpDim(DimExpr val, Op op);
+     *            DimUnaryOp(DimExpr val, Op op);
+     *            DimBinaryOp(DimExpr left, DimExpr right, Op op);
      *        abstract DimType(Type type);
      *            TaggedDimType(DimExpr dim,
      *                          Option<Expr> unit = Option.<Expr>none());
