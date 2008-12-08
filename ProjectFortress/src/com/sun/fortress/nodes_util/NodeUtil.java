@@ -602,7 +602,8 @@ public class NodeUtil {
                 type instanceof DimExponent);
     }
     public static boolean isExponentiation(IntExpr staticExpr) {
-        return (staticExpr instanceof ExponentConstraint);
+        return (staticExpr instanceof IntBinaryOp &&
+                ((IntBinaryOp)staticExpr).getOp().getText().equals("^"));
     }
 
     /* for String manipulation *********************************************/

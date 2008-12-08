@@ -1107,8 +1107,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				StaticArg arg = type.getArgs().get(i);
 				if(arg instanceof IntArg){
 					IntExpr iexpr = ((IntArg)arg).getIntVal();
-					if(iexpr instanceof NumberConstraint){
-						IntLiteralExpr dim = ((NumberConstraint) iexpr).getIntVal();
+					if(iexpr instanceof IntBase){
+						IntLiteralExpr dim = ((IntBase) iexpr).getIntVal();
 						BigInteger n = dim.getIntVal();
 						dims.add(n);
 					}
@@ -3332,7 +3332,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forNumberConstraintOnly(NumberConstraint that,
+	public TypeCheckerResult forIntBaseOnly(IntBase that,
 			TypeCheckerResult val_result) {
 		return new TypeCheckerResult(that);
 	}

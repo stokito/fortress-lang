@@ -304,9 +304,9 @@ public class NodeComparator {
     }
 
     static int subtypeCompareTo(IntExpr left, IntExpr right) {
-        if (left instanceof NumberConstraint && right instanceof NumberConstraint)
-            return ((NumberConstraint)left).getIntVal().getIntVal().intValue() -
-                   ((NumberConstraint)right).getIntVal().getIntVal().intValue();
+        if (left instanceof IntBase && right instanceof IntBase)
+            return ((IntBase)left).getIntVal().getIntVal().intValue() -
+                   ((IntBase)right).getIntVal().getIntVal().intValue();
         /* nat types -- difference will not overflow */
         else return 0;
     }

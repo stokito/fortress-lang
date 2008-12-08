@@ -437,7 +437,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 }
                 return ((IntNat)t).getValue();
             }
-            public FType forNumberConstraint(NumberConstraint n) {
+            public FType forIntBase(IntBase n) {
                 return IntNat.make(n.getIntVal().getIntVal().intValue());
             }
             public FType forIntRef(IntRef n) {
@@ -449,14 +449,18 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     throw p.setContext(q, env);
                 }
             }
-            public FType forSumConstraint(SumConstraint n) {
-                return IntNat.make(longify(n.getLeft()) + longify(n.getRight()));
-            }
-            public FType forMinusConstraint(MinusConstraint n) {
-                return IntNat.make(longify(n.getLeft()) - longify(n.getRight()));
-            }
-            public FType forProductConstraint(ProductConstraint n) {
-                return IntNat.make(longify(n.getLeft()) * longify(n.getRight()));
+            public FType forIntBinaryOp(IntBinaryOp n) {
+                long left  = longify(n.getLeft());
+                long right = longify(n.getRight());
+                if ( n.getOp().getText().equals("+") )
+                    return IntNat.make(left + right);
+                else if ( n.getOp().getText().equals("-") )
+                    return IntNat.make(left - right);
+                else if ( n.getOp().getText().equals(" ") )
+                    return IntNat.make(left * right);
+                else
+                    return bug(n, errorMsg("EvalType: ", n.getClass(),
+                                           " is not yet implemented."));
             }
             public FType defaultCase(Node x) {
                 return bug(x, errorMsg("EvalType: ",x.getClass(),

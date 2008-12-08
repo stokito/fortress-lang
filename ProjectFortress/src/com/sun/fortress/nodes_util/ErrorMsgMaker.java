@@ -117,7 +117,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return "()";
     }
 
-    public String forNumberConstraint(NumberConstraint node) {
+    public String forIntBase(IntBase node) {
         return node.getIntVal().accept(this);
     }
 
@@ -236,24 +236,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
             return NodeUtil.nameString(node.getVarId());
     }
 
-    private String forOpConstraint(IntOpExpr node, String op) {
-        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
-
-    }
-    public String forSumConstraint(SumConstraint node) {
-        return forOpConstraint(node, "+");
-    }
-
-    public String forMinusConstraint(MinusConstraint node) {
-        return forOpConstraint(node, "-");
-    }
-
-    public String forProductConstraint(ProductConstraint node) {
-        return forOpConstraint(node, " ");
-    }
-
-    public String forExponentConstraint(ExponentConstraint node) {
-        return forOpConstraint(node, "^");
+    public String forIntBinaryOp(IntBinaryOp node) {
+        return node.getLeft().accept(this) + node.getOp().accept(this) + node.getRight().accept(this);
     }
 
     public String forFieldRef(FieldRef node) {
