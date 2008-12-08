@@ -193,6 +193,10 @@ public class Printer extends NodeReflection {
             w.append("(");
             w.append(o.getClass().getSimpleName());
             w.append(")");
+        } else if (o instanceof StaticParamKind){
+            w.append("(");
+            w.append(o.getClass().getSimpleName());
+            w.append(")");
         } else if (o instanceof AbstractNode) {
             AbstractNode x = (AbstractNode) o;
             Class cl = x.getClass();

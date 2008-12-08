@@ -457,7 +457,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Option<List<Param>> params = x.getParams();
 
         // List<Type> throws_;
-        // List<WhereClause> where;
         // Contract contract;
         // List<Decl> defs = x.getDecls();
         String fname = NodeUtil.nameString(name);
@@ -815,7 +814,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         Id name = x.getName();
         // List<Type> excludes;
         // Option<List<Type>> bounds;
-        // List<WhereClause> where;
         FTraitOrObjectOrGeneric ft;
 
         String fname = NodeUtil.nameString(name);
@@ -843,7 +841,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         // List<Modifier> mods;
         // List<Type> excludes;
         // Option<List<Type>> bounds;
-        // List<WhereClause> where;
 
         if (staticParams.isEmpty()) {
             Id name = x.getName();
