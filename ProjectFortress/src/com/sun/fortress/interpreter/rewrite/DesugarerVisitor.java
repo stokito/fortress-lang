@@ -371,10 +371,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         if ( NodeUtil.isSingletonObject(vre) ) {
             if (t == null) {
+                noteUse(s, vre);
                 return vre;
             } else {
+                return t.replacement(vre);
             }
-            return vre;
         } else {
             if (t == null) {
                 noteUse(s, vre);

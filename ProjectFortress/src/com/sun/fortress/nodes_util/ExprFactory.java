@@ -463,7 +463,7 @@ public class ExprFactory {
 
     public static VarRef makeVarRef(VarRef old, int depth) {
         return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(),
-                          Collections.<StaticArg>emptyList(),
+                          old.getStaticArgs(),
                           depth);
     }
 
