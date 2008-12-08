@@ -796,10 +796,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 return error(errorMsg("Non-object ",fobj," cannot have field ",
                                       NodeUtil.nameString(fld)));
             }
+            return DottedMethodApplication.make(fobj,fname,fname);
         } catch (FortressException ex) {
             throw ex.setContext(x,e);
         }
-        return DottedMethodApplication.make(fobj,fname,fname,x);
     }
 
     public FValue forMethodInvocation(MethodInvocation x) {
@@ -1171,7 +1171,13 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // Non-static version provides the obvious arguments.
     public FValue invokeMethod(FValue receiver, String mname, List<FValue> args,
                                HasAt site) {
-        return DottedMethodApplication.invokeMethod(receiver,mname,mname,args,site);
+        try {
+            return DottedMethodApplication.invokeMethod(receiver,mname,mname,args);
+        } catch (FortressException ex) {
+            throw ex.setWhere(site);
+        } catch (StackOverflowError soe) {
+            return error(site,errorMsg("Stack overflow on ",site));
+        }
     }
 
     // Version that evaluates arguments first.
@@ -1183,10 +1189,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue invokeGenericMethod(FValue receiver, String mname,
                                       List<StaticArg> sargs, List<FValue> args,
                                       HasAt site) {
-        DottedMethodApplication app0 =
-            DottedMethodApplication.make(receiver,mname,mname,site);
-        DottedMethodApplication app = app0.applyToStaticArgs(sargs,site,e);
-        return app.applyPossiblyGeneric(args,site);
+        try {
+            DottedMethodApplication app0 =
+                DottedMethodApplication.make(receiver,mname,mname);
+            DottedMethodApplication app = app0.typeApply(sargs,e,site);
+            return app.functionInvocation(args,site);
+        } catch (FortressException ex) {
+            throw ex.setWhere(site);
+        } catch (StackOverflowError soe) {
+            return error(site,errorMsg("Stack overflow on ",site));
+        }
     }
 
     private boolean isFunction(FValue val) { return (val instanceof Fcn); }

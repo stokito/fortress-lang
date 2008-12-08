@@ -45,12 +45,5 @@ public abstract class NativeMeth extends NativeApp implements Method {
         return bug(this,"applyToArgs (functions only) called for method "+this);
     }
 
-    /** This simply calls through to the 2-argument applyMethod, and
-     *  uses the location information to label any FortressError that
-     *  is thrown. */
-    public final FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site) {
-        return applyMethod(args,selfValue);
-    }
-
-    protected abstract FValue applyMethod(List<FValue> args, FObject selfValue);
+    public abstract FValue applyMethod(FObject selfValue, List<FValue> args);
 }

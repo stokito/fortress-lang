@@ -66,11 +66,11 @@ public class MethodClosure extends FunctionClosure implements Method {
     // The choice of evaluation environment is the only difference between applying
     // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
     // appears to actually represent some piece of a functional method in practice).
-    protected Environment envForApplication(FObject selfValue, HasAt loc) {
+    protected Environment envForApplication(FObject selfValue) {
         return selfValue.getLexicalEnv();
     }
 
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site) {
+    public FValue applyMethod(FObject selfValue, List<FValue> args) {
         args = conditionallyUnwrapTupledArgs(args);
         Expr body = getBodyNull();
 
@@ -85,17 +85,16 @@ public class MethodClosure extends FunctionClosure implements Method {
             // instantiation of some generic? It seems like signatures etc will
             // depend on this.
             Evaluator eval =
-                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue,site),
-                                                       args, site));
+                new Evaluator(buildEnvFromEnvAndParams(envForApplication(selfValue), args));
             // selfName() was rewritten to our special "$self", and
             // we don't care about shadowing here.
             eval.e.putValueRaw(selfName(), selfValue);
             return eval.eval(body);
         } else if (def instanceof Method) {
-            return ((Method)def).applyMethod(args, selfValue, site);
+            return ((Method)def).applyMethod(selfValue, args);
         } else {
-            return bug(site,errorMsg("MethodClosure ",this,
-                                     " has neither body nor def instanceof Method"));
+            return bug(errorMsg("MethodClosure ",this,
+                                " has neither body nor def instanceof Method"));
 
         }
     }
@@ -107,16 +106,16 @@ public class MethodClosure extends FunctionClosure implements Method {
      *   In that case we can strip "AsIf" information from self, as
      *      we've already dealt with the type information.
      */
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args) {
         if (selfParameterIndex == -1) {
-            return bug(site,errorMsg("MethodClosure for dotted method ",this,
-                                    " was invoked as if it were a functional method."));
+            return bug(errorMsg("MethodClosure for dotted method ",this,
+                                " was invoked as if it were a functional method."));
         }
         // We're a functional method instance, so fish out self and
         // chain to applyMethod.
         FObject self = (FObject)args.get(selfParameterIndex).getValue();
         args = Useful.removeIndex(selfParameterIndex,args);
-        return applyMethod(args,self,site);
+        return applyMethod(self,args);
     }
 
     public String selfName() {

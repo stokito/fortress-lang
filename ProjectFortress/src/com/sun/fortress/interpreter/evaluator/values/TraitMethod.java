@@ -58,7 +58,7 @@ public class TraitMethod extends MethodClosure {
     }
 
     @Override
-    protected Environment envForApplication(FObject selfValue, HasAt loc) {
+    protected Environment envForApplication(FObject selfValue) {
         return getEvalEnv();
     }
 

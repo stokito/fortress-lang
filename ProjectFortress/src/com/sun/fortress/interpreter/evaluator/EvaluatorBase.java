@@ -66,7 +66,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
      * @throws ProgramError
      */
     public static Simple_fcn inferAndInstantiateGenericFunction(
-            List<FValue> args, GenericFunctionOrMethod appliedThing, HasAt site,
+            List<FValue> args, GenericFunctionOrMethod appliedThing,
             Environment envForInference) throws ProgramError {
 
         if (DUMP_INFERENCE)
@@ -92,7 +92,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 }
                 envForInference = selfType.getWithin();
             } else
-                return error(site,
+                return error(
                         errorMsg(
                                 "Non-generic-instance type for self argument ",
                                 selfArg, " to generic functional method ",
@@ -163,16 +163,16 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             if (at == null) {
                 if (DUMP_INFERENCE)
                     System.err.println("Argument "+a+" without type info.");
-                return error(site, errorMsg("Argument ", a,
-                        " has no type information"));
+                return error(errorMsg("Argument ", a,
+                                      " has no type information"));
             }
             if (pit.hasNext()) {
                 p = pit.next();
             } else if (p == null) {
                 if (DUMP_INFERENCE)
                     System.err.println("Arguments "+args+" to 0-arg function.");
-                error(site, errorMsg(" Arguments ", args,
-                        " given to 0-argument generic function ", appliedThing));
+                error(errorMsg(" Arguments ", args,
+                               " given to 0-argument generic function ", appliedThing));
             }
             try {
                 if ( ! NodeUtil.isVarargsParam(p) ) {
@@ -196,8 +196,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         } else {
                             if (DUMP_INFERENCE)
                                 System.err.println("Parameter lacks type.");
-                            error(site,
-                                    "Parameter needs type for generic resolution");
+                            error("Parameter needs type for generic resolution");
                         }
                     } else {
                         Type ty = t.unwrap();
@@ -213,7 +212,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 }
             } catch (FortressException ex) {
                 /* Give decent feedback when unification fails. */
-                throw ex.setContext(site, envForInference);
+                throw ex.setWithin(envForInference);
             }
         }
 
@@ -286,7 +285,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 t = BottomType.ONLY;
             tl.add(t);
         }
-        Simple_fcn sfcn = appliedThing.typeApply(site, tl);
+        Simple_fcn sfcn = appliedThing.typeApply(tl);
         if (DUMP_INFERENCE)
             System.err.println("Result " + sfcn);
         return sfcn;

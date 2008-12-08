@@ -26,6 +26,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.GenericFunctionOrConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
@@ -137,22 +138,20 @@ public class Glue {
         return l;
     }
 
-    public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, int[] nats, HasAt x) {
+    public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, int[] nats) {
         FValue thingMakerValue = e.getRootValue(genericName);
-        Factory1P<List<FType>, Simple_fcn, HasAt> thingMaker =
-            (Factory1P<List<FType>, Simple_fcn, HasAt>) thingMakerValue;
+        GenericFunctionOrConstructor thingMaker =
+            (GenericFunctionOrConstructor) thingMakerValue;
         List<FType> l = parametersForGenericIndexed(T, nats);
-        Simple_fcn f = thingMaker.make(l, x);
-        return f;
+        return thingMaker.typeApply(l);
     }
 
-    public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T, HasAt x) {
+    public static Simple_fcn instantiateGenericConstructor(Environment e, String genericName, FType T) {
         FValue thingMakerValue = e.getRootValue(genericName);
-        Factory1P<List<FType>, Simple_fcn, HasAt> thingMaker =
-            (Factory1P<List<FType>, Simple_fcn, HasAt>) thingMakerValue;
+        GenericFunctionOrConstructor thingMaker =
+            (GenericFunctionOrConstructor) thingMakerValue;
         List<FType> l = Useful.list(T);
-        Simple_fcn f = thingMaker.make(l, x);
-        return f;
+        return thingMaker.typeApply(l);
     }
 
     public static FTraitOrObject instantiateGenericType(Environment e, String genericName, FType T, List<TypeRange> nats, HasAt x) {

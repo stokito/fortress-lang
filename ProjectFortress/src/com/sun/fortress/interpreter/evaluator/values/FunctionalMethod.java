@@ -53,20 +53,19 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
         // TODO Auto-generated constructor stub
     }
 
-    public MethodClosure getApplicableClosure(List<FValue> args0, HasAt loc) {
+    public MethodClosure getApplicableClosure(List<FValue> args0) {
         FValue selfVal = args0.get(selfParameterIndex);
         DottedMethodApplication ma =
-            DottedMethodApplication.make(selfVal,s(def),mname,loc);
+            DottedMethodApplication.make(selfVal,s(def),mname);
         Method cl = ma.getMethod();
         if (cl instanceof MethodClosure) {
             return (MethodClosure)cl;
         } else if (cl instanceof OverloadedMethod) {
             List<FValue> args = Useful.removeIndex(selfParameterIndex,args0);
             OverloadedMethod om = (OverloadedMethod)cl;
-            return om.getApplicableMethod(args,loc);
+            return om.getApplicableMethod(args);
         } else {
-            return bug(loc,getWithin(),
-                       errorMsg("Functional method resolution for ",this,args0,
+            return bug(errorMsg("Functional method resolution for ",this,args0,
                                 " yields non-MethodClosure ",cl));
         }
     }
@@ -75,10 +74,10 @@ public class FunctionalMethod extends FunctionClosure implements HasSelfParamete
      * @see com.sun.fortress.interpreter.evaluator.values.FunctionClosure#applyInnerPossiblyGeneric(java.util.List, com.sun.fortress.interpreter.useful.HasAt, com.sun.fortress.interpreter.env.BetterEnv)
      */
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args) {
         FValue selfVal = args.get(selfParameterIndex);
         args = Useful.removeIndex(selfParameterIndex, args);
-        return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args, site);
+        return DottedMethodApplication.invokeMethod(selfVal, s(def), mname, args);
     }
 
     @Override

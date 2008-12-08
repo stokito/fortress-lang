@@ -99,8 +99,7 @@ public abstract class NativeConstructor extends Constructor {
      *
      */
     @Override
-    public FValue applyConstructor(
-            List<FValue> args, HasAt loc) {
+    public FValue applyConstructor(List<FValue> args) {
         return makeNativeObject(args, this);
     }
 

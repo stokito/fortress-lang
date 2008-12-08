@@ -52,8 +52,8 @@ public class MethodClosureInstance extends MethodClosure implements MethodInstan
     // a MethodClosure and applying its subclass, a PartiallyDefinedMethod (which
     // appears to actually represent some piece of a functional method in practice).
     @Override
-    protected Environment envForApplication(FObject selfValue, HasAt loc) {
-        return selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv, loc);
+    protected Environment envForApplication(FObject selfValue) {
+        return selfValue.getLexicalEnv().genericLeafEnvHack(genericEnv);
     }
 
     public GenericMethod getGenerator() {

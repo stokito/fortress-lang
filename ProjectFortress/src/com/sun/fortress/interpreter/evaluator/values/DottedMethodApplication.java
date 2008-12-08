@@ -57,8 +57,7 @@ public final class DottedMethodApplication extends Fcn {
      *  during Evaluation.
      */
     public static DottedMethodApplication make(FValue receiver,
-                                               String prettyName, String mname,
-                                               HasAt x) {
+                                               String prettyName, String mname) {
         // Step 1: determine self (modulo AsIf), make sure it's an object,
         //    and simultaneously determine the selfEnv for errors.
         // TODO Need to distinguish between public/private
@@ -84,8 +83,8 @@ public final class DottedMethodApplication extends Fcn {
 
             FValue selfVal = receiver.getValue();
             if (!(selfVal instanceof FObject)) {
-                return error(x, errorMsg("Non-object receiver ",receiver,
-                                         " trying to invoke method ",prettyName));
+                return error(errorMsg("Non-object receiver ",receiver,
+                                      " trying to invoke method ",prettyName));
             }
             self = (FObject) selfVal;
             FType rtype = receiver.type();
@@ -110,12 +109,10 @@ public final class DottedMethodApplication extends Fcn {
         }
         // Step 2: validate the closure we obtained.
         if (cl==null) {
-            return error(x, selfEnv,
-                         errorMsg("Cannot find definition for method ",prettyName,
+            return error(errorMsg("Cannot find definition for method ",prettyName,
                                   " given receiver ",receiver));
         } else if (!(cl instanceof Method && cl instanceof Fcn)) {
-            return error(x, selfEnv,
-                         errorMsg("Unexpected method value ",cl.toString(),
+            return error(errorMsg("Unexpected method value ",cl.toString(),
                                   " when invoking method ",prettyName,
                                   " given receiver ",receiver));
         }
@@ -125,26 +122,14 @@ public final class DottedMethodApplication extends Fcn {
 
     /** Perform a full method invocation. */
     public static FValue invokeMethod(FValue receiver, String prettyName,
-                                      String mname, List<FValue> args,
-                                      HasAt site) {
+                                      String mname, List<FValue> args) {
         DottedMethodApplication app =
-            DottedMethodApplication.make(receiver,prettyName,mname,site);
-        return app.applyPossiblyGeneric(args,site);
+            DottedMethodApplication.make(receiver,prettyName,mname);
+        return app.applyPossiblyGeneric(args);
     }
 
-    public static FValue invokeMethodFrom(FObject self, Method m, List<FValue> args,
-                                          HasAt site) {
-        try {
-            return m.applyMethod(args, self, site);
-        } catch (FortressException ex) {
-            throw ex.setWhere(site);
-        } catch (StackOverflowError soe) {
-            return error(site,errorMsg("Stack overflow on ", site));
-        }
-    }
-
-    public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt site,
-            Environment envForInference) {
+    public DottedMethodApplication typeApply(List<StaticArg> sargs,
+                                             Environment envForInference, HasAt site) {
         Method cl = getMethod();
         FObject self = getSelf();
         Environment selfEnv = getWithin();
@@ -188,14 +173,8 @@ public final class DottedMethodApplication extends Fcn {
         // Do nothing.
     }
 
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
-        try {
-            return cl.applyMethod(args, self, site);
-        } catch (FortressException ex) {
-            throw ex.setContext(site, getWithin());
-        } catch (StackOverflowError soe) {
-            return error(site, getWithin(), errorMsg("Stack overflow on ",site));
-        }
+    public FValue applyInnerPossiblyGeneric(List<FValue> args) {
+        return cl.applyMethod(self, args);
     }
 
     public IdOrOpOrAnonymousName getFnName() {

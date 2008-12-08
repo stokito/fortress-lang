@@ -183,12 +183,12 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
                     }
                     Environment wknInstantiationEnv = Driver.getFortressLibrary();
 
-                    Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams, x);
+                    Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams);
                     // Now invoke f.
                     FValue theArray =
                         f.functionInvocation(Collections.<FValue>emptyList(), x);
                     // Do the copy.
-                    iuo_tuple.copyTo(new IndexedArrayWrapper(theArray, x));
+                    iuo_tuple.copyTo(new IndexedArrayWrapper(theArray));
                     evaluator.e.putValue(s, theArray);
 
                 } else {

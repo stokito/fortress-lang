@@ -63,7 +63,7 @@ public interface Environment  {
 
     public Environment extendAt(HasAt x) ;
 
-    public abstract Environment genericLeafEnvHack(Environment genericEnv, HasAt within);
+    public abstract Environment genericLeafEnvHack(Environment genericEnv);
 
     public abstract HasAt getAt();
 

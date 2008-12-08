@@ -139,8 +139,12 @@ public class GenericMethod extends MethodClosure implements
         return make(argValues, location);
     }
 
-    public Simple_fcn typeApply(HasAt location, List<FType> argValues) {
+    public Simple_fcn typeApply(List<FType> argValues, HasAt location) {
         return make(argValues, location);
+    }
+
+    public Simple_fcn typeApply(List<FType> argValues) {
+        return make(argValues, getDef());
     }
 
     public void finishInitializing() {

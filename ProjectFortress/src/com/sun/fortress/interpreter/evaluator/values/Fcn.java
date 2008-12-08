@@ -101,14 +101,14 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue applyPossiblyGeneric(List<FValue> args, HasAt site) {
+    final public FValue applyPossiblyGeneric(List<FValue> args) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
-            return check(applyInnerPossiblyGeneric(unwrapped, site));
+            return check(applyInnerPossiblyGeneric(unwrapped));
         } catch (UnificationError u) {
             if (unwrapped != args) {
                 try {
-                    return check(applyInnerPossiblyGeneric(args, site));
+                    return check(applyInnerPossiblyGeneric(args));
                 } catch (UnificationError u1) {
                     throw u;
                 }
@@ -125,7 +125,7 @@ abstract public class Fcn extends FValue {
         return args;
     }
 
-    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site);
+    abstract public FValue applyInnerPossiblyGeneric(List<FValue> args);
 
     public boolean hasSelfDotMethodInvocation() {
         return false;
@@ -163,7 +163,7 @@ abstract public class Fcn extends FValue {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return this.applyPossiblyGeneric(args, site);
+            return this.applyPossiblyGeneric(args);
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {

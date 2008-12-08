@@ -40,24 +40,22 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
     Method putter;
     Method getter;
     FObject array;
-    HasAt at;
     int rank;
 
     // Note reuse of temporary, "copyTo" cannot (yet) go in parallel.
     ArrayList<FValue> l;
 
 
-    public IndexedArrayWrapper(FValue fv, HasAt at) {
+    public IndexedArrayWrapper(FValue fv) {
         if (!(fv instanceof FObject)) {
             // This should only happen if the library is buggy.
             // But it *has* happened, and will happen again...
-            error(at,errorMsg(" expected an array object, got ", fv));
+            error(errorMsg(" expected an array object, got ", fv));
         }
         array = (FObject) fv;
         putter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayPutter);
         getter = (Method) array.getSelfEnv().getLeafValue(WellKnownNames.arrayGetter);
         rank = Glue.arrayRank(array);
-        this.at = at;
         l = new ArrayList<FValue>(1+rank);
     }
 
@@ -76,14 +74,14 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
             l.add(FTuple.make(tup));
         }
         l.add(what);
-        DottedMethodApplication.invokeMethodFrom(array,putter,l,at);
+        putter.applyMethod(array,l);
     }
 
     public void put(FValue what, int index) {
         l.clear();
         l.add(FInt.make(index));
         l.add(what);
-        DottedMethodApplication.invokeMethodFrom(array,putter,l,at);
+        putter.applyMethod(array,l);
     }
 
     public FValue get(int[] indices, int indices_depth) {
@@ -98,7 +96,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
                 l.add(FInt.make(indices[i]));
             }
         }
-        return DottedMethodApplication.invokeMethodFrom(array,getter,l,at);
+        return getter.applyMethod(array,l);
     }
 
     public int dim() {
