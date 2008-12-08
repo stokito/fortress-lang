@@ -761,22 +761,22 @@ public class  OverloadedFunction extends Fcn
 
     // TODO continue audit of functions in here.
     @Override
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args) {
 
         SingleFcn best_f = cache.get(args);
 
         if (best_f == null) {
 
-            best_f = bestMatch(args, site, overloads);
+            best_f = bestMatch(args, overloads);
 
             if (best_f instanceof FunctionalMethod) {
                 FunctionalMethod fm = (FunctionalMethod)best_f;
                 if (debugMatch)
                     System.err.print("\nRefining functional method "+ best_f);
-                best_f = fm.getApplicableClosure(args,site);
+                best_f = fm.getApplicableClosure(args);
             }
             if (best_f instanceof GenericFunctionOrMethod) {
-                return bug(site,errorMsg("overload res yielded generic ",best_f));
+                return bug(errorMsg("overload res yielded generic ",best_f));
             }
 
             if (debugMatch)
@@ -784,31 +784,30 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.applyPossiblyGeneric(args, site);
+        return best_f.applyPossiblyGeneric(args);
     }
 
     /**
      * Returns index of best match for args among the overloaded functions.
      * @throws Error
      */
-    public SingleFcn bestMatch(List<FValue> args, HasAt loc,
+    public SingleFcn bestMatch(List<FValue> args,
                                List<Overload> someOverloads) throws Error {
         if (!finishedSecond && InstantiationLock.L.isHeldByCurrentThread())
-            bug(loc, "Cannot call before 'setFinished()'");
+            bug("Cannot call before 'setFinished()'");
 
-        SingleFcn best = bestMatchInternal(args, loc, someOverloads);
+        SingleFcn best = bestMatchInternal(args, someOverloads);
         if (best == null) {
             // TODO add checks for COERCE, right here.
             // Replay the test for debugging
-            // best = bestMatchInternal(args, loc, envForInference,
-            //         someOverloads);
-            error(loc,errorMsg("Failed to find any matching overload, args = ",
-                    Useful.listInParens(args), ", overload = ", this));
+            // best = bestMatchInternal(args, someOverloads);
+            error(errorMsg("Failed to find any matching overload, args = ",
+                           Useful.listInParens(args), ", overload = ", this));
         }
         return best;
     }
 
-    private SingleFcn bestMatchInternal(List<FValue> args, HasAt loc,
+    private SingleFcn bestMatchInternal(List<FValue> args,
                                         List<Overload> someOverloads) {
         SingleFcn best_sfn = null;
 
@@ -818,7 +817,7 @@ public class  OverloadedFunction extends Fcn
 
         for (Overload o : someOverloads) {
             if (o.getParams() == null) {
-                bug(loc, errorMsg("Unfinished overloaded function ", this));
+                bug(errorMsg("Unfinished overloaded function ", this));
             }
             SingleFcn sfn = o.getFn();
 
@@ -827,7 +826,7 @@ public class  OverloadedFunction extends Fcn
             if (sfn instanceof GenericFunctionOrMethod) {
                 GenericFunctionOrMethod gsfn = (GenericFunctionOrMethod) sfn;
                 try {
-                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, loc, gsfn.getWithin());
+                    sfn = EvaluatorBase.inferAndInstantiateGenericFunction(oargs, gsfn, gsfn.getWithin());
                     if (debugMatch)
                         System.err.println("Inferred from " + gsfn + " to " + sfn);
                 } catch (FortressException pe) {
@@ -925,7 +924,7 @@ public class  OverloadedFunction extends Fcn
 
                     if (compatible(args, gf.getStaticParams())) {
 
-                        SingleFcn tf = gf.typeApply(location, args);
+                        SingleFcn tf = gf.typeApply(args, location);
                         if (f == null) {
                             f = tf;
                         } else if (of == null) {
@@ -977,7 +976,7 @@ public class  OverloadedFunction extends Fcn
         // to pass two parameters instead of one.
         ArrayList<FType> argValues = et.forStaticArgList(args);
 
-        return typeApply(e, location, argValues);
+        return typeApply(argValues, location);
     }
 
     /**
@@ -990,7 +989,7 @@ public class  OverloadedFunction extends Fcn
      * @return
      * @throws ProgramError
      */
-    Fcn typeApply(Environment e, HasAt location, List<FType> argValues) throws ProgramError {
+    Fcn typeApply(List<FType> argValues, HasAt location) throws ProgramError {
         // Need to filter for matching generics in the overloaded type.
         return make(argValues, location);
     }

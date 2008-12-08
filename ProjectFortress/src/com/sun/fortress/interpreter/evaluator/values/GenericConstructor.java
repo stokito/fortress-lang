@@ -118,8 +118,12 @@ private Constructor makeAConstructor(Environment clenv, FTypeObject objectType, 
     return cl;
 }
 
-public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
+public Simple_fcn typeApply(List<FType> argValues, HasAt location) throws ProgramError {
     return make(argValues, location);
+}
+
+public Simple_fcn typeApply(List<FType> argValues) throws ProgramError {
+    return make(argValues, odefOrDecl);
 }
 
 public Simple_fcn typeApply(List<StaticArg> args, Environment e, HasAt x) {

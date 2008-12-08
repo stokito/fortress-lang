@@ -52,8 +52,12 @@ public abstract class FortressException extends RuntimeException {
     }
 
     public FortressException setContext(HasAt where, Environment within) {
+        setWithin(within);
+        return setWhere(where);
+    }
+
+    public FortressException setWithin(Environment within) {
         if (this.within != null) this.within = within;
-        setWhere(where);
         return this;
     }
 

@@ -643,7 +643,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         putValue(str, new ReferenceCell(ft));
     }
 
-    public Environment genericLeafEnvHack(Environment genericEnv, HasAt loc) {
+    public Environment genericLeafEnvHack(Environment genericEnv) {
         return extend(genericEnv);
     }
 

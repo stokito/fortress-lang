@@ -40,12 +40,12 @@ public interface  GenericFunctionOrMethod {
     List<Param> getParams();
     Option<Type> getReturnType();
 
-    Simple_fcn typeApply(HasAt location, List<FType> argValues);
-    
+    Simple_fcn typeApply(List<FType> argValues);
+    Simple_fcn typeApply(List<FType> argValues, HasAt site);
+
     static class GenericComparer implements Comparator<GenericFunctionOrMethod> {
 
         public int compare(GenericFunctionOrMethod a0, GenericFunctionOrMethod a1) {
-            
 
             IdOrOpOrAnonymousName fn0 = a0.getName();
             IdOrOpOrAnonymousName fn1 = a1.getName();
@@ -64,12 +64,12 @@ public interface  GenericFunctionOrMethod {
     }
 
     static final GenericComparer genComparer = new GenericComparer();
-    
-    
+
+
     static public class FunctionsAndState {
         public static BATree<GenericFunctionOrMethod, List<FType>>
         symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
-        
+
         public static void reset() {
             symbolicStaticsByPartition = new BATree<GenericFunctionOrMethod, List<FType>>(genComparer);
         }

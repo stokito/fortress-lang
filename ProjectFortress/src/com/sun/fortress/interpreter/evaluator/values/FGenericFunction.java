@@ -71,7 +71,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
                              FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
                                      createSymbolicInstantiation(getEnv(), getStaticParams(), getWhere(), fndef));
                      }
-                     symbolicInstantiation = typeApply(getEnv(), fndef, symbolic_static_args);
+                     symbolicInstantiation = typeApply(symbolic_static_args, fndef);
                  }
              }
          }
@@ -152,7 +152,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         // to pass two parameters instead of one.
         ArrayList<FType> argValues = et.forStaticArgList(args);
 
-        return typeApply(e, location, argValues);
+        return typeApply(argValues, location);
     }
 
     /**
@@ -165,12 +165,11 @@ public class FGenericFunction extends GenericFunctionOrConstructor
      * @return
      * @throws ProgramError
      */
-    Simple_fcn typeApply(Environment e, HasAt location, List<FType> argValues) throws ProgramError {
+    public Simple_fcn typeApply(List<FType> argValues, HasAt location) throws ProgramError {
         List<StaticParam> params = getStaticParams();
 
-        // Evaluate each of the args in e, inject into clenv.
         if (argValues.size() != params.size() ) {
-            error(location, e,
+            error(location,
                   errorMsg("Generic instantiation (size) mismatch, expected ",
                            Useful.listInParens(params), " got ",
                            Useful.listInParens(argValues)));
@@ -178,8 +177,8 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         return make(argValues, location);
     }
 
-    public Simple_fcn typeApply(HasAt location, List<FType> argValues) throws ProgramError {
-        return make(argValues, location);
+    public Simple_fcn typeApply(List<FType> argValues) throws ProgramError {
+        return typeApply(argValues, fndef);
     }
 
     public  List<StaticParam> getStaticParams() {

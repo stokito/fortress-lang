@@ -88,8 +88,8 @@ public class Reflect extends NativeConstructor {
             return error("Cannot make Reflect[\\"+t+
                          "\\]; constructor not invoked from Fortress yet.");
         }
-        Simple_fcn con = gcon.typeApply(gcon,Useful.list(t));
-        return (ReflectedType)con.applyPossiblyGeneric(Collections.<FValue>emptyList(), gcon);
+        Simple_fcn con = gcon.typeApply(Useful.list(t));
+        return (ReflectedType)con.applyPossiblyGeneric(Collections.<FValue>emptyList());
     }
 
     public static final class Join extends NativeApp {

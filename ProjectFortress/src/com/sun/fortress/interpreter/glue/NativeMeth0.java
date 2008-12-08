@@ -38,7 +38,7 @@ public abstract class NativeMeth0 extends NativeMeth {
     public int getArity() {
         return 0;
     }
-    protected final FValue applyMethod(List<FValue> args, FObject selfValue) {
+    public final FValue applyMethod(FObject selfValue, List<FValue> args) {
         return act(selfValue);
     }
 }

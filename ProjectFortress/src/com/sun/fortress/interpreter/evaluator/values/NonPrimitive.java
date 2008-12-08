@@ -141,8 +141,8 @@ public abstract class NonPrimitive extends Simple_fcn {
      * Intended to be called from NativeApp.
      * Do not bother calling this if you also call buildEnvFromParams.
      */
-    public List<FValue> typecheckParams(List<FValue> args, HasAt loc) {
-        args = fixupArgCount(args,loc);
+    public List<FValue> typecheckParams(List<FValue> args) {
+        args = fixupArgCount(args);
         Iterator<FValue> argsIter = args.iterator();
         Iterator<Parameter> paramsIter = params.iterator();
         boolean asif = false;   // Need to strip asif?  Avoid if not.
@@ -155,8 +155,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                     FValue arg = argsIter.next();
                     if (arg instanceof FAsIf) asif = true;
                     if (!restType.typeMatch(arg)) {
-                        error(loc, within,
-                              errorMsg("Closure/Constructor for ",
+                        error(errorMsg("Closure/Constructor for ",
                                        getAt().stringName(),
                                        " rest parameter ", i, " (",
                                        param.getName(),
@@ -169,8 +168,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 FValue arg = argsIter.next();
                 if (arg instanceof FAsIf) asif = true;
                 if (!paramType.typeMatch(arg)) {
-                    error(loc, within,
-                          errorMsg("Closure/Constructor for ",
+                    error(errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
                                    " parameter ", i, " (",
                                    param.getName(), ":",
@@ -190,22 +188,21 @@ public abstract class NonPrimitive extends Simple_fcn {
      * Intended to be called from Closure.
      * @throws Error
      */
-    public Environment buildEnvFromParams(List<FValue> args, HasAt site)
+    public Environment buildEnvFromParams(List<FValue> args)
             throws Error {
         Environment env = within.extendAt(getAt());
-        return buildEnvFromParams(args, env, site);
+        return buildEnvFromParams(args, env);
     }
 
-    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args, HasAt site)
+    public Environment buildEnvFromEnvAndParams(Environment env, List<FValue> args)
             throws Error {
         env = env.extendAt(getAt());
-        return buildEnvFromParams(args, env, site);
+        return buildEnvFromParams(args, env);
     }
 
-    private Environment buildEnvFromParams(List<FValue> args, Environment env,
-            HasAt site) throws Error {
+    private Environment buildEnvFromParams(List<FValue> args, Environment env) throws Error {
         // TODO Here is where we deal with rest parameters.
-        args = fixupArgCount(args,site);
+        args = fixupArgCount(args);
         Iterator<FValue> argsIter = args.iterator();
         FValue arg = null;
         int i = 0;
@@ -224,14 +221,14 @@ public abstract class NonPrimitive extends Simple_fcn {
 
                 Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv,
                         genericName, ((FTypeRest) paramType).getType(),
-                        natParams, site);
+                        natParams);
 
                 FValue theArray =
-                    f.functionInvocation(Collections.<FValue> emptyList(), site);
+                    f.applyPossiblyGeneric(Collections.<FValue> emptyList());
                 if (!(theArray instanceof FObject))
-                    return bug(site,errorMsg(f," returned non-FObject ",theArray));
+                    return bug(errorMsg(f," returned non-FObject ",theArray));
                 // Use a wrapper to simplify our life
-                IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray, site);
+                IndexedArrayWrapper iaw = new IndexedArrayWrapper(theArray);
                 int j = 0;
                 while (argsIter.hasNext()) {
                     arg = argsIter.next();
@@ -245,7 +242,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                 arg = argsIter.next();
                 i++;
                 if (!paramType.typeMatch(arg)) {
-                    unificationError(site, env,
+                    unificationError(
                           errorMsg("Closure/Constructor for ",
                                    getAt().stringName(),
                                    " param ", i, " (",
@@ -262,7 +259,7 @@ public abstract class NonPrimitive extends Simple_fcn {
                         env.putValueRaw(param.getName(), arg);
                     }
                 } catch (FortressException ex) {
-                    throw ex.setContext(site,env);
+                    throw ex.setWithin(env);
                 }
             }
 

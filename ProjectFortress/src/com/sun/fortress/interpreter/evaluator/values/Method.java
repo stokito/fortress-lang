@@ -24,5 +24,5 @@ import com.sun.fortress.useful.HasAt;
 
 
 public interface Method {
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site);
+    public FValue applyMethod(FObject selfValue, List<FValue> args);
 }

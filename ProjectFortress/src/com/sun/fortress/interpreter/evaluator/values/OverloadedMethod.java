@@ -49,17 +49,17 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
      *  functional method invocations can perform end-to-end caching
      *  of the applicable method.
      */
-    public MethodClosure getApplicableMethod(List<FValue> args, HasAt loc) {
+    public MethodClosure getApplicableMethod(List<FValue> args) {
         MethodClosure best_f = mcache.get(args);
         if (best_f == null) {
-            best_f = (MethodClosure)bestMatch(args, loc, overloads);
+            best_f = (MethodClosure)bestMatch(args, overloads);
         }
         return best_f;
     }
 
-    public FValue applyMethod(List<FValue> args, FObject selfValue, HasAt site) {
-        Method best_f = getApplicableMethod(args,site);
-        return best_f.applyMethod(args, selfValue, site);
+    public FValue applyMethod(FObject selfValue, List<FValue> args) {
+        Method best_f = getApplicableMethod(args);
+        return best_f.applyMethod(selfValue, args);
     }
 
     public void bless() {

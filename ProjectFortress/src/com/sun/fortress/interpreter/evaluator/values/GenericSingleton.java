@@ -47,8 +47,8 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     private class Factory implements Factory1P<List<FType>, FObject, HasAt> {
         public FObject make(List<FType> args, HasAt site) {
             return (FObject)
-            genericConstructor.typeApply(site, args).
-                applyPossiblyGeneric(Collections.<FValue>emptyList(), site);
+            genericConstructor.typeApply(args, site).
+                applyPossiblyGeneric(Collections.<FValue>emptyList());
         }
     }
 
@@ -80,8 +80,12 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
         return odecl.getStaticParams();
     }
 
-    public FObject typeApply(HasAt location, List<FType> argValues) {
+    public FObject typeApply(List<FType> argValues, HasAt location) {
         return make(argValues, location);
+    }
+
+    public FObject typeApply(List<FType> argValues) {
+        return make(argValues, odecl);
     }
 
     public FObject typeApply(List<StaticArg> args, Environment e, HasAt x) {

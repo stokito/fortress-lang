@@ -279,8 +279,7 @@ public class IUOTuple extends FTupleLike implements IndexedShape {
                 } else {
                     int[] fromIndex = new int[target_dim];
                     arrayCopyto(target, toIndex, pasteIndex, toIndex.length,
-                            fromIndex, target_dim, new IndexedArrayWrapper(v,
-                                    at));
+                            fromIndex, target_dim, new IndexedArrayWrapper(v));
                 }
                 // if v is scalar, spread it across the
                 // extent, as appropriate.

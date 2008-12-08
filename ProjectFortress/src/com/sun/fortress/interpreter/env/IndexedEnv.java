@@ -79,7 +79,7 @@ public class IndexedEnv implements Environment {
         return null;
     }
 
-    public Environment genericLeafEnvHack(Environment genericEnv, HasAt within) {
+    public Environment genericLeafEnvHack(Environment genericEnv) {
         // TODO Auto-generated method stub
         return null;
     }

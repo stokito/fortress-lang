@@ -194,9 +194,9 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     }
 
 
-    public FValue applyInnerPossiblyGeneric(List<FValue> args, HasAt site) {
+    public FValue applyInnerPossiblyGeneric(List<FValue> args) {
         if (def instanceof NativeApp) {
-            args = typecheckParams(args,site);
+            args = typecheckParams(args);
             try {
                 return ((NativeApp)def).applyToArgs(args);
             } catch (AbortedException ae) {
@@ -206,12 +206,12 @@ public class FunctionClosure extends NonPrimitive implements Scope {
             } catch (FortressException fe) {
                 throw fe;
             } catch (RuntimeException ex) {
-                return error(site, errorMsg("Wrapped exception ", ex.toString()), ex);
+                return error(errorMsg("Wrapped exception ", ex.toString()), ex);
             } catch (Error ex) {
-                return error(site, errorMsg("Wrapped error ", ex.toString()), ex);
+                return error(errorMsg("Wrapped error ", ex.toString()), ex);
             }
         } else {
-            Evaluator eval = new Evaluator(buildEnvFromParams(args, site));
+            Evaluator eval = new Evaluator(buildEnvFromParams(args));
             return eval.eval(getBody());
         }
     }
