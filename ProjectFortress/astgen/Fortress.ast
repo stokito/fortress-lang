@@ -422,176 +422,6 @@ interface Node() extends HasAt;
                          */
                         NonterminalExtensionDef();
             /**
-             * nonterminal header
-             */
-            NonterminalHeader(Option<ModifierPrivate> modifier
-                                = Option.<ModifierPrivate>none(),
-                              Id name,
-                              List<NonterminalParameter> params,
-                              List<StaticParam> staticParams
-                                = Collections.<StaticParam>emptyList(),
-                              Option<Type> paramType,
-                              Option<WhereClause> whereClause
-                                = Option.<WhereClause>none());
-
-            /**
-             * nonterminal parameter
-             */
-            NonterminalParameter(Id name, BaseType paramType);
-
-            /**
-             * syntax declaration
-             */
-            abstract SyntaxDecl(Option<String> modifier);
-                /**
-                 * syntax definition in syntax declarations
-                 */
-                SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
-                          TransformerDecl transformer);
-
-                SuperSyntaxDef(Id nonterminal, Id grammarId);
-
-            /**
-              * Transformation declaration
-              */
-            abstract TransformerDecl();
-                /**
-                 * pre transformer definition in transformer declarations
-                 */
-                PreTransformerDef(Transformer transformer);
-                /**
-                 * transformer definition in transformer declarations
-                 */
-                NamedTransformerDef(String name, List<NonterminalParameter> parameters, Transformer transformer);
-
-            /**
-             * Transformers
-             */
-            abstract Transformer();
-                /**
-                 * Unparsed template
-                 */
-                UnparsedTransformer(String transformer, Id nonterminal);
-                /**
-                 * Parsed template
-                 */
-                NodeTransformer(AbstractNode node);
-                /**
-                 * Case-dispatch transformer expr
-                 */
-                CaseTransformer(Id gapName, List<CaseTransformerClause> clauses);
-
-            /**
-             * Case transformer clause
-             */
-            CaseTransformerClause(Id constructor, List<Id> parameters, Transformer body);
-
-            /**
-             * syntax symbol
-             */
-            abstract SyntaxSymbol();
-                /**
-                 * prefixed syntax symbol
-                 */
-                PrefixedSymbol(Id id, SyntaxSymbol symbol);
-                /**
-                 * optional syntax symbol
-                 */
-                OptionalSymbol(SyntaxSymbol symbol);
-                /**
-                 * repeat zero-or-more syntax symbol
-                 */
-                RepeatSymbol(SyntaxSymbol symbol);
-                /**
-                 * repeat one-or-more syntax symbol
-                 */
-                RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
-                /**
-                 * ignore following whitespace syntax symbol
-                 */
-                NoWhitespaceSymbol(SyntaxSymbol symbol);
-                /**
-                 * groups of symbols
-                 */
-                GroupSymbol(List<SyntaxSymbol> symbols);
-                /**
-                 * special symbols syntax symbol
-                 */
-                abstract SpecialSymbol();
-                    /**
-                     * any character syntax symbol
-                     */
-                    AnyCharacterSymbol();
-                    /**
-                     * whitespace syntax symbol
-                     */
-                    WhitespaceSymbol(String s);
-                    /**
-                     * tab syntax symbol
-                     */
-                    TabSymbol();
-                    /**
-                     * formfeed syntax symbol
-                     */
-                    FormfeedSymbol();
-                    /**
-                     * carriage return syntax symbol
-                     */
-                    CarriageReturnSymbol();
-                    /**
-                     * backspace syntax symbol
-                     */
-                    BackspaceSymbol();
-                    /**
-                     * newline syntax symbol
-                     */
-                    NewlineSymbol();
-                    /**
-                     * breakline syntax symbol
-                     */
-                    BreaklineSymbol(String s);
-                /**
-                 * item syntax symbol;
-                 * may be either nonterminal or keyword
-                 */
-                ItemSymbol(String item);
-                /**
-                 * non-terminal syntax symbol
-                 */
-                NonterminalSymbol(Id nonterminal);
-                /**
-                 * keyword syntax symbol
-                 */
-                KeywordSymbol(String token);
-                /**
-                 * token syntax symbol
-                 */
-                TokenSymbol(String token);
-                /**
-                 * not predicate syntax symbol
-                 */
-                NotPredicateSymbol(SyntaxSymbol symbol);
-                /**
-                 * and predicate syntax symbol
-                 */
-                AndPredicateSymbol(SyntaxSymbol symbol);
-                /**
-                 * character class syntax symbol
-                 */
-                CharacterClassSymbol(List<CharacterSymbol> characters);
-                /**
-                 * character symbols
-                 */
-                abstract CharacterSymbol();
-                    /**
-                     * character
-                     */
-                    CharSymbol(String string);
-                    /**
-                     * character interval
-                     */
-                    CharacterInterval(String beginSymbol, String endSymbol);
-            /**
              * left-hand side of variable declaration or value parameter
              */
             abstract Binding(Id name,
@@ -1202,46 +1032,46 @@ interface Node() extends HasAt;
                  * now because of the way the parser is defined)
                  */
                 abstract DimExpr();
-                    /* vector type or exponent dimemsion
-                     * resolved during parsing
-                     * e.g.) ZZ32^3
-                     * e.g.) Time^2
-                     */
-                    ExponentType(Type base, IntExpr power);
                     /* base dimension
                      * DimExpr ::= Unity
                      * e.g.) Unity
                      */
-                    BaseDim();
+                    DimBase();
                     /* dimension identifier
                      * DimExpr ::= QualifiedName
                      * e.g.) com.sun.fortress.dim.Length
                      */
                     DimRef(Id name);
-                    /* dimension multiplication
+                    /* vector type or exponent dimemsion
+                     * resolved during parsing
+                     * after parsing the base field should be of type DimExpr
+                     * e.g.) ZZ32^3
+                     *
+                     * dimension exponentiation
+                     * DimExpr ::= DimExpr ^ IntExpr
+                     * e.g.) Time^2
+                     */
+                    DimExponent(Type base, IntExpr power);
+                    /* dimension with an unary operator
+                     * DimExpr ::= DimPrefixOp DimExpr
+                     *           | DimExpr DimPostfixOp
+                     * e.g.) Time squared
+                     */
+                    DimUnaryOp(DimExpr dimVal, Op op);
+                    /* dimension with a binary operator
+                     *
+                     * dimension multiplication
                      * DimExpr ::= DimExpr DOT DimExpr
                      *           | DimExpr DimExpr
                      * e.g.) Length Mass
-                     */
-                    ProductDim(DimExpr multiplier, DimExpr multiplicand);
-                    /* dimension division
+                     *
+                     * dimension division
                      * DimExpr ::= DimExpr / DimExpr
                      *           | DimExpr per DimExpr
                      *           | 1 / DimExpr
                      * e.g.) Length / Time
                      */
-                    QuotientDim(DimExpr numerator, DimExpr denominator);
-                    /* dimension exponentiation
-                     * DimExpr ::= DimExpr ^ IntExpr
-                     * e.g.) Time^2
-                     */
-                    ExponentDim(DimExpr base, IntExpr power);
-                    /* dimension with operator
-                     * DimExpr ::= DimPrefixOp DimExpr
-                     *           | DimExpr DimPostfixOp
-                     * e.g.) Time squared
-                     */
-                    OpDim(DimExpr dimVal, Op op);
+                    DimBinaryOp(DimExpr left, DimExpr right, Op op);
                 /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */
@@ -1955,6 +1785,176 @@ interface Node() extends HasAt;
                      */
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
+            /**
+             * nonterminal header
+             */
+            NonterminalHeader(Option<ModifierPrivate> modifier
+                                = Option.<ModifierPrivate>none(),
+                              Id name,
+                              List<NonterminalParameter> params,
+                              List<StaticParam> staticParams
+                                = Collections.<StaticParam>emptyList(),
+                              Option<Type> paramType,
+                              Option<WhereClause> whereClause
+                                = Option.<WhereClause>none());
+
+            /**
+             * nonterminal parameter
+             */
+            NonterminalParameter(Id name, BaseType paramType);
+
+            /**
+             * syntax declaration
+             */
+            abstract SyntaxDecl(Option<String> modifier);
+                /**
+                 * syntax definition in syntax declarations
+                 */
+                SyntaxDef(List<SyntaxSymbol> syntaxSymbols,
+                          TransformerDecl transformer);
+
+                SuperSyntaxDef(Id nonterminal, Id grammarId);
+
+            /**
+              * Transformation declaration
+              */
+            abstract TransformerDecl();
+                /**
+                 * pre transformer definition in transformer declarations
+                 */
+                PreTransformerDef(Transformer transformer);
+                /**
+                 * transformer definition in transformer declarations
+                 */
+                NamedTransformerDef(String name, List<NonterminalParameter> parameters, Transformer transformer);
+
+            /**
+             * Transformers
+             */
+            abstract Transformer();
+                /**
+                 * Unparsed template
+                 */
+                UnparsedTransformer(String transformer, Id nonterminal);
+                /**
+                 * Parsed template
+                 */
+                NodeTransformer(AbstractNode node);
+                /**
+                 * Case-dispatch transformer expr
+                 */
+                CaseTransformer(Id gapName, List<CaseTransformerClause> clauses);
+
+            /**
+             * Case transformer clause
+             */
+            CaseTransformerClause(Id constructor, List<Id> parameters, Transformer body);
+
+            /**
+             * syntax symbol
+             */
+            abstract SyntaxSymbol();
+                /**
+                 * prefixed syntax symbol
+                 */
+                PrefixedSymbol(Id id, SyntaxSymbol symbol);
+                /**
+                 * optional syntax symbol
+                 */
+                OptionalSymbol(SyntaxSymbol symbol);
+                /**
+                 * repeat zero-or-more syntax symbol
+                 */
+                RepeatSymbol(SyntaxSymbol symbol);
+                /**
+                 * repeat one-or-more syntax symbol
+                 */
+                RepeatOneOrMoreSymbol(SyntaxSymbol symbol);
+                /**
+                 * ignore following whitespace syntax symbol
+                 */
+                NoWhitespaceSymbol(SyntaxSymbol symbol);
+                /**
+                 * groups of symbols
+                 */
+                GroupSymbol(List<SyntaxSymbol> symbols);
+                /**
+                 * special symbols syntax symbol
+                 */
+                abstract SpecialSymbol();
+                    /**
+                     * any character syntax symbol
+                     */
+                    AnyCharacterSymbol();
+                    /**
+                     * whitespace syntax symbol
+                     */
+                    WhitespaceSymbol(String s);
+                    /**
+                     * tab syntax symbol
+                     */
+                    TabSymbol();
+                    /**
+                     * formfeed syntax symbol
+                     */
+                    FormfeedSymbol();
+                    /**
+                     * carriage return syntax symbol
+                     */
+                    CarriageReturnSymbol();
+                    /**
+                     * backspace syntax symbol
+                     */
+                    BackspaceSymbol();
+                    /**
+                     * newline syntax symbol
+                     */
+                    NewlineSymbol();
+                    /**
+                     * breakline syntax symbol
+                     */
+                    BreaklineSymbol(String s);
+                /**
+                 * item syntax symbol;
+                 * may be either nonterminal or keyword
+                 */
+                ItemSymbol(String item);
+                /**
+                 * non-terminal syntax symbol
+                 */
+                NonterminalSymbol(Id nonterminal);
+                /**
+                 * keyword syntax symbol
+                 */
+                KeywordSymbol(String token);
+                /**
+                 * token syntax symbol
+                 */
+                TokenSymbol(String token);
+                /**
+                 * not predicate syntax symbol
+                 */
+                NotPredicateSymbol(SyntaxSymbol symbol);
+                /**
+                 * and predicate syntax symbol
+                 */
+                AndPredicateSymbol(SyntaxSymbol symbol);
+                /**
+                 * character class syntax symbol
+                 */
+                CharacterClassSymbol(List<CharacterSymbol> characters);
+                /**
+                 * character symbols
+                 */
+                abstract CharacterSymbol();
+                    /**
+                     * character
+                     */
+                    CharSymbol(String string);
+                    /**
+                     * character interval
+                     */
+                    CharacterInterval(String beginSymbol, String endSymbol);
             /*
              * A Link in a ChainExpr is a pair of FunctionalRef and the next Expr in the chain.
              * e.g.) < 5

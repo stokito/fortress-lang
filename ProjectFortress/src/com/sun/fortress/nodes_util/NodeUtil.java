@@ -115,11 +115,11 @@ public class NodeUtil {
                 }
             }
         };
-        
+
         for (Import imp  : comp.getImports()) {
             imp.accept(collector);
         }
-        
+
         for (APIName api : comp.getExports()) {
             all.add(api);
         }
@@ -599,8 +599,7 @@ public class NodeUtil {
     public static boolean isExponentiation(Type type) {
         return (type instanceof ArrayType ||
                 type instanceof MatrixType ||
-                type instanceof ExponentType ||
-                type instanceof ExponentDim);
+                type instanceof DimExponent);
     }
     public static boolean isExponentiation(IntExpr staticExpr) {
         return (staticExpr instanceof ExponentConstraint);
