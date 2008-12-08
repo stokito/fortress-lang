@@ -2263,7 +2263,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forBoolConstantOnly(BoolConstant that) {
+    @Override public String forBoolBaseOnly(BoolBase that) {
         if ( that.isBoolVal() )
             return handleParen( "true",
                                 that.isParenthesized() );
@@ -2278,16 +2278,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forNotConstraintOnly(NotConstraint that,
-                                                 String bool_result) {
-        return handleParen( "NOT " + bool_result,
+    @Override public String forBoolUnaryOpOnly(BoolUnaryOp that,
+                                               String bool_result,
+                                               String op_result) {
+        return handleParen( op_result + bool_result,
                             that.isParenthesized() );
     }
 
-    @Override public String forBinaryBoolConstraintOnly(BinaryBoolConstraint that,
-                                                        String op,
-                                                        String left_result,
-                                                        String right_result) {
+    @Override public String forBoolBinaryOpOnly(BoolBinaryOp that,
+                                                String left_result,
+                                                String right_result,
+                                                String op) {
         return handleParen( left_result + " " + op + " " + right_result,
                             that.isParenthesized() );
     }

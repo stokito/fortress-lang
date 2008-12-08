@@ -342,7 +342,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 }
                 return ((Bool)t).getBooleanValue();
             }
-            public FType forBoolConstant(BoolConstant b) {
+            public FType forBoolBase(BoolBase b) {
                 return Bool.make(b.isBoolVal());
             }
             public FType forBoolRef(BoolRef n) {
@@ -354,11 +354,15 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                     throw p.setContext(q, env);
                 }
             }
-            public FType forNotConstraint(NotConstraint n) {
-                return Bool.make(!boolify(n.getBoolVal()));
+            public FType forBoolUnaryOp(BoolUnaryOp n) {
+                if ( n.getOp().getText().equals("NOT") )
+                    return Bool.make(!boolify(n.getBoolVal()));
+                else
+                    return bug(n, errorMsg("EvalType: ", n.getClass(),
+                                           " is not yet implemented."));
             }
 
-            private boolean boolOp(BinaryBoolConstraint n, String op, boolean left, boolean right) {
+            private boolean boolOp(BoolBinaryOp n, String op, boolean left, boolean right) {
                 if ( op.equals("OR") )
                     return left || right;
                 else if ( op.equals("AND") )
@@ -372,9 +376,10 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                                     " is not a subtype of BoolExpr."));
                 return false;
             }
-            public FType forBinaryBooluConstraint(BinaryBoolConstraint n) {
-                Op op = (Op)n.getOp().getOriginalName();
-                return Bool.make(boolOp(n, op.getText(), boolify(n.getLeft()), boolify(n.getRight())));
+            public FType forBinaryBooluConstraint(BoolBinaryOp n) {
+                return Bool.make(boolOp(n, n.getOp().getText(),
+                                        boolify(n.getLeft()),
+                                        boolify(n.getRight())));
             }
             public FType defaultCase(Node x) {
                 return bug(x, errorMsg("EvalType: ", x.getClass(),
@@ -383,7 +388,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
         });
     }
 
-    public FType forBoolConstant(BoolConstant b) {
+    public FType forBoolBase(BoolBase b) {
         return Bool.make(b.isBoolVal());
     }
 

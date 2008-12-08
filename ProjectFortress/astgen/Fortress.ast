@@ -1297,36 +1297,32 @@ interface Node() extends HasAt;
                 /**
                  * boolean expression
                  * StaticExpr ::= BoolExpr
+                 * BoolExpr ::= BoolVal
                  */
                 abstract BoolExpr();
                     /**
-                     * boolean value
-                     * BoolExpr ::= BoolVal
+                     * boolean constant
+                     * BoolVal ::= true | false
+                     * e.g.) true
                      */
-                    abstract BoolVal();
-                        /**
-                         * boolean constant
-                         * BoolVal ::= true | false
-                         * e.g.) true
-                         */
-                        BoolConstant(boolean boolVal);
-                        /**
-                         * boolean identiier
-                         * BoolVal ::= QualifiedName
-                         * e.g.) ninf
-                         */
-                        BoolRef(Id name, int lexicalDepth=-2147483648);
+                    BoolBase(boolean boolVal);
+                    /**
+                     * boolean identiier
+                     * BoolVal ::= QualifiedName
+                     * e.g.) ninf
+                     */
+                    BoolRef(Id name, int lexicalDepth=-2147483648);
                     /**
                      * boolean constraint
                      * BoolExpr ::= BoolConstraint
                      */
                     abstract BoolConstraint();
                         /**
-                         * boolean NOT constraint
+                         * unary boolean constraint
                          * BoolConstraint ::= NOT BoolExpr
                          * e.g.) NOT ninf
                          */
-                        NotConstraint(BoolExpr boolVal);
+                        BoolUnaryOp(BoolExpr boolVal, Op op);
                         /**
                          * binary boolean constraint
                          * BoolConstraint ::= BoolExpr OR BoolExpr
@@ -1335,7 +1331,7 @@ interface Node() extends HasAt;
                          *                  | BoolExpr = BoolExpr
                          * e.g.) ninf OR pinf
                          */
-                        BinaryBoolConstraint(FunctionalRef op, BoolExpr left, BoolExpr right);
+                        BoolBinaryOp(BoolExpr left, BoolExpr right, Op op);
                 /**
                  * unit expression
                  * StaticExpr ::= UnitExpr

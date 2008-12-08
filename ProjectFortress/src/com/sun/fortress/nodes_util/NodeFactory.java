@@ -1134,18 +1134,18 @@ public class NodeFactory {
 
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
-            public BoolExpr forBoolConstant(BoolConstant b) {
-                return new BoolConstant(b.getSpan(), true, b.isBoolVal());
+            public BoolExpr forBoolBase(BoolBase b) {
+                return new BoolBase(b.getSpan(), true, b.isBoolVal());
             }
             public BoolExpr forBoolRef(BoolRef b) {
                 return new BoolRef(b.getSpan(), true, b.getName());
             }
-            public BoolExpr forNotConstraint(NotConstraint b) {
-                return new NotConstraint(b.getSpan(), true, b.getBoolVal());
+            public BoolExpr forBoolUnaryOp(BoolUnaryOp b) {
+                return new BoolUnaryOp(b.getSpan(), true, b.getBoolVal(), b.getOp());
             }
-            public BoolExpr forBinaryBoolConstraint(BinaryBoolConstraint b) {
-                return new BinaryBoolConstraint(b.getSpan(), true, b.getOp(),
-                                                b.getLeft(), b.getRight());
+            public BoolExpr forBoolBinaryOp(BoolBinaryOp b) {
+                return new BoolBinaryOp(b.getSpan(), true,
+                                        b.getLeft(), b.getRight(), b.getOp());
             }
             public BoolExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
