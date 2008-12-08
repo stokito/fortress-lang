@@ -2299,24 +2299,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forProductUnitOnly(ProductUnit that,
-                                               String left_result,
-                                               String right_result) {
-        return handleParen( left_result + " " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forQuotientUnitOnly(QuotientUnit that,
+    @Override public String forUnitBinaryOpOnly(UnitBinaryOp that,
                                                 String left_result,
-                                                String right_result) {
-        return handleParen( left_result + "/" + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forExponentUnitOnly(ExponentUnit that,
-                                                String left_result,
-                                                String right_result) {
-        return handleParen( left_result + "^" + right_result,
+                                                String right_result,
+                                                String op_result) {
+        return handleParen( left_result + op_result + right_result,
                             that.isParenthesized() );
     }
 

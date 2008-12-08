@@ -1204,17 +1204,9 @@ public class NodeFactory {
             public UnitExpr forUnitRef(UnitRef b) {
                 return new UnitRef(b.getSpan(), true, b.getName());
             }
-            public UnitExpr forProductUnit(ProductUnit i) {
-                return new ProductUnit(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
-            }
-            public UnitExpr forQuotientUnit(QuotientUnit t) {
-                return new QuotientUnit(t.getSpan(), true, t.getLeft(),
-                        t.getRight());
-            }
-            public UnitExpr forExponentUnit(ExponentUnit i) {
-                return new ExponentUnit(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
+            public UnitExpr forUnitBinaryOp(UnitBinaryOp i) {
+                return new UnitBinaryOp(i.getSpan(), true, i.getLeft(),
+                                        i.getRight(), i.getOp());
             }
             public UnitExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +

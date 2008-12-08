@@ -195,20 +195,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName());
     }
 
-    private String forUnitOpExpr(UnitOpExpr node, String op) {
-        return "(" + node.getLeft().accept(this) + op + node.getRight().accept(this) + ")";
-    }
-
-    public String forProductUnit(ProductUnit node) {
-        return forUnitOpExpr(node, " ");
-    }
-
-    public String forQuotientUnit(QuotientUnit node) {
-        return forUnitOpExpr(node, "/");
-    }
-
-    public String forExponentUnit(ExponentUnit node) {
-        return forUnitOpExpr(node, "^");
+    public String forUnitBinaryOp(UnitBinaryOp node) {
+        return "(" + node.getLeft().accept(this) +
+                     node.getOp().accept(this) +
+                     node.getRight().accept(this) + ")";
     }
 
     public String forIntRef(IntRef node) {
