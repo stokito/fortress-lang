@@ -2320,33 +2320,29 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forWhereTypeOnly(WhereType that,
-                                             String name_result,
-                                             List<String> supers_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( name_result );
-        s = optCurlyBraces(s, " extends ", supers_result, "");
-        return s.toString();
-    }
-
-    @Override public String forWhereNatOnly(WhereNat that,
-                                            String name_result) {
-        return "nat " + name_result;
-    }
-
-    @Override public String forWhereIntOnly(WhereInt that,
-                                            String name_result) {
-        return "int " + name_result;
-    }
-
-    @Override public String forWhereBoolOnly(WhereBool that,
-                                             String name_result) {
-        return "bool " + name_result;
-    }
-
-    @Override public String forWhereUnitOnly(WhereUnit that,
-                                             String name_result) {
-        return "unit " + name_result;
+    @Override public String forWhereBindingOnly(WhereBinding that,
+                                                final String name_result,
+                                                final List<String> supers_result,
+                                                String kind_result) {
+        return that.getKind().accept( new NodeDepthFirstVisitor<String>(){
+                @Override public String forKindType(final KindType kind) {
+                    StringBuilder s = new StringBuilder();
+                    s.append( name_result );
+                    s = optCurlyBraces(s, " extends ", supers_result, "");
+                    return s.toString();
+                }
+                @Override public String forKindNat(final KindNat kind) {
+                    return "nat " + name_result;
+                }
+                @Override public String forKindInt(final KindInt kind) {
+                    return "int " + name_result;
+                }
+                @Override public String forKindBool(final KindBool kind) {
+                    return "bool " + name_result;
+                }
+                @Override public String forKindUnit(final KindUnit kind) {
+                    return "unit " + name_result;
+                }} );
     }
 
     @Override public String forWhereExtendsOnly(WhereExtends that,

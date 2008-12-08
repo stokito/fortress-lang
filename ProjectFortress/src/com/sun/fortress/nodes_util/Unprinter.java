@@ -59,6 +59,13 @@ import com.sun.fortress.nodes.MultiFixity;
 import com.sun.fortress.nodes.EnclosingFixity;
 import com.sun.fortress.nodes.BigFixity;
 import com.sun.fortress.nodes.UnknownFixity;
+import com.sun.fortress.nodes.StaticParamKind;
+import com.sun.fortress.nodes.KindType;
+import com.sun.fortress.nodes.KindNat;
+import com.sun.fortress.nodes.KindInt;
+import com.sun.fortress.nodes.KindBool;
+import com.sun.fortress.nodes.KindDim;
+import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -338,6 +345,8 @@ public class Unprinter extends NodeReflection {
                     f.set(node, readFixity());
                 } else if (Modifier.class.isAssignableFrom(f.getType())) {
                     f.set(node, readModifier());
+                } else if (StaticParamKind.class.isAssignableFrom(f.getType())) {
+                    f.set(node, readStaticParamKind());
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
                         || Lhs.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");
@@ -656,6 +665,26 @@ public class Unprinter extends NodeReflection {
             modifier = new ModifierWrapped();
         expectPrefix(")");
         return modifier;
+    }
+
+    public StaticParamKind readStaticParamKind() throws IOException {
+        expectPrefix("(");
+        String s = l.name();
+        StaticParamKind kind;
+        if ( "KindType".equals(s) )
+            kind = new KindType();
+        else if ( "KindNat".equals(s) )
+            kind = new KindNat();
+        else if ( "KindInt".equals(s) )
+            kind = new KindInt();
+        else if ( "KindBool".equals(s) )
+            kind = new KindBool();
+        else if ( "KindDim".equals(s) )
+            kind = new KindDim();
+        else
+            kind = new KindUnit();
+        expectPrefix(")");
+        return kind;
     }
 
     public Map<String,Object> readMap() throws IOException {

@@ -125,7 +125,10 @@ transient List<WhereBinding> WhereBindingList =
  */
 transient WhereBinding WhereBinding =
      nat w a1:Id
-     { yyValue = new WhereNat(createSpan(yyStart,yyCount), a1); }
+     { List<BaseType> supers = Collections.<BaseType>emptyList();
+       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+                                  a1, supers, new KindNat());
+     }
    / <ErrorProduction1> nat w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid nat parameter name.\n" +
@@ -136,7 +139,10 @@ transient WhereBinding WhereBinding =
                              "letters is an operator name.");
      }
    / int w a1:Id
-     { yyValue = new WhereInt(createSpan(yyStart,yyCount), a1); }
+     { List<BaseType> supers = Collections.<BaseType>emptyList();
+       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+                                  a1, supers, new KindInt());
+     }
    / <ErrorProduction2> int w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid int parameter name.\n" +
@@ -147,7 +153,10 @@ transient WhereBinding WhereBinding =
                              "letters is an operator name.");
      }
    / bool w a1:Id
-     { yyValue = new WhereBool(createSpan(yyStart,yyCount), a1); }
+     { List<BaseType> supers = Collections.<BaseType>emptyList();
+       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+                                  a1, supers, new KindBool());
+     }
    / <ErrorProduction3> bool w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid bool parameter name.\n" +
@@ -158,7 +167,10 @@ transient WhereBinding WhereBinding =
                              "letters is an operator name.");
      }
    / unit w a1:Id
-     { yyValue = new WhereUnit(createSpan(yyStart,yyCount), a1); }
+     { List<BaseType> supers = Collections.<BaseType>emptyList();
+       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+                                  a1, supers, new KindUnit());
+     }
    / <ErrorProduction4> unit w a1:OpName
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              a1 + " is not a valid unit parameter name.\n" +
@@ -179,7 +191,7 @@ transient WhereBinding WhereBinding =
      }
    / a1:Id a2:(w a2:Extends)?
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new WhereType(createSpan(yyStart,yyCount), a1, a2);
+       yyValue = new WhereBinding(createSpan(yyStart,yyCount), a1, a2, new KindType());
      }
    / <ErrorProduction6> opendoublesquare
      { yyValue = syntaxError(createSpan(yyStart,yyCount),

@@ -1346,19 +1346,13 @@ interface Node() extends HasAt;
                     UnitRef(Id name);
                     /**
                      * unit expression with an operator
-                     *
-                     * unit multiplication
                      * UnitExpr ::= UnitExpr UnitExpr
                      *            | UnitExpr DOT UnitExpr
-                     * e.g.) m DOT n
-                     *
-                     * unit division
-                     * UnitExpr ::= UnitExpr / UnitExpr
+                     *            | UnitExpr / UnitExpr
                      *            | UnitExpr per UnitExpr
+                     *            | UnitExpr caret UnitExpr
+                     * e.g.) m DOT n
                      * e.g.) meter / second
-                     *
-                     * unit exponentiation
-                     * UnitExpr ::= UnitExpr caret UnitExpr
                      * e.g.) meter^2
                      */
                     UnitBinaryOp(UnitExpr left, UnitExpr right, Op op);
@@ -1375,39 +1369,20 @@ interface Node() extends HasAt;
             /**
              * hidden type variable binding declared in where clauses
              * Names must be unqualified.
+             *
+             * WhereBinding ::= Id Extends?
+             *                | nat Id
+             *                | int Id
+             *                | bool Id
+             *                | unit Id
+             * Extends ::= extends TraitTypes
+             * e.g.) T extends Object
+             * e.g.) nat length
+             * e.g.) int length
+             * e.g.) bool ninf
+             * e.g.) unit U
              */
-            abstract WhereBinding(Id name);
-                /**
-                 * hidden type variable declared in where clauses
-                 * WhereBinding ::= Id Extends?
-                 * Extends ::= extends TraitTypes
-                 * e.g.) T extends Object
-                 */
-                WhereType(List<BaseType> supers);
-                /**
-                 * nat parameter declared in where clauses
-                 * WhereBinding ::= nat Id
-                 * e.g.) nat length
-                 */
-                WhereNat();
-                /**
-                 * int parameter declared in where clauses
-                 * WhereBinding ::= int Id
-                 * e.g.) int length
-                 */
-                WhereInt();
-                /**
-                 * bool parameter declared in where clauses
-                 * WhereBinding ::= bool Id
-                 * e.g.) bool ninf
-                 */
-                WhereBool();
-                /**
-                 * unit parameter declared in where clauses
-                 * WhereBinding ::= unit Id
-                 * e.g.) unit U
-                 */
-                WhereUnit();
+            WhereBinding(Id name, List<BaseType> supers, StaticParamKind kind);
             /**
              * hidden type variable constraint declared in where clauses
              */
@@ -2092,5 +2067,27 @@ interface Node() extends HasAt;
                  * This should not appear after parsing.
                  */
                 UnknownFixity();
+            /**
+             * static parameters
+             */
+            abstract StaticParamKind();
+                /**
+                 */
+                KindType();
+                /**
+                 */
+                KindNat();
+                /**
+                 */
+                KindInt();
+                /**
+                 */
+                KindBool();
+                /**
+                 */
+                KindDim();
+                /**
+                 */
+                KindUnit();
 
 end;
