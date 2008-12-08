@@ -2243,8 +2243,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return unit_result;
     }
 
-    @Override public String forNumberConstraintOnly(NumberConstraint that,
-                                                    String val_result) {
+    @Override public String forIntBaseOnly(IntBase that,
+                                           String val_result) {
         return handleParen( val_result,
                             that.isParenthesized() );
     }
@@ -2255,31 +2255,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forSumConstraintOnly(SumConstraint that,
-                                                 String left_result,
-                                                 String right_result) {
-        return handleParen( left_result + " + " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forMinusConstraintOnly(MinusConstraint that,
-                                                   String left_result,
-                                                   String right_result) {
-        return handleParen( left_result + " - " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forProductConstraintOnly(ProductConstraint that,
-                                                     String left_result,
-                                                     String right_result) {
-        return handleParen( left_result + " " + right_result,
-                            that.isParenthesized() );
-    }
-
-    @Override public String forExponentConstraintOnly(ExponentConstraint that,
-                                                      String left_result,
-                                                      String right_result) {
-        return handleParen( left_result + "^" + right_result,
+    @Override public String forIntBinaryOpOnly(IntBinaryOp that,
+                                               String left_result,
+                                               String right_result,
+                                               String op_result) {
+        return handleParen( left_result + op_result + right_result,
                             that.isParenthesized() );
     }
 

@@ -1028,51 +1028,6 @@ interface Node() extends HasAt;
              */
             root abstract Type(ignoreForEquals boolean parenthesized = false);
                 /**
-                 * dimension expression (not really a type, but here for
-                 * now because of the way the parser is defined)
-                 */
-                abstract DimExpr();
-                    /* base dimension
-                     * DimExpr ::= Unity
-                     * e.g.) Unity
-                     */
-                    DimBase();
-                    /* dimension identifier
-                     * DimExpr ::= QualifiedName
-                     * e.g.) com.sun.fortress.dim.Length
-                     */
-                    DimRef(Id name);
-                    /* vector type or exponent dimemsion
-                     * resolved during parsing
-                     * after parsing the base field should be of type DimExpr
-                     * e.g.) ZZ32^3
-                     *
-                     * dimension exponentiation
-                     * DimExpr ::= DimExpr ^ IntExpr
-                     * e.g.) Time^2
-                     */
-                    DimExponent(Type base, IntExpr power);
-                    /* dimension with an unary operator
-                     * DimExpr ::= DimPrefixOp DimExpr
-                     *           | DimExpr DimPostfixOp
-                     * e.g.) Time squared
-                     */
-                    DimUnaryOp(DimExpr dimVal, Op op);
-                    /* dimension with a binary operator
-                     *
-                     * dimension multiplication
-                     * DimExpr ::= DimExpr DOT DimExpr
-                     *           | DimExpr DimExpr
-                     * e.g.) Length Mass
-                     *
-                     * dimension division
-                     * DimExpr ::= DimExpr / DimExpr
-                     *           | DimExpr per DimExpr
-                     *           | 1 / DimExpr
-                     * e.g.) Length / Time
-                     */
-                    DimBinaryOp(DimExpr left, DimExpr right, Op op);
-                /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */
                 abstract BaseType();
@@ -1205,6 +1160,51 @@ interface Node() extends HasAt;
                  * The type of the name given to a label expression.  Used internally.
                  */
                 LabelType();
+                /**
+                 * dimension expression (not really a type, but here for
+                 * now because of the way the parser is defined)
+                 */
+                abstract DimExpr();
+                    /* base dimension
+                     * DimExpr ::= Unity
+                     * e.g.) Unity
+                     */
+                    DimBase();
+                    /* dimension identifier
+                     * DimExpr ::= QualifiedName
+                     * e.g.) com.sun.fortress.dim.Length
+                     */
+                    DimRef(Id name);
+                    /* vector type or exponent dimemsion
+                     * resolved during parsing
+                     * after parsing the base field should be of type DimExpr
+                     * e.g.) ZZ32^3
+                     *
+                     * dimension exponentiation
+                     * DimExpr ::= DimExpr ^ IntExpr
+                     * e.g.) Time^2
+                     */
+                    DimExponent(Type base, IntExpr power);
+                    /* dimension with an unary operator
+                     * DimExpr ::= DimPrefixOp DimExpr
+                     *           | DimExpr DimPostfixOp
+                     * e.g.) Time squared
+                     */
+                    DimUnaryOp(DimExpr dimVal, Op op);
+                    /* dimension with a binary operator
+                     *
+                     * dimension multiplication
+                     * DimExpr ::= DimExpr DOT DimExpr
+                     *           | DimExpr DimExpr
+                     * e.g.) Length Mass
+                     *
+                     * dimension division
+                     * DimExpr ::= DimExpr / DimExpr
+                     *           | DimExpr per DimExpr
+                     *           | 1 / DimExpr
+                     * e.g.) Length / Time
+                     */
+                    DimBinaryOp(DimExpr left, DimExpr right, Op op);
             /**
              * effect on arrow types
              * e.g.) throws FailCalled
@@ -1258,54 +1258,42 @@ interface Node() extends HasAt;
                 /**
                  * integer expression
                  * StaticExpr ::= IntExpr
+                 * IntExpr ::= IntVal
                  */
                 abstract IntExpr();
                     /**
-                     * integer value
-                     * IntExpr ::= IntVal
+                     * integer number
+                     * IntVal ::= IntLiteralExpr
+                     * e.g.) 8
                      */
-                    abstract IntVal();
-                        /**
-                         * integer number
-                         * IntVal ::= IntLiteralExpr
-                         * e.g.) 8
-                         */
-                        NumberConstraint(IntLiteralExpr intVal);
-                        /**
-                         * integer identifier
-                         * IntVal ::= QualifiedName
-                         * e.g.) m
-                         */
-                        IntRef(Id name, int lexicalDepth=-2147483648);
+                    IntBase(IntLiteralExpr intVal);
+                    /**
+                     * integer identifier
+                     * IntVal ::= QualifiedName
+                     * e.g.) m
+                     */
+                    IntRef(Id name, int lexicalDepth=-2147483648);
                     /**
                      * integer expression with an operator
+                     *
+                     * integer addition
+                     * IntExpr ::= IntExpr + IntExpr
+                     * e.g.) m + 2
+                     *
+                     * integer subtraction
+                     * IntExpr ::= IntExpr - IntExpr
+                     * e.g.) m - 2
+                     *
+                     * integer multiplication
+                     * IntExpr ::= IntExpr IntExpr
+                     *           | IntExpr DOT IntExpr
+                     * e.g.) m DOT n
+                     *
+                     * integer exponentiation
+                     * IntExpr ::= IntExpr caret IntVal
+                     * e.g.) 2^b
                      */
-                    abstract IntOpExpr(IntExpr left, IntExpr right);
-                        /**
-                         * integer addition
-                         * IntExpr ::= IntExpr + IntExpr
-                         * e.g.) m + 2
-                         */
-                        SumConstraint();
-                        /**
-                         * integer subtraction
-                         * IntExpr ::= IntExpr - IntExpr
-                         * e.g.) m - 2
-                         */
-                        MinusConstraint();
-                        /**
-                         * integer multiplication
-                         * IntExpr ::= IntExpr IntExpr
-                         *           | IntExpr DOT IntExpr
-                         * e.g.) m DOT n
-                         */
-                        ProductConstraint();
-                        /**
-                         * integer exponentiation
-                         * IntExpr ::= IntExpr caret IntVal
-                         * e.g.) 2^b
-                         */
-                        ExponentConstraint();
+                    IntBinaryOp(IntExpr left, IntExpr right, Op op);
                 /**
                  * boolean expression
                  * StaticExpr ::= BoolExpr

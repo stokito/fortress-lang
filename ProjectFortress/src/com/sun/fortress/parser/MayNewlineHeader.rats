@@ -119,9 +119,9 @@ transient private IntConstraint IntConstraint =
      IntLiteralExpr
    | QualifiedName
  */
-transient IntVal IntVal =
+transient IntExpr IntVal =
      a1:IntLiteralExpr
-     { yyValue = new NumberConstraint(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new IntBase(createSpan(yyStart,yyCount), a1); }
    / a1:QualifiedName
      { yyValue = new IntRef(createSpan(yyStart,yyCount), a1); };
 
@@ -154,8 +154,9 @@ private constant inline Action<IntExpr> SumIntExpr =
      w plus w a1:IntExpr
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
-               return new SumConstraint(createSpan(yyStart,yyCount),
-                                        (IntExpr)base, a1);
+               Op plus = NodeFactory.makeOpInfix(a1.getSpan(), "+");
+               return new IntBinaryOp(createSpan(yyStart,yyCount),
+                                      (IntExpr)base, a1, plus);
            }};
      };
 
@@ -163,8 +164,9 @@ private constant inline Action<IntExpr> MinusIntExpr =
      w minus w a1:IntExpr
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
-               return new MinusConstraint(createSpan(yyStart,yyCount),
-                                          (IntExpr)base, a1);
+               Op minus = NodeFactory.makeOpInfix(a1.getSpan(), "-");
+               return new IntBinaryOp(createSpan(yyStart,yyCount),
+                                      (IntExpr)base, a1, minus);
            }};
      };
 
@@ -172,8 +174,9 @@ private constant inline Action<IntExpr> ProductIntExpr =
      (w DOT w / sr) a1:IntExpr
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
-               return new ProductConstraint(createSpan(yyStart,yyCount),
-                                            (IntExpr)base, a1);
+               Op product = NodeFactory.makeOpInfix(a1.getSpan(), " ");
+               return new IntBinaryOp(createSpan(yyStart,yyCount),
+                                      (IntExpr)base, a1, product);
            }};
      };
 
@@ -182,12 +185,13 @@ private constant inline Action<IntExpr> ExponentIntExpr =
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
                Span span = createSpan(yyStart,yyCount);
+               Op exponent = NodeFactory.makeOpInfix(a1.getSpan(), "^");
                if (NodeUtil.isExponentiation((IntExpr)base)) {
                    log(((IntExpr)base).getSpan(),
                        "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
-                   return new ExponentConstraint(span, (IntExpr)base, a1);
-               } return new ExponentConstraint(span, (IntExpr)base, a1);
+                   return new IntBinaryOp(span, (IntExpr)base, a1, exponent);
+               } return new IntBinaryOp(span, (IntExpr)base, a1, exponent);
            }};
      };
 

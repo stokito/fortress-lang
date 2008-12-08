@@ -23,7 +23,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntExpr;
 import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.NumberConstraint;
+import com.sun.fortress.nodes.IntBase;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.BoundingMap;
@@ -141,8 +141,8 @@ public class IntNat extends FTypeNat {
             System.out.println("unifying IntNat "+this+" and "+ val.getClass().getSimpleName() + " " + val);
         if (val instanceof IntArg) {
             IntExpr n = ((IntArg)val).getIntVal();
-            if (n instanceof NumberConstraint) {
-                if (((NumberConstraint)n).getIntVal().getIntVal().intValue() == this.getValue()) {
+            if (n instanceof IntBase) {
+                if (((IntBase)n).getIntVal().getIntVal().intValue() == this.getValue()) {
                     // no error
                     return;
                 }

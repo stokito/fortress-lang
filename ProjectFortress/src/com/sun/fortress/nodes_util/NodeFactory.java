@@ -1083,9 +1083,9 @@ public class NodeFactory {
         return new IntRef(new Span(), makeId(string));
     }
 
-    public static IntVal makeIntVal(String i) {
+    public static IntExpr makeIntVal(String i) {
         Span span = new Span();
-        return new NumberConstraint(span, new IntLiteralExpr(span,
+        return new IntBase(span, new IntLiteralExpr(span,
                 new BigInteger(i)));
     }
 
@@ -1182,27 +1182,15 @@ public class NodeFactory {
 
     public static IntExpr makeInParentheses(IntExpr ie) {
         return ie.accept(new NodeAbstractVisitor<IntExpr>() {
-            public IntExpr forNumberConstraint(NumberConstraint i) {
-                return new NumberConstraint(i.getSpan(), true, i.getIntVal());
+            public IntExpr forIntBase(IntBase i) {
+                return new IntBase(i.getSpan(), true, i.getIntVal());
             }
             public IntExpr forIntRef(IntRef i) {
                 return new IntRef(i.getSpan(), true, i.getName());
             }
-            public IntExpr forSumConstraint(SumConstraint i) {
-                return new SumConstraint(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
-            }
-            public IntExpr forMinusConstraint(MinusConstraint i) {
-                return new MinusConstraint(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
-            }
-            public IntExpr forProductConstraint(ProductConstraint i) {
-                return new ProductConstraint(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
-            }
-            public IntExpr forExponentConstraint(ExponentConstraint i) {
-                return new ExponentConstraint(i.getSpan(), true, i.getLeft(),
-                        i.getRight());
+            public IntExpr forIntBinaryOp(IntBinaryOp i) {
+                return new IntBinaryOp(i.getSpan(), true, i.getLeft(),
+                                       i.getRight(), i.getOp());
             }
             public IntExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
