@@ -30,6 +30,7 @@ import java.util.List;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeRest;
 import com.sun.fortress.interpreter.glue.Glue;
@@ -225,8 +226,8 @@ public abstract class NonPrimitive extends Simple_fcn {
                         genericName, ((FTypeRest) paramType).getType(),
                         natParams, site);
 
-                FValue theArray = f
-                        .applyPossiblyGeneric(Collections.<FValue> emptyList(), site);
+                FValue theArray =
+                    f.functionInvocation(Collections.<FValue> emptyList(), site);
                 if (!(theArray instanceof FObject))
                     return bug(site,errorMsg(f," returned non-FObject ",theArray));
                 // Use a wrapper to simplify our life

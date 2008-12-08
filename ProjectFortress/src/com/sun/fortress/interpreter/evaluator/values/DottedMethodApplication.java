@@ -132,6 +132,17 @@ public final class DottedMethodApplication extends Fcn {
         return app.applyPossiblyGeneric(args,site);
     }
 
+    public static FValue invokeMethodFrom(FObject self, Method m, List<FValue> args,
+                                          HasAt site) {
+        try {
+            return m.applyMethod(args, self, site);
+        } catch (FortressException ex) {
+            throw ex.setWhere(site);
+        } catch (StackOverflowError soe) {
+            return error(site,errorMsg("Stack overflow on ", site));
+        }
+    }
+
     public DottedMethodApplication applyToStaticArgs(List<StaticArg> sargs, HasAt site,
             Environment envForInference) {
         Method cl = getMethod();

@@ -24,6 +24,7 @@ import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.Driver;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeArray;
 import com.sun.fortress.interpreter.evaluator.types.FTypeMatrix;
@@ -184,7 +185,8 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid>  {
 
                     Simple_fcn f = Glue.instantiateGenericConstructor(wknInstantiationEnv, genericName, bestGuess, natParams, x);
                     // Now invoke f.
-                    FValue theArray = f.applyPossiblyGeneric(Collections.<FValue>emptyList(), x);
+                    FValue theArray =
+                        f.functionInvocation(Collections.<FValue>emptyList(), x);
                     // Do the copy.
                     iuo_tuple.copyTo(new IndexedArrayWrapper(theArray, x));
                     evaluator.e.putValue(s, theArray);

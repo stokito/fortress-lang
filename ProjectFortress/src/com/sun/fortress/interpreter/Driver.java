@@ -45,6 +45,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.evaluator.BuildTestEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.tasks.EvaluatorTask;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
@@ -531,7 +532,7 @@ public class Driver {
         for (String s : args) {
             fvalueArgs.add(FString.make(s));
         }
-        FValue ret = run_fn.applyPossiblyGeneric(fvalueArgs, toplevel);
+        FValue ret = run_fn.functionInvocation(fvalueArgs, toplevel);
         // try {
         // e.dump(System.out);
         // } catch (IOException ioe) {

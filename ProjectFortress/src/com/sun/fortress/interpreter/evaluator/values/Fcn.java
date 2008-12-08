@@ -16,16 +16,21 @@
  ******************************************************************************/
 
 package com.sun.fortress.interpreter.evaluator.values;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 import java.util.List;
 
+import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.UnificationError;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 abstract public class Fcn extends FValue {
     /**
@@ -134,6 +139,36 @@ abstract public class Fcn extends FValue {
      */
     public String asMethodName() {
         return NodeUtil.nameString(getFnName());
+    }
+
+
+    public static FValue functionInvocation(FValue arg, FValue foo, HasAt loc) {
+        return functionInvocation(Useful.list(arg), foo, loc);
+    }
+
+    public FValue functionInvocation(FValue arg, HasAt loc) {
+        return this.functionInvocation(Useful.list(arg), loc);
+    }
+
+    public static FValue functionInvocation(List<FValue> args, FValue foo,
+                                            HasAt loc) {
+        if (foo instanceof Fcn) {
+            return ((Fcn)foo).functionInvocation(args, loc);
+        } else {
+            return bug(loc, errorMsg("Not a Fcn: ", foo));
+        }
+    }
+
+    public FValue functionInvocation(List<FValue> args, HasAt site) {
+        try {
+            // We used to do redundant checks for genericity here, but
+            // now we reply on foo.apply to do type inference if necessary.
+            return this.applyPossiblyGeneric(args, site);
+        } catch (FortressException ex) {
+            throw ex.setWhere(site);
+        } catch (StackOverflowError soe) {
+            return error(site,errorMsg("Stack overflow on ",site));
+        }
     }
 
 }
