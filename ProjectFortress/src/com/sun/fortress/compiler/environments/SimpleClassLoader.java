@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
+import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class SimpleClassLoader extends ClassLoader {

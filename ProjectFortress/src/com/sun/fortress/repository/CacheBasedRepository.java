@@ -79,6 +79,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         apis.put(name, ci);
         return ci;
     }
+    
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
         ComponentIndex ci = components.get(name);
         if (ci != null)
@@ -153,6 +154,10 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public static String deCase(APIName s) {
         return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
+    }
+
+    public static String deCase(String s) {
+        return "_" + Integer.toString(s.hashCode()&0x7fffffff,16);
     }
 
     public static String deCaseName(APIName s) {

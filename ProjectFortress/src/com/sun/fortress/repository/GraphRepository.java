@@ -40,6 +40,7 @@ import com.sun.fortress.useful.Useful;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.Parser.Result;
+import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.AnalyzeResult;
@@ -136,8 +137,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
      * dependancies( via addApiGraph/addComponentGraph ) and recompile everything.
      */
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
-        ApiGraphNode node = addApiGraph(name);
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
+       Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
+       ApiGraphNode node = addApiGraph(name);
         refreshGraph();
         try{
             return node.getApi().unwrap();
@@ -147,8 +148,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
-        ComponentGraphNode node = addComponentGraph(name);
         Debug.debug( Debug.Type.REPOSITORY, 2, "Get component for ", name );
+        ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
         try{
             return node.getComponent().unwrap();
@@ -195,11 +196,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             node = (ApiGraphNode) graph.find( node );
         }
 
-        if ( link ){
-            Debug.debug( Debug.Type.REPOSITORY, 1, "Add component for API ", name );
-            graph.addEdge(addComponentGraph(name), node);
-        }
-
         return node;
     }
 
@@ -224,20 +220,31 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 /* oh well */
             } catch ( IOException e ){
             }
+            
             /* make this component depend on the APIs it imports */
             for ( APIName api : dependencies(node) ){
-                Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
-                graph.addEdge(node, addApiGraph(api));
+                nodeDependsOnApi(node, api);
             }
             /* and depend on all the root APIs */
             for ( String root : roots ){
-                graph.addEdge(node, addApiGraph(NodeFactory.makeAPIName(root)));
+                nodeDependsOnApi(node, NodeFactory.makeAPIName(root));
             }
         } else {
             node = (ComponentGraphNode) graph.find( node );
         }
 
         return node;
+    }
+
+    private void nodeDependsOnApi(ComponentGraphNode node, APIName api)
+            throws FileNotFoundException, IOException {
+        Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
+        graph.addEdge(node, addApiGraph(api));
+        if ( link ){
+            Debug.debug( Debug.Type.REPOSITORY, 1, "Add component for API ", api );
+            // Add element, but no API
+            addComponentGraph(api);
+        }
     }
 
     private long getCacheDate( ApiGraphNode node ){
@@ -654,18 +661,21 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return node;
     }
 
-    private void addRootComponents(){
+    private void addRootComponents() throws FileNotFoundException, IOException{
         for ( String root : roots ){
             APIName name = NodeFactory.makeAPIName(root);
-            ApiGraphNode node = (ApiGraphNode) graph.find(new ApiGraphNode(name));
-            ComponentGraphNode comp = new ComponentGraphNode(name);
-            try{
-                comp.setComponent( cache.getComponent( comp.getName() ) );
-            } catch ( FileNotFoundException e ){
-            } catch ( IOException e ){
-            }
-            graph.addNode( comp );
-            graph.addEdge( comp, node );
+            addApiGraph(name);
+            if (link)
+                addComponentGraph(name);
+//            ApiGraphNode node = (ApiGraphNode) graph.find(new ApiGraphNode(name));
+//            ComponentGraphNode comp = new ComponentGraphNode(name);
+//            try{
+//                comp.setComponent( cache.getComponent( comp.getName() ) );
+//            } catch ( FileNotFoundException e ){
+//            } catch ( IOException e ){
+//            }
+//            graph.addNode( comp );
+//            graph.addEdge( comp, node );
             needUpdate = true;
         }
     }
