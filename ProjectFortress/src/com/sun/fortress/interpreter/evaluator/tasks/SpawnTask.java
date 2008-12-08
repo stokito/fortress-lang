@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
+import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunner;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.SingleFcn;
@@ -39,7 +40,7 @@ public class SpawnTask extends BaseTask {
         List<FValue> args = new ArrayList<FValue>();
         HasAt site = new HasAt.FromString("SpawnTask");
         Environment e = eval.e;
-        val = fcn.applyPossiblyGeneric(args, site);
+        val = fcn.functionInvocation(args, site);
         resultIsReady = true;
         fcn = null;
         eval = null;

@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.ArrayList;
 
+import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FTuple;
@@ -75,14 +76,14 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
             l.add(FTuple.make(tup));
         }
         l.add(what);
-        putter.applyMethod(l,array,at);
+        DottedMethodApplication.invokeMethodFrom(array,putter,l,at);
     }
 
     public void put(FValue what, int index) {
         l.clear();
         l.add(FInt.make(index));
         l.add(what);
-        putter.applyMethod(l,array,at);
+        DottedMethodApplication.invokeMethodFrom(array,putter,l,at);
     }
 
     public FValue get(int[] indices, int indices_depth) {
@@ -97,7 +98,7 @@ public class IndexedArrayWrapper implements IndexedTarget, IndexedSource {
                 l.add(FInt.make(indices[i]));
             }
         }
-        return getter.applyMethod(l,array,at);
+        return DottedMethodApplication.invokeMethodFrom(array,getter,l,at);
     }
 
     public int dim() {

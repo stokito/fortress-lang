@@ -268,7 +268,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             List<FValue> vargs = new ArrayList<FValue>(2);
             vargs.add(lhsValue);
             vargs.add(rhs);
-            rhs = functionInvocation(vargs, fcn, x);
+            rhs = fcn.functionInvocation(vargs, x);
         }
 
         // Assignment must be single-anything, or tuple-tuple with
@@ -511,7 +511,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue current = c.getMatchClause().accept(this);
             vargs.add(current);
             vargs.add(winner);
-            FValue invoke = functionInvocation(vargs, fcn, x);
+            FValue invoke = fcn.functionInvocation(vargs, x);
             if (!(invoke instanceof FBool)) {
                 return error(x,errorMsg("Non-boolean result ",invoke,
                                         " in chain, args ", vargs));
@@ -557,7 +557,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                              WellKnownNames.containsTypeName)) {
                     fcn = (Fcn) Driver.getFortressLibrary().getRootValue(WellKnownNames.containsMatchName);
                 }
-                FBool success = (FBool) functionInvocation(vargs, fcn, c);
+                FBool success = (FBool) fcn.functionInvocation(vargs, c);
                 if (success.getBool())
                     return forBlock(c.getBody());
             }
@@ -588,7 +588,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue exprVal = link.getExpr().accept(this);
             vargs.add(idVal);
             vargs.add(exprVal);
-            return functionInvocation(vargs, fcn, x);
+            return fcn.functionInvocation(vargs, x);
         } else {
             FBool boolres = FBool.TRUE;
             vargs.add(idVal);
@@ -599,7 +599,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 FValue exprVal = link.getExpr().accept(this);
                 vargs.set(0, idVal);
                 vargs.set(1, exprVal);
-                FValue invoke = functionInvocation(vargs, fcn, x);
+                FValue invoke = fcn.functionInvocation(vargs, x);
                 if (!(invoke instanceof FBool)) {
                     return error(x,errorMsg("Non-boolean result ",invoke,
                                             " in chain, args ", vargs));
@@ -897,9 +897,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue f = fns.pop();
 
             if (f instanceof Fcn) {
-                tos = functionInvocation(argList(tos), f, loc);
+                tos = ((Fcn)f).functionInvocation(argList(tos), loc);
             } else {
-                tos = functionInvocation(Useful.list(f, tos), times, loc);
+                tos = Fcn.functionInvocation(Useful.list(f, tos), times, loc);
             }
         }
         return tos;
@@ -939,7 +939,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 stack.push(val);
             } else {
                 FValue r = stack.pop();
-                r = functionInvocation(Useful.list(r, val), times, x);
+                r = Fcn.functionInvocation(Useful.list(r, val), times, x);
                 stack.push(r);
             }
         }
@@ -959,7 +959,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         FValue fn_ = IterUtil.first(evaled);
         FValue arg_ = IterUtil.last(evaled);
 
-        return functionInvocation(arg_, fn_, that);
+        return Fcn.functionInvocation(arg_, fn_, that);
     }
 
     public FValue forArrayElement(ArrayElement x) {
@@ -1122,16 +1122,16 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
         Fcn fcn = (Fcn) fvalue;
         if (s <= 2 || ((Op)op).isEnclosing()) {
-            res = functionInvocation(vargs, fcn, x);
+            res = fcn.functionInvocation(vargs, x);
         } else {
             List<FValue> argPair = new ArrayList<FValue>(2);
             argPair.add(vargs.get(0));
             argPair.add(vargs.get(1));
-            res = functionInvocation(argPair, fcn, x);
+            res = fcn.functionInvocation(argPair, x);
             for (int i = 2; i < s; i++) {
                 argPair.set(0, res);
                 argPair.set(1, vargs.get(i));
-                res = functionInvocation(argPair, fcn, x);
+                res = fcn.functionInvocation(argPair, x);
             }
         }
         return res;
@@ -1234,7 +1234,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                     // the argument.  This new element is an expression.
                     Pair<MathItem,FValue> app =
                         new Pair<MathItem,FValue>(dummyExpr(),
-                                                  functionInvocation(arg,(Fcn)ftn,argE));
+                                                  Fcn.functionInvocation(arg,ftn,argE));
                     vs.set(ftnInd, app);
                     vs.remove(ftnInd+1);
                     // It is a static error if a function argument is immediately
@@ -1269,9 +1269,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
             Fcn fcn = (Fcn)fvalue;
             if (expr.isSome()) { // ^ Exponent
                 FValue exponent = expr.unwrap().accept(this);
-                return functionInvocation(Useful.list(front, exponent), fcn, op);
+                return fcn.functionInvocation(Useful.list(front, exponent), op);
             } else { // ExponentOp
-                return functionInvocation(Useful.list(front), fcn, op);
+                return fcn.functionInvocation(Useful.list(front), op);
             }
         } else { // opr instanceof SubscriptingMI
             SubscriptingMI sub = (SubscriptingMI)opr;
@@ -1319,9 +1319,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     private FValue tightJuxt(FValue first, FValue second, MathItem loc, MathPrimary x) {
-        if (isFunction(first)) return functionInvocation(second,(Fcn)first,loc);
-        else return functionInvocation(Useful.list(first, second),
-                                       e.getValue(x.getInfixJuxt()), loc);
+        if (isFunction(first)) return Fcn.functionInvocation(second,first,loc);
+        else return Fcn.functionInvocation(Useful.list(first, second),
+                                           e.getValue(x.getInfixJuxt()), loc);
     }
 
     private FValue leftAssociate(List<Pair<MathItem,FValue>> vs, MathPrimary x) {
@@ -1464,7 +1464,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             FValue cl = se.getLeafValueNull(mname); // leaf
             if (cl != null && !(cl instanceof Method) && cl instanceof Fcn) {
                 // Ordinary closure, assigned to a field.
-                return functionInvocation(args,(Fcn)cl, x);
+                return ((Fcn)cl).functionInvocation(args, x);
             }
         }
         return invokeMethod(fobj, mname, args, x);
@@ -1477,7 +1477,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      */
     private FValue finishFunctionInvocation(List<Expr> exprs, FValue foo,
             AbstractNode loc) {
-        return functionInvocation(evalInvocationArgs(exprs), foo, loc);
+        return Fcn.functionInvocation(evalInvocationArgs(exprs), foo, loc);
     }
 
     /**
@@ -1537,9 +1537,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 List<FValue> args = new ArrayList<FValue>();
                 args.add(exc);
                 Constructor c = (Constructor) libE.getRootValue(WellKnownNames.forbiddenException);
-                // Can we get a better HasAt?
-                HasAt site = new HasAt.FromString(WellKnownNames.forbiddenException);
-                FObject f = (FObject) c.applyPossiblyGeneric(args, site);
+                FObject f = (FObject) c.functionInvocation(args, forbidType);
                 FortressError f_exc = new FortressError(x,e,f);
                 throw f_exc;
             }

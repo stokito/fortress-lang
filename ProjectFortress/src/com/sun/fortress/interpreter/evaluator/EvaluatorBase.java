@@ -60,36 +60,6 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
         this.e = e;
     }
 
-    protected FValue functionInvocation(FValue arg, FValue foo,
-                                        AbstractNode loc) {
-        return functionInvocation(Useful.list(arg), foo, loc);
-    }
-
-    protected FValue functionInvocation(FValue arg, Fcn foo, AbstractNode loc) {
-        return functionInvocation(Useful.list(arg), foo, loc);
-    }
-
-    protected FValue functionInvocation(List<FValue> args, FValue foo,
-                                        AbstractNode loc) {
-        if (foo instanceof Fcn) {
-            return functionInvocation(args, (Fcn) foo, loc);
-        } else {
-            return bug(loc, errorMsg("Not a Fcn: ", foo));
-        }
-    }
-
-    protected FValue functionInvocation(List<FValue> args, Fcn foo, AbstractNode site) {
-        try {
-            // We used to do redundant checks for genericity here, but
-            // now we reply on foo.apply to do type inference if necessary.
-            return foo.applyPossiblyGeneric(args, site);
-        } catch (FortressException ex) {
-            throw ex.setContext(site,e);
-        } catch (StackOverflowError soe) {
-            return error(site,e,errorMsg("Stack overflow on ",foo));
-        }
-    }
-
     /**
      * Given args, infers the appropriate instantiation of a generic function.
      *
