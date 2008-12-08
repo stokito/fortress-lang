@@ -219,11 +219,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName());
     }
 
-    public String forNotConstraint(NotConstraint node) {
-        return "NOT(" + node.getBoolVal().accept(this) + ")";
+    public String forBoolUnaryOp(BoolUnaryOp node) {
+        return node.getOp().accept(this) + "(" + node.getBoolVal().accept(this) + ")";
     }
 
-    private String forBoolOpConstraint(BinaryBoolConstraint node) {
+    private String forBoolOpConstraint(BoolBinaryOp node) {
         return "(" + node.getLeft().accept(this) + node.getOp().accept(this) + node.getRight().accept(this) + ")";
     }
 
@@ -324,7 +324,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         }
     }
 
-    public String forBoolConstant(BoolConstant node) {
+    public String forBoolBase(BoolBase node) {
         if (node.isBoolVal()) { return "true"; }
         else { return "false"; }
     }
