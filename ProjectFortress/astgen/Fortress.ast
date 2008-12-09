@@ -935,7 +935,7 @@ interface Node() extends HasAt;
                          *           | Primary Primary
                          * e.g.) x y
                          */
-                        _RewriteFnApp(Expr function, Expr argument);
+                        _RewriteFnApp(Expr function, Expr argument) implements InAfterTypeChecking;
                         /**
                          * expression using operators
                          * (list of ops allows cross-API overloading)
@@ -1891,6 +1891,18 @@ interface Node() extends HasAt;
      * top-level information interface
      */
     interface Info();
+        /**
+         * node introduced or eliminated after a compiler phase
+         */
+        interface InOutPhases();
+            /**
+             * introduced after the type checking phase
+             */
+            interface InAfterTypeChecking();
+            /**
+             * eliminated after the type checking phase
+             */
+            interface OutAfterTypeChecking();
         /**
          * functional declaration or function expression
          * nodes_util.NodeUtil declares the following static methods:
