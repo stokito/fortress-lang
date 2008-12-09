@@ -112,7 +112,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                 StringComparer.V);
         Param p = null;
         Set<String> tp_set = new HashSet<String>();
-        List<IdStaticParam> rechecks = null;
+        List<StaticParam> rechecks = null;
         for (StaticParam sp : tparams) {
             boolean rechecked = false;
             String name = NodeUtil.getName(sp);
@@ -120,7 +120,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
             if (NodeUtil.isTypeParam(sp)) {
                 if (DUMP_INFERENCE)
                     System.err.println("TypeParam "+sp);
-                for (Type tr : ((IdStaticParam)sp).getExtendsClause()) {
+                for (Type tr : sp.getExtendsClause()) {
                     // Preinstall bounds in the boundingmap
                     try {
                         FType tt = et.evalType(tr);
@@ -133,9 +133,9 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
                         if (!rechecked) {
                             rechecked = true;
                             if (rechecks == null) {
-                                rechecks = new ArrayList<IdStaticParam>();
+                                rechecks = new ArrayList<StaticParam>();
                             }
-                            rechecks.add((IdStaticParam)sp);
+                            rechecks.add(sp);
                         }
                     }
                 }
@@ -251,7 +251,7 @@ public class EvaluatorBase<T> extends NodeAbstractVisitor<T>  {
          * derived for the given type variable.
          */
         if (rechecks != null) {
-            for (IdStaticParam tp : rechecks) {
+            for (StaticParam tp : rechecks) {
                 FType t = abm.get(NodeUtil.getName(tp));
                 if (t == null) {
                     if (DUMP_INFERENCE) {

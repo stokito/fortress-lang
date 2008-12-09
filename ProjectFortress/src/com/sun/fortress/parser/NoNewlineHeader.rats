@@ -362,10 +362,10 @@ private List<StaticParam> StaticParamList =
 */
 private StaticParam StaticParam =
      nat w a1:Id
-     { yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1,
-                                   Collections.<BaseType>emptyList(),
-                                   Option.<Type>none(), false,
-                                   new KindNat());
+     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindNat());
      }
    / <ErrorProduction1>
      nat w a1:OpName
@@ -378,10 +378,10 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / int w a1:Id
-     { yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1,
-                                   Collections.<BaseType>emptyList(),
-                                   Option.<Type>none(), false,
-                                   new KindInt());
+     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindInt());
      }
    / <ErrorProduction2>
      int w a1:OpName
@@ -394,10 +394,10 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / bool w a1:Id
-     { yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1,
-                                   Collections.<BaseType>emptyList(),
-                                   Option.<Type>none(), false,
-                                   new KindBool());
+     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindBool());
      }
    / <ErrorProduction3>
      bool w a1:OpName
@@ -410,10 +410,10 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / dim w a1:Id
-     { yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1,
-                                   Collections.<BaseType>emptyList(),
-                                   Option.<Type>none(), false,
-                                   new KindDim());
+     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindDim());
      }
    / <ErrorProduction4>
      dim w a1:OpName
@@ -428,10 +428,10 @@ private StaticParam StaticParam =
    / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { Option<Type> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
-       yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1,
-                                   Collections.<BaseType>emptyList(),
-                                   derived, absorbs,
-                                   new KindUnit());
+       yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 derived, absorbs,
+                                 new KindUnit());
      }
    / <ErrorProduction5>
      unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
@@ -444,7 +444,10 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / opr w a1:Op
-     { yyValue = new OpParam(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindOp()); }
    / <ErrorProduction6>
      a1:OpName w a2:Extends a3:(w absorbs w unit)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -460,9 +463,9 @@ private StaticParam StaticParam =
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = new IdStaticParam(createSpan(yyStart,yyCount), a1, a2,
-                                   Option.<Type>none(), absorbs,
-                                   new KindType());
+       yyValue = new StaticParam(createSpan(yyStart,yyCount), a1, a2,
+                                 Option.<Type>none(), absorbs,
+                                 new KindType());
      }
    / <ErrorProduction7>
      opendoublesquare

@@ -29,12 +29,12 @@ public class StaticParamEnvJUTest extends TestCase {
     private final StaticParam BAZ = makeTypeParam("Baz");
     private final StaticParam BAR = makeTypeParam("Bar");
 
-    private final IdStaticParam P = makeBoolParam("p");
-    private final IdStaticParam N = makeNatParam("n");
-    private final IdStaticParam Z = makeIntParam("z");
-    private final IdStaticParam M_ = makeUnitParam("m_");
-    private final IdStaticParam LENGTH = makeDimParam("Length");
-    private final OpParam AND = makeOpParam("AND");
+    private final StaticParam P = makeBoolParam("p");
+    private final StaticParam N = makeNatParam("n");
+    private final StaticParam Z = makeIntParam("z");
+    private final StaticParam M_ = makeUnitParam("m_");
+    private final StaticParam LENGTH = makeDimParam("Length");
+    private final StaticParam AND = makeOpParam("AND");
 
     private final StaticParamEnv NIL = StaticParamEnv.make();
 

@@ -29,19 +29,18 @@ import com.sun.fortress.nodes.KindNat;
 import com.sun.fortress.nodes.KindBool;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.KindUnit;
+import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
@@ -88,15 +87,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         int n = params.size();
         parameterMap = new HashMap<IdOrOpOrAnonymousName, StaticArg>(n);
         for (int i=0; i<n; ++i) {
-            IdOrOpOrAnonymousName name;
-            StaticParam p = params.get(i);
-            if (p instanceof OpParam) {
-                name = ((OpParam)p).getName();
-                //                System.err.printf("put op: %s\n", name);
-            } else {
-                name = ((IdStaticParam)p).getName();
-            }
-            parameterMap.put(name, args.get(i));
+            parameterMap.put(params.get(i).getName(), args.get(i));
         }
     }
 
@@ -189,19 +180,19 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                     }
 
                     @Override
-                    public Option<ConstraintFormula> forOpParam(OpParam that) {
-                        NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
-                            @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                            @Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(ConstraintFormula.TRUE);}
-                        };
-                        return arg.accept(inner);
-                    }
-
-                    @Override
-                    public Option<ConstraintFormula> forIdStaticParam(IdStaticParam that) {
+                    public Option<ConstraintFormula> forStaticParam(StaticParam that) {
                         return that.getKind().accept( new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                 @Override
                                 public Option<ConstraintFormula> defaultCase(Node n) { return Option.none(); }
+
+                                @Override
+                                public Option<ConstraintFormula> forKindOp(KindOp that) {
+                                    NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
+                                        @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
+                                        @Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                    };
+                                    return arg.accept(inner);
+                                }
                                 @Override
                                 public Option<ConstraintFormula> forKindBool(KindBool k) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
@@ -239,7 +230,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
                                         @Override public Option<ConstraintFormula> forTypeArg(TypeArg arg) {
-                                            Type upperbound = NodeFactory.makeIntersectionType(CollectUtil.asSet(((IdStaticParam)param).getExtendsClause()));
+                                            Type upperbound = NodeFactory.makeIntersectionType(CollectUtil.asSet(param.getExtendsClause()));
                                             return Option.some(subtype_checker.subtype(arg.getTypeArg(),upperbound));
                                         }
                                     };

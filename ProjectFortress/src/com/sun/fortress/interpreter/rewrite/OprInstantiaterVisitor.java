@@ -26,7 +26,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
@@ -82,11 +81,14 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forOpParam(OpParam opp) {
-        // Replace instance ofs Op with substitution.
-        if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
-            return new RewriteHackList();
-        } else return opp;
+    public Node forStaticParam(StaticParam opp) {
+        if ( NodeUtil.isOpParam(opp) ) {
+            // Replace instance ofs Op with substitution.
+            if (subst.containsKey(NodeUtil.nameString(opp.getName()))) {
+                return new RewriteHackList();
+            } else return opp;
+        } else
+            return opp;
     }
 
 

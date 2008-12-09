@@ -86,7 +86,6 @@ import com.sun.fortress.nodes.NodeAbstractVisitor_void;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Spawn;

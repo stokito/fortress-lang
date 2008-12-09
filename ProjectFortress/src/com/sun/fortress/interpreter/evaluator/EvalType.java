@@ -285,7 +285,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Bool, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof OpParam) {
+            } else if ( NodeUtil.isOpParam(p) ) {
                 if (a instanceof FTypeOpr || a instanceof SymbolicOprType) {
                     // Fall through
                 } else {
@@ -478,9 +478,12 @@ public class EvalType extends NodeAbstractVisitor<FType> {
      * @see com.sun.fortress.interpreter.nodes.NodeVisitor#forOpParam(com.sun.fortress.interpreter.nodes.OpParam)
      */
     @Override
-    public FType forOpParam(OpParam x) {
-        // TODO Auto-generated method stub
-        return super.forOpParam(x);
+        public FType forStaticParam(StaticParam x) {
+        if ( NodeUtil.isOpParam(x) ) {
+            // TODO Auto-generated method stub
+            return super.forStaticParam(x);
+        } else
+            return bug(x,errorMsg("Can't EvalType this node type."));
     }
 
     private long nonEmpty(List<? extends Type> value) {

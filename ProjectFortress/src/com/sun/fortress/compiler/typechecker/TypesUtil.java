@@ -41,7 +41,6 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;

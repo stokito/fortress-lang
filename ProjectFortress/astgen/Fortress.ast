@@ -1492,35 +1492,27 @@ interface Node() extends HasAt;
             EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
             /**
              * static parameter
+             * Names must be unqualified.
+             * StaticParam ::= Id Extends? (absorbs unit)?
+             *               | int Id
+             *               | nat Id
+             *               | bool Id
+             *               | dim Id
+             *               | unit Id (: Type)? (absorbs unit)?
+             *               | opr Op
+             * e.g.) EltType extends Number absorbs unit
+             * e.g.) int i
+             * e.g.) nat len
+             * e.g.) bool nan
+             * e.g.) dim D
+             * e.g.) unit U absrbs unit
+             * e.g.) opr ODOT
              */
-            abstract StaticParam();
-                /**
-                 * operator parameter
-                 * StaticParam ::= opr Op
-                 * e.g.) opr ODOT
-                 */
-                OpParam(Op name);
-                /**
-                 * static parameter with a name field of type Id
-                 * Names must be unqualified.
-                 * StaticParam ::= Id Extends? (absorbs unit)?
-                 *               | int Id
-                 *               | nat Id
-                 *               | bool Id
-                 *               | dim Id
-                 *               | unit Id (: Type)? (absorbs unit)?
-                 * e.g.) EltType extends Number absorbs unit
-                 * e.g.) int i
-                 * e.g.) nat len
-                 * e.g.) bool nan
-                 * e.g.) dim D
-                 * e.g.) unit U absrbs unit
-                 */
-                IdStaticParam(Id name,
-                              List<BaseType> extendsClause,
-                              Option<Type> dimParam,
-                              boolean absorbsParam,
-                              StaticParamKind kind);
+            StaticParam(IdOrOp name,
+                        List<BaseType> extendsClause,
+                        Option<Type> dimParam,
+                        boolean absorbsParam,
+                        StaticParamKind kind);
             /**
              * name used in declarations and references
              */
@@ -2081,5 +2073,10 @@ interface Node() extends HasAt;
                  * e.g.) unit U absrbs unit
                  */
                 KindUnit();
+                /**
+                 * operator parameter
+                 * e.g.) opr ODOT
+                 */
+                KindOp();
 
 end;

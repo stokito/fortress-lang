@@ -205,61 +205,57 @@ public abstract class SubtypeChecker {
         final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
-            pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forIdStaticParam(final IdStaticParam p) {
-                    p.getKind().accept(new NodeAbstractVisitor_void() {
-                            @Override public void forKindType(KindType k) {
-                                if (isTypeArg(a))
-                                    typeSubs.put(p.getName(),
-                                                 ((TypeArg) a).getTypeArg());
-                                else error("A type parameter is instantiated with a " +
-                                           "non-type argument.");
-                            }
-                            @Override public void forKindInt(KindInt k) {
-                                if (isIntArg(a))
-                                    intSubs.put(p.getName(),
-                                                ((IntArg)a).getIntVal());
-                                else error("An integer parameter is instantiated with a " +
-                                           "non-integer argument.");
-                            }
-                            @Override public void forKindNat(KindNat k) {
-                                if (isIntArg(a))
-                                    intSubs.put(p.getName(),
-                                                ((IntArg)a).getIntVal());
-                                else error("A nat parameter is instantiated with a " +
-                                           "non-nat argument.");
-                            }
-                            @Override public void forKindBool(KindBool k) {
-                                if (isBoolArg(a))
-                                    boolSubs.put(p.getName(),
-                                                 ((BoolArg)a).getBoolArg());
-                                else error("A bool parameter is instantiated with a " +
-                                           "non-bool argument.");
-                            }
-                            @Override public void forKindDim(KindDim k) {
-                                if (isDimArg(a))
-                                    dimSubs.put(p.getName(),
-                                                ((DimArg)a).getDimArg());
-                                else error("A dimension parameter is instantiated with a " +
-                                           "non-dimension argument.");
-                            }
-                            @Override public void forKindUnit(KindUnit k) {
-                                if (isUnitArg(a))
-                                    unitSubs.put(p.getName(),
-                                                 ((UnitArg)a).getUnitArg());
-                                else error("A unit parameter is instantiated with a " +
-                                           "non-unit argument.");
-                            }
-                        });
-                }
-
-                @Override public void forOpParam(OpParam p) {
-                    if (isOpArg(a))
-                        opSubs.put(p.getName(), (Op) ((OpArg)a).getName().getOriginalName());
-                    else error("An operator parameter is instantiated with a " +
-                               "non-operator argument.");
-                }
-            });
+            final IdOrOp name = pair.first().getName();
+            pair.first().getKind().accept(new NodeAbstractVisitor_void() {
+                    @Override public void forKindType(KindType k) {
+                        if (isTypeArg(a))
+                            typeSubs.put((Id)name,
+                                         ((TypeArg) a).getTypeArg());
+                        else error("A type parameter is instantiated with a " +
+                                   "non-type argument.");
+                    }
+                    @Override public void forKindInt(KindInt k) {
+                        if (isIntArg(a))
+                            intSubs.put((Id)name,
+                                        ((IntArg)a).getIntVal());
+                        else error("An integer parameter is instantiated with a " +
+                                   "non-integer argument.");
+                    }
+                    @Override public void forKindNat(KindNat k) {
+                        if (isIntArg(a))
+                            intSubs.put((Id)name,
+                                        ((IntArg)a).getIntVal());
+                        else error("A nat parameter is instantiated with a " +
+                                   "non-nat argument.");
+                    }
+                    @Override public void forKindBool(KindBool k) {
+                        if (isBoolArg(a))
+                            boolSubs.put((Id)name,
+                                         ((BoolArg)a).getBoolArg());
+                        else error("A bool parameter is instantiated with a " +
+                                   "non-bool argument.");
+                    }
+                    @Override public void forKindDim(KindDim k) {
+                        if (isDimArg(a))
+                            dimSubs.put((Id)name,
+                                        ((DimArg)a).getDimArg());
+                        else error("A dimension parameter is instantiated with a " +
+                                   "non-dimension argument.");
+                    }
+                    @Override public void forKindUnit(KindUnit k) {
+                        if (isUnitArg(a))
+                            unitSubs.put((Id)name,
+                                         ((UnitArg)a).getUnitArg());
+                        else error("A unit parameter is instantiated with a " +
+                                   "non-unit argument.");
+                    }
+                    @Override public void forKindOp(KindOp k) {
+                        if (isOpArg(a))
+                            opSubs.put((Op)name, (Op) ((OpArg)a).getName().getOriginalName());
+                        else error("An operator parameter is instantiated with a " +
+                                   "non-operator argument.");
+                    }
+                });
         }
 
         return new Lambda<Type, Type>() {
@@ -334,7 +330,7 @@ public abstract class SubtypeChecker {
             if (result.isSome()) {
                 StaticParam sparam = result.unwrap();
                 if (NodeUtil.isTypeParam(sparam)) {
-                    return ((IdStaticParam)sparam).getExtendsClause();
+                    return sparam.getExtendsClause();
                 } else return _extends;
             } else return _extends;
         } else return _extends;
@@ -424,13 +420,9 @@ public abstract class SubtypeChecker {
         return (t instanceof UnitArg);
     }
 
-    private boolean isOpParam(StaticParam t) {
-        return (t instanceof OpParam);
-    }
-
     private boolean sameKindStaticParams(StaticParam s, StaticParam t) {
         return ((NodeUtil.isTypeParam(s) && NodeUtil.isTypeParam(t)) ||
-                (isOpParam(s)  && isOpParam(t))  ||
+                (NodeUtil.isOpParam(s)   && NodeUtil.isOpParam(t))   ||
                 (NodeUtil.isBoolParam(s) && NodeUtil.isBoolParam(t)) ||
                 (NodeUtil.isIntParam(s)  && NodeUtil.isIntParam(t))  ||
                 (NodeUtil.isNatParam(s)  && NodeUtil.isNatParam(t))  ||

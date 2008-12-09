@@ -2548,16 +2548,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "wrapped";
     }
 
-    @Override public String forOpParamOnly(OpParam that,
-                                           String name_result) {
-        return "opr " + name_result;
-    }
-
-    @Override public String forIdStaticParamOnly(final IdStaticParam that,
-                                                 final String name_result,
-                                                 final List<String> extendsClause_result,
-                                                 final Option<String> dim_result,
-                                                 String kind_result) {
+    @Override public String forStaticParamOnly(final StaticParam that,
+                                               final String name_result,
+                                               final List<String> extendsClause_result,
+                                               final Option<String> dim_result,
+                                               String kind_result) {
         return that.getKind().accept( new NodeDepthFirstVisitor<String>(){
                 @Override public String forKindType(final KindType kind) {
                     StringBuilder s = new StringBuilder();
@@ -2590,7 +2585,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                         s.append( " absorbs unit" );
                     }
                     return s.toString();
-                }} );
+                }
+                @Override public String forKindOp(final KindOp kind) {
+                    return "opr " + name_result;
+                }
+            } );
     }
 
     @Override public String forAPINameOnly(APIName that, List<String> ids_result) {

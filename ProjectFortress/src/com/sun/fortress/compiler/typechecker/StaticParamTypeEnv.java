@@ -23,19 +23,19 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.nodes.StaticParamKind;
 import com.sun.fortress.nodes.KindType;
 import com.sun.fortress.nodes.KindInt;
 import com.sun.fortress.nodes.KindNat;
 import com.sun.fortress.nodes.KindBool;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.KindUnit;
+import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
@@ -109,47 +109,27 @@ public class StaticParamTypeEnv extends TypeEnv {
 	}
 
 	private static IdOrOp nameFromStaticParam(StaticParam param) {
-		NodeAbstractVisitor<IdOrOp> get_name = new NodeAbstractVisitor<IdOrOp>(){
-			@Override public IdOrOp forIdStaticParam(IdStaticParam that) { return that.getName(); }
-			@Override public IdOrOp forOpParam(OpParam that) { return that.getName(); }
-		};
-
-		IdOrOp name = param.accept(get_name);
-		return name;
+            return param.getName();
 	}
 
     private static Option<Type> typeOfStaticParam(StaticParam param) {
-        NodeAbstractVisitor<Option<Type>> get_type = new NodeAbstractVisitor<Option<Type>>(){
-            @Override
-            public Option<Type> defaultCase(Node node) {
-                return Option.none();
-            }
-            @Override
-            public Option<Type> forIdStaticParam(IdStaticParam that) {
-                return that.getKind().accept(new NodeAbstractVisitor<Option<Type>>() {
-                        @Override
-                        public Option<Type> defaultCase(Node node) {
-                            return Option.none();
-                        }
-			@Override
-			public Option<Type> forKindBool(KindBool that) {
-				return Option.some(STATIC_BOOL_TYPE);
-			}
-
-			@Override
-			public Option<Type> forKindInt(KindInt that) {
-				return Option.some(STATIC_INT_TYPE);
-			}
-
-			@Override
-			public Option<Type> forKindNat(KindNat that) {
-				return Option.some(STATIC_NAT_TYPE);
-			}
-                    });
-            }
-        };
-        Option<Type> type = param.accept(get_type);
-        return type;
+        return param.getKind().accept( new NodeAbstractVisitor<Option<Type>>(){
+                @Override
+                    public Option<Type> defaultCase(Node node) {
+                    return Option.<Type>none();
+                }
+                @Override
+                    public Option<Type> forKindBool(KindBool that) {
+                    return Option.<Type>some(STATIC_BOOL_TYPE);
+                }
+                @Override
+                    public Option<Type> forKindInt(KindInt that) {
+                    return Option.<Type>some(STATIC_INT_TYPE);
+                }
+                @Override
+                    public Option<Type> forKindNat(KindNat that) {
+                    return Option.<Type>some(STATIC_NAT_TYPE);
+                }} );
     }
 
 	@Override

@@ -45,7 +45,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.DebugletPrintStream;

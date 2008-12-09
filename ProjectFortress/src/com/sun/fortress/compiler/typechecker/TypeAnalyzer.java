@@ -698,27 +698,15 @@ public class TypeAnalyzer {
         if( param.isNone() )
             return bug("We are being asked about some type that is not in scope: " + s + " @ " + s.getSpan());
 
-        return
-        param.unwrap().accept(new NodeAbstractVisitor<ConstraintFormula>() {
-            @Override
-            public ConstraintFormula defaultCase(Node that) {
-                // TODO: Implement other type of params, BoolParams, Dim, etc.
-                return FALSE;
+        StaticParam that = param.unwrap();
+        ConstraintFormula result = FALSE;
+        if ( NodeUtil.isTypeParam( that ) ) {
+            for( BaseType ty : that.getExtendsClause() ) {
+                result = result.or(sub(ty, t, h), h);
+                if( result.isTrue() ) return result;
             }
-
-            @Override
-            public ConstraintFormula forIdStaticParam(IdStaticParam that) {
-                ConstraintFormula result = FALSE;
-                if ( NodeUtil.isTypeParam( that ) ) {
-                    for( BaseType ty : that.getExtendsClause() ) {
-                        result = result.or(sub(ty, t, h), h);
-                        if( result.isTrue() ) return result;
-                    }
-                }
-                return result;
-            }
-
-        });
+        }
+        return result;
     }
 
     private ConstraintFormula subVar(Type s, VarType t, SubtypeHistory h) {
@@ -739,8 +727,8 @@ public class TypeAnalyzer {
 
             if( NodeUtil.isTypeParam(t_param_.unwrap()) &&
                 NodeUtil.isTypeParam(s_param_.unwrap()) ) {
-                IdStaticParam t_p = (IdStaticParam)t_param_.unwrap();
-                IdStaticParam s_p = (IdStaticParam)s_param_.unwrap();
+                StaticParam t_p = t_param_.unwrap();
+                StaticParam s_p = s_param_.unwrap();
 
                 ConstraintFormula result = FALSE;
 
