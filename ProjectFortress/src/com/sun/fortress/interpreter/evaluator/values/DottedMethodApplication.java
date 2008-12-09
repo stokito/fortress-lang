@@ -125,7 +125,7 @@ public final class DottedMethodApplication extends Fcn {
                                       String mname, List<FValue> args) {
         DottedMethodApplication app =
             DottedMethodApplication.make(receiver,prettyName,mname);
-        return app.applyPossiblyGeneric(args);
+        return app.applyToArgs(args);
     }
 
     public DottedMethodApplication typeApply(List<StaticArg> sargs,

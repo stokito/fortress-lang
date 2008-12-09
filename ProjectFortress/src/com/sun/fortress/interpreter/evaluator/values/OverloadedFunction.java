@@ -784,7 +784,7 @@ public class  OverloadedFunction extends Fcn
             cache.syncPut(args, best_f);
         }
 
-        return best_f.applyPossiblyGeneric(args);
+        return best_f.applyInnerPossiblyGeneric(args);
     }
 
     /**

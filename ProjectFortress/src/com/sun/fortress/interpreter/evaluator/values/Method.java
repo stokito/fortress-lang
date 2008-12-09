@@ -25,4 +25,8 @@ import com.sun.fortress.useful.HasAt;
 
 public interface Method {
     public FValue applyMethod(FObject selfValue, List<FValue> args);
+    public FValue applyMethod(FObject selfValue);
+    public FValue applyMethod(FObject selfValue, FValue a);
+    public FValue applyMethod(FObject selfValue, FValue a, FValue b);
+    public FValue applyMethod(FObject selfValue, FValue a, FValue b, FValue c);
 }

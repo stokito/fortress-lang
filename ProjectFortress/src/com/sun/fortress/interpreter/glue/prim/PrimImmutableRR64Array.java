@@ -79,7 +79,7 @@ public class PrimImmutableRR64Array extends NativeConstructor {
 
     private static abstract class vi2R extends NativeMeth1 {
         protected abstract double f(PrimImmutableRR64ArrayObject v, int i);
-        public FValue act(FObject self, FValue ii) {
+        public FValue applyMethod(FObject self, FValue ii) {
             PrimImmutableRR64ArrayObject v = (PrimImmutableRR64ArrayObject) self;
             int i = ii.getInt();
             return FFloat.make(f(v,i));
@@ -88,7 +88,7 @@ public class PrimImmutableRR64Array extends NativeConstructor {
 
     private static abstract class vio2B extends NativeMeth2 {
         protected abstract boolean f(PrimImmutableRR64ArrayObject v, int i, double x);
-        public FValue act(FObject self, FValue ii, FValue x) {
+        public FValue applyMethod(FObject self, FValue ii, FValue x) {
             PrimImmutableRR64ArrayObject v = (PrimImmutableRR64ArrayObject) self;
             int i = ii.getInt();
             return FBool.make(f(v,i,x.getFloat()));

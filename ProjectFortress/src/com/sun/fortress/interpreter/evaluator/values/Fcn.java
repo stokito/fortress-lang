@@ -21,6 +21,8 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.exceptions.FortressException;
@@ -31,8 +33,9 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.compiler.FortressClosure;
 
-abstract public class Fcn extends FValue {
+abstract public class Fcn extends FValue implements FortressClosure {
     /**
      * Need to know the environment so we can resolve
      * overloading/shadowing properly.
@@ -53,7 +56,7 @@ abstract public class Fcn extends FValue {
     public Environment getWithin() {
         return within;
     }
-    
+
     public boolean needsInference() {
         return false;
     }
@@ -101,7 +104,7 @@ abstract public class Fcn extends FValue {
             return x;
     }
 
-    final public FValue applyPossiblyGeneric(List<FValue> args) {
+    public FValue applyToArgs(List<FValue> args) {
         List<FValue> unwrapped = conditionallyUnwrapTupledArgs(args);
         try {
             return check(applyInnerPossiblyGeneric(unwrapped));
@@ -115,6 +118,33 @@ abstract public class Fcn extends FValue {
             }
             throw u;
         }
+    }
+
+    public FValue applyToArgs(FObject self, List<FValue> args) {
+        List<FValue> actuals = new ArrayList(args.size() + 1);
+        actuals.add(self);
+        actuals.addAll(args);
+        return applyToArgs(actuals);
+    }
+
+    public FValue applyToArgs() {
+        return check(applyInnerPossiblyGeneric(Collections.<FValue>emptyList()));
+    }
+
+    public FValue applyToArgs(FValue a) {
+        return applyToArgs(Collections.singletonList(a));
+    }
+
+    public FValue applyToArgs(FValue a, FValue b) {
+        return applyToArgs(Useful.list(a,b));
+    }
+
+    public FValue applyToArgs(FValue a, FValue b, FValue c) {
+        return applyToArgs(Useful.list(a,b,c));
+    }
+
+    public FValue applyToArgs(FValue a, FValue b, FValue c, FValue d) {
+        return applyToArgs(Useful.list(a,b,c,d));
     }
 
     protected List<FValue> conditionallyUnwrapTupledArgs(List<FValue> args) {
@@ -163,7 +193,7 @@ abstract public class Fcn extends FValue {
         try {
             // We used to do redundant checks for genericity here, but
             // now we reply on foo.apply to do type inference if necessary.
-            return this.applyPossiblyGeneric(args);
+            return this.applyToArgs(args);
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {

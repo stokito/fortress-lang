@@ -89,7 +89,7 @@ public class Reflect extends NativeConstructor {
                          "\\]; constructor not invoked from Fortress yet.");
         }
         Simple_fcn con = gcon.typeApply(Useful.list(t));
-        return (ReflectedType)con.applyPossiblyGeneric(Collections.<FValue>emptyList());
+        return (ReflectedType)con.applyToArgs();
     }
 
     public static final class Join extends NativeApp {
@@ -110,7 +110,7 @@ public class Reflect extends NativeConstructor {
     }
 
     public static final class ToString extends NativeMeth0 {
-        protected FValue act(FObject selfValue) {
+        public final FValue applyMethod(FObject selfValue) {
             FType ty = ((ReflectedType)selfValue).getTy();
             return FString.make("Reflect[\\"+ty.toString()+"\\]");
         }
@@ -119,6 +119,5 @@ public class Reflect extends NativeConstructor {
     @Override
     protected void unregister() {
         gcon = null;
-        
     }
 }

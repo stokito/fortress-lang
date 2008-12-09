@@ -20,6 +20,7 @@ package com.sun.fortress.interpreter.evaluator.values;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -99,6 +100,25 @@ public class MethodClosure extends FunctionClosure implements Method {
         }
     }
 
+    public FValue applyMethod(FObject self) {
+        return applyMethod(self, Collections.<FValue>emptyList());
+    }
+
+    // Remaining applyMethod work like a functional method invocation
+    // if applicable, otherwise they work like a method invocation with self first.
+
+    public FValue applyMethod(FObject self, FValue a) {
+        return applyMethod(self, Collections.singletonList(a));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b) {
+        return applyMethod(self, Useful.list(a,b));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b, FValue c) {
+        return applyMethod(self, Useful.list(a,b,c));
+    }
+
     /* A MethodClosure should be invoked via applyInnerPossiblyGeneric iff:
      *   The corresponding FunctionalMethod closure is an overloading at top level.
      *   We're obtaining the MethodClosure from the overloading table,
@@ -116,6 +136,51 @@ public class MethodClosure extends FunctionClosure implements Method {
         FObject self = (FObject)args.get(selfParameterIndex).getValue();
         args = Useful.removeIndex(selfParameterIndex,args);
         return applyMethod(self,args);
+    }
+
+    public FValue applyToArgs() {
+        return bug(errorMsg("No recipient object for method ",this));
+    }
+
+    public FValue applyToArgs(FValue a) {
+        return applyToArgs(toSelf(a), Collections.<FValue>emptyList());
+    }
+
+    // Remaining applyToArgs work like a functional method invocation
+    // if applicable, otherwise they work like a method invocation with self first.
+
+    public FValue applyToArgs(FValue a, FValue b) {
+        if (selfParameterIndex <= 0) {
+            return applyToArgs(toSelf(a), Collections.singletonList(b));
+        }
+        return applyToArgs(toSelf(b), Collections.singletonList(a));
+    }
+
+    public FValue applyToArgs(FValue a, FValue b, FValue c) {
+        if (selfParameterIndex <= 0) {
+            return applyToArgs(toSelf(a), Useful.list(b,c));
+        } else if (selfParameterIndex == 1) {
+            return applyToArgs(toSelf(b), Useful.list(a,c));
+        } else {
+            return applyToArgs(toSelf(c), Useful.list(a,b));
+        }
+    }
+
+    public FValue applyToArgs(FValue a, FValue b, FValue c, FValue d) {
+        if (selfParameterIndex <= 0) {
+            return applyToArgs(toSelf(a), Useful.list(b,c,d));
+        } else if (selfParameterIndex == 1) {
+            return applyToArgs(toSelf(b), Useful.list(a,c,d));
+        } else if (selfParameterIndex == 2) {
+            return applyToArgs(toSelf(c), Useful.list(a,b,d));
+        } else {
+            return applyToArgs(toSelf(d), Useful.list(a,b,c));
+        }
+    }
+
+    protected FObject toSelf(FValue a) {
+        if (a instanceof FObject) return (FObject) a;
+        return bug(errorMsg("Non-object recipient ",a," for method ",this));
     }
 
     public String selfName() {

@@ -61,7 +61,7 @@ abstract public class GenericFunctionOrConstructor extends SingleFcn implements 
             foo = EvaluatorBase.inferAndInstantiateGenericFunction(args, this, getWithin());
             cache.syncPut(args, foo);
         }
-        return foo.applyPossiblyGeneric(args);
+        return foo.applyInnerPossiblyGeneric(args);
     }
 
 

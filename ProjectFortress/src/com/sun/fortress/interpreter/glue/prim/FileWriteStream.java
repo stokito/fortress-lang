@@ -47,9 +47,9 @@ public class FileWriteStream extends NativeConstructor {
     }
 
     @Override
-	protected FNativeObject makeNativeObject(List<FValue> args,
+    protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
-    	FileWriteStream.con = con;
+        FileWriteStream.con = con;
         String name = args.get(0).getString();
         try {
             BufferedWriter r = Useful.utf8BufferedFileWriter(name);
@@ -70,17 +70,17 @@ public class FileWriteStream extends NativeConstructor {
         }
 
         @Override
-		public NativeConstructor getConstructor() {
+        public NativeConstructor getConstructor() {
             return FileWriteStream.con;
         }
 
         @Override
-		public String getString() {
+        public String getString() {
             return "<Write handle to \""+name+"\">";
         }
 
         @Override
-		public boolean seqv(FValue v) {
+        public boolean seqv(FValue v) {
             return (v==this);
         }
     }
@@ -88,7 +88,7 @@ public class FileWriteStream extends NativeConstructor {
     private static abstract class w2S extends NativeMeth0 {
         protected abstract String f(PrimWriter r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FString.make(f((PrimWriter)self));
             } catch (IOException e) {
@@ -100,7 +100,7 @@ public class FileWriteStream extends NativeConstructor {
     private static abstract class wS2V extends NativeMeth1 {
         protected abstract void f(BufferedWriter r, String s) throws IOException;
         @Override
-		protected final FValue act(FObject self, FValue s) {
+        public final FValue applyMethod(FObject self, FValue s) {
             try {
                 f(((PrimWriter)self).writer, s.getString());
                 return FVoid.V;
@@ -113,7 +113,7 @@ public class FileWriteStream extends NativeConstructor {
     private static abstract class w2V extends NativeMeth0 {
         protected abstract void f(BufferedWriter r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 f(((PrimWriter)self).writer);
                 return FVoid.V;
@@ -125,35 +125,35 @@ public class FileWriteStream extends NativeConstructor {
 
     public static final class fileName extends w2S {
         @Override
-		protected final String f(PrimWriter r) {
+        protected final String f(PrimWriter r) {
             return r.name;
         }
     }
 
     public static final class toString extends w2S {
         @Override
-		protected final String f(PrimWriter r) {
+        protected final String f(PrimWriter r) {
             return r.getString();
         }
     }
 
     public static final class write extends wS2V {
         @Override
-		protected final void f(BufferedWriter w, String s) throws IOException {
+        protected final void f(BufferedWriter w, String s) throws IOException {
             w.append(s);
         }
     }
 
     public static final class flush extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+        protected void f(BufferedWriter w) throws IOException {
             w.flush();
         }
     }
 
     public static final class close extends w2V {
         @Override
-		protected void f(BufferedWriter w) throws IOException {
+        protected void f(BufferedWriter w) throws IOException {
             w.close();
         }
     }

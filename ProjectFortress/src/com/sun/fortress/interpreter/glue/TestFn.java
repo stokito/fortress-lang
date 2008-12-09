@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
  * Is that really a good plan?
  */
 public class TestFn extends NativeFn2 {
-    public FValue act(FValue x, FValue y) {
+    public FValue applyToArgs(FValue x, FValue y) {
         return FString.make("testFn "+x.getString()+","+y.getString());
     }
 }

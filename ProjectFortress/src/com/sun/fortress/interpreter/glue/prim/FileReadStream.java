@@ -94,7 +94,7 @@ public class FileReadStream extends NativeConstructor {
 
     private static abstract class r2S extends NativeMeth0 {
         protected abstract String f(PrimReader r) throws IOException;
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FString.make(f((PrimReader)self));
             } catch (IOException e) {
@@ -105,7 +105,7 @@ public class FileReadStream extends NativeConstructor {
 
     private static abstract class r2I extends NativeMeth0 {
         protected abstract int f(PrimReader r) throws IOException;
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FInt.make(f((PrimReader)self));
             } catch (IOException e) {
@@ -116,7 +116,7 @@ public class FileReadStream extends NativeConstructor {
 
     private static abstract class r2B extends NativeMeth0 {
         protected abstract boolean f(PrimReader r) throws IOException;
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FBool.make(f((PrimReader)self));
             } catch (IOException e) {
@@ -159,7 +159,7 @@ public class FileReadStream extends NativeConstructor {
     }
 
     public static final class readk extends NativeMeth1 {
-        protected final FValue act(FObject self, FValue size) {
+        public final FValue applyMethod(FObject self, FValue size) {
             PrimReader r = (PrimReader)self;
             int k = size.getInt();
             k = (k <= 0)? 65536 : k;
@@ -190,7 +190,7 @@ public class FileReadStream extends NativeConstructor {
     }
 
     public static final class close extends NativeMeth0 {
-        protected final FValue act(FObject x) {
+        public final FValue applyMethod(FObject x) {
             PrimReader r = (PrimReader) x;
             try {
                 r.reader.close();
@@ -203,7 +203,7 @@ public class FileReadStream extends NativeConstructor {
     }
 
     public static final class whenUnconsumed extends NativeMeth0 {
-        synchronized protected final FValue act(FObject self) {
+        synchronized public final FValue applyMethod(FObject self) {
             PrimReader r = (PrimReader) self;
             r.whenUnconsumed();
             return FVoid.V;
@@ -211,7 +211,7 @@ public class FileReadStream extends NativeConstructor {
     }
 
     public static final class consume extends NativeMeth0 {
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             PrimReader r = (PrimReader) self;
             synchronized (r) {
                 r.whenUnconsumed();
@@ -224,6 +224,5 @@ public class FileReadStream extends NativeConstructor {
     @Override
     protected void unregister() {
         con = null;
-        
     }
 }

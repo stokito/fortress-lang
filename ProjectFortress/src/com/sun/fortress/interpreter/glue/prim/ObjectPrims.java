@@ -28,7 +28,7 @@ public class ObjectPrims {
 
 protected static abstract class O2S extends NativeMeth0 {
     protected abstract java.lang.String f(FObject o);
-    protected final FString act(FObject self) {
+    public final FString applyMethod(FObject self) {
         return FString.make(f(self));
     }
 }

@@ -24,12 +24,12 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 
 /**
  * A 2-argument native function.  All the unwrapping is done by
- * applyToArgs.  The client just needs to define act().
+ * applyToArgs.  The client just needs to define applyToArgs(...).
  */
 public abstract class NativeFn2 extends NativeApp {
     public final int getArity() { return 2; }
-    protected abstract FValue act(FValue x, FValue y);
+    protected abstract FValue applyToArgs(FValue x, FValue y);
     public final FValue applyToArgs(List<FValue> args) {
-        return act(args.get(0), args.get(1));
+        return applyToArgs(args.get(0), args.get(1));
     }
 }

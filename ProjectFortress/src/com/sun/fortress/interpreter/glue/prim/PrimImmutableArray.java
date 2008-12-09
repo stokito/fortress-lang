@@ -91,7 +91,7 @@ public class PrimImmutableArray extends NativeConstructor {
 
     private static abstract class vi2O extends NativeMeth1 {
         protected abstract FValue f(PrimImmutableArrayObject v, int i);
-        public FValue act(FObject self, FValue ii) {
+        public FValue applyMethod(FObject self, FValue ii) {
             PrimImmutableArrayObject v = (PrimImmutableArrayObject) self;
             int i = ii.getInt();
             return f(v,i);
@@ -100,7 +100,7 @@ public class PrimImmutableArray extends NativeConstructor {
 
     private static abstract class vio2B extends NativeMeth2 {
         protected abstract boolean f(PrimImmutableArrayObject v, int i, FValue x);
-        public FValue act(FObject self, FValue ii, FValue x) {
+        public FValue applyMethod(FObject self, FValue ii, FValue x) {
             PrimImmutableArrayObject v = (PrimImmutableArrayObject) self;
             int i = ii.getInt();
             return FBool.make(f(v,i,x));

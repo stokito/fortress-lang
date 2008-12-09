@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter.glue;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -24,6 +25,7 @@ import com.sun.fortress.interpreter.evaluator.values.FObject;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Method;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -45,5 +47,21 @@ public abstract class NativeMeth extends NativeApp implements Method {
         return bug(this,"applyToArgs (functions only) called for method "+this);
     }
 
-    public abstract FValue applyMethod(FObject selfValue, List<FValue> args);
+
+    public FValue applyMethod(FObject self) {
+        return applyMethod(self, Collections.<FValue>emptyList());
+    }
+
+    public FValue applyMethod(FObject self, FValue a) {
+        return applyMethod(self, Collections.singletonList(a));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b) {
+        return applyMethod(self, Useful.list(a,b));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b, FValue c) {
+        return applyMethod(self, Useful.list(a,b,c));
+    }
+
 }

@@ -51,44 +51,44 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class R2F extends NativeMeth0 {
     protected abstract float f(double x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FRR32.make(f(x.getFloat()));
     }
 }
 
 static private abstract class R2B extends NativeMeth0 {
     protected abstract boolean f(double x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FBool.make(f(x.getFloat()));
     }
 }
 static private abstract class R2R extends NativeMeth0 {
     protected abstract double f(double x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(x.getFloat()));
     }
 }
 static private abstract class R2L extends NativeMeth0 {
     protected abstract long f(double x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FLong.make(f(x.getFloat()));
     }
 }
 static private abstract class R2S extends NativeMeth0 {
     protected abstract java.lang.String f(double x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getFloat()));
     }
 }
 static private abstract class RR2B extends NativeMeth1 {
     protected abstract boolean f(double x, double y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(x.getFloat(),y.getFloat()));
     }
 }
 static private abstract class RR2R extends NativeMeth1 {
     protected abstract double f(double x, double y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FFloat.make(f(x.getFloat(),y.getFloat()));
     }
 }
@@ -276,7 +276,7 @@ public static final class ToString extends R2S {
 @Override
 protected void unregister() {
     FFloat.resetConstructor();
-    
+
 }
 
 }

@@ -55,51 +55,51 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class LL2B extends NativeMeth1 {
     protected abstract boolean f(long x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(x.getLong(),y.getLong()));
     }
 }
 static private abstract class L2L extends NativeMeth0 {
     protected abstract long f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FLong.make(f(x.getLong()));
     }
 }
 
 static private abstract class L2U extends NativeMeth0 {
     protected abstract long f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FNN64.make(f(x.getLong()));
     }
 }
 
 static private abstract class L2I extends NativeMeth0 {
     protected abstract int f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FInt.make(f(x.getLong()));
     }
 }
 static private abstract class L2Z extends NativeMeth0 {
     protected abstract BigInteger f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FBigNum.make(f(x.getLong()));
     }
 }
 static private abstract class L2R extends NativeMeth0 {
     protected abstract double f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(x.getLong()));
     }
 }
 static private abstract class L2S extends NativeMeth0 {
     protected abstract java.lang.String f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getLong()));
     }
 }
 static private abstract class LL2L extends NativeMeth1 {
     protected abstract long f(long x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FLong.make(f(x.getLong(),y.getLong()));
     }
 }
@@ -190,7 +190,7 @@ public static final class Partition extends L2L {
     }
 }
 public static final class Pow extends NativeMeth1 {
-    protected FValue act(FObject x, FValue y) {
+    public FValue applyMethod(FObject x, FValue y) {
         long base = x.getLong();
         long exp = y.getLong();
         if (exp < 0) {
@@ -220,7 +220,7 @@ public static final class AsFloat extends L2R {
 }
 
 public static final class NanoTime extends NativeFn0 {
-    protected FValue act() {
+    protected FValue applyToArgs() {
         long res = System.nanoTime();
         return FLong.make(res);
     }
@@ -316,7 +316,7 @@ public static long pow(long x, long y) {
 @Override
 protected void unregister() {
     FLong.resetConstructor();
-    
+
 }
 
 }

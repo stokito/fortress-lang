@@ -47,55 +47,55 @@ public class Char extends NativeConstructor {
         FChar.setConstructor(this);
         return FChar.ZERO;
     }
-    
+
     @Override
     protected void unregister() {
-        FChar.resetConstructor();        
+        FChar.resetConstructor();
     }
 
     private static abstract class s2B extends NativeMeth0 {
         protected abstract boolean f(int self);
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             return FBool.make(f(self.getChar()));
         }
     }
 
     private static abstract class s2C extends NativeMeth0 {
         protected abstract int f(int self);
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             return FChar.make(f(self.getChar()));
         }
     }
 
     private static abstract class s2I extends NativeMeth0 {
         protected abstract int f(int self);
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             return FInt.make(f(self.getChar()));
         }
     }
-    
+
     private static abstract class sC2B extends NativeMeth1 {
         protected abstract boolean f(int self, int other);
-        protected final FValue act(FObject self, FValue other) {
+        public final FValue applyMethod(FObject self, FValue other) {
             return FBool.make(f(self.getChar(), other.getChar()));
         }
     }
-    
+
     private static abstract class sI2I extends NativeMeth1 {
         protected abstract int f(int self, int other);
-        protected final FValue act(FObject self, FValue other) {
+        public final FValue applyMethod(FObject self, FValue other) {
             return FInt.make(f(self.getChar(), other.getInt()));
         }
     }
 
     private static abstract class I2C extends NativeFn1 {
         abstract protected int f(int i);
-        protected final FValue act(FValue i) {
+        public final FValue applyToArgs(FValue i) {
             return FChar.make(f(i.getInt()));
         }
     }
-    
-    /* Operators for object Char */ 
+
+    /* Operators for object Char */
     public static final class Eq extends sC2B {
         protected boolean f(int x, int y) {
             return x == y;
@@ -107,7 +107,7 @@ public class Char extends NativeConstructor {
             return x < y;
         }
     }
-    
+
     public static final class SimEq extends sC2B {
         protected boolean f(int x, int y) {
             int lowerX = Character.toLowerCase(x);
@@ -116,7 +116,7 @@ public class Char extends NativeConstructor {
             return false;
         }
     }
- 
+
     public static final class NotSimEq extends sC2B {
         protected boolean f(int x, int y) {
             int lowerX = Character.toLowerCase(x);
@@ -125,7 +125,7 @@ public class Char extends NativeConstructor {
             return false;
         }
     }
- 
+
     public static final class LessNotSim extends sC2B {
         protected boolean f(int x, int y) {
             int lowerX = Character.toLowerCase(x);
@@ -134,7 +134,7 @@ public class Char extends NativeConstructor {
             return false;
         }
     }
-    
+
     public static final class LessSim extends sC2B {
         protected boolean f(int x, int y) {
             int lowerX = Character.toLowerCase(x);
@@ -143,7 +143,7 @@ public class Char extends NativeConstructor {
             return false;
         }
     }
-        
+
     public static final class GreaterNotSim extends sC2B {
         protected boolean f(int x, int y) {
             int lowerX = Character.toLowerCase(x);
@@ -161,7 +161,7 @@ public class Char extends NativeConstructor {
             return false;
         }
     }
-    
+
 
     public static final class CodePoint extends s2I {
         protected int f(int self) { return self; }
@@ -172,17 +172,17 @@ public class Char extends NativeConstructor {
     }
 
     public static final class ToString extends NativeMeth0 {
-        protected FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             return FString.make(((FChar)self).getString());
         }
     }
 
     public static final class ToExprString extends NativeMeth0 {
-        protected FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             return FString.make(((FChar)self).toString());
         }
     }
-    
+
     /* Returns the Unicode directionality property for the given character (Unicode code point). */
     public static final class GetDirectionality extends s2I {
        protected int f(int x) { return Character.getDirectionality(x); }
@@ -210,8 +210,8 @@ public class Char extends NativeConstructor {
 
     /* Determines if the character (Unicode code point) may be part of a Fortress identifier as other than the first character. */
     public static final class IsFortressIdentifierPart extends s2B {
-       protected boolean f(int x) { return Character.isLetterOrDigit(x) || 
-    	                                   (x == (int)'_') || (x == (int)'\''); }
+       protected boolean f(int x) { return Character.isLetterOrDigit(x) ||
+                                   (x == (int)'_') || (x == (int)'\''); }
     }
 
     /* Determines if the character (Unicode code point) is permissible as the first character in a Fortress identifier. */
@@ -281,8 +281,8 @@ public class Char extends NativeConstructor {
 
     /* Determines whether the specified pair of Char values is a valid surrogate pair. */
     public static final class IsSurrogatePair extends sC2B {
-       protected boolean f(int x, int y) { return (x <= 0xFFFF) && (y <= 0xFFFF) && 
-    	                                          Character.isSurrogatePair((char) x, (char) y); }
+       protected boolean f(int x, int y) { return (x <= 0xFFFF) && (y <= 0xFFFF) &&
+	                                          Character.isSurrogatePair((char) x, (char) y); }
     }
 
     /* Determines if the specified character (Unicode code point) is a titlecase character. */

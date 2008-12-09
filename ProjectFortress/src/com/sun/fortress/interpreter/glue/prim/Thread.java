@@ -62,7 +62,7 @@ public class Thread extends NativeConstructor {
             // For Now we are limiting spawn to creating only 1 thread
             //      int numThreads = Runtime.getRuntime().availableProcessors();
             //            String numThreadsString = System.getenv("FORTRESS_THREADS");
-            
+
             //            if (numThreadsString != null)
             //                numThreads = Integer.parseInt(numThreadsString);
             int numThreads = 1;
@@ -79,7 +79,7 @@ public class Thread extends NativeConstructor {
     }
 
     public static final class val extends NativeMeth0 {
-        public FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             Thread_prim tp = (Thread_prim) self;
             FValue r = tp.st.result();
             if (r==null) {
@@ -90,7 +90,7 @@ public class Thread extends NativeConstructor {
     }
 
     public static final class wait extends NativeMeth0 {
-        public FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             Thread_prim tp = (Thread_prim) self;
             tp.st.waitForResult();
             return FVoid.V;
@@ -98,14 +98,14 @@ public class Thread extends NativeConstructor {
     }
 
     public static final class ready extends NativeMeth0 {
-        public FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             Thread_prim tp = (Thread_prim) self;
             return FBool.make(tp.st.isDone());
         }
     }
 
     public static final class stop extends NativeMeth0 {
-        public FValue act(FObject self) {
+        public FValue applyMethod(FObject self) {
             Thread_prim tp = (Thread_prim) self;
             tp.group.shutdownNow();
             //            tp.st.cancel();
@@ -114,7 +114,7 @@ public class Thread extends NativeConstructor {
     }
 
     public static final class abort extends NativeFn0 {
-        protected FValue act() {
+        protected FValue applyToArgs() {
             Transaction current = FortressTaskRunner.getTransaction();
             if (current != null) {
                 current.abort();
@@ -127,7 +127,7 @@ public class Thread extends NativeConstructor {
     @Override
     protected void unregister() {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

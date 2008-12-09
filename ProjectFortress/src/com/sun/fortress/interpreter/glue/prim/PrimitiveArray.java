@@ -53,7 +53,7 @@ public class PrimitiveArray extends NativeConstructor {
 
     private static abstract class vi2O extends NativeMeth1 {
         protected abstract FValue f(AtomicArray v, int i);
-        public FValue act(FObject self, FValue ii) {
+        public FValue applyMethod(FObject self, FValue ii) {
             AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             return f(v,i);
@@ -62,7 +62,7 @@ public class PrimitiveArray extends NativeConstructor {
 
     private static abstract class vio2V extends NativeMeth2 {
         protected abstract void f(AtomicArray v, int i, FValue x);
-        public FValue act(FObject self, FValue ii, FValue x) {
+        public FValue applyMethod(FObject self, FValue ii, FValue x) {
             AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             f(v,i,x);
@@ -72,7 +72,7 @@ public class PrimitiveArray extends NativeConstructor {
 
     private static abstract class vio2B extends NativeMeth2 {
         protected abstract boolean f(AtomicArray v, int i, FValue x);
-        public FValue act(FObject self, FValue ii, FValue x) {
+        public FValue applyMethod(FObject self, FValue ii, FValue x) {
             AtomicArray v = (AtomicArray) self;
             int i = ii.getInt();
             return FBool.make(f(v,i,x));

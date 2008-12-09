@@ -53,44 +53,44 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class UU2B extends NativeMeth1 {
     protected abstract boolean f(long x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(x.getNN64(),y.getNN64()));
     }
 }
 
 static private abstract class U2U extends NativeMeth0 {
     protected abstract long f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FNN64.make(f(x.getNN64()));
     }
 }
 static private abstract class U2L extends NativeMeth0 {
     protected abstract long f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FLong.make(f(x.getNN64()));
     }
 }
 static private abstract class U2N extends NativeMeth0 {
     protected abstract int f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FNN32.make(f(x.getNN64()));
     }
 }
 static private abstract class U2R extends NativeMeth0 {
     protected abstract double f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(x.getNN64()));
     }
 }
 static private abstract class U2S extends NativeMeth0 {
     protected abstract java.lang.String f(long x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getNN64()));
     }
 }
 static private abstract class UU2U extends NativeMeth1 {
     protected abstract long f(long x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FNN64.make(f(x.getNN64(),y.getNN64()));
     }
 }
@@ -131,7 +131,7 @@ public static final class Choose extends UU2U {
 }
 public static final class Mod extends UU2U {
     protected long f(long u, long v) {
-	/* MOD and REM are the same for natural numbers. */
+/* MOD and REM are the same for natural numbers. */
         return Unsigned.remainder(u,v);
     }
 }
@@ -182,7 +182,7 @@ public static final class Partition extends U2U {
     }
 }
 public static final class Pow extends NativeMeth1 {
-    protected FValue act(FObject x, FValue y) {
+    public FValue applyMethod(FObject x, FValue y) {
         long base = x.getNN64();
         long exp = y.getLong();
         if (exp < 0) {
@@ -271,7 +271,7 @@ public static long pow(long x, long y) {
 @Override
 protected void unregister() {
     FNN64.resetConstructor();
-    
+
 }
 
 }

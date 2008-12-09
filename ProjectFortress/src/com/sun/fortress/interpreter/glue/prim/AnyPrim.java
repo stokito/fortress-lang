@@ -90,7 +90,7 @@ public static boolean sequiv(FValue x, FValue y) {
 }
 
 public static final class SEquiv extends NativeFn2 {
-    protected FValue act(FValue x, FValue y) {
+    protected FValue applyToArgs(FValue x, FValue y) {
         return FBool.make(AnyPrim.sequiv(x,y));
     }
 }
