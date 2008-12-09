@@ -997,46 +997,65 @@ public class NodeFactory {
                          param.getIdType(), param.getDefaultExpr());
     }
 
-    public static TypeParam makeTypeParam(String name) {
+    public static IdStaticParam makeTypeParam(String name) {
         Span s = new Span();
-        return new TypeParam(s, new Id(s, name),
-                Collections.<BaseType>emptyList(), false);
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindType());
     }
 
-    public static TypeParam makeTypeParam(String name, String sup) {
+    public static IdStaticParam makeTypeParam(String name, String sup) {
         Span s = new Span();
         List<BaseType> supers = new ArrayList<BaseType>(1);
         supers.add(makeVarType(sup));
-        return new TypeParam(s, new Id(s, name), supers);
+        return new IdStaticParam(s, new Id(s, name), supers,
+                                 Option.<Type>none(), false,
+                                 new KindType());
     }
 
     public static OpParam makeOpParam(String name) {
         return new OpParam(new Span(), makeOp(name));
     }
 
-    public static BoolParam makeBoolParam(String name) {
+    public static IdStaticParam makeBoolParam(String name) {
         Span s = new Span();
-        return new BoolParam(s, new Id(s, name));
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindBool());
     }
 
-    public static DimParam makeDimParam(String name) {
+    public static IdStaticParam makeDimParam(String name) {
         Span s = new Span();
-        return new DimParam(s, new Id(s, name));
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindDim());
     }
 
-    public static UnitParam makeUnitParam(String name) {
+    public static IdStaticParam makeUnitParam(String name) {
         Span s = new Span();
-        return new UnitParam(s, new Id(s, name));
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindUnit());
     }
 
-    public static IntParam makeIntParam(String name) {
+    public static IdStaticParam makeIntParam(String name) {
         Span s = new Span();
-        return new IntParam(s, new Id(s, name));
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindInt());
     }
 
-    public static NatParam makeNatParam(String name) {
+    public static IdStaticParam makeNatParam(String name) {
         Span s = new Span();
-        return new NatParam(s, new Id(s, name));
+        return new IdStaticParam(s, new Id(s, name),
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false,
+                                 new KindNat());
     }
 
     public static Param makeParam(Span span, Id name, Option<Type> type) {

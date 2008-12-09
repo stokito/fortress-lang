@@ -35,7 +35,6 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.Accumulator;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
-import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Contract;
@@ -54,8 +53,8 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IdStaticParam;
+import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.IfClause;
-import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetFn;
@@ -63,7 +62,6 @@ import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.ModifierGetter;
 import com.sun.fortress.nodes.ModifierSetter;
-import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -82,9 +80,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Typecase;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitDecl;
-import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
@@ -363,14 +359,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Set<Id> extractStaticExprVars(List<StaticParam> staticParams) {
         Set<Id> result = new HashSet<Id>();
         for (StaticParam staticParam: staticParams) {
-            if (staticParam instanceof TypeParam ||
-                staticParam instanceof BoolParam ||
-                staticParam instanceof NatParam  ||
-                staticParam instanceof IntParam  ||
-                staticParam instanceof UnitParam)
-                {
-                    result.add(((IdStaticParam)staticParam).getName());
-                }
+            if ( staticParam instanceof IdStaticParam &&
+                 ! (NodeUtil.isDimParam(staticParam)) )
+                result.add(((IdStaticParam)staticParam).getName());
         }
         return result;
     }

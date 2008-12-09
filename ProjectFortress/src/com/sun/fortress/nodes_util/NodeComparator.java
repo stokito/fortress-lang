@@ -356,7 +356,7 @@ public class NodeComparator {
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int compare(TypeParam left, TypeParam right) {
+    static int compare(IdStaticParam left, IdStaticParam right) {
         int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
         if (x != 0) {
             return x;

@@ -29,16 +29,14 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalType;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
-import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.useful.Factory1P;
@@ -156,19 +154,6 @@ public class GenericMethod extends MethodClosure implements
         // TODO work in progress
         // Inject type parameters into environment as symbolics
         List<StaticParam> tparams = getDef().getStaticParams();
-        for (StaticParam tp : tparams) {
-            if (tp instanceof DimParam) {
-                DimParam dp = (DimParam) tp;
-            } else if (tp instanceof NatParam) {
-                NatParam np = (NatParam) tp;
-            } else if (tp instanceof OpParam) {
-                OpParam op = (OpParam) tp;
-            } else if (tp instanceof TypeParam) {
-                TypeParam stp = (TypeParam) tp;
-            } else {
-                bug(tp, errorMsg("Unexpected StaticParam ", tp));
-            }
-        }
 
         FType ft = EvalType.getFTypeFromOption(rt, env, FTypeTop.ONLY);
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);

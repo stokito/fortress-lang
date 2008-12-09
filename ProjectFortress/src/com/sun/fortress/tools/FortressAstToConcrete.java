@@ -2553,50 +2553,44 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "opr " + name_result;
     }
 
-    @Override public String forBoolParamOnly(BoolParam that,
-                                             String name_result) {
-        return "bool " + name_result;
-    }
-
-    @Override public String forDimParamOnly(DimParam that,
-                                            String name_result) {
-        return "dim " + name_result;
-    }
-
-    @Override public String forIntParamOnly(IntParam that,
-                                            String name_result) {
-        return "int " + name_result;
-    }
-
-    @Override public String forNatParamOnly(NatParam that,
-                                            String name_result) {
-        return "nat " + name_result;
-    }
-
-    @Override public String forTypeParamOnly(TypeParam that,
-                                             String name_result,
-                                             List<String> extendsClause_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( name_result );
-        s = optCurlyBraces(s, " extends ", extendsClause_result, "");
-        if ( that.isAbsorbsParam() ) {
-            s.append( " absorbs unit" );
-        }
-        return s.toString();
-    }
-
-    @Override public String forUnitParamOnly(UnitParam that,
-                                             String name_result,
-                                             Option<String> dim_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( "unit " ).append( name_result );
-        if ( dim_result.isSome() ) {
-            s.append( handleType(dim_result.unwrap()) );
-        }
-        if ( that.isAbsorbsParam() ) {
-            s.append( " absorbs unit" );
-        }
-        return s.toString();
+    @Override public String forIdStaticParamOnly(final IdStaticParam that,
+                                                 final String name_result,
+                                                 final List<String> extendsClause_result,
+                                                 final Option<String> dim_result,
+                                                 String kind_result) {
+        return that.getKind().accept( new NodeDepthFirstVisitor<String>(){
+                @Override public String forKindType(final KindType kind) {
+                    StringBuilder s = new StringBuilder();
+                    s.append( name_result );
+                    s = optCurlyBraces(s, " extends ", extendsClause_result, "");
+                    if ( that.isAbsorbsParam() ) {
+                        s.append( " absorbs unit" );
+                    }
+                    return s.toString();
+                }
+                @Override public String forKindNat(final KindNat kind) {
+                    return "nat " + name_result;
+                }
+                @Override public String forKindInt(final KindInt kind) {
+                    return "int " + name_result;
+                }
+                @Override public String forKindBool(final KindBool kind) {
+                    return "bool " + name_result;
+                }
+                @Override public String forKindDim(final KindDim kind) {
+                    return "dim " + name_result;
+                }
+                @Override public String forKindUnit(final KindUnit kind) {
+                    StringBuilder s = new StringBuilder();
+                    s.append( "unit " ).append( name_result );
+                    if ( dim_result.isSome() ) {
+                        s.append( handleType(dim_result.unwrap()) );
+                    }
+                    if ( that.isAbsorbsParam() ) {
+                        s.append( " absorbs unit" );
+                    }
+                    return s.toString();
+                }} );
     }
 
     @Override public String forAPINameOnly(APIName that, List<String> ids_result) {
@@ -2869,4 +2863,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( " " ).append( op_result ).append( " " ).append( expr_result );
         return s.toString();
     }
+
+    @Override public String forKindTypeOnly(KindType that) { return ""; }
+    @Override public String forKindNatOnly (KindNat  that) { return ""; }
+    @Override public String forKindIntOnly (KindInt  that) { return ""; }
+    @Override public String forKindBoolOnly(KindBool that) { return ""; }
+    @Override public String forKindDimOnly (KindDim  that) { return ""; }
+    @Override public String forKindUnitOnly(KindUnit that) { return ""; }
+
 }

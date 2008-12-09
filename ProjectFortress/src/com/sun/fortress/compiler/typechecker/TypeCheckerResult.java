@@ -30,11 +30,12 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Useful;
 
@@ -465,8 +466,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
     public TypeCheckerResult removeStaticParamsFromScope(List<StaticParam> staticParams) {
         List<VarType> var_types = new LinkedList<VarType>();
         for( StaticParam static_param : staticParams ) {
-            if( static_param instanceof TypeParam ) {
-                var_types.add(NodeFactory.makeVarType(static_param.getSpan(), ((TypeParam)static_param).getName()));
+            if( NodeUtil.isTypeParam(static_param) ) {
+                var_types.add(NodeFactory.makeVarType(static_param.getSpan(), ((IdStaticParam)static_param).getName()));
             }
         }
         return new TypeCheckerResult(this.ast,

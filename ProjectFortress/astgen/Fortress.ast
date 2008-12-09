@@ -1503,47 +1503,24 @@ interface Node() extends HasAt;
                 /**
                  * static parameter with a name field of type Id
                  * Names must be unqualified.
+                 * StaticParam ::= Id Extends? (absorbs unit)?
+                 *               | int Id
+                 *               | nat Id
+                 *               | bool Id
+                 *               | dim Id
+                 *               | unit Id (: Type)? (absorbs unit)?
+                 * e.g.) EltType extends Number absorbs unit
+                 * e.g.) int i
+                 * e.g.) nat len
+                 * e.g.) bool nan
+                 * e.g.) dim D
+                 * e.g.) unit U absrbs unit
                  */
-                abstract IdStaticParam(Id name);
-                   /**
-                    * bool parameter
-                    * StaticParam ::= bool Id
-                    * e.g.) bool nan
-                    */
-                    BoolParam();
-                   /**
-                    * dimension parameter
-                    * StaticParam ::= dim Id
-                    * e.g.) dim D
-                    */
-                    DimParam();
-                   /**
-                    * int parameter
-                    * StaticParam ::= int Id
-                    * e.g.) int i
-                    */
-                    IntParam();
-                   /**
-                    * nat parameter
-                    * StaticParam ::= nat Id
-                    * e.g.) nat len
-                    */
-                    NatParam();
-                   /**
-                    * type parameter
-                    * StaticParam ::= Id Extends? (absorbs unit)?
-                    * e.g.) EltType extends Number absorbs unit
-                    */
-                    TypeParam(List<BaseType> extendsClause =
-                                  Collections.<BaseType>emptyList(),
-                              boolean absorbsParam = false);
-                   /**
-                    * unit parameter
-                    * StaticParam ::= unit Id (: Type)? (absorbs unit)?
-                    * e.g.) unit U absrbs unit
-                    */
-                    UnitParam(Option<Type> dimParam = Option.<Type>none(),
-                              boolean absorbsParam = false);
+                IdStaticParam(Id name,
+                              List<BaseType> extendsClause,
+                              Option<Type> dimParam,
+                              boolean absorbsParam,
+                              StaticParamKind kind);
             /**
              * name used in declarations and references
              */
@@ -1739,6 +1716,9 @@ interface Node() extends HasAt;
                      */
                     SubscriptingMI(Op op, List<Expr> exprs,
                                    List<StaticArg> staticArgs);
+
+            /** syntactic abstraction nodes ************************************/
+
             /**
              * nonterminal header
              */
@@ -2072,21 +2052,33 @@ interface Node() extends HasAt;
              */
             abstract StaticParamKind();
                 /**
+                 * type parameter
+                 * e.g.) EltType extends Number absorbs unit
                  */
                 KindType();
                 /**
-                 */
-                KindNat();
-                /**
+                 * int parameter
+                 * e.g.) int i
                  */
                 KindInt();
                 /**
+                 * nat parameter
+                 * e.g.) nat len
+                 */
+                KindNat();
+                /**
+                 * bool parameter
+                 * e.g.) bool nan
                  */
                 KindBool();
                 /**
+                 * dim parameter
+                 * e.g.) dim D
                  */
                 KindDim();
                 /**
+                 * unit parameter
+                 * e.g.) unit U absrbs unit
                  */
                 KindUnit();
 

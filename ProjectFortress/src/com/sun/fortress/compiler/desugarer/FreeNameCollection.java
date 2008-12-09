@@ -22,20 +22,19 @@ import java.util.List;
 
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.exceptions.DesugarerError;
-import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -131,11 +130,11 @@ public final class FreeNameCollection {
             Option<StaticParam> spOp = typeEnv.staticParam( var.getVarId() );
             if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
-            } else if( spOp.unwrap() instanceof BoolParam ) {
+            } else if( NodeUtil.isBoolParam(spOp.unwrap()) ) {
                 this.add( new BoolRef(var.getSpan(), var.getVarId()) );
-            } else if( spOp.unwrap() instanceof IntParam ) {
+            } else if( NodeUtil.isIntParam(spOp.unwrap()) ) {
                 this.add( new IntRef(var.getSpan(), var.getVarId()) );
-            } else if( spOp.unwrap() instanceof NatParam ) {
+            } else if( NodeUtil.isNatParam(spOp.unwrap()) ) {
                 this.add( new IntRef(var.getSpan(), var.getVarId()) );
             } else {
                 throw new DesugarerError( "Unexpected Static Param type " +

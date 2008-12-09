@@ -233,7 +233,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                 // TODO need to undefine the nats and bools
                 // This means that our choice to use the Java types Boolean etc was wrong,
                 // because they lack lattice structure.
-            } else if (p instanceof TypeParam) {
+            } else if ( NodeUtil.isTypeParam(p) ) {
                 String whence = null;
                 // There's probably some inappropriate ones.
                 if (a instanceof FTypeNat) {
@@ -249,7 +249,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                                    "Got ",whence, a,
                                    " instead of type for param ", p));
                 }
-            } else if (p instanceof NatParam) {
+            } else if ( NodeUtil.isNatParam(p) ) {
                 if (a instanceof IntNat) {
                     long l = ((IntNat)a).getValue();
                     if (l < 0) {
@@ -265,7 +265,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Nat, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof IntParam) {
+            } else if ( NodeUtil.isIntParam(p) ) {
                 if (a instanceof IntNat) {
                     guardedPutNat(NodeUtil.getName(p), ((IntNat)a).getNumber(), what, clenv);
                 } else if (a instanceof SymbolicNat) {
@@ -275,7 +275,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Int, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof BoolParam) {
+            } else if ( NodeUtil.isBoolParam(p) ) {
                 if (a instanceof Bool) {
                     guardedPutBool(NodeUtil.getName(p), ((Bool)a).getBooleanValue(), what, clenv);
                 } else if (a instanceof SymbolicBool) {
@@ -293,7 +293,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
                           errorMsg("Expected Opr, got ", a, " for param ", p,
                                    " instantiating ", what));
                 }
-            } else if (p instanceof DimParam) {
+            } else if ( NodeUtil.isDimParam(p) ) {
                 NI.nyi("Generic, generic in dimension"); // TODO dimension params
             } else {
                 error(within, clenv,

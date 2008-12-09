@@ -34,10 +34,8 @@ import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BoolArg;
-import com.sun.fortress.nodes.BoolParam;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Expr;
@@ -47,9 +45,13 @@ import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntArg;
-import com.sun.fortress.nodes.IntParam;
 import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.NatParam;
+import com.sun.fortress.nodes.KindType;
+import com.sun.fortress.nodes.KindInt;
+import com.sun.fortress.nodes.KindNat;
+import com.sun.fortress.nodes.KindBool;
+import com.sun.fortress.nodes.KindDim;
+import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -58,6 +60,7 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SuperSyntaxDef;
 import com.sun.fortress.nodes.TraitDecl;
@@ -65,9 +68,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnitArg;
-import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -353,42 +354,44 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                             mismatch("an identifier");
                             return a;
                         }
-                        @Override public StaticArg forBoolParam(BoolParam p) {
-                            return new BoolArg(s, new BoolRef(s, name));
-                        }
-                        @Override public StaticArg forDimParam(DimParam p) {
-                            return new DimArg(s, new DimRef(s, name));
-                        }
-                        @Override public StaticArg forIntParam(IntParam p) {
-                            return new IntArg(s, new IntRef(s, name));
-                        }
-                        @Override public StaticArg forNatParam(NatParam p) {
-                            return new IntArg(s, new IntRef(s, name));
-                            // TODO: shouldn't there be a NatArg class?
-                        }
-                        @Override public StaticArg forTypeParam(TypeParam p) {
-                            return a;
-                        }
-                        @Override public StaticArg forUnitParam(UnitParam p) {
-                            return new UnitArg(s, new UnitRef(s, name));
-                        }
-                    });
+                        @Override public StaticArg forIdStaticParam(IdStaticParam p) {
+                            return p.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
+                                    @Override public StaticArg forKindBool(KindBool k) {
+                                        return new BoolArg(s, new BoolRef(s, name));
+                                    }
+                                    @Override public StaticArg forKindDim(KindDim p) {
+                                        return new DimArg(s, new DimRef(s, name));
+                                    }
+                                    @Override public StaticArg forKindInt(KindInt p) {
+                                        return new IntArg(s, new IntRef(s, name));
+                                    }
+                                    @Override public StaticArg forKindNat(KindNat p) {
+                                        return new IntArg(s, new IntRef(s, name));
+                                        // TODO: shouldn't there be a NatArg class?
+                                    }
+                                    @Override public StaticArg forKindType(KindType p) {
+                                        return a;
+                                    }
+                                    @Override public StaticArg forKindUnit(KindUnit p) {
+                                        return new UnitArg(s, new UnitRef(s, name));
+                                    }});
+                        }});
                 }
                 else {
-                    if (!(p instanceof TypeParam)) { mismatch("a type"); }
+                    if ( ! NodeUtil.isTypeParam(p) ) { mismatch("a type"); }
                     return a;
                 }
             }
 
             @Override public StaticArg forIntArg(IntArg a) {
-                if (!(p instanceof IntParam || p instanceof NatParam)) {
+                if (! NodeUtil.isIntParam(p) ) {
                     mismatch("an int expression");
                 }
                 return a;
             }
 
             @Override public StaticArg forBoolArg(BoolArg a) {
-                if (!(p instanceof BoolParam)) { mismatch("a bool expression"); }
+                if (! NodeUtil.isBoolParam(p) ) { mismatch("a bool expression"); }
                 return a;
             }
 
@@ -398,13 +401,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
 
             @Override public StaticArg forDimArg(DimArg a) {
-                if (!(p instanceof DimParam)) { mismatch("a dimension"); }
+                if (! NodeUtil.isDimParam(p)) { mismatch("a dimension"); }
                 return a;
             }
 
             @Override public StaticArg forUnitArg(UnitArg a) {
                 // TODO: convert units to dimensions
-                if (!(p instanceof UnitParam)) { mismatch("a unit"); }
+                if (! NodeUtil.isUnitParam(p)) { mismatch("a unit"); }
                 return a;
             }
 
@@ -413,23 +416,27 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     @Override public String forOpParam(OpParam p) {
                         return "an operator";
                     }
-                    @Override public String forBoolParam(BoolParam p) {
-                        return "a bool expression";
-                    }
-                    @Override public String forDimParam(DimParam p) {
-                        return "a dimension";
-                    }
-                    @Override public String forIntParam(IntParam p) {
-                        return "an int expression";
-                    }
-                    @Override public String forNatParam(NatParam p) {
-                        return "a nat expression";
-                    }
-                    @Override public String forTypeParam(TypeParam p) {
-                        return "a type";
-                    }
-                    @Override public String forUnitParam(UnitParam p) {
-                        return "a unit";
+                    @Override public String forIdStaticParam(IdStaticParam p) {
+                        return p.getKind().accept(new NodeAbstractVisitor<String>() {
+                                @Override public String forKindBool(KindBool k) {
+                                    return "a bool expression";
+                                }
+                                @Override public String forKindDim(KindDim p) {
+                                    return "a dimension";
+                                }
+                                @Override public String forKindInt(KindInt p) {
+                                    return "an int expression";
+                                }
+                                @Override public String forKindNat(KindNat p) {
+                                    return "a nat expression";
+                                }
+                                @Override public String forKindType(KindType p) {
+                                    return "a type";
+                                }
+                                @Override public String forKindUnit(KindUnit p) {
+                                    return "a unit";
+                                }
+                            });
                     }
                 });
                 error("Type parameter mismatch: given " + given + ", expected " + expected, a);
@@ -554,54 +561,57 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     /**
      * All Args are parsed as TypeArgs
      */
-	@Override
+    @Override
 	public Node forTypeArgOnly(final TypeArg arg, final Type t) {
-		if(arg.getTypeArg() instanceof VarType){
-			Id name = ((VarType)arg.getTypeArg()).getName();
-			Option<StaticParam> param=this._env.hasTypeParam(name);
-			if(param.isSome()){
-				NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
+        if(arg.getTypeArg() instanceof VarType){
+            Id name = ((VarType)arg.getTypeArg()).getName();
+            Option<StaticParam> param=this._env.hasTypeParam(name);
+            if(param.isSome()){
+                NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
 
-					@Override
-					public StaticArg forBoolParam(BoolParam that) {
-						return new BoolArg(arg.getSpan(), new BoolRef(arg.getSpan(),that.getName()));
-					}
+                    @Override
+                    public StaticArg forOpParam(OpParam that) {
+                        return new OpArg(arg.getSpan(), ExprFactory.makeOpRef(that.getName()));
+                    }
 
-					@Override
-					public StaticArg forDimParam(DimParam that) {
-						return new DimArg(arg.getSpan(), new DimRef(arg.getSpan(),that.getName()));
-					}
+                    @Override
+                    public StaticArg forIdStaticParam(final IdStaticParam that) {
+                        return that.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
+                                @Override public StaticArg forKindBool(KindBool k) {
+                                    return new BoolArg(arg.getSpan(), new BoolRef(arg.getSpan(),that.getName()));
+                                }
+                                @Override
+                                public StaticArg forKindDim(KindDim k) {
+                                    return new DimArg(arg.getSpan(), new DimRef(arg.getSpan(),that.getName()));
+                                }
 
-					@Override
-					public StaticArg forIntParam(IntParam that) {
-						return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
-					}
+                                @Override
+                                public StaticArg forKindInt(KindInt k) {
+                                    return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
+                                }
 
-					@Override
-					public StaticArg forNatParam(NatParam that) {
-						return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
-					}
+                                @Override
+                                public StaticArg forKindNat(KindNat k) {
+                                    return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(),that.getName()));
+                                }
 
-					@Override
-					public StaticArg forOpParam(OpParam that) {
-						return new OpArg(arg.getSpan(), ExprFactory.makeOpRef(that.getName()));
-					}
+                                @Override
+                                public StaticArg forKindType(KindType k) {
+                                    return new TypeArg(arg.getSpan(),t);
+                                }
 
-					@Override
-					public StaticArg forTypeParam(TypeParam that) {
-						return new TypeArg(arg.getSpan(),t);
-					}
-
-					@Override
-					public StaticArg forUnitParam(UnitParam that) {
-						return new UnitArg(arg.getSpan(), new UnitRef(arg.getSpan(),that.getName()));
-					}
-
-				};
-				return param.unwrap().accept(v);
-			}
-		}
-		return new TypeArg(arg.getSpan(),t);
-	}
+                                @Override
+                                public StaticArg forKindUnit(KindUnit k) {
+                                    return new UnitArg(arg.getSpan(),
+                                                       new UnitRef(arg.getSpan(),that.getName()));
+                                }
+                            });
+                    }
+                };
+                return param.unwrap().accept(v);
+            }
+        }
+        return new TypeArg(arg.getSpan(),t);
+    }
 
 }

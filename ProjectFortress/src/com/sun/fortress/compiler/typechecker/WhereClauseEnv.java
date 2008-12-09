@@ -51,9 +51,11 @@ public class WhereClauseEnv extends StaticParamEnv {
         for (WhereBinding entry : whereClause.getBindings()) {
             if (entry.getKind() instanceof KindType &&
                 name.equals(entry.getName())) {
-                return Option.<StaticParam>wrap(new TypeParam(entry.getSpan(),
-                                                              entry.getName(),
-                                                              entry.getSupers()));
+                return Option.<StaticParam>wrap(new IdStaticParam(entry.getSpan(),
+                                                                  entry.getName(),
+                                                                  entry.getSupers(),
+                                                                  Option.<Type>none(), false,
+                                                                  new KindType()));
             }
         }
         return parent.binding(name);

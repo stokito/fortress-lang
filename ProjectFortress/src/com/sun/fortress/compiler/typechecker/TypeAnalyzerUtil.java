@@ -53,34 +53,37 @@ public class TypeAnalyzerUtil {
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
             pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forTypeParam(TypeParam p) {
-                    typeSubs.put(p.getName(),
-                                 ((TypeArg) a).getTypeArg());
-                }
                 @Override public void forOpParam(OpParam p) {
                     opSubs.put(p.getName(), (Op) ((OpArg) a).getName().getOriginalName());
                 }
-                @Override public void forIntParam(IntParam p) {
-                    intSubs.put(p.getName(),
-                                ((IntArg) a).getIntVal());
+                @Override public void forIdStaticParam(final IdStaticParam p) {
+                    p.getKind().accept(new NodeAbstractVisitor_void() {
+                            @Override public void forKindType(KindType k) {
+                                typeSubs.put(p.getName(),
+                                             ((TypeArg) a).getTypeArg());
+                            }
+                            @Override public void forKindInt(KindInt k) {
+                                intSubs.put(p.getName(),
+                                            ((IntArg) a).getIntVal());
+                            }
+                            @Override public void forKindNat(KindNat k) {
+                                intSubs.put(p.getName(),
+                                            ((IntArg) a).getIntVal());
+                            }
+                            @Override public void forKindBool(KindBool k) {
+                                boolSubs.put(p.getName(),
+                                             ((BoolArg) a).getBoolArg());
+                            }
+                            @Override public void forKindDim(KindDim k) {
+                                dimSubs.put(p.getName(),
+                                            ((DimArg) a).getDimArg());
+                            }
+                            @Override public void forKindUnit(KindUnit k) {
+                                unitSubs.put(p.getName(),
+                                             ((UnitArg) a).getUnitArg());
+                            }
+                        });
                 }
-                @Override public void forNatParam(NatParam p) {
-                    intSubs.put(p.getName(),
-                                ((IntArg) a).getIntVal());
-                }
-                @Override public void forBoolParam(BoolParam p) {
-                    boolSubs.put(p.getName(),
-                                 ((BoolArg) a).getBoolArg());
-                }
-                @Override public void forDimParam(DimParam p) {
-                    dimSubs.put(p.getName(),
-                                ((DimArg) a).getDimArg());
-                }
-                @Override public void forUnitParam(UnitParam p) {
-                    unitSubs.put(p.getName(),
-                                 ((UnitArg) a).getUnitArg());
-                }
-
             });
         }
         for (Id id : hiddenParams) {
