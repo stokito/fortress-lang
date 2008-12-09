@@ -25,12 +25,12 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 /**
  * A 0-argument native function.  No unwrapping is necessary, but this
  * makes things nicely uniform with the other NativeFn_k classes.  The
- * client just needs to define act.
+ * client just needs to define applyToArgs().
  */
 public abstract class NativeFn0 extends NativeApp {
     public final int getArity() { return 0; }
-    protected abstract FValue act();
+    protected abstract FValue applyToArgs();
     public final FValue applyToArgs(List<FValue> args) {
-        return act();
+        return applyToArgs();
     }
 }

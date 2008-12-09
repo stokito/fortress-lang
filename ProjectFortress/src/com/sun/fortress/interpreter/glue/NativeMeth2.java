@@ -33,12 +33,12 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
  * native class.
  */
 public abstract class NativeMeth2 extends NativeMeth {
-    protected abstract FValue act(FObject self, FValue a, FValue b);
+    public abstract FValue applyMethod(FObject self, FValue a, FValue b);
 
     public int getArity() {
         return 2;
     }
     public final FValue applyMethod(FObject selfValue, List<FValue> args) {
-        return act(selfValue, args.get(0), args.get(1));
+        return applyMethod(selfValue, args.get(0), args.get(1));
     }
 }

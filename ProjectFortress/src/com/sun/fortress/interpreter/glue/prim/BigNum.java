@@ -65,49 +65,49 @@ private static BigInteger toB(FValue x) {
 
 public static abstract class Z2Z extends NativeMeth0 {
     protected abstract BigInteger f(BigInteger x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FBigNum.make(f(toB(x)));
     }
 }
 static private abstract class Z2R extends NativeMeth0 {
     protected abstract double f(BigInteger x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(toB(x)));
     }
 }
 public static abstract class Z2S extends NativeMeth0 {
     protected abstract java.lang.String f(BigInteger x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(toB(x)));
     }
 }
 public static abstract class ZZ2Z extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, BigInteger y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBigNum.make(f(toB(x),toB(y)));
     }
 }
 public static abstract class ZZ2B extends NativeMeth1 {
     protected abstract boolean f(BigInteger x, BigInteger y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(toB(x),toB(y)));
     }
 }
 public static abstract class ZZ2I extends NativeMeth1 {
     protected abstract int f(BigInteger x, BigInteger y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FInt.make(f(toB(x),toB(y)));
     }
 }
 public static abstract class ZL2Z extends NativeMeth1 {
     protected abstract BigInteger f(BigInteger x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBigNum.make(f(toB(x),y.getLong()));
     }
 }
 public static abstract class ZL2N extends NativeMeth1 {
     protected abstract FValue f(BigInteger x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return f(toB(x),y.getLong());
     }
 }

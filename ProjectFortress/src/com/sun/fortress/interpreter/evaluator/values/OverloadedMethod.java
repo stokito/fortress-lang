@@ -18,6 +18,7 @@
 package com.sun.fortress.interpreter.evaluator.values;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +27,7 @@ import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.Useful;
 
 
 public class OverloadedMethod extends OverloadedFunction implements Method {
@@ -60,6 +62,22 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
     public FValue applyMethod(FObject selfValue, List<FValue> args) {
         Method best_f = getApplicableMethod(args);
         return best_f.applyMethod(selfValue, args);
+    }
+
+    public FValue applyMethod(FObject self) {
+        return applyMethod(self, Collections.<FValue>emptyList());
+    }
+
+    public FValue applyMethod(FObject self, FValue a) {
+        return applyMethod(self, Collections.singletonList(a));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b) {
+        return applyMethod(self, Useful.list(a,b));
+    }
+
+    public FValue applyMethod(FObject self, FValue a, FValue b, FValue c) {
+        return applyMethod(self, Useful.list(a,b,c));
     }
 
     public void bless() {

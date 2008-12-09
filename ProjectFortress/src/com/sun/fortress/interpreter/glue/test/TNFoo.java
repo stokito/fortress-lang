@@ -70,7 +70,7 @@ public class TNFoo extends NativeConstructor {
     }
 
     public static final class bar extends NativeMeth0 {
-        protected FValue act(FObject selfValue) {
+        public final FValue applyMethod(FObject selfValue) {
             Obj tnf = (Obj) selfValue;
             return tnf.theString;
         }

@@ -44,13 +44,13 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class Rlit2S extends NativeMeth0 {
     protected abstract java.lang.String f(java.lang.String x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getString()));
     }
 }
 static private abstract class Rlit2R extends NativeMeth0 {
     protected abstract double f(double x);
-    protected final FFloat act(FObject x) {
+    public final FFloat applyMethod(FObject x) {
         return FFloat.make(f(x.getFloat()));
     }
 }
@@ -63,7 +63,7 @@ public static final class AsFloat extends Rlit2R {
 @Override
 protected void unregister() {
     FFloatLiteral.resetConstructor();
-    
+
 }
 
 }

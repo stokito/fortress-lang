@@ -37,40 +37,40 @@ public class BufferedWriter extends NativeConstructor {
     private static NativeConstructor con = null;
 
     public BufferedWriter(Environment env, FTypeObject selfType,
-			GenericWithParams def) {
+            GenericWithParams def) {
         super(env, selfType, def);
         con = this;
     }
 
     @Override
     protected FNativeObject makeNativeObject(List<FValue> args,
-			NativeConstructor con) {
-		Writer.PrimWriter w = (Writer.PrimWriter) args.get(0);
-		int size = args.get(1).getInt();
-		return new BuffWriter(new java.io.BufferedWriter(w.getWriter(), size));
+            NativeConstructor con) {
+        Writer.PrimWriter w = (Writer.PrimWriter) args.get(0);
+        int size = args.get(1).getInt();
+        return new BuffWriter(new java.io.BufferedWriter(w.getWriter(), size));
     }
 
 
     private static final class BuffWriter extends FNativeObject {
-		protected final java.io.BufferedWriter writer;
+        protected final java.io.BufferedWriter writer;
 
-		public BuffWriter(java.io.BufferedWriter writer) {
-			super(BufferedWriter.con);
+        public BuffWriter(java.io.BufferedWriter writer) {
+            super(BufferedWriter.con);
             this.writer = writer;
         }
 
         @Override
-		public NativeConstructor getConstructor() {
+        public NativeConstructor getConstructor() {
             return BufferedWriter.con;
         }
 
         @Override
-		public String getString() {
+        public String getString() {
             return "<BufferedWriter on " + writer.toString() + ">";
         }
 
         @Override
-		public boolean seqv(FValue v) {
+        public boolean seqv(FValue v) {
             return (v==this);
         }
     }
@@ -78,7 +78,7 @@ public class BufferedWriter extends NativeConstructor {
     private static abstract class w2S extends NativeMeth0 {
         protected abstract String f(BuffWriter r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FString.make(f((BuffWriter) self));
             } catch (IOException e) {
@@ -89,9 +89,9 @@ public class BufferedWriter extends NativeConstructor {
 
     private static abstract class wS2V extends NativeMeth1 {
         protected abstract void f(java.io.BufferedWriter r, String s)
-				throws IOException;
+                throws IOException;
         @Override
-		protected final FValue act(FObject self, FValue s) {
+        public final FValue applyMethod(FObject self, FValue s) {
             try {
                 f(((BuffWriter) self).writer, s.getString());
                 return FVoid.V;
@@ -104,7 +104,7 @@ public class BufferedWriter extends NativeConstructor {
     private static abstract class w2V extends NativeMeth0 {
         protected abstract void f(java.io.BufferedWriter r) throws IOException;
         @Override
-		protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 f(((BuffWriter) self).writer);
                 return FVoid.V;
@@ -116,29 +116,29 @@ public class BufferedWriter extends NativeConstructor {
 
     public static final class toString extends w2S {
         @Override
-		protected final String f(BuffWriter w) {
+        protected final String f(BuffWriter w) {
             return w.getString();
         }
     }
 
     public static final class write extends wS2V {
         @Override
-		protected final void f(java.io.BufferedWriter w, String s)
-				throws IOException {
-			w.write(s);
+        protected final void f(java.io.BufferedWriter w, String s)
+                throws IOException {
+            w.write(s);
         }
     }
 
     public static final class flush extends w2V {
         @Override
-		protected void f(java.io.BufferedWriter w) throws IOException {
+        protected void f(java.io.BufferedWriter w) throws IOException {
             w.flush();
         }
     }
 
     public static final class close extends w2V {
         @Override
-		protected void f(java.io.BufferedWriter w) throws IOException {
+        protected void f(java.io.BufferedWriter w) throws IOException {
             w.close();
         }
     }

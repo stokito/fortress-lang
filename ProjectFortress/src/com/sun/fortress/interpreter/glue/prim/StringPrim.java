@@ -47,7 +47,7 @@ public static final class Match extends Util.SS2B {
 }
 
 public static final class PrintTaskTrace extends NativeFn0 {
-    protected FValue act() {
+    protected FValue applyToArgs() {
         BaseTask.printTaskTrace();
         return FVoid.V;
     }
@@ -81,7 +81,7 @@ public static final class ThrowError extends Util.S2V {
 
 public static final class PrintTransactionInfo extends Util.S2V {
     protected void f(String x) {
-	FortressTaskRunner.debugPrintln(x);
+FortressTaskRunner.debugPrintln(x);
     }
 }
 

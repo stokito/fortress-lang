@@ -54,49 +54,49 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class NN2B extends NativeMeth1 {
     protected abstract boolean f(int x, int y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(x.getNN32(),y.getNN32()));
     }
 }
 static private abstract class N2N extends NativeMeth0 {
     protected abstract int f(int x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FNN32.make(f(x.getNN32()));
     }
 }
 static private abstract class N2Z extends NativeMeth0 {
     protected abstract int f(int x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FInt.make(f(x.getNN32()));
     }
 }
 static private abstract class N2U extends NativeMeth0 {
     protected abstract long f(int x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FNN64.make(f(x.getNN32()));
     }
 }
 static private abstract class N2R extends NativeMeth0 {
     protected abstract double f(int x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(x.getNN32()));
     }
 }
 static private abstract class N2S extends NativeMeth0 {
     protected abstract java.lang.String f(int x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getNN32()));
     }
 }
 static private abstract class NN2N extends NativeMeth1 {
     protected abstract int f(int x, int y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FNN32.make(f(x.getNN32(),y.getNN32()));
     }
 }
 static private abstract class NL2N extends NativeMeth1 {
     protected abstract int f(int x, long y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FNN32.make(f(x.getNN32(),y.getLong()));
     }
 }
@@ -136,7 +136,7 @@ public static final class Choose extends NN2N {
 }
 public static final class Mod extends NN2N {
     protected int f(int u, int v) {
-	/* MOD and REM are the same for natural numbers. */
+/* MOD and REM are the same for natural numbers. */
         return Unsigned.remainder(u,v);
     }
 }
@@ -186,7 +186,7 @@ public static final class Partition extends N2N {
     }
 }
 public static final class Pow extends NativeMeth1 {
-    protected FValue act(FObject x, FValue y) {
+    public FValue applyMethod(FObject x, FValue y) {
         int base = x.getNN32();
         long exp = y.getLong();
         if (exp < 0) {
@@ -219,7 +219,7 @@ public static int rc(long i) {
 @Override
 protected void unregister() {
     FNN32.resetConstructor();
-    
+
 }
 
 }

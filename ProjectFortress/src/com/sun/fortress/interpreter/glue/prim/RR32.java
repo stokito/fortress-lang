@@ -52,49 +52,49 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
 static private abstract class F2B extends NativeMeth0 {
     protected abstract boolean f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FBool.make(f(x.getRR32()));
     }
 }
 static private abstract class F2F extends NativeMeth0 {
     protected abstract float f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FRR32.make(f(x.getRR32()));
     }
 }
 static private abstract class F2R extends NativeMeth0 {
     protected abstract double f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FFloat.make(f(x.getRR32()));
     }
 }
 static private abstract class F2L extends NativeMeth0 {
     protected abstract long f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FLong.make(f(x.getRR32()));
     }
 }
 static private abstract class F2I extends NativeMeth0 {
     protected abstract int f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FInt.make(f(x.getRR32()));
     }
 }
 static private abstract class F2S extends NativeMeth0 {
     protected abstract java.lang.String f(float x);
-    protected final FValue act(FObject x) {
+    public final FValue applyMethod(FObject x) {
         return FString.make(f(x.getRR32()));
     }
 }
 static private abstract class FF2B extends NativeMeth1 {
     protected abstract boolean f(float x, float y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FBool.make(f(x.getRR32(),y.getRR32()));
     }
 }
 static private abstract class FF2F extends NativeMeth1 {
     protected abstract float f(float x, float y);
-    protected final FValue act(FObject x, FValue y) {
+    public final FValue applyMethod(FObject x, FValue y) {
         return FRR32.make(f(x.getRR32(),y.getRR32()));
     }
 }
@@ -254,7 +254,7 @@ public static final class AsFloat extends F2R {
 @Override
 protected void unregister() {
     FRR32.resetConstructor();
-    
+
 }
 
 }

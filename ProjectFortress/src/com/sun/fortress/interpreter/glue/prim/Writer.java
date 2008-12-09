@@ -48,7 +48,7 @@ public class Writer extends NativeConstructor {
     }
 
     @Override
-	protected FNativeObject makeNativeObject(List<FValue> args,
+protected FNativeObject makeNativeObject(List<FValue> args,
                                              NativeConstructor con) {
         String name = args.get(0).getString();
         try {
@@ -83,7 +83,7 @@ public class Writer extends NativeConstructor {
         public OutputStreamWriter getWriter() {
             return writer;
         }
-        
+
         @Override
         public boolean seqv(FValue v) {
             return (v==this);
@@ -93,7 +93,7 @@ public class Writer extends NativeConstructor {
     private static abstract class w2S extends NativeMeth0 {
         protected abstract String f(PrimWriter r) throws IOException;
         @Override
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 return FString.make(f((PrimWriter)self));
             } catch (IOException e) {
@@ -106,7 +106,7 @@ public class Writer extends NativeConstructor {
         protected abstract void f(java.io.Writer r, String s)
                 throws IOException;
         @Override
-        protected final FValue act(FObject self, FValue s) {
+        public final FValue applyMethod(FObject self, FValue s) {
             try {
                 f(((PrimWriter)self).writer, s.getString());
                 return FVoid.V;
@@ -119,7 +119,7 @@ public class Writer extends NativeConstructor {
     private static abstract class w2V extends NativeMeth0 {
         protected abstract void f(java.io.Writer r) throws IOException;
         @Override
-        protected final FValue act(FObject self) {
+        public final FValue applyMethod(FObject self) {
             try {
                 f(((PrimWriter)self).writer);
                 return FVoid.V;
@@ -162,7 +162,7 @@ public class Writer extends NativeConstructor {
         protected abstract String dummyName();
 
         @Override
-        protected final FValue act() {
+        public final FValue applyToArgs() {
             FileOutputStream fd = new FileOutputStream(this.fileDescriptor());
             OutputStreamWriter out = new OutputStreamWriter(fd, Charset
                     .forName("UTF-8"));
@@ -191,11 +191,10 @@ public class Writer extends NativeConstructor {
             return "<stderr>";
         }
     }
-    
+
     @Override
     protected void unregister() {
         con = null;
     }
 
 }
-
