@@ -18,8 +18,8 @@
 native component FortressBuiltin
 export FortressBuiltin
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
 
 (** The %builtinPrimitive% function is actually recognized as a special piece
     of built-in magic by the Fortress interpreter.  The %javaClass%
@@ -53,8 +53,8 @@ trait Object extends Any
       end
     getter asExprString(): String
         = "no expression for "  self.asString
-        
-    getter toString(): String = self.asString             (* deprecated *) 
+
+    getter toString(): String = self.asString             (* deprecated *)
 end
 
 value object Float extends RR64
@@ -572,7 +572,7 @@ value object Char extends { StandardTotalOrder[\Char\] }
     getter asString(): String =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
     getter asExprString(): String =
-        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToExprString") 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToExprString")
     getter codePoint(): ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$CodePoint")
     opr |self| : ZZ32 = self.codePoint

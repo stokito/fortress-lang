@@ -615,8 +615,8 @@ native component File
 import FileSupport.{...}
 export File
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
 
 object FileReadStream(filename:String)
         extends { ReadStream, FileStream}

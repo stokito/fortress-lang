@@ -20,17 +20,17 @@ import JavaString.JavaString
 import Streams.{...}
 export Writer
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
 
     stdOut: Writer = OutWriter()
     stdErr: Writer = ErrWriter()
-     
+
     private OutWriter(): Writer =  builtinPrimitive(
             "com.sun.fortress.interpreter.glue.prim.Writer$outputWriter")
     private ErrWriter(): Writer = builtinPrimitive(
             "com.sun.fortress.interpreter.glue.prim.Writer$errorWriter")
-    
+
     object Writer(fileName: String) extends { WriteStream }
         getter asString(): String = "Writer on " self.fileName.asExprString
         getter fileName(): String =
@@ -54,7 +54,7 @@ package="com.sun.fortress.interpreter.glue.prim"
             buff.flush()
         end
     end Writer
-    
+
     object BufferedWriter(under: Writer, size: ZZ32) extends { WriteStream }
         getter asString(): String = "BufferedWriter on " under.asString
         write(s: String): () = s.writeOn(self)

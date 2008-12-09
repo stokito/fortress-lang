@@ -18,8 +18,8 @@
 native component NativeArray
 export NativeArray
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
 
 object PrimitiveArray[\T, nat s0\]() extends Array1[\T,0,s0\]
   get(i:ZZ32):T =
