@@ -17,6 +17,19 @@
 
 api TypeProxy
 
+(** DEPRACATED!  To do covariant type matching, match against a
+    function with an explicit return type:
+       typecase fn (): T => throw NotFound of
+           () -> Number => ... (* case for T extends Number *)
+           else => ...
+       end
+
+    For contravariant matching, use a function with the appropriate
+    parameter type instead.  For equality matching, use the identity
+    function at T.
+
+ *)
+
 (** Reflection of static type parameters for overloading purposes.
     Works around shortcomings in the story on parametric overloading
     (all overloadings must have the same parameters with the same
