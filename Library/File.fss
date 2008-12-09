@@ -20,8 +20,8 @@ import JavaString.JavaString
 import FileSupport.{...}
 export File
 
-language="java"
-package="com.sun.fortress.interpreter.glue.prim"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
 
 FileReadStream(filename: String): FileReadStream = FileReadStream(filename.asJavaString)
 

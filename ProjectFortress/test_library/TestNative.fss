@@ -18,8 +18,8 @@
 native component TestNative
 export TestNative
 
-language="java"
-package="com.sun.fortress.interpreter.glue.test"
+private language="java"
+private package="com.sun.fortress.interpreter.glue.test"
 
 object TNFoo[\nat n\](s:String)
   bar():String = "" doit()
