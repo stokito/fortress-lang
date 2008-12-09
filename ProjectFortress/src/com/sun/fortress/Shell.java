@@ -352,6 +352,7 @@ public final class Shell {
             Files.rm( logFile );
             throw new UserError("Missing types from the component.");
         }
+        Files.rm( logFile );
         if ( result.isNone() )
             throw new UserError("api command needs a Fortress component file.");
         Api a = (Api) result.unwrap();
