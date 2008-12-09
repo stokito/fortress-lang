@@ -962,7 +962,8 @@ interface Node() extends HasAt;
                          * e.g.) 3+4+5+6
                          */
                         AmbiguousMultifixOpExpr(FunctionalRef infix_op, FunctionalRef multifix_op,
-                                                List<Expr> args = Collections.<Expr>emptyList());
+                                                List<Expr> args = Collections.<Expr>emptyList())
+                                               implements OutAfterTypeChecking;
                         /**
                          * chain expression
                          * Certain infix mathematical operators that are
