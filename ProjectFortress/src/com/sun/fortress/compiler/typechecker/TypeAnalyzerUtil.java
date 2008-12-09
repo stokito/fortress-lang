@@ -52,39 +52,36 @@ public class TypeAnalyzerUtil {
         final Map<Id, UnitExpr> unitSubs = new HashMap<Id, UnitExpr>();
         for (Pair<StaticParam, StaticArg> pair : IterUtil.zip(params, args)) {
             final StaticArg a = pair.second();
-            pair.first().accept(new NodeAbstractVisitor_void() {
-                @Override public void forOpParam(OpParam p) {
-                    opSubs.put(p.getName(), (Op) ((OpArg) a).getName().getOriginalName());
-                }
-                @Override public void forIdStaticParam(final IdStaticParam p) {
-                    p.getKind().accept(new NodeAbstractVisitor_void() {
-                            @Override public void forKindType(KindType k) {
-                                typeSubs.put(p.getName(),
-                                             ((TypeArg) a).getTypeArg());
-                            }
-                            @Override public void forKindInt(KindInt k) {
-                                intSubs.put(p.getName(),
-                                            ((IntArg) a).getIntVal());
-                            }
-                            @Override public void forKindNat(KindNat k) {
-                                intSubs.put(p.getName(),
-                                            ((IntArg) a).getIntVal());
-                            }
-                            @Override public void forKindBool(KindBool k) {
-                                boolSubs.put(p.getName(),
-                                             ((BoolArg) a).getBoolArg());
-                            }
-                            @Override public void forKindDim(KindDim k) {
-                                dimSubs.put(p.getName(),
-                                            ((DimArg) a).getDimArg());
-                            }
-                            @Override public void forKindUnit(KindUnit k) {
-                                unitSubs.put(p.getName(),
-                                             ((UnitArg) a).getUnitArg());
-                            }
-                        });
-                }
-            });
+            final IdOrOp name = pair.first().getName();
+            pair.first().getKind().accept(new NodeAbstractVisitor_void() {
+                    @Override public void forKindType(KindType k) {
+                        typeSubs.put((Id)name,
+                                     ((TypeArg) a).getTypeArg());
+                    }
+                    @Override public void forKindInt(KindInt k) {
+                        intSubs.put((Id)name,
+                                    ((IntArg) a).getIntVal());
+                    }
+                    @Override public void forKindNat(KindNat k) {
+                        intSubs.put((Id)name,
+                                    ((IntArg) a).getIntVal());
+                    }
+                    @Override public void forKindBool(KindBool k) {
+                        boolSubs.put((Id)name,
+                                     ((BoolArg) a).getBoolArg());
+                    }
+                    @Override public void forKindDim(KindDim k) {
+                        dimSubs.put((Id)name,
+                                    ((DimArg) a).getDimArg());
+                    }
+                    @Override public void forKindUnit(KindUnit k) {
+                        unitSubs.put((Id)name,
+                                     ((UnitArg) a).getUnitArg());
+                    }
+                    @Override public void forKindOp(KindOp p) {
+                        opSubs.put((Op)name, (Op) ((OpArg) a).getName().getOriginalName());
+                    }
+                });
         }
         for (Id id : hiddenParams) {
             typeSubs.put(id, NodeFactory.make_InferenceVarType(id.getSpan()));

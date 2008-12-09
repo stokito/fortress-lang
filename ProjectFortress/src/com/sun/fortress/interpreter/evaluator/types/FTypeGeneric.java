@@ -38,12 +38,11 @@ import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpArg;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitType;
@@ -168,13 +167,11 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
 
         @Override
-        public StaticArg forOpParam(OpParam that) {
-        	return new OpArg(that.getSpan(), ExprFactory.makeOpRef(that.getName()));
-        }
-
-        @Override
-        public StaticArg forIdStaticParam(IdStaticParam that) {
-            return idNameToTypeArg(that.getName());
+        public StaticArg forStaticParam(StaticParam that) {
+            if ( NodeUtil.isOpParam(that) )
+        	return new OpArg(that.getSpan(), ExprFactory.makeOpRef((Op)that.getName()));
+            else
+                return idNameToTypeArg((Id)that.getName());
         }
     }
 
@@ -198,7 +195,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             int oprParamCount = 0;
 
             for (StaticParam param : params) {
-                if (param instanceof OpParam)
+                if ( NodeUtil.isOpParam(param) )
                     oprParamCount++;
             }
 
@@ -208,14 +205,14 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
                 int i = 0;
                 for (StaticParam param : params) {
                     FType arg = args.get(i);
-                    if (param instanceof OpParam) {
+                    if ( NodeUtil.isOpParam(param) ) {
                         if (arg instanceof FTypeOpr) {
                             FTypeOpr fto = (FTypeOpr) arg;
-                            String s = NodeUtil.nameString(((OpParam)param).getName());
+                            String s = NodeUtil.nameString(param.getName());
                             substitutions.put(s, fto.getName());
                         } else if (arg instanceof SymbolicOprType) {
                             SymbolicOprType fto = (SymbolicOprType) arg;
-                            String s = NodeUtil.nameString(((OpParam)param).getName());
+                            String s = NodeUtil.nameString(param.getName());
                             substitutions.put(s, fto.getName());
                         }
                     } else {

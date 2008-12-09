@@ -356,19 +356,6 @@ public class NodeComparator {
                                  right.getClass() + ") is not implemented!");
     }
 
-    static int compare(IdStaticParam left, IdStaticParam right) {
-        int x = NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
-        if (x != 0) {
-            return x;
-        }
-        if (left.isAbsorbsParam() != right.isAbsorbsParam()) {
-            return left.isAbsorbsParam() ? 1 : -1;
-        }
-        List<BaseType> l = left.getExtendsClause();
-        List<BaseType> ol = right.getExtendsClause();
-        return traitTypeListComparer.compare(l, ol);
-    }
-
     static int compare(StaticParam left, StaticParam right) {
         return NodeUtil.getName(left).compareTo(NodeUtil.getName(right));
     }

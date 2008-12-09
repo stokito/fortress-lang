@@ -29,7 +29,6 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.IntRef;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarRef;

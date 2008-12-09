@@ -29,8 +29,8 @@ import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
@@ -467,7 +467,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         List<VarType> var_types = new LinkedList<VarType>();
         for( StaticParam static_param : staticParams ) {
             if( NodeUtil.isTypeParam(static_param) ) {
-                var_types.add(NodeFactory.makeVarType(static_param.getSpan(), ((IdStaticParam)static_param).getName()));
+                var_types.add(NodeFactory.makeVarType(static_param.getSpan(), (Id)static_param.getName()));
             }
         }
         return new TypeCheckerResult(this.ast,

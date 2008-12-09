@@ -45,7 +45,6 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
@@ -107,10 +106,10 @@ class FnTypeEnv extends TypeEnv {
 					// Ugh..
 					TypeArg type_arg = (TypeArg)arg0;
 					VarType v = (VarType)type_arg.getTypeArg();
-					StaticParam p = new IdStaticParam(NodeFactory.makeSpan(v), v.getName(),
-                                                                          Collections.<BaseType>emptyList(),
-                                                                          Option.<Type>none(), false,
-                                                                          new KindType());
+					StaticParam p = new StaticParam(NodeFactory.makeSpan(v), v.getName(),
+                                                                        Collections.<BaseType>emptyList(),
+                                                                        Option.<Type>none(), false,
+                                                                        new KindType());
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
 					return Pair.make(p, a);
 				}});

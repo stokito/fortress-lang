@@ -35,13 +35,7 @@ public class WhereClauseEnv extends StaticParamEnv {
     }
 
     private IdOrOpOrAnonymousName paramName(StaticParam param) {
-        // Both OpParams and IdStaticParams have name fields, but they
-        // differ in the types of the fields.
-        if (param instanceof OpParam) {
-            return ((OpParam)param).getName();
-        } else { // param instanceof IdStaticParam
-            return ((IdStaticParam)param).getName();
-        }
+        return param.getName();
     }
 
     public Option<StaticParam> binding(IdOrOpOrAnonymousName name) {
@@ -51,11 +45,11 @@ public class WhereClauseEnv extends StaticParamEnv {
         for (WhereBinding entry : whereClause.getBindings()) {
             if (entry.getKind() instanceof KindType &&
                 name.equals(entry.getName())) {
-                return Option.<StaticParam>wrap(new IdStaticParam(entry.getSpan(),
-                                                                  entry.getName(),
-                                                                  entry.getSupers(),
-                                                                  Option.<Type>none(), false,
-                                                                  new KindType()));
+                return Option.<StaticParam>wrap(new StaticParam(entry.getSpan(),
+                                                                entry.getName(),
+                                                                entry.getSupers(),
+                                                                Option.<Type>none(), false,
+                                                                new KindType()));
             }
         }
         return parent.binding(name);

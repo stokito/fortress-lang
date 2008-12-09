@@ -66,6 +66,7 @@ import com.sun.fortress.nodes.KindInt;
 import com.sun.fortress.nodes.KindBool;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.KindUnit;
+import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
@@ -681,8 +682,10 @@ public class Unprinter extends NodeReflection {
             kind = new KindBool();
         else if ( "KindDim".equals(s) )
             kind = new KindDim();
-        else
+        else if ( "KindUnit".equals(s) )
             kind = new KindUnit();
+        else
+            kind = new KindOp();
         expectPrefix(")");
         return kind;
     }

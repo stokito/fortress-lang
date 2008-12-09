@@ -33,13 +33,7 @@ public class NonEmptyStaticParamEnv extends StaticParamEnv {
     }
 
     private IdOrOpOrAnonymousName paramName(StaticParam param) {
-        // Both OpParams and IdStaticParams have name fields, but they
-        // differ in the types of the fields.
-        if (param instanceof OpParam) {
-            return ((OpParam)param).getName();
-        } else { // param instanceof IdStaticParam
-            return ((IdStaticParam)param).getName();
-        }
+        return param.getName();
     }
 
     public Option<StaticParam> binding(IdOrOpOrAnonymousName name) {

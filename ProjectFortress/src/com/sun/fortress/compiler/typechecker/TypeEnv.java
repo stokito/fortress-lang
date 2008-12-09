@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntRef;
@@ -62,10 +63,8 @@ import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpArg;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.KindType;
 import com.sun.fortress.nodes.KindInt;
@@ -73,6 +72,7 @@ import com.sun.fortress.nodes.KindNat;
 import com.sun.fortress.nodes.KindBool;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.KindUnit;
+import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.UnitArg;
@@ -188,35 +188,31 @@ public abstract class TypeEnv {
         List<StaticArg> result = new ArrayList<StaticArg>();
 
         for (StaticParam param: params) {
-            result.add(param.accept(new NodeAbstractVisitor<StaticArg>() {
-                public StaticArg forOpParam(OpParam that) {
-                    return new OpArg(new Span(), ExprFactory.makeOpRef(that.getName()));
-                }
-                public StaticArg forIdStaticParam(final IdStaticParam that) {
-                    return that.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
-                            public StaticArg forKindBool(KindBool k) {
-                                return new BoolArg(new Span(), new BoolRef(new Span(), that.getName()));
-                            }
-                            public StaticArg forKindDim(KindDim k) {
-                                return new DimArg(new Span(), new DimRef(new Span(), that.getName()));
-                            }
-                            public StaticArg forKindInt(KindInt k) {
-                                return new IntArg(new Span(), new IntRef(new Span(), that.getName()));
-                            }
-                            public StaticArg forKindNat(KindNat k) {
-                                return new IntArg(new Span(), new IntRef(new Span(), that.getName()));
-                            }
-                            public StaticArg forKindType(KindType k) {
-                                return new TypeArg(new Span(),
-                                                   NodeFactory.makeVarType(new Span(),
-                                                                           that.getName()));
-                            }
-                            public StaticArg forKindUnit(KindUnit k) {
-                                return new UnitArg(new Span(), new UnitRef(new Span(), that.getName()));
-                            }
-                        });
-                }
-            }));
+            final IdOrOp name = param.getName();
+            result.add(param.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
+                        public StaticArg forKindBool(KindBool k) {
+                            return new BoolArg(new Span(), new BoolRef(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindDim(KindDim k) {
+                            return new DimArg(new Span(), new DimRef(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindInt(KindInt k) {
+                            return new IntArg(new Span(), new IntRef(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindNat(KindNat k) {
+                            return new IntArg(new Span(), new IntRef(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindType(KindType k) {
+                            return new TypeArg(new Span(),
+                                               NodeFactory.makeVarType(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindUnit(KindUnit k) {
+                            return new UnitArg(new Span(), new UnitRef(new Span(), (Id)name));
+                        }
+                        public StaticArg forKindOp(KindOp that) {
+                            return new OpArg(new Span(), ExprFactory.makeOpRef((Op)name));
+                        }
+                    }));
         }
         return result;
     }

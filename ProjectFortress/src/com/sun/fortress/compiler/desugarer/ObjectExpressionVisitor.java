@@ -840,21 +840,20 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     // small helper methods
-    private StaticArg makeStaticArgFromStaticParam(StaticParam staticParam) {
-        IdStaticParam sParam = (IdStaticParam)staticParam;
+    private StaticArg makeStaticArgFromStaticParam(StaticParam sParam) {
         Span span = sParam.getSpan();
 
         if( NodeUtil.isBoolParam(sParam) ) {
-            BoolRef boolRef = new BoolRef(span, sParam.getName());
+            BoolRef boolRef = new BoolRef(span, (Id)sParam.getName());
             return new BoolArg(span, boolRef);
         } else if( NodeUtil.isIntParam(sParam) ) {
-            IntRef intRef = new IntRef(span, sParam.getName());
+            IntRef intRef = new IntRef(span, (Id)sParam.getName());
             return new IntArg(span, intRef);
         } else if( NodeUtil.isNatParam(sParam) ) {
-            IntRef intRef = new IntRef(span, sParam.getName());
+            IntRef intRef = new IntRef(span, (Id)sParam.getName());
             return new IntArg(span, intRef);
         } else if( NodeUtil.isTypeParam(sParam) ) {
-            VarType varType = new VarType(span, sParam.getName());
+            VarType varType = new VarType(span, (Id)sParam.getName());
             return new TypeArg(span, varType);
         } else {
             throw new DesugarerError(

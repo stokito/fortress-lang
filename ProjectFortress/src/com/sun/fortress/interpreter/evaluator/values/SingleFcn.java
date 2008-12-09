@@ -34,9 +34,7 @@ import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TypeAlias;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereConstraint;
@@ -187,9 +185,8 @@ public abstract class SingleFcn extends Fcn implements HasAt {
                 t = new SymbolicNat(name);
             } else if (NodeUtil.isBoolParam(tp)) {
                 t = new SymbolicBool(name);
-            } else if (tp instanceof OpParam) {
-                OpParam op = (OpParam) tp;
-                t = new SymbolicOprType(name, ge, op);
+            } else if (NodeUtil.isOpParam(tp)) {
+                t = new SymbolicOprType(name, ge, tp);
             } else {
                 return bug(tp, errorMsg("Unimplemented symbolic StaticParam ", tp));
             }
@@ -223,13 +220,13 @@ public abstract class SingleFcn extends Fcn implements HasAt {
             if ( NodeUtil.isTypeParam(tp) ) {
                 String tp_name = NodeUtil.getName(tp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(tp_name); // leaf
-                List<BaseType> oext = ((IdStaticParam)tp).getExtendsClause();
+                List<BaseType> oext = tp.getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
                 st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
             } else if ( NodeUtil.isNatParam(tp) || NodeUtil.isIntParam(tp) ||
-                        tp instanceof OpParam || NodeUtil.isBoolParam(tp) ) {
+                        NodeUtil.isOpParam(tp) || NodeUtil.isBoolParam(tp) ) {
                 // No constraint handling right now
             } else {
                 return bug(tp, errorMsg("Unexpected StaticParam ", tp));

@@ -52,7 +52,6 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.IfClause;
 import com.sun.fortress.nodes.LValue;
@@ -359,9 +358,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     private Set<Id> extractStaticExprVars(List<StaticParam> staticParams) {
         Set<Id> result = new HashSet<Id>();
         for (StaticParam staticParam: staticParams) {
-            if ( staticParam instanceof IdStaticParam &&
-                 ! (NodeUtil.isDimParam(staticParam)) )
-                result.add(((IdStaticParam)staticParam).getName());
+            if ( ! (NodeUtil.isDimParam(staticParam)) &&
+                 ! (NodeUtil.isOpParam(staticParam)) )
+                result.add((Id)staticParam.getName());
         }
         return result;
     }

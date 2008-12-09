@@ -37,47 +37,33 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    public static boolean isOpParam(StaticParam p) {
+        return p.getKind() instanceof KindOp;
+    }
+
     public static boolean isTypeParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return ((IdStaticParam)p).getKind() instanceof KindType;
-        else
-            return false;
+        return p.getKind() instanceof KindType;
     }
 
     public static boolean isIntParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return (((IdStaticParam)p).getKind() instanceof KindInt ||
-                    ((IdStaticParam)p).getKind() instanceof KindNat);
-        else
-            return false;
+        return ( p.getKind() instanceof KindInt ||
+                 p.getKind() instanceof KindNat );
     }
 
     public static boolean isNatParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return (((IdStaticParam)p).getKind() instanceof KindNat);
-        else
-            return false;
+        return p.getKind() instanceof KindNat;
     }
 
     public static boolean isBoolParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return ((IdStaticParam)p).getKind() instanceof KindBool;
-        else
-            return false;
+        return p.getKind() instanceof KindBool;
     }
 
     public static boolean isDimParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return ((IdStaticParam)p).getKind() instanceof KindDim;
-        else
-            return false;
+        return p.getKind() instanceof KindDim;
     }
 
     public static boolean isUnitParam(StaticParam p) {
-        if ( p instanceof IdStaticParam )
-            return ((IdStaticParam)p).getKind() instanceof KindUnit;
-        else
-            return false;
+        return p.getKind() instanceof KindUnit;
     }
 
     public static List<_RewriteObjectExpr> getObjectExprs(Component comp) {
@@ -407,14 +393,10 @@ public class NodeUtil {
 
     /* getName *************************************************************/
     public static String getName(StaticParam param) {
-        return param.accept(new NodeAbstractVisitor<String>() {
-            public String forIdStaticParam(IdStaticParam p) {
-                return p.getName().getText();
-            }
-            public String forOpParam(OpParam p) {
-                return nameString(p.getName());
-            }
-        });
+        if ( isOpParam(param) )
+            return nameString(param.getName());
+        else
+            return param.getName().getText();
     }
 
     private final static NodeAbstractVisitor<String> stringNameVisitor =
