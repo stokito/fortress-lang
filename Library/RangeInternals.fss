@@ -1423,12 +1423,12 @@ right3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral
            (_:I,_:J,_:K,x:I,y:J,z:K): RightRange[\(I,J,K)\] =
     RightRange3D[\I,J,K\](x,y,z,1,1,1)
 
-openRangeHelper[\I extends AnyIntegral\](_ : __Proxy[\I\]):
+openRangeHelper[\I extends AnyIntegral\](_ : ()->I):
     OpenScalarRange[\I\] = OpenScalarRange[\I\](1)
-openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral\](_ : __Proxy[\(I,J)\]):
+openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral\](_ : ()->(I,J)):
     OpenRange2D[\I,J\] = OpenRange2D[\I\](1,1)
 openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
-               (_ : __Proxy[\(I,J,K)\]): OpenRange3D[\I,J,K\] = OpenRange3D[\I,J,K\](1,1,1)
+               (_ : ()->(I,J,K)): OpenRange3D[\I,J,K\] = OpenRange3D[\I,J,K\](1,1,1)
 
 open1Range[\I extends AnyIntegral\](_:I,x:I):OpenRange[\I\] = OpenScalarRange[\I\](x)
 open2Range[\I extends AnyIntegral, J extends AnyIntegral\](_:I,_:J,x:I,y:J):

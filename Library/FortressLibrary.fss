@@ -1772,50 +1772,50 @@ end
 
 (** Factory for arrays that returns an empty 0-indexed array of a given
     run-time-determined size. **)
-array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr1(__Proxy[\E\],reflect(x))
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr1(__thrower[\E\],reflect(x))
 array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
-    __arr2(__Proxy[\E\],reflect(x), reflect(y))
+    __arr2(__thrower[\E\],reflect(x), reflect(y))
 array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
-    __arr3(__Proxy[\E\],reflect(x), reflect(y), reflect(z))
+    __arr3(__thrower[\E\],reflect(x), reflect(y), reflect(z))
 
 (* This should be local to array, but we don't support local
    parametric methods in the language spec at all at the moment. *)
-__arr1[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):Array1[\E,0,n\] =
+__arr1[\E, nat n\](w:()->E,x:N[\n\]):Array1[\E,0,n\] =
     array1[\E,n\]()
-__arr2[\E, nat n, nat m\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
+__arr2[\E, nat n, nat m\](w:()->E,x:N[\n\],y:N[\m\]):
     Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
-__arr3[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
+__arr3[\E, nat n, nat m, nat p\](w:()->E,x:N[\n\],y:N[\m\],z:N[\p\]):
     Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
 
 (** Factory for immutable arrays that returns an empty 0-indexed array
     of a given run-time-determined size. **)
 immutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
-    __imm1(__Proxy[\E\],reflect(x))
+    __imm1(__thrower[\E\],reflect(x))
 (*
 immutableArray[\E\](x:ZZ32,y:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32)\] =
-    __imm2(__Proxy[\E\],reflect(x), reflect(y))
+    __imm2(__thrower[\E\],reflect(x), reflect(y))
 immutableArray[\E\](x:ZZ32,y:ZZ32,z:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32,ZZ32)\] =
-    __imm3(__Proxy[\E\],reflect(x), reflect(y), reflect(z))
+    __imm3(__thrower[\E\],reflect(x), reflect(y), reflect(z))
 *)
 
 (* This should be local to immutableArray, but we don't support local
    parametric methods in the language spec at all at the moment. *)
-__imm1[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):ImmutableArray1[\E,0,n\] =
+__imm1[\E, nat n\](w:()->E,x:N[\n\]):ImmutableArray1[\E,0,n\] =
    immutableArray1[\E,n\]()
 (*
-__imm2[\E, nat n, nat m\](w:__Proxy[\E\],x:N[\n\],y:N[\m\]):
+__imm2[\E, nat n, nat m\](w:()->E,x:N[\n\],y:N[\m\]):
     ImmutableArray2[\E,0,n,0,m\] = immutableArray2[\E,n,m\]()
-__imm3[\E, nat n, nat m, nat p\](w:__Proxy[\E\],x:N[\n\],y:N[\m\],z:N[\p\]):
+__imm3[\E, nat n, nat m, nat p\](w:()->E,x:N[\n\],y:N[\m\],z:N[\p\]):
     ImmutableArray3[\E,0,n,0,m,0,p\] = immutableArray3[\E,n,m,p\]()
 *)
 
-primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__Proxy[\E\],reflect(x))
-__parr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimitiveArray[\E,n\] =
+primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__thrower[\E\],reflect(x))
+__parr[\E, nat n\](w:()->E,x:N[\n\]):PrimitiveArray[\E,n\] =
     PrimitiveArray[\E,n\]()
 
 primitiveImmutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
-    __piarr(__Proxy[\E\],reflect(x))
-__piarr[\E, nat n\](w:__Proxy[\E\],x:N[\n\]):PrimImmutableArray[\E,n\] =
+    __piarr(__thrower[\E\],reflect(x))
+__piarr[\E, nat n\](w:()->E,x:N[\n\]):PrimImmutableArray[\E,n\] =
     PrimImmutableArray[\E,n\]()
 
 (** NOTE: StandardImmutableArrayType is a parent of
@@ -2087,13 +2087,12 @@ __immutableFactory1[\T, nat b0, nat s0\]():ReadableArray1[\T,b0,s0\] = do
     end
   end
 
+__thrower[\T\](): T = throw ForbiddenException
+
 (* TODO: fix when Number is covariant. *)
 array1[\T, nat s0\]():Array1[\T,0,s0\] =
-    typecase _ = __Proxy[\T\] of
-        __Proxy[\ZZ32\] => vector[\T,s0\]()
-        __Proxy[\ZZ64\] => vector[\T,s0\]()
-        __Proxy[\RR64\] => vector[\T,s0\]()
-        __Proxy[\Number\] => vector[\T,s0\]()
+    typecase _ = __thrower[\T\] of
+        () -> Number => vector[\T,s0\]()
         else => PrimitiveArray[\T,s0\]()
     end
 array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
@@ -2451,11 +2450,8 @@ __builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
 (* array2 is a factory for 0-based 2-D arrays. *)
 (* TODO: fix when Number is covariant. *)
 array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
-    typecase _ = __Proxy[\T\] of
-        __Proxy[\ZZ32\] => matrix[\T,s0,s1\]()
-        __Proxy[\ZZ64\] => matrix[\T,s0,s1\]()
-        __Proxy[\RR64\] => matrix[\T,s0,s1\]()
-        __Proxy[\Number\] => matrix[\T,s0,s1\]()
+    typecase _ = __thrower[\T\] of
+        ()->Number => matrix[\T,s0,s1\]()
         else => __DefaultArray2[\T,0,s0,0,s1\]()
     end
 array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
@@ -3402,7 +3398,7 @@ opr :[\I\](x:I) : RightRange[\I\] = RightRange[\I\](x)
 
 opr #() : TrivialOpenRange = TrivialOpenRange
 opr :() : TrivialOpenRange = TrivialOpenRange
-openRange[\I\](): OpenRange[\I\] = openRangeHelper( __Proxy[\I\] )
+openRange[\I\](): OpenRange[\I\] = openRangeHelper( __thrower[\I\] )
 
 (** Factories for bare strided ranges.
 

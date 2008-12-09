@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api RangeInternals
-import TypeProxy.{...}
+
 roundToStride[\I extends Integral[\I\]\](amt: I, stride: I): I
 
 atOrAboveGoingUp[\I extends Integral[\I\]\](start: I, bound: I, stride: I): I
@@ -609,11 +609,11 @@ right2Range[\I extends AnyIntegral, J extends AnyIntegral\](_: I, _: J, x: I, y:
 
 right3Range[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](_: I, _: J, _: K, x: I, y: J, z: K): RightRange[\(I, J, K)\]
 
-openRangeHelper[\I extends AnyIntegral\](_: __Proxy[\I\]): OpenScalarRange[\I\]
+openRangeHelper[\I extends AnyIntegral\](_: ()->I): OpenScalarRange[\I\]
 
-openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral\](_: __Proxy[\(I, J)\]): OpenRange2D[\I, J\]
+openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral\](_: ()->(I, J)): OpenRange2D[\I, J\]
 
-openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](_: __Proxy[\(I, J, K)\]): OpenRange3D[\I, J, K\]
+openRangeHelper[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](_: ()->(I, J, K)): OpenRange3D[\I, J, K\]
 
 open1Range[\I extends AnyIntegral\](_: I, x: I): OpenRange[\I\]
 
