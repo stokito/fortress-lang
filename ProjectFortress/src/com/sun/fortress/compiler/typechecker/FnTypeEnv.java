@@ -21,6 +21,7 @@ import static com.sun.fortress.nodes_util.NodeFactory.makeEffect;
 import static com.sun.fortress.nodes_util.NodeFactory.makeTraitType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,7 +35,9 @@ import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.exceptions.InterpreterBug;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.KindType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.IntersectionType;
@@ -42,10 +45,10 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.ArrowType;
@@ -104,7 +107,10 @@ class FnTypeEnv extends TypeEnv {
 					// Ugh..
 					TypeArg type_arg = (TypeArg)arg0;
 					VarType v = (VarType)type_arg.getTypeArg();
-					StaticParam p = new TypeParam(NodeFactory.makeSpan(v), v.getName());
+					StaticParam p = new IdStaticParam(NodeFactory.makeSpan(v), v.getName(),
+                                                                          Collections.<BaseType>emptyList(),
+                                                                          Option.<Type>none(), false,
+                                                                          new KindType());
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
 					return Pair.make(p, a);
 				}});

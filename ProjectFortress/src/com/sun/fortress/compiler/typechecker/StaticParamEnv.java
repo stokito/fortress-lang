@@ -63,13 +63,4 @@ public abstract class StaticParamEnv {
             else { return new NonEmptyStaticParamEnv(params, this); }
         }
     }
-
-
-//    public abstract Option<OpParam> oprParam(Op name);
-//    public abstract Option<BoolParam> boolParam(Id name);
-//    public abstract Option<DimParam> dimParam(Id name);
-//    public abstract Option<IntParam> intParam(Id name);
-//    public abstract Option<NatParam> natParam(Id name);
-//    public abstract Option<TypeParam> typeParam(Id name);
-//    public abstract Option<UnitParam> unitParam(Id name);
 }

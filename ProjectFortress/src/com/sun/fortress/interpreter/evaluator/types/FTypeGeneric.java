@@ -34,12 +34,8 @@ import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.rewrite.OprInstantiaterVisitor;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
-import com.sun.fortress.nodes.BoolParam;
-import com.sun.fortress.nodes.DimParam;
 import com.sun.fortress.nodes.Generic;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IntParam;
-import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.OpArg;
@@ -47,13 +43,12 @@ import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeParam;
-import com.sun.fortress.nodes.UnitParam;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -173,38 +168,12 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         }
 
         @Override
-        public StaticArg forBoolParam(BoolParam that) {
-            return idNameToTypeArg(that.getName());
-        }
-
-
-        @Override
-        public StaticArg forDimParam(DimParam that) {
-            return idNameToTypeArg(that.getName());
-        }
-
-        @Override
-        public StaticArg forIntParam(IntParam that) {
-            return idNameToTypeArg(that.getName());
-        }
-
-        @Override
-        public StaticArg forNatParam(NatParam that) {
-            return idNameToTypeArg(that.getName());
-        }
-
-        @Override
         public StaticArg forOpParam(OpParam that) {
         	return new OpArg(that.getSpan(), ExprFactory.makeOpRef(that.getName()));
         }
 
         @Override
-        public StaticArg forTypeParam(TypeParam that) {
-            return idNameToTypeArg(that.getName());
-        }
-
-        @Override
-        public StaticArg forUnitParam(UnitParam that) {
+        public StaticArg forIdStaticParam(IdStaticParam that) {
             return idNameToTypeArg(that.getName());
         }
     }
@@ -274,7 +243,6 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     static  FTraitOrObject make(List<FType> bind_args, List<FType> key_args, HasAt within,
             Map<List<FType>, FTraitOrObject> map, FTypeGeneric gen) {
         Environment clenv = gen.env.extendAt(within);
-        // List<StaticParam> params = def.getTypeParams().getVal();
         EvalType.bindGenericParameters(gen.params, bind_args, clenv, within,
                 gen.genericAt);
         BuildEnvironments be = new BuildEnvironments(clenv);

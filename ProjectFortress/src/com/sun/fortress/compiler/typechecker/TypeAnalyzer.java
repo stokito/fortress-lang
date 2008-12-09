@@ -707,11 +707,13 @@ public class TypeAnalyzer {
             }
 
             @Override
-            public ConstraintFormula forTypeParam(TypeParam that) {
+            public ConstraintFormula forIdStaticParam(IdStaticParam that) {
                 ConstraintFormula result = FALSE;
-                for( BaseType ty : that.getExtendsClause() ) {
-                    result = result.or(sub(ty, t, h), h);
-                    if( result.isTrue() ) return result;
+                if ( NodeUtil.isTypeParam( that ) ) {
+                    for( BaseType ty : that.getExtendsClause() ) {
+                        result = result.or(sub(ty, t, h), h);
+                        if( result.isTrue() ) return result;
+                    }
                 }
                 return result;
             }
@@ -735,9 +737,10 @@ public class TypeAnalyzer {
             if( t_param_.isNone() || s_param_.isNone() )
                 return bug("We are being asked about types that are not in scope.");
 
-            if( t_param_.unwrap() instanceof TypeParam && s_param_.unwrap() instanceof TypeParam ) {
-                TypeParam t_p = (TypeParam)t_param_.unwrap();
-                TypeParam s_p = (TypeParam)s_param_.unwrap();
+            if( NodeUtil.isTypeParam(t_param_.unwrap()) &&
+                NodeUtil.isTypeParam(s_param_.unwrap()) ) {
+                IdStaticParam t_p = (IdStaticParam)t_param_.unwrap();
+                IdStaticParam s_p = (IdStaticParam)s_param_.unwrap();
 
                 ConstraintFormula result = FALSE;
 

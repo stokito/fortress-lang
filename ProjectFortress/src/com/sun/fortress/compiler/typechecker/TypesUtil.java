@@ -41,15 +41,16 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeAbstractVisitor;
 import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -161,7 +162,8 @@ public class TypesUtil {
                             // TODO if parameters are anything but TypeParam, we don't know
                             // how to infer it yet.
                             for( StaticParam p : static_params )
-                                if( !(p instanceof TypeParam) ) return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
+                                if( !(NodeUtil.isTypeParam(p)) )
+                                    return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
 
                             static_args_to_apply =
                                 CollectUtil.makeList(IterUtil.map(static_params,

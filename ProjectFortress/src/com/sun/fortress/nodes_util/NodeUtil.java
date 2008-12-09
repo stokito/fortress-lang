@@ -37,6 +37,49 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    public static boolean isTypeParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return ((IdStaticParam)p).getKind() instanceof KindType;
+        else
+            return false;
+    }
+
+    public static boolean isIntParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return (((IdStaticParam)p).getKind() instanceof KindInt ||
+                    ((IdStaticParam)p).getKind() instanceof KindNat);
+        else
+            return false;
+    }
+
+    public static boolean isNatParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return (((IdStaticParam)p).getKind() instanceof KindNat);
+        else
+            return false;
+    }
+
+    public static boolean isBoolParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return ((IdStaticParam)p).getKind() instanceof KindBool;
+        else
+            return false;
+    }
+
+    public static boolean isDimParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return ((IdStaticParam)p).getKind() instanceof KindDim;
+        else
+            return false;
+    }
+
+    public static boolean isUnitParam(StaticParam p) {
+        if ( p instanceof IdStaticParam )
+            return ((IdStaticParam)p).getKind() instanceof KindUnit;
+        else
+            return false;
+    }
+
     public static List<_RewriteObjectExpr> getObjectExprs(Component comp) {
         for ( Decl d : comp.getDecls() ) {
             if ( d instanceof _RewriteObjectExprDecl )
@@ -365,26 +408,11 @@ public class NodeUtil {
     /* getName *************************************************************/
     public static String getName(StaticParam param) {
         return param.accept(new NodeAbstractVisitor<String>() {
-            public String forBoolParam(BoolParam p) {
-                return p.getName().getText();
-            }
-            public String forDimParam(DimParam p) {
-                return p.getName().getText();
-            }
-            public String forIntParam(IntParam p) {
-                return p.getName().getText();
-            }
-            public String forNatParam(NatParam p) {
+            public String forIdStaticParam(IdStaticParam p) {
                 return p.getName().getText();
             }
             public String forOpParam(OpParam p) {
                 return nameString(p.getName());
-            }
-            public String forTypeParam(TypeParam p) {
-                return p.getName().getText();
-            }
-            public String forUnitParam(UnitParam p) {
-                return p.getName().getText();
             }
         });
     }

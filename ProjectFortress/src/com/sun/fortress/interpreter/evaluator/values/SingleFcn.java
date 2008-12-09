@@ -34,13 +34,10 @@ import com.sun.fortress.interpreter.evaluator.types.SymbolicInstantiatedType;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicNat;
 import com.sun.fortress.interpreter.evaluator.types.SymbolicOprType;
 import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.BoolParam;
-import com.sun.fortress.nodes.IntParam;
-import com.sun.fortress.nodes.NatParam;
 import com.sun.fortress.nodes.OpParam;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.IdStaticParam;
 import com.sun.fortress.nodes.TypeAlias;
-import com.sun.fortress.nodes.TypeParam;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.WhereConstraint;
 import com.sun.fortress.nodes.WhereExtends;
@@ -184,11 +181,11 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         for (StaticParam tp: tpl) {
             String name = NodeUtil.getName(tp);
             FType t;
-            if (tp instanceof TypeParam) {
+            if (NodeUtil.isTypeParam(tp)) {
                 t = new SymbolicInstantiatedType(name, ge, tp);
-            } else if (tp instanceof NatParam || tp instanceof IntParam) {
+            } else if (NodeUtil.isNatParam(tp) || NodeUtil.isIntParam(tp)) {
                 t = new SymbolicNat(name);
-            } else if (tp instanceof BoolParam) {
+            } else if (NodeUtil.isBoolParam(tp)) {
                 t = new SymbolicBool(name);
             } else if (tp instanceof OpParam) {
                 OpParam op = (OpParam) tp;
@@ -223,17 +220,16 @@ public abstract class SingleFcn extends Fcn implements HasAt {
         // Process constraints
         for (StaticParam tp: tpl) {
             String name = NodeUtil.getName(tp);
-            if (tp instanceof TypeParam) {
-                TypeParam stp = (TypeParam) tp;
-                String stp_name = NodeUtil.getName(stp);
-                SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(stp_name); // leaf
-                List<BaseType> oext = stp.getExtendsClause();
+            if ( NodeUtil.isTypeParam(tp) ) {
+                String tp_name = NodeUtil.getName(tp);
+                SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(tp_name); // leaf
+                List<BaseType> oext = ((IdStaticParam)tp).getExtendsClause();
                 // pass null, no excludes here.
                 // Note no need to replace environment, these
                 // are precreated in a fresh environment.
                 st.setExtendsAndExcludes(eval_type.getFTypeListFromList(oext), null);
-            } else if (tp instanceof NatParam || tp instanceof IntParam ||
-                       tp instanceof OpParam || tp instanceof BoolParam) {
+            } else if ( NodeUtil.isNatParam(tp) || NodeUtil.isIntParam(tp) ||
+                        tp instanceof OpParam || NodeUtil.isBoolParam(tp) ) {
                 // No constraint handling right now
             } else {
                 return bug(tp, errorMsg("Unexpected StaticParam ", tp));

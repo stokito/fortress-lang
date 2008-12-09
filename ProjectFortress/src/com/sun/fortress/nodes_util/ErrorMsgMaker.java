@@ -121,10 +121,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getIntVal().accept(this);
     }
 
-    public String forBoolParam(BoolParam node) {
-        return "bool " + NodeUtil.nameString(node.getName());
-    }
-
     public String forFnDecl(FnDecl node) {
         return NodeUtil.nameString(node.getName())
                 + (node.getStaticParams().size() > 0 ? Useful.listInOxfords(mapSelf(node.getStaticParams())) : "")
@@ -256,10 +252,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return node.getIntVal().toString();
     }
 
-    public String forIntParam(IntParam node) {
-        return "int " + NodeUtil.nameString(node.getName());
-    }
-
     public String forKeywordType(KeywordType node) {
         return "" + NodeUtil.nameString(node.getName()) + ":" + node.getKeywordType().accept(this);
     }
@@ -272,8 +264,8 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName()) + r;
     }
 
-    public String forNatParam(NatParam node) {
-        return "nat " + NodeUtil.nameString(node.getName());
+    public String forIdStatiParam(IdStaticParam node) {
+        return "bool " + NodeUtil.nameString(node.getName());
     }
 
     public String forName(Name n) {
@@ -317,10 +309,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public String forBoolBase(BoolBase node) {
         if (node.isBoolVal()) { return "true"; }
         else { return "false"; }
-    }
-
-    public String forTypeParam(TypeParam node) {
-        return NodeUtil.nameString(node.getName());
     }
 
     public String forTypeArg(TypeArg node) {

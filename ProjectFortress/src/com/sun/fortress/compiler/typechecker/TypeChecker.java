@@ -693,8 +693,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 										// TODO if parameters are anything but TypeParam, we don't know
 										// how to infer it yet.
 										// Otherwise, we've got all static parameters
-										if(arg0 instanceof TypeParam){
-											Set<BaseType> bounds = CollectUtil.asSet(((TypeParam)arg0).getExtendsClause());
+                                                                            if( NodeUtil.isTypeParam(arg0) ){
+											Set<BaseType> bounds = CollectUtil.asSet(((IdStaticParam)arg0).getExtendsClause());
 											Type ivt = NodeFactory.make_InferenceVarType(method_name.getSpan());
 											ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));
 											all_results.add(new TypeCheckerResult(that, Option.<Type>none(), constraint));
@@ -4323,7 +4323,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forTypeParam(TypeParam that) {
+	public TypeCheckerResult forIdStaticParam(IdStaticParam that) {
 		return new TypeCheckerResult(that);
 	}
 
@@ -4757,12 +4757,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return param.accept(new NodeAbstractVisitor<List<TraitType>>(){
 
 					@Override
-					public List<TraitType> forTypeParam(TypeParam that) {
-						List<TraitType> result = new ArrayList<TraitType>();
+					public List<TraitType> forIdStaticParam(IdStaticParam that) {
+                                            List<TraitType> result = new ArrayList<TraitType>();
+                                            if ( NodeUtil.isTypeParam(that) ) {
 						for( BaseType type : that.getExtendsClause() ) {
 							result.addAll(TypeChecker.this.traitTypesCallable(type));
 						}
-						return result;
+                                            }
+                                            return result;
 					}
 				});
 			}

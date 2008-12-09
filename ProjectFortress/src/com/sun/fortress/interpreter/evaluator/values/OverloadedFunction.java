@@ -45,7 +45,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeTuple;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TypeParam;
+import com.sun.fortress.nodes.IdStaticParam;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.DebugletPrintStream;
 import com.sun.fortress.useful.Factory1P;
@@ -68,7 +69,7 @@ public class  OverloadedFunction extends Fcn
     protected List<Overload> pendingOverloads = new ArrayList<Overload>();
     private Map<Overload, Overload> allOverloadsEver = new Hashtable<Overload, Overload>();
     private volatile boolean needsInference;
-    
+
     protected volatile boolean finishedFirst = true; // an empty overload is consistent
     protected volatile boolean finishedSecond = true;
     protected IdOrOpOrAnonymousName fnName;
@@ -109,7 +110,7 @@ public class  OverloadedFunction extends Fcn
     public boolean needsInference() {
         return needsInference;
     }
-    
+
     public String getString() {
         if (pendingOverloads.size() > 0) {
             return Useful.listInDelimiters("{\n\t",overloads,
@@ -707,7 +708,7 @@ public class  OverloadedFunction extends Fcn
         if (cls == this)
             return; // Prevents a comodification exception if
                     // we import FortressLibrary a second time.
-        
+
         List<Overload> clso = cls.overloads;
         for (Overload cl : clso) {
             addOverload(cl);
@@ -731,7 +732,7 @@ public class  OverloadedFunction extends Fcn
      * @param overload
      */
     public void addOverload(Overload overload) {
-        
+
          if (!finishedSecond) {
             // Reset finishedFirst -- new overloads can appear as side-effect
             // of finishing first overloads.
@@ -963,7 +964,7 @@ public class  OverloadedFunction extends Fcn
            // TODO need to make this check more comprehensive and detailed.
            FType a = args.get(i);
            StaticParam p = val.get(i);
-           if (p instanceof TypeParam) {
+           if (NodeUtil.isTypeParam(p)) {
                if (a instanceof FTypeNat) return false;
            }
        }

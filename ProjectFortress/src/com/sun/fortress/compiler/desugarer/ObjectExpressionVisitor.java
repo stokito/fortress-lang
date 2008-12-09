@@ -840,20 +840,21 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     // small helper methods
-    private StaticArg makeStaticArgFromStaticParam(StaticParam sParam) {
+    private StaticArg makeStaticArgFromStaticParam(StaticParam staticParam) {
+        IdStaticParam sParam = (IdStaticParam)staticParam;
         Span span = sParam.getSpan();
 
-        if( sParam instanceof BoolParam ) {
-            BoolRef boolRef = new BoolRef(span, ((BoolParam) sParam).getName());
+        if( NodeUtil.isBoolParam(sParam) ) {
+            BoolRef boolRef = new BoolRef(span, sParam.getName());
             return new BoolArg(span, boolRef);
-        } else if( sParam instanceof IntParam ) {
-            IntRef intRef = new IntRef(span, ((IntParam) sParam).getName());
+        } else if( NodeUtil.isIntParam(sParam) ) {
+            IntRef intRef = new IntRef(span, sParam.getName());
             return new IntArg(span, intRef);
-        } else if( sParam instanceof NatParam ) {
-            IntRef intRef = new IntRef(span, ((NatParam) sParam).getName());
+        } else if( NodeUtil.isNatParam(sParam) ) {
+            IntRef intRef = new IntRef(span, sParam.getName());
             return new IntArg(span, intRef);
-        } else if( sParam instanceof TypeParam ) {
-            VarType varType = new VarType(span, ((TypeParam) sParam).getName());
+        } else if( NodeUtil.isTypeParam(sParam) ) {
+            VarType varType = new VarType(span, sParam.getName());
             return new TypeArg(span, varType);
         } else {
             throw new DesugarerError(
