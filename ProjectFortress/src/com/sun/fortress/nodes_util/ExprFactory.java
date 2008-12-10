@@ -38,6 +38,91 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
 
+    public static ArrayElement makeArrayElement(Expr elem) {
+        return makeArrayElement(elem.getSpan(), false, Option.<Type>none(),
+                                Collections.<StaticArg>emptyList(), elem);
+    }
+
+    public static ArrayElement makeArrayElement(Span span, boolean parenthesized,
+                                                Option<Type> ty,
+                                                List<StaticArg> staticArgs,
+                                                Expr elem) {
+        return new ArrayElement(span, parenthesized, ty, staticArgs, elem);
+    }
+
+    public static ArrayElements makeArrayElements(Span span, int dim,
+                                                  List<ArrayExpr> elems) {
+        return makeArrayElements(span, false, Option.<Type>none(),
+                                 Collections.<StaticArg>emptyList(), dim, elems,
+                                 false);
+    }
+
+    public static ArrayElements makeArrayElements(ArrayElements a,
+                                                  boolean outermost) {
+        return makeArrayElements(a.getSpan(), a.isParenthesized(), a.getExprType(),
+                                 a.getStaticArgs(), a.getDimension(),
+                                 a.getElements(), outermost);
+    }
+
+    public static ArrayElements makeArrayElements(ArrayElements a,
+                                                  List<StaticArg> staticArgs,
+                                                  boolean outermost) {
+        return makeArrayElements(a.getSpan(), a.isParenthesized(), a.getExprType(),
+                                 staticArgs, a.getDimension(), a.getElements(),
+                                 outermost);
+    }
+
+    public static ArrayElements makeArrayElements(Span span, boolean parenthesized,
+                                                  Option<Type> ty,
+                                                  List<StaticArg> staticArgs,
+                                                  int dim,
+                                                  List<ArrayExpr> elems,
+                                                  boolean outermost) {
+        return new ArrayElements(span, parenthesized, ty, staticArgs, dim, elems,
+                                 outermost);
+    }
+
+    public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
+                                                        Id field, Expr expr) {
+        return makeMethodInvocation(that.getSpan(), that.isParenthesized(),
+                                    that.getExprType(), obj, field, expr);
+    }
+
+    public static MethodInvocation makeMethodInvocation(Span span,
+                                                        Expr receiver,
+                                                        Id method,
+                                                        Expr arg) {
+        return makeMethodInvocation(span, false, Option.<Type>none(),
+                                    receiver, method, arg);
+    }
+    public static MethodInvocation makeMethodInvocation(Span span,
+                                                        Expr receiver,
+                                                        Id method,
+                                                        List<StaticArg> staticArgs,
+                                                        Expr arg) {
+        return makeMethodInvocation(span, false, Option.<Type>none(),
+                                    receiver, method, staticArgs, arg);
+    }
+
+    public static MethodInvocation makeMethodInvocation(Span span,
+                                                        boolean isParenthesized,
+                                                        Option<Type> type,
+                                                        Expr obj, Id field,
+                                                        Expr expr) {
+        return makeMethodInvocation(span, isParenthesized, type, obj, field,
+                                    Collections.<StaticArg>emptyList(), expr);
+    }
+
+    public static MethodInvocation makeMethodInvocation(Span span,
+                                                        boolean isParenthesized,
+                                                        Option<Type> type,
+                                                        Expr obj, Id field,
+                                                        List<StaticArg> staticArgs,
+                                                        Expr expr) {
+        return new MethodInvocation(span, isParenthesized, type, obj, field,
+                                    staticArgs, expr);
+    }
+
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
@@ -465,21 +550,6 @@ public class ExprFactory {
                      that.isFnApp(), true);
     }
 
-    public static MethodInvocation makeMethodInvocation(Span span,
-                                                        boolean isParenthesized,
-                                                        Option<Type> type,
-                                                        Expr obj,
-                                                        Id field, Expr expr) {
-        return new MethodInvocation(span, isParenthesized, type, obj,
-                                    field, expr);
-    }
-
-    public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
-                                                        Id field, Expr expr) {
-        return new MethodInvocation(that.getSpan(), that.isParenthesized(), obj,
-                                    field, expr);
-    }
-
     public static VarRef makeVarRef(VarRef old, int depth) {
         return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(),
                           old.getStaticArgs(),
@@ -867,12 +937,14 @@ public class ExprFactory {
         			                           that.getInfix_op(), that.getMultifix_op(),
         			                           that.getArgs());
 		}
-		public Expr forArrayElement(ArrayElement e) {
-            return new ArrayElement(e.getSpan(), true, e.getElement());
+        public Expr forArrayElement(ArrayElement e) {
+            return makeArrayElement(e.getSpan(), true, e.getExprType(),
+                                    e.getStaticArgs(), e.getElement());
         }
         public Expr forArrayElements(ArrayElements e) {
-            return new ArrayElements(e.getSpan(), true, e.getDimension(),
-                    e.getElements());
+            return makeArrayElements(e.getSpan(), true, e.getExprType(),
+                                     e.getStaticArgs(), e.getDimension(),
+                                     e.getElements(), e.isOutermost());
         }
         public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
             return new FloatLiteralExpr(e.getSpan(), true, e.getText(),
@@ -909,9 +981,9 @@ public class ExprFactory {
                     e.getField());
         }
         public Expr forMethodInvocation(MethodInvocation e) {
-            return new MethodInvocation(e.getSpan(), true, e.getObj(),
-                    e.getMethod(), e.getStaticArgs(),
-                    e.getArg());
+            return makeMethodInvocation(e.getSpan(), true, e.getExprType(),
+                                        e.getObj(), e.getMethod(),
+                                        e.getStaticArgs(), e.getArg());
         }
         public Expr forJuxt(Juxt e) {
             return new Juxt(e.getSpan(), true, e.getExprType(),

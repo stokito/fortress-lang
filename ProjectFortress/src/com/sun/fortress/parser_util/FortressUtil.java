@@ -626,7 +626,7 @@ public final class FortressUtil {
 //                    multi_dim_row span row_dim
 //                      (multi_dim_cons expr dim first :: rest))
     private static ArrayExpr multiDimElement(Expr expr) {
-        return new ArrayElement(expr.getSpan(), false, expr);
+        return ExprFactory.makeArrayElement(expr);
     }
     private static ArrayElements addOneMultiDim(ArrayExpr multi, int dim,
                                               Expr expr){
@@ -636,19 +636,19 @@ public final class FortressUtil {
             List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(multi);
             elems.add(elem);
-            return new ArrayElements(span, false, dim, elems);
+            return ExprFactory.makeArrayElements(span, dim, elems);
         } else if (multi instanceof ArrayElements) {
             ArrayElements m = (ArrayElements)multi;
             int _dim = m.getDimension();
             List<ArrayExpr> elements = m.getElements();
             if (dim == _dim) {
                 elements.add(elem);
-                return new ArrayElements(span, false, dim, elements);
+                return ExprFactory.makeArrayElements(span, dim, elements);
             } else if (dim > _dim) {
                 List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
                 elems.add(multi);
                 elems.add(elem);
-                return new ArrayElements(span, false, dim, elems);
+                return ExprFactory.makeArrayElements(span, dim, elems);
             } else if (elements.size() == 0) {
                 return syntaxError(multi.getSpan(),
                                    "Empty array/matrix literal.");
@@ -656,7 +656,7 @@ public final class FortressUtil {
                 int index = elements.size()-1;
                 ArrayExpr last = elements.get(index);
                 elements.set(index, addOneMultiDim(last, dim, expr));
-                return new ArrayElements(span, false, _dim, elements);
+                return ExprFactory.makeArrayElements(span, _dim, elements);
             }
         } else {
             return syntaxError(multi.getSpan(),
@@ -674,8 +674,8 @@ public final class FortressUtil {
             List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
             elems.add(_init);
             elems.add(multiDimElement(expr));
-            ArrayElements result = new ArrayElements(spanTwo(_init,expr), false,
-                                                     pair.getA(), elems);
+            ArrayElements result = ExprFactory.makeArrayElements(spanTwo(_init,expr),
+                                                                 pair.getA(), elems);
             for (Pair<Integer,Expr> _pair : rest.subList(1, rest.size())) {
                 int _dim   = _pair.getA();
                 Expr _expr = _pair.getB();
@@ -687,16 +687,12 @@ public final class FortressUtil {
     }
 
     public static ArrayElements finalizeArrayExpr(ArrayElements a) {
-        return new ArrayElements(a.getSpan(), a.isParenthesized(),
-                                 a.getStaticArgs(), a.getDimension(),
-                                 a.getElements(), true);
+        return ExprFactory.makeArrayElements(a, true);
     }
 
     public static ArrayElements addStaticArgsToArrayExpr(List<StaticArg> sargs,
                                                          ArrayElements a) {
-        return new ArrayElements(a.getSpan(), a.isParenthesized(),
-                                 sargs, a.getDimension(),
-                                 a.getElements(), true);
+        return ExprFactory.makeArrayElements(a, sargs, true);
     }
 
 // let rec unpasting_cons (span : span)

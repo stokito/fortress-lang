@@ -1115,7 +1115,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
                 Environment.TOP_LEVEL)));
 
-        _RewriteFnRef fn = new _RewriteFnRef(s.getSpan(), in_fn, args);
+        _RewriteFnRef fn = new _RewriteFnRef(s.getSpan(), false, Option.<Type>none(),
+                                             in_fn, args);
 
         List<Param> params = Collections.emptyList();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
@@ -1598,8 +1599,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (expr instanceof VarRef) {
             VarRef vre = (VarRef) expr;
             if (vre.getLexicalDepth() == -1) {
-                return new MethodInvocation(node.getSpan(),
-                        false,
+                return ExprFactory.makeMethodInvocation(node.getSpan(),
+                        false, node.getExprType(),
                         ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
                         (Id) vre.getVarId(),
                         visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
@@ -1611,8 +1612,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
             FieldRef selfDotSomething = (FieldRef) visit(first);
 
-            return new MethodInvocation(node.getSpan(),
-                                    false,
+            return ExprFactory.makeMethodInvocation(node.getSpan(),
+                                    false, node.getExprType(),
                                     selfDotSomething.getObj(), // this will rewrite in the future.
                                     selfDotSomething.getField(),
                                     visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
@@ -1636,8 +1637,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         //        List<MathItem> visitedArgs = visitList(exprs);
         Node arg = visit(((ExprMI)node.getRest().get(0)).getExpr());
 
-        return new MethodInvocation(node.getSpan(),
-                                false,
+        return ExprFactory.makeMethodInvocation(node.getSpan(),
+                                false, node.getExprType(),
                                 selfDotSomething.getObj(), // this will rewrite in the future.
                                 selfDotSomething.getField(),
                                     (Expr)arg

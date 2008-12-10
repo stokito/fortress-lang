@@ -340,7 +340,7 @@ constant Expr LeftAssociatedPrimary =
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
        Span span = FortressUtil.spanTwo(receiver,a3);
-       Expr e1 = new MethodInvocation(span, receiver, last, a2, a3);
+       Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2, a3);
        Expr e2 = (Expr)apply(a4s, e1);
        yyValue = (Expr)apply(a5s, e2);
      }
@@ -359,7 +359,7 @@ constant Expr LeftAssociatedPrimary =
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
        Span span = FortressUtil.spanTwo(receiver,a2);
-       Expr e1 = new MethodInvocation(span, receiver, last, a2);
+       Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2);
        Expr e2 = (Expr)apply(a3s, e1);
        yyValue = (Expr)apply(a4s, e2);
      }
@@ -535,8 +535,8 @@ constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
                List<StaticArg> sargs;
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
-               Expr mtdInv = new MethodInvocation(FortressUtil.spanTwo(base, a3),
-                                                  false, base, a1, sargs, a3);
+               Expr mtdInv = ExprFactory.makeMethodInvocation(FortressUtil.spanTwo(base, a3),
+                                                              base, a1, sargs, a3);
                return (Expr)apply(a4s, mtdInv);
            }};
      };

@@ -1065,7 +1065,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			IntArg lower = NodeFactory.makeIntArgVal(""+0);
 			IntArg size = NodeFactory.makeIntArgVal(""+1);
 			Type t=Types.makeArrayKType(1, Useful.list(elem, lower, size));
-			Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
+			Node new_node=ExprFactory.makeArrayElement(that.getSpan(), that.isParenthesized(),
+                                                                   Option.some(t),
+                                                                   (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
+                                                                   (Expr) element_result.ast());
 			return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result);
 		}
 		else{
@@ -1075,7 +1078,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						((TypeArg)that.getStaticArgs().get(0)).getTypeArg(), that,
 						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getTypeArg());
 				Type t=Types.makeArrayKType(1, that.getStaticArgs());
-				Node new_node=new ArrayElement(that.getSpan(), that.isParenthesized(), Option.some(t), (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result), (Expr) element_result.ast());
+				Node new_node=ExprFactory.makeArrayElement(that.getSpan(), that.isParenthesized(),
+                                                                           Option.some(t),
+                                                                           (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
+                                                                           (Expr) element_result.ast());
 				return TypeCheckerResult.compose(new_node,t,this.subtypeChecker, element_result, res,
 						TypeCheckerResult.compose(new_node,this.subtypeChecker,staticArgs_result),
 						new TypeCheckerResult(new_node, constraint.unwrap()));
@@ -1241,8 +1247,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return (ArrayExpr)arg0.ast();
 			}
 		};
-		ArrayElements new_node=new ArrayElements(that.getSpan(), that.isParenthesized(), Option.some(return_type) , that.getStaticArgs(),
-				that.getDimension(), Useful.list(IterUtil.map(subarrays, get_expr)), that.isOutermost());
+		ArrayElements new_node=ExprFactory.makeArrayElements(that.getSpan(),
+                                                                     that.isParenthesized(),
+                                                                     Option.some(return_type) ,
+                                                                     that.getStaticArgs(),
+                                                                     that.getDimension(),
+                                                                     Useful.list(IterUtil.map(subarrays, get_expr)),
+                                                                     that.isOutermost());
 
 		all_results.add(new TypeCheckerResult(new_node, accumulated_constraints));
 
@@ -3342,11 +3353,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			Type range = subtypeChecker.meet(ranges);
 			range = subtypeChecker.normalize(range);
-			MethodInvocation new_node = new MethodInvocation(that.getSpan(),
-					that.isParenthesized(),
-					Option.<Type>some(range),
-					(Expr)obj_result.ast(),
-					that.getMethod(),
+			MethodInvocation new_node = ExprFactory.makeMethodInvocation(that.getSpan(),
+                                                                                     that.isParenthesized(),
+                                                                                     Option.<Type>some(range),
+                                                                                     (Expr)obj_result.ast(),
+                                                                                     that.getMethod(),
 					(List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
 					(Expr)arg_result.ast());
 
