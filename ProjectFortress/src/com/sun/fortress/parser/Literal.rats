@@ -54,8 +54,8 @@ private ArrayElements RectElements =
      a1:NoSpaceExpr a2s:MultiDimCons*
      { if (a2s == null || a2s.isEmpty()) {
              List<ArrayExpr> list = new ArrayList<ArrayExpr>();
-             list.add(new ArrayElement(a1.getSpan(), false, a1));
-             yyValue = new ArrayElements(a1.getSpan(), false, 1, list);
+             list.add(ExprFactory.makeArrayElement(a1));
+             yyValue = ExprFactory.makeArrayElements(a1.getSpan(), 1, list);
          } else
            yyValue = FortressUtil.multiDimCons(a1, a2s.list());
      };

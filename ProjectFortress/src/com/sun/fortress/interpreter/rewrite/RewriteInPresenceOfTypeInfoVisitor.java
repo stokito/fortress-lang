@@ -53,11 +53,12 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
         if (sargs.size() > 0)
             return (new _RewriteFnRef(fr.getSpan(),
-                fr.isParenthesized(),
+                                      fr.isParenthesized(),
+                                      fr.getExprType(),
                                       new VarRef(id.getSpan(),
                                                  id,
                                                  Collections.<StaticArg>emptyList()),
-                sargs)).accept(this);
+                                      sargs)).accept(this);
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
