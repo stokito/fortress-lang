@@ -46,8 +46,9 @@ public class ComponentGraphNode extends GraphNode{
 		return component;
 	}
 
-	public void setComponent( ComponentIndex c ){
+	public void setComponent( ComponentIndex c, long cacheDate){
 		this.component = Option.wrap(c);
+		this.cacheDate = cacheDate;
 	}
 
 	

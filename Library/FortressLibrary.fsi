@@ -17,9 +17,7 @@
 
 api FortressLibrary
 
-(*
 import File.FileWriteStream
-*)
 
 (************************************************************
 * \subsection*{Simple Combinators}
