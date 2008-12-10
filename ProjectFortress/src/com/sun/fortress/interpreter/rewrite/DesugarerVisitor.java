@@ -662,10 +662,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         decls_result.add( new _RewriteObjectExprDecl(com.getSpan(), objectExprs) );
         decls_result.add( new _RewriteFunctionalMethodDecl(com.getSpan(), Useful.list(functionals)) );
 
-        AbstractNode nn =
-         new Component(com.getSpan(),
-                       name_result, imports_result, decls_result,
-                       com.is_native(), exports_result);
+        AbstractNode nn = NodeFactory.makeComponent(com.getSpan(),
+                                                    name_result, imports_result,
+                                                    decls_result,
+                                                    com.is_native(), exports_result);
 
         if (debug && ! suppressDebugDump)
             System.err.println("AFTER\n" + NodeUtil.dump(nn));
@@ -872,11 +872,15 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (_requires.isSome())   b = translateRequires(_requires, b);
 
             // Remove the original contract, add the translation
-            FnDecl f = new FnDecl(fndef.getSpan(), fndef.getMods(),
-                                  fndef.getName(),
-                                  fndef.getStaticParams(), fndef.getParams(),
-                                  fndef.getReturnType(), fndef.getThrowsClause(),
-                                  fndef.getWhereClause(), Option.<Contract>none(), Option.<Expr>some(b));
+            FnDecl f = NodeFactory.makeFnDecl(fndef.getSpan(), fndef.getMods(),
+                                              fndef.getName(),
+                                              fndef.getStaticParams(),
+                                              fndef.getParams(),
+                                              fndef.getReturnType(),
+                                              fndef.getThrowsClause(),
+                                              fndef.getWhereClause(),
+                                              Option.<Contract>none(),
+                                              Option.<Expr>some(b));
 
             n = visitNode(f);
         } else {

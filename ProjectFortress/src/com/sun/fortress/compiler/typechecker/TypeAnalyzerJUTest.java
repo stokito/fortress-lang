@@ -426,10 +426,10 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Component ast = new Component(span, NodeFactory.makeAPIName(name),
-                                      Collections.<Import>emptyList(),
-                                      traitDecls,
-                                      Collections.<APIName>emptyList());
+        Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(name),
+                                                  Collections.<Import>emptyList(),
+                                                  traitDecls,
+                                                  Collections.<APIName>emptyList());
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
                                   Collections.<VarDecl>emptySet(),
@@ -466,16 +466,14 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
         TraitDecl ast;
         if (absDecl) {
-            ast = new TraitDecl(span, NodeFactory.makeId(span, name),
-                                Collections.<StaticParam>emptyList(),
-                                extendsClause,
-                                Collections.<Decl>emptyList());
+            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
+                                            Collections.<StaticParam>emptyList(),
+                                            extendsClause);
         }
         else {
-            ast = new TraitDecl(span, NodeFactory.makeId(span, name),
-                                Collections.<StaticParam>emptyList(),
-                                extendsClause,
-                                Collections.<Decl>emptyList());
+            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name),
+                                            Collections.<StaticParam>emptyList(),
+                                            extendsClause);
         }
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),

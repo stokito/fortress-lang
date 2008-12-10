@@ -143,6 +143,180 @@ public class NodeFactory {
         return makeSpan(ifEmpty, l);
     }
 
+    public static Component makeComponent(Span span, APIName name,
+                                          List<Import> imports,
+                                          List<Decl> decls,
+                                          List<APIName> exports) {
+        return makeComponent(span, name, imports, decls, false, exports);
+    }
+
+    public static Component makeComponent(Span span, APIName name,
+                                          List<Import> imports,
+                                          List<Decl> decls,
+                                          boolean isNative,
+                                          List<APIName> exports) {
+        return new Component(span, name, imports, decls, isNative, exports);
+    }
+
+    public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name) {
+        return new AliasedSimpleName(name.getSpan(), name,
+                                     Option.<IdOrOpOrAnonymousName>none());
+    }
+
+    public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name,
+                                                          IdOrOpOrAnonymousName alias) {
+        return new AliasedSimpleName(FortressUtil.spanTwo(name, alias), name,
+                                     Option.<IdOrOpOrAnonymousName>some(alias));
+    }
+
+    public static AliasedAPIName makeAliasedAPIName(APIName api) {
+        return new AliasedAPIName(api.getSpan(), api, Option.<Id>none());
+    }
+
+    public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
+        return new AliasedAPIName(FortressUtil.spanTwo(api, alias), api,
+                                  Option.<Id>some(alias));
+    }
+
+    public static TraitDecl makeTraitDecl(Span span, Id name,
+                                          List<StaticParam> sparams,
+                                          List<TraitTypeWhere> extendsC) {
+        return makeTraitDecl(span, Collections.<Modifier>emptyList(), name,
+                             sparams, extendsC, Option.<WhereClause>none(),
+                             Collections.<Decl>emptyList(),
+                             Collections.<BaseType>emptyList(),
+                             Option.<List<BaseType>>none());
+    }
+
+    public static TraitDecl makeTraitDecl(Span span, List<Modifier> mods, Id name,
+                                          List<StaticParam> sparams,
+                                          List<TraitTypeWhere> extendsC,
+                                          Option<WhereClause> whereC,
+                                          List<Decl> decls,
+                                          List<BaseType> excludesC,
+                                          Option<List<BaseType>> comprisesC) {
+        return new TraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
+                             excludesC, comprisesC);
+    }
+
+    public static ObjectDecl makeObjectDecl(Span span, Id name,
+                                            List<TraitTypeWhere> extendsC,
+                                            List<Decl> decls) {
+        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+                              Collections.<StaticParam>emptyList(),
+                              extendsC, Option.<WhereClause>none(), decls,
+                              Option.<List<Param>>none(),
+                              Option.<List<BaseType>>none(),
+                              Option.<Contract>none());
+    }
+
+    public static ObjectDecl makeObjectDecl(Span span, Id name,
+                                            Option<List<Param>> params) {
+        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+                              Collections.<StaticParam>emptyList(),
+                              Collections.<TraitTypeWhere>emptyList(),
+                              Option.<WhereClause>none(),
+                              Collections.<Decl>emptyList(), params,
+                              Option.<List<BaseType>>none(),
+                              Option.<Contract>none());
+    }
+
+    public static ObjectDecl makeObjectDecl(Span span, Id name,
+                                            List<StaticParam> sparams,
+                                            List<TraitTypeWhere> extendsC,
+                                            List<Decl> decls,
+                                            Option<List<Param>> params) {
+        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+                              sparams, extendsC,
+                              Option.<WhereClause>none(), decls,
+                              params,
+                              Option.<List<BaseType>>none(),
+                              Option.<Contract>none());
+    }
+
+    public static ObjectDecl makeObjectDecl(Span span, List<Modifier> mods, Id name,
+                                            List<StaticParam> sparams,
+                                            List<TraitTypeWhere> extendsC,
+                                            Option<WhereClause> whereC,
+                                            List<Decl> decls,
+                                            Option<List<Param>> params,
+                                            Option<List<BaseType>> throwsC,
+                                            Option<Contract> contract) {
+        return new ObjectDecl(span, mods, name, sparams, extendsC, whereC, decls,
+                              params, throwsC, contract);
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType) {
+        return makeFnDecl(span, mods, name, staticParams, params, returnType,
+                          Option.<List<BaseType>>none(),
+                          Option.<WhereClause>none(),
+                          Option.<Contract>none());
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<Expr> body) {
+        return makeFnDecl(span, mods, name,
+                          Collections.<StaticParam>emptyList(),
+                          params, returnType,
+                          Option.<List<BaseType>>none(),
+                          Option.<WhereClause>none(),
+                          Option.<Contract>none(),
+                          body);
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<BaseType>> throwsC,
+                                    Option<WhereClause> whereC,
+                                    Option<Contract> contract) {
+        return makeFnDecl(span, mods, name, staticParams, params, returnType,
+                          throwsC, whereC, contract,
+                          new Id(span, "FN$"+span.toString()),
+                          Option.<Expr>none(), Option.<Id>none());
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<BaseType>> throwsC,
+                                    Option<WhereClause> whereC,
+                                    Option<Contract> contract,
+                                    Option<Expr> body) {
+        return makeFnDecl(span, mods, name, staticParams, params, returnType,
+                          throwsC, whereC, contract,
+                          new Id(span, "FN$"+span.toString()),
+                          body, Option.<Id>none());
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<BaseType>> throwsC,
+                                    Option<WhereClause> whereC,
+                                    Option<Contract> contract,
+                                    Id unambiguousName,
+                                    Option<Expr> body,
+                                    Option<Id> implementsUnambiguousName) {
+        return new FnDecl(span, mods, name, staticParams, params, returnType,
+                          throwsC, whereC, contract, unambiguousName,
+                          body, implementsUnambiguousName);
+    }
+
+    /*
     public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
                                     Id name, Option<Type> type) {
         return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
@@ -155,7 +329,6 @@ public class NodeFactory {
                           params, type, Option.<Expr>none());
     }
 
-    /** Alternatively, you can invoke the FnDecl constructor without a self name */
     public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
@@ -167,6 +340,37 @@ public class NodeFactory {
         return new FnDecl(s, mods, name, staticParams, params, returnType,
                           throwss, where, contract, Option.<Expr>none(), Option.<Id>none());
     }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, Option<Type> type, Expr body) {
+        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
+                          Option.<Expr>some(body));
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, Option<Type> type, Option<Expr> body) {
+        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
+                          body);
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, List<Param> params,
+                                  Option<Type> type, Expr body) {
+        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
+                          params, type, Option.<List<BaseType>>none(),
+                          Option.<WhereClause>none(), Option.<Contract>none(),
+                          Option.<Expr>some(body));
+    }
+
+    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+                                  Id name, List<Param> params,
+                                  Option<Type> type, Option<Expr> body) {
+        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
+                         params, type, Option.<List<BaseType>>none(),
+                         Option.<WhereClause>none(), Option.<Contract>none(),
+                         body);
+    }
+    */
 
     public static Id makeTemporaryId() {
         return makeId("$$bogus_name$$");
@@ -202,53 +406,6 @@ public class NodeFactory {
 
     public static Id makeIdFromLast(Id id) {
         return new Id(id.getSpan(), id.getText());
-    }
-
-    public static AliasedAPIName makeAliasedAPIName(APIName api) {
-        return new AliasedAPIName(api.getSpan(), api);
-    }
-
-    public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
-        return new AliasedAPIName(FortressUtil.spanTwo(api, alias), api, Option.some(alias));
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Id id) {
-        return new AliasedSimpleName(id.getSpan(), id);
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Id id, Id alias) {
-        return new AliasedSimpleName(id.getSpan(), id, Option.<IdOrOpOrAnonymousName>some(alias));
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Span span,
-                                                          IdOrOpOrAnonymousName name) {
-        return new AliasedSimpleName(span, name, Option.<IdOrOpOrAnonymousName>none());
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Span span,
-                                                          IdOrOpOrAnonymousName name,
-                                                          Id alias) {
-        return new AliasedSimpleName(span, name,
-                                     Option.<IdOrOpOrAnonymousName>some(alias));
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id) {
-        return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>none());
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, Id id,
-                                                          Id alias) {
-        return new AliasedSimpleName(span, id, Option.<IdOrOpOrAnonymousName>some(alias));
-    }
-
-    /** Alternatively, you can invoke the FnDecl constructor without an alias */
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, Op op) {
-        return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>none());
-    }
-
-    public static AliasedSimpleName makeAliasedSimpleName(Span span, Op op,
-                                                          Op alias) {
-        return new AliasedSimpleName(span, op, Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
@@ -660,52 +817,6 @@ public class NodeFactory {
 
     public static Id makeId(Span span, APIName api, String name) {
         return new Id(span, Option.some(api), name);
-    }
-
-    /**
-     * Alternatively, you can invoke the FnDecl constructor without a selfName
-     */
-    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
-                                   IdOrOpOrAnonymousName name,
-                                   List<StaticParam> staticParams,
-                                   List<Param> params,
-                                   Option<Type> returnType,
-                                   Option<List<BaseType>> throwss,
-                                   Option<WhereClause> where,
-                                   Option<Contract> contract,
-                                   Expr body) {
-        return new FnDecl(s, mods, name, staticParams, params, returnType,
-                          throwss, where, contract, Option.<Expr>some(body));
-    }
-
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, Option<Type> type, Expr body) {
-        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
-                          Option.<Expr>some(body));
-    }
-
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, Option<Type> type, Option<Expr> body) {
-        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
-                          body);
-    }
-
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, List<Param> params,
-                                  Option<Type> type, Expr body) {
-        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                          params, type, Option.<List<BaseType>>none(),
-                          Option.<WhereClause>none(), Option.<Contract>none(),
-                          Option.<Expr>some(body));
-    }
-
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, List<Param> params,
-                                  Option<Type> type, Option<Expr> body) {
-        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                         params, type, Option.<List<BaseType>>none(),
-                         Option.<WhereClause>none(), Option.<Contract>none(),
-                         body);
     }
 
     public static Id makeId(String string) {

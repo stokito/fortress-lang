@@ -146,7 +146,7 @@ public final class FortressUtil {
             public Option<List<Type>> forSome(List<BaseType> l) {
                 return Option.<List<Type>>some(new ArrayList<Type>(l));
             }
-            public Option<List<Type>> forNone() { return Option.none(); }
+            public Option<List<Type>> forNone() { return Option.<List<Type>>none(); }
         });
     }
 
@@ -164,7 +164,7 @@ public final class FortressUtil {
         List<Expr> es;
         if (args == null) es = FortressUtil.emptyExprs();
         else              es = args;
-        return new SubscriptExpr(span, false, base, es, Option.some(op), sargs);
+        return new SubscriptExpr(span, false, base, es, Option.<Op>some(op), sargs);
     }
 
     private static void multiple(Span span, Modifier m) {
@@ -495,13 +495,13 @@ public final class FortressUtil {
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
-                                           Type ty, boolean mutable) {
-        return ids2Lvs(ids, mods, Option.some(ty), mutable);
+                                       Type ty, boolean mutable) {
+        return ids2Lvs(ids, mods, Option.<Type>some(ty), mutable);
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
-        return ids2Lvs(ids, emptyModifiers(), Option.some(ty), mutable);
+        return ids2Lvs(ids, emptyModifiers(), Option.<Type>some(ty), mutable);
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods) {
@@ -517,7 +517,7 @@ public final class FortressUtil {
         List<LValue> lvs = new ArrayList<LValue>();
         int ind = 0;
         for (Id id : ids) {
-            lvs.add(new LValue(id.getSpan(), id, mods, Option.some(tys.get(ind)),
+            lvs.add(new LValue(id.getSpan(), id, mods, Option.<Type>some(tys.get(ind)),
                                mutable));
             ind += 1;
         }
@@ -530,7 +530,7 @@ public final class FortressUtil {
     }
 
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
-                                        FnHeaderFront fhf, FnHeaderClause fhc) {
+                                  FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
@@ -559,9 +559,7 @@ public final class FortressUtil {
                                   Type ty) {
         return NodeFactory.makeFnDecl(span, mods, name,
                                       emptyStaticParams(), params,
-                                      Option.some(ty),
-                                      Option.<List<BaseType>>none(),
-                                      Option.<WhereClause>none(), Option.<Contract>none());
+                                      Option.<Type>some(ty));
     }
 
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
@@ -573,7 +571,7 @@ public final class FortressUtil {
         return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
                                       fhf.getStaticParams(), fhf.getParams(),
                                       fhc.getReturnType(), throws_, where_,
-                                      contract, expr);
+                                      contract, Option.<Expr>some(expr));
     }
 
     public static FnDecl mkFnDecl(Span span, List<Modifier> mods, IdOrOpOrAnonymousName name,
@@ -584,7 +582,8 @@ public final class FortressUtil {
         Option<Contract> contract = fhc.getContractClause();
         return NodeFactory.makeFnDecl(span, mods, name,
                                       sparams, params, Option.<Type>none(),
-                                      throws_, where_, contract, expr);
+                                      throws_, where_, contract,
+                                      Option.<Expr>some(expr));
     }
 
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
@@ -594,7 +593,7 @@ public final class FortressUtil {
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
                                               Expr expr) {
         return new LocalVarDecl(span, false, emptyExprs(), lvs,
-                                Option.some(expr));
+                                Option.<Expr>some(expr));
     }
     public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
         return new LocalVarDecl(span, false, emptyExprs(), lvs,
@@ -602,14 +601,14 @@ public final class FortressUtil {
     }
 
     public static LValue mkLValue(Span span, Id id, Type ty) {
-        return new LValue(span, id, emptyModifiers(), Option.some(ty), false);
+        return new LValue(span, id, emptyModifiers(), Option.<Type>some(ty), false);
     }
     public static LValue mkLValue(Span span, Id id) {
         return new LValue(span, id, emptyModifiers(), Option.<Type>none(), false);
     }
     public static LValue mkLValue(Id id, Type ty,
                                   List<Modifier> mods) {
-        return new LValue(id.getSpan(), id, mods, Option.some(ty), getMutable(mods));
+        return new LValue(id.getSpan(), id, mods, Option.<Type>some(ty), getMutable(mods));
     }
     public static LValue mkLValue(Id id, Type ty) {
         return mkLValue(id, ty, emptyModifiers());

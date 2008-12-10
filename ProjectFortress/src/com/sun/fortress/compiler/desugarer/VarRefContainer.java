@@ -95,12 +95,8 @@ public class VarRefContainer {
         params.add(param);
 
         ObjectDecl container =
-            new ObjectDecl( origDeclNode.getSpan(), containerDeclId(),
-                            Collections.<StaticParam>emptyList(),
-                            Collections.<TraitTypeWhere>emptyList(),
-                            Option.<WhereClause>none(),
-                            Collections.<Decl>emptyList(),
-                            Option.<List<Param>>some(params) );
+            NodeFactory.makeObjectDecl( origDeclNode.getSpan(), containerDeclId(),
+                                        Option.<List<Param>>some(params) );
 
         return container;
     }

@@ -27,6 +27,7 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
@@ -255,10 +256,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         if ( inTrait )
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
+                                          Collections.<Param>emptyList(),
                                           field.getIdType(), Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, field.getName(),
-                                         field.getIdType(), body);
+                                          Collections.<Param>emptyList(),
+                                          field.getIdType(), Option.<Expr>some(body));
     }
 
     private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
@@ -310,7 +313,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                           Option.some(voidType), Option.<Expr>none());
         else
             return NodeFactory.makeFnDecl(span, mods, name, params,
-                                         Option.some(voidType), assign);
+                                          Option.some(voidType),
+                                          Option.<Expr>some(assign));
     }
 
     private LinkedList<Decl> makeGetterSetters(final Id owner,
@@ -594,10 +598,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<Expr> body_result,
                              Option<Id> implementsUnambiguousName_result)
     {
-        return new FnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
-                         name_result, staticParams_result, params_result,
-                         returnType_result, throwsClause_result,
-                         where_result, contract_result, unambiguousName_result,
-                         body_result, implementsUnambiguousName_result);
+        return NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
+                                      name_result, staticParams_result, params_result,
+                                      returnType_result, throwsClause_result,
+                                      where_result, contract_result, unambiguousName_result,
+                                      body_result, implementsUnambiguousName_result);
     }
 }

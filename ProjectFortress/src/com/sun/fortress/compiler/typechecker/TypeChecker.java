@@ -2013,12 +2013,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                   List<TypeCheckerResult> decls_result,
                                                   List<TypeCheckerResult> exports_result) {
 		Component new_comp =
-			new Component(that.getSpan(),
-					(APIName)name_result.ast(),
-					(List<Import>)TypeCheckerResult.astFromResults(imports_result),
-					(List<Decl>)TypeCheckerResult.astFromResults(decls_result),
-					that.is_native(),
-					(List<APIName>)TypeCheckerResult.astFromResults(exports_result));
+                    NodeFactory.makeComponent(that.getSpan(),
+                                              (APIName)name_result.ast(),
+                                              (List<Import>)TypeCheckerResult.astFromResults(imports_result),
+                                              (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
+                                              that.is_native(),
+                                              (List<APIName>)TypeCheckerResult.astFromResults(exports_result));
 
 		return TypeCheckerResult.compose(new_comp,
 				subtypeChecker,
@@ -2323,16 +2323,16 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                   "declared return type is ", returnType.unwrap()));
 		}
 
-		FnDecl new_node = new FnDecl(that.getSpan(),
-                                             that.getMods(),
-                                             that.getName(),
-                                             that.getStaticParams(),
-                                             that.getParams(),
-                                             returnType,
-                                             that.getThrowsClause(),
-                                             that.getWhereClause(),
-                                             contract,
-                                             Option.<Expr>some((Expr)bodyResult.ast()));
+		FnDecl new_node = NodeFactory.makeFnDecl(that.getSpan(),
+                                                         that.getMods(),
+                                                         that.getName(),
+                                                         that.getStaticParams(),
+                                                         that.getParams(),
+                                                         returnType,
+                                                         that.getThrowsClause(),
+                                                         that.getWhereClause(),
+                                                         contract,
+                                                         Option.<Expr>some((Expr)bodyResult.ast()));
 		return TypeCheckerResult.compose(new_node, subtypeChecker, contractResult,
 				bodyResult, result)
 				.addNodeTypeEnvEntry(new_node, typeEnv)
@@ -3476,7 +3476,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		}
 
-		ObjectDecl new_node = new ObjectDecl(that.getSpan(),
+		ObjectDecl new_node = NodeFactory.makeObjectDecl(that.getSpan(),
 				(List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
 				that.getName(),
 				that.getStaticParams(),
@@ -4016,15 +4016,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		TraitDecl new_node =
-			new TraitDecl(that.getSpan(),
-					(List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
-					that.getName(),
-					that.getStaticParams(),
-					(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
-					where,
-					(List<Decl>)TypeCheckerResult.astFromResults(decls_result),
-					(List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
-					(Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult));
+                    NodeFactory.makeTraitDecl(that.getSpan(),
+                                              (List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
+                                              that.getName(),
+                                              that.getStaticParams(),
+                                              (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
+                                              where,
+                                              (List<Decl>)TypeCheckerResult.astFromResults(decls_result),
+                                              (List<BaseType>)TypeCheckerResult.astFromResults(excludesResult),
+                                              (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult));
 
 		return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, modsResult),
