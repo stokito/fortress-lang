@@ -353,10 +353,10 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(t.ast().getName(), t);
         }
-        Component ast = new Component(span, NodeFactory.makeAPIName(span, name),
-                                      Collections.<Import>emptyList(),
-                                      traitDecls,
-                                      Collections.<APIName>emptyList());
+        Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(span, name),
+                                                  Collections.<Import>emptyList(),
+                                                  traitDecls,
+                                                  Collections.<APIName>emptyList());
         return new ComponentIndex(ast,
                                   Collections.<Id, Variable>emptyMap(),
                                   Collections.<VarDecl>emptySet(),
@@ -394,14 +394,12 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         TraitDecl ast;
         List<StaticParam> sparams = Collections.<StaticParam>emptyList();
         if (absDecl) {
-            ast = new TraitDecl(span, NodeFactory.makeId(span, name), sparams,
-                                extendsClause,
-                                Collections.<Decl>emptyList());
+            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name), sparams,
+                                            extendsClause);
         }
         else {
-            ast = new TraitDecl(span, NodeFactory.makeId(span, name), sparams,
-                                extendsClause,
-                                Collections.<Decl>emptyList());
+            ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(span, name), sparams,
+                                            extendsClause);
         }
         return new ProperTraitIndex(ast,
                                     Collections.<Id, Method>emptyMap(),

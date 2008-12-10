@@ -638,11 +638,10 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                         enclosingSelf, exitFnParamMap);
         /* Use default value for modifiers, where clauses,
            throw clauses, contract */
-        ObjectDecl lifted = new ObjectDecl(span, liftedObjId, staticParams,
-                                           extendsClauses,
-                                           Option.<WhereClause>none(), decls,
-                                           params);
-
+        ObjectDecl lifted = NodeFactory.makeObjectDecl(span, liftedObjId,
+                                                       staticParams,
+                                                       extendsClauses,
+                                                       decls, params);
         if(enclosingSelf != null) {
             VarRef receiver = makeVarRefFromParam(enclosingSelf);
             DottedMethodRewriteVisitor rewriter =

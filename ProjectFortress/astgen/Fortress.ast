@@ -110,7 +110,7 @@ interface Node() extends HasAt;
                  *         run(args:String...) = print "Hello, World!\n"
                  *       end
                  */
-                Component(boolean _native = false, List<APIName> exports);
+                Component(boolean _native, List<APIName> exports);
                 /**
                  * API declaration
                  * Api ::= api APIName Imports? AbsDecls? end
@@ -153,15 +153,14 @@ interface Node() extends HasAt;
              * Names and aliases must be unqualified.
              */
             AliasedSimpleName(IdOrOpOrAnonymousName name,
-                              Option<IdOrOpOrAnonymousName> alias = Option.<IdOrOpOrAnonymousName>none());
+                              Option<IdOrOpOrAnonymousName> alias);
             /**
              * aliased API name used in import statements
              * AliasedAPIName ::= APIName (as Id)?
              * e.g.) com.sun.fortress.parser.precedence.resolver as precedence_resolver
              * Alias must be unqualified.
              */
-            AliasedAPIName(APIName apiName,
-                           Option<Id> alias = Option.<Id>none());
+            AliasedAPIName(APIName apiName, Option<Id> alias);
             /**
              * declaration in components or APIs
              */
@@ -170,15 +169,11 @@ interface Node() extends HasAt;
                  * trait or object declaration in components or APIs
                  * Name must be unqualified.
                  */
-                abstract TraitObjectDecl(List<Modifier> mods
-                                             = Collections.<Modifier>emptyList(),
+                abstract TraitObjectDecl(List<Modifier> mods,
                                          Id name,
-                                         List<StaticParam> staticParams
-                                             = Collections.<StaticParam>emptyList(),
-                                         List<TraitTypeWhere> extendsClause
-                                             = Collections.<TraitTypeWhere>emptyList(),
-                                         Option<WhereClause> whereClause
-                                             = Option.<WhereClause>none(),
+                                         List<StaticParam> staticParams,
+                                         List<TraitTypeWhere> extendsClause,
+                                         Option<WhereClause> whereClause,
                                          List<Decl> decls)
                                          implements Generic;
                     /**
@@ -224,9 +219,8 @@ interface Node() extends HasAt;
                      *         cons(x: alph): List[\alpha\] = Cons[\alph\](x, self)
                      *       end
                      */
-                    TraitDecl(List<BaseType> excludesClause = Collections.<BaseType>emptyList(),
-                              Option<List<BaseType>> comprisesClause
-                                  = Option.<List<BaseType>>none()) implements Generic;
+                    TraitDecl(List<BaseType> excludesClause,
+                              Option<List<BaseType>> comprisesClause) implements Generic;
                     /**
                      * object declaration in components or APIs
                      *
@@ -266,10 +260,9 @@ interface Node() extends HasAt;
                      *         length() = 0
                      *       end
                      */
-                    ObjectDecl(Option<List<Param>> params = Option.<List<Param>>none(),
-                               Option<List<BaseType>> throwsClause
-                                   = Option.<List<BaseType>>none(),
-                               Option<Contract> contract = Option.<Contract>none())
+                    ObjectDecl(Option<List<Param>> params,
+                               Option<List<BaseType>> throwsClause,
+                               Option<Contract> contract)
                               implements GenericWithParams;
                 /**
                  * variable declaration in components or APIs
@@ -318,15 +311,14 @@ interface Node() extends HasAt;
                  * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
                  * e.g.) swap (x, y) = (y, x)
                  */
-                FnDecl(List<Modifier> mods = Collections.<Modifier>emptyList(),
+                FnDecl(List<Modifier> mods,
                        IdOrOpOrAnonymousName name,
-                       List<StaticParam> staticParams
-                           = Collections.<StaticParam>emptyList(),
-                       List<Param> params = Collections.<Param>emptyList(),
-                       Option<Type> returnType = Option.<Type>none(),
-                       Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-                       Option<WhereClause> whereClause = Option.<WhereClause>none(),
-                       Option<Contract> contract = Option.<Contract>none(),
+                       List<StaticParam> staticParams,
+                       List<Param> params,
+                       Option<Type> returnType,
+                       Option<List<BaseType>> throwsClause,
+                       Option<WhereClause> whereClause,
+                       Option<Contract> contract,
                        Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
                        Option<Expr> body,
                        Option<Id> implementsUnambiguousName = Option.<Id>none())

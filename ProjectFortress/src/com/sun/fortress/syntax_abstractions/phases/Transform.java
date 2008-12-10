@@ -348,11 +348,27 @@ public class Transform extends TemplateUpdateVisitor {
                                     Id old = (Id) ((Id)name_result).accept(transformer);
                                     Id generatedId = generateId(old);
                                     extendSyntaxEnvironment(old, generatedId);
-                                    return new FnDecl(that.getSpan(), mods_result, generatedId, staticParams_result, new_params_result, returnType_result, throwsClause_result, where_result, contract_result, body_result);
+                                    return NodeFactory.makeFnDecl(that.getSpan(),
+                                                                  mods_result,
+                                                                  generatedId,
+                                                                  staticParams_result,
+                                                                  new_params_result,
+                                                                  returnType_result,
+                                                                  throwsClause_result,
+                                                                  where_result,
+                                                                  contract_result,
+                                                                  body_result);
                                 } else {
-                                    return new FnDecl(that.getSpan(), mods_result, name_result, staticParams_result,
-                                                     new_params_result, returnType_result, throwsClause_result,
-                                                     where_result, contract_result, body_result);
+                                    return NodeFactory.makeFnDecl(that.getSpan(),
+                                                                  mods_result,
+                                                                  name_result,
+                                                                  staticParams_result,
+                                                                  new_params_result,
+                                                                  returnType_result,
+                                                                  throwsClause_result,
+                                                                  where_result,
+                                                                  contract_result,
+                                                                  body_result);
                                 }
                             }
                         });

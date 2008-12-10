@@ -68,7 +68,7 @@ CompilationUnit Program =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = new Component(span, name, a1, a3, a2);
+       yyValue = NodeFactory.makeComponent(span, name, a1, a3, a2);
      }
    / a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)?
      { if (a2 == null) a2 = Collections.<Decl>emptyList();
@@ -120,9 +120,9 @@ private Component Component =
        if (a3 == null) a3 = Collections.<Import>emptyList();
        if (a5 == null) a5 = Collections.<Decl>emptyList();
        if (a1 == null)
-           yyValue = new Component(span, a2, a3, a5, a4);
+           yyValue = NodeFactory.makeComponent(span, a2, a3, a5, a4);
        else
-           yyValue = new Component(span, a2, a3, a5, true, a4);
+           yyValue = NodeFactory.makeComponent(span, a2, a3, a5, true, a4);
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
@@ -247,40 +247,37 @@ private List<IdOrOpOrAnonymousName> SimpleNameList =
  */
 private AliasedSimpleName AliasedSimpleName =
      a1:Id a2:(w as w Id)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
      }
    / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w as w (Encloser / Op))?
-     { Span span = createSpan(yyStart,yyCount);
-       if (big != null) {
+     { if (big != null) {
            a1 = NodeFactory.makeBig(a1);
        }
        if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else {
            if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(span, a1,
+               yyValue = NodeFactory.makeAliasedSimpleName(a1,
                                                            NodeFactory.makeBig(a2));
            else
-               yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
      }
    / opr big:(w BIG)? w a1:EncloserPair a2:(w as w EncloserPair)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (big != null) {
+     { if (big != null) {
            a1 = NodeFactory.makeBig(a1);
        }
        if (a2 == null)
-           yyValue = NodeFactory.makeAliasedSimpleName(span, a1);
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
        else {
            if (big != null)
-               yyValue = NodeFactory.makeAliasedSimpleName(span, a1,
+               yyValue = NodeFactory.makeAliasedSimpleName(a1,
                                                            NodeFactory.makeBig(a2));
            else
-               yyValue = NodeFactory.makeAliasedSimpleName(span, a1, a2);
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
        }
      };
 
@@ -300,11 +297,10 @@ private List<AliasedAPIName> AliasedAPINames =
 /* AliasedAPIName ::= APIName (w as w Id)? */
 private AliasedAPIName AliasedAPIName =
      a1:APIName a2:(w as w Id)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (a2 == null)
-           yyValue = new AliasedAPIName(span, a1, Option.<Id>none());
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedAPIName(a1);
        else
-           yyValue = new AliasedAPIName(span, a1, Option.some(a2));
+           yyValue = NodeFactory.makeAliasedAPIName(a1, a2);
      };
 
 /* AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)* */
