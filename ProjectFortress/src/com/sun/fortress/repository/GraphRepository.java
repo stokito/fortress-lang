@@ -90,7 +90,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-    public GraphRepository(Path p, CacheBasedRepository cache) {
+    public GraphRepository(Path p, CacheBasedRepository cache) throws FileNotFoundException {
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
@@ -100,9 +100,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* by default all the root APIs should be added to the graph
      * and set as dependancies for everything else.
      */
-    private void addRoots(){
+    private void addRoots() throws FileNotFoundException {
         for ( String root : roots ){
-            ApiGraphNode api = new ApiGraphNode(NodeFactory.makeAPIName(root));
+            APIName name = NodeFactory.makeAPIName(root);
+            ApiGraphNode api = new ApiGraphNode(name, getApiFileDate(name));
             try{
                 api.setApi( cache.getApi( api.getName() ) );
             } catch ( FileNotFoundException e ){
@@ -112,8 +113,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
         
         for ( String root : roots ) {
-            ApiGraphNode node = new ApiGraphNode(NodeFactory.makeAPIName(root));
-            node = (ApiGraphNode) graph.find(node);
+            ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(root)));
             try{
                 for ( APIName api : dependencies(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
@@ -165,17 +165,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
      */
     private ApiGraphNode addApiGraph( APIName name ) throws FileNotFoundException, IOException {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add API graph ", name );
-        ApiGraphNode node = new ApiGraphNode( name );
-        if ( ! graph.contains( node ) ){
+        ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(name));
+        if ( node == null ){
             /* a new node was added, a recompile is needed */
             needUpdate = true;
+            node = new ApiGraphNode(name, getApiFileDate(name));
             graph.addNode( node );
             try{
                 /* try to load the API from the cache.
                  * if it fails then it will be reloaded later on
                  * in refreshGraph
                  */
-                if ( getCacheDate(node) > getFileDate(node) ){
+                if ( getCacheDate(node) > getApiFileDate(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2 , "Found cached version of ", node );
                     node.setApi( cache.getApi(name) );
                 }
@@ -192,8 +193,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             for ( String root : roots ){
                 graph.addEdge(node, addApiGraph(NodeFactory.makeAPIName(root)));
             }
-        } else {
-            node = (ApiGraphNode) graph.find( node );
         }
 
         return node;
@@ -202,17 +201,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* same thing, but add a component */
     private ComponentGraphNode addComponentGraph( APIName name ) throws FileNotFoundException, IOException, StaticError {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add component graph ", name );
-        ComponentGraphNode node = new ComponentGraphNode( name );
-        if ( ! graph.contains( node ) ){
+        ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
+        if ( node == null ){
             /* a new node was added, a recompile is needed */
             needUpdate = true;
+            node = new ComponentGraphNode(name, getComponentFileDate(name));
             graph.addNode( node );
             try{
                 /* try to load the component from the cache.
                  * if it fails then it will be reloaded later on
                  * in refreshGraph
                  */
-                if ( getCacheDate(node) > getFileDate(node) ){
+                if ( getCacheDate(node) > getComponentFileDate(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2 , "Found cached version of ", node );
                     node.setComponent( cache.getComponent(name) );
                 }
@@ -229,8 +229,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             for ( String root : roots ){
                 nodeDependsOnApi(node, NodeFactory.makeAPIName(root));
             }
-        } else {
-            node = (ComponentGraphNode) graph.find( node );
         }
 
         return node;
@@ -241,7 +239,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
         graph.addEdge(node, addApiGraph(api));
         if ( link ){
-            Debug.debug( Debug.Type.REPOSITORY, 1, "Add component for API ", api );
+            Debug.debug( Debug.Type.REPOSITORY, 1, "Component ", node.getName(), " depends on API ", api );
             // Add element, but no API
             addComponentGraph(api);
         }
@@ -271,15 +269,23 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    private long getFileDate( ComponentGraphNode node ) throws FileNotFoundException {
-        return findFile( node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX ).lastModified();
+    private long getComponentFileDate( ComponentGraphNode node ) throws FileNotFoundException {
+        return node.getSourceDate();
     }
 
-    private long getFileDate( ApiGraphNode node ) throws FileNotFoundException {
-        return findFile( node.getName(), ProjectProperties.API_SOURCE_SUFFIX ).lastModified();
+    private long getComponentFileDate( APIName name ) throws FileNotFoundException {
+        return findFile( name, ProjectProperties.COMP_SOURCE_SUFFIX ).lastModified();
     }
 
-    private File findFile(APIName name, String suffix) throws FileNotFoundException {
+    private long getApiFileDate( ApiGraphNode node ) throws FileNotFoundException {
+        return node.getSourceDate();
+    }
+
+    private long getApiFileDate( APIName name ) throws FileNotFoundException {
+        return findFile( name, ProjectProperties.API_SOURCE_SUFFIX ).lastModified();
+    }
+
+    public File findFile(APIName name, String suffix) throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll("[.]", "/");
         dotted = dotted + "." + suffix;
@@ -420,15 +426,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             seen.put(node,true);
             if ( source.lastModified() > getCacheDate(node) ){
-                Debug.debug( Debug.Type.REPOSITORY, 2, node + " is newer " + source.lastModified() + " than the cache " + getCacheDate(node) );
+                Debug.debug( Debug.Type.REPOSITORY, 1, node + " is newer " + source.lastModified() + " than the cache " + getCacheDate(node) );
                 seen.put(node,true);
                 return true;
             }
             List<GraphNode> depends = graph.depends(node);
             Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
             for ( GraphNode next : depends ){
-                if ( next.accept( this ) || getCacheDate(next) > getCacheDate(node) ){
-                    Debug.debug( Debug.Type.REPOSITORY, 2, node + " is out of date because " + next + " is out of date" );
+                boolean dependent_stale = next.accept( this );
+                if ( dependent_stale || getCacheDate(next) > getCacheDate(node) ){
+                    long a = getCacheDate(next);
+                    long b = getCacheDate(node);
+                    Debug.debug( Debug.Type.REPOSITORY, 1, node + " is out of date because " + next + " is out of date" );
                     seen.put(node,true);
                     return true;
                 }
@@ -624,11 +633,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* add an API to the repository and cache it */
     public void addApi(APIName name, ApiIndex definition) {
-        ApiGraphNode graphNode = new ApiGraphNode(name);
-        if ( ! graph.contains(graphNode) ){
+        ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(name));
+        if ( node == null ){
             throw new RuntimeException("No such API '" + name + "'");
         } else {
-            ApiGraphNode node = (ApiGraphNode) graph.find(graphNode);
             node.setApi(definition);
             cache.addApi(name, definition);
         }
@@ -636,19 +644,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* add a component to the repository and cache it */
     public void addComponent(APIName name, ComponentIndex definition){
-        ComponentGraphNode graphNode = new ComponentGraphNode(name);
-        if ( ! graph.contains(graphNode) ){
+        ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
+        if (node == null ){
             throw new RuntimeException("No such component " + name);
         } else {
-            ComponentGraphNode node = (ComponentGraphNode) graph.find(graphNode);
             node.setComponent(definition);
             cache.addComponent(name, definition);
         }
     }
 
     public void deleteComponent(APIName name) {
-        ComponentGraphNode graphNode = new ComponentGraphNode(name);
-        if ( graph.contains(graphNode) ){
+        ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
+        if ( node != null ){
             cache.deleteComponent(name);
         }
     }

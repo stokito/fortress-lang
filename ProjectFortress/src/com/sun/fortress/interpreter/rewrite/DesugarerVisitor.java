@@ -913,6 +913,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             int element_index = 0;
             for (LValue lv : lhs) {
                 Id newName = new Id(at, "$" + element_index);
+                Option<Type> type = lv.getIdType();
                 newdecls.add(new VarDecl(at, Useful.list(lv),
                                          Option.<Expr>some(new FieldRef(at, false, init, newName))));
                 element_index++;

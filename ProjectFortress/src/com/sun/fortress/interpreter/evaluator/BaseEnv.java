@@ -26,6 +26,7 @@ import com.sun.fortress.exceptions.CircularDependenceError;
 import com.sun.fortress.exceptions.RedefinitionError;
 import com.sun.fortress.interpreter.env.BetterEnvWithTopLevel;
 import com.sun.fortress.interpreter.env.IndirectionCell;
+import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
 import com.sun.fortress.interpreter.env.ReferenceCell;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeTop;
@@ -581,7 +582,11 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         return v;
     if (v instanceof IndirectionCell) {
         try {
+            FValue ov = v;
             v = ((IndirectionCell) v).getValueNull();
+            if (ov instanceof LazilyEvaluatedCell) {
+                putValueRaw(s, v);
+            }
         } catch (CircularDependenceError ce) {
             ce.addParticipant(s);
             throw ce;
@@ -631,7 +636,7 @@ abstract public class BaseEnv implements Environment, Iterable<String> {
         putValue(str, new ReferenceCell());
      }
 
-    public void putValueRaw(String str, FValue f2, FType ft) {
+     public void putValueRaw(String str, FValue f2, FType ft) {
         putValueRaw(str, new ReferenceCell(ft, f2));
      }
 

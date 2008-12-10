@@ -96,13 +96,13 @@ public final class Shell {
         CURRENT_INTERPRETER_REPOSITORY = g;
     }
 
-    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ){
+    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ) throws FileNotFoundException{
         GraphRepository fr = new GraphRepository( p, cache );
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
 
-    public static GraphRepository specificRepository(Path p) {
+    public static GraphRepository specificRepository(Path p) throws FileNotFoundException {
         return specificRepository( p, defaultRepository );
     }
 
@@ -664,10 +664,14 @@ public final class Shell {
             String file,
             Option<String> out)
             throws UserError {
-        GraphRepository bcr = specificRepository( path, defaultRepository );
+        GraphRepository bcr = null;
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
-        APIName name = cuName(file);
+        APIName name = null;
         try {
+            bcr = specificRepository( path, defaultRepository );
+            Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
+            name = cuName(file);
+            
             if ( isApi(file) ) {
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
@@ -706,10 +710,11 @@ public final class Shell {
         } catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
         } finally {
+            if (bcr != null && name != null)
              bcr.deleteComponent(name);
         }
 
-        if (bcr.verbose())
+        if (bcr != null && bcr.verbose())
             System.err.println("Compiling done.");
 
         return IterUtil.empty();

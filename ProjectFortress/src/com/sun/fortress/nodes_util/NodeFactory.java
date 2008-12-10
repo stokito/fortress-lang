@@ -1261,7 +1261,7 @@ public class NodeFactory {
         FortressUtil.validId(id);
         LValue bind = new LValue(span, id,
                                  Collections.<Modifier>emptyList(),
-                                 Option.<Type>none(), true);
+                                 Option.<Type>none(), false);
         return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
