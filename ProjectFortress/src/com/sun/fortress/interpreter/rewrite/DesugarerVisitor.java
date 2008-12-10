@@ -92,7 +92,6 @@ import com.sun.fortress.nodes.Spawn;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TestDecl;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
@@ -774,11 +773,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return visitNode(node);
     }
     @Override
-    public Node forTightJuxt(TightJuxt node) {
-        if (looksLikeMethodInvocation(node))
-            return translateJuxtOfDotted(node);
-        else
-            return visitNode(node);
+    public Node forJuxt(Juxt node) {
+        if ( node.isTight() ) {
+            if (looksLikeMethodInvocation(node))
+                return translateJuxtOfDotted(node);
+            else
+                return visitNode(node);
+        } else return visitNode(node);
     }
     @Override
     public Node forTraitType(TraitType vre) {
@@ -1077,9 +1078,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             args.add(g.getInit());
             args.add(bindsAndBody(g,w.getBody()));
             Expr cond =
-                new TightJuxt(g.getSpan(), false,
-                              Useful.list(Q_WHILECOND_NAME,
-                                          ExprFactory.makeTuple(w.getSpan(),args)));
+                ExprFactory.makeTightJuxt(g.getSpan(),
+                                          Q_WHILECOND_NAME,
+                                          ExprFactory.makeTuple(w.getSpan(),args));
             w = ExprFactory.makeWhile(w.getSpan(),cond);
         }
         return (Expr)visitNode(w);
@@ -1113,14 +1114,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         List<Param> params = Collections.emptyList();
         FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
-        List<Expr> exprs = new ArrayList<Expr>(2);
-        exprs.add(fn);
 
-        exprs.add(fnExpr);
-
-        TightJuxt juxt = new TightJuxt(s.getSpan(), false, exprs);
-
-        return visitNode(juxt);
+        return visitNode(ExprFactory.makeTightJuxt(s.getSpan(), fn, fnExpr));
     }
 
     @Override
@@ -1190,9 +1185,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             args.add(g.getInit());
             args.add(bindsAndBody(g,c.getBody()));
             if (elsePart != null) args.add(thunk(elsePart));
-            return new TightJuxt(c.getSpan(), false,
-                                 Useful.list(Q_COND_NAME,
-                                             ExprFactory.makeTuple(c.getSpan(),args)));
+            return ExprFactory.makeTightJuxt(c.getSpan(),
+                                             Q_COND_NAME,
+                                             ExprFactory.makeTuple(c.getSpan(),args));
         }
         // if expr then body else elsePart end is preserved
         // (but we replace elif chains by nesting).
@@ -1217,7 +1212,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Expr loopBody = bindsAndBody(g, body);
             Expr loopSel = ExprFactory.makeFieldRef(g.getSpan(),
                                                     g.getInit(), LOOP_NAME);
-            body = new TightJuxt(span, false, Useful.list(loopSel,loopBody));
+            body = ExprFactory.makeTightJuxt(span, loopSel,loopBody);
         }
         // System.out.println("Desugared to "+body.toStringVerbose());
         return (Expr)visitNode(body);

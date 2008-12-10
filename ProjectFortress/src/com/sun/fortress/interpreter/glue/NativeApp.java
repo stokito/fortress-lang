@@ -35,12 +35,12 @@ import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StringLiteralExpr;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
@@ -152,8 +152,9 @@ public abstract class NativeApp implements Applicable {
         Expr body = optBody.unwrap();
         Expr fn;
         Expr arg;
-        if (body instanceof TightJuxt) {
-            List<Expr> juxts = ((TightJuxt)body).getExprs();
+        if ( body instanceof Juxt &&
+             ((Juxt)body).isTight() ) {
+            List<Expr> juxts = ((Juxt)body).getExprs();
             if (juxts.size()!=2) return defn;
             fn = juxts.get(0);
             arg = juxts.get(1);

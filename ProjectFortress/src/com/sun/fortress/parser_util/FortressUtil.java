@@ -873,8 +873,9 @@ public final class FortressUtil {
         else {
             exprs = exprs.reverse();
             List<Expr> javaList = Useful.immutableTrimmedList(exprs);
-            return new TightJuxt(spanAll(javaList.toArray(new AbstractNode[0]),
-                                         javaList.size()), false, javaList);
+            return new Juxt(spanAll(javaList.toArray(new AbstractNode[0]),
+                                    javaList.size()),
+                            false, javaList, false, true);
         }
     }
 }

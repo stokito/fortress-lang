@@ -26,12 +26,11 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnRef;
-import com.sun.fortress.nodes.LooseJuxt;
+import com.sun.fortress.nodes.Juxt;
 import com.sun.fortress.nodes.MethodInvocation;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -58,41 +57,20 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forLooseJuxt(LooseJuxt that) {
+    public Node forJuxt(Juxt that) {
         // FIXME: Not sure if I really need to recur on other things
         List<Expr> exprs_result = recurOnListOfExpr(that.getExprs());
-
         Expr first = exprs_result.get(0);
         if(first instanceof FnRef && methodRefs.contains(first)) {
             FnRef fnRef = (FnRef) first;
-            MethodInvocation mi = makeMethodInvocationFrom(
-                    fnRef, exprs_result.subList(1, exprs_result.size()) );
+            MethodInvocation mi = makeMethodInvocationFrom(fnRef, exprs_result.subList(1, exprs_result.size()) );
             exprs_result = new LinkedList<Expr>();
             exprs_result.add(mi);
         }
-
-        return forLooseJuxtOnly(that, that.getExprType(), that.getMultiJuxt(),
-                                that.getInfixJuxt(), exprs_result);
+        return forJuxtOnly(that,
+                           that.getExprType(), that.getMultiJuxt(),
+                           that.getInfixJuxt(), exprs_result);
     }
-
-
-    public Node forTightJuxt(TightJuxt that) {
-        // FIXME: Not sure if I really need to recur on other things
-        List<Expr> exprs_result = recurOnListOfExpr(that.getExprs());
-
-        Expr first = exprs_result.get(0);
-        if(first instanceof FnRef && methodRefs.contains(first)) {
-            FnRef fnRef = (FnRef) first;
-            MethodInvocation mi = makeMethodInvocationFrom(
-                    fnRef, exprs_result.subList(1, exprs_result.size()) );
-            exprs_result = new LinkedList<Expr>();
-            exprs_result.add(mi);
-        }
-
-        return forTightJuxtOnly(that, that.getExprType(), that.getMultiJuxt(),
-                                that.getInfixJuxt(), exprs_result);
-    }
-
 
     public Node for_RewriteFnApp(_RewriteFnApp that) {
         Expr function = (Expr) recur(that.getFunction());

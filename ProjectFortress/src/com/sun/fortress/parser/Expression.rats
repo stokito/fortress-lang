@@ -501,7 +501,7 @@ constant inline Action<Expr> ParenthesisDelimitedLeft =
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
               List<Expr> exprs = FortressUtil.mkList(base, a1);
-              return new TightJuxt(FortressUtil.spanTwo(base, a1), false, exprs);
+              return ExprFactory.makeTightJuxt(FortressUtil.spanTwo(base, a1), false, exprs);
           }};
     };
 

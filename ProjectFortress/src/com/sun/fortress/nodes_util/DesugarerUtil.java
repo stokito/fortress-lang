@@ -133,9 +133,9 @@ public class DesugarerUtil {
         int i = gens.size();
         if (i==0) {
             /* Single generator as body, with no generator clauses. */
-            body = new TightJuxt(span, false,
-                             Useful.list(GENERATE_NAME,
-                                         ExprFactory.makeTuple(body,redVar,unitVar)));
+            body = ExprFactory.makeTightJuxt(span,
+                                             GENERATE_NAME,
+                                             ExprFactory.makeTuple(body,redVar,unitVar));
         } else {
             List<GeneratorClause> squozenGens =
                 new ArrayList<GeneratorClause>(gens.size());
@@ -161,10 +161,10 @@ public class DesugarerUtil {
             }
             // Wrap the body in parentheses (as a singleton tuple) so that it can be considered
             // as the argument in a function application (denoted by the true argument).
-            body = new TightJuxt(body.getSpan(),
-                                 false,
-                                 Useful.list(unitVar, body),
-                                 true);
+            body = ExprFactory.makeTightJuxt(body.getSpan(),
+                                             false,
+                                             Useful.list(unitVar, body),
+                                             true);
             for (i--; i>=0; i--) {
                 body = oneGenerator(gens.get(i), redVar, body);
             }
@@ -272,7 +272,6 @@ public class DesugarerUtil {
     private static Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
         Expr params = ExprFactory.makeTuple(g.getInit(), reduction, loopBody);
-        return new TightJuxt(g.getSpan(), false,
-                             Useful.list(GENERATE_NAME,params));
+        return ExprFactory.makeTightJuxt(g.getSpan(), GENERATE_NAME, params);
     }
 }
