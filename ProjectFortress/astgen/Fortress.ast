@@ -319,9 +319,9 @@ interface Node() extends HasAt;
                        Option<List<BaseType>> throwsClause,
                        Option<WhereClause> whereClause,
                        Option<Contract> contract,
-                       Id unambiguousName = new Id(in_span, "FN$"+in_span.toString()),
+                       Id unambiguousName,
                        Option<Expr> body,
-                       Option<Id> implementsUnambiguousName = Option.<Id>none())
+                       Option<Id> implementsUnambiguousName)
                       implements Applicable, Generic;
                 /**
                  * Overloading specification
@@ -351,17 +351,14 @@ interface Node() extends HasAt;
                      * Names for dim and default must be unqualified.
                      * e.g.) dim Length SI_unit meter meters m
                      */
-                    DimDecl(Id dimId, Option<Type> derived = Option.<Type>none(),
-                            Option<Id> defaultId = Option.<Id>none());
+                    DimDecl(Id dimId, Option<Type> derived, Option<Id> defaultId);
                     /**
                      * unit declaration
                      * Names of units must be unqualified.
                      * e.g.) unit inch inches: Length
                      */
-                    UnitDecl(boolean si_unit = false,
-                             List<Id> units = Collections.<Id>emptyList(),
-                             Option<Type> dimType = Option.<Type>none(),
-                             Option<Expr> defExpr);
+                    UnitDecl(boolean si_unit, List<Id> units,
+                             Option<Type> dimType, Option<Expr> defExpr);
                 /**
                  * test declaration
                  * Names must be unqualified.
@@ -375,16 +372,14 @@ interface Node() extends HasAt;
                  * PropertyDecl ::= property (Id = )? (FORALL ValParam)? Expr
                  * e.g.) property fIsMonotonic = FORALL (x:ZZ, y:ZZ) (x < y) -> (f(x) < f(y))
                  */
-                PropertyDecl(Option<Id> name = Option.<Id>none(), List<Param> params,
-                             Expr expr);
+                PropertyDecl(Option<Id> name, List<Param> params, Expr expr);
                 /**
                  * type alias declaration
                  * TypeAlias ::= type Id StaticParams? = Type
                  * e.g.) type IntList = List[\ZZ64\]
                  */
                 TypeAlias(Id name,
-                          List<StaticParam> staticParams
-                              = Collections.<StaticParam>emptyList(),
+                          List<StaticParam> staticParams,
                           Type typeDef);
                 /**
                  * grammar declaration
@@ -416,15 +411,14 @@ interface Node() extends HasAt;
             /**
              * left-hand side of variable declaration or value parameter
              */
-            abstract Binding(Id name,
-                             List<Modifier> mods = Collections.<Modifier>emptyList(),
-                             Option<Type> idType = Option.<Type>none()) implements Lhs;
+            abstract Binding(Id name, List<Modifier> mods,
+                             Option<Type> idType) implements Lhs;
                 /**
                  * left-hand side of variable declaration
                  * e.g.) var x: ZZ32
                  * Name must be unqualified.
                  */
-                LValue(boolean mutable = false);
+                LValue(boolean mutable);
                 /**
                  * value parameter of functional declarations and object declarations
                  * Names must be unqualified.
@@ -444,8 +438,7 @@ interface Node() extends HasAt;
                  * <varargsType>
                  * It is a varargs parameter if the varargsType field is set.
                  */
-                Param(Option<Expr> defaultExpr = Option.<Expr>none(),
-                      Option<Type> varargsType = Option.<Type>none());
+                Param(Option<Expr> defaultExpr, Option<Type> varargsType);
             /**
              * expression
              */

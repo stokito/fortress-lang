@@ -316,59 +316,231 @@ public class NodeFactory {
                           body, implementsUnambiguousName);
     }
 
+    public static DimDecl makeDimDecl(Span span, Id dim, Option<Type> derived) {
+        return makeDimDecl(span, dim, derived, Option.<Id>none());
+    }
+
+    public static DimDecl makeDimDecl(Span span, Id dim, Option<Type> derived,
+                                      Option<Id> defaultId) {
+        return new DimDecl(span, dim, derived, defaultId);
+    }
+
+    public static UnitDecl makeUnitDecl(Span span, boolean si_unit, List<Id> units,
+                                        Option<Type> dim, Option<Expr> def) {
+        return new UnitDecl(span, si_unit, units, dim, def);
+    }
+
+    public static LValue makeLValue(Span span, Id name, Option<Type> type) {
+        return makeLValue(span, name,
+                          Collections.<Modifier>emptyList(),
+                          type, false);
+    }
+
+    public static LValue makeLValue(Span span, Id id, Type ty) {
+        return makeLValue(span, id, Option.<Type>some(ty));
+    }
+
+    public static LValue makeLValue(Span span, Id id) {
+        return makeLValue(span, id, Option.<Type>none());
+    }
+
+    public static LValue makeLValue(Id id) {
+        return makeLValue(id.getSpan(), id);
+    }
+
+    public static LValue makeLValue(Id name, Id type) {
+        return makeLValue(FortressUtil.spanTwo(name, type),
+                          name,
+                          Collections.<Modifier>emptyList(),
+                          Option.some((Type)makeVarType(type.getSpan(),type)),
+                          false);
+    }
+
+    public static LValue makeLValue(Id id, Type ty) {
+        return makeLValue(id, ty, Collections.<Modifier>emptyList());
+    }
+
+    public static LValue makeLValue(Id id, Type ty,
+                                    List<Modifier> mods) {
+        return makeLValue(id.getSpan(), id, mods, Option.<Type>some(ty),
+                          FortressUtil.getMutable(mods));
+    }
+
+    public static LValue makeLValue(String name, Type type) {
+        return makeLValue(type.getSpan(), makeId(name),
+                          Collections.<Modifier>emptyList(), Option.some(type), false);
+    }
+
+    public static LValue makeLValue(String name, Type type, List<Modifier> mods) {
+        return makeLValue(type.getSpan(), makeId(name), mods, Option.some(type), false);
+    }
+
+    public static LValue makeLValue(String name, String type) {
+        return makeLValue(name, makeVarType(type));
+    }
+
+    public static LValue makeLValue(LValue lvb, List<Modifier> mods,
+                                    boolean mutable) {
+        return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
+    }
+
+    public static LValue makeLValue(LValue lvb, Id name) {
+        return makeLValue(lvb.getSpan(), name, lvb.getMods(), lvb.getIdType(),
+                          lvb.isMutable());
+    }
+
+    public static LValue makeLValue(LValue lvb, boolean mutable) {
+        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(), lvb.getIdType(),
+                          mutable);
+    }
+
+    public static LValue makeLValue(LValue lvb, List<Modifier> mods) {
+        boolean mutable = lvb.isMutable();
+        for (Modifier m : mods) {
+            if (m instanceof ModifierVar || m instanceof ModifierSettable)
+                mutable = true;
+        }
+        return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
+    }
+
+    public static LValue makeLValue(LValue lvb, Type ty) {
+        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
+                          Option.<Type>some(ty), lvb.isMutable());
+    }
+
+    public static LValue makeLValue(LValue lvb, Type ty,
+                                    boolean mutable) {
+        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
+                          Option.<Type>some(ty), mutable);
+    }
+
+    public static LValue makeLValue(LValue lvb, Type ty,
+                                    List<Modifier> mods) {
+        boolean mutable = lvb.isMutable();
+        for (Modifier m : mods) {
+            if (m instanceof ModifierVar || m instanceof ModifierSettable)
+                mutable = true;
+        }
+        return makeLValue(lvb.getSpan(), lvb.getName(), mods,
+                          Option.<Type>some(ty), mutable);
+    }
+
+    public static LValue makeLValue(Span span, Id name, List<Modifier> mods,
+                                    Option<Type> type, boolean mutable) {
+        return new LValue(span, name, mods, type, mutable);
+    }
+
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Type type) {
+        return makeParam(span, mods, name, Option.<Type>some(type));
+    }
+
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Option<Type> type) {
+        return makeParam(span, mods, name, type,
+                         Option.<Expr>none(), Option.<Type>none());
+    }
+
+    public static Param makeParam(Id name) {
+        return makeParam(name, Option.<Type>none());
+    }
+
+    public static Param makeParam(Id id, Type type) {
+        return makeParam(id.getSpan(), Collections.<Modifier>emptyList(), id,
+                         Option.<Type>some(type));
+    }
+
+    public static Param makeParam(Id id, Option<Type> type) {
+        return makeParam(id.getSpan(), Collections.<Modifier>emptyList(), id, type);
+    }
+
+    public static Param makeParam(Span span, Id id, Option<Type> type) {
+        return makeParam(span, Collections.<Modifier>emptyList(), id, type);
+    }
+
+    public static Param makeParam(Param param, Expr expr) {
+        return makeParam(param.getSpan(), param.getMods(), param.getName(),
+                         param.getIdType(), Option.<Expr>some(expr),
+                         param.getVarargsType());
+    }
+
+    public static Param makeParam(Param param, List<Modifier> mods) {
+        return makeParam(param.getSpan(), mods, param.getName(),
+                         param.getIdType(), param.getDefaultExpr(),
+                         param.getVarargsType());
+    }
+
+    public static Param makeParam(Param param, Id newId) {
+        return makeParam(param.getSpan(), param.getMods(), newId,
+                         param.getIdType(), param.getDefaultExpr(),
+                         param.getVarargsType());
+    }
+
+    public static Param makeVarargsParam(Id name, Type type) {
+        return makeParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
+                         Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
+    }
+
+    public static Param makeVarargsParam(Param param, List<Modifier> mods) {
+        return makeParam(param.getSpan(), mods, param.getName(),
+                         Option.<Type>none(), Option.<Expr>none(),
+                         param.getVarargsType());
+    }
+
+    public static Param makeVarargsParam(Span span, List<Modifier> mods,
+                                         Id name, Type type) {
+        return makeParam(span, mods, name,
+                         Option.<Type>none(), Option.<Expr>none(),
+                         Option.<Type>some(type));
+    }
+
+    public static Param makeAbsParam(Type type) {
+        return makeParam(type.getSpan(), Collections.<Modifier>emptyList(),
+                         new Id(type.getSpan(), "_"), type);
+    }
+
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Option<Type> type, Option<Expr> expr,
+                                  Option<Type> varargsType) {
+        return new Param(span, name, mods, type, expr, varargsType);
+    }
+
+    /***************************************************************************/
+
     /*
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                    Id name, Option<Type> type) {
-        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type);
+    public static Param makeParam(Span span, Id name, Option<Type> type) {
+        return new Param(span, name, type);
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                    Id name, List<Param> params,
-                                    Option<Type> type) {
-        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                          params, type, Option.<Expr>none());
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Type type) {
+        return new Param(span, name, mods, Option.some(type), Option.<Expr>none());
     }
 
-    public static FnDecl makeFnDecl(Span s, List<Modifier> mods,
-                                    IdOrOpOrAnonymousName name,
-                                    List<StaticParam> staticParams,
-                                    List<Param> params,
-                                    Option<Type> returnType,
-                                    Option<List<BaseType>> throwss,
-                                    Option<WhereClause> where,
-                                    Option<Contract> contract) {
-        return new FnDecl(s, mods, name, staticParams, params, returnType,
-                          throwss, where, contract, Option.<Expr>none(), Option.<Id>none());
+    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+                                  Option<Type> type) {
+        return new Param(span, name, mods, type, Option.<Expr>none());
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, Option<Type> type, Expr body) {
-        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
-                          Option.<Expr>some(body));
+    public static LValue makeLValue(Id name, Type type) {
+        return new LValue(new Span(name.getSpan(), type.getSpan()),
+                          name,
+                          Collections.<Modifier>emptyList(),
+                          Option.some(type),
+                          false);
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, Option<Type> type, Option<Expr> body) {
-        return makeFnDecl(span, mods, name, Collections.<Param>emptyList(), type,
-                          body);
+    public static LValue makeLValue(Id name, Option<Type> type) {
+        return new LValue(name.getSpan(),
+                          name,
+                          Collections.<Modifier>emptyList(),
+                          type,
+                          false);
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, List<Param> params,
-                                  Option<Type> type, Expr body) {
-        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                          params, type, Option.<List<BaseType>>none(),
-                          Option.<WhereClause>none(), Option.<Contract>none(),
-                          Option.<Expr>some(body));
-    }
-
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
-                                  Id name, List<Param> params,
-                                  Option<Type> type, Option<Expr> body) {
-        return new FnDecl(span, mods, name, Collections.<StaticParam>emptyList(),
-                         params, type, Option.<List<BaseType>>none(),
-                         Option.<WhereClause>none(), Option.<Contract>none(),
-                         body);
+    public static LValue makeLValue(Param param) {
+        return new LValue(param.getSpan(), param.getName(),
+                          param.getMods(), param.getIdType(), false);
     }
     */
 
@@ -412,10 +584,6 @@ public class NodeFactory {
             Option<Indices> ind) {
         Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
         return new ArrayType(span, element, indices);
-    }
-
-    public static DimDecl makeDimDecl(Span span, Id dim) {
-        return new DimDecl(span, dim);
     }
 
     public static DimExponent makeDimExponent(DimExponent t, Type s) {
@@ -835,99 +1003,6 @@ public class NodeFactory {
         return new VarType(span, id);
     }
 
-    public static LValue makeLValue(Id id) {
-        return new LValue(id.getSpan(), id);
-    }
-
-    public static LValue makeLValue(String name, String type) {
-        return makeLValue(name, makeVarType(type));
-    }
-
-    public static LValue makeLValue(Id name, Id type) {
-        return new LValue(new Span(name.getSpan(), type.getSpan()),
-                          name,
-                          Collections.<Modifier>emptyList(),
-                          Option.some((Type)makeVarType(type.getSpan(),type)),
-                          false);
-    }
-
-    public static LValue makeLValue(Id name, Type type) {
-        return new LValue(new Span(name.getSpan(), type.getSpan()),
-                          name,
-                          Collections.<Modifier>emptyList(),
-                          Option.some(type),
-                          false);
-    }
-
-    public static LValue makeLValue(Id name, Option<Type> type) {
-        return new LValue(name.getSpan(),
-                          name,
-                          Collections.<Modifier>emptyList(),
-                          type,
-                          false);
-    }
-
-    public static LValue makeLValue(String name, Type type) {
-        return new LValue(type.getSpan(), makeId(name),
-                          Collections.<Modifier>emptyList(), Option.some(type), false);
-    }
-
-    public static LValue makeLValue(String name, Type type, List<Modifier> mods) {
-        LValue result = makeLValue(name, type);
-        return makeLValue(result, mods);
-    }
-
-    public static LValue makeLValue(LValue lvb, Id name) {
-        return new LValue(lvb.getSpan(), name, lvb.getMods(), lvb.getIdType(),
-                          lvb.isMutable());
-    }
-
-    public static LValue makeLValue(LValue lvb, boolean mutable) {
-        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getMods(), lvb.getIdType(),
-                          mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, List<Modifier> mods) {
-        boolean mutable = lvb.isMutable();
-        for (Modifier m : mods) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable)
-                mutable = true;
-        }
-        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, List<Modifier> mods,
-            boolean mutable) {
-        return new LValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty) {
-        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
-                          Option.some(ty), lvb.isMutable());
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty,
-            boolean mutable) {
-        return new LValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
-                          Option.some(ty), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty,
-            List<Modifier> mods) {
-        boolean mutable = lvb.isMutable();
-        for (Modifier m : mods) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable)
-                mutable = true;
-        }
-        return new LValue(lvb.getSpan(), lvb.getName(), mods,
-                          Option.some(ty), mutable);
-    }
-
-    public static LValue makeLValue(Param param) {
-        return new LValue(param.getSpan(), param.getName(),
-                          param.getMods(), param.getIdType(), false);
-    }
-
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
@@ -1049,65 +1124,6 @@ public class NodeFactory {
             return new Op(op.getSpan(), PrecedenceMap.ONLY.canon("BIG " + op.getText()), big, op.isEnclosing() );
     }
 
-    public static Param makeVarargsParam(Id name, Type type) {
-        return new Param(name.getSpan(), name, Collections.<Modifier>emptyList(),
-                         Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
-    }
-
-    public static Param makeVarargsParam(Param param, List<Modifier> mods) {
-        return new Param(param.getSpan(), param.getName(), mods,
-                         Option.<Type>none(), Option.<Expr>none(),
-                         param.getVarargsType());
-    }
-
-    public static Param makeVarargsParam(Span span, List<Modifier> mods,
-                                         Id name, Type type) {
-        return new Param(span, name, mods,
-                         Option.<Type>none(), Option.<Expr>none(),
-                         Option.<Type>some(type));
-    }
-
-    public static Param makeAbsParam(Type type) {
-        Id id = new Id(type.getSpan(), "_");
-        return new Param(type.getSpan(), id, Collections.<Modifier>emptyList(),
-                         Option.some(type), Option.<Expr>none());
-    }
-
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
-                                  Type type) {
-        return new Param(span, name, mods, Option.some(type), Option.<Expr>none());
-    }
-
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
-                                  Option<Type> type) {
-        return new Param(span, name, mods, type, Option.<Expr>none());
-    }
-
-    public static Param makeParam(Id id, Type type) {
-        return new Param(id.getSpan(), id, Collections.<Modifier>emptyList(),
-                         Option.some(type), Option.<Expr>none());
-    }
-
-    public static Param makeParam(Id name) {
-        return new Param(name.getSpan(), name, Collections.<Modifier>emptyList(),
-                         Option.<Type>none(), Option.<Expr>none());
-    }
-
-    public static Param makeParam(Param param, Expr expr) {
-        return new Param(param.getSpan(), param.getName(), param.getMods(),
-                         param.getIdType(), Option.some(expr));
-    }
-
-    public static Param makeParam(Param param, List<Modifier> mods) {
-        return new Param(param.getSpan(), param.getName(), mods,
-                         param.getIdType(), param.getDefaultExpr());
-    }
-
-    public static Param makeParam(Param param, Id newId) {
-        return new Param(param.getSpan(), newId, param.getMods(),
-                         param.getIdType(), param.getDefaultExpr());
-    }
-
     public static StaticParam makeTypeParam(String name) {
         Span s = new Span();
         return new StaticParam(s, new Id(s, name),
@@ -1170,10 +1186,6 @@ public class NodeFactory {
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindNat());
-    }
-
-    public static Param makeParam(Span span, Id name, Option<Type> type) {
-        return new Param(span, name, type);
     }
 
     public static TupleType makeTupleType(List<Type> elements) {

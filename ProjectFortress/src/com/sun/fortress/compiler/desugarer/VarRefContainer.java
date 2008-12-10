@@ -102,15 +102,15 @@ public class VarRefContainer {
     }
 
     public Param containerTypeParam() {
-        return new Param( origDeclNode.getSpan(),
-                          containerVarId(), containerType() );
+        return NodeFactory.makeParam( origDeclNode.getSpan(),
+                                      containerVarId(), containerType() );
     }
 
     public VarDecl containerField() {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( new LValue(origDeclNode.getSpan(), containerVarId(),
-                            containerType(), false) );
+        lhs.add( NodeFactory.makeLValue(origDeclNode.getSpan(), containerVarId(),
+                                        containerType()) );
         VarDecl field = new VarDecl( origDeclNode.getSpan(),
                                      lhs, Option.<Expr>some(makeCallToContainerObj()) );
 
@@ -132,8 +132,8 @@ public class VarRefContainer {
     public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( new LValue(origDeclNode.getSpan(), containerVarId(),
-                            containerType(), false) );
+        lhs.add( NodeFactory.makeLValue(origDeclNode.getSpan(), containerVarId(),
+                                        containerType()) );
         LocalVarDecl ret = ExprFactory.makeLocalVarDecl( origDeclNode.getSpan(),
                             lhs, makeCallToContainerObj(), bodyExprs );
 
@@ -141,11 +141,11 @@ public class VarRefContainer {
     }
 
     private Param makeVarParamFromVarRef(VarRef var,
-                                               Span paramSpan,
+                                         Span paramSpan,
                                                Option<Type> typeOp) {
         List<Modifier> mods = new LinkedList<Modifier>();
         mods.add( new ModifierSettable() );
-        Param param = new Param(paramSpan, var.getVarId(), mods, typeOp);
+        Param param = NodeFactory.makeParam(paramSpan, mods, var.getVarId(), typeOp);
         return param;
     }
 

@@ -49,7 +49,9 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
                                   Option<Type> type_result) {
 		if( type_result.isNone() ) {
 			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
-			return new LValue(that.getSpan(),name_result,mods_result,new_type,that.isMutable());
+			return NodeFactory.makeLValue(that.getSpan(), name_result,
+                                                      mods_result, new_type,
+                                                      that.isMutable());
 		}
 		else {
 			return that;

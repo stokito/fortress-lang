@@ -318,15 +318,19 @@ public class Transform extends TemplateUpdateVisitor {
                           Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                           extendSyntaxEnvironment(old, generatedId);
                         */
-                        return new Param(that.getSpan(), generatedId, mods_result, type_result, defaultExpr_result);
+                        return NodeFactory.makeParam(that.getSpan(), mods_result,
+                                                     generatedId, type_result,
+                                                     defaultExpr_result,
+                                                     Option.<Type>none());
                     } else {
                         Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
                         Id old = (Id) name_result.accept(transformer);
                         Id generatedId = generateId(old);
                         Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                         extendSyntaxEnvironment(old, generatedId);
-                        return new Param(that.getSpan(), generatedId, mods_result, Option.<Type>none(), Option.<Expr>none(),
-                                         varargsType_result);
+                        return NodeFactory.makeParam(that.getSpan(), mods_result,
+                                                     generatedId, Option.<Type>none(), Option.<Expr>none(),
+                                                     varargsType_result);
                     }
                 }
             });
@@ -398,7 +402,8 @@ public class Transform extends TemplateUpdateVisitor {
                             Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return new LValue(that.getSpan(), generatedId, mods_result, type_result);
+                            return NodeFactory.makeLValue(that.getSpan(), generatedId, mods_result,
+                                                          type_result, that.isMutable());
                         }
                     });
                 }

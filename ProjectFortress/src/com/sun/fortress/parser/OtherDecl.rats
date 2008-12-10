@@ -50,12 +50,12 @@ List<DimUnitDecl> DimUnitDecl =
        List<Id> ids = new ArrayList<Id>();
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
        if ( a1 instanceof Id ) {
-           dim = new DimDecl(span, (Id)a1, Option.wrap(a2));
+           dim = NodeFactory.makeDimDecl(span, (Id)a1, Option.wrap(a2));
            ty = new VarType(a1.getSpan(), (Id)a1);
        } else {
            log(span, a1 + " is not a valid dimension name.");
            Id id = NodeFactory.bogusId(span);
-           dim = new DimDecl(span, id, Option.wrap(a2));
+           dim = NodeFactory.makeDimDecl(span, id, Option.wrap(a2));
            ty = new VarType(a1.getSpan(), id);
        }
        if ( a4 instanceof Id ) {
@@ -64,8 +64,8 @@ List<DimUnitDecl> DimUnitDecl =
            log(span, a4 + " is not a valid unit name.");
            ids.add(NodeFactory.bogusId(span));
        }
-       UnitDecl unit = new UnitDecl(span, si_unit, ids, Option.some(ty),
-                                    Option.wrap(a6));
+       UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids, Option.some(ty),
+                                                Option.wrap(a6));
        yyValue = FortressUtil.mkList(dim, unit);
      }
    / dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)? a3:(w default w IdOrOpName)?
@@ -85,7 +85,7 @@ List<DimUnitDecl> DimUnitDecl =
            log(span, a3 + " is not a valid unit name.");
            unitId = NodeFactory.bogusId(span);
        }
-       dim = new DimDecl(span, dimId, Option.wrap(a2), Option.wrap(unitId));
+       dim = NodeFactory.makeDimDecl(span, dimId, Option.wrap(a2), Option.wrap(unitId));
        yyValue = FortressUtil.mkList((DimUnitDecl)dim);
      }
    / a1:(unit / SI_unit) w a2:IdOrOpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
@@ -102,8 +102,8 @@ List<DimUnitDecl> DimUnitDecl =
            ids.add(NodeFactory.bogusId(span));
        }
        for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
-       UnitDecl unit = new UnitDecl(span, si_unit,
-                                    ids, Option.wrap(a4), Option.wrap(a5));
+       UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids,
+                                                Option.wrap(a4), Option.wrap(a5));
        yyValue = FortressUtil.mkList((DimUnitDecl)unit);
      };
 

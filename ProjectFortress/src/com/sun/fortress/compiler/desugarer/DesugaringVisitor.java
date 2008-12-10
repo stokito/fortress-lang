@@ -279,8 +279,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Id name = field.getName();
         List<Param> params = new ArrayList<Param>();
         Id param = NodeFactory.makeId(span, "param_"+name);
-        params.add((Param)NodeFactory.makeParam(span, new LinkedList<Modifier>(),
-                                                param, ty));
+        params.add((Param)NodeFactory.makeParam(param, ty));
         Expr rhs = ExprFactory.makeVarRef(span, param, ty);
         Expr assign;
         if ( boxedRefMap.isSome() ) {
