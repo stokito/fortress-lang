@@ -24,7 +24,7 @@ import com.sun.fortress.repository.ProjectProperties;
 public abstract class GraphNode{
 
     long sourceDate;
-    long cacheDate = Long.MIN_VALUE;
+    long cacheDate = Long.MIN_VALUE; /* Missing = very old */
     private final APIName name;
 
     public GraphNode(APIName name, long sourceDate){

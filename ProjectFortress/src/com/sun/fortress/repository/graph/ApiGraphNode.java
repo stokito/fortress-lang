@@ -46,8 +46,9 @@ public class ApiGraphNode extends GraphNode{
 		return this.api;
 	}
 
-	public void setApi(ApiIndex api){
+	public void setApi(ApiIndex api, long cacheDate){
 		this.api = Option.wrap(api);
+		this.cacheDate = cacheDate;
 	}
 
 	public String toString(){
