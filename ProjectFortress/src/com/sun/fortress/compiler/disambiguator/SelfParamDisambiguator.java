@@ -106,12 +106,12 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     			else
     				new_type = type_result;
 
-    			return new Param(that.getSpan(),
-                                         that.getName(),
-                                         that.getMods(),
-                                         new_type,
-                                         that.getDefaultExpr(),
-                                         that.getVarargsType());
+    			return NodeFactory.makeParam(that.getSpan(),
+                                                     that.getMods(),
+                                                     that.getName(),
+                                                     new_type,
+                                                     that.getDefaultExpr(),
+                                                     that.getVarargsType());
                     } else
                         return that;
                 }

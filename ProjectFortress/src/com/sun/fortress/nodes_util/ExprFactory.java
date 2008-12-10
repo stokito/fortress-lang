@@ -664,7 +664,7 @@ public class ExprFactory {
         List<LValue> _lhs = new ArrayList<LValue>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
-        _lhs.add(new LValue(p.getSpan(), p,false));
+        _lhs.add(NodeFactory.makeLValue(p.getSpan(), p));
         return new LocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
     }
 
@@ -673,7 +673,7 @@ public class ExprFactory {
         List<LValue> _lhs = new ArrayList<LValue>(1);
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
-        _lhs.add(new LValue(sp, p,false));
+        _lhs.add(NodeFactory.makeLValue(sp, p));
         return new LocalVarDecl(sp, _body, _lhs, _rhs);
     }
 

@@ -175,9 +175,9 @@ LocalVarDecl LocalVarDecl =
 
 LValue VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?
      { if (a2 == null)
-           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1);
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
        else
-           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1,a2);
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VarWoTypes ::=
@@ -192,10 +192,10 @@ List<LValue> VarWoTypes =
 
 LValue VarWoType =
      a1:BindId
-     { yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount), a1); }
    / Unpasting
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = FortressUtil.mkLValue(span, new Id(span, "_"));
+       yyValue = NodeFactory.makeLValue(span, new Id(span, "_"));
      };
 
 /* Unpasting ::= [ w UnpastingElems w ] */

@@ -80,7 +80,9 @@ FnDecl FnSig =
        /*
        We could do this, if we had a suitable value for bottomExpr:
        for (KeywordType k : d.getKeywords()) {
-           params.add(new Param(k.getSpan(), mods, k.getName(), k.getType(), bottomExpr));
+           params.add(NodeFactory.makeParam(k.getSpan(), mods,
+                                            k.getName(), k.getType(), bottomExpr,
+                                            Option.<Type>none()));
        }
        */
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,

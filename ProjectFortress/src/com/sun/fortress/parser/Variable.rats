@@ -141,9 +141,9 @@ List<LValue> VarMayTypes =
 /* VarMayType ::= BindId (w IsType)? */
 LValue VarMayType = a1:BindId a2:(w IsType)
      { if (a2 == null)
-           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1);
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
        else
-           yyValue = FortressUtil.mkLValue(createSpan(yyStart,yyCount),a1,a2);
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* InitVal ::= (=|:=) w NoNewlineExpr */

@@ -48,7 +48,7 @@ import edu.rice.cs.plt.tuple.Option;
 class VarTypeEnv extends TypeEnv {
     private Map<Id, Variable> entries;
     private TypeEnv parent;
-    
+
     VarTypeEnv(Map<Id, Variable> _entries, TypeEnv _parent) {
         entries = _entries;
         parent = _parent;
@@ -61,9 +61,9 @@ class VarTypeEnv extends TypeEnv {
     public Option<BindingLookup> binding(IdOrOpOrAnonymousName var) {
      if (!(var instanceof Id)) { return parent.binding(var); }
      Id _var = (Id)var;
-     
+
      Id no_api_var = removeApi(_var);
-     
+
         if (entries.containsKey(no_api_var)) {
             Variable result = entries.get(no_api_var);
             if (result instanceof DeclaredVariable) {
@@ -78,8 +78,8 @@ class VarTypeEnv extends TypeEnv {
                 Param param = _result.ast();
                 Option<Type> type = typeFromParam(param);
 
-                return some(new BindingLookup(makeLValue(
-                  makeLValue(param.getName(), type), param.getMods())));
+                return some(new BindingLookup(makeLValue(param.getSpan(), param.getName(),
+                                                         param.getMods(), type, false)));
             }
         } else {
             return parent.binding(var);
@@ -103,9 +103,9 @@ class VarTypeEnv extends TypeEnv {
 	public Option<Node> declarationSite(IdOrOpOrAnonymousName id) {
 	     if (!(id instanceof Id)) { return parent.declarationSite(id); }
 	     Id _var = (Id)id;
-	     
+
 	     Id no_api_var = removeApi(_var);
-	     
+
 	     if (entries.containsKey(no_api_var)) {
 	    	 Variable var = entries.get(no_api_var);
 	    	 if( var instanceof DeclaredVariable ) {
@@ -127,16 +127,16 @@ class VarTypeEnv extends TypeEnv {
 	@Override
 	public TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars) {
 		Map<Id, Variable> new_entries = new HashMap<Id,Variable>();
-		
+
 		InferenceVarReplacer rep = new InferenceVarReplacer(ivars);
-		
+
 		for( Map.Entry<Id, Variable> entry : this.entries.entrySet() ) {
 			Variable v = entry.getValue();
-		
+
 			Variable new_v = v.acceptNodeUpdateVisitor(rep);
 			new_entries.put(entry.getKey(), new_v);
 		}
-		
+
 		return new VarTypeEnv(new_entries, parent.replaceAllIVars(ivars));
 	}
 
