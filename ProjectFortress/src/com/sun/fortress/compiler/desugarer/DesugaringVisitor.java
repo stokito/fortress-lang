@@ -26,6 +26,7 @@ import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -419,9 +420,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         Expr rhs = rhs_result;
                         if ( that.getAssignOp().isSome() ) {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
-                            rhs = ExprFactory.makeOpExpr(span, lhs_that.getExprType(),
+                            rhs = ExprFactory.makeOpExpr(span, lhs_that.isParenthesized(),
+                                                         lhs_that.getExprType(),
                                                          that.getAssignOp().unwrap(),
-                                                         _lhs, rhs);
+                                                         Arrays.asList(_lhs, rhs));
                         }
                         return ExprFactory.makeMethodInvocation(span, that.isParenthesized(),
                                                                 voidType, obj,

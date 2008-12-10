@@ -58,14 +58,14 @@ public class ASTUtil {
     //   opr span (node op.node_span (`Opr op)) [left; right]
     public static Expr infix(Span span, Expr left, Op op, Expr right) {
         return ExprFactory.makeOpExpr(span, NodeFactory.makeOpInfix(op),
-                                       left, right);
+                                      left, right);
     }
 
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
         return ExprFactory.makeOpExpr(arg.getSpan(),
-                                       NodeFactory.makeOpPrefix(op), arg);
+                                      NodeFactory.makeOpPrefix(op), arg);
     }
 
     // let postfix (span : span) (arg : expr) (op : op) : expr =
@@ -88,11 +88,11 @@ public class ASTUtil {
                                       Option.<Type>none());
 
         if (args.size() > 2) {
-        	return new AmbiguousMultifixOpExpr(span, false, infix_op, multifix_op, args);
+            return new AmbiguousMultifixOpExpr(span, false, Option.<Type>none(),
+                                               infix_op, multifix_op, args);
         }
         else if (args.size() == 2) {
-        	return new OpExpr(span, false, infix_op, args);
-
+        	return ExprFactory.makeOpExpr(span, infix_op, args);
         }
         else {
         	return error(op, "Operator fixity is invalid in its application.");
@@ -116,7 +116,7 @@ public class ASTUtil {
                                   en,
                                   Collections.<IdOrOp>singletonList(en),
                                   Option.<Type>none());
-            return new OpExpr(span, false, ref, args);
+            return ExprFactory.makeOpExpr(span, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +
                          left.getText() + " and " + right.getText());
