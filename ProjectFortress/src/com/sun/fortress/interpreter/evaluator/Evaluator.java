@@ -1067,7 +1067,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // dumb. Nels
     @Override
     public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-        return this.forOpExpr(new OpExpr(that.getSpan(), that.isParenthesized(), that.getMultifix_op(), that.getArgs()));
+        return this.forOpExpr(ExprFactory.makeOpExpr(that.getSpan(),
+                                                     that.isParenthesized(),
+                                                     that.getExprType(),
+                                                     that.getMultifix_op(),
+                                                     that.getArgs()));
     }
 
     /** Assumes {@code x.getOps()} is a list of length 1.  At the

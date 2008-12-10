@@ -123,6 +123,69 @@ public class ExprFactory {
                                     staticArgs, expr);
     }
 
+    public static OpExpr makeOpExpr(Span span, Op op) {
+        return makeOpExpr(span, makeOpRef(op));
+    }
+
+    public static OpExpr makeOpExpr(Span span, Op op, Expr arg) {
+        return makeOpExpr(span, false, Option.<Type>none(), makeOpRef(op),
+                          Collections.singletonList(arg));
+    }
+
+    public static OpExpr makeOpExpr(Span span, Op op, Expr first,
+                                    Expr second) {
+        return makeOpExpr(span, false, Option.<Type>none(), makeOpRef(op),
+                          Arrays.asList(first, second));
+    }
+
+    public static OpExpr makeOpExpr(Span span, Op op, List<StaticArg> staticArgs) {
+        return makeOpExpr(span, makeOpRef(op, staticArgs));
+    }
+
+    public static OpExpr makeOpExpr(Span span, FunctionalRef op) {
+        return makeOpExpr(span, false, Option.<Type>none(), op,
+                          Collections.<Expr>emptyList());
+    }
+
+    public static OpExpr makeOpExpr(Span span, FunctionalRef op,
+                                    List<Expr> args) {
+        return makeOpExpr(span, false, Option.<Type>none(), op, args);
+    }
+
+    public static OpExpr makeOpExpr(Span span, FunctionalRef op,
+                                    Expr first, Expr second) {
+        return makeOpExpr(span, false, Option.<Type>none(),
+                          op, Arrays.asList(first, second));
+    }
+
+    public static OpExpr makeOpExpr(Span span, Option<Type> ty, FunctionalRef op,
+                                    Expr first, Expr second) {
+        return makeOpExpr(span, false, ty, op, Arrays.asList(first, second));
+    }
+
+    public static OpExpr makeOpExpr(Span span, Op op, Expr arg,
+                                    List<StaticArg> staticArgs) {
+        return makeOpExpr(span, false, Option.<Type>none(),
+                          makeOpRef(op, staticArgs),
+                          Collections.singletonList(arg));
+    }
+
+    public static OpExpr makeOpExpr(Expr e,FunctionalRef op) {
+        return makeOpExpr(FortressUtil.spanTwo(e, op), false,
+                          Option.<Type>none(),
+                          op, Useful.list(e));
+    }
+
+    public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1, Expr e_2) {
+        return makeOpExpr(FortressUtil.spanTwo(e_1, e_2), op, e_1, e_2);
+    }
+
+    public static OpExpr makeOpExpr(Span span, boolean isParenthesized,
+                                    Option<Type> ty, FunctionalRef op,
+                                    List<Expr> exprs) {
+        return new OpExpr(span, isParenthesized, ty, op, exprs);
+    }
+
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
@@ -365,47 +428,6 @@ public class ExprFactory {
 
     public static FunctionalRef makeOpRef(Op op, List<StaticArg> staticArgs) {
         return new OpRef(op.getSpan(), staticArgs, op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
-    }
-
-    public static OpExpr makeOpExpr(Span span, Option<Type> ty, FunctionalRef op,
-                                    Expr first, Expr second) {
-        return new OpExpr(span, false, ty, op, Arrays.asList(first, second));
-    }
-
-    public static OpExpr makeOpExpr(Span span, Op op) {
-        return new OpExpr(span, false, makeOpRef(op));
-    }
-
-    public static OpExpr makeOpExpr(Span span, Op op, Expr arg) {
-        return new OpExpr(span, false, makeOpRef(op),
-                Collections.singletonList(arg));
-    }
-
-    public static OpExpr makeOpExpr(Span span, Op op, Expr first,
-                                    Expr second) {
-        return new OpExpr(span, false, makeOpRef(op),
-                          Arrays.asList(first, second));
-    }
-
-    public static OpExpr makeOpExpr(Span span, Op op, List<StaticArg> staticArgs) {
-        return new OpExpr(span, false, makeOpRef(op, staticArgs));
-    }
-
-    public static OpExpr makeOpExpr(Span span, Op op, Expr arg,
-            List<StaticArg> staticArgs) {
-        return new OpExpr(span, false, makeOpRef(op, staticArgs),
-                          Collections.singletonList(arg));
-    }
-
-    /**
-     * Creates an OpExpr using the Spans from e_1 and e_2.
-     */
-    public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1, Expr e_2) {
-     return new OpExpr(new Span(e_1.getSpan(), e_2.getSpan()), false, op, Useful.list(e_1, e_2));
-    }
-
-    public static OpExpr makeOpExpr(Expr e,FunctionalRef op) {
-     return new OpExpr(new Span(e.getSpan(),op.getSpan()),false,op,Useful.list(e));
     }
 
     public static FnRef make_RewriteFnRefOverloading(Span span, FnRef original, Type type) {
@@ -929,14 +951,14 @@ public class ExprFactory {
                                     e.getLhs(), e.getRhs());
         }
         public Expr forOpExpr(OpExpr e) {
-            return new OpExpr(e.getSpan(), true, e.getOp(), e.getArgs());
+            return makeOpExpr(e.getSpan(), true, e.getExprType(), e.getOp(), e.getArgs());
         }
         @Override
-		public Expr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-        	return new AmbiguousMultifixOpExpr(that.getSpan(), true,
-        			                           that.getInfix_op(), that.getMultifix_op(),
-        			                           that.getArgs());
-		}
+            public Expr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
+            return new AmbiguousMultifixOpExpr(that.getSpan(), true, that.getExprType(),
+                                               that.getInfix_op(), that.getMultifix_op(),
+                                               that.getArgs());
+        }
         public Expr forArrayElement(ArrayElement e) {
             return makeArrayElement(e.getSpan(), true, e.getExprType(),
                                     e.getStaticArgs(), e.getElement());
@@ -1045,7 +1067,7 @@ public class ExprFactory {
      FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
                               op.getLexicalDepth(),new_original_name,new_ops,
                               Option.<Type>none());
-     return ExprFactory.makeOpExpr(new_op, lhs, rhs);
+     return makeOpExpr(new_op, lhs, rhs);
     }
 
     private static Expr makePostfixOpExpr(Span s, Expr e, FunctionalRef op) {
@@ -1068,7 +1090,7 @@ public class ExprFactory {
      FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
                               op.getLexicalDepth(),new_original_name,new_ops,
                               Option.<Type>none());
-     return ExprFactory.makeOpExpr(e, new_op);
+     return makeOpExpr(e, new_op);
     }
 
     public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi) {

@@ -120,7 +120,11 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         boolean suffix = OprUtil.hasSuffixColon(op_name);
 
         if( prefix || suffix ) {
-            OpExpr new_op = new OpExpr(that.getSpan(), that.isParenthesized(), that.getInfix_op(), that.getArgs());
+            OpExpr new_op = ExprFactory.makeOpExpr(that.getSpan(),
+                                                   that.isParenthesized(),
+                                                   that.getExprType(),
+                                                   that.getInfix_op(),
+                                                   that.getArgs());
             return recur(new_op);
         }
         else {
@@ -138,7 +142,11 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             new_op = that;
         }
         else {
-            new_op = new OpExpr(that.getSpan(), that.isParenthesized(), op_result, args_result);
+            new_op = ExprFactory.makeOpExpr(that.getSpan(),
+                                            that.isParenthesized(),
+                                            that.getExprType(),
+                                            op_result,
+                                            args_result);
         }
         return cleanupOpExpr(new_op);
     }
@@ -178,7 +186,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             if (suffix) {
                 arg = thunk(arg);
             }
-            res = ExprFactory.makeOpExpr(sp,qop,res,arg);
+            res = ExprFactory.makeOpExpr(sp, qop, res, arg);
         }
         return res;
     }
@@ -194,7 +202,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                   Op op, Expr body,
                                   List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
-        Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
+        Expr opexp = ExprFactory.makeOpExpr(span, op, staticArgs);
         Expr res = ExprFactory.makeTightJuxt(span, false,
                                              Useful.list(BIGOP_NAME,
                                                          ExprFactory.makeTuple(opexp,body)));

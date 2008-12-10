@@ -312,7 +312,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				if( last_non_fn.isNone() )
 					last_non_fn = Option.some(chunk_element.second());
 				else
-					last_non_fn = Option.<Expr>some(ExprFactory.makeOpExpr(infix_juxt, last_non_fn.unwrap(), chunk_element.second()));
+					last_non_fn = Option.<Expr>some(ExprFactory.makeOpExpr(infix_juxt,
+                                                                                               last_non_fn.unwrap(),
+                                                                                               chunk_element.second()));
 			}
 			else {
 				fns.add(chunk_element.second());
@@ -1005,7 +1007,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult forAmbiguousMultifixOpExpr(final AmbiguousMultifixOpExpr that) {
 		// See if we can successfully typecheck this expression as a multifix one.
 		TypeCheckerResult multi_result =
-			(new OpExpr(that.getSpan(),that.isParenthesized(),that.getMultifix_op(),that.getArgs()).accept(this));
+			(ExprFactory.makeOpExpr(that.getSpan(),
+                                                that.isParenthesized(),
+                                                that.getExprType(),
+                                                that.getMultifix_op(),
+                                                that.getArgs()).accept(this));
 
 		if( multi_result.isSuccessful() ) {
 			return multi_result;
@@ -1985,7 +1991,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			link_result.add(link.accept(this));
 
 			// Check a temporary binary op, to see if the result is <: Boolean
-			OpExpr tempOpExpr = new OpExpr(new Span(prev.getSpan(),next.getSpan()), false , op, Useful.list(prev, next));
+			OpExpr tempOpExpr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(prev,next),
+                                                                   op, prev, next);
 			TypeCheckerResult temp_op_result = tempOpExpr.accept(this);
 			temps_result.add(temp_op_result);
 
@@ -3116,7 +3123,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 // (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
                 // TODO: Separate pass?
                 // (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
-                OpExpr multi_op_expr = new OpExpr(that.getSpan(), that.getMultiJuxt(), new_juxt_exprs);
+                OpExpr multi_op_expr = ExprFactory.makeOpExpr(that.getSpan(),
+                                                              that.isParenthesized(),
+                                                              that.getExprType(),
+                                                              that.getMultiJuxt(),
+                                                              new_juxt_exprs);
                 TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
                 if( multi_op_result.type().isSome() ) {
                     return TypeCheckerResult.compose(multi_op_result.ast(), multi_op_result.type(), subtypeChecker,
@@ -3126,10 +3137,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Iterator<Expr> expr_iter = new_juxt_exprs.iterator();
                 Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
                 Expr expr_2 = expr_iter.next();
-                OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
+                OpExpr cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(expr_1,expr_2),
+                                                            that.getInfixJuxt(),
+                                                            expr_1, expr_2);
                 while( expr_iter.hasNext() ) {
                     Expr next_expr = expr_iter.next();
-                    cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
+                    cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(cur_op_expr,next_expr),
+                                                         that.getInfixJuxt(),
+                                                         cur_op_expr, next_expr);
                 }
                 // typecheck this result instead
                 TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?
@@ -3698,11 +3713,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type applicationType = app_result.unwrap().first();
 
-		OpExpr new_node = new OpExpr(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(applicationType),
-				(FunctionalRef)op_result.ast(),
-				(List<Expr>)TypeCheckerResult.astFromResults(args_result));
+		OpExpr new_node = ExprFactory.makeOpExpr(that.getSpan(),
+                                                         that.isParenthesized(),
+                                                         Option.<Type>some(applicationType),
+                                                         (FunctionalRef)op_result.ast(),
+                                                         (List<Expr>)TypeCheckerResult.astFromResults(args_result));
 
 		// If we have a type, constraints must be propagated up.
 		TypeCheckerResult result = new TypeCheckerResult(new_node, app_result.unwrap().second());
@@ -4615,7 +4630,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// (1) If any element that remains has type String, then it is a static error if any two adjacent elements are not of type String.
 		// Moved this to seperate pass
 		// (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
-		OpExpr multi_op_expr = new OpExpr(that.getSpan(),that.getMultiJuxt(),exprs);
+		OpExpr multi_op_expr = ExprFactory.makeOpExpr(that.getSpan(),that.getMultiJuxt(),exprs);
 		TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
 		if( multi_op_result.type().isSome() ) {
 			return TypeCheckerResult.compose(multi_op_expr, multi_op_result.type(), subtypeChecker, multi_op_result);
@@ -4625,10 +4640,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Iterator<Expr> expr_iter = exprs.iterator();
 		Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
 		Expr expr_2 = expr_iter.next();
-		OpExpr cur_op_expr = new OpExpr(new Span(expr_1.getSpan(),expr_2.getSpan()), that.getInfixJuxt(), Useful.list(expr_1,expr_2));
+		OpExpr cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(expr_1,expr_2),
+                                                            that.getInfixJuxt(),
+                                                            expr_1, expr_2);
 		while( expr_iter.hasNext() ) {
 			Expr next_expr = expr_iter.next();
-			cur_op_expr = new OpExpr(new Span(cur_op_expr.getSpan(),next_expr.getSpan()), that.getInfixJuxt(), Useful.list(cur_op_expr, next_expr));
+			cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(cur_op_expr,next_expr),
+                                                             that.getInfixJuxt(),
+                                                             cur_op_expr, next_expr);
 		}
 		// typecheck this result instead
 		TypeCheckerResult op_expr_result = cur_op_expr.accept(this); // Is it bad to re-typecheck all args?

@@ -677,7 +677,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      // NEB: This code is temporary. Very soon the static end will
         // remove these nodes and they should never appear at this
         // phase of execution. However, now we simply create an OpExpr.
-        Node node = new OpExpr(op.getSpan(), op.isParenthesized(), op.getInfix_op(), op.getArgs());
+        Node node = ExprFactory.makeOpExpr(op.getSpan(),
+                                           op.isParenthesized(),
+                                           op.getExprType(),
+                                           op.getInfix_op(),
+                                           op.getArgs());
         return visitNode(node);
     }
     @Override
@@ -1606,7 +1610,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                         visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                         visitedArgs.size() == 1 ? visitedArgs.get(0) :
                             new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
-                                    visitedArgs));
+                                          visitedArgs));
             }
         } else  if (expr instanceof FieldRef) {
 
