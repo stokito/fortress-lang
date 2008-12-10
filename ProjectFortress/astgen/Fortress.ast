@@ -999,7 +999,7 @@ interface Node() extends HasAt;
                          */
                         MathPrimary(FunctionalRef multiJuxt = ExprFactory.makeMultiJuxt(),
                                     FunctionalRef infixJuxt = ExprFactory.makeInfixJuxt(),
-                                    Expr front, List<MathItem> rest);
+                                    Expr front, List<MathItem> rest) implements OutAfterTypeChecking;
                         /**
                          * array expression
                          * ArrayExpr ::= [ StaticArgs? RectElements ]
@@ -1672,7 +1672,7 @@ interface Node() extends HasAt;
             /**
              * mathematical item
              */
-            abstract MathItem();
+            abstract MathItem() implements OutAfterTypeChecking;
                 /**
                  * mathematical item that is an expression element
                  */
