@@ -107,7 +107,6 @@ import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetExpr;
 import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.Link;
-import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.MathItem;
 import com.sun.fortress.nodes.MathPrimary;
 import com.sun.fortress.nodes.MethodInvocation;
@@ -126,7 +125,6 @@ import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.SubscriptingMI;
 import com.sun.fortress.nodes.Throw;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.Try;
 import com.sun.fortress.nodes.TryAtomicExpr;
 import com.sun.fortress.nodes.TupleExpr;
@@ -905,10 +903,15 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return tos;
     }
 
-    public FValue forLooseJuxt(LooseJuxt x) {
-        return forJuxt(x);
-    }
     public FValue forJuxt(Juxt x) {
+        if ( x.isTight() ) {
+            /** Assumes wrapped FnRefs have ids fields of length 1. */
+            return forTightJuxt(x, false);
+        } else
+            return forJuxtCommon(x);
+    }
+
+    public FValue forJuxtCommon(Juxt x) {
         // This is correct except for one minor detail:
         // We should treat names from another scope as if they were functions.
         // Right now we evaluate them and make the function/non-function
@@ -919,7 +922,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (exprs.size() == 0)
             bug(x,"empty juxtaposition");
         try {
-            // times = e.getValue("juxtaposition");
+                // times = e.getValue("juxtaposition");
             times = e.getValueNull(x.getInfixJuxt());
         } catch (FortressException fe) {
             throw fe.setContext(x,e);
@@ -1095,8 +1098,9 @@ public class Evaluator extends EvaluatorBase<FValue> {
                               "Syntax Error: an exponentiation should not be " +
                               "immediately followed by a non-expression " +
                               "element.");
-            } else if (arg instanceof TightJuxt) { // f(x)!
-                vargs = Useful.list(forTightJuxt((TightJuxt)arg, true));
+            } else if ( arg instanceof Juxt &&
+                        ((Juxt)arg).isTight() ) { // f(x)!
+                vargs = Useful.list(forTightJuxt((Juxt)arg, true));
             } else if (arg instanceof MathPrimary) { // f(x)^y! y[a](x)!
                 vargs = Useful.list(forMathPrimary((MathPrimary)arg, true));
             } else vargs = evalExprListParallel(args);
@@ -1389,12 +1393,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return arf.getField();
     }
 
-    /** Assumes wrapped FnRefs have ids fields of length 1. */
-    public FValue forTightJuxt(TightJuxt x) {
-        return forTightJuxt(x, false);
-    }
-
-    private FValue forTightJuxt(TightJuxt x, boolean isPostfix) {
+    private FValue forTightJuxt(Juxt x, boolean isPostfix) {
         List<Expr> exprs = x.getExprs();
         if (exprs.size() == 0)
             bug(x,e,"empty juxtaposition");
@@ -1452,7 +1451,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
             // fake it as a loose juxtaposition.  It's clearly a hack.
             // Please fix it if you know how to do it.  -- Sukyoung
             // Less of a hack now.  -- David
-            return forJuxt(x);
+            return forJuxtCommon(x);
         }
     }
 
@@ -1465,7 +1464,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
      * @return
      * @throws ProgramError
      */
-    private FValue juxtMemberSelection(TightJuxt x, FValue fobj, Id fld,
+    private FValue juxtMemberSelection(Juxt x, FValue fobj, Id fld,
                                        List<Expr> exprs) throws ProgramError {
         List<FValue> args = evalInvocationArgs(exprs);
         String mname = NodeUtil.nameString(fld);

@@ -195,9 +195,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                   List<StaticArg> staticArgs) {
         body = visitGenerators(span, gens, body);
         Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
-        Expr res = new TightJuxt(span, false,
-                                 Useful.list(BIGOP_NAME,
-                                             ExprFactory.makeTuple(opexp,body)));
+        Expr res = ExprFactory.makeTightJuxt(span, false,
+                                             Useful.list(BIGOP_NAME,
+                                                         ExprFactory.makeTuple(opexp,body)));
         return (Expr)recur(res);
     }
 }

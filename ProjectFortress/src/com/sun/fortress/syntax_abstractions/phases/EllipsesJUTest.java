@@ -21,6 +21,7 @@ import junit.framework.TestCase;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Span;
 
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 public class EllipsesJUTest extends TestCase {
 
     static Span span = NodeFactory.makeSpan("EllipsesJUTest");
-    
+
     private <T> List<T> mkList( T... e ){
         List<T> list = new ArrayList<T>();
         for ( T t : e ){
@@ -53,7 +54,7 @@ public class EllipsesJUTest extends TestCase {
         {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new _EllipsesExpr(new Span(), mkTemplate( "x" ) ) );
-            original = new TightJuxt(new Span(), false, exprs); 
+            original = ExprFactory.makeTightJuxt(new Span(), false, exprs);
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList(new StringLiteralExpr(span,  "hello" )) );
             actual = original.accept( new EllipsesVisitor( env ) );
@@ -62,7 +63,7 @@ public class EllipsesJUTest extends TestCase {
         {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new StringLiteralExpr(span,  "hello" ) );
-            expected = new TightJuxt( new Span(), false, exprs );
+            expected = ExprFactory.makeTightJuxt( new Span(), false, exprs );
         }
 
         assertEquals( actual, expected );
@@ -75,17 +76,16 @@ public class EllipsesJUTest extends TestCase {
         {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new _EllipsesExpr(new Span(), mkTemplate( "x" ) ) );
-            original = new TightJuxt(new Span(), false, exprs); 
+            original = ExprFactory.makeTightJuxt(new Span(), false, exprs);
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList(new StringLiteralExpr(span, "hello" ), new StringLiteralExpr(span, "goodbye" ) ) );
             actual = original.accept( new EllipsesVisitor( env ) );
         }
 
         {
-            List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add( new StringLiteralExpr(span, "hello" ) );
-            exprs.add( new StringLiteralExpr(span, "goodbye" ) );
-            expected = new TightJuxt( new Span(), false, exprs );
+            expected = ExprFactory.makeTightJuxt( new Span(),
+                                                  new StringLiteralExpr(span, "hello" ),
+                                                  new StringLiteralExpr(span, "goodbye" ) );
         }
 
         assertEquals( actual, expected );
@@ -103,7 +103,7 @@ public class EllipsesJUTest extends TestCase {
             Expr extra = new Block(span,  blocks );
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new _EllipsesExpr( new Span(), extra ) );
-            original = new TightJuxt(new Span(), false, exprs );
+            original = ExprFactory.makeTightJuxt(new Span(), false, exprs );
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "x" ), 1, mkList( new StringLiteralExpr(span, "a"), new StringLiteralExpr(span, "b" ) ) );
             actual = original.accept( new EllipsesVisitor( env ) );
@@ -115,7 +115,7 @@ public class EllipsesJUTest extends TestCase {
                                               new StringLiteralExpr(span, "a" ) ) ) );
             exprs.add( new Block(span,  mkExprList( new StringLiteralExpr(span, "hi" ),
                                               new StringLiteralExpr(span, "b" ) ) ) );
-            expected = new TightJuxt(new Span(), false, exprs );
+            expected = ExprFactory.makeTightJuxt(new Span(), false, exprs );
         }
 
         assertEquals( actual, expected );
@@ -130,8 +130,8 @@ public class EllipsesJUTest extends TestCase {
             List<Expr> extra = mkExprList(mkTemplate("i"), mkTemplate("j"));
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new StringLiteralExpr(span, "bar" ) );
-            exprs.add( new _EllipsesExpr(new Span(), new TightJuxt(new Span(), false, extra ) ) );
-            original = new TightJuxt(new Span(), false, exprs );
+            exprs.add( new _EllipsesExpr(new Span(), ExprFactory.makeTightJuxt(new Span(), false, extra ) ) );
+            original = ExprFactory.makeTightJuxt(new Span(), false, exprs );
             EllipsesEnvironment env = new EllipsesEnvironment();
             env.add( NodeFactory.makeId( "i" ), 0, new StringLiteralExpr(span, "a" ) );
             env.add( NodeFactory.makeId( "j" ), 1, mkList( new StringLiteralExpr(span, "1" ),
@@ -141,20 +141,20 @@ public class EllipsesJUTest extends TestCase {
         }
 
         {
-            expected = new TightJuxt(new Span(), false,
+            expected = ExprFactory.makeTightJuxt(new Span(), false,
                                      mkExprList( new StringLiteralExpr(span, "bar" ),
-                                                 new TightJuxt(new Span(), false,
-                                                               mkExprList( new StringLiteralExpr(span, "a"),
-                                                                           new StringLiteralExpr(span, "1"))),
-                                                 new TightJuxt(new Span(), false,
-                                                               mkExprList( new StringLiteralExpr(span, "a"),
-                                                                           new StringLiteralExpr(span, "2"))),
-                                                 new TightJuxt(new Span(), false,
-                                                               mkExprList( new StringLiteralExpr(span, "a"),
-                                                                           new StringLiteralExpr(span, "3")))));
+                                                 ExprFactory.makeTightJuxt(new Span(),
+                                                                           new StringLiteralExpr(span, "a"),
+                                                                           new StringLiteralExpr(span, "1")),
+                                                 ExprFactory.makeTightJuxt(new Span(),
+                                                                           new StringLiteralExpr(span, "a"),
+                                                                           new StringLiteralExpr(span, "2")),
+                                                 ExprFactory.makeTightJuxt(new Span(),
+                                                                           new StringLiteralExpr(span, "a"),
+                                                                           new StringLiteralExpr(span, "3"))));
         }
 
         assertEquals( actual, expected );
     }
-        
+
 }

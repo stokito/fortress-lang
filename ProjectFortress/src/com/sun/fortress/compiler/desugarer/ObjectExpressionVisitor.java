@@ -407,16 +407,12 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     Pair<Span,Id> exitKey = new Pair<Span,Id>(span, labelId);
                     Pair<Id,Type> exitFnInfo = exitFnParamMap.get(exitKey);
                     if(exitFnInfo != null) {
-                        List<Expr> exprs = new LinkedList<Expr>();
                         Option<Expr> returnExpr = that.getReturnExpr();
-
                         Id fnName = exitFnInfo.first();
                         FnRef fnRef = ExprFactory.makeFnRef(fnName);
-                        exprs.add(fnRef);
-                        exprs.add( unwrapIfSomeElseAlternative(returnExpr,
-                                     ExprFactory.makeVoidLiteralExpr(span)) );
-
-                        return ExprFactory.makeTightJuxt(span, false, exprs);
+                        Expr arg = unwrapIfSomeElseAlternative(returnExpr,
+                                                               ExprFactory.makeVoidLiteralExpr(span));
+                        return ExprFactory.make_RewriteFnApp(fnRef, arg);
                     } else {
                         return that;
                     }
@@ -425,7 +421,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         lifted = (ObjectDecl) lifted.accept(rewriter);
 
         newObjectDecls.add(lifted);
-        TightJuxt callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
+        Expr callToLifted = makeCallToLiftedObj(lifted, that, freeNames);
 
         scopeStack.pop();
         objExprNestingLevel--;
@@ -434,9 +430,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
 
-    private TightJuxt makeCallToLiftedObj(ObjectDecl lifted,
-                                          ObjectExpr objExpr,
-                                          FreeNameCollection freeNames) {
+    private Expr makeCallToLiftedObj(ObjectDecl lifted,
+                                      ObjectExpr objExpr,
+                                      FreeNameCollection freeNames) {
         Span span = objExpr.getSpan();
         Id originalName = lifted.getName();
         List<IdOrOp> fns = new LinkedList<IdOrOp>();
@@ -459,12 +455,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr,
                                                       freeNames, enclosingSelf);
-        exprs.add(0, fnRef);
-
-        TightJuxt callToConstructor =
-            ExprFactory.makeTightJuxt(span, objExpr.isParenthesized(), exprs);
-
-        return callToConstructor;
+        Expr arg = ExprFactory.makeTuple(exprs);
+        return ExprFactory.make_RewriteFnApp(fnRef, arg);
     }
 
     /*

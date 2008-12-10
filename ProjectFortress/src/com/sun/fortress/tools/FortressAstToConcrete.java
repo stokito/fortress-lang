@@ -1703,39 +1703,32 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forLooseJuxtOnly(LooseJuxt that, Option<String> exprType_result,
-                                             String multiJuxt_result,
-                                             String infixJuxt_result,
-                                             List<String> exprs_result) {
+    @Override public String forJuxtOnly(Juxt that, Option<String> exprType_result,
+                                        String multiJuxt_result,
+                                        String infixJuxt_result,
+                                        List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
 
-        for ( String expr : exprs_result ){
-            s.append( expr );
-            s.append( " " );
+        if ( that.isTight() ) {
+            if ( exprs_result.isEmpty() )
+                return bug(that, "A tight juxtaposition expression should have " +
+                           "at least two subexpressions.");
+            s.append(IterUtil.first(exprs_result));
+            for ( String expr : IterUtil.skipFirst(exprs_result) ){
+                s.append( inParentheses(expr) );
+            }
+            if ( that.isParenthesized() )
+                return "(" + s.toString() + ")";
+            else
+                return s.toString();
+        } else {
+            for ( String expr : exprs_result ){
+                s.append( expr );
+                s.append( " " );
+            }
+            return handleParen( s.toString(),
+                                that.isParenthesized() );
         }
-
-        return handleParen( s.toString(),
-                            that.isParenthesized() );
-    }
-
-    @Override public String forTightJuxtOnly(TightJuxt that, Option<String> exprType_result,
-                                             String multiJuxt_result,
-                                             String infixJuxt_result,
-                                             List<String> exprs_result) {
-        StringBuilder s = new StringBuilder();
-
-        if ( exprs_result.isEmpty() )
-            return bug(that, "A tight juxtaposition expression should have " +
-                       "at least two subexpressions.");
-        s.append(IterUtil.first(exprs_result));
-        for ( String expr : IterUtil.skipFirst(exprs_result) ){
-            s.append( inParentheses(expr) );
-        }
-
-        if ( that.isParenthesized() )
-            return "(" + s.toString() + ")";
-        else
-            return s.toString();
     }
 
     @Override public String for_RewriteFnAppOnly(_RewriteFnApp that, Option<String> exprType_result,

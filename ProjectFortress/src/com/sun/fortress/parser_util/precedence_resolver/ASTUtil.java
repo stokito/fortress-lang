@@ -31,7 +31,6 @@ import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Link;
-import com.sun.fortress.nodes.LooseJuxt;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
@@ -143,7 +142,7 @@ public class ASTUtil {
                     return e.getExpr();
                 }
             });
-        return new LooseJuxt(spanAll(exprs), false, _exprs.toJavaList());
+        return ExprFactory.makeLooseJuxt(spanAll(exprs), false, _exprs.toJavaList());
     }
 
     static Span spanAll(PureList<RealExpr> exprs) {

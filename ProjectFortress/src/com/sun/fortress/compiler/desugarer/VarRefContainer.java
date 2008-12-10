@@ -36,7 +36,6 @@ import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.TightJuxt;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarDecl;
@@ -154,7 +153,7 @@ public class VarRefContainer {
         return param;
     }
 
-    private TightJuxt makeCallToContainerObj() {
+    private Expr makeCallToContainerObj() {
         List<IdOrOp> fns = new LinkedList<IdOrOp>();
         Span origSpan = origDeclNode.getSpan();
 
@@ -162,11 +161,7 @@ public class VarRefContainer {
         FnRef fnRefToDecl = ExprFactory.makeFnRef( origSpan, false,
                                                    containerDeclId(), fns, Collections.<StaticArg>emptyList() );
 
-        List<Expr> exprs = new LinkedList<Expr>();
-        exprs.add(fnRefToDecl);
-        exprs.add(origVar);
-
-        return( ExprFactory.makeTightJuxt(origSpan, false, exprs) );
+        return( ExprFactory.make_RewriteFnApp(fnRefToDecl, origVar) );
     }
 
 }

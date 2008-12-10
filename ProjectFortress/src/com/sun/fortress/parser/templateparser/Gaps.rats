@@ -55,10 +55,10 @@ FnExpr FnExprGap =
        yyValue = ExprFactory.makeTemplateGapFnExpr(createSpan(yyStart,yyCount), a1, params);
      };
 
-LooseJuxt LooseJuxtGap =
+Juxt LooseJuxtGap =
      <GAP> prefix "LooseJuxt" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
-       yyValue = ExprFactory.makeTemplateGapLooseJuxt(createSpan(yyStart,yyCount), a1, params);
+       yyValue = ExprFactory.makeTemplateGapJuxt(createSpan(yyStart,yyCount), a1, params);
      };
 
 List<Id> BindIdOrBindIdTupleGap =

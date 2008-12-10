@@ -425,25 +425,44 @@ public class ExprFactory {
                 Collections.<StaticArg>emptyList());
     }
 
-    public static TightJuxt makeTightJuxt(Span span, Expr first, Expr second) {
-        return new TightJuxt(span, false, Useful.list(first, second));
+    public static Juxt makeLooseJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
+        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
+                        false, false);
     }
 
-    public static TightJuxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
-        return new TightJuxt(span, isParenthesized, Useful.immutableTrimmedList(exprs));
+    public static Juxt makeTightJuxt(Span span, Expr first, Expr second) {
+        return new Juxt(span, false, Option.<Type>none(),
+                        Useful.list(first, second), false, true);
     }
 
-    public static TightJuxt makeTightJuxt(Span span, List<Expr> exprs, Boolean isParenthesized, FunctionalRef infixJuxt, FunctionalRef multiJuxt){
-     return new TightJuxt(span, isParenthesized, multiJuxt, infixJuxt ,Useful.immutableTrimmedList(exprs));
+    public static Juxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
+        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
+                        false, true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs, boolean isFnApp) {
+        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
+                        isFnApp, true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, List<Expr> exprs,
+                                     Boolean isParenthesized,
+                                     FunctionalRef infixJuxt,
+                                     FunctionalRef multiJuxt){
+        return new Juxt(span, isParenthesized, multiJuxt, infixJuxt,
+                        Useful.immutableTrimmedList(exprs),
+                        false, true);
     }
 
     /**
      * Make a TightJuxt that is a copy of the given one in every way except
      * with new exprs.
      */
-    public static TightJuxt makeTightJuxt(TightJuxt that, List<Expr> exprs) {
-     return new TightJuxt(that.getSpan(), that.isParenthesized(),
-                          that.getMultiJuxt(), that.getInfixJuxt(), Useful.immutableTrimmedList(exprs));
+    public static Juxt makeTightJuxt(Juxt that, List<Expr> exprs) {
+     return new Juxt(that.getSpan(), that.isParenthesized(),
+                     that.getMultiJuxt(), that.getInfixJuxt(),
+                     Useful.immutableTrimmedList(exprs),
+                     that.isFnApp(), true);
     }
 
     public static MethodInvocation makeMethodInvocation(Span span,
@@ -894,11 +913,10 @@ public class ExprFactory {
                     e.getMethod(), e.getStaticArgs(),
                     e.getArg());
         }
-        public Expr forLooseJuxt(LooseJuxt e) {
-            return new LooseJuxt(e.getSpan(), true, e.getExprs());
-        }
-        public Expr forTightJuxt(TightJuxt e) {
-            return new TightJuxt(e.getSpan(), true, e.getExprs());
+        public Expr forJuxt(Juxt e) {
+            return new Juxt(e.getSpan(), true, e.getExprType(),
+                            e.getMultiJuxt(), e.getInfixJuxt(),
+                            e.getExprs(), e.isFnApp(), e.isTight());
         }
         public Expr forFnRef(FnRef e) {
             return new FnRef(e.getSpan(), true,
@@ -984,7 +1002,7 @@ public class ExprFactory {
     public static Expr simplifyMathPrimary(Span span, Expr front, MathItem mi) {
         if (mi instanceof ExprMI) {
             Expr expr = ((ExprMI)mi).getExpr();
-            return new TightJuxt(span, Useful.list(front, expr));
+            return makeTightJuxt(span, front, expr);
         } else if (mi instanceof ExponentiationMI) {
             ExponentiationMI expo = (ExponentiationMI)mi;
             Option<Expr> expr = expo.getExpr();
@@ -1037,8 +1055,8 @@ public class ExprFactory {
         return new TemplateGapFnExpr(s, id, params);
     }
 
-    public static TemplateGapLooseJuxt makeTemplateGapLooseJuxt(Span s, Id id, List<Id> params) {
-        return new TemplateGapLooseJuxt(s, id, params);
+    public static TemplateGapJuxt makeTemplateGapJuxt(Span s, Id id, List<Id> params) {
+        return new TemplateGapJuxt(s, id, params);
     }
 
     public static TemplateGapName makeTemplateGapName(Span s, Id id, List<Id> params) {
