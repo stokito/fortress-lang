@@ -65,4 +65,14 @@ public class LazilyEvaluatedCell extends IndirectionCell {
         }
         return theValue;
     }
+
+    public void postInit(Expr init, Environment containing) {
+        if (exp == null && e == null) {
+            exp = init;
+            e = containing;
+        } else {
+            bug("Second init of lazy cell");
+        }
+        
+    }
 }

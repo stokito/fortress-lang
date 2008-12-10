@@ -32,8 +32,10 @@ import com.sun.fortress.useful.TopSortItemImpl;
 public class Graph<GNode extends GraphNode>{
 
 	private Map<GNode,List<GNode>> edges;
+	private Map<String, GNode> index;
 	public Graph(){
 		edges = new HashMap<GNode, List<GNode>>();
+		index = new HashMap<String, GNode>();
 	}
 
 	public Graph( Graph<GNode> copy, Fn<GNode,Boolean> keep ){
@@ -161,10 +163,12 @@ public class Graph<GNode extends GraphNode>{
 	}
 
 	public void addNode( GNode node ){
+	    index.put(node.key(), node);
 		edges.put( node, new ArrayList<GNode>() );
 	}
 	
 	public void removeNode( GNode node ) {
+	    index.remove(node.key());
 	    edges.remove( node );
 	}
 
@@ -177,11 +181,16 @@ public class Graph<GNode extends GraphNode>{
 	}
 
 	public GNode find( GNode node ){
-		for ( GNode key : edges.keySet() ){
-			if ( key.equals( node ) ){
-				return key;
-			}
-		}
-		return null;
+	    return index.get(node.key());
+//		for ( GNode key : edges.keySet() ){
+//			if ( key.equals( node ) ){
+//				return key;
+//			}
+//		}
+//		return null;
+	}
+	
+	public GNode find(String s) {
+	    return index.get(s);
 	}
 }

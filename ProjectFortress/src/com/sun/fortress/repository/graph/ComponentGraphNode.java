@@ -25,18 +25,19 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ComponentGraphNode extends GraphNode{
 
-	private APIName name;
 	private Option<ComponentIndex> component;
+        private final String k;
 
-	public ComponentGraphNode( APIName name ){
-		this.name = name;
-		this.component = Option.none();
+	public ComponentGraphNode( APIName name, long sourceDate ){
+	    super(name, sourceDate);
+	    k = key(name);
+	    this.component = Option.none();
 	}
 
 	public boolean equals( Object o ){
 		if ( o instanceof ComponentGraphNode ){
 			ComponentGraphNode a = (ComponentGraphNode) o;
-			return a.getName().equals( name );
+			return a.getName().equals( getName() );
 		}
 		return false;
 	}
@@ -49,15 +50,20 @@ public class ComponentGraphNode extends GraphNode{
 		this.component = Option.wrap(c);
 	}
 
-	public APIName getName(){
-		return name;
-	}
-
+	
 	public String toString(){
-		return "Component " + name.toString();
+		return "Component " + getName().toString();
 	}
         
         public <T,F extends Throwable> T accept( GraphVisitor<T,F>  g ) throws F{
             return g.visit(this);
+        }
+        
+        public String key() {
+            return k;
+        }
+        
+        public static String key(APIName k) {
+            return "component " + k.getText();
         }
 }

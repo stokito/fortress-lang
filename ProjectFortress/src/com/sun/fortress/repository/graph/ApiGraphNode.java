@@ -19,28 +19,27 @@ package com.sun.fortress.repository.graph;
 
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.compiler.index.ApiIndex;
 
 import edu.rice.cs.plt.tuple.Option;
 
 public class ApiGraphNode extends GraphNode{
-	private APIName name;
 	private Option<ApiIndex> api;
-	public ApiGraphNode( APIName name ){
-		this.name = name;
-		this.api = Option.none();
+	private final String k;
+	
+	public ApiGraphNode( APIName name, long sourceDate ){
+	    super(name, sourceDate);
+	    k = key(name);
+	    this.api = Option.none();
 	}
 
 	public boolean equals( Object o ){
 		if ( o instanceof ApiGraphNode ){
 			ApiGraphNode a = (ApiGraphNode) o;
-			return a.getName().equals( name );
+			return a.getName().equals( getName() );
 		}
 		return false;
-	}
-
-	public APIName getName(){
-		return name;
 	}
 
 	public Option<ApiIndex> getApi(){
@@ -52,10 +51,18 @@ public class ApiGraphNode extends GraphNode{
 	}
 
 	public String toString(){
-		return "Api " + name.toString();
+		return "Api " + getName().toString();
 	}
         
         public <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F{
             return g.visit(this);
+        }
+        
+        public String key() {
+            return k;
+        }
+        
+        public static String key(APIName k) {
+            return "api " + k.getText();
         }
 }

@@ -678,6 +678,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
           try {
               /* Ignore the type, until later */
+              
               if (lvb.isMutable()) {
                   bindInto.putVariablePlaceholder(sname);
               } else {
@@ -687,39 +688,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
           } catch (FortressException pe) {
               throw pe.setContext(x,bindInto);
           }
-
-//        int index = 0;
-
-//        for (LValue lv : lhs) {
-//            if (lv instanceof LValue) {
-//                LValue lvb = (LValue) lv;
-//                Option<Type> type = lvb.getType();
-//                Id name = lvb.getName();
-//                String sname = name.getName();
-//
-//                try {
-//                    /* Ignore the type, until later */
-//                    if (lvb.isMutable()) {
-//                        bindInto.putVariablePlaceholder(sname);
-//                    } else {
-//                        FValue init_val;
-//                        if (init instanceof ArgExpr) {
-//                            init_val = new LazilyEvaluatedCell(
-//                                      ((ArgExpr)init).getExprs().get(index++),
-//                                      containing);
-//                        } else {
-//                            init_val = new LazilyEvaluatedCell(init, containing);
-//                        }
-//                        putValue(bindInto, sname, init_val);
-//                    }
-//                } catch (FortressError pe) {
-//                    throw pe.setContext(x,bindInto);
-//                }
-//
-//            } else {
-//                bug(x, "Don't support arbitary LHS in Var decl yet");
-//            }
-//        }
     }
 
     private void forVarDecl2(VarDecl x) {
@@ -727,6 +695,30 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     private void forVarDecl3(VarDecl x) {
+        List<LValue> lhs = x.getLhs();
+
+        Expr init = x.getInit().unwrap();
+        LValue lvb = lhs.get(0);
+
+          Option<Type> type = lvb.getIdType();
+          Id name = lvb.getName();
+          String sname = NodeUtil.nameString(name);
+
+          try {
+              if (lvb.isMutable()) {
+                  /*
+                   * re-initialize the reference cell of a mutable
+                   * late in the game (with the now-available type);
+                   * cannot reallocate, because it may have been exported.
+                   */
+                  FType ft = (new EvalType(containing)).evalType(type.unwrap());
+                  FValue value = new LazilyEvaluatedCell(init, containing);
+                  bindInto.assignValue(x, sname, value);
+                  bindInto.storeType(x, sname, ft);
+              } 
+          } catch (FortressException pe) {
+              throw pe.setContext(x,bindInto);
+          }
 
 
     }
@@ -774,7 +766,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                         ft = FTypeTop.ONLY;
                     }
                     /* Finally, can finish this initialiation. */
-                    bindInto.storeType(x, sname, ft);
+                    // bindInto.storeType(x, sname, ft);
                     bindInto.assignValue(x, sname, value);
                 } else {
                     // Force evaluation, snap the link, check the type!

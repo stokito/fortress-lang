@@ -17,24 +17,31 @@
 
 package com.sun.fortress.repository.graph;
 
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.repository.GraphRepository;
+import com.sun.fortress.repository.ProjectProperties;
+
 public abstract class GraphNode{
 
-    long age;
-    public GraphNode(){
-        this.age = 0;
+    long sourceDate;
+    long cacheDate = Long.MIN_VALUE;
+    private final APIName name;
+
+    public GraphNode(APIName name, long sourceDate){
+        this.name = name;
+        this.sourceDate = sourceDate;
     }
 
-    public long getAge(){
-        return age;
+    public APIName getName(){
+        return name;
     }
-
-    public void setAge(long age){
-        this.age = age;
+    
+    public long getSourceDate() {
+        return sourceDate;
     }
-
-    public boolean older(GraphNode node){
-        return getAge() < node.getAge();
-    }
-
+    
     public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
+    
+    public abstract String key();
+    
 }
