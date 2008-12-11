@@ -952,7 +952,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 return that;
             }
             else if( objs.size() == 1 ) {
-                return new VarRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
+                return ExprFactory.makeVarRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
             }
             else {
                 error("Name may refer to: " + NodeUtil.namesString(objs), that);
@@ -977,8 +977,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                         // no change -- no need to recreate the VarRef
                         return that;
                     }
-                    else { result = new VarRef(newId.getSpan(), newId,
-                                               Collections.<StaticArg>emptyList()); }
+                    else { result = ExprFactory.makeVarRef(newId); }
                 }
                 else if (_env.hasQualifiedFunction(newId)) {
                     result = ExprFactory.makeFnRef(newId, name);
@@ -1016,8 +1015,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
-                else { result = new VarRef(that.getSpan(), newName,
-                                           Collections.<StaticArg>emptyList()); }
+                else { result = ExprFactory.makeVarRef(that.getSpan(), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty() ) {
                 result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
@@ -1042,8 +1040,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return that;
                 }
                 else {
-                    result = new VarRef(name.getSpan(), name,
-                                        Collections.<StaticArg>emptyList());
+                    result = ExprFactory.makeVarRef(name.getSpan(), name);
                 }
                 // error("Unrecognized name: " + NodeUtil.nameString(name), that);
                 // return that;
@@ -1092,7 +1089,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 Set<Id> types = _env.explicitTypeConsNames((Id)fn_name);
                 if( !types.isEmpty() ) {
                     // create _RewriteObjectRef
-                    VarRef obj = new VarRef(that.getSpan(), (Id)fn_name, that.getStaticArgs());
+                    VarRef obj = ExprFactory.makeVarRef(that.getSpan(), (Id)fn_name, that.getStaticArgs());
                     return obj.accept(this);
                 }
             } else {

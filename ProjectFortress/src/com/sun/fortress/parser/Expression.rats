@@ -109,8 +109,7 @@ Lhs AssignLeft =
        else yyValue = null;
      }
    / a1:QualifiedName
-     { yyValue = new VarRef(createSpan(yyStart,yyCount), false, a1,
-                            Collections.<StaticArg>emptyList()); };
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
 
 constant transient Action<Expr> AssignLeftTail =
      SubscriptAssign
@@ -439,8 +438,7 @@ Expr VarOrFnRef =
      }
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
-            yyValue = new VarRef(createSpan(yyStart,yyCount),false,a1,
-                                 Collections.<StaticArg>emptyList());
+            yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1);
        else yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount),a1,a2);
      };
 

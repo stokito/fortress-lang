@@ -1111,9 +1111,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Node rewrittenExpr =  visit(body);
 
-        Expr in_fn = new VarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
-                                                       WellKnownNames.thread),
-                                Collections.<StaticArg>emptyList());
+        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
+                                                                   WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(new TypeArg(sp,new VarType(sp,
                 NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),

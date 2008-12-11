@@ -994,10 +994,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return bug("Unexpected type for ObjectRef.");
             }
 
-            Node new_node = new VarRef(that.getSpan(), that.isParenthesized(),
-                                       Option.<Type>some(t),
-                                       (Id) obj_result.ast(),
-                                       (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result));
+            Node new_node = ExprFactory.makeVarRef(that.getSpan(), that.isParenthesized(),
+                                                   Option.<Type>some(t),
+                                                   (Id) obj_result.ast(),
+                                                   (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
+                                                   that.getLexicalDepth());
             return TypeCheckerResult.compose(new_node, t, subtypeChecker, obj_result,
                                              TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result),
                                              new TypeCheckerResult(new_node,accumulated_constraints));
@@ -4453,10 +4454,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
             Option<Type> varType = var_result.type();
 
-            VarRef new_node = new VarRef(that.getSpan(),
-                                         varType,
-                                         (Id)var_result.ast(),
-                                         Collections.<StaticArg>emptyList());
+            VarRef new_node = ExprFactory.makeVarRef(that.getSpan(),
+                                                     varType,
+                                                     (Id)var_result.ast());
 
             return TypeCheckerResult.compose(new_node, varType, subtypeChecker, var_result);
 	}

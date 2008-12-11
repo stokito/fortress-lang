@@ -571,7 +571,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     exitWithTypeOp = exitWithExpr.unwrap().getExprType();
                     if( exitWithTypeOp.isSome() ) {
                         VarRef var = ExprFactory.makeVarRef(exitSpan,
-                                            exitWithId, exitWithTypeOp);
+                                                            exitWithTypeOp,
+                                                            exitWithId);
                         exitFnBody = ExprFactory.makeExit(exitSpan,
                             exit.getExprType(), exit.getTarget(), var);
                         exitFnExprParams.add(
@@ -861,8 +862,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     private VarRef makeVarRefFromParam(Param param) {
         VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
-                                                param.getName(),
-                                                param.getIdType() );
+                                                param.getIdType(),
+                                                param.getName() );
         return varRef;
     }
 

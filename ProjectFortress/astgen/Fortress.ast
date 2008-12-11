@@ -814,9 +814,8 @@ interface Node() extends HasAt;
                          * where Foo was defined as
                          * object Foo[\T\] ... end
                          */
-                        VarRef(Id varId,
-                               List<StaticArg> staticArgs,
-                               int lexicalDepth=-2147483648) implements Lhs;
+                        VarRef(Id varId, List<StaticArg> staticArgs,
+                               int lexicalDepth) implements Lhs;
                         /**
                          * field selection expression
                          * A field selection, unless it is a method reference

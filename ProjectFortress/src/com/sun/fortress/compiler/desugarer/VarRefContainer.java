@@ -119,8 +119,8 @@ public class VarRefContainer {
 
     public VarRef containerVarRef(Span varRefSpan) {
         return ExprFactory.makeVarRef( varRefSpan,
-                                       containerVarId(),
-                                       containerType() );
+                                       containerType(),
+                                       containerVarId() );
     }
 
     public FieldRef containerFieldRef(Span varRefSpan) {
