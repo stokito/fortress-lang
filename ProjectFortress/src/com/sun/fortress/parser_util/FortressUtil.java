@@ -47,7 +47,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 public final class FortressUtil {
     public static <T> T syntaxError(Span span, String msg) {
-        return ProgramError.<T>error(new VoidLiteralExpr(span), msg);
+        return ProgramError.<T>error(ExprFactory.makeVoidLiteralExpr(span), msg);
     }
 
     public static void println(String arg) {

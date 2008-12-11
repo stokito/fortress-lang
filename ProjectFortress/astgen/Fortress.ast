@@ -784,13 +784,12 @@ interface Node() extends HasAt;
                                  * int literal
                                  * e.g.) 7
                                  */
-                                IntLiteralExpr(String text = in_intVal.toString(),
-                                               BigInteger intVal);
+                                IntLiteralExpr(BigInteger intVal);
                             /**
                              * char literal
                              * e.g.) 'c'
                              */
-                            CharLiteralExpr(int charVal = in_text.charAt(0));
+                            CharLiteralExpr(int charVal);
                             /**
                              * string literal
                              * e.g.) "string"
@@ -800,7 +799,7 @@ interface Node() extends HasAt;
                              * void literal
                              * e.g.) ()
                              */
-                            VoidLiteralExpr(String text = "");
+                            VoidLiteralExpr();
                         /**
                          * variable reference
                          * VarOrFnRef ::= Id
