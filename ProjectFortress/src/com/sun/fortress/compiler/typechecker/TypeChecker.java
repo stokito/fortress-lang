@@ -2195,7 +2195,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			labelExitTypes.get(labelName).unwrap().add(withResult.type().unwrap());
 		}
 
-		Exit new_node = new Exit(that.getSpan(),
+		Exit new_node = ExprFactory.makeExit(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.BOTTOM),
 				that.getTarget(),
@@ -2440,8 +2440,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		ArrowType arr = NodeFactory.makeArrowType(FortressUtil.spanTwo(domain, return_type),
 				domain, return_type);
-		FnExpr new_node = new FnExpr(that.getSpan(),
+		FnExpr new_node = ExprFactory.makeFnExpr(that.getSpan(),
 				that.isParenthesized(),
+				that.getExprType(),
 				that.getName(),
 				that.getStaticParams(),
 				that.getParams(),
@@ -2999,7 +3000,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				Option.<Type>some(Types.VOID) :
 					body_results.get(body_results.size()-1).type();
 
-				LocalVarDecl new_node = new LocalVarDecl(that.getSpan(),
+				LocalVarDecl new_node = ExprFactory.makeLocalVarDecl(that.getSpan(),
 						that.isParenthesized(),
 						body_type,
 						(List<Expr>)TypeCheckerResult.astFromResults(body_results),

@@ -641,8 +641,7 @@ interface Node() extends HasAt;
                 /**
                  * comprehension or accumulator
                  */
-                abstract BigOpApp(List<StaticArg> staticArgs
-                                      = Collections.<StaticArg>emptyList());
+                abstract BigOpApp(List<StaticArg> staticArgs);
                     /**
                      * summation and other reduction expression
                      * FlowExpr ::= Accumulator StaticArgs?
@@ -673,8 +672,7 @@ interface Node() extends HasAt;
                  * e.g.) exit I_95 with x32B
                  * Targets must be unqualified.
                  */
-                Exit(Option<Id> target = Option.<Id>none(),
-                     Option<Expr> returnExpr = Option.<Expr>none());
+                Exit(Option<Id> target, Option<Expr> returnExpr);
                 /**
                  * spawn expression
                  * FlowExpr ::= spawn Expr
@@ -699,17 +697,10 @@ interface Node() extends HasAt;
                  * Expr ::= fn ValParam IsType? Throws? => Expr
                  * e.g.) fn x => x + 2
                  */
-                FnExpr(IdOrOpOrAnonymousName name = new AnonymousFnName(in_span),
-                       List<StaticParam> staticParams
-                           = Collections.<StaticParam>emptyList(),
-                       List<Param> params,
-                       Option<Type> returnType
-                           = Option.<Type>none(),
-                       Option<WhereClause> whereClause
-                           = Option.<WhereClause>none(),
-                       Option<List<BaseType>> throwsClause
-                           = Option.<List<BaseType>>none(),
-                       Expr body)
+                FnExpr(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
+                       List<Param> params, Option<Type> returnType,
+                       Option<WhereClause> whereClause,
+                       Option<List<BaseType>> throwsClause, Expr body)
                       implements Applicable;
                 /**
                  * expression used in block expressions
@@ -742,8 +733,7 @@ interface Node() extends HasAt;
                      *                  | Unpasting
                      * e.g.) localVar x = 3
                      */
-                    LocalVarDecl(List<LValue> lhs,
-                                 Option<Expr> rhs = Option.<Expr>none());
+                    LocalVarDecl(List<LValue> lhs, Option<Expr> rhs);
                 /**
                  * expression that is simple or using operators
                  * Expr ::= OpExpr
@@ -754,11 +744,8 @@ interface Node() extends HasAt;
                      * SubscriptExpr ::= Primary LeftEncloser ExprList? RightEncloser
                      * e.g.) a[i]
                      */
-                    SubscriptExpr(Expr obj, List<Expr> subs,
-                                  Option<Op> op = Option.<Op>none(),
-                                  List<StaticArg> staticArgs
-                                      = Collections.<StaticArg>emptyList())
-                                  implements Lhs;
+                    SubscriptExpr(Expr obj, List<Expr> subs, Option<Op> op,
+                                  List<StaticArg> staticArgs) implements Lhs;
                     /**
                      * primary expression
                      */

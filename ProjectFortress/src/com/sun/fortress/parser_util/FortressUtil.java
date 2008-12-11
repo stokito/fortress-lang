@@ -150,23 +150,6 @@ public final class FortressUtil {
         });
     }
 
-    public static Expr makeSubscripting(Span span,
-                                        String left, String right,
-                                        Expr base, List<Expr> args,
-                                        List<StaticArg> sargs) {
-        return makeSubscripting(span, base, left, right, args, sargs);
-    }
-
-    public static Expr makeSubscripting(Span span, Expr base, String open,
-                                        String close, List<Expr> args,
-                                        List<StaticArg> sargs) {
-        Op op = NodeFactory.makeEnclosing(span, open, close);
-        List<Expr> es;
-        if (args == null) es = FortressUtil.emptyExprs();
-        else              es = args;
-        return new SubscriptExpr(span, false, base, es, Option.<Op>some(op), sargs);
-    }
-
     private static void multiple(Span span, Modifier m) {
         resetMods();
         syntaxError(span, "A modifier must not occur multiple times");
@@ -585,20 +568,6 @@ public final class FortressUtil {
                                       sparams, params, Option.<Type>none(),
                                       throws_, where_, contract,
                                       Option.<Expr>some(expr));
-    }
-
-    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
-                                              Option<Expr> expr) {
-        return new LocalVarDecl(span, false, emptyExprs(), lvs, expr);
-    }
-    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs,
-                                              Expr expr) {
-        return new LocalVarDecl(span, false, emptyExprs(), lvs,
-                                Option.<Expr>some(expr));
-    }
-    public static LocalVarDecl mkLocalVarDecl(Span span, List<LValue> lvs) {
-        return new LocalVarDecl(span, false, emptyExprs(), lvs,
-                                Option.<Expr>none());
     }
 
 // let rec multi_dim_cons (expr : expr)
