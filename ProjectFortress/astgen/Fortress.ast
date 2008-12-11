@@ -907,10 +907,9 @@ interface Node() extends HasAt;
                          * application. This should be the case for desugarings only.
                          * e.g.) f(3+5)
                          */
-                        Juxt(FunctionalRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                             FunctionalRef infixJuxt = ExprFactory.makeInfixJuxt(),
-                             List<Expr> exprs = new LinkedList<Expr>(),
-                             boolean fnApp, boolean tight) implements OutAfterTypeChecking;
+                        Juxt(FunctionalRef multiJuxt, FunctionalRef infixJuxt,
+                             List<Expr> exprs, boolean fnApp, boolean tight)
+                            implements OutAfterTypeChecking;
                         /**
                          * functional application
                          * Primary ::= Primary ArgExpr
@@ -976,9 +975,10 @@ interface Node() extends HasAt;
                          * MathPrimary ::= PrimaryFront MathItem*
                          * e.g.) a[3, 4]
                          */
-                        MathPrimary(FunctionalRef multiJuxt = ExprFactory.makeMultiJuxt(),
-                                    FunctionalRef infixJuxt = ExprFactory.makeInfixJuxt(),
-                                    Expr front, List<MathItem> rest) implements OutAfterTypeChecking;
+                        MathPrimary(FunctionalRef multiJuxt,
+                                    FunctionalRef infixJuxt,
+                                    Expr front, List<MathItem> rest)
+                                   implements OutAfterTypeChecking;
                         /**
                          * array expression
                          * ArrayExpr ::= [ StaticArgs? RectElements ]

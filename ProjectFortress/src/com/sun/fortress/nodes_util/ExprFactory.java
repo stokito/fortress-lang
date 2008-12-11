@@ -38,6 +38,9 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
 
+    private static FunctionalRef multiJuxt = makeMultiJuxt();
+    private static FunctionalRef infixJuxt = makeInfixJuxt();
+
     public static ArrayElement makeArrayElement(Expr elem) {
         return makeArrayElement(elem.getSpan(), false, Option.<Type>none(),
                                 Collections.<StaticArg>emptyList(), elem);
@@ -80,6 +83,19 @@ public class ExprFactory {
                                                   boolean outermost) {
         return new ArrayElements(span, parenthesized, ty, staticArgs, dim, elems,
                                  outermost);
+    }
+
+    public static MathPrimary makeMathPrimary(Span span, Expr front,
+                                              List<MathItem> rest) {
+        return makeMathPrimary(span, false, Option.<Type>none(),
+                               multiJuxt, infixJuxt, front, rest);
+    }
+
+    public static MathPrimary makeMathPrimary(Span span, boolean parenthesized,
+                                              Option<Type> ty, FunctionalRef multi,
+                                              FunctionalRef infix, Expr front,
+                                              List<MathItem> rest) {
+        return new MathPrimary(span, parenthesized, ty, multi, infix, front, rest);
     }
 
     public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
@@ -186,6 +202,58 @@ public class ExprFactory {
         return new OpExpr(span, isParenthesized, ty, op, exprs);
     }
 
+    public static Juxt makeTightJuxt(Juxt that, List<Expr> exprs) {
+     return makeJuxt(that.getSpan(), that.isParenthesized(),
+                     that.getExprType(),
+                     that.getMultiJuxt(), that.getInfixJuxt(),
+                     Useful.immutableTrimmedList(exprs),
+                     that.isFnApp(), true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, Expr first, Expr second) {
+        return makeJuxt(span, false, Useful.list(first, second), false, true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, boolean isParenthesized,
+                                     List<Expr> exprs) {
+        return makeJuxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
+                        false, true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, List<Expr> exprs) {
+        return makeJuxt(span, false, Useful.immutableTrimmedList(exprs),
+                        false, true);
+    }
+
+    public static Juxt makeTightJuxt(Span span, boolean isParenthesized,
+                                     List<Expr> exprs, boolean isFnApp) {
+        return makeJuxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
+                        isFnApp, true);
+    }
+
+    public static Juxt makeLooseJuxt(Span span, List<Expr> exprs) {
+        return makeJuxt(span, false, Useful.immutableTrimmedList(exprs),
+                        false, false);
+    }
+
+    public static Juxt makeJuxt(Span span, boolean isParenthesized,
+                                List<Expr> exprs, boolean isFnApp,
+                                boolean tight) {
+        return makeJuxt(span, isParenthesized,
+                        Option.<Type>none(), multiJuxt, infixJuxt,
+                        exprs, isFnApp, tight);
+    }
+
+    public static Juxt makeJuxt(Span span, boolean isParenthesized,
+                                Option<Type> type,
+                                FunctionalRef multi, FunctionalRef infix,
+                                List<Expr> exprs, boolean isFnApp,
+                                boolean tight) {
+        return new Juxt(span, isParenthesized, type, multi, infix,
+                        exprs, isFnApp, tight);
+    }
+
+    /***************************************************************************************/
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
@@ -532,46 +600,6 @@ public class ExprFactory {
                 Collections.<StaticArg>emptyList());
     }
 
-    public static Juxt makeLooseJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
-        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
-                        false, false);
-    }
-
-    public static Juxt makeTightJuxt(Span span, Expr first, Expr second) {
-        return new Juxt(span, false, Option.<Type>none(),
-                        Useful.list(first, second), false, true);
-    }
-
-    public static Juxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs) {
-        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
-                        false, true);
-    }
-
-    public static Juxt makeTightJuxt(Span span, boolean isParenthesized, List<Expr> exprs, boolean isFnApp) {
-        return new Juxt(span, isParenthesized, Useful.immutableTrimmedList(exprs),
-                        isFnApp, true);
-    }
-
-    public static Juxt makeTightJuxt(Span span, List<Expr> exprs,
-                                     Boolean isParenthesized,
-                                     FunctionalRef infixJuxt,
-                                     FunctionalRef multiJuxt){
-        return new Juxt(span, isParenthesized, multiJuxt, infixJuxt,
-                        Useful.immutableTrimmedList(exprs),
-                        false, true);
-    }
-
-    /**
-     * Make a TightJuxt that is a copy of the given one in every way except
-     * with new exprs.
-     */
-    public static Juxt makeTightJuxt(Juxt that, List<Expr> exprs) {
-     return new Juxt(that.getSpan(), that.isParenthesized(),
-                     that.getMultiJuxt(), that.getInfixJuxt(),
-                     Useful.immutableTrimmedList(exprs),
-                     that.isFnApp(), true);
-    }
-
     public static VarRef makeVarRef(VarRef old, int depth) {
         return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(),
                           old.getStaticArgs(),
@@ -886,8 +914,9 @@ public class ExprFactory {
             return new Label(e.getSpan(), true, e.getName(), e.getBody());
         }
         public Expr forMathPrimary(MathPrimary e) {
-            return new MathPrimary(e.getSpan(), true, e.getFront(),
-                    e.getRest());
+            return makeMathPrimary(e.getSpan(), true, e.getExprType(),
+                                   e.getMultiJuxt(), e.getInfixJuxt(),
+                                   e.getFront(), e.getRest());
         }
         public Expr forObjectExpr(ObjectExpr e) {
             return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
@@ -1008,7 +1037,7 @@ public class ExprFactory {
                                         e.getStaticArgs(), e.getArg());
         }
         public Expr forJuxt(Juxt e) {
-            return new Juxt(e.getSpan(), true, e.getExprType(),
+            return makeJuxt(e.getSpan(), true, e.getExprType(),
                             e.getMultiJuxt(), e.getInfixJuxt(),
                             e.getExprs(), e.isFnApp(), e.isTight());
         }

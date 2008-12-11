@@ -3050,11 +3050,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                 else
                                     return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
                             }}));
-                MathPrimary new_primary = new MathPrimary(that.getSpan(),
-                                                          that.isParenthesized(),
-                                                          that.getMultiJuxt(),
-                                                          that.getInfixJuxt(),
-                                                          front,items);
+                MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
+                                                               that.isParenthesized(),
+                                                               that.getExprType(),
+                                                               that.getMultiJuxt(),
+                                                               that.getInfixJuxt(),
+                                                               front, items);
 		return new_primary.accept(this);
             } else
                 return super.forJuxt(that);
@@ -3203,12 +3204,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				_RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
 						front,
 						((ExprMI)arg).getExpr());
-				MathPrimary new_primary = new MathPrimary(that.getSpan(),
-						that.isParenthesized(),
-						that.getMultiJuxt(),
-						that.getInfixJuxt(),
-						fn,
-						new_items);
+				MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
+                                                                                      that.isParenthesized(),
+                                                                                      that.getExprType(),
+                                                                                      that.getMultiJuxt(),
+                                                                                      that.getInfixJuxt(),
+                                                                                      fn,
+                                                                                      new_items);
 				return new_primary.accept(this);
 			}
 		}
@@ -3253,7 +3255,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							}
 						}
 						// Otherwise, make a new MathPrimary that is one element shorter, and recur
-						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),that.getFront(),new_items);
+						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
+                                                                                                      that.isParenthesized(),
+                                                                                                      that.getExprType(),
+                                                                                                      that.getMultiJuxt(),
+                                                                                                      that.getInfixJuxt(),
+                                                                                                      that.getFront(),
+                                                                                                      new_items);
 						return new_primary.accept(this);
 					} else {
 						// Continues to next expression...
@@ -3281,7 +3289,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					item_iter.remove(); // remove NonExprMI
 					if( last_expr_is_front ) {
 						// in our new MathPrimary, place this expression at the front
-						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),new_expr,new_items);
+						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
+                                                                                                      that.isParenthesized(),
+                                                                                                      that.getExprType(),
+                                                                                                      that.getMultiJuxt(),
+                                                                                                      that.getInfixJuxt(),
+                                                                                                      new_expr, new_items);
 						return new_primary.accept(this);
 					}
 					else {
@@ -3290,7 +3303,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						item_iter.remove(); // remove the previous expression in the list.
 						MathItem new_item = new ParenthesisDelimitedMI(new_expr.getSpan(),new_expr);
 						item_iter.add(new_item); // replace both item with new item
-						MathPrimary new_primary = new MathPrimary(that.getSpan(),that.isParenthesized(),that.getMultiJuxt(),that.getInfixJuxt(),that.getFront(),new_items);
+						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
+                                                                                                      that.isParenthesized(),
+                                                                                                      that.getExprType(),
+                                                                                                      that.getMultiJuxt(),
+                                                                                                      that.getInfixJuxt(),
+                                                                                                      that.getFront(),
+                                                                                                      new_items);
 						return new_primary.accept(this);
 					}
 				}
