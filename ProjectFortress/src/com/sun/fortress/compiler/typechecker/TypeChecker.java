@@ -2017,11 +2017,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forCharLiteralExpr(CharLiteralExpr that) {
-		CharLiteralExpr new_node = new CharLiteralExpr(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(Types.CHAR),
-				that.getText(),
-				that.getCharVal());
+		CharLiteralExpr new_node = ExprFactory.makeCharLiteralExpr(that.getSpan(),
+                                                                           that.isParenthesized(),
+                                                                           Option.<Type>some(Types.CHAR),
+                                                                           that.getText(),
+                                                                           that.getCharVal());
 		return new TypeCheckerResult(new_node, Types.CHAR);
 	}
 
@@ -2869,7 +2869,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntLiteralExpr(IntLiteralExpr that) {
-		IntLiteralExpr new_node = new IntLiteralExpr(that.getSpan(), Option.<Type>some(Types.INT_LITERAL), that.getText(), that.getIntVal());
+		IntLiteralExpr new_node = ExprFactory.makeIntLiteralExpr(that.getSpan(),
+                                                                         that.isParenthesized(),
+                                                                         Option.<Type>some(Types.INT_LITERAL),
+                                                                         that.getText(), that.getIntVal());
 		return new TypeCheckerResult(new_node, Types.INT_LITERAL);
 	}
 
@@ -4463,10 +4466,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
-		VoidLiteralExpr new_node = new VoidLiteralExpr(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(Types.VOID),
-				that.getText());
+		VoidLiteralExpr new_node = ExprFactory.makeVoidLiteralExpr(that.getSpan(),
+                                                                           that.isParenthesized(),
+                                                                           Option.<Type>some(Types.VOID),
+                                                                           that.getText());
 		return new TypeCheckerResult(new_node, Types.VOID);
 	}
 

@@ -467,11 +467,87 @@ public class ExprFactory {
                           lexicalDepth);
     }
 
-    /***************************************************************************************/
+    public static IntLiteralExpr makeIntLiteralExpr(Span span, String s) {
+        BigInteger val;
+
+        // Delete every apostrophe and U+202F NARROW NO-BREAK SPACE
+        s = s.replace("'", "").replace("\u202F", "");
+
+        int underLoc = s.indexOf('_');
+        if (underLoc == -1) {
+            val = new BigInteger(s);
+        }
+        else {
+            String digits = s.substring(0, underLoc);
+            String base_digits = s.substring(underLoc + 1);
+            int base;
+            if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
+                base = Unicode.numberToValue(base_digits);
+            }
+            else {
+                base = Integer.parseInt(base_digits);
+            }
+            digits = dozenalHack(digits, base);
+            val = new BigInteger(digits, base);
+        }
+        return makeIntLiteralExpr(span, s, val);
+    }
+
+    static String dozenalHack(String digits, int base) {
+        if (base == 12 && Unicode.charactersOverlap(digits, "xXeE")) {
+            digits = digits.replace('x', 'A');
+            digits = digits.replace('X', 'A');
+            digits = digits.replace('e', 'B');
+            digits = digits.replace('E', 'B');
+        }
+        return digits;
+    }
+
+    public static IntLiteralExpr makeIntLiteralExpr(Span span,
+                                                    BigInteger intVal) {
+        return makeIntLiteralExpr(span, intVal.toString(), intVal);
+    }
+
+    public static IntLiteralExpr makeIntLiteralExpr(Span span,
+                                                    String text,
+                                                    BigInteger intVal) {
+        return makeIntLiteralExpr(span, false, Option.<Type>none(),
+                                  text, intVal);
+    }
+
+    public static IntLiteralExpr makeIntLiteralExpr(Span span,
+                                                    boolean parenthesized,
+                                                    Option<Type> exprType,
+                                                    String text,
+                                                    BigInteger intVal) {
+        return new IntLiteralExpr(span, parenthesized, exprType, text, intVal);
+    }
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
-        return new CharLiteralExpr(span, false, s, s.charAt(0));
+        return makeCharLiteralExpr(span, false, Option.<Type>none(),
+                                   s, s.charAt(0));
     }
+
+    public static CharLiteralExpr makeCharLiteralExpr(Span span,
+                                                      boolean parenthesized,
+                                                      Option<Type> exprType,
+                                                      String text,
+                                                      int charVal) {
+        return new CharLiteralExpr(span, parenthesized, exprType, text, charVal);
+    }
+
+    public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
+        return makeVoidLiteralExpr(span, false, Option.<Type>none(), "");
+    }
+
+    public static VoidLiteralExpr makeVoidLiteralExpr(Span span,
+                                                      boolean parenthesized,
+                                                      Option<Type> exprType,
+                                                      String text) {
+        return new VoidLiteralExpr(span, parenthesized, exprType, text);
+    }
+
+    /***************************************************************************************/
 
     public static Exit makeExit(Span span, Option<Type> typeOp, Option<Id> targetOp, Expr retExpr) {
         return new Exit(span, typeOp, targetOp, Option.<Expr>some(retExpr));
@@ -594,46 +670,6 @@ public class ExprFactory {
                           throwsClause, body);
     }
 
-    public static IntLiteralExpr makeIntLiteralExpr(Span span, BigInteger val) {
-        return new IntLiteralExpr(span, false, val.toString(), val);
-    }
-
-    public static IntLiteralExpr makeIntLiteralExpr(Span span, String s) {
-        BigInteger val;
-
-        // Delete every apostrophe and U+202F NARROW NO-BREAK SPACE
-        s = s.replace("'", "").replace("\u202F", "");
-
-        int underLoc = s.indexOf('_');
-        if (underLoc == -1) {
-            val = new BigInteger(s);
-        }
-        else {
-            String digits = s.substring(0, underLoc);
-            String base_digits = s.substring(underLoc + 1);
-            int base;
-            if (!Unicode.charactersOverlap(base_digits, "0123456789")) {
-                base = Unicode.numberToValue(base_digits);
-            }
-            else {
-                base = Integer.parseInt(base_digits);
-            }
-            digits = dozenalHack(digits, base);
-            val = new BigInteger(digits, base);
-        }
-        return new IntLiteralExpr(span, false, s, val);
-    }
-
-    static String dozenalHack(String digits, int base) {
-        if (base == 12 && Unicode.charactersOverlap(digits, "xXeE")) {
-            digits = digits.replace('x', 'A');
-            digits = digits.replace('X', 'A');
-            digits = digits.replace('e', 'B');
-            digits = digits.replace('E', 'B');
-        }
-        return digits;
-    }
-
 
     public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
         return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
@@ -742,10 +778,6 @@ public class ExprFactory {
             expr = makeFieldRef(expr, id);
         }
         return expr;
-    }
-
-    public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
-        return new VoidLiteralExpr(span, false, "");
     }
 
     public static If makeIf(IfClause _if, Expr _else) {
@@ -1041,18 +1073,19 @@ public class ExprFactory {
                     e.getDenomBase(), e.getDenomPower());
         }
         public Expr forIntLiteralExpr(IntLiteralExpr e) {
-            return new IntLiteralExpr(e.getSpan(), true, e.getText(),
-                    e.getIntVal());
+            return makeIntLiteralExpr(e.getSpan(), true, e.getExprType(),
+                                      e.getText(), e.getIntVal());
         }
         public Expr forCharLiteralExpr(CharLiteralExpr e) {
-            return new CharLiteralExpr(e.getSpan(), true, e.getText(),
-                    e.getCharVal());
+            return makeCharLiteralExpr(e.getSpan(), true, e.getExprType(),
+                                       e.getText(), e.getCharVal());
         }
         public Expr forStringLiteralExpr(StringLiteralExpr e) {
             return new StringLiteralExpr(e.getSpan(), true, e.getText());
         }
         public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
-            return new VoidLiteralExpr(e.getSpan(), true, e.getText());
+            return makeVoidLiteralExpr(e.getSpan(), true, e.getExprType(),
+                                       e.getText());
         }
         public Expr forVarRef(VarRef e) {
             return makeVarRef(e.getSpan(), true, e.getExprType(), e.getVarId(),

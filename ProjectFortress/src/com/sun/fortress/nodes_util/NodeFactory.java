@@ -1230,8 +1230,8 @@ public class NodeFactory {
 
     public static IntExpr makeIntVal(String i) {
         Span span = new Span();
-        return new IntBase(span, new IntLiteralExpr(span,
-                new BigInteger(i)));
+        return new IntBase(span, ExprFactory.makeIntLiteralExpr(span,
+                                                                new BigInteger(i)));
     }
 
     public static IntArg makeIntArg(String string) {

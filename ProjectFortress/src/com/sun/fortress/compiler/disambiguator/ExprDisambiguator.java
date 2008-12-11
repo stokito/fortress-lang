@@ -1165,7 +1165,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
         Option<Expr> with = returnExpr_result.isSome() ?
             returnExpr_result :
-            wrap((Expr)new VoidLiteralExpr(that.getSpan()));
+            wrap((Expr)ExprFactory.makeVoidLiteralExpr(that.getSpan()));
 
         if (target.isNone() || _innerMostLabel.isNone()) {
             error("Exit occurs outside of a label", that);
