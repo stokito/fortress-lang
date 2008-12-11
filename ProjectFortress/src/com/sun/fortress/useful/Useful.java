@@ -26,7 +26,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.nio.charset.Charset;
@@ -839,6 +841,19 @@ public class Useful {
     public static BufferedWriter filenameToBufferedWriter(String filename) throws IOException {
         return new BufferedWriter(
                 new FileWriter(filename));
+    }
+    
+    /**
+     * @throws FileNotFoundException
+     */
+    public static BufferedReader bufferedReader(InputStream stream) throws FileNotFoundException {
+        return new BufferedReader(
+                new InputStreamReader(stream));
+    }
+
+    public static BufferedWriter bufferedWriter(OutputStream stream) throws IOException {
+        return new BufferedWriter(
+                new OutputStreamWriter(stream));
     }
 
     /**
