@@ -325,14 +325,14 @@ Expr Comprehension =
      { List<ArrayComprehensionClause> clauses = FortressUtil.mkList(a2,
                                                                     a3s.list());
        if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       yyValue = new ArrayComprehension(createSpan(yyStart,yyCount),a1,clauses);
+       yyValue = ExprFactory.makeArrayComprehension(createSpan(yyStart,yyCount),a1,clauses);
      }
    / (BIG w)? opencurly a1:StaticArgs? w a2:Entry wr bar wr
      a3:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
        Op opr = NodeFactory.makeEnclosing(span, "BIG {|->", "BIG }");
        if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), a1, opr, a3, a2);
+       yyValue = ExprFactory.makeAccumulator(createSpan(yyStart,yyCount), a1, opr, a3, a2);
      }
    / (BIG w)? a1:LeftEncloser a2:StaticArgs? w a3:Expr wr bar wr
      a4:GeneratorClauseList w a5:RightEncloser
@@ -340,7 +340,7 @@ Expr Comprehension =
        Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText(),
                                           "BIG " + a5.getText());
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
-       yyValue = new Accumulator(createSpan(yyStart,yyCount), a2, opr, a4, a3);
+       yyValue = ExprFactory.makeAccumulator(createSpan(yyStart,yyCount), a2, opr, a4, a3);
      };
 
 /* The operator "|->" should not be in the left-hand sides of map expressions

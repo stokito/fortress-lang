@@ -465,7 +465,7 @@ constant inline Action<Expr> SubscriptingLeft =
                    List<StaticArg> ss;
                    if (a2 == null) ss = Collections.<StaticArg>emptyList();
                    else            ss = a2;
-                   return FortressUtil.makeSubscripting(span,
+                   return ExprFactory.makeSubscripting(span,
                                                         a1, a4, base, a3, ss);
                } else return syntaxError(span,
                                          "Mismatched subscripting operator: " +
@@ -484,8 +484,8 @@ constant inline Action<Expr> SubscriptingLeft =
                List<StaticArg> ss;
                if (a2 == null) ss = Collections.<StaticArg>emptyList();
                else            ss = a2;
-               return FortressUtil.makeSubscripting(span, base, a1.getText(),
-                                                    a4.getText(), a3, ss);
+               return ExprFactory.makeSubscripting(span, base, a1.getText(),
+                                                   a4.getText(), a3, ss);
            }};
      };
 
@@ -654,7 +654,7 @@ Expr FlowExpr =
      exit a1:(w Id)? a2:(w with w Expr)?
      { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.some(a1);
        Option<Expr> expr = Option.wrap(a2);
-       yyValue = new Exit(createSpan(yyStart,yyCount), false, Option.<Type>none() ,name, expr);
+       yyValue = ExprFactory.makeExit(createSpan(yyStart,yyCount), Option.<Type>none(), name, expr);
      }
    / <ErrorProduction1>
      Accumulator wr StaticArgs
@@ -669,7 +669,7 @@ Expr FlowExpr =
        if (a3 == null) {
            yyValue = ExprFactory.makeOpExpr(span, a1, a4, a2);
        } else
-           yyValue = new Accumulator(span, a2, a1, a3, a4);
+           yyValue = ExprFactory.makeAccumulator(span, a2, a1, a3, a4);
      }
    / <ErrorProduction2>
      BIG w LeftEncloser wr StaticArgs w RightEncloser w Expr

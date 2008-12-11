@@ -1122,7 +1122,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                              in_fn, args);
 
         List<Param> params = Collections.emptyList();
-        FnExpr fnExpr = new FnExpr(sp, params, (Expr) rewrittenExpr);
+        FnExpr fnExpr = ExprFactory.makeFnExpr(sp, params, (Expr) rewrittenExpr);
 
         return visitNode(ExprFactory.makeTightJuxt(s.getSpan(), fn, fnExpr));
     }

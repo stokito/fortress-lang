@@ -547,11 +547,210 @@ public class ExprFactory {
         return new VoidLiteralExpr(span, parenthesized, exprType, text);
     }
 
-    /***************************************************************************************/
-
-    public static Exit makeExit(Span span, Option<Type> typeOp, Option<Id> targetOp, Expr retExpr) {
-        return new Exit(span, typeOp, targetOp, Option.<Expr>some(retExpr));
+    public static Expr makeSubscripting(Span span,
+                                        String left, String right,
+                                        Expr base, List<Expr> args,
+                                        List<StaticArg> sargs) {
+        return makeSubscripting(span, base, left, right, args, sargs);
     }
+
+    public static Expr makeSubscripting(Span span, Expr base, String open,
+                                        String close, List<Expr> args,
+                                        List<StaticArg> sargs) {
+        Op op = NodeFactory.makeEnclosing(span, open, close);
+        List<Expr> es;
+        if (args == null) es = FortressUtil.emptyExprs();
+        else              es = args;
+        return makeSubscriptExpr(span, base, es, Option.<Op>some(op), sargs);
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs) {
+        return makeSubscriptExpr(span, obj, subs, Option.<Op>none());
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs,
+                                                  Option<Op> op) {
+        return makeSubscriptExpr(span, obj, subs, op,
+                                 Collections.<StaticArg>emptyList());
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
+                                                  List<Expr> subs,
+                                                  Option<Op> op,
+                                                  List<StaticArg> sargs) {
+        return makeSubscriptExpr(span, false, Option.<Type>none(), obj,
+                                 Useful.immutableTrimmedList(subs), op, sargs);
+    }
+
+    public static SubscriptExpr makeSubscriptExpr(Span span,
+                                                  boolean parenthesized,
+                                                  Option<Type> exprType,
+                                                  Expr obj, List<Expr> subs,
+                                                  Option<Op> op,
+                                                  List<StaticArg> staticArgs) {
+        return new SubscriptExpr(span, parenthesized, exprType, obj, subs, op,
+                                 staticArgs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
+        List<Expr> _body = new ArrayList<Expr>(1);
+        List<LValue> _lhs = new ArrayList<LValue>(1);
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        _lhs.add(NodeFactory.makeLValue(p.getSpan(), p));
+        return makeLocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
+        List<Expr> _body = new ArrayList<Expr>(1);
+        List<LValue> _lhs = new ArrayList<LValue>(1);
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        _lhs.add(NodeFactory.makeLValue(sp, p));
+        return makeLocalVarDecl(sp, _body, _lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs, Expr _r, Expr _body_expr) {
+        List<Expr> _body = new ArrayList<Expr>(1);
+        Option<Expr> _rhs = Option.some(_r);
+        _body.add(_body_expr);
+        return makeLocalVarDecl(sp, _body, lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span, List<LValue> lvs,
+                                                Expr expr) {
+        return makeLocalVarDecl(span, lvs, Option.<Expr>some(expr));
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span, List<LValue> lvs) {
+        return makeLocalVarDecl(span, lvs, Option.<Expr>none());
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span, List<LValue> lvs,
+                                                Option<Expr> expr) {
+        return makeLocalVarDecl(span, Collections.<Expr>emptyList(), lvs, expr);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs,
+                                                Expr _r, List<Expr> _body) {
+        Option<Expr> _rhs = Option.some(_r);
+        return makeLocalVarDecl(sp, _body, lhs, _rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span,
+                                                List<Expr> body,
+                                                List<LValue> lhs,
+                                                Option<Expr> rhs) {
+        return makeLocalVarDecl(span, false, Option.<Type>none(), body, lhs, rhs);
+    }
+
+    public static LocalVarDecl makeLocalVarDecl(Span span,
+                                                boolean parenthesized,
+                                                Option<Type> exprType,
+                                                List<Expr> body,
+                                                List<LValue> lhs,
+                                                Option<Expr> rhs) {
+        return new LocalVarDecl(span, parenthesized, exprType, body, lhs, rhs);
+    }
+
+    public static FnExpr makeFnExpr(Span span,
+                                    List<Param> params,
+                                    Expr body) {
+        return makeFnExpr(span, params, Option.<Type>none(),
+                          Option.<List<BaseType>>none(), body);
+    }
+
+    public static FnExpr makeFnExpr(Span span, List<Param> params,
+                                    Option<Type> returnType, Expr body) {
+        return makeFnExpr(span, params, returnType,
+                          Option.<List<BaseType>>none(), body);
+    }
+
+    public static FnExpr makeFnExpr(Span span, List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<BaseType>> throwsClause,
+                                    Expr body) {
+        return makeFnExpr(span, false, Option.<Type>none(),
+                          new AnonymousFnName(span),
+                          Collections.<StaticParam>emptyList(), params,
+                          returnType, Option.<WhereClause>none(),
+                          throwsClause, body);
+    }
+
+    public static FnExpr makeFnExpr(Span span,
+                                    boolean parenthesized,
+                                    Option<Type> exprType,
+                                    IdOrOpOrAnonymousName name,
+                                    List<StaticParam> staticParams,
+                                    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<WhereClause> whereClause,
+                                    Option<List<BaseType>> throwsClause,
+                                    Expr body) {
+        return new FnExpr(span, parenthesized, exprType, name, staticParams,
+                          params, returnType, whereClause, throwsClause, body);
+    }
+
+    public static Exit makeExit(Span span,
+                                Option<Type> typeOp,
+                                Option<Id> targetOp,
+                                Expr retExpr) {
+        return makeExit(span, false, typeOp, targetOp, Option.<Expr>some(retExpr));
+    }
+
+    public static Exit makeExit(Span span,
+                                Option<Type> typeOp,
+                                Option<Id> targetOp,
+                                Option<Expr> retExpr) {
+        return makeExit(span, false, typeOp, targetOp, retExpr);
+    }
+
+    public static Exit makeExit(Span span,
+                                boolean parenthesized,
+                                Option<Type> typeOp,
+                                Option<Id> targetOp,
+                                Option<Expr> retExpr) {
+        return new Exit(span, parenthesized, typeOp, targetOp, retExpr);
+    }
+
+    public static ArrayComprehension makeArrayComprehension(Span span,
+                                                            List<StaticArg> staticArgs,
+                                                            List<ArrayComprehensionClause> clauses) {
+        return makeArrayComprehension(span, false, Option.<Type>none(),
+                                      staticArgs, clauses);
+    }
+
+    public static ArrayComprehension makeArrayComprehension(Span span,
+                                                            boolean parenthesized,
+                                                            Option<Type> exprType,
+                                                            List<StaticArg> staticArgs,
+                                                            List<ArrayComprehensionClause> clauses) {
+        return new ArrayComprehension(span, parenthesized, exprType, staticArgs, clauses);
+    }
+
+    public static Accumulator makeAccumulator(Span span,
+                                              List<StaticArg> staticArgs,
+                                              Op accOp,
+                                              List<GeneratorClause> gens,
+                                              Expr body) {
+        return makeAccumulator(span, false, Option.<Type>none(), staticArgs,
+                               accOp, gens, body);
+    }
+
+    public static Accumulator makeAccumulator(Span span,
+                                              boolean parenthesized,
+                                              Option<Type> exprType,
+                                              List<StaticArg> staticArgs,
+                                              Op accOp,
+                                              List<GeneratorClause> gens,
+                                              Expr body) {
+        return new Accumulator(span, parenthesized, exprType, staticArgs,
+                               accOp, gens, body);
+    }
+
+    /***************************************************************************************/
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
         BigInteger intPart;
@@ -649,36 +848,14 @@ public class ExprFactory {
                 intPart, numerator, denomBase, denomPower);
     }
 
-    /** Alternatively, you can invoke the FnExpr constructor with only these parameters */
-    public static FnExpr makeFnExpr(Span span, List<Param> params, Expr body) {
-        return makeFnExpr(span, params, Option.<Type>none(),
-                Option.<List<BaseType>>none(), body);
-    }
-
-    public static FnExpr makeFnExpr(Span span, List<Param> params,
-                                    Option<Type> returnType, Expr body) {
-        return new FnExpr(span, params, returnType, body);
-    }
-
-    public static FnExpr makeFnExpr(Span span, List<Param> params,
-            Option<Type> returnType,
-            Option<List<BaseType>> throwsClause,
-            Expr body) {
-        return new FnExpr(span, false, new AnonymousFnName(span),
-                          Collections.<StaticParam>emptyList(), params,
-                          returnType, Option.<WhereClause>none(),
-                          throwsClause, body);
-    }
-
-
     public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
         return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
             public LetExpr forLetFn(LetFn expr) {
                 return new LetFn(expr.getSpan(),false, body, expr.getFns());
             }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
-                return new LocalVarDecl(expr.getSpan(), false, body,
-                                        expr.getLhs(), expr.getRhs());
+                return makeLocalVarDecl(expr.getSpan(), false, Option.<Type>none(),
+                                        body, expr.getLhs(), expr.getRhs());
             }
         });
     }
@@ -723,28 +900,6 @@ public class ExprFactory {
 
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
         return new StringLiteralExpr(span, s);
-    }
-
-    /** Alternatively, you can invoke the SubscriptExpr constructor without parenthesized or op */
-    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-            List<Expr> subs) {
-        return new SubscriptExpr(span, false, obj, subs,
-                                 Option.<Op>none(),
-                                 Collections.<StaticArg>emptyList());
-    }
-
-    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-                                                  List<Expr> subs,
-                                                  Option<Op> op,
-                                                  List<StaticArg> sargs) {
-        return new SubscriptExpr(span, false, obj, Useful.immutableTrimmedList(subs), op, sargs);
-    }
-
-    public static SubscriptExpr makeSubscriptExpr(Span span, Expr obj,
-                                                  List<Expr> subs,
-                                                  Option<Op> op) {
-        return new SubscriptExpr(span, false, obj, subs, op,
-                Collections.<StaticArg>emptyList());
     }
 
     public static FieldRef makeFieldRef(FieldRef expr, Span span) {
@@ -847,37 +1002,6 @@ public class ExprFactory {
         List<Block> body = new ArrayList<Block>(1);
         body.add(new Block(sp, t, false, true, exprs));
         return new Do(sp, t, body);
-    }
-
-    public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>(1);
-        List<LValue> _lhs = new ArrayList<LValue>(1);
-        Option<Expr> _rhs = Option.some(_r);
-        _body.add(_body_expr);
-        _lhs.add(NodeFactory.makeLValue(p.getSpan(), p));
-        return new LocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
-    }
-
-    public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>(1);
-        List<LValue> _lhs = new ArrayList<LValue>(1);
-        Option<Expr> _rhs = Option.some(_r);
-        _body.add(_body_expr);
-        _lhs.add(NodeFactory.makeLValue(sp, p));
-        return new LocalVarDecl(sp, _body, _lhs, _rhs);
-    }
-
-    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs, Expr _r, Expr _body_expr) {
-        List<Expr> _body = new ArrayList<Expr>(1);
-        Option<Expr> _rhs = Option.some(_r);
-        _body.add(_body_expr);
-        return new LocalVarDecl(sp, _body, lhs, _rhs);
-    }
-
-    public static LocalVarDecl makeLocalVarDecl(Span sp, List<LValue> lhs,
-                                                Expr _r, List<Expr> _body) {
-        Option<Expr> _rhs = Option.some(_r);
-        return new LocalVarDecl(sp, _body, lhs, _rhs);
     }
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
@@ -1017,14 +1141,16 @@ public class ExprFactory {
             return new While(e.getSpan(), true, e.getTestExpr(), e.getBody());
         }
         public Expr forAccumulator(Accumulator e) {
-            return new Accumulator(e.getSpan(), true, e.getStaticArgs(),
-                    e.getAccOp(), e.getGens(), e.getBody());
+            return makeAccumulator(e.getSpan(), true, e.getExprType(),
+                                   e.getStaticArgs(),
+                                   e.getAccOp(), e.getGens(), e.getBody());
         }
         public Expr forAtomicExpr(AtomicExpr e) {
             return new AtomicExpr(e.getSpan(), true, e.getExpr());
         }
         public Expr forExit(Exit e) {
-            return new Exit(e.getSpan(), true, e.getExprType() ,e.getTarget(), e.getReturnExpr());
+            return makeExit(e.getSpan(), true, e.getExprType(),
+                            e.getTarget(), e.getReturnExpr());
         }
 
         public Expr forSpawn(Spawn e) {
@@ -1037,7 +1163,7 @@ public class ExprFactory {
             return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
         }
         public Expr forFnExpr(FnExpr e) {
-            return new FnExpr(e.getSpan(), true, e.getName(),
+            return makeFnExpr(e.getSpan(), true, e.getExprType(), e.getName(),
                               e.getStaticParams(), e.getParams(),
                               e.getReturnType(), e.getWhereClause(),
                               e.getThrowsClause(), e.getBody());
@@ -1046,8 +1172,8 @@ public class ExprFactory {
             return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
         }
         public Expr forLocalVarDecl(LocalVarDecl e) {
-            return new LocalVarDecl(e.getSpan(), true, e.getBody(),
-                                    e.getLhs(), e.getRhs());
+            return makeLocalVarDecl(e.getSpan(), true, e.getExprType(),
+                                    e.getBody(), e.getLhs(), e.getRhs());
         }
         public Expr forOpExpr(OpExpr e) {
             return makeOpExpr(e.getSpan(), true, e.getExprType(), e.getOp(), e.getArgs());
@@ -1092,7 +1218,8 @@ public class ExprFactory {
                               e.getStaticArgs(), e.getLexicalDepth());
         }
         public Expr forArrayComprehension(ArrayComprehension e) {
-            return new ArrayComprehension(e.getSpan(), true, e.getClauses());
+            return makeArrayComprehension(e.getSpan(), true, e.getExprType(),
+                                          e.getStaticArgs(), e.getClauses());
         }
         public Expr forChainExpr(ChainExpr e) {
             return new ChainExpr(e.getSpan(), true, e.getFirst(),
@@ -1118,15 +1245,15 @@ public class ExprFactory {
                              e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forOpRef(OpRef e) {
-            return ExprFactory.makeOpRef(e.getSpan(), true, e.getExprType(),
+            return makeOpRef(e.getSpan(), true, e.getExprType(),
                                          e.getStaticArgs(), e.getLexicalDepth(),
                                          e.getOriginalName(), e.getNames(),
                                          e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forSubscriptExpr(SubscriptExpr e) {
-            return new SubscriptExpr(e.getSpan(), true, e.getObj(),
-                    e.getSubs(), e.getOp(),
-                    e.getStaticArgs());
+            return makeSubscriptExpr(e.getSpan(), true, e.getExprType(),
+                                     e.getObj(), e.getSubs(), e.getOp(),
+                                     e.getStaticArgs());
         }
         public Expr forTemplateGapExpr(TemplateGapExpr e) {
             return new TemplateGapExpr(e.getSpan(), e.getGapId(), e.getTemplateParams());
