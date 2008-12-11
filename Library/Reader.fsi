@@ -15,17 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api JavaString
+api Reader
+import JavaString.JavaString
+import Stream.{...}
+stdIn: Reader
 
-  lineSeparator: String 
-  
-  object JavaString extends { String }
-    opr ||(self, b:JavaString): String
-    opr ||(self, b:String):String
-    opr ||(self, b:Char): String         
-    opr ||(a:JavaString, self): String  
-    javaConcat(self, b:JavaString):String
-    javaConcat(self, b:Char):String
-  end
-    
+object Reader(fileName: String) extends ReadStream
+    getter asString(): String
+    getter fileName(): String
+    getter eof(): Boolean
+    getter isReady(): Boolean
+
+    whenUnconsumed(): ()
+    consume(): ()
+    uncheckedReadLine(): String
+    uncheckedReadChar(): ZZ32
+    uncheckedRead(k: ZZ32): String
+    close(): ()
+end
+
 end

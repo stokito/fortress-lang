@@ -15,11 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api Streams
+component Stream
 import JavaString.JavaString
+export Stream
 
 (***********************************************************
- * Types to support  input and output
+ * Types to support input and output
  ***********************************************************)
 
 trait Closeable
@@ -37,14 +38,19 @@ end
 
 trait WriteStream extends { Closeable }
 
-    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms for writing
-        characters to the end of a %FileWriteStream%. **)
-    write(x:JavaString):()
-    write(c:Char):()
-    (** %write(Any)% converts its argument to a String using %toString%
+    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms 
+        for writing characters to  a %WriteStream%. **)
+        
+    abstract write(s: String):()
+    abstract write(c: Char):()
+    
+    (** %write(Any)% converts its argument to a String using %asString%
         and appends the result to the stream. **)
-    write(s:String):()
-    write(x:Any):()
+    write(x: Any):() =  
+            typecase x of
+                Object ⇒ write x.asString
+                else   ⇒ write ("" || x)                   (* handles tuples *)
+            end
 
     (** %writes% converts each of the generated elements to a string
         using %asString% unless the element is already a %String% in
@@ -52,14 +58,18 @@ trait WriteStream extends { Closeable }
         appended together to the end of the stream.  To avoid
         interleaving with concurrent output to the same stream, this
         append step is done monolithically. **)
-    writes(x:Generator[\Any\]):()
+    writes(x:Generator[\Any\]):() = writes(x,"")   
+    writes(x: Generator[\Any\], rest: String):() =
+        write((BIG ||[e ← x] 
+                   typecase e of
+                        String ⇒ e
+                        Object ⇒ e.asString
+                        else   ⇒ ("" || e)                 (* handles tuples *)
+                   end) || rest)
 
     (** %flush% any output to the stream that is still buffered. **)
-    flush():()
-
-    (** %close% the stream. **)
-    close():()
+    abstract flush():()
 
 end WriteStream
 
-end Streams
+end Stream

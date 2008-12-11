@@ -17,7 +17,7 @@
 
 native component Writer
 import JavaString.JavaString
-import Streams.{...}
+import Stream.{...}
 export Writer
 
 private language="java"

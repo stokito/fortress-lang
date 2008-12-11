@@ -17,7 +17,9 @@
 
 api FortressLibrary
 
-import File.FileWriteStream
+import Stream.WriteStream
+import JavaString.JavaString
+import String.StringStats
 
 (************************************************************
 * \subsection*{Simple Combinators}
@@ -2126,7 +2128,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     opr ||(self, b:Any):String
 
     (** The operator %|||% with at least one String argument converts to string,
-        then appends with a whitespace separator unless one of the two arguments is
+        then concatenates with a whitespace separator unless one of the two arguments is
         empty.  If there is an empty argument, the other argument is returned. **)
     opr |||(self, b:String): String
     opr |||(self, b:Any): String
@@ -2137,23 +2139,20 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     opr juxtaposition(self, b:String):String
     opr juxtaposition(self, b:Any):String
 
-    (** opr // appends with a single newline separator. **)
+    (** opr // concatenates with a single newline separator. **)
     opr //(self) : String
     opr //(self, a:String): String
     opr //(self, a:Any): String
     opr //(a:Any, self): String
 
-    (** opr /// appends with a double newline separator **)
+    (** opr /// concatenates with a double newline separator **)
     opr ///(self) : String
     opr ///(self, a:String): String
     opr ///(self, a:Any): String
     opr ///(a:Any, self): String
 
-    print(self): ()
-    println(self): ()
-(*
-    writeOn(s: FileWriteStream): ()
-*)
+   abstract writeOn(s: WriteStream): ()
+   stats(): StringStats
 
 end String
 
@@ -2176,23 +2175,35 @@ fromRawBits(a:ZZ64):RR64
 
 random(a:Number):RR64
 
-match(regex:String,some:String):Boolean
+match(regex:JavaString,some:JavaString):Boolean
 
 (** %char% converts an integer unicode code point into the
     corresponding 16-bit %Char%.  Note that we don't presently deal
     gracefully with %Char%s outside the 16-bit plane. **)
 char(a:ZZ32):Char
 
+print(a: String):()
+println(a: String): ()
+errorPrint(a: String):()
+errorPrintln(a: String): ()
+
 print(a:Number):()
 println(a:Number):()
+errorPrint(a:Number):()
+errorPrintln(a:Number):()
 print(a:Boolean):()
 println(a:Boolean):()
-println(a:Char):()
+errorPrint(a:Boolean):()
+errorPrintln(a:Boolean):()
 print(a:Any):()
 println(a:Any):()
+errorPrint(a:Any):()
+errorPrintln(a:Any):()
 (** 0-argument versions handle passing of () to single-argument versions. **)
 print():()
 println():()
+errorPrint():()
+errorPrintln():()
 
 forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\]
 forDigit(x:ZZ32, radixString:String): Maybe[\Char\]
@@ -2229,7 +2240,9 @@ printThreadInfo(a:Number):()
 printWithThread(a:String):()
 printlnWithThread(a:String):()
 
+(* time to get rid of this:
 throwError(a:String):()
+*)
 
 opr SEQV(a:Any, b:Any):Boolean
 

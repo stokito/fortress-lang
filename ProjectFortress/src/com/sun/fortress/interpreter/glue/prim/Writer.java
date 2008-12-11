@@ -192,6 +192,13 @@ protected FNativeObject makeNativeObject(List<FValue> args,
         }
     }
 
+    public static final class LineSeparator extends NativeFn0 {
+        @Override
+        protected final FValue applyToArgs() {
+            return FString.make(System.getProperty("line.separator"));
+        }
+    }
+    
     @Override
     protected void unregister() {
         con = null;

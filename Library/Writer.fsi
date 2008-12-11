@@ -15,31 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
- api Writer
-import JavaString.JavaString
-import Streams.{...}
+api Writer
+import Stream.{...}
 
 stdOut: Writer
 stdErr: Writer
 
 object Writer(fileName: String) extends WriteStream
-    getter asString(): String
     getter fileName(): String
-
-    write(s: JavaString): ()
-    write(c: Char): ()
-    flush(): ()
-    close(): ()
 end
 
 object BufferedWriter(under: Writer) extends WriteStream
-    getter asString(): String
-
-    write(s: String): ()
-    write(s: JavaString): ()
-    write(c: Char): ()
-    flush(): ()
-    close(): ()
 end
 
 end

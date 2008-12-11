@@ -28,31 +28,24 @@ api String
   object SubString extends String
   end
  
-(*
+  object StringStats() extends Object
+    getter minFlat(): ZZ32
+    getter maxFlat(): ZZ32
+    getter numFlat(): ZZ32
+    getter ssize(): ZZ32
+    getter sdepth(): ZZ32
+    collectStatsFor(s: String): ()
+  end StringStats
 
-  (*    Concatenable and Balanceable are implementation traits, 
-        and thus they should not appear in the api *)
-          
-  trait Concatenable  extends String
-    opr || (self, other: String): String
-    opr || (self, other: EmptyString): String
-    opr || (self, other: Char): String
-  end Concatenable
-
-  trait Balanceable extends String
-    getter isBalanced(): Boolean
-    getter isAlmostBalanced(): Boolean
-    getter isExtremelyUnbalanced(): Boolean
-  end Balanceable
-  *)
-  
-  printStats(s: String): ()
- 
   (** A string containing n spaces **)
   spaces(n: ZZ32): String
+  (** Platform-dependent line separator sequence **)
+  newline: String
+  doubleNewline: String
   
   (** The maximum size to which we grow a leaf node (by 
-        copying) before switching to a CatString of the pieces **)
+        copying) before switching to a CatString of the pieces.
+        Clients may assign to this variable **)
   var maxLeafSize: ZZ32
 
 end

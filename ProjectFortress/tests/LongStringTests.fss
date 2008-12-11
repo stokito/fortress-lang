@@ -74,6 +74,7 @@ export Testable
     end
 
     buildString(n: ZZ32): () = do
+        if longSourceString.isEmpty then readFile(128) end
         maxLeafSize := n
         fileContents := BIG || [ i ← longSourceString.indices ] longSourceString[i]
     end
@@ -101,11 +102,22 @@ export Testable
         assert(balancedAbcdef.asDebugString, "J6/0:abcdef")
     end
     
+    test statsTest() = do
+        buildString(6)
+        ss = fileContents.stats()
+        println (// ss.asString)
+        assert(ss.ssize, fileContents.size)
+        assert(ss.maxFlat, 4)
+        assert(ss.minFlat, 4)
+        assert(ss.avFlat, 4)
+        assert(ss.numFlat, 353)
+    end 
+    
     test buildTiming() = do
         println ()
         for t ← seq(⟨8, 16, 32, 64 (*, 128, 256, 512, 1024 *)⟩) do
             ("MaxFlat = " || t || ": ") PRINTTIME: buildString(t)
-            printStats(fileContents)
+            println(fileContents.stats())
         end
     end
     
@@ -117,8 +129,7 @@ export Testable
     tryGen(endpoints, f) = do        
         if fileContents.isEmpty then readFile(29) end
         m = |fileContents|
-        println ()
-        (*) printStats(fileContents)
+        println (newline fileContents.stats())
         for i ← f(endpoints), j ← f(endpoints),  j MOD m ≥ i MOD m do
             (*) println "subrange [" (i MOD m) ":" (j MOD m) "]"
             (*) println fileContents[(i MOD m):(j MOD m)].asDebugString
@@ -130,6 +141,7 @@ export Testable
 
     run(args:String...):() = label runMethod
         readFile(32)
+        println fileContents
         miniTest()
         tryGen(⟨7, 9, 17 , 36, 275, 1032⟩, identity⟦Generator⟦Int⟧⟧)
     end runMethod

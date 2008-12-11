@@ -34,12 +34,12 @@ C(n)H(2n+1). Radicals, which have a natural root or starting point,
 are easier to canonicalize, and Turner gets most (but not all) of the
 way there.
 
-Turner's approach for gererating the paraffins with n carbon atoms is
+Turner's approach for generating the paraffins with n carbon atoms is
 to first generate all radicals with n-1 carbon atoms, then adding
 methyl (CH3) to each one. Finally, we cast out isomers, ie, different
 representations of the same structural molecule.
 
-Radicals and also paraffins have cannonical representations[2], which
+Radicals and also paraffins have canonical representations[2], which
 makes their enumeration more direct. I first worked on this problem in
 the mid 80s[3].
 
