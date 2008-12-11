@@ -2514,14 +2514,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Type new_type = new_type_and_args_.unwrap().first().first();
 					List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 					// create new FnRef for this application of static params
-					FnRef fn_ref = new FnRef(that.getSpan(),
-							that.isParenthesized(),
-							some(new_type),
-                                                        new_args,
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-                                                                 that.getNames(),
-                                                                 Option.<Type>none());
+					FnRef fn_ref = ExprFactory.makeFnRef(that.getSpan(),
+                                                                             that.isParenthesized(),
+                                                                             some(new_type),
+                                                                             new_args,
+                                                                             that.getLexicalDepth(),
+                                                                             that.getOriginalName(),
+                                                                             that.getNames(),
+                                                                             that.getOverloadings(),
+                                                                             Option.<Type>none());
 					fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(that.getSpan(), fn_ref, new_type));
 					arrow_types.add(new_type);
 					accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
@@ -2532,15 +2533,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
-					new_node = new FnRef(that.getSpan(),
-                                                             that.isParenthesized(),
-                                                             type,
-                                                             that.getStaticArgs(),
-                                                             that.getLexicalDepth(),
-                                                             that.getOriginalName(),
-                                                             that.getNames(),
-                                                             Option.<List<FunctionalRef>>some(fn_overloadings),
-                                                             Option.<Type>none());
+					new_node = ExprFactory.makeFnRef(that.getSpan(),
+                                                                         that.isParenthesized(),
+                                                                         type,
+                                                                         that.getStaticArgs(),
+                                                                         that.getLexicalDepth(),
+                                                                         that.getOriginalName(),
+                                                                         that.getNames(),
+                                                                         Option.<List<FunctionalRef>>some(fn_overloadings),
+                                                                         Option.<Type>none());
 		}
 		else {
 			// otherwise, we just operate according to the normal procedure, apply args or none were necessary
@@ -2565,14 +2566,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
-					new_node = new FnRef(that.getSpan(),
-							that.isParenthesized(),
-							type,
-                                                        that.getStaticArgs(),
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-                                                             that.getNames(),
-                                                             Option.<Type>none());
+					new_node = ExprFactory.makeFnRef(that.getSpan(),
+                                                                         that.isParenthesized(),
+                                                                         type,
+                                                                         that.getStaticArgs(),
+                                                                         that.getLexicalDepth(),
+                                                                         that.getOriginalName(),
+                                                                         that.getNames(),
+                                                                         Option.<List<FunctionalRef>>none(),
+                                                                         Option.<Type>none());
 		}
 
 		return TypeCheckerResult.compose(new_node, type, subtypeChecker,
@@ -3819,13 +3821,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
 					List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 
-					OpRef new_op_ref = new OpRef(that.getSpan(),
-							that.isParenthesized(),
-                                                        new_args,
-							that.getLexicalDepth(),
-							that.getOriginalName(),
-                                                                     that.getNames(),
-                                                                     Option.<Type>none());
+					FunctionalRef new_op_ref = ExprFactory.makeOpRef(that.getSpan(),
+                                                                                         that.isParenthesized(),
+                                                                                         that.getExprType(),
+                                                                                         new_args,
+                                                                                         that.getLexicalDepth(),
+                                                                                         that.getOriginalName(),
+                                                                                         that.getNames(),
+                                                                                         that.getOverloadings(),
+                                                                                         Option.<Type>none());
 
 					overloadings.add(ExprFactory.make_RewriteOpRefOverloading(that.getSpan(), new_op_ref, new_type));
 					arrow_types.add(new_type);
@@ -3835,15 +3839,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
-					new_node = new OpRef(that.getSpan(),
-                                                             that.isParenthesized(),
-                                                             type,
-                                                             that.getStaticArgs(),
-                                                             that.getLexicalDepth(),
-                                                             that.getOriginalName(),
-                                                             that.getNames(),
-                                                             Option.<List<FunctionalRef>>some(overloadings),
-                                                             Option.<Type>none());
+					new_node = ExprFactory.makeOpRef(that.getSpan(),
+                                                                         that.isParenthesized(),
+                                                                         type,
+                                                                         that.getStaticArgs(),
+                                                                         that.getLexicalDepth(),
+                                                                         that.getOriginalName(),
+                                                                         that.getNames(),
+                                                                         Option.<List<FunctionalRef>>some(overloadings),
+                                                                         Option.<Type>none());
 					constraints = accumulated_constraints;
 		}
 		else {
@@ -3863,13 +3867,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 
 					constraints = accumulated_constraints;
-					new_node = new OpRef(that.getSpan(),
-                                                             that.isParenthesized(),
-                                                             type,
+					new_node = ExprFactory.makeOpRef(that.getSpan(),
+                                                                         that.isParenthesized(),
+                                                                         type,
                                                              (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
                                                              that.getLexicalDepth(),
                                                              that.getOriginalName(),
                                                              (List<IdOrOp>)TypeCheckerResult.astFromResults(ops_result),
+                                                                         Option.<List<FunctionalRef>>none(),
                                                              Option.<Type>none());
 		}
 

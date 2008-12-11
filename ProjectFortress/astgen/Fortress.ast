@@ -828,14 +828,11 @@ interface Node() extends HasAt;
                         /**
                          * named functional in functional applications
                          */
-                        abstract FunctionalRef(List<StaticArg> staticArgs
-                                                   = Collections.<StaticArg>emptyList(),
-                                               int lexicalDepth=-2147483648,
+                        abstract FunctionalRef(List<StaticArg> staticArgs,
+                                               int lexicalDepth,
                                                IdOrOp originalName,
-                                               List<IdOrOp> names
-                                                   = Collections.<IdOrOp>singletonList(in_originalName),
-                                               Option<List<FunctionalRef>> overloadings
-                                                   = Option.<List<FunctionalRef>>none(),
+                                               List<IdOrOp> names,
+                                               Option<List<FunctionalRef>> overloadings,
                                                Option<Type> overloadingType);
                             /**
                              * expression with static instantiations

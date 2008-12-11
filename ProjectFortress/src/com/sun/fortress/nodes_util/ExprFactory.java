@@ -40,6 +40,7 @@ public class ExprFactory {
 
     private static FunctionalRef multiJuxt = makeMultiJuxt();
     private static FunctionalRef infixJuxt = makeInfixJuxt();
+    private static int lexicalDepth = -2147483648;
 
     public static ArrayElement makeArrayElement(Expr elem) {
         return makeArrayElement(elem.getSpan(), false, Option.<Type>none(),
@@ -253,7 +254,141 @@ public class ExprFactory {
                         exprs, isFnApp, tight);
     }
 
+    public static FnRef make_RewriteFnRefOverloading(Span span, FnRef original, Type type) {
+        return makeFnRef(span, original.isParenthesized(), original.getExprType(),
+                         original.getStaticArgs(), original.getLexicalDepth(),
+                         original.getOriginalName(), original.getNames(),
+                         original.getOverloadings(), Option.<Type>some(type));
+    }
+
+    public static FnRef makeFnRef(Id name) {
+        return makeFnRef(name.getSpan(), name);
+    }
+
+    public static FnRef makeFnRef(Span span, Id name) {
+        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
+        return makeFnRef(span, name, Collections.<StaticArg>emptyList());
+    }
+
+    public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
+        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
+        return makeFnRef(span, false, Option.<Type>none(), sargs,
+                         lexicalDepth, name,
+                         Collections.<IdOrOp>singletonList(name),
+                         Option.<List<FunctionalRef>>none(),
+                         Option.<Type>none());
+    }
+
+    public static FnRef makeFnRef(Span span, boolean paren,
+                                  Id original_fn, List<IdOrOp> fns,
+                                  List<StaticArg> sargs) {
+        return makeFnRef(span, paren, Option.<Type>none(), sargs,
+                         lexicalDepth, original_fn, fns,
+                         Option.<List<FunctionalRef>>none(),
+                         Option.<Type>none());
+    }
+
+    public static FnRef makeFnRef(Id name, Id orig){
+        return makeFnRef(name.getSpan(), orig);
+    }
+
+    public static FnRef makeFnRef(Id orig, List<IdOrOp> names){
+        return makeFnRef(orig.getSpan(), false, Option.<Type>none(),
+                         Collections.<StaticArg>emptyList(),
+                         lexicalDepth, orig, names,
+                         Option.<List<FunctionalRef>>none(),
+                         Option.<Type>none());
+    }
+
+    public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
+        Id qName = NodeFactory.makeId(apiIds, name);
+        return makeFnRef(qName, Collections.<IdOrOp>singletonList(qName));
+    }
+
+    public static FnRef makeFnRef(APIName api, Id name) {
+        Id qName = NodeFactory.makeId(api, name);
+        return makeFnRef(qName, Collections.<IdOrOp>singletonList(qName));
+    }
+
+    public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
+        return makeFnRef(original.getSpan(), original.isParenthesized(),
+                         original.getExprType(), original.getStaticArgs(),
+                         lexicalNestedness,
+                         original.getOriginalName(), original.getNames(),
+                         original.getOverloadings(), original.getOverloadingType());
+    }
+
+    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
+                                  List<IdOrOp> ids, List<StaticArg> sargs,
+                                  Option<List<FunctionalRef>> overloadings) {
+        return makeFnRef(that.getSpan(), that.isParenthesized(), ty,
+                         sargs, lexicalDepth, name, ids,
+                         overloadings, Option.<Type>none());
+    }
+
+    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
+                                  List<IdOrOp> ids) {
+        return makeFnRef(that, ty, name, ids,
+                         Collections.<StaticArg>emptyList(),
+                         Option.<List<FunctionalRef>>none());
+    }
+
+    public static FnRef makeFnRef(Span span, boolean isParenthesized,
+                                  Option<Type> type,
+                                  List<StaticArg> staticArgs,
+                                  int lexicalDepth,
+                                  IdOrOp name, List<IdOrOp> names,
+                                  Option<List<FunctionalRef>> overloadings,
+                                  Option<Type> overloadingType) {
+        return new FnRef(span, isParenthesized, type, staticArgs,
+                         lexicalDepth, name, names, overloadings, overloadingType);
+    }
+
+    public static FunctionalRef make_RewriteOpRefOverloading(Span span,
+                                                             FunctionalRef original,
+                                                             Type type) {
+        return makeOpRef(span, original.isParenthesized(), original.getExprType(),
+                         original.getStaticArgs(), original.getLexicalDepth(),
+                         original.getOriginalName(), original.getNames(),
+                         original.getOverloadings(), Option.<Type>some(type));
+    }
+
+    public static FunctionalRef makeOpRef(Span span, String name) {
+        return makeOpRef(NodeFactory.makeOpInfix(span, name));
+    }
+
+    public static FunctionalRef makeOpRef(Op op) {
+        return makeOpRef(op, Collections.<StaticArg>emptyList());
+    }
+
+    public static FunctionalRef makeOpRef(Op op, List<StaticArg> staticArgs) {
+        return makeOpRef(op.getSpan(), false, Option.<Type>none(), staticArgs,
+                         lexicalDepth, op, Collections.<IdOrOp>singletonList(op),
+                         Option.<List<FunctionalRef>>none(),
+                         Option.<Type>none());
+    }
+
+    public static Expr makeOpRef(FunctionalRef original, int lexicalNestedness) {
+        return makeOpRef(original.getSpan(), original.isParenthesized(),
+                         original.getExprType(), original.getStaticArgs(),
+                         lexicalNestedness, original.getOriginalName(),
+                         original.getNames(), original.getOverloadings(),
+                         original.getOverloadingType());
+    }
+
+    public static FunctionalRef makeOpRef(Span span, boolean isParenthesized,
+                                          Option<Type> type,
+                                          List<StaticArg> staticArgs,
+                                          int lexicalDepth,
+                                          IdOrOp name, List<IdOrOp> names,
+                                          Option<List<FunctionalRef>> overloadings,
+                                          Option<Type> overloadingType) {
+        return new OpRef(span, isParenthesized, type, staticArgs,
+                         lexicalDepth, name, names, overloadings, overloadingType);
+    }
+
     /***************************************************************************************/
+
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         return new CharLiteralExpr(span, false, s, s.charAt(0));
     }
@@ -454,13 +589,6 @@ public class ExprFactory {
         return makeTuple(Arrays.asList(exprs));
     }
 
-    public static FunctionalRef make_RewriteOpRefOverloading(Span span, FunctionalRef original, Type type) {
-        return new OpRef(span, original.isParenthesized(), original.getExprType(),
-                         original.getStaticArgs(), original.getLexicalDepth(),
-                         original.getOriginalName(), original.getNames(),
-                         original.getOverloadings(), Option.<Type>some(type));
-    }
-
     public static FunctionalRef makeMultiJuxt() {
         return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp("juxtaposition")));
     }
@@ -475,103 +603,6 @@ public class ExprFactory {
 
     public static FunctionalRef makeInfixIn(){
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
-    }
-
-    public static Expr makeOpRef(FunctionalRef original, int lexicalNestedness) {
-            return new OpRef(original.getSpan(), original.isParenthesized(),
-                             original.getStaticArgs(), lexicalNestedness,
-                             original.getOriginalName(), original.getNames(),
-                             Option.<Type>none());
-
-    }
-
-    public static FunctionalRef makeOpRef(Span span, String name) {
-        Op op = NodeFactory.makeOpInfix(span, name);
-        return new OpRef(span, op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
-    }
-
-    public static FunctionalRef makeOpRef(Op op) {
-        return new OpRef(op.getSpan(), op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
-    }
-
-    public static FunctionalRef makeOpRef(Op op, List<StaticArg> staticArgs) {
-        return new OpRef(op.getSpan(), staticArgs, op, Collections.<IdOrOp>singletonList(op), Option.<Type>none());
-    }
-
-    public static FnRef make_RewriteFnRefOverloading(Span span, FnRef original, Type type) {
-        return new FnRef(span, original.isParenthesized(), original.getExprType(),
-                         original.getStaticArgs(), original.getLexicalDepth(),
-                         original.getOriginalName(), original.getNames(),
-                         original.getOverloadings(), Option.<Type>some(type));
-    }
-
-    public static FnRef makeFnRef(Span span, Id name) {
-        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
-        return new FnRef(span, name, names, Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
-        return new FnRef(original.getSpan(), original.isParenthesized(),
-                         original.getStaticArgs(), lexicalNestedness,
-                         original.getOriginalName(), original.getNames(),
-                         Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
-                                  List<IdOrOp> ids, List<StaticArg> sargs,
-                                  Option<List<FunctionalRef>> overloadings) {
-        return new FnRef(that.getSpan(), that.isParenthesized(), ty,
-                         sargs, name, ids, overloadings, Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
-                                  List<IdOrOp> ids) {
-        return new FnRef(that.getSpan(), that.isParenthesized(), ty, name, ids,
-                         Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Span span, Id name, List<StaticArg> sargs) {
-        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
-        return new FnRef(span, false, sargs, name, names, Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Id name) {
-        List<IdOrOp> names = Collections.<IdOrOp>singletonList(name);
-        return new FnRef(name.getSpan(), false,
-                         Collections.<StaticArg>emptyList(), name, names,
-                         Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Id name, Id orig){
-     return new FnRef(name.getSpan(),false,Collections.<StaticArg>emptyList(),
-                      orig, Collections.<IdOrOp>singletonList(name), Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Id orig, List<IdOrOp> names){
-     return new FnRef(orig.getSpan(),false,
-                      Collections.<StaticArg>emptyList(), orig, names,
-                      Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Iterable<Id> apiIds, Id name) {
-        Id qName = NodeFactory.makeId(apiIds, name);
-        List<IdOrOp> qNames = Collections.<IdOrOp>singletonList(qName);
-        return new FnRef(qName.getSpan(), false,
-                         Collections.<StaticArg>emptyList(), qName, qNames,
-                         Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(APIName api, Id name) {
-        Id qName = NodeFactory.makeId(api, name);
-        List<IdOrOp> qNames = Collections.<IdOrOp>singletonList(qName);
-        return new FnRef(qName.getSpan(), false,
-                         Collections.<StaticArg>emptyList(), qName, qNames,
-                         Option.<Type>none());
-    }
-
-    public static FnRef makeFnRef(Span span, boolean paren, Id original_fn, List<IdOrOp> fns, List<StaticArg> sargs) {
-     return new FnRef(span, paren, sargs, original_fn, fns,
-                      Option.<Type>none());
     }
 
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
@@ -1042,14 +1073,15 @@ public class ExprFactory {
                             e.getExprs(), e.isFnApp(), e.isTight());
         }
         public Expr forFnRef(FnRef e) {
-            return new FnRef(e.getSpan(), true,
-                             e.getStaticArgs(), e.getOriginalName(), e.getNames(),
-                             Option.<Type>none());
+            return makeFnRef(e.getSpan(), true, e.getExprType(), e.getStaticArgs(),
+                             e.getLexicalDepth(), e.getOriginalName(), e.getNames(),
+                             e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forOpRef(OpRef e) {
-            return new OpRef(e.getSpan(), true,
-                             e.getStaticArgs(), e.getOriginalName(), e.getNames(),
-                             Option.<Type>none());
+            return ExprFactory.makeOpRef(e.getSpan(), true, e.getExprType(),
+                                         e.getStaticArgs(), e.getLexicalDepth(),
+                                         e.getOriginalName(), e.getNames(),
+                                         e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forSubscriptExpr(SubscriptExpr e) {
             return new SubscriptExpr(e.getSpan(), true, e.getObj(),
@@ -1093,9 +1125,11 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
 
-     FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
-                              op.getLexicalDepth(),new_original_name,new_ops,
-                              Option.<Type>none());
+     FunctionalRef new_op = makeOpRef(op.getSpan(), op.isParenthesized(),
+                                      op.getExprType(), op.getStaticArgs(),
+                                      op.getLexicalDepth(), new_original_name,
+                                      new_ops, op.getOverloadings(),
+                                      op.getOverloadingType());
      return makeOpExpr(new_op, lhs, rhs);
     }
 
@@ -1116,9 +1150,11 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
 
-     FunctionalRef new_op = new OpRef(op.getSpan(),op.isParenthesized(),op.getStaticArgs(),
-                              op.getLexicalDepth(),new_original_name,new_ops,
-                              Option.<Type>none());
+     FunctionalRef new_op = makeOpRef(op.getSpan(), op.isParenthesized(),
+                                      op.getExprType(), op.getStaticArgs(),
+                                      op.getLexicalDepth(), new_original_name,
+                                      new_ops, op.getOverloadings(),
+                                      op.getOverloadingType());
      return makeOpExpr(e, new_op);
     }
 
