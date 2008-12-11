@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteFnRef;
+import com.sun.fortress.nodes_util.ExprFactory;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
@@ -55,15 +56,13 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
             return (new _RewriteFnRef(fr.getSpan(),
                                       fr.isParenthesized(),
                                       fr.getExprType(),
-                                      new VarRef(id.getSpan(),
-                                                 id,
-                                                 Collections.<StaticArg>emptyList()),
+                                      ExprFactory.makeVarRef(id),
                                       sargs)).accept(this);
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
-            return (new VarRef(id.getSpan(), fr.isParenthesized(), id,
-                               Collections.<StaticArg>emptyList())).accept(this);
+            return (ExprFactory.makeVarRef(id.getSpan(), fr.isParenthesized(),
+                                           fr.getExprType(), id)).accept(this);
         }
 
     }

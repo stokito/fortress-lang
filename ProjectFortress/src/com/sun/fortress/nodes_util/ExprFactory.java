@@ -387,6 +387,86 @@ public class ExprFactory {
                          lexicalDepth, name, names, overloadings, overloadingType);
     }
 
+    public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj,
+                                             List<StaticArg> static_args) {
+    	return makeVarRef(in_obj.getSpan(), parenthesized, Option.<Type>none(),
+                          in_obj, static_args, lexicalDepth);
+    }
+
+    public static VarRef makeVarRef(Span span, String s) {
+        return makeVarRef(span, NodeFactory.makeId(span, s));
+    }
+
+    public static VarRef makeVarRef(Span span, Option<Type> type, Id name) {
+        return makeVarRef(span, false, type, name);
+    }
+
+    public static VarRef makeVarRef(Span span, String s, int lexical_depth) {
+        return makeVarRef(span, false, Option.<Type>none(),
+                          NodeFactory.makeId(span, s),
+                          Collections.<StaticArg>emptyList(), lexical_depth);
+    }
+
+    public static VarRef makeVarRef(Span span, Id id) {
+        return makeVarRef(span, id, Collections.<StaticArg>emptyList());
+    }
+
+    public static VarRef makeVarRef(Span span, Id id, List<StaticArg> sargs) {
+        return makeVarRef(span, false, Option.<Type>none(), id, sargs,
+                          lexicalDepth);
+    }
+
+    public static VarRef makeVarRef(Span span, Iterable<Id> apiIds, Id name) {
+        return makeVarRef(span, NodeFactory.makeId(span, apiIds, name));
+    }
+
+    public static VarRef makeVarRef(String s) {
+        return makeVarRef(NodeFactory.makeId(s));
+    }
+
+    public static VarRef makeVarRef(String api_s, String local_s) {
+        return makeVarRef(NodeFactory.makeId(api_s, local_s));
+    }
+
+    public static VarRef makeVarRef(Id id) {
+        return makeVarRef(id.getSpan(), id);
+    }
+
+    public static VarRef makeVarRef(Iterable<Id> apiIds, Id name) {
+        return makeVarRef(NodeFactory.makeId(apiIds, name));
+    }
+
+    /** Assumes {@code ids} is nonempty. */
+    public static VarRef makeVarRef(Iterable<Id> ids) {
+        return makeVarRef(NodeFactory.makeId(ids));
+    }
+
+    public static VarRef makeVarRef(APIName api, Id name) {
+        return makeVarRef(NodeFactory.makeId(api, name));
+    }
+
+    public static VarRef makeVarRef(VarRef old, int depth) {
+        return makeVarRef(old.getSpan(), old.isParenthesized(), old.getExprType(),
+                          old.getVarId(), old.getStaticArgs(), depth);
+    }
+
+    public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
+        return makeVarRef(var.getSpan(), var.isParenthesized(), type, name);
+    }
+
+    public static VarRef makeVarRef(Span span, boolean isParenthesized,
+                                    Option<Type> exprType, Id varId) {
+        return makeVarRef(span, isParenthesized, exprType, varId,
+                          Collections.<StaticArg>emptyList(), lexicalDepth);
+    }
+
+    public static VarRef makeVarRef(Span span, boolean isParenthesized,
+                                    Option<Type> exprType, Id varId,
+                                    List<StaticArg> staticArgs, int lexicalDepth) {
+        return new VarRef(span, isParenthesized, exprType, varId, staticArgs,
+                          lexicalDepth);
+    }
+
     /***************************************************************************************/
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
@@ -629,79 +709,6 @@ public class ExprFactory {
                                                   Option<Op> op) {
         return new SubscriptExpr(span, false, obj, subs, op,
                 Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(VarRef old, int depth) {
-        return new VarRef(old.getSpan(), old.isParenthesized(), old.getVarId(),
-                          old.getStaticArgs(),
-                          depth);
-    }
-
-    public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
-        return new VarRef(var.getSpan(), var.isParenthesized(), type, name,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Span span, Option<Type> type, Id name) {
-        return new VarRef(span, false, type, name,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Span span, String s) {
-        return new VarRef(span, false, NodeFactory.makeId(span, s),
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Span span, String s, int lexical_depth) {
-        return new VarRef(span, false, NodeFactory.makeId(span, s),
-                          Collections.<StaticArg>emptyList(),
-                          lexical_depth);
-    }
-
-    public static VarRef makeVarRef(String s) {
-        return makeVarRef(NodeFactory.makeId(s));
-    }
-
-    public static VarRef makeVarRef(String api_s, String local_s) {
-        return makeVarRef(NodeFactory.makeId(api_s, local_s));
-    }
-
-    public static VarRef makeVarRef(Span sp, Id id) {
-        return new VarRef(sp, false, id, Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Span sp, Id id, Option<Type> type) {
-        return new VarRef(sp, false, type, id, Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Id id) {
-        return new VarRef(id.getSpan(), false, id,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Iterable<Id> apiIds, Id name) {
-        Id qName = NodeFactory.makeId(apiIds, name);
-        return new VarRef(qName.getSpan(), false, qName,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(Span span, Iterable<Id> apiIds, Id name) {
-        Id qName = NodeFactory.makeId(span, apiIds, name);
-        return new VarRef(span, false, qName,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    /** Assumes {@code ids} is nonempty. */
-    public static VarRef makeVarRef(Iterable<Id> ids) {
-        Id qName = NodeFactory.makeId(ids);
-        return new VarRef(qName.getSpan(), false, qName,
-                          Collections.<StaticArg>emptyList());
-    }
-
-    public static VarRef makeVarRef(APIName api, Id name) {
-        Id qName = NodeFactory.makeId(api, name);
-        return new VarRef(qName.getSpan(), false, qName,
-                          Collections.<StaticArg>emptyList());
     }
 
     public static FieldRef makeFieldRef(FieldRef expr, Span span) {
@@ -1048,8 +1055,8 @@ public class ExprFactory {
             return new VoidLiteralExpr(e.getSpan(), true, e.getText());
         }
         public Expr forVarRef(VarRef e) {
-            return new VarRef(e.getSpan(), true, e.getVarId(),
-                              e.getStaticArgs());
+            return makeVarRef(e.getSpan(), true, e.getExprType(), e.getVarId(),
+                              e.getStaticArgs(), e.getLexicalDepth());
         }
         public Expr forArrayComprehension(ArrayComprehension e) {
             return new ArrayComprehension(e.getSpan(), true, e.getClauses());
@@ -1209,8 +1216,7 @@ public class ExprFactory {
     }
 
     public static TemplateGapFnExpr makeTemplateGapFnExpr(Span s, Id id, List<Id> params) {
-        Expr body = new VarRef(id.getSpan(), id,
-                               Collections.<StaticArg>emptyList());
+        Expr body = makeVarRef(id);
         return new TemplateGapFnExpr(s, id, params);
     }
 
@@ -1252,10 +1258,6 @@ public class ExprFactory {
 
     public static TemplateGapVoidLiteralExpr makeTemplateGapVoidLiteralExpr(Span s, Id id, List<Id> params) {
         return new TemplateGapVoidLiteralExpr(s, id, params);
-    }
-
-    public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj, List<StaticArg> static_args) {
-    	return new VarRef(in_obj.getSpan(), parenthesized, in_obj, static_args);
     }
 
     //Span in_span, boolean in_parenthesized, Id in_obj, List<StaticArg> in_staticArgs

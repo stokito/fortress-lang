@@ -281,7 +281,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         List<Param> params = new ArrayList<Param>();
         Id param = NodeFactory.makeId(span, "param_"+name);
         params.add((Param)NodeFactory.makeParam(param, ty));
-        Expr rhs = ExprFactory.makeVarRef(span, param, ty);
+        Expr rhs = ExprFactory.makeVarRef(span, ty, param);
         Expr assign;
         if ( boxedRefMap.isSome() ) {
             Map<Pair<Id,Id>,FieldRef> map = boxedRefMap.unwrap();
@@ -298,13 +298,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                                           rewrite.getField(), rhs);
             } else {
                 List<Lhs> lhs = new ArrayList<Lhs>();
-                lhs.add(ExprFactory.makeVarRef(span, mangleName(name), ty));
+                lhs.add(ExprFactory.makeVarRef(span, ty, mangleName(name)));
                 assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                     lhs, rhs);
             }
         } else {
             List<Lhs> lhs = new ArrayList<Lhs>();
-            lhs.add(ExprFactory.makeVarRef(span, mangleName(name), ty));
+            lhs.add(ExprFactory.makeVarRef(span, ty, mangleName(name)));
             assign = ExprFactory.makeAssignment(span, Option.some(voidType),
                                                 lhs, rhs);
         }
