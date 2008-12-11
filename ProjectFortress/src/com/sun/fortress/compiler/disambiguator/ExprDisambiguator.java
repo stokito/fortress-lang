@@ -1036,7 +1036,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // For now, assume it does refer to an inherited method.
                 if (fields.isEmpty()) {
                     // no change -- no need to recreate the VarRef
-                    error("Variable " + name + " could not be disambiguated.", name);
+                    error("No definitions match variable reference " + name +".", name);
                     return that;
                 }
                 else {
