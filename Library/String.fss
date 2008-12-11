@@ -18,6 +18,7 @@
 component String
 import List.{...}
 import JavaString.{...}
+import Stream.{...}
 export String
 
 (* fib is an array of Fibonacci numbers.   We start with 
@@ -67,7 +68,7 @@ export String
         (* This handles the case where s1.right is a short JavaString *)
         typecase r = s1.right of
             JavaString ⇒ if |r| + |s2| ≤ maxLeafSize then 
-                                        s1.left || javaAppend(r, s2)
+                                        s1.left || javaConcat(r, s2)
                                     else
                                         concatAndBalanceIfNecessary(s1 asif String, s2)
                                     end
@@ -83,7 +84,8 @@ export String
     getter depth() = depthField
     getter bounds() = 0#size
     getter generator() = ConcatGenerator(left.generator, right.generator)
-    getter asJavaString() = javaAppend(left.asJavaString, right.asJavaString)
+    (* if this were to be used heavily, we should collect the result in a StringBuffer *)
+    getter asJavaString() = javaConcat(left.asJavaString, right.asJavaString)
     getter asExprString() = left.asExprString.allButLast() || right.asExprString.allButFirst 
     getter asDebugString(): String = asDebugStringIndented(0)
     
@@ -103,8 +105,8 @@ export String
             (left CMP other[0#|left|]) LEXICO: (right CMP other[(|left|):]) LEXICO: (|self| CMP |other|)
         end
       if result ≠ (self.asJavaString CMP other.asJavaString) then
-        println "Callee Failure, self = " self.asDebugString ", CMP other = " other.asDebugString
-        println "result = " result
+        errorPrintln "Callee Failure, self = " self.asDebugString ", CMP other = " other.asDebugString
+        errorPrintln "result = " result
       end
       result
     end
@@ -134,7 +136,8 @@ export String
         left.asDebugStringIndented(indent+8) //
         right.asDebugStringIndented(indent+8)
 
-    balanceIndicator() = if self.isBalanced then "B" elif self.isAlmostBalanced then "b" else "u" end
+    balanceIndicator() = 
+        if self.isBalanced then "B" elif self.isAlmostBalanced then "b" else "u" end
 
     uncheckedSubstring(r0: Range⟦ZZ32⟧) = label method
         (* printlnWithThread ("CatString.uncheckedSubstring " self "[" r0 "]").asJavaString *)
@@ -151,7 +154,7 @@ export String
         SubString(self, r0)
     end method
 
-    writeOn(stream): () = do
+    writeOn(stream: WriteStream): () = do
         stream.write(left)
         stream.write(right)
     end
@@ -198,7 +201,7 @@ export String
     showSequence() = if balanceDebug then
         for i ← seq(sequence.indices.flip) do
             if sequence[i].nonEmpty then
-                println "sequence[" i "] ="  sequence[i].asDebugString
+                errorPrintln "sequence[" i "] ="  sequence[i].asDebugString
             end
         end
       end
@@ -233,7 +236,7 @@ export String
       do
         self.addWholeSubtree(s)
         if balanceDebug then
-            print "added J\"" s "\", "
+            errorPrint "added J\"" s "\", "
             self.showSequence()
         end
       end
@@ -247,7 +250,7 @@ export String
             self.add(s.right)
         end
         if balanceDebug then
-            print "added C\"" s "\", "
+            errorPrint "added C\"" s "\", "
             self.showSequence()
         end
       end
@@ -315,9 +318,7 @@ export String
     opr || (self, other:String): String = other
     opr || (self, other:Char) = other.asString
 
-    print(self): () = do end
-    println(self): () = println("")
-    writeOn(stream): () = do end
+    writeOn(stream: WriteStream): () = do end
 
     splitWithOffsets() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
     split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
@@ -480,7 +481,7 @@ end
         end
     end
 
-    writeOn(stream) = do
+    writeOn(stream: WriteStream): () = do
         pieces = baseString.splitWithOffsets()
         if pieces.nonEmpty  then
             for (start, str) ← pieces do
@@ -488,7 +489,7 @@ end
                     baseString.uncheckedSubstring(baseSubrange).writeOn(stream)
             end
         else
-            for i ← range do
+            for i ← seq(range) do
                         stream.write baseString.get(i)
             end
         end
@@ -500,38 +501,51 @@ end
             var minFlat: ZZ32 := 1000000
             var maxFlat: ZZ32 := 0
             var numFlat: ZZ32 := 0
+            var ssize: ZZ32 := 0
+            var sdepth: ZZ32 := 0
+            
+        getter asString(): String =do
+            a = ("size = " ssize "; depth = " sdepth "; maxFlat = " maxFlat) 
+            b = ("; minFlat = "minFlat "; avFlat = " self.avFlat)
+            c = ("; numFlat = " numFlat)
+            a || b || c
+        end
+        
+        getter avFlat(): RR32 =  ssize / (numFlat asif Number)
 
         collectStatsFor(s: CatString) = do
+            if ssize = 0 then ssize := |s| end
+            if sdepth = 0 then sdepth := s.depth end
             self.collectStatsFor(s.left)
             self.collectStatsFor(s.right)
         end
 
         collectStatsFor(s: JavaString) = do
+            if ssize = 0 then ssize := |s| end
+            if sdepth = 0 then sdepth := s.depth end
             minFlat := |s| MIN minFlat
             maxFlat := |s| MAX maxFlat
             numFlat := numFlat + 1
         end
 
         collectStatsFor(s: SubString) = do
+            if ssize = 0 then ssize := |s| end
+            if sdepth = 0 then sdepth := s.depth end
             self.collectStatsFor(s.baseString)
+        end
+        
+        collectStatsFor(s: EmptyString) = do
+            minFlat := 0
         end
 
   end StringStats
 
-  printStats(s: String): () = label methodPrintStats
-        stats = StringStats()
-        stats.collectStatsFor(s)
-        print  "size = " |s| "; depth = " s.depth "; maxFlat = " stats.maxFlat
-        print  "; minFlat = " stats.minFlat "; avFlat = " (|s| / (stats.numFlat asif Number))
-        println  "; numFlat = " stats.numFlat
-  end methodPrintStats
-
-  spaces(indent: ZZ32): String 
-  (*) ensures { |outcome| = indent} 
+  spaces(nn: ZZ32): String 
+  (*) ensures { |outcome| = nn} 
   = do
       spaceString = "                    "
       var result: String := EmptyString
-      remainder: ZZ32  := indent
+      remainder: ZZ32  := nn
       while remainder > 0 do
         if remainder ≤ |spaceString| then
             result := result || spaceString[#remainder]
@@ -543,7 +557,10 @@ end
       end (* do *)
       result
   end
-
+  
   var maxLeafSize: ZZ32 := 32
-    
-end
+  
+  newline: String = lineSeparator
+  doubleNewline: String = newline || newline
+
+end String

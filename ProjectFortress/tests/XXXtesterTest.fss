@@ -19,7 +19,7 @@ component XXXtesterTest
 export Executable
 
 run(args:String...):()=do
-  println("fail");
+  fail("this test should not pass — note that this message does not contain the F-word")
 end
 
 end

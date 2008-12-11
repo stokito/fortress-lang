@@ -15,46 +15,23 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component XXXoverloadTest4
+component undefinedAbstractMethod
 export Executable
 
-(* This test should fail because of overload between no-type
-   and type. *)
+  object newKindOfString(me: String) extends String
+    (* 
+        we inherit the obligation to provide the getter size, method 
+        writeOn(s: WriteStream): (),  opr || (String, String), etc. 
+        but fail to do so.  The problem is that the error message
+        is not generated until the missing method is called, and even then,
+        there is no indication of the ilk of the receiver. 
+    *)
+    
+  end newKindOfString
 
-var a1c:ZZ32 = 0
-var a2c:ZZ32 = 0
-var a3c:ZZ32 = 0
-
-a(x)=do
-  println("a1 called")
-  a1c := 1;
-  x
-end
-
-a(x:ZZ32)=do
-  println("a2 called")
-  a2c := 1;
-  x
-end
-
-a(x, y, z)=do
-  println("a3 called")
-  a3c := 1;
-  x+y+z
-end
-
-opr AND(x:Boolean, y:Boolean):Boolean = if x then y else (1=0) end
-opr OR(x:Boolean, y:Boolean):Boolean = if x then (x=x) else y end
-
-run(args:String...):()=do
-  println(a(1))
-
-  println(a(1,2))
-
-  println(a(1,2,3))
-
-  println("fail") (* TEST SHOULD NOT RUN *)
-
+run(args:String...) = do
+    n = newKindOfString("Hello, World!")
+    println(n)
 end
 
 end

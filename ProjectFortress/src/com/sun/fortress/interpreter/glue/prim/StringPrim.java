@@ -33,12 +33,14 @@ import com.sun.fortress.interpreter.glue.NativeFn0;
  */
 public class StringPrim {
 
+/* These should no longer be necessary:
 public static final class Print extends Util.S2V {
     protected void f(String x) { System.out.print(x); }
 }
 public static final class Println extends Util.S2V {
     protected void f(String x) { System.out.println(x); }
 }
+*/
 
 public static final class Match extends Util.SS2B {
     protected boolean f(String regex, String some){

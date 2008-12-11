@@ -19,7 +19,7 @@ component FileReadWrite
 import File.{...}
 import FileSupport.{...}
 import Writer.{...}
-import Streams.{...}
+import Stream.{...}
 export Executable
 
 shouldBeTheSame(a:String, b:String, diag:String,f:String):() =
@@ -106,5 +106,17 @@ run(args:String...) = do
   _ = createTestFile(true,BufferedWriter(Writer("testFile.txt"), 23))
   streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
 end
+
+test outputTest():() = do
+    stdOut.write("Hello World")
+    stdOut.write("\n")
+    stdOut.flush()
+end
+
+test errortest():() = do
+    stdErr.write("\nHello World\n")
+    stdErr.flush()
+end
+
 
 end

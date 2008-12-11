@@ -22,7 +22,9 @@ import JavaString.{...}
 import RangeInternals.{...}
 import List.{AnyList}
 import TypeProxy.{...}
-import File.{...}
+import Writer.{...}
+import Stream.{...}
+import String.{...}
 
 export FortressLibrary
 
@@ -57,8 +59,7 @@ tuple[\T\](x:T):T = x
 opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
 
 fail[\T\](s:String):T = do
-    println("FAIL: " s)
-    (* throwError(s) *)
+    errorPrintln("FAIL: " s)
     throw FailCalled(s)
   end
 
@@ -2154,10 +2155,10 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
     if s0 = 0 then
       r "[]"
     else
-      r := r "\n["
+      r := r  // "["
       row(0)
       for i <- seq(1#(s0-1)) do
-        r := r "\n "
+        r := r // " "
         row(i)
       end
       r " ]"
@@ -2531,17 +2532,17 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
         if s1 > 0 then
           row(0,k)
           for i <- seq(1#(s0-1)) do
-            r := r "\n "
+            r := r // " "
             row(i,k)
           end
         end
       if s0=0 then
         r "[]"
       else
-        r := r "\n["
+        r := r // "["
         plane(0)
         for k <- seq(1#(s2-1)) do
-          r := r " ;;\n "
+          r := r " ;;" //  " "
           plane(k)
         end
         r " ]"
@@ -3508,7 +3509,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
         if 0 <= i < |self|
         then self.get(i)
         else
-            (* println "Index " i " not in bounds " self.bounds *)
+            (* errorPrintln "Index " i " not in bounds " self.bounds *)
             throw IndexOutOfBounds[\ZZ32\](self.bounds,i)
         end
 
@@ -3521,8 +3522,8 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     allButLast(): String = self[0#(|self| - 1)]
     allButFirst(): String = self[1:]
 
-    (** The operator %||% with at least one String argument converts to String and
-        appends **)
+    (** The operator %||% with at least one String argument converts 
+        to String and concatenates **)
     opr ||(self, b:String):String
     opr ||(self, b:Number):String = self || b.asString
     opr ||(self, c:Char):String
@@ -3555,30 +3556,33 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
     opr juxtaposition(self, b:String):String = self || b
     opr juxtaposition(self, b:Any):String = self || b
 
-    (** opr %//% appends with a single newline separator.  Note that as
+    (** opr %//% appends a single line separator.  Note that as
         with %||% and %|||% at least one argument must be a String.
-        There is a postfix version in FortressLibrary that performs
-        string conversion, but the prefix version must occur before a
-        String. **)
-    opr //(self) : String = "\n"||self
-    opr //(self, a:String): String = self||"\n"||a
-    opr //(self, a:Any): String    = self||"\n"||a
-    opr //(a:Any, self): String    = a||"\n"||self
+        There is a postfix version defined as a top-level operator in 
+        FortressLibrary that performs string conversion, but the prefix
+         version must occur before a String. **)
+    opr //(self) : String = newline || self
+    opr //(self, a:String): String = self || newline || a
+    opr //(self, a:Any): String    = self || newline || a
+    opr //(a:Any, self): String    = a || newline || self
 
-    (** opr %///% appends with a double newline separator.  Note that, as
+    (** opr %///% appends a double line separator.  Note that, as
         with %||% and %|||%, at least one argument must be a String.
-        There is a postfix version in FortressLibrary that performs
-        string conversion, but the prefix version must occur before a
-        String. **)
-    opr ///(self) : String = "\n\n"||self
-    opr ///(self, a:String): String = self||"\n\n"||a
-    opr ///(self, a:Any): String    = self||"\n\n"||a
-    opr ///(a:Any, self): String    = a||"\n\n"||self
+        There is a postfix version defined as a top-level operator in 
+        FortressLibrary that performs string conversion, but the prefix
+         version must occur before a String. **)
+    opr ///(self) : String = doubleNewline || self
+    opr ///(self, a:String): String = self || doubleNewline || a
+    opr ///(self, a:Any): String    = self || doubleNewline || a
+    opr ///(a:Any, self): String    = a || doubleNewline || self
 
+    abstract writeOn(s: WriteStream): ()
 
-    println(self): () =  println(self.asJavaString)
-    print(self): () =  print(self.asJavaString)
-    writeOn(s: FileWriteStream) = s.write(self.asJavaString)
+    stats(): StringStats = do
+        ss = StringStats()
+        ss.collectStatsFor(self)
+        ss
+    end
 
   end String
 
@@ -3605,13 +3609,22 @@ random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim
 
 char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
 
+(* First the ones that do the work *)
+print(a: String):() = do stdOut.write(a); stdOut.flush() end
+println(a: String): () = do stdOut.write(a || newline); stdOut.flush() end
+errorPrint(a: String):() = do stdErr.write(a); stdErr.flush() end
+errorPrintln(a: String): () = do stdErr.write(a || newline); stdErr.flush() end
 
 print(a:Any):() = print("" a)           (* These use concatenation rather than .asString because the formulation *)
 println(a:Any):() = println("" a)     (* with concat also works for tuples *)
+errorPrint(a:Any):() = errorPrint("" a)           (* These use concatenation rather than .asString because the formulation *)
+errorPrintln(a:Any):() = errorPrintln("" a)     (* with concat also works for tuples *)
 
 (* 0-argument versions handle passing of the empty string to single-argument versions. *)
 print():() = print("")
 println():() = println("")
+errorPrint():() = errorPrint("")
+errorPrintln():() = errorPrintln("")
 
 forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
     if (radix<2 OR radix>16 OR x<0 OR x>=radix) then
@@ -3658,17 +3671,17 @@ strToInt(s: String, radix: ZZ32): ZZ32 = do
 (** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
 strToInt(s: String): ZZ32 = strToInt(s,10)
 
-match(regex:String,some:String):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
+match(regex:JavaString,some:JavaString):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 
-(** postfix %//% appends a single newline separator.  The postfix version
+(** postfix %//% appends a single line separator.  The postfix version
     performs implicit conversion to String, which is why it's a
     standalone top-level function.  Infix and prefix versions are defined by String. **)
-opr (x:Any)// : String = x||"\n"
+opr (x:Any)// : String = x || newline
 
-(** postfix %///% appends a double newline separator.  The postfix version
+(** postfix %///% appends a double line separator.  The postfix version
     performs implicit conversion to String, which is why it's a
     standalone top-level function.  Infix and prefix versions are defined by String. **)
-opr (x:Any)/// : String = x||"\n\n"
+opr (x:Any)/// : String = x || doubleNewline
 
 (* A way to get environment information from inside of fortress *)
 getEnvironment(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetEnvironment")
@@ -3680,7 +3693,9 @@ printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.gl
 printWithThread(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintWithThread")
 printlnWithThread(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintlnWithThread")
 
+(* time to get rid of this:
 throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
+*)
 
 opr SEQV(a:Any, b:Any):Boolean =
     builtinPrimitive("com.sun.fortress.interpreter.glue.prim.AnyPrim$SEquiv")
