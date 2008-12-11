@@ -1065,9 +1065,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         if ( result_.isNone() ) {
             // Make sure to populate the 'originalName' field.
-            return new OpRef(that.getSpan(),that.isParenthesized(),
-                             that.getStaticArgs(),(Op)IterUtil.first(that.getNames()),
-                             that.getNames(), Option.<Type>none());
+            return ExprFactory.makeOpRef(that.getSpan(), that.isParenthesized(),
+                                         that.getExprType(), that.getStaticArgs(),
+                                         that.getLexicalDepth(),
+                                         (Op)IterUtil.first(that.getNames()),
+                                         that.getNames(),
+                                         that.getOverloadings(),
+                                         that.getOverloadingType());
         }
         else {
             return result_.unwrap();
@@ -1119,10 +1123,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
 
-        FunctionalRef result = new OpRef(that.getSpan(),that.isParenthesized(),
-                                 that.getStaticArgs(),op_name,
-                                 CollectUtil.makeList(ops),
-                                 Option.<Type>none());
+        FunctionalRef result = ExprFactory.makeOpRef(that.getSpan(), that.isParenthesized(),
+                                                     that.getExprType(),
+                                                     that.getStaticArgs(),
+                                                     that.getLexicalDepth(),
+                                                     op_name, CollectUtil.makeList(ops),
+                                                     that.getOverloadings(),
+                                                     that.getOverloadingType());
         return Option.<FunctionalRef>some(result);
     }
 

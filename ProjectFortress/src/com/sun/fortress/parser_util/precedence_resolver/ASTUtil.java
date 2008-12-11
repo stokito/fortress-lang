@@ -34,7 +34,7 @@ import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpExpr;
-import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -78,14 +78,10 @@ public class ASTUtil {
     //   opr span (node op.node_span (`Opr op)) args
     static Expr multifix(Span span, Op op, List<Expr> args) {
         Op infix_op_ = NodeFactory.makeOpInfix(op);
-        OpRef infix_op = new OpRef(op.getSpan(), infix_op_,
-                                   Collections.<IdOrOp>singletonList(infix_op_),
-                                   Option.<Type>none());
+        FunctionalRef infix_op = ExprFactory.makeOpRef(infix_op_);
 
         Op multifix_op_ = NodeFactory.makeOpMultifix(op);
-        OpRef multifix_op = new OpRef(op.getSpan(), multifix_op_,
-                                      Collections.<IdOrOp>singletonList(multifix_op_),
-                                      Option.<Type>none());
+        FunctionalRef multifix_op = ExprFactory.makeOpRef(multifix_op_);
 
         if (args.size() > 2) {
             return new AmbiguousMultifixOpExpr(span, false, Option.<Type>none(),
@@ -111,11 +107,7 @@ public class ASTUtil {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
             Span s = FortressUtil.spanTwo(left, right);
             Op en = NodeFactory.makeEnclosing(s, left.getText(), right.getText());
-            OpRef ref = new OpRef(s,
-                                  sargs,
-                                  en,
-                                  Collections.<IdOrOp>singletonList(en),
-                                  Option.<Type>none());
+            FunctionalRef ref = ExprFactory.makeOpRef(en, sargs);
             return ExprFactory.makeOpExpr(span, ref, args);
         } else {
             return error(right, "Mismatched Enclosers: " +
