@@ -17,51 +17,48 @@
 
 package com.sun.fortress.repository;
 
+import static com.sun.fortress.interpreter.glue.WellKnownNames.defaultLibrary;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.Path;
-import com.sun.fortress.useful.Fn;
-import com.sun.fortress.useful.Useful;
-import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.compiler.index.ApiIndex;
-import com.sun.fortress.compiler.Parser.Result;
-import com.sun.fortress.compiler.IndexBuilder;
-import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.AnalyzeResult;
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.compiler.Parser.Result;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.exceptions.MultipleStaticError;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.graph.ApiGraphNode;
+import com.sun.fortress.repository.graph.ComponentGraphNode;
+import com.sun.fortress.repository.graph.Graph;
+import com.sun.fortress.repository.graph.GraphNode;
+import com.sun.fortress.repository.graph.GraphVisitor;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.Path;
+import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
-
-import com.sun.fortress.repository.graph.Graph;
-import com.sun.fortress.repository.graph.ComponentGraphNode;
-import com.sun.fortress.repository.graph.ApiGraphNode;
-import com.sun.fortress.repository.graph.GraphNode;
-import com.sun.fortress.repository.graph.GraphVisitor;
-
-import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 
 /* A graph-based repository. This repository determines the dependency structure
  * before any components/APIs are compiled so that they can be compiled in an
@@ -126,18 +123,21 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    public Map<APIName, ApiIndex> apis() {
+    @Override
+	public Map<APIName, ApiIndex> apis() {
         return cache.apis();
     }
 
-    public Map<APIName, ComponentIndex> components() {
+    @Override
+	public Map<APIName, ComponentIndex> components() {
         return cache.components();
     }
 
     /* getApi and getComponent add an API/component to the graph, find all the
      * dependancies( via addApiGraph/addComponentGraph ) and recompile everything.
      */
-    public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
+    @Override
+	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
        Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
        ApiGraphNode node = addApiGraph(name);
         refreshGraph();
@@ -148,7 +148,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
+    @Override
+	public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Get component for ", name );
         ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
@@ -410,7 +411,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
         Fn<GraphNode,Boolean> outOfDateApi() {
             return new Fn<GraphNode,Boolean>(){
-                public Boolean apply(GraphNode g){
+                @Override
+				public Boolean apply(GraphNode g){
                     return g instanceof ApiGraphNode && staleOrDependsOnStale.get(g);
                 }
             };
@@ -418,7 +420,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         
         Fn<GraphNode,Boolean> outOfDateComponent() {
             return new Fn<GraphNode,Boolean>(){
-                public Boolean apply(GraphNode g){
+                @Override
+				public Boolean apply(GraphNode g){
                     return g instanceof ComponentGraphNode && staleOrDependsOnStale.get(g);
                 }
             };
@@ -443,7 +446,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
             for ( GraphNode next : depends ){
                 long dependent_youngest = handle(next);
-                if (dependent_youngest < youngest) {
+                if (dependent_youngest > youngest) {
                 
                     Debug.debug( Debug.Type.REPOSITORY, 1, next + " has younger source than " + next );
                     youngest = dependent_youngest;
@@ -498,7 +501,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private List<ComponentGraphNode> sortComponents(List<ComponentGraphNode> nodes) throws FileNotFoundException {
         Graph<GraphNode> componentGraph = new Graph<GraphNode>( graph, new Fn<GraphNode, Boolean>(){
-                public Boolean apply(GraphNode g){
+                @Override
+				public Boolean apply(GraphNode g){
                     return g instanceof ComponentGraphNode;
                 }
             });
@@ -656,7 +660,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* add an API to the repository and cache it */
-    public void addApi(APIName name, ApiIndex definition) {
+    @Override
+	public void addApi(APIName name, ApiIndex definition) {
         ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(name));
         if ( node == null ){
             throw new RuntimeException("No such API '" + name + "'");
@@ -667,7 +672,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* add a component to the repository and cache it */
-    public void addComponent(APIName name, ComponentIndex definition){
+    @Override
+	public void addComponent(APIName name, ComponentIndex definition){
         ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
         if (node == null ){
             throw new RuntimeException("No such component " + name);
@@ -677,14 +683,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    public void deleteComponent(APIName name) {
+    @Override
+	public void deleteComponent(APIName name) {
         ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
         if ( node != null ){
             cache.deleteComponent(name);
         }
     }
 
-    public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
+    @Override
+	public ComponentIndex getLinkedComponent(APIName name) throws FileNotFoundException, IOException {
         link = true;
         addRootComponents();
         ComponentIndex node = getComponent(name);
@@ -714,17 +722,20 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
     }
 
-    public long getModifiedDateForApi(APIName name)
+    @Override
+	public long getModifiedDateForApi(APIName name)
         throws FileNotFoundException {
         return 0;
     }
 
-    public long getModifiedDateForComponent(APIName name)
+    @Override
+	public long getModifiedDateForComponent(APIName name)
         throws FileNotFoundException {
         return 0;
     }
 
-    public void clear() {
+    @Override
+	public void clear() {
         cache.clear();
     }
 
