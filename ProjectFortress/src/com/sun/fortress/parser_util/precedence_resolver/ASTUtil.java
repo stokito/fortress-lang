@@ -142,7 +142,7 @@ public class ASTUtil {
                     return e.getExpr();
                 }
             });
-        return ExprFactory.makeLooseJuxt(spanAll(exprs), false, _exprs.toJavaList());
+        return ExprFactory.makeLooseJuxt(spanAll(exprs), _exprs.toJavaList());
     }
 
     static Span spanAll(PureList<RealExpr> exprs) {

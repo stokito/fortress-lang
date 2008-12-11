@@ -392,7 +392,7 @@ constant Expr MathPrimary =
       } else if (mis.size() == 1) {
           yyValue = ExprFactory.simplifyMathPrimary(span, a1, mis.get(0));
       } else { // mis.size() > 1
-          yyValue = new MathPrimary(span, a1, mis);
+          yyValue = ExprFactory.makeMathPrimary(span, a1, mis);
       }
     };
 
