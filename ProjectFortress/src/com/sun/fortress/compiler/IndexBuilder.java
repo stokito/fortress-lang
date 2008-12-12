@@ -52,6 +52,7 @@ import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -321,16 +322,16 @@ public class IndexBuilder {
         Option<Constructor> constructor;
         if (ast.getParams().isSome()) {
             for (Param p : ast.getParams().unwrap()) {
-                ModifierSet mods = extractModifiers(p.getMods());
+                Modifiers mods = p.getMods();
                 Id paramName = p.getName();
                 fields.put(paramName, new ParamVariable(p));
-                if (!mods.isHidden) {
+                if (!mods.isHidden()) {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         getters.put(paramName, new FieldGetterMethod(p, name));
                     else
                         bug(p, "Varargs object parameters should not define getters.");
                 }
-                if (mods.isSettable || mods.isVar) {
+                if (mods.isSettable() || mods.isVar()) {
                     if ( ! NodeUtil.isVarargsParam(p) )
                         setters.put(paramName, new FieldSetterMethod(p, name));
                     else
@@ -394,13 +395,13 @@ public class IndexBuilder {
             Map<Id, Method> getters,
             Map<Id, Method> setters) {
         for (LValue b : ast.getLhs()) {
-            ModifierSet mods = extractModifiers(b.getMods());
+            Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
             Id name = b.getName();
-            if (!mods.isHidden) {
+            if (!mods.isHidden()) {
                 getters.put(name, new FieldGetterMethod(b, declaringTrait));
             }
-            if (mods.isSettable || mods.isVar) {
+            if (mods.isMutable()) {
                 setters.put(name, new FieldSetterMethod(b, declaringTrait));
             }
         }
@@ -416,14 +417,14 @@ public class IndexBuilder {
             Map<Id, Method> getters,
             Map<Id, Method> setters) {
         for (LValue b : ast.getLhs()) {
-            ModifierSet mods = extractModifiers(b.getMods());
+            Modifiers mods = b.getMods();
             // TODO: check for correct modifiers?
             Id name = b.getName();
             fields.put(name, new DeclaredVariable(b));
-            if (!mods.isHidden) {
+            if (!mods.isHidden()) {
                 getters.put(name, new FieldGetterMethod(b, declaringTrait));
             }
-            if (mods.isSettable || mods.isVar) {
+            if (mods.isSettable() || mods.isVar()) {
                 setters.put(name, new FieldSetterMethod(b, declaringTrait));
             }
         }
@@ -471,10 +472,10 @@ public class IndexBuilder {
             Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
             Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions) {
-        ModifierSet mods = extractModifiers(ast.getMods());
+        Modifiers mods = ast.getMods();
         // TODO: check for correct modifiers?
         IdOrOpOrAnonymousName name = ast.getName();
-        if (mods.isGetter) {
+        if (mods.isGetter()) {
             if (name instanceof Id) {
                 getters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
             }
@@ -483,7 +484,7 @@ public class IndexBuilder {
                 error("Getter declared with an operator name, '" + s + "'", ast);
             }
         }
-        else if (mods.isSetter) {
+        else if (mods.isSetter()) {
             if (name instanceof Id) {
                 setters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
             }
@@ -556,70 +557,5 @@ public class IndexBuilder {
 
     public static final Id COERCION_NAME = NodeFactory.makeId("coercion");
     public static final Id SELF_NAME = NodeFactory.makeId("self");
-
-    private ModifierSet extractModifiers(List<Modifier> mods) {
-        final ModifierSet result = new ModifierSet();
-        NodeAbstractVisitor_void handleMod = new NodeAbstractVisitor_void() {
-            @Override public void forModifierVar(ModifierVar m) {
-                result.isVar = true;
-            }
-            @Override public void forModifierHidden(ModifierHidden m) {
-                result.isHidden = true;
-            }
-            @Override public void forModifierSettable(ModifierSettable m) {
-                result.isSettable = true;
-            }
-            @Override public void forModifierAbstract(ModifierAbstract m) {
-                result.isAbstract = true;
-            }
-            @Override public void forModifierAtomic(ModifierAtomic m) {
-                result.isAtomic = true;
-            }
-            @Override public void forModifierIO(ModifierIO m) {
-                result.isIO = true;
-            }
-            @Override public void forModifierGetter(ModifierGetter m) {
-                result.isGetter = true;
-            }
-            @Override public void forModifierSetter(ModifierSetter m) {
-                result.isSetter = true;
-            }
-            @Override public void forModifierOverride(ModifierOverride m) {
-                result.isOverride = true;
-            }
-            @Override public void forModifierPrivate(ModifierPrivate m) {
-                result.isPrivate = true;
-            }
-            @Override public void forModifierWidens(ModifierWidens m) {
-                result.isWidens = true;
-            }
-            @Override public void forModifierTest(ModifierTest m) {
-                result.isTest = true;
-            }
-            @Override public void forModifierValue(ModifierValue m) {
-                result.isValue = true;
-            }
-        };
-        // TODO: check for duplicates?
-        for (Modifier m : mods) { m.accept(handleMod); }
-        return result;
-    }
-
-
-    private static class ModifierSet {
-        public boolean isVar = false;
-        public boolean isHidden = false;
-        public boolean isSettable = false;
-        public boolean isAbstract = false;
-        public boolean isAtomic = false;
-        public boolean isIO = false;
-        public boolean isGetter = false;
-        public boolean isSetter = false;
-        public boolean isOverride = false;
-        public boolean isPrivate = false;
-        public boolean isWidens = false;
-        public boolean isTest = false;
-        public boolean isValue = false;
-    }
 
 }

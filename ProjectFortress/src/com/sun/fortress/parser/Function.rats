@@ -38,11 +38,11 @@ import Spacing;
  */
 Decl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     { if (a1 == null) a1 = Modifiers.None;
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
      }
    / a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     { if (a1 == null) a1 = Modifiers.None;
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
@@ -50,7 +50,7 @@ Decl FnDecl =
 /* FnSig ::= SimpleName w : w NoNewlineType */
 FnDecl FnSig =
      a1:SimpleName w colon w a2:NoNewlineType
-     { final List<Modifier> mods = FortressUtil.emptyModifiers();
+     { final Modifiers mods = Modifiers.None;
        final List<Param>  params = FortressUtil.emptyParams();
 
        if (!(a2 instanceof ArrowType)) {
@@ -95,7 +95,7 @@ FnDecl FnSig =
  */
 FnDecl AbsFnDecl =
      a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     { if (a1 == null) a1 = Modifiers.None;
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;

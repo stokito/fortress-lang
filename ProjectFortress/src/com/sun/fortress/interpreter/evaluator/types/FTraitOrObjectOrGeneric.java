@@ -30,8 +30,6 @@ import com.sun.fortress.interpreter.evaluator.values.GenericFunctionalMethod;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierValue;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -46,11 +44,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         this.decl = def;
         boolean isValueType = false;
         if (def instanceof TraitObjectDecl)
-            for (Modifier mod : ((TraitObjectDecl) def).getMods())
-                if (mod instanceof ModifierValue) {
-                    isValueType = true;
-                    break;
-                }
+            isValueType = ((TraitObjectDecl) def).getMods().isValue();
         this.isValueType = isValueType;
     }
 

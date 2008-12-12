@@ -43,7 +43,7 @@ TraitDecl TraitDecl =
        if (a5 != null && !a2.getName().getText().equals(a5.getText()))
            log(span, "A trait declaration of " + a2.getName() +
                      " has the different name " + a5 + " at the end.");
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
                        a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
@@ -168,7 +168,7 @@ ObjectDecl ObjectDecl =
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))
            yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
                                  " has the different name " + a4 + " at the end.");
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> contract = fhc.getContractClause();
@@ -223,7 +223,7 @@ Param Varargs :=
 Param Param :=
      a1:ParamFldMods? a2:PlainParam
      { if (a1 != null) {
-           if (FortressUtil.getMutable(a1) && a2.getIdType().isNone())
+           if (a1.isMutable() && a2.getIdType().isNone())
                syntaxError(a2.getSpan(),
                            "Mutable fields should be declared with their types.");
            yyValue = NodeFactory.makeParam(a2, a1);
@@ -314,7 +314,7 @@ TraitDecl AbsTraitDecl =
        if (a5 != null && !a2.getName().getText().equals(a5.getText()))
            yyValue = syntaxError(span, "A trait declaration of " + a2.getName() +
                                  " has the different name " + a5 + " at the end.");
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl
            (span, a1, a2.getName(),
@@ -426,7 +426,7 @@ ObjectDecl AbsObjectDecl =
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))
            yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
                                  " has the different name " + a4 + " at the end.");
-       if (a1 == null) a1 = FortressUtil.emptyModifiers();
+       if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> contract = fhc.getContractClause();

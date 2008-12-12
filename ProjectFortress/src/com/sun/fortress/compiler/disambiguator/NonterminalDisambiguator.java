@@ -29,8 +29,6 @@ import com.sun.fortress.nodes.GrammarDef;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierPrivate;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -44,6 +42,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TransformerDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
@@ -105,14 +104,13 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forNonterminalHeaderOnly(NonterminalHeader that,
-                                         Option<ModifierPrivate> modifier_result,
                                          Id name_result,
                                          List<NonterminalParameter> params_result,
                                          List<StaticParam> staticParams_result,
                                          Option<Type> type_result,
                                          Option<WhereClause> whereClause_result) {
         Id name = disambiguateNonterminalName(name_result);
-        return super.forNonterminalHeaderOnly(that, modifier_result, name, params_result,
+        return super.forNonterminalHeaderOnly(that, name, params_result,
                                               staticParams_result, type_result, whereClause_result);
     }
 

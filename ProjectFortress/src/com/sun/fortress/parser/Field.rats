@@ -39,6 +39,6 @@ import Spacing;
  */
 VarDecl FldDecl = VarDecl ;
 
-List<Modifier> VarMods := FldMods ;
+Modifiers VarMods := FldMods ;
 
-List<Modifier> VarImmutableMods := FldImmutableMods ;
+Modifiers VarImmutableMods := FldImmutableMods ;

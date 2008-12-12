@@ -24,7 +24,6 @@ import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -32,6 +31,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -53,35 +53,35 @@ import edu.rice.cs.plt.tuple.Option;
  * the type of node given.
  */
 public class SelfParamDisambiguator extends NodeUpdateVisitor {
-	@Override
-	public Node forObjectDecl(ObjectDecl that) {
-	     // Add a type to self parameters of methods
+    @Override
+    public Node forObjectDecl(ObjectDecl that) {
+         // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(that.getName(),
-        		                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
-    	ObjectDecl that_new = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
-		return super.forObjectDecl(that_new);
-	}
+                                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
+        ObjectDecl that_new = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
+        return super.forObjectDecl(that_new);
+    }
 
-	@Override
-	public Node forTraitDecl(TraitDecl that) {
-    	// Add a type to self parameters of methods
+    @Override
+    public Node forTraitDecl(TraitDecl that) {
+        // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(that.getName(),
-        		                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
-    	TraitDecl that_new = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
-		return super.forTraitDecl(that_new);
-	}
+                                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
+        TraitDecl that_new = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
+        return super.forTraitDecl(that_new);
+    }
 
 
 
     @Override
-	public Node forObjectExpr(ObjectExpr that) {
-    	// Add a type to self parameters of methods
-    	Type self_type = TypesUtil.getObjectExprType(that);
-    	ObjectExpr that_new = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
-    	return super.forObjectExpr(that_new);
-	}
+    public Node forObjectExpr(ObjectExpr that) {
+        // Add a type to self parameters of methods
+        Type self_type = TypesUtil.getObjectExprType(that);
+        ObjectExpr that_new = (ObjectExpr)this.replaceSelfParamsWithType(that, self_type);
+        return super.forObjectExpr(that_new);
+    }
 
-	/**
+    /**
      * Replaces Parameters whose name is 'self' with a parameter with
      * the explicit type given.
      *
@@ -90,43 +90,42 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
      */
     private Node replaceSelfParamsWithType(Node that, final Type self_type) {
 
-    	NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
-			int traitNestingDepth = 0;
-    		@Override
-			public Node forParamOnly(Param that, Id name_result,
-                                                 List<Modifier> mods_result,
+        NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
+            int traitNestingDepth = 0;
+            @Override
+            public Node forParamOnly(Param that, Id name_result,
                                                  Option<Type> type_result,
                                                  Option<Expr> defaultExpr_result,
                                                  Option<Type> varargsType_result) {
-                    if ( ! NodeUtil.isVarargsParam(that) ) {
-    			// my type is broken I need to qualify the type name
-    			Option<Type> new_type;
-    			if( name_result.equals(SELF_NAME) )
-    				new_type = Option.some(self_type);
-    			else
-    				new_type = type_result;
+                if ( ! NodeUtil.isVarargsParam(that) ) {
+                    // my type is broken I need to qualify the type name
+                    Option<Type> new_type;
+                    if( name_result.equals(SELF_NAME) )
+                        new_type = Option.some(self_type);
+                    else
+                        new_type = type_result;
 
-    			return NodeFactory.makeParam(that.getSpan(),
-                                                     that.getMods(),
-                                                     that.getName(),
-                                                     new_type,
-                                                     that.getDefaultExpr(),
-                                                     that.getVarargsType());
-                    } else
-                        return that;
-                }
+                    return NodeFactory.makeParam(that.getSpan(),
+                                                 that.getMods(),
+                                                 that.getName(),
+                                                 new_type,
+                                                 that.getDefaultExpr(),
+                                                 that.getVarargsType());
+                } else
+                    return that;
+            }
 
-			// end recurrance here
-			@Override public Node forObjectDecl(ObjectDecl that) {
-				return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
-			}
-			@Override public Node forTraitDecl(TraitDecl that) {
-				return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
-			}
-			@Override public Node forObjectExpr(ObjectExpr that) {
-				return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
-			}
-    	};
-    	return that.accept(replacer);
+            // end recurrance here
+            @Override public Node forObjectDecl(ObjectDecl that) {
+                return (++traitNestingDepth) > 1 ? that : super.forObjectDecl(that);
+            }
+            @Override public Node forTraitDecl(TraitDecl that) {
+                return (++traitNestingDepth) > 1 ? that : super.forTraitDecl(that);
+            }
+            @Override public Node forObjectExpr(ObjectExpr that) {
+                return (++traitNestingDepth) > 1 ? that : super.forObjectExpr(that);
+            }
+        };
+        return that.accept(replacer);
     }
 }

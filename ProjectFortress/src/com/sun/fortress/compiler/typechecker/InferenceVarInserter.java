@@ -25,7 +25,6 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
-import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
@@ -45,12 +44,12 @@ import edu.rice.cs.plt.tuple.Option;
 public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
-	public Node forLValueOnly(LValue that, Id name_result, List<Modifier> mods_result,
+	public Node forLValueOnly(LValue that, Id name_result,
                                   Option<Type> type_result) {
 		if( type_result.isNone() ) {
 			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
 			return NodeFactory.makeLValue(that.getSpan(), name_result,
-                                                      mods_result, new_type,
+                                                      that.getMods(), new_type,
                                                       that.isMutable());
 		}
 		else {
@@ -59,7 +58,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	}
 
     @Override
-	public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result,
+	public Node forFnDeclOnly(FnDecl that,
                                   IdOrOpOrAnonymousName name_result,
                                   List<StaticParam> staticParams_result, List<Param> params_result,
                                   Option<Type> returnType_result,
@@ -75,14 +74,13 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 					returnType_result;
 
-		return super.forFnDeclOnly(that, mods_result, name_result, staticParams_result,
+		return super.forFnDeclOnly(that, name_result, staticParams_result,
 				params_result, new_ret_type, throwsClause_result, where_result,
 				contract_result, unambiguousName_result, body_result, implementsUnambiguousName_result);
 	}
 
 	@Override
 	public Node forParamOnly(Param that, Id name_result,
-                                 List<Modifier> mods_result,
                                  Option<Type> type_result,
                                  Option<Expr> defaultExpr_result,
                                  Option<Type> varargsType_result) {
@@ -93,7 +91,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
 						type_result;
 
-		return super.forParamOnly(that, name_result, mods_result, new_type,
+		return super.forParamOnly(that, name_result, new_type,
                                           defaultExpr_result, varargsType_result);
             } else
                 return that;

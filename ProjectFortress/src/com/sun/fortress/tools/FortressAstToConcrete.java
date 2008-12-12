@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Fn;
@@ -177,6 +178,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
         s.append( "\\]" );
         return s;
+    }
+
+    private void showMods(StringBuilder b, Modifiers mods) {
+        if (mods.equals(Modifiers.None)) return;
+        b.append(mods.toString());
+        b.append(" ");
     }
 
     private String inOxfordBrackets(List<String> list) {
@@ -386,7 +393,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( elt instanceof VarDecl ) {
                 sawField = true;
             } else if ( elt instanceof FnDecl ) {
-                if ( NodeUtil.isSetterOrGetter(((FnDecl)elt).getMods()) ) {
+                if ( ((FnDecl)elt).getMods().isGetterSetter() ) {
                     sawGetterSetter = true;
                     if ( sawField ) {
                         accum.add("\n");
@@ -408,7 +415,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( inComponent )
             return super.forTraitDecl( that );
         else {
-            List<String> mods_result = recurOnListOfModifier(that.getMods());
             String name_result = recur(that.getName());
             List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
@@ -416,7 +422,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             List<String> excludes_result = recurOnListOfBaseType(that.getExcludesClause());
             Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprisesClause());
             List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
-            return forTraitDeclOnly(that, mods_result, name_result,
+            return forTraitDeclOnly(that, name_result,
                                     staticParams_result, extendsClause_result,
                                     where_result, decls_result,
                                     excludes_result, comprises_result);
@@ -424,7 +430,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forTraitDeclOnly(TraitDecl that,
-                                             List<String> mods_result,
                                              String name_result,
                                              List<String> staticParams_result,
                                              List<String> extendsClause_result,
@@ -435,10 +440,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
-        if ( ! mods_result.isEmpty() ) {
-            s.append( join(mods_result, " ") );
-            s.append( " " );
-        }
+        showMods(s,that.getMods());
         s.append( "trait " ).append( name_result );
         inOxfordBrackets(s, staticParams_result);
         s = optCurlyBraces(s, " extends ", extendsClause_result, "");
@@ -472,7 +474,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( inComponent )
             return super.forObjectDecl( that );
         else {
-            List<String> mods_result = recurOnListOfModifier(that.getMods());
             String name_result = recur(that.getName());
             List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
             List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
@@ -481,7 +482,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
             Option<String> contract_result = recurOnOptionOfContract(that.getContract());
             List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
-            return forObjectDeclOnly(that, mods_result, name_result,
+            return forObjectDeclOnly(that, name_result,
                                      staticParams_result, extendsClause_result,
                                      where_result, decls_result, params_result,
                                      throwsClause_result, contract_result);
@@ -489,7 +490,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forObjectDeclOnly(ObjectDecl that,
-                                              List<String> mods_result,
                                               String name_result,
                                               List<String> staticParams_result,
                                               List<String> extendsClause_result,
@@ -502,10 +502,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         increaseIndent();
 
-        if ( ! mods_result.isEmpty() ) {
-            s.append( join(mods_result, " ") );
-            s.append( " " );
-        }
+        showMods(s,that.getMods());
         s.append( "object " ).append( name_result );
         inOxfordBrackets(s, staticParams_result);
         if ( params_result.isSome() ){
@@ -531,13 +528,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     /* contains a true if any of the variables have a 'var' modifier */
-    private List<Boolean> isMutables(List<LValue> lhs) {
-        return Useful.applyToAll( lhs, new Fn<LValue,Boolean>(){
-            public Boolean apply( LValue value ){
-                return value.isMutable();
-            }
-        });
-
+    private boolean anyMutable(List<LValue> lhs) {
+        for (LValue value : lhs) {
+            if (value.isMutable()) return true;
+        }
+        return false;
     }
 
     @Override public String forVarDeclOnly(VarDecl that,
@@ -553,13 +548,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         for ( LValue lv : that.getLhs() ) {
             lhs.add( lv );
         }
-        List<Boolean> mutables = isMutables( lhs );
-        if ( mutables.contains( true ) &&
-             lhs_result.size() > 1 ) {
+        boolean mutable = anyMutable( lhs );
+        if ( mutable && lhs_result.size() > 1 ) {
             s.append( filterString(inParentheses(lhs_result), "var") );
         } else
             s.append( inParentheses(lhs_result) );
-        if ( mutables.contains( true ) ){
+        if ( mutable ){
             s.append( " := " );
         } else {
             s.append( " = " );
@@ -571,14 +565,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forLValueOnly(LValue that,
                                           String name_result,
-                                          List<String> mods_result,
                                           Option<String> type_result) {
         StringBuilder s = new StringBuilder();
 
-        s.append( join(mods_result, " ") );
-        if ( ! mods_result.isEmpty() ){
-            s.append( " " );
-        }
+        showMods(s,that.getMods());
         s.append( name_result );
         if ( (! locals.contains(that.getName().getText())) &&
              type_result.isSome() ){
@@ -605,7 +595,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     /****************************************/
     @Override public String forFnDeclOnly(FnDecl that,
-                                          List<String> mods_result,
                                           final String name_result,
                                           List<String> staticParams_result,
                                           List<String> params_result,
@@ -617,9 +606,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                           Option<String> body_result,
                                           Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
-        for ( String mod : mods_result ){
-            s.append( mod ).append( " " );
-        }
+        showMods(s,that.getMods());
         final String sparams = inOxfordBrackets(staticParams_result);
         final String vparams = inParentheses(params_result);
         s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
@@ -687,15 +674,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
     @Override public String forParamOnly(Param that,
                                          String name_result,
-                                         List<String> mods_result,
                                          Option<String> type_result,
                                          Option<String> defaultExpr_result,
                                          Option<String> varargsType_result) {
         StringBuilder s = new StringBuilder();
 
-        for ( String mod : mods_result ){
-            s.append( mod ).append( " " );
-        }
+        showMods(s,that.getMods());
         s.append( name_result );
 
         if ( ! NodeUtil.isVarargsParam(that) ) {
@@ -844,14 +828,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forNonterminalHeaderOnly(NonterminalHeader that,
-                                                     Option<String> modifier_result,
                                                      String name_result,
                                                      List<String> params_result,
                                                      List<String> staticParams_result,
                                                      Option<String> type_result,
                                                      Option<String> whereClause_result) {
         StringBuilder s = new StringBuilder();
-
+        // modifier???
         s.append( name_result );
         inOxfordBrackets(s,  staticParams_result );
         if ( type_result.isSome() ){
@@ -1551,8 +1534,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                 Option<String> rhs_result) {
         StringBuilder s = new StringBuilder();
 
-        List<Boolean> mutables = isMutables( that.getLhs() );
-        if ( mutables.contains( true ) &&
+        boolean mutable = anyMutable( that.getLhs() );
+        if ( mutable &&
              lhs_result.size() > 1 ) {
             if ( rhs_result.isNone() )
                 s.append( "var " );
@@ -1560,7 +1543,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         } else
             s.append( inParentheses(lhs_result) );
         if ( rhs_result.isSome() ){
-            if ( mutables.contains( true ) ){
+            if ( mutable ){
                 s.append( " := " );
             } else {
                 s.append( " = " );
@@ -2483,62 +2466,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " provided " ).append( pre_result );
         }
         return s.toString();
-    }
-
-    @Override public String forModifierAbstractOnly(ModifierAbstract that) {
-        return "abstract";
-    }
-
-    @Override public String forModifierAtomicOnly(ModifierAtomic that) {
-        return "atomic";
-    }
-
-    @Override public String forModifierGetterOnly(ModifierGetter that) {
-        return "getter";
-    }
-
-    @Override public String forModifierHiddenOnly(ModifierHidden that) {
-        return "hidden";
-    }
-
-    @Override public String forModifierIOOnly(ModifierIO that) {
-        return "io";
-    }
-
-    @Override public String forModifierOverrideOnly(ModifierOverride that) {
-        return "override";
-    }
-
-    @Override public String forModifierPrivateOnly(ModifierPrivate that) {
-        return "private";
-    }
-
-    @Override public String forModifierSettableOnly(ModifierSettable that) {
-        return "settable";
-    }
-
-    @Override public String forModifierSetterOnly(ModifierSetter that) {
-        return "setter";
-    }
-
-    @Override public String forModifierTestOnly(ModifierTest that) {
-        return "test";
-    }
-
-    @Override public String forModifierValueOnly(ModifierValue that) {
-        return "value";
-    }
-
-    @Override public String forModifierVarOnly(ModifierVar that) {
-        return "var";
-    }
-
-    @Override public String forModifierWidensOnly(ModifierWidens that) {
-        return "widens";
-    }
-
-    @Override public String forModifierWrappedOnly(ModifierWrapped that) {
-        return "wrapped";
     }
 
     @Override public String forStaticParamOnly(final StaticParam that,

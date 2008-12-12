@@ -101,7 +101,7 @@ private GrammarMemberDecl NonterminalDecl =
 
 private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
-        { if (mod == null) mod = Option.none();
+        { if (mod == null) mod = Modifiers.None;
           if (params == null) params = new LinkedList<NonterminalParameter>();
           if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();
           Option<Type> type1 = Option.<Type>none();
@@ -114,8 +114,8 @@ private NonterminalHeader NonterminalHeader =
           yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name, params, staticParams, type1, where);
         };
 
-private Option<ModifierPrivate> NonTermMod =
-        private {yyValue = Option.some(new ModifierPrivate());};
+private Modifiers NonTermMod =
+        private {yyValue = Modifiers.Private;};
 
 private List<NonterminalParameter> NonterminalArguments =
         void:openparen w DeclList w void:closeparen;

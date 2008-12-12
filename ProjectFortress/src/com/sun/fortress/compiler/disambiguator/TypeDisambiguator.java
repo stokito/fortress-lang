@@ -139,7 +139,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
         return forTraitDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
                 (Id) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
@@ -157,7 +156,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
         return forObjectDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
                 (Id) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
@@ -176,7 +174,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         TypeDisambiguator v = this.extend(that.getStaticParams());
 
         return forFnDeclOnly(that,
-                v.recurOnListOfModifier(that.getMods()),
                 (IdOrOpOrAnonymousName) that.getName().accept(v),
                 v.recurOnListOfStaticParam(that.getStaticParams()),
                 v.recurOnListOfParam(that.getParams()),
@@ -542,7 +539,6 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         Option<Type> t = v.recurOnOptionOfType(that.getParamType());
 //        System.err.println("t: "+t);
         return forNonterminalHeaderOnly(that,
-            that.getModifier(),
             (Id) that.getName().accept(v),
             v.recurOnListOfNonterminalParameter(that.getParams()),
             v.recurOnListOfStaticParam(that.getStaticParams()),

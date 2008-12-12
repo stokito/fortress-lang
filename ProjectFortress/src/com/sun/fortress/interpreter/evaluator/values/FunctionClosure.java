@@ -33,8 +33,6 @@ import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierOverride;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Applicable;
@@ -98,10 +96,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     @Override
     public boolean isOverride() {
         if (def instanceof FnDecl) {
-            List<Modifier> mods = ((FnDecl) def).getMods();
-            for (Modifier mod : mods)
-                if (mod instanceof ModifierOverride)
-                    return true;
+            return ((FnDecl) def).getMods().isOverride();
         }
         return false;
     }

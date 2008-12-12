@@ -26,13 +26,13 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.Binding;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.NI;
 
@@ -59,7 +59,7 @@ public class FieldSetterMethod extends Method {
 	public List<Param> parameters() {
 	    // return the implicit parameter
 	    Param p = NodeFactory.makeParam(_ast.getSpan(),
-                                            Collections.<Modifier>emptyList(),
+                                            Modifiers.None,
                                             new Id(_ast.getSpan(), "fakeParamForImplicitSetter"),
                                             _ast.getIdType());
 		return Collections.singletonList(p);

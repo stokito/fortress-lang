@@ -91,7 +91,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
             }
         }
 
-        return super.forObjectDeclOnly(that, that.getMods(), that.getName(),
+        return super.forObjectDeclOnly(that, that.getName(),
                                        that.getStaticParams(),
                                        that.getExtendsClause(), that.getWhereClause(),
                                        decls_result, that.getParams(),

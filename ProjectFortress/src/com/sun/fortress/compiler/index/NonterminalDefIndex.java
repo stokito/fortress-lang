@@ -34,7 +34,7 @@ public class NonterminalDefIndex extends NonterminalIndex {
     }
 
     public boolean isPrivate() {
-        return ast().getHeader().getModifier().isSome();
+        return ast().getHeader().getMods().isPrivate();
     }
 
     public BaseType getAstType() {
