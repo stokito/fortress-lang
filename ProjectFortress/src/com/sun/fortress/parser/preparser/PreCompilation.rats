@@ -148,24 +148,24 @@ StringLiteralExpr StringLiteralExpr =
        for (String c : (List<String>)a1.list()) {
            str = str.concat(c);
        }
-       yyValue = new StringLiteralExpr(createSpan(yyStart,yyCount), false, str);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
      }
    / "\u201c" a1:StringLiteralContent* "\u201d"
      { String str = "";
        for (String c : (List<String>)a1.list()) {
            str = str.concat(c);
        }
-       yyValue = new StringLiteralExpr(createSpan(yyStart,yyCount), false, str);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
      }
    / <ErrorProduction1> ["] a1:StringLiteralContent* "\u201d"
      { Span span = createSpan(yyStart,yyCount);
        log(span, "The opening and closing marks of a string literal must match.");
-       yyValue = new StringLiteralExpr(span, false, "");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
      }
    / <ErrorProduction2> "\u201c" a1:StringLiteralContent* ["]
      { Span span = createSpan(yyStart,yyCount);
        log(span, "The opening and closing marks of a string literal must match.");
-       yyValue = new StringLiteralExpr(span, false, "");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
      };
 private String StringLiteralContent =
      EscapeSequence

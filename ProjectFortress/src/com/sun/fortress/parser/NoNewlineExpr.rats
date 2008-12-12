@@ -68,8 +68,8 @@ inline Action<Expr> NoNewlineAs =
      { final Type t = a1;
        yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base,
-                                 t);
+               return ExprFactory.makeAsExpr(createSpan(yyStart,yyCount), (Expr)base,
+                                             t);
            }};
      };
 
@@ -78,8 +78,8 @@ inline Action<Expr> NoNewlineAsIf =
      { final Type t = a1;
        yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), false,
-                                   (Expr)base, t);
+               return ExprFactory.makeAsIfExpr(createSpan(yyStart,yyCount),
+                                               (Expr)base, t);
            }};
      };
 

@@ -67,8 +67,8 @@ constant inline Action<Expr> As =
      w as w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsExpr(createSpan(yyStart,yyCount), false, (Expr)base,
-                                 a1);
+               return ExprFactory.makeAsExpr(createSpan(yyStart,yyCount), (Expr)base,
+                                             a1);
            }};
      };
 
@@ -76,8 +76,8 @@ constant inline Action<Expr> AsIf =
      w asif w a1:Type
      { yyValue = new Action<Expr>() {
            public Expr run(Expr base) {
-               return new AsIfExpr(createSpan(yyStart,yyCount), false,
-                                   (Expr)base, a1);
+               return ExprFactory.makeAsIfExpr(createSpan(yyStart,yyCount),
+                                               (Expr)base, a1);
            }};
      };
 
@@ -690,13 +690,13 @@ Expr FlowExpr =
        yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
      }
    / atomic w a1:AtomicBack
-     { yyValue = new AtomicExpr(createSpan(yyStart,yyCount), false, a1); }
+     { yyValue = ExprFactory.makeAtomicExpr(createSpan(yyStart,yyCount), a1); }
    / tryatomic w a1:AtomicBack
-     { yyValue = new TryAtomicExpr(createSpan(yyStart,yyCount), false, a1); }
+     { yyValue = ExprFactory.makeTryAtomicExpr(createSpan(yyStart,yyCount), a1); }
    / spawn w a1:Expr
-     { yyValue = new Spawn(createSpan(yyStart,yyCount), false, a1); }
+     { yyValue = ExprFactory.makeSpawn(createSpan(yyStart,yyCount), a1); }
    / throw w a1:Expr
-     { yyValue = new Throw(createSpan(yyStart,yyCount), false, a1); };
+     { yyValue = ExprFactory.makeThrow(createSpan(yyStart,yyCount), a1); };
 
 /* AtomicBack ::=
      AssignExpr

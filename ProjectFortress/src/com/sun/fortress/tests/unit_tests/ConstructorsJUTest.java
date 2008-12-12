@@ -150,9 +150,9 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     public void testLiterals() {
         Span span1 = newSpan("cat", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        StringLiteralExpr sl1 = new StringLiteralExpr(span1, false, "123");
-        StringLiteralExpr sl2 = new StringLiteralExpr(span2, false, "123");
-        StringLiteralExpr sl3 = new StringLiteralExpr(span1, false, "124");
+        StringLiteralExpr sl1 = ExprFactory.makeStringLiteralExpr(span1, "123");
+        StringLiteralExpr sl2 = ExprFactory.makeStringLiteralExpr(span2, "123");
+        StringLiteralExpr sl3 = ExprFactory.makeStringLiteralExpr(span1, "124");
 
         een(sl1, sl2, sl3);
 
@@ -180,7 +180,7 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
 
     StringLiteralExpr newString(String s) {
         Span span1 = newSpan("cat", 1, 2, 3);
-        return new StringLiteralExpr(span1, false, s);
+        return ExprFactory.makeStringLiteralExpr(span1, s);
     }
     IntLiteralExpr newInt(String s) {
         Span span1 = newSpan("dog", 1, 2, 3);

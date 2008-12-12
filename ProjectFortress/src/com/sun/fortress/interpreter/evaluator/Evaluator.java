@@ -363,8 +363,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 FValue region = regionExp.accept(this);
             }
             if (f.isAtomicBlock())
-                return forAtomicExpr(new AtomicExpr(x.getSpan(), false,
-                                                    f));
+                return forAtomicExpr(ExprFactory.makeAtomicExpr(x.getSpan(), f));
             return f.accept(new Evaluator(this));
        }
 
@@ -376,8 +375,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                locs.add(f.getLoc().unwrap());
            }
            if (f.isAtomicBlock())
-               tasks[i] = new TupleTask(new AtomicExpr(x.getSpan(), false,
-                                                       f), this);
+               tasks[i] = new TupleTask(ExprFactory.makeAtomicExpr(x.getSpan(), f), this);
            else
                tasks[i] = new TupleTask(f, new Evaluator(this));
        }

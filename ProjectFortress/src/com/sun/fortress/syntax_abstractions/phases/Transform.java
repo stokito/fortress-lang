@@ -234,7 +234,8 @@ public class Transform extends TemplateUpdateVisitor {
             extendSyntaxEnvironment(name_result, newId);
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return new Label(NodeFactory.makeSpan(that), exprType_result, newId, body_result);
+            return ExprFactory.makeLabel(NodeFactory.makeSpan(that), that.isParenthesized(),
+                                         exprType_result, newId, body_result);
         } else {
             return super.forLabel(that);
         }
