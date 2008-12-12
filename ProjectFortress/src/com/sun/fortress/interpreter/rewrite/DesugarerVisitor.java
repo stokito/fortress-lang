@@ -1118,9 +1118,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
                                                                    WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(sp,new VarType(sp,
-                NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
-                Environment.TOP_LEVEL)));
+        args.add(new TypeArg(sp,NodeFactory.makeVarType(sp,
+                                                        NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
+                                                        Environment.TOP_LEVEL)));
 
         _RewriteFnRef fn = new _RewriteFnRef(s.getSpan(), false, Option.<Type>none(),
                                              in_fn, args);

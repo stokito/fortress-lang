@@ -141,7 +141,7 @@ public abstract class TypeEnv {
     }
 
     protected static ArrowType genericArrowFromDecl(FnDecl decl) {
-        return new ArrowType(decl.getSpan(),
+        return NodeFactory.makeArrowType(decl.getSpan(), false,
                              domainFromParams(decl.getParams()),
                              // all types have been filled in at this point
                              decl.getReturnType().unwrap(),

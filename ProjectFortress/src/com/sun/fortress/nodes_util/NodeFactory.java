@@ -36,6 +36,8 @@ import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 
 public class NodeFactory {
+    public static int lexicalDepth = -2147483648;
+
     /**
      * For use only when there is no hope of
      * attaching a true span.
@@ -505,44 +507,149 @@ public class NodeFactory {
         return new Param(span, name, mods, type, expr, varargsType);
     }
 
+    public static ArrowType makeArrowType(Span span, Type domain, Type range,
+                                          Effect effect) {
+        return makeArrowType(span, false, domain, range, effect,
+                             Collections.<StaticParam>emptyList(),
+                             Option.<WhereClause>none());
+    }
+
+    public static ArrowType makeArrowType(Span span, Type domain, Type range) {
+        return makeArrowType(span, domain, range,
+                             makeEffect(range.getSpan().getEnd()));
+    }
+
+    public static ArrowType makeArrowType(Span span, boolean parenthesized,
+                                          Type domain, Type range, Effect effect,
+                                          List<StaticParam> sparams,
+                                          Option<WhereClause> where) {
+        return new ArrowType(span, parenthesized, domain, range, effect,
+                             sparams, where);
+    }
+
+    public static TupleType makeTupleType(TupleType t, List<Type> tys) {
+        return makeTupleType(t.getSpan(), tys);
+    }
+
+    public static TupleType makeTupleType(List<Type> elements) {
+        return makeTupleType(new Span(), elements);
+    }
+
+    public static TupleType makeTupleType(Span span, List<Type> elements) {
+        return makeTupleType(span, false, elements, Option.<Type>none(),
+                             Collections.<KeywordType>emptyList());
+    }
+
+    public static TupleType makeTupleType(Span span, boolean parenthesized,
+                                          List<Type> elements,
+                                          Option<Type> varargs,
+                                          List<KeywordType> keywords) {
+        return new TupleType(span, parenthesized, elements, varargs, keywords);
+    }
+
+    public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
+                                                  DimExpr u) {
+        return makeTaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
+                                 t.getUnitExpr());
+    }
+
+    public static TaggedDimType makeTaggedDimType(Span span, boolean parenthesized,
+                                                  Type elem, DimExpr dim,
+                                                  Option<Expr> unit) {
+        return new TaggedDimType(span, parenthesized, elem, dim, unit);
+    }
+
+    public static TraitType makeTraitType(TraitType original) {
+        return makeTraitType(original.getSpan(), original.isParenthesized(),
+                             original.getName(), original.getArgs(),
+                             Collections.<StaticParam>emptyList());
+
+    }
+
+    public static TraitType makeTraitType(TraitType t,
+                                          List<StaticArg> args) {
+        return makeTraitType(t.getSpan(), t.isParenthesized(),
+                             t.getName(), args);
+    }
+
+    public static TraitType makeTraitType(Id name, StaticArg... args) {
+        return makeTraitType(name.getSpan(), false, name, Arrays.asList(args));
+    }
+
+    /** Signature separates the first element in order to guarantee a non-empty arg list. */
+    public static TraitType makeTraitType(String nameFirst, String... nameRest) {
+        // System.err.println("Please don't makeTraitType with a bogus span");
+        return makeTraitType(new Span(), false, makeId(nameFirst, nameRest));
+    }
+
+    public static TraitType makeTraitType(String name,
+                                          List<StaticArg> sargs) {
+        // System.err.println("Please don't makeTraitType with a bogus span");
+        return makeTraitType(new Span(), false, makeId(name), sargs);
+    }
+
+    public static TraitType makeTraitType(Span span, boolean isParenthesized,
+                                          Id name) {
+        return makeTraitType(span, isParenthesized, name,
+                             Collections.<StaticArg>emptyList());
+    }
+
+    public static TraitType makeTraitType(Span span, boolean isParenthesized,
+                                          Id name, StaticArg... args) {
+        return makeTraitType(span, isParenthesized, name, Arrays.asList(args));
+    }
+
+    public static TraitType makeTraitType(Span span, boolean isParenthesized,
+                                          Id name, List<StaticArg> args) {
+        return makeTraitType(span, isParenthesized, name, args,
+                             Collections.<StaticParam>emptyList());
+    }
+
+    public static TraitType makeTraitType(Span span, Id name,
+                                          List<StaticArg> args) {
+        return makeTraitType(span, false, name, args,
+                             Collections.<StaticParam>emptyList());
+    }
+
+    public static TraitType makeTraitType(Id name,
+                                          List<StaticArg> sargs) {
+        return makeTraitType(name.getSpan(), false, name, sargs);
+    }
+
+    public static TraitType makeTraitType(Id name) {
+        return makeTraitType(name.getSpan(), false, name);
+    }
+
+    public static TraitType makeTraitType(Span span, boolean parenthesized,
+                                          Id name, List<StaticArg> sargs,
+                                          List<StaticParam> sparams) {
+        return new TraitType(span, parenthesized, name, sargs, sparams);
+    }
+
+    public static VarType makeVarType(String string) {
+        return makeVarType(new Span(), makeId(string));
+    }
+
+    public static VarType makeVarType(Span span, Id id) {
+        return makeVarType(span, false, id, lexicalDepth);
+    }
+
+    public static VarType makeVarType(Span span, Id id, int depth) {
+        return makeVarType(span, false, id, depth);
+    }
+
+    public static VarType makeVarType(VarType original, int lexicalNestedness) {
+        return makeVarType(original.getSpan(), original.isParenthesized(),
+                           original.getName(), lexicalNestedness);
+    }
+
+    public static VarType makeVarType(Span span, boolean parenthesized,
+                                      Id name, int lexicalDepth) {
+        return new VarType(span, parenthesized, name, lexicalDepth);
+    }
+
     /***************************************************************************/
 
-    /*
-    public static Param makeParam(Span span, Id name, Option<Type> type) {
-        return new Param(span, name, type);
-    }
-
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
-                                  Type type) {
-        return new Param(span, name, mods, Option.some(type), Option.<Expr>none());
-    }
-
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
-                                  Option<Type> type) {
-        return new Param(span, name, mods, type, Option.<Expr>none());
-    }
-
-    public static LValue makeLValue(Id name, Type type) {
-        return new LValue(new Span(name.getSpan(), type.getSpan()),
-                          name,
-                          Collections.<Modifier>emptyList(),
-                          Option.some(type),
-                          false);
-    }
-
-    public static LValue makeLValue(Id name, Option<Type> type) {
-        return new LValue(name.getSpan(),
-                          name,
-                          Collections.<Modifier>emptyList(),
-                          type,
-                          false);
-    }
-
-    public static LValue makeLValue(Param param) {
-        return new LValue(param.getSpan(), param.getName(),
-                          param.getMods(), param.getIdType(), false);
-    }
-    */
 
     public static Id makeTemporaryId() {
         return makeId("$$bogus_name$$");
@@ -599,13 +706,6 @@ public class NodeFactory {
         return new DimUnaryOp(t.getSpan(), t.isParenthesized(), s, t.getOp());
     }
 
-    public static TraitType makeTraitType(TraitType t,
-                                          List<StaticArg> args) {
-        return new TraitType(t.getSpan(), t.isParenthesized(),
-                             t.getName(), args,
-                             Collections.<StaticParam>emptyList());
-    }
-
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
         Span sp = in_type.getSpan();
         return new TraitTypeWhere(sp, in_type,
@@ -629,22 +729,8 @@ public class NodeFactory {
         return result;
     }
 
-    public static TupleType makeTupleType(TupleType t, List<Type> tys) {
-        return new TupleType(t.getSpan(), t.isParenthesized(), tys);
-    }
-
-//    public static ArgType makeArgType(ArgType t, List<Type> tys, Type varargs) {
-//    return new ArgType(t.getSpan(), t.isParenthesized(), tys, varargs);
-//    }
-
     public static KeywordType makeKeywordType(KeywordType t, Type s) {
         return new KeywordType(t.getSpan(), t.getName(), s);
-    }
-
-    public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
-                                                  DimExpr u) {
-        return new TaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
-                                 t.getUnitExpr());
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
@@ -685,46 +771,6 @@ public class NodeFactory {
         return new FixedPointType(s.getSpan(), s.isParenthesized(), name, s);
     }
 
-    public static TraitType makeTraitType(Span span, boolean isParenthesized,
-                                          Id name, List<StaticArg> args) {
-        return new TraitType(span, isParenthesized, name, args,
-                             Collections.<StaticParam>emptyList());
-    }
-
-    public static TraitType makeTraitType(Span span, boolean isParenthesized,
-            Id name, StaticArg... args) {
-        return makeTraitType(span, isParenthesized, name, Arrays.asList(args));
-    }
-
-    public static TraitType makeTraitType(Id name, StaticArg... args) {
-        return makeTraitType(name.getSpan(), false, name, Arrays.asList(args));
-    }
-
-    /** Signature separates the first element in order to guarantee a non-empty arg list. */
-    public static TraitType makeTraitType(String nameFirst, String... nameRest) {
-        // System.err.println("Please don't makeTraitType with a bogus span");
-        return makeTraitType(new Span(), false, makeId(nameFirst, nameRest),
-                Collections.<StaticArg>emptyList());
-    }
-
-    public static TraitType makeTraitType(String name,
-                                          List<StaticArg> sargs) {
-        // System.err.println("Please don't makeTraitType with a bogus span");
-        return new TraitType(new Span(),makeId(name),sargs,
-                             Collections.<StaticParam>emptyList());
-    }
-
-    public static TraitType makeTraitType(Id name,
-                                          List<StaticArg> sargs) {
-        return new TraitType(name.getSpan(), name, sargs,
-                             Collections.<StaticParam>emptyList());
-    }
-
-    public static TraitType makeTraitType(Id name) {
-        return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList(),
-                             Collections.<StaticParam>emptyList());
-    }
-
     public static IntersectionType makeIntersectionType(Type t1, Type t2) {
         return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
     }
@@ -741,49 +787,6 @@ public class NodeFactory {
         return new UnionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
     }
 
-//    public static ArrowType makeArrowType(Span span, Type domain,
-//    Type range,
-//    Option<List<BaseType>> throws_) {
-//    Option<List<Type>> throwsAsTypeList =
-//    throws_.isSome() ?
-//    Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
-//    Option.<List<Type>>none();
-//    return new ArrowType(span, domain, range, throwsAsTypeList);
-//    }
-
-    public static ArrowType makeArrowType(Span span, Type domain, Type range) {
-        return new ArrowType(span, domain, range, makeEffect(range.getSpan().getEnd()));
-    }
-
-//    public static AbstractArrowType makeGenericArrowType(Span span,
-//    List<StaticParam> staticParams,
-//    Type domain,
-//    Type range,
-//    Option<List<BaseType>> throws_,
-//    WhereClause where) {
-//    if (staticParams.isEmpty() && where.getConstraints().isEmpty() && where.getBindings().isEmpty()) {
-//    return makeArrowType(span, domain, range, throws_);
-//    }
-//    Option<List<Type>> throwsAsTypeList =
-//    throws_.isSome() ?
-//    Option.<List<Type>>some(new ArrayList<Type>(throws_.unwrap())) :
-//    Option.<List<Type>>none();
-//    return new _RewriteGenericArrowType(span, domain, range,
-//    throwsAsTypeList, staticParams, where);
-//    }
-
-//    public static AbstractArrowType makeGenericArrowType(
-//    Span span,
-//    List<StaticParam> staticParams,
-//    Type domain,
-//    Type range) {
-//    if (staticParams.isEmpty()) {
-//    return makeArrowType(span, domain, range, Option.<List<BaseType>>none());
-//    }
-//    return new _RewriteGenericArrowType(span, domain, range,
-//    Option.<List<Type>>none(), staticParams, new WhereClause());
-//    }
-
     public static Type makeDomain(Span span, List<Type> elements,
                                     Option<Type> varargs,
                                     List<KeywordType> keywords) {
@@ -794,9 +797,9 @@ public class NodeFactory {
             else if ( size == 1 )
                 return elements.get(0);
             else
-                return new TupleType(span, elements);
+                return makeTupleType(span, elements);
         } else
-            return new TupleType(span, elements, varargs, keywords);
+            return makeTupleType(span, false, elements, varargs, keywords);
     }
 
     /** Create an "empty" effect at the given location. */
@@ -995,14 +998,6 @@ public class NodeFactory {
         public Id value(String arg) { return makeId(arg); }
     };
 
-    public static VarType makeVarType(String string) {
-        return makeVarType(new Span(), makeId(string));
-    }
-
-    public static VarType makeVarType(Span span, Id id) {
-        return new VarType(span, id);
-    }
-
     public static MatrixType makeMatrixType(Span span, Type element,
                                             ExtentRange dimension) {
         List<ExtentRange> dims = new ArrayList<ExtentRange>();
@@ -1188,16 +1183,8 @@ public class NodeFactory {
                                new KindNat());
     }
 
-    public static TupleType makeTupleType(List<Type> elements) {
-        return new TupleType(new Span(), elements);
-    }
-
-    public static TupleType makeTupleType(Span span, List<Type> elements) {
-        return new TupleType(span, elements);
-    }
-
     public static TupleType makeVoidType(Span span) {
-        return new TupleType(span, false, Collections.<Type>emptyList(),
+        return makeTupleType(span, false, Collections.<Type>emptyList(),
                              Option.<Type>none(),
                              Collections.<KeywordType>emptyList());
     }
@@ -1207,13 +1194,13 @@ public class NodeFactory {
     }
 
     public static TypeArg makeTypeArg(Span span, String string) {
-        return new TypeArg(span, new VarType(span, makeId(span, string)));
+        return new TypeArg(span, makeVarType(span, makeId(span, string)));
     }
 
     public static TypeArg makeTypeArg(String string) {
         Span span = new Span();
         return new TypeArg(span,
-                new VarType(span, makeId(span, string)));
+                makeVarType(span, makeId(span, string)));
     }
 
     public static BoolRef makeBoolRef(String string) {
@@ -1363,30 +1350,31 @@ public class NodeFactory {
     public static Type makeInParentheses(Type ty) {
         return ty.accept(new NodeAbstractVisitor<Type>() {
             public Type forArrowType(ArrowType t) {
-                return new ArrowType(t.getSpan(), true, t.getDomain(),
-                        t.getRange(), t.getEffect());
+                return makeArrowType(t.getSpan(), true, t.getDomain(),
+                                     t.getRange(), t.getEffect(),
+                                     t.getStaticParams(), t.getWhereClause());
             }
             public Type forArrayType(ArrayType t) {
                 return new ArrayType(t.getSpan(), true, t.getElemType(),
                         t.getIndices());
             }
             public Type forVarType(VarType t) {
-                return new VarType(t.getSpan(), true, t.getName());
+                return makeVarType(t.getSpan(), true, t.getName(), t.getLexicalDepth());
             }
             public Type forMatrixType(MatrixType t) {
                 return new MatrixType(t.getSpan(), true, t.getElemType(),
                         t.getDimensions());
             }
             public Type forTraitType(TraitType t) {
-                return new TraitType(t.getSpan(), true, t.getName(),
+                return makeTraitType(t.getSpan(), true, t.getName(),
                                      t.getArgs(), t.getStaticParams());
             }
             public Type forTupleType(TupleType t) {
-                return new TupleType(t.getSpan(), true, t.getElements(),
+                return makeTupleType(t.getSpan(), true, t.getElements(),
                                      t.getVarargs(), t.getKeywords());
             }
             public Type forTaggedDimType(TaggedDimType t) {
-                return new TaggedDimType(t.getSpan(), true, t.getElemType(),
+                return makeTaggedDimType(t.getSpan(), true, t.getElemType(),
                                          t.getDimExpr(), t.getUnitExpr());
             }
             public Type forTaggedUnitType(TaggedUnitType t) {
@@ -1433,13 +1421,14 @@ public class NodeFactory {
 
     public static NamedType makeNamedType(APIName api, NamedType type) {
         if (type instanceof VarType) {
-            return new VarType(type.getSpan(),
-                    type.isParenthesized(),
-                    makeId(api, type.getName()));
+            return makeVarType(type.getSpan(),
+                               type.isParenthesized(),
+                               makeId(api, type.getName()),
+                               lexicalDepth);
         }
         else { // type instanceof TraitType
             TraitType _type = (TraitType)type;
-            return new TraitType(_type.getSpan(),
+            return makeTraitType(_type.getSpan(),
                                  _type.isParenthesized(),
                                  makeId(api, _type.getName()),
                                  _type.getArgs(),
@@ -1448,18 +1437,8 @@ public class NodeFactory {
     }
 
     public static TraitType makeGenericSingletonType(Id name, List<StaticParam> params) {
-        return new TraitType(name.getSpan(), name, Collections.<StaticArg>emptyList(), params);
-    }
-
-    public static VarType makeVarType(VarType original, int lexicalNestedness) {
-        return new VarType(original.getSpan(), original.isParenthesized(), original.getName(), lexicalNestedness);
-    }
-
-    public static TraitType makeTraitType(TraitType original) {
-        return new TraitType(original.getSpan(), original.isParenthesized(),
-                             original.getName(), original.getArgs(),
-                             Collections.<StaticParam>emptyList());
-
+        return makeTraitType(name.getSpan(), false, name,
+                             Collections.<StaticArg>emptyList(), params);
     }
 
     public static Import makeImportStar(String apiName) {

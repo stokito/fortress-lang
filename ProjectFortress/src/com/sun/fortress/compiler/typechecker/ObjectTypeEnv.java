@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.parser_util.FortressUtil;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -77,7 +78,7 @@ class ObjectTypeEnv extends TypeEnv {
                 type = NodeFactory.makeTraitType(_var);
             } else {
                 // No static params, some normal params
-                type = new ArrowType(var.getSpan(),
+                type = NodeFactory.makeArrowType(var.getSpan(),
                                      domainFromParams(decl.getParams().unwrap()),
                                      NodeFactory.makeTraitType(_var));
             }
@@ -88,9 +89,10 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = new ArrowType(decl.getSpan(),
+                type = NodeFactory.makeArrowType(decl.getSpan(), false,
                                      domainFromParams(decl.getParams().unwrap()),
                                      NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
+                                                 FortressUtil.emptyEffect(),
                                      decl.getStaticParams(),
                                      decl.getWhereClause());
             }

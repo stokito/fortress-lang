@@ -153,7 +153,7 @@ class FnTypeEnv extends TypeEnv {
 
                 // Invariant: _fn.params().isSome()
                 // Otherwise, _fn should not have been in entries.
-                overloadedTypes.add(new ArrowType(loc,
+                overloadedTypes.add(NodeFactory.makeArrowType(loc, false,
                                                   domainFromParams(_fn.parameters()),
                                                   selfType,
                                                   makeEffect(loc.getEnd(), CollectUtil.makeList(_fn.thrownTypes())),

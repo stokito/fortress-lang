@@ -31,6 +31,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
@@ -70,7 +71,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
     @Override
     public Node forTraitType(TraitType it) {
         if (it.getArgs().size() == 0) {
-            return (new VarType(it.getSpan(), it.getName())).accept(this);
+            return (NodeFactory.makeVarType(it.getSpan(), it.getName())).accept(this);
         }
         return super.forTraitType(it);
     }

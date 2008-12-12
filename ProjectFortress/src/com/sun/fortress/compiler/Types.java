@@ -210,7 +210,7 @@ public final class Types {
                 case 1: return IterUtil.first(ts);
                 default: {
                     List<Type> l = CollectUtil.makeList(ts);
-                    return new TupleType(NodeFactory.makeSpan("impossible", l), l);
+                    return NodeFactory.makeTupleType(NodeFactory.makeSpan("impossible", l), l);
                 }
             }
         }
@@ -245,14 +245,16 @@ public final class Types {
         if ( d instanceof TupleType ) {
             TupleType _d = (TupleType)d;
             if ( NodeUtil.hasVarargs(_d)) {
-                return new TupleType(NodeFactory.makeSpan(_d.getElements(), _d.getVarargs().unwrap()), _d.getElements(), _d.getVarargs());
+                return NodeFactory.makeTupleType(NodeFactory.makeSpan(_d.getElements(), _d.getVarargs().unwrap()),
+                                                 false, _d.getElements(), _d.getVarargs(),
+                                                 Collections.<KeywordType>emptyList());
             }
             else {
                 List<Type> args = _d.getElements();
                 switch (args.size()) {
                     case 0: return VOID;
                     case 1: return args.get(0);
-                    default: return new TupleType(NodeFactory.makeSpan("impossible", args), args);
+                    default: return NodeFactory.makeTupleType(NodeFactory.makeSpan("impossible", args), args);
                 }
             }
         } else
@@ -300,16 +302,21 @@ public final class Types {
         return argsType.accept(new NodeAbstractVisitor<Type>() {
             @Override public Type forTupleType(TupleType t) {
                 if ( ! NodeUtil.hasVarargs(t) )
-                    return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), keywords);
+                    return NodeFactory.makeTupleType(NodeFactory.makeSpan(t, keywords),
+                                                     false, t.getElements(),
+                                                     Option.<Type>none(), keywords);
                 else
-                    return new TupleType(NodeFactory.makeSpan(t, keywords), t.getElements(), t.getVarargs(),
-                                         keywords);
+                    return NodeFactory.makeTupleType(NodeFactory.makeSpan(t, keywords),
+                                                     false, t.getElements(), t.getVarargs(),
+                                                     keywords);
             }
             @Override public Type forType(Type t) {
                 if ( keywords.isEmpty() )
                     return t;
                 else
-                    return new TupleType(NodeFactory.makeSpan(t, keywords), Collections.singletonList(t), keywords);
+                    return NodeFactory.makeTupleType(NodeFactory.makeSpan(t, keywords), false,
+                                                     Collections.singletonList(t),
+                                                     Option.<Type>none(), keywords);
             }
         });
     }

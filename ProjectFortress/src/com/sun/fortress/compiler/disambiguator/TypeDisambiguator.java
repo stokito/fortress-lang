@@ -217,9 +217,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                               that);
                         return that;
                     }
-                    return new TraitType(that.getSpan(), n,
-                                         Collections.<StaticArg>emptyList(),
-                                         Collections.<StaticParam>emptyList());
+                    return NodeFactory.makeTraitType(that.getSpan(), false, n);
                 }
             }
         };
@@ -259,8 +257,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                         newArgs.add(updated);
                     }
                     return changed ?
-                    new TraitType(that.getSpan(), n, newArgs,
-                                  Collections.<StaticParam>emptyList()) : that;
+                    NodeFactory.makeTraitType(that.getSpan(), n, newArgs) : that;
                 }
             }
         };

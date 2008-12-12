@@ -41,7 +41,7 @@ public class ExprFactory {
 
     private static FunctionalRef multiJuxt = makeMultiJuxt();
     private static FunctionalRef infixJuxt = makeInfixJuxt();
-    private static int lexicalDepth = -2147483648;
+    public static int lexicalDepth = -2147483648;
 
     public static ArrayElement makeArrayElement(Expr elem) {
         return makeArrayElement(elem.getSpan(), false, Option.<Type>none(),
@@ -1284,16 +1284,6 @@ public class ExprFactory {
                             List<Block> fronts) {
         return new Do(span, parenthesized, exprType, fronts);
     }
-
-
-
-                                          /*
-    public static TupleExpr makeTupleExpr(Span span,
-                                        boolean parenthesized,
-                                        Option<Type> exprType,
-                                          */
-
-    /***************************************************************************************/
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
         BigInteger intPart;

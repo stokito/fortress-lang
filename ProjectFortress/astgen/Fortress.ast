@@ -999,7 +999,7 @@ interface Node() extends HasAt;
                          * TraitType ::= QualifiedName
                          * e.g.) T
                          */
-                        VarType(int lexicalDepth=-2147483648);
+                        VarType(int lexicalDepth);
                         /**
                          * a trait (object, alias, or proper trait) type; traits
                          * without params are referenced with an empty arg list
@@ -1011,8 +1011,7 @@ interface Node() extends HasAt;
                          * it is the type of a generic singleton
                          * used during static checking
                          */
-                        TraitType(List<StaticArg> args
-                                      = Collections.<StaticArg>emptyList(),
+                        TraitType(List<StaticArg> args,
                                   List<StaticParam> staticParams);
                     /**
                      * abbreviated type
@@ -1036,8 +1035,7 @@ interface Node() extends HasAt;
                          * DimType ::= Type DimExpr (in Expr)?
                          * e.g.) RR64 Length
                          */
-                        TaggedDimType(DimExpr dimExpr,
-                                      Option<Expr> unitExpr = Option.<Expr>none());
+                        TaggedDimType(DimExpr dimExpr, Option<Expr> unitExpr);
                         /**
                          * type with unit
                          * DimType ::= Type Expr
@@ -1066,9 +1064,8 @@ interface Node() extends HasAt;
                  * <varargs>
                  * It has a varargs parameter if the varargs field is set.
                  */
-                TupleType(List<Type> elements,
-                          Option<Type> varargs = Option.<Type>none(),
-                          List<KeywordType> keywords = Collections.<KeywordType>emptyList());
+                TupleType(List<Type> elements, Option<Type> varargs,
+                          List<KeywordType> keywords);
                 /**
                  * arrow type
                  * Type ::= Type -> Type Throws?
@@ -1078,12 +1075,9 @@ interface Node() extends HasAt;
                  * <whereClause>
                  * type of a generic function, used during static checking
                  */
-                ArrowType(Type domain, Type range,
-                          Effect effect = FortressUtil.emptyEffect(),
-                          List<StaticParam> staticParams
-                              = Collections.<StaticParam>emptyList(),
-                          Option<WhereClause> whereClause
-                              = Option.<WhereClause>none());
+                ArrowType(Type domain, Type range, Effect effect,
+                          List<StaticParam> staticParams,
+                          Option<WhereClause> whereClause);
                 /**
                  * inferred type
                  * Used internally for type analysis

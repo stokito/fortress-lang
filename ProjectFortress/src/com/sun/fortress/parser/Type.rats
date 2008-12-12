@@ -40,8 +40,8 @@ Type Type =
        else {
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
-               yyValue = new TaggedDimType(_ty.getSpan(), _ty.getElemType(),
-                                           _ty.getDimExpr(), Option.some(a2));
+               yyValue = NodeFactory.makeTaggedDimType(_ty.getSpan(), false, _ty.getElemType(),
+                                                       _ty.getDimExpr(), Option.some(a2));
            } else {
                yyValue = syntaxError(ty.getSpan(),
                                      "A dimension type is expected.");
@@ -208,9 +208,8 @@ private Type TypeRef =
      }
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
-            yyValue = new VarType(createSpan(yyStart,yyCount), a1);
-       else yyValue = new TraitType(createSpan(yyStart,yyCount),a1,a2,
-                                    Collections.<StaticParam>emptyList());
+            yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1);
+       else yyValue = NodeFactory.makeTraitType(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VoidType ::= ( w ) */
@@ -342,9 +341,9 @@ constant inline Action<Type> ParenthesizedTypeLeft =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                DimExpr dim = TypeResolver.resolveOpsDim(a1);
-               return new TaggedDimType(createSpan(yyStart,yyCount), (Type)base,
-                                        NodeFactory.makeInParentheses(dim),
-                                        Option.<Expr>none());
+               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
+                                                    (Type)base, NodeFactory.makeInParentheses(dim),
+                                                    Option.<Expr>none());
            }};
      };
 
@@ -352,9 +351,9 @@ constant inline Action<Type> IdLeft =
      a1:Id
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               return new TaggedDimType(createSpan(yyStart,yyCount), (Type)base,
-                                        new DimRef(a1.getSpan(), a1),
-                                        Option.<Expr>none());
+               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
+                                                    (Type)base, new DimRef(a1.getSpan(), a1),
+                                                    Option.<Expr>none());
            }};
      };
 

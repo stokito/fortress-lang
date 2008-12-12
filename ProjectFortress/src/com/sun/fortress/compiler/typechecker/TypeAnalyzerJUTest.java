@@ -520,7 +520,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             Type d = parseDomain(s.substring(0, opIndex));
             Type r = parseType(s.substring(opIndex+2, effectStart));
             Effect e = parseEffect(s.substring(effectStart));
-            return new ArrowType(span, d, r, e);
+            return NodeFactory.makeArrowType(span, d, r, e);
         }
 
         opIndex = findAtTop(s, "|");
@@ -547,10 +547,12 @@ public class TypeAnalyzerJUTest extends TestCase {
             boolean varargs = s.endsWith("...)");
             if (varargs) { s = s.substring(0, s.length()-4) + ")"; }
             List<Type> ts = parseTypeList(s, "(", ")");
-            if (varargs) { return new TupleType(span, ts, Option.<Type>some(ts.remove(ts.size()-1))); }
+            if (varargs) { return NodeFactory.makeTupleType(span, false, ts,
+                                                            Option.<Type>some(ts.remove(ts.size()-1)),
+                                                            Collections.<KeywordType>emptyList()); }
             else if (ts.size() == 0) { return VOID; }
             else if (ts.size() == 1) { return ts.get(0); }
-            else { return new TupleType(span, ts); }
+            else { return NodeFactory.makeTupleType(span, ts); }
         }
 
         if (s.length() == 0 |
@@ -596,7 +598,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                     else { args.add(parseType(elt)); }
                 }
             }
-            return new TupleType(span, args, varargs, keys);
+            return NodeFactory.makeTupleType(span, false, args, varargs, keys);
         }
         else {
             return parseType(s);
