@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component ConcurrentPrinting
+import String.{...}
+export Executable
+
+    object CatStringReduction extends MonoidReduction[\String\]
+        getter asString() = "CatString Reduction"
+        empty(): String = EmptyString
+        join(a:String, b:String):String = CatString(a, b)
+    end
+  
+    catStringFrom(args: String...): String =
+        seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
+    
+    run(args:String...):()=do
+        cs = catStringFrom("This ", "is ", "a ", "longish ", "string ", "that ", 
+        "reads ", "as ", "a ", "sentence ", "when ", "other " "strings ", "are ",
+        "not ", "interleaved.")
+        for i ←1:10 do
+            println cs   
+       end
+    end
+    
+end ConcurrentPrinting
