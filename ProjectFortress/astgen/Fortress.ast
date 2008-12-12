@@ -479,7 +479,7 @@ interface Node() extends HasAt;
                  * opr, this node gives a separate FunctionalRef for each Lhs.
                  */
                 Assignment(List<Lhs> lhs, Option<FunctionalRef> assignOp, Expr rhs,
-                           Option<List<FunctionalRef>> opsForLhs = Option.<List<FunctionalRef>>none());
+                           Option<List<FunctionalRef>> opsForLhs);
                 /**
                  * sequence of block elements implicitly enclosed by do/end
                  * BlockElems ::= BlockElem+
@@ -489,10 +489,8 @@ interface Node() extends HasAt;
                  *       y + z
                  * e.g.) at a.region(j) do w := a_j
                  */
-                Block(Option<Expr> loc = Option.<Expr>none(),
-                      boolean atomicBlock = false,
-                      boolean withinDo = false,
-                      List<Expr> exprs);
+                Block(Option<Expr> loc, boolean atomicBlock,
+                      boolean withinDo, List<Expr> exprs);
                 /**
                  * do expression
                  * Do ::= (DoFront also)* DoFront end
@@ -516,12 +514,9 @@ interface Node() extends HasAt;
                  *       end
                  *  eqOp and inOp are to help with disambiguation
                  */
-                CaseExpr(Option<Expr> param,
-                         Option<FunctionalRef> compare = Option.<FunctionalRef>none(),
-                         FunctionalRef equalsOp = ExprFactory.makeInfixEq(),
-                         FunctionalRef inOp= ExprFactory.makeInfixIn(),
-                         List<CaseClause> clauses,
-                         Option<Block> elseClause = Option.<Block>none());
+                CaseExpr(Option<Expr> param, Option<FunctionalRef> compare,
+                         FunctionalRef equalsOp, FunctionalRef inOp,
+                         List<CaseClause> clauses, Option<Block> elseClause);
                 /**
                  * if expression
                  * DelimitedExpr ::= if CondExpr then BlockElems Elifs? Else? end
@@ -534,8 +529,7 @@ interface Node() extends HasAt;
                  *       elif x IN {3, 4, 5} then 3
                  *       else 6 end
                  */
-                If(List<IfClause> clauses,
-                   Option<Block> elseClause = Option.<Block>none());
+                If(List<IfClause> clauses, Option<Block> elseClause);
                 /**
                  * label expression
                  * Names must be unqualified.
@@ -551,8 +545,7 @@ interface Node() extends HasAt;
                 /**
                  * object expression
                  */
-                abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause
-                                                = Collections.<TraitTypeWhere>emptyList(),
+                abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause,
                                             List<Decl> decls);
                     /**
                      * object expression
@@ -582,9 +575,8 @@ interface Node() extends HasAt;
                  *       forbid IOException
                  *       end
                  */
-                Try(Block body, Option<Catch> catchClause = Option.<Catch>none(),
-                    List<BaseType> forbidClause = Collections.<BaseType>emptyList(),
-                    Option<Block> finallyClause = Option.<Block>none());
+                Try(Block body, Option<Catch> catchClause,
+                    List<BaseType> forbidClause, Option<Block> finallyClause);
                 /**
                  * labeled expression: tuple expression or argument expression
                  *
@@ -598,11 +590,8 @@ interface Node() extends HasAt;
                  * e.g.) (1, 2, [3 4]..., x = 5)
                  * e.g.) (1, 2, 5)
                  */
-                TupleExpr(List<Expr> exprs,
-                          Option<Expr> varargs = Option.<Expr>none(),
-                          List<KeywordExpr> keywords
-                              = Collections.<KeywordExpr>emptyList(),
-                          boolean inApp = false);
+                TupleExpr(List<Expr> exprs, Option<Expr> varargs,
+                          List<KeywordExpr> keywords, boolean inApp);
                 /**
                  * typecase expression
                  * DelimitedExpr ::= typecase TypecaseBindings of TypecaseClauses
@@ -619,7 +608,7 @@ interface Node() extends HasAt;
                  */
                 Typecase(List<Id> bindIds, Option<Expr> bindExpr,
                          List<TypecaseClause> clauses,
-                         Option<Block> elseClause = Option.<Block>none());
+                         Option<Block> elseClause);
                 /**
                  * while expression
                  * DelimitedExpr ::= while GeneratorClause Do

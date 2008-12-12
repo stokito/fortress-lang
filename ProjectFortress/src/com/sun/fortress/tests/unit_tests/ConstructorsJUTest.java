@@ -210,13 +210,13 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     public void testTuples() {
         Span span1 = newSpan("dog", 1, 2, 3);
         Span span2 = newSpan("cat", 1, 2, 3);
-        TupleExpr t1 = new TupleExpr(span1, false, Useful.<Expr>list(newString("cat"), newString("dog")));
-        TupleExpr t2 = new TupleExpr(span2, false, Useful.<Expr>list(newString("cat"), newString("dog")));
-        TupleExpr t3 = new TupleExpr(span1, false, Useful.<Expr>list(newString("car"), newString("bog")));
+        TupleExpr t1 = ExprFactory.makeTupleExpr(span1, Useful.<Expr>list(newString("cat"), newString("dog")));
+        TupleExpr t2 = ExprFactory.makeTupleExpr(span2, Useful.<Expr>list(newString("cat"), newString("dog")));
+        TupleExpr t3 = ExprFactory.makeTupleExpr(span1, Useful.<Expr>list(newString("car"), newString("bog")));
         een(t1, t2, t3);
 
         try {
-            new TupleExpr(span1, false, Collections.<Expr>emptyList());
+            ExprFactory.makeTupleExpr(span1, Collections.<Expr>emptyList());
             Assert.fail("Should have thrown exception, empty list not allowed");
         } catch (Error e) {
 

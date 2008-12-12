@@ -101,7 +101,7 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
         if(args.size() == 1) {
             argExpr = args.get(0);
         } else {
-            argExpr = ExprFactory.makeTuple(fnRef.getSpan(), args);
+            argExpr = ExprFactory.makeTupleExpr(fnRef.getSpan(), args);
         }
         IdOrOp name = fnRef.getOriginalName();
         if ( ! (name instanceof Id) )

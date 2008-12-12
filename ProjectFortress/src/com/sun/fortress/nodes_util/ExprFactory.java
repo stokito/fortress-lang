@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
@@ -750,6 +751,287 @@ public class ExprFactory {
                                accOp, gens, body);
     }
 
+    /**
+     * For rewriting the id list, expr, of an existing typecase.
+     * @param tc
+     * @param lid
+     * @param expr
+     * @return
+     */
+    public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
+        return makeTypecase(tc.getSpan(), tc.isParenthesized(), tc.getExprType(),
+                            lid, Option.wrap(expr), tc.getClauses(),
+                            tc.getElseClause());
+    }
+
+    public static Typecase makeTypecase(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> exprType,
+                                        List<Id> bindIds,
+                                        Option<Expr> bindExpr,
+                                        List<TypecaseClause> clauses,
+                                        Option<Block> elseClause) {
+        return new Typecase(span, parenthesized, exprType, bindIds, bindExpr,
+                            clauses, elseClause);
+    }
+
+    public static TupleExpr makeTupleExpr(List<Expr> exprs) {
+        return makeTupleExpr(FortressUtil.spanAll(exprs), exprs);
+    }
+
+    public static TupleExpr makeTupleExpr(Span span, List<Expr> exprs) {
+        return makeTupleExpr(span, false, Option.<Type>none(), exprs,
+                             Option.<Expr>none(),
+                             Collections.<KeywordExpr>emptyList(), false);
+    }
+
+    public static TupleExpr makeTupleExpr(Expr... exprs) {
+        return makeTupleExpr(Arrays.asList(exprs));
+    }
+
+    public static TupleExpr makeTupleExpr(Span span,
+                                          boolean parenthesized,
+                                          Option<Type> exprType,
+                                          List<Expr> exprs,
+                                          Option<Expr> varargs,
+                                          List<KeywordExpr> keywords,
+                                          boolean inApp) {
+        return new TupleExpr(span, parenthesized, exprType, exprs, varargs,
+                             keywords, inApp);
+    }
+
+    public static Try makeTry(Span span,
+                              Block body,
+                              Option<Catch> catchClause,
+                              List<BaseType> forbidClause,
+                              Option<Block> finallyClause) {
+        return makeTry(span, false, Option.<Type>none(), body, catchClause,
+                       forbidClause, finallyClause);
+    }
+
+    public static Try makeTry(Span span,
+                              boolean parenthesized,
+                              Option<Type> exprType,
+                              Block body,
+                              Option<Catch> catchClause,
+                              List<BaseType> forbidClause,
+                              Option<Block> finallyClause) {
+        return new Try(span, parenthesized, exprType, body, catchClause,
+                       forbidClause, finallyClause);
+    }
+
+    public static ObjectExpr makeObjectExpr(Span span,
+                                            List<TraitTypeWhere> extendsC,
+                                            List<Decl> decls) {
+        return makeObjectExpr(span, false, Option.<Type>none(),
+                              extendsC, decls);
+    }
+
+    public static ObjectExpr makeObjectExpr(Span span,
+                                            boolean parenthesized,
+                                            Option<Type> exprType,
+                                            List<TraitTypeWhere> extendsC,
+                                            List<Decl> decls) {
+        return new ObjectExpr(span, parenthesized, exprType, extendsC, decls);
+    }
+
+    public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
+                                                            BATree<String, StaticParam> implicit_type_parameters) {
+        List<StaticArg> staticArgs =
+            new ArrayList<StaticArg>(implicit_type_parameters.size());
+        List<StaticParam> stParams;
+        if (implicit_type_parameters.size() == 0) {
+            stParams = Collections.<StaticParam>emptyList();
+        }
+        else {
+            stParams =
+                new ArrayList<StaticParam>(implicit_type_parameters.values());
+            for (String s : implicit_type_parameters.keySet()) {
+                staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
+            }
+        }
+        return make_RewriteObjectExpr(expr.getSpan(), false, Option.<Type>none(),
+                                      expr.getExtendsClause(), expr.getDecls(),
+                                      implicit_type_parameters, WellKnownNames.objectExprName(expr),
+                                      stParams, staticArgs,
+                                      Option.some(Collections.<Param>emptyList()));
+    }
+
+    public static _RewriteObjectExpr make_RewriteObjectExpr(Span span,
+                                                            boolean parenthesized,
+                                                            Option<Type> exprType,
+                                                            List<TraitTypeWhere> extendsC,
+                                                            List<Decl> decls,
+                                                            Map<String, StaticParam> implicitTypeParameters,
+                                                            String genSymName,
+                                                            List<StaticParam> staticParams,
+                                                            List<StaticArg> staticArgs,
+                                                            Option<List<Param>> params) {
+        return new _RewriteObjectExpr(span, parenthesized, exprType, extendsC,
+                                      decls, implicitTypeParameters, genSymName,
+                                      staticParams, staticArgs, params);
+    }
+
+    public static Assignment makeAssignment(Span span, List<Lhs> lhs,
+                                            Option<FunctionalRef> op, Expr rhs) {
+        return makeAssignment(span, Option.<Type>none(), lhs, op, rhs);
+    }
+
+    public static Assignment makeAssignment(Span span, Option<Type> type,
+                                            List<Lhs> lhs, Expr rhs) {
+        return makeAssignment(span, type, lhs, Option.<FunctionalRef>none(), rhs);
+    }
+
+    public static Assignment makeAssignment(Span span, Option<Type> type,
+                                            List<Lhs> lhs, Option<FunctionalRef> op,
+                                            Expr rhs) {
+        return makeAssignment(span, false, type, lhs, op, rhs,
+                              Option.<List<FunctionalRef>>none());
+    }
+
+    public static Assignment makeAssignment(Span span,
+                                            List<Lhs> lhs,
+                                            Option<FunctionalRef> assignOp,
+                                            Expr rhs,
+                                            Option<List<FunctionalRef>> opsForLhs) {
+        return makeAssignment(span, false, Option.<Type>none(), lhs, assignOp,
+                              rhs, opsForLhs);
+    }
+
+    public static Assignment makeAssignment(Span span,
+                                            boolean parenthesized,
+                                            Option<Type> exprType,
+                                            List<Lhs> lhs,
+                                            Option<FunctionalRef> assignOp,
+                                            Expr rhs,
+                                            Option<List<FunctionalRef>> opsForLhs) {
+        return new Assignment(span, parenthesized, exprType, lhs, assignOp,
+                              rhs, opsForLhs);
+    }
+
+    public static Block makeBlock(Expr e) {
+        List<Expr> b = Collections.singletonList(e);
+        return makeBlock(e.getSpan(), e.getExprType(), b);
+    }
+
+    public static Block makeBlock(Span sp, Expr e) {
+        List<Expr> b = Collections.singletonList(e);
+        return makeBlock(sp, e.getExprType(), b);
+    }
+
+    public static Block makeBlock(Span span,
+                                  List<Expr> exprs) {
+        return makeBlock(span, Option.<Type>none(), exprs);
+    }
+
+    public static Block makeBlock(Span span, Option<Type> exprType,
+                                  boolean atomicBlock,
+                                  boolean withinDo,
+                                  List<Expr> exprs) {
+        return makeBlock(span, false, exprType, Option.<Expr>none(),
+                         atomicBlock, withinDo, exprs);
+    }
+
+    public static Block makeBlock(Span span, Option<Type> exprType,
+                                  List<Expr> exprs) {
+        return makeBlock(span, false, exprType, Option.<Expr>none(),
+                         false, false, exprs);
+    }
+
+    public static Block makeBlock(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  Option<Expr> loc,
+                                  boolean atomicBlock,
+                                  boolean withinDo,
+                                  List<Expr> exprs) {
+        return new Block(span, parenthesized, exprType, loc, atomicBlock,
+                         withinDo, exprs);
+    }
+
+    public static If makeIf(Span span,
+                            List<IfClause> clauses,
+                            Option<Block> elseClause) {
+        return makeIf(span, false, Option.<Type>none(), clauses, elseClause);
+    }
+
+    public static If makeIf(IfClause _if, Expr _else) {
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        List<Expr> elseBlock = Collections.singletonList(_else);
+        Block _elseClause = makeBlock(_else.getSpan(), elseBlock);
+        return makeIf(NodeFactory.makeSpan(_if, _else), ifclauses, Option.some(_elseClause));
+    }
+
+    public static If makeIf(Span sp, IfClause _if, Expr _else) {
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        List<Expr> elseBlock = Collections.singletonList(_else);
+        Block _elseClause = makeBlock(sp, elseBlock);
+        return makeIf(sp, ifclauses, Option.some(_elseClause));
+    }
+
+    public static If makeIf(IfClause _if) {
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        return makeIf(_if.getSpan(), ifclauses, Option.<Block>none());
+    }
+
+    public static If makeIf(Span sp, IfClause _if) {
+        List<IfClause> ifclauses = Collections.singletonList(_if);
+        return new If(sp, ifclauses, Option.<Block>none());
+    }
+
+    public static If makeIf(Span sp, Expr cond, Block _then, Block _else) {
+        return makeIf(sp,
+                      new IfClause(NodeFactory.makeSpan(cond, _else),
+                                   makeGeneratorClause(cond.getSpan(), cond),
+                                   _then),
+                      _else);
+    }
+
+    public static If makeIf(Span sp, Expr cond, Block _then) {
+        return makeIf(sp,
+                      new IfClause(NodeFactory.makeSpan(cond, _then),
+                                   makeGeneratorClause(cond.getSpan(), cond),
+                                   _then));
+    }
+
+    public static If makeIf(Span span,
+                            boolean parenthesized,
+                            Option<Type> exprType,
+                            List<IfClause> clauses,
+                            Option<Block> elseClause) {
+        return new If(span, parenthesized, exprType,
+                      clauses, elseClause);
+    }
+
+    public static CaseExpr makeCaseExpr(Span span,
+                                        Option<Expr> param,
+                                        Option<FunctionalRef> compare,
+                                        List<CaseClause> clauses,
+                                        Option<Block> elseClause) {
+        return makeCaseExpr(span, false, Option.<Type>none(), param, compare,
+                            ExprFactory.makeInfixEq(), ExprFactory.makeInfixIn(),
+                            clauses, elseClause);
+    }
+
+    public static CaseExpr makeCaseExpr(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> exprType,
+                                        Option<Expr> param,
+                                        Option<FunctionalRef> compare,
+                                        FunctionalRef equalsOp,
+                                        FunctionalRef inOp,
+                                        List<CaseClause> clauses,
+                                        Option<Block> elseClause) {
+        return new CaseExpr(span, parenthesized, exprType, param, compare,
+                            equalsOp, inOp, clauses, elseClause);
+    }
+
+                                          /*
+    public static TupleExpr makeTupleExpr(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> exprType,
+                                          */
+
     /***************************************************************************************/
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
@@ -870,18 +1152,6 @@ public class ExprFactory {
         return new GeneratorClause(span, Collections.<Id>emptyList(), cond);
     }
 
-    public static TupleExpr makeTuple(List<Expr> exprs) {
-        return new TupleExpr(FortressUtil.spanAll(exprs), false, exprs);
-    }
-
-    public static TupleExpr makeTuple(Span span, List<Expr> exprs) {
-        return new TupleExpr(span, false, exprs);
-    }
-
-    public static TupleExpr makeTuple(Expr... exprs) {
-        return makeTuple(Arrays.asList(exprs));
-    }
-
     public static FunctionalRef makeMultiJuxt() {
         return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp("juxtaposition")));
     }
@@ -935,72 +1205,22 @@ public class ExprFactory {
         return expr;
     }
 
-    public static If makeIf(IfClause _if, Expr _else) {
-        List<IfClause> ifclauses = Collections.singletonList(_if);
-        List<Expr> elseBlock = Collections.singletonList(_else);
-        Block _elseClause = new Block(_else.getSpan(), elseBlock);
-        return new If(NodeFactory.makeSpan(_if, _else), ifclauses, Option.some(_elseClause));
-    }
-
-    public static If makeIf(Span sp, IfClause _if, Expr _else) {
-        List<IfClause> ifclauses = Collections.singletonList(_if);
-        List<Expr> elseBlock = Collections.singletonList(_else);
-        Block _elseClause = new Block(sp, elseBlock);
-        return new If(sp, ifclauses, Option.some(_elseClause));
-    }
-
-    public static If makeIf(IfClause _if) {
-        List<IfClause> ifclauses = Collections.singletonList(_if);
-        return new If(_if.getSpan(), ifclauses, Option.<Block>none());
-    }
-
-    public static If makeIf(Span sp, IfClause _if) {
-        List<IfClause> ifclauses = Collections.singletonList(_if);
-        return new If(sp, ifclauses, Option.<Block>none());
-    }
-
-    public static If makeIf(Span sp, Expr cond, Block _then, Block _else) {
-        return
-        makeIf(sp,
-                new IfClause(NodeFactory.makeSpan(cond, _else),
-                        makeGeneratorClause(cond.getSpan(), cond),
-                        _then), _else);
-    }
-
-    public static If makeIf(Span sp, Expr cond, Block _then) {
-        return
-        makeIf(sp,
-                new IfClause(NodeFactory.makeSpan(cond, _then),
-                        makeGeneratorClause(cond.getSpan(), cond),
-                        _then));
-    }
-
     public static While makeWhile(Span sp, Expr cond) {
         // Might not work; empty Do may be naughty.
         return new While(sp, makeGeneratorClause(cond.getSpan(), cond),
                 new Do(sp, Collections.<Block>emptyList()));
     }
 
-    public static Block makeBlock(Expr e) {
-        List<Expr> b = Collections.singletonList(e);
-        return new Block(e.getSpan(), e.getExprType(), b);
-    }
-
-    public static Block makeBlock(Span sp, Expr e) {
-        List<Expr> b = Collections.singletonList(e);
-        return new Block(sp, e.getExprType(), b);
-    }
-
     public static Do makeDo(Span sp, Option<Type> t, Expr e) {
         List<Expr> b = Collections.singletonList(e);
         List<Block> body = new ArrayList<Block>(1);
-        body.add(new Block(sp, t, false, true, b));
+        body.add(makeBlock(sp, t, false, true, b));
         return new Do(sp, t, body);
     }
 
     public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
         List<Block> body = new ArrayList<Block>(1);
-        body.add(new Block(sp, t, false, true, exprs));
+        body.add(makeBlock(sp, t, false, true, exprs));
         return new Do(sp, t, body);
     }
 
@@ -1029,39 +1249,6 @@ public class ExprFactory {
         return new Throw(sp, makeVarRef(sp, id));
     }
 
-    public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
-                                                            BATree<String, StaticParam> implicit_type_parameters) {
-        List<StaticArg> staticArgs =
-            new ArrayList<StaticArg>(implicit_type_parameters.size());
-        List<StaticParam> stParams;
-        if (implicit_type_parameters.size() == 0) {
-            stParams = Collections.<StaticParam>emptyList();
-        }
-        else {
-            stParams =
-                new ArrayList<StaticParam>(implicit_type_parameters.values());
-            for (String s : implicit_type_parameters.keySet()) {
-                staticArgs.add(NodeFactory.makeTypeArg(expr.getSpan(), s));
-            }
-        }
-        return new _RewriteObjectExpr(expr.getSpan(), false,
-                                      expr.getExtendsClause(), expr.getDecls(),
-                                      implicit_type_parameters, WellKnownNames.objectExprName(expr),
-                                      stParams, staticArgs,
-                                      Option.some(Collections.<Param>emptyList()));
-    }
-
-    public static Assignment makeAssignment(Span span, Option<Type> type,
-                                            List<Lhs> lhs, Option<FunctionalRef> op,
-                                            Expr rhs) {
-        return new Assignment(span, false, type, lhs, op, rhs);
-    }
-
-    public static Assignment makeAssignment(Span span, Option<Type> type,
-                                            List<Lhs> lhs, Expr rhs) {
-        return new Assignment(span, false, type, lhs, Option.<FunctionalRef>none(), rhs);
-    }
-
     /**
      * Uses the Spans from e_1 and e_2.
      */
@@ -1083,14 +1270,16 @@ public class ExprFactory {
         }
 
         public Expr forAssignment(Assignment e) {
-            return new Assignment(e.getSpan(), true, e.getLhs(), e.getAssignOp(),
-                                  e.getRhs());
+            return makeAssignment(e.getSpan(), true, e.getExprType(),
+                                  e.getLhs(), e.getAssignOp(), e.getRhs(),
+                                  e.getOpsForLhs());
         }
         public Expr forBlock(Block e) {
-            return new Block(e.getSpan(), true, e.getExprs());
+            return makeBlock(e.getSpan(), true, e.getExprType(), e.getLoc(),
+                             e.isAtomicBlock(), e.isWithinDo(), e.getExprs());
         }
         public Expr forCaseExpr(CaseExpr e) {
-            return new CaseExpr(e.getSpan(), true, e.getExprType() , e.getParam(),
+            return makeCaseExpr(e.getSpan(), true, e.getExprType() , e.getParam(),
                                 e.getCompare(), e.getEqualsOp(), e.getInOp(),
                                 e.getClauses(), e.getElseClause());
         }
@@ -1113,8 +1302,8 @@ public class ExprFactory {
                                    e.getFront(), e.getRest());
         }
         public Expr forObjectExpr(ObjectExpr e) {
-            return new ObjectExpr(e.getSpan(), true, e.getExtendsClause(),
-                    e.getDecls());
+            return makeObjectExpr(e.getSpan(), true, e.getExprType(),
+                                  e.getExtendsClause(), e.getDecls());
         }
         public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
             return new _RewriteObjectExpr(e.getSpan(), true,
@@ -1125,17 +1314,19 @@ public class ExprFactory {
                     e.getStaticArgs(), e.getParams());
         }
         public Expr forTry(Try e) {
-            return new Try(e.getSpan(), true, e.getBody(),
-                    e.getCatchClause(), e.getForbidClause(),
-                    e.getFinallyClause());
+            return makeTry(e.getSpan(), true, e.getExprType(), e.getBody(),
+                           e.getCatchClause(), e.getForbidClause(),
+                           e.getFinallyClause());
         }
         public Expr forTupleExpr(TupleExpr e) {
-            return new TupleExpr(e.getSpan(), true, e.getExprs(), e.getVarargs(), e.getKeywords());
+            return makeTupleExpr(e.getSpan(), true, e.getExprType(),
+                                 e.getExprs(), e.getVarargs(), e.getKeywords(),
+                                 e.isInApp());
         }
         public Expr forTypecase(Typecase e) {
-            return new Typecase(e.getSpan(), true, e.getBindIds(),
-                    e.getBindExpr(), e.getClauses(),
-                    e.getElseClause());
+            return makeTypecase(e.getSpan(), true, e.getExprType(), e.getBindIds(),
+                                e.getBindExpr(), e.getClauses(),
+                                e.getElseClause());
         }
         public Expr forWhile(While e) {
             return new While(e.getSpan(), true, e.getTestExpr(), e.getBody());
@@ -1342,25 +1533,6 @@ public class ExprFactory {
                     Option.wrap(sub.getOp()),
                     sub.getStaticArgs());
         }
-    }
-
-    /**
-     * For rewriting the id list, expr, of an existing typecase.
-     * @param tc
-     * @param lid
-     * @param expr
-     * @return
-     */
-    public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
-        /* Span in_span,
-         * boolean in_parenthesized,
-         * Pair<List<Id>, Option<Expr>> in_bind,
-         * List<TypecaseClause> in_clauses,
-         * Option<Block> in_elseClause
-         */
-        return new Typecase(tc.getSpan(), tc.isParenthesized(), lid,
-                            Option.wrap(expr), tc.getClauses(),
-                            tc.getElseClause());
     }
 
     public static TemplateGapExpr makeTemplateGapExpr(Span s, Id id, List<Id> params) {

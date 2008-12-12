@@ -870,7 +870,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
              (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) ) {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add(fndef.getBody().unwrap());
-            Block b = new Block(_contract.unwrap().getSpan(), exprs);
+            Block b = ExprFactory.makeBlock(_contract.unwrap().getSpan(), exprs);
             if (_invariants.isSome()) b = translateInvariants(_invariants, b);
             if (_ensures.isSome())    b = translateEnsures(_ensures, b);
             if (_requires.isSome())   b = translateRequires(_requires, b);
@@ -1089,7 +1089,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Expr cond =
                 ExprFactory.makeTightJuxt(g.getSpan(),
                                           Q_WHILECOND_NAME,
-                                          ExprFactory.makeTuple(w.getSpan(),args));
+                                          ExprFactory.makeTupleExpr(w.getSpan(),args));
             w = ExprFactory.makeWhile(w.getSpan(),cond);
         }
         return (Expr)visitNode(w);
@@ -1175,7 +1175,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (Id b : binds)
             refs.add(ExprFactory.makeVarRef(b));
 
-        return ExprFactory.makeTuple(
+        return ExprFactory.makeTupleExpr(
                 new Span(binds.get(0).getSpan(),
                          binds.get(binds.size()-1).getSpan()),
                 refs);
@@ -1196,7 +1196,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (elsePart != null) args.add(thunk(elsePart));
             return ExprFactory.makeTightJuxt(c.getSpan(),
                                              Q_COND_NAME,
-                                             ExprFactory.makeTuple(c.getSpan(),args));
+                                             ExprFactory.makeTupleExpr(c.getSpan(),args));
         }
         // if expr then body else elsePart end is preserved
         // (but we replace elif chains by nesting).
@@ -1608,8 +1608,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                         (Id) vre.getVarId(),
                         visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                         visitedArgs.size() == 1 ? visitedArgs.get(0) :
-                            new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
-                                          visitedArgs));
+                            ExprFactory.makeTupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
+                                                      visitedArgs));
             }
         } else  if (expr instanceof FieldRef) {
 
@@ -1621,7 +1621,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                     selfDotSomething.getField(),
                                     visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
                                     visitedArgs.size() == 1 ? visitedArgs.get(0) :
-                                        new TupleExpr(NodeFactory.makeSpan("impossible", visitedArgs), visitedArgs));
+                                        ExprFactory.makeTupleExpr(NodeFactory.makeSpan("impossible", visitedArgs), visitedArgs));
         }
 
         throw new Error("Not there yet.");

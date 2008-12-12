@@ -100,7 +100,7 @@ public class EllipsesJUTest extends TestCase {
             List<Expr> blocks = new ArrayList<Expr>();
             blocks.add( new StringLiteralExpr(span, "hi" ) );
             blocks.add( mkTemplate( "x" ) );
-            Expr extra = new Block(span,  blocks );
+            Expr extra = ExprFactory.makeBlock(span,  blocks );
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add( new _EllipsesExpr( new Span(), extra ) );
             original = ExprFactory.makeTightJuxt(new Span(), exprs );
@@ -111,9 +111,9 @@ public class EllipsesJUTest extends TestCase {
 
         {
             List<Expr> exprs = new ArrayList<Expr>();
-            exprs.add( new Block(span, mkExprList( new StringLiteralExpr(span, "hi" ),
+            exprs.add( ExprFactory.makeBlock(span, mkExprList( new StringLiteralExpr(span, "hi" ),
                                               new StringLiteralExpr(span, "a" ) ) ) );
-            exprs.add( new Block(span,  mkExprList( new StringLiteralExpr(span, "hi" ),
+            exprs.add( ExprFactory.makeBlock(span,  mkExprList( new StringLiteralExpr(span, "hi" ),
                                               new StringLiteralExpr(span, "b" ) ) ) );
             expected = ExprFactory.makeTightJuxt(new Span(), exprs );
         }

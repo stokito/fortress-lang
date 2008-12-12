@@ -772,7 +772,7 @@ public final class FortressUtil {
 //   let span = span_all body in
 //     node span (`FlowExpr (node span (`BlockExpr (build_block body))))
     public static Block doBlock(Span span) {
-        return new Block(span, false, emptyExprs());
+        return ExprFactory.makeBlock(span, emptyExprs());
     }
 
     public static Block doBlock(List<Expr> exprs) {
@@ -798,7 +798,7 @@ public final class FortressUtil {
                 else es.add(0, e);
             }
         }
-        return new Block(span, false, es);
+        return ExprFactory.makeBlock(span, es);
     }
 
     private static boolean isEquality(Expr expr) {
