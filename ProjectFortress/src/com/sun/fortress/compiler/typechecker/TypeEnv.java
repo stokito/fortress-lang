@@ -194,7 +194,7 @@ public abstract class TypeEnv {
                             return new BoolArg(new Span(), new BoolRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindDim(KindDim k) {
-                            return new DimArg(new Span(), new DimRef(new Span(), (Id)name));
+                            return new DimArg(new Span(), NodeFactory.makeDimRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindInt(KindInt k) {
                             return new IntArg(new Span(), new IntRef(new Span(), (Id)name));
@@ -454,7 +454,7 @@ public abstract class TypeEnv {
                 overloads.add(genericArrowFromDecl(decl));
                 mods.addAll(decl.getMods());
             }
-            type = Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
+            type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
             mutable = false;
         }
 

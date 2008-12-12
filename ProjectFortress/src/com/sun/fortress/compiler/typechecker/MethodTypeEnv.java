@@ -83,7 +83,7 @@ class MethodTypeEnv extends TypeEnv {
             }
         }
         // TODO, need a "set span"
-        return Option.some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads)));
+        return Option.some(new BindingLookup(var, NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads)));
     }
 
     @Override

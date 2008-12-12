@@ -76,7 +76,7 @@ class FnDeclTypeEnv extends TypeEnv {
             overloadedTypes.add(genericArrowFromDecl(fn));
         }
         // TODO highly bogus span here -- we need a set-span
-        return some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
+        return some(new BindingLookup(var, NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
     }
 
     @Override

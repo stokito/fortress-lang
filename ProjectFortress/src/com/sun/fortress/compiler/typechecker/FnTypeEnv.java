@@ -161,7 +161,7 @@ class FnTypeEnv extends TypeEnv {
                                                   _fn.where()));
             }
         }
-        return Option.some(new BindingLookup(var, new IntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
+        return Option.some(new BindingLookup(var, NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloadedTypes), overloadedTypes)));
     }
 
     @Override
