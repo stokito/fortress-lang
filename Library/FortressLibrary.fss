@@ -25,6 +25,8 @@ import TypeProxy.{...}
 import Writer.{...}
 import Stream.{...}
 import String.{...}
+import List.{opr <| |>}
+
 
 export FortressLibrary
 
@@ -1072,11 +1074,16 @@ __map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
     consumed, and we do not create an intermediate collection but
     perform the filtering lazily on demand. **)
 __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
+do
     typecase g of
+        SomeGenerator2 => g.filter(p)
         FilterGenerator[\E\] => g.filter(p)
         SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g,p)
         else => SimpleFilterGenerator[\E\](g,p)
     end
+end
+
+
 
 (** Application of a BIG operator with a single generator
     to support the following syntactic sugar:
@@ -1104,16 +1111,45 @@ __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L
     we don't unlift and lift or do input/output conversion except where neccessary, so
     splitting skips these operations in between the inner and outer comprehension.
     **)
-__bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
-                                    inner:BigOperator[\I,M,R2,L2\],
-                                    gg: Generator[\Generator[\E\]\],
-                                    innerBody:E->L2): L1 = do
+(*
+This is too strong when I0 is BOTTOM.
+__bigOperator2[\I0,O0,R0,L0,I1,O1 extends I0,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0 = do
+*)
+__bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0 = do
     o = outer.reduction
-    i = inner.reduction
-    gg.generate(o,fn (xs) =>
-                   o.lift((outer.wrap())((inner.unwrap)(i.unlift(
-                                                xs.generate(i,innerBody))))))
+    i = inner.reduction 
+    resolvedouterBody=__resolveBottomArgumentType[\O1, I0, R0\](outer.body)
+    typecase (gg,outer,inner) of
+        (Generator2[\E\],BigOperator[\I0,I0,I0,L0\],BigOperator[\I1,I0,I0,L1\]) =>
+        (* Assumes that outer.body COMPOSE inner.unwrap is id 
+         * Often the assumption is satisfied, 
+         * but some types are necesary to guarantee it.
+         *)
+        (outer.unwrap)(gg.generate2[\I0,L0,L1\](o, i, fn x => (inner.body)(innerBody(x))))
+        else => 
+          ((outer.unwrap)(o.unlift(
+            gg.generate[\L0\](o,fn (xs) =>
+            o.lift((resolvedouterBody)(((inner.unwrap)(i.unlift(
+            xs.generate[\L1\](i,fn x=> i.lift((inner.body)(innerBody(x)))))))))))))
+    end
   end
+
+(* This checks whether the given function f accepts an arguemnt of type O1.
+ * 
+ *)
+__resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 = 
+typecase f of O1 -> R0 => fn (x:O1) : R0  => f(x)  
+else => throw CastError 
+end
+
 
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
     getter asString(): String = "seq(" (self asif Generator[\E\]).asString ")"
@@ -2694,19 +2730,23 @@ trait ActualReduction[\R,L\] extends Reduction[\L\]
     unlift(l:L): R
     (** If this reduction left-distributes over r, return a pair of
         reductions with the same lift and unlift **)
-    leftDistribute(r: Reduction[\R\]): SomeReductionPair[\R\] =
+    leftDistribute(r: Reduction[\R\]): PossibleReductionPair[\R\] =
         distribute(r)
     (** If this reduction right-distributes over r, return a pair of
         reductions with the same lift and unlift **)
-    rightDistribute(r: Reduction[\R\]): SomeReductionPair[\R\] =
+    rightDistribute(r: Reduction[\R\]): PossibleReductionPair[\R\] =
         distribute(r)
     (** If this reduction distributes over r, return a pair of
         reductions with the same lift and unlift **)
-    distribute[\K\](r: ActualReduction[\R,K\]): SomeReductionPair[\R\] =
+    (* a hack to avoid the error of overloaded methods *)
+    distribute(r: Any): PossibleReductionPair[\R\] =
         NoReductionPair[\R\]
+(*    distribute[\K\](r: ActualReduction[\R,K\]): PossibleReductionPair[\R\] =
+        NoReductionPair[\R\]
+*)
 end
 
-trait PossibleReductionPair[\R\] extends Condition[\SomeReductionPair[\R\]\]
+trait PossibleReductionPair[\R\] extends Condition[\PossibleReductionPair[\R\]\]
     comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
 end
 
@@ -2722,7 +2762,7 @@ trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
     cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
 end
 
-trait ReductionPair[\R,L\] extends SomeReductionPair[\R\]
+trait ReductionPair[\R,L\] extends SomeReductionPair[\L\]
     getter outer(): ActualReduction[\R,L\]
     getter inner(): ActualReduction[\R,L\]
 end
@@ -2750,7 +2790,37 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
         end
 end
 
-trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
+(** The lifting of operators to be fused with identity-less operators 
+    Nothing becomes zero
+**)
+object LiftedCommutativeMonoidReduction[\R\](org : CommutativeMonoidReduction[\R\]) extends ActualReduction[\R,AnyMaybe\]
+    getter toString(): String = org.toString() "(Lifted)"
+    empty(): Nothing[\R\] = Just(org.empty())
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
+        if av <- a then
+            if bv <- b then
+                Just(org.join(av,bv))
+            else
+                Nothing[\R\]
+            end
+        else
+            Nothing[\R\]
+        end
+    lift(r:Any): AnyMaybe = Just(r)
+    unlift(r:AnyMaybe): R =
+        if res <- r then
+            res
+        else
+            throw EmptyReduction
+        end
+end
+
+
+
+
+trait SomeCommutativeReduction end
+
+trait CommutativeReduction[\R\] extends { AssociativeReduction[\R\], SomeCommutativeReduction } end
 
 (** Monoids don't require a special lift and unlift operation. **)
 trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
@@ -2758,7 +2828,7 @@ trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
     unlift(r:R): R = r
 end
 
-trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+trait CommutativeMonoidReduction[\R\] extends { MonoidReduction[\R\], SomeCommutativeReduction} end
 
 trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isLeftZero(l:L): Boolean = isZero(l)
@@ -2795,11 +2865,52 @@ object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     join(a: (), b: ()): () = ()
 end
 
+trait DistributesOver[\E\] end
+
+object SumProdReductionPair extends ReductionPair[\Number,Number\]
+    getter outer() = SumReduction
+    getter inner() = ProdReduction 
+end
+
+object MaxSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MaxReduction[\Number\]
+    getter inner() = LiftedCommutativeMonoidReduction(SumReduction)
+end
+
+object MinSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MinReduction[\Number\]
+    getter inner() = LiftedCommutativeMonoidReduction(SumReduction)
+end
+
+object MaxNSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MaxReductionN
+    getter inner() = SumReduction
+end
+
+object MinNSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MinReductionN
+    getter inner() = SumReduction
+end
+
 (* Hack to permit any Number to work non-parametrically. *)
-object SumReduction extends CommutativeMonoidReduction[\Number\]
+object SumReduction extends { 
+  CommutativeMonoidReduction[\Number\],
+  DistributesOver[\MaxReductionN\],
+  DistributesOver[\MinReductionN\],
+  DistributesOver[\MaxReduction[\Number\]\],
+  DistributesOver[\MaxReduction[\Number\]\]
+   }
     getter asString(): String = "SumReduction"
     empty(): Number = 0
     join(a: Number, b: Number): Number = a+b
+    distribute(r: MaxReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] = 
+    MaxSumReductionPair
+    distribute(r: MinReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] = 
+    MinSumReductionPair
+    distribute(r: MaxReductionN): PossibleReductionPair[\AnyMaybe\] = 
+    MaxNSumReductionPair
+    distribute(r: MinReductionN): PossibleReductionPair[\AnyMaybe\] = 
+    MaxNSumReductionPair
 end
 
 opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
@@ -2808,10 +2919,15 @@ opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
 opr SUM[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](SUM[\T\](), g)
 
-object ProdReduction extends CommutativeMonoidReduction[\Number\]
+object ProdReduction extends { 
+  CommutativeMonoidReduction[\Number\],
+  DistributesOver[\SumReduction\]
+ }
     getter asString(): String = "ProdReduction"
     empty(): Number = 1
     join(a:Number, b:Number): Number = a b
+    distribute(r: SumReduction): PossibleReductionPair[\Number\] = 
+    SumProdReductionPair
 end
 
 opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
@@ -2824,6 +2940,30 @@ object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\
     getter asString(): String = "MinReduction"
     simpleJoin(a, b) = a MIN b
 end
+
+(* MAX without lifting for Numbers... (what is -1/0?)*)
+object MaxReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter toString(): String = "MaxReductionN"
+    empty(): Number = -1/0
+    join(a: Number, b: Number): Number = a MAX b
+end
+opr BIG MAXN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, MaxReductionN, cast[\Number\])
+
+opr BIG MAXN[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG MAXN[\T\](), g)
+
+object MinReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter toString(): String = "MinReductionN"
+    empty(): Number = 1/0
+    join(a: Number, b: Number): Number = a MIN b
+end
+opr BIG MINN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, MinReductionN, cast[\Number\])
+
+opr BIG MINN[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG MINN[\T\](), g)
+
 
 opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
     BigReduction[\T,AnyMaybe\](MinReduction[\T\])
@@ -3823,5 +3963,130 @@ opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
 
 object Box[\T\](var val : T)
 end
+
+
+
+(*--------------- for Generators-of-Generators ---------------*)
+(*--- for turning on/off dispatching in GGs ---------------*)
+var enableDispatching : Boolean := true
+switchDispatching(r : Boolean) : () = enableDispatching := r
+dispatchingEnabled() : Boolean = enableDispatching
+
+
+(*--- base traits of Generators-of-Generators ---------------*)
+trait SomeGenerator2 end  (* marking for GG *)
+
+(* non-filtered GG *)
+trait Generator2[\ E \] 
+  extends {Generator[\ Generator[\ E \] \], SomeGenerator2}
+  getter seed() : Generator[\ E \]
+
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = do
+    ths = theorems[\ R, L1, L2 \]()
+    i : ZZ32 := 0
+    label dispatchingLoop
+    while dispatchingEnabled() AND i < |ths| do
+      (condition, efficientImpl) = ths[i]
+      if(condition(q, r, f)) then
+        (* println("use efficient implementaion") *)
+        exit dispatchingLoop with efficientImpl(q, r, f)
+      end
+      i += 1
+    end
+    (* println("use naive implementaion") *)
+    naiveImpl[\ R, L1, L2 \](q, r, f)
+    end dispatchingLoop
+  end
+
+  naiveImpl[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = q.unlift(generate[\L1\](q, (fn (x) => q.lift(r.unlift(x.generate[\L2\](r,fn a => r.lift(f(a))))))))
+
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = <| |>
+
+
+  naiveImplFiltered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p : Generator[\E\] -> Condition[\()\], f : E -> R) : R = q.unlift(generate[\L1\](q, (fn (x) => if (p(x)).holds() then q.lift(r.unlift(x.generate[\L2\](r, fn a => r.lift(f(a))))) else q.empty() end)))
+
+  (* this is just for internal use *)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p : Generator[\E\] -> Condition[\()\], f : E -> R) : R = do
+    ths = theoremsFiltered[\ R, L1, L2 \]()
+    i : ZZ32 := 0
+    label dispatchingLoop
+    while dispatchingEnabled() AND i < |ths| do
+      (condition, efficientImpl) = ths[i]
+      if(condition(q, r, p, f)) then
+        (* println("use efficient implementaion") *)
+        exit dispatchingLoop with efficientImpl(q, r, p, f)
+      end
+      i += 1
+    end
+    (* println("use naive implementaion") *)
+    naiveImplFiltered[\ R, L1, L2 \](q, r, p, f)
+    end dispatchingLoop
+  end
+
+
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = <| |>
+
+
+  filter(p: Generator[\ E \] -> Condition[\()\]): Generator2[\E\] =
+        SimpleFilterGenerator2[\E\](self, p)
+end
+
+(* filtered GG *)
+trait FilterGenerator2[\ E \] 
+  extends { Generator2[\ E \], FilterGenerator[\ Generator[\ E \] \] }
+  filter(p': Generator[\ E \] -> Condition[\()\]): SimpleFilterGenerator2[\E\] =
+  SimpleFilterGenerator2[\E\](g(), p() ANDCOND p')
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = g().__generate2filtered[\ R, L1, L2 \](q,r,p(),f)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p' : Generator[\E\] -> Condition[\()\], f : E -> R) : R = g().__generate2filtered[\R, L1, L2\](q,r,p() ANDCOND p',f)
+
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = g().theoremsFiltered[\R, L1, L2\]()
+
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = g().theorems[\R\]()
+end
+
+(* object to hold predicates *)
+object SimpleFilterGenerator2[\E\](g0:Generator2[\E\], p0: Generator[\E\]->Condition[\()\])
+        extends FilterGenerator2[\E\]
+    getter g(): Generator2[\E\]       = g0
+    getter p(): Generator[\E\] -> Condition[\()\]  = p0
+    getter seed() : Generator[\ E \] = g().seed()
+end
+
+(*---------------------------Relational Predicates -------------------------*)
+(* base of relational predicates condition *)
+trait RelationalPredicateCondition[\E\] extends { Condition[\()\] } excludes Condition[\()\]
+  relation() : (E, E) -> Boolean
+  target() : Generator[\ E \]
+  cond[\G\](t: () -> G, e: () -> G) : G = do
+    (* println("condition is evaluated...") *)
+    x = target()
+    if x.size()<=1 then 
+      t()
+    else
+      sz = x.size() - 1
+      res = (0#sz).generate[\Boolean\](AndReduction, fn i => relation()(x[i],x[i+1]))
+      if res then t() else e() end
+    end
+  end
+end
+
+(* condition returned by relational predicate *)
+object ConcreteRelationalPredicateCondition[\E\](r : (E, E) -> Boolean, x : Generator[\ E \]) extends RelationalPredicateCondition[\()\]
+  relation() : (E, E) -> Boolean = r
+  target() : Generator[\ E \] = x
+end
+
+(* combining two relational predicates into a new relational predicate *)
+opr ANDCOND[\E\](p : Generator[\ E \] -> RelationalPredicateCondition[\ E \] , q : Generator[\ E \] -> RelationalPredicateCondition[\ E \] ) : Generator[\ E \] -> Condition[\ () \] = (fn (x : Generator[\ E \]) : AndRelationalPredicateCondition[\ E \] => AndRelationalPredicateCondition[\ E \](p, q, x))
+
+(* Combined condition for relational predicates *)
+object AndRelationalPredicateCondition[\ E \](fst : Generator[\ E \] -> RelationalPredicateCondition[\ E \], snd : Generator[\ E \] -> RelationalPredicateCondition[\ E \], x : Generator[\ E \])
+  extends { RelationalPredicateCondition[\ E \] }
+  relation() : (E, E) -> Boolean = fn (a:E, b:E) => fst(x).relation()(a,b) AND: snd(x).relation()(a,b)
+  target() : Generator[\ E \] = x
+end
+
+(* Shortcut to create a relational predicate *)
+relationalPredicate[\E\](relation : (E, E) -> Boolean) : E -> RelationalPredicateCondition[\ E \] = fn (x : Generator[\ E \]) : RelationalPredicateCondition[\ E \] => ConcreteRelationalPredicateCondition[\E\](relation, x)
 
 end

@@ -584,7 +584,7 @@ opr NOTNI[\E\](this: Contains[\E\], x:E): Boolean
  * Minimal complete definition of a %Generator% is the %generate%
  * method.  *)
 trait Generator[\E\] extends { Contains[\E\] }
-    excludes { Number }
+        excludes { Number }
     (** %generate% is the core of %Generator%.  It generates elements of
         type %E% and passes them to the %body% function.  This generation
         can occur using any mixture of serial and parallel execution
@@ -702,10 +702,28 @@ __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L
     we don't unlift and lift or do input/output conversion except where neccessary, so
     splitting skips these operations in between the inner and outer comprehension.
     **)
-__bigOperator2[\I,M,O,R1,L1,R2,L2,E\](outer:BigOperator[\M,O,R1,L1\],
-                                    inner:BigOperator[\I,M,R2,L2\],
-                                    gg: Generator[\Generator[\E\]\],
-                                    innerBody:E->L2): L1
+
+(*
+__bigOperator2[\I0,O0,R0,L0,I1,O1 extends I0,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0
+*)
+
+(*
+__bigOperator2[\I0,O0,R0,L0,I1,O1 extends I0,R1,L1,E,F extends Generator[\E\]\]
+              (outer:Comprehension[\I0,O0,R0,L0\],
+               inner:Comprehension[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0
+*)
+
+__bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0
 
 (* Not currently used for desugaring, but will be used in future.
 __nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\]
@@ -1590,13 +1608,16 @@ array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\]
 * \subsection*{Reductions}
 ************************************************************)
 
-trait Reduction[\R\] end
+trait Reduction[\L\]
+    empty(): L
+    join(a: L, b: L): L
+end
 
 (** Invariants:
     join must be associative with identity empty
     unlift(lift(x)) = x
  **)
-trait ActualReduction[\R,L\] extends Reduction[\R\]
+trait ActualReduction[\R,L\] extends Reduction[\L\]
     abstract empty(): L
     abstract join(a: L, b: L): L
     abstract lift(r:R): L
@@ -1642,7 +1663,11 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
     unlift(r:AnyMaybe): R
 end
 
-trait CommutativeReduction[\R\] extends AssociativeReduction[\R\] end
+trait SomeCommutativeReduction end (* mark for commutative *)
+
+trait DistributesOver[\E\] end (* marking for distributivity *)
+
+trait CommutativeReduction[\R\] extends {AssociativeReduction[\R\], SomeCommutativeReduction} end
 
 (** Monoids don't require a special lift and unlift operation. **)
 trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
@@ -1650,7 +1675,7 @@ trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
     unlift(r:R): R
 end
 
-trait CommutativeMonoidReduction[\R\] extends MonoidReduction[\R\] end
+trait CommutativeMonoidReduction[\R\] extends {MonoidReduction[\R\], SomeCommutativeReduction} end
 
 trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isLeftZero(l:L): Boolean
@@ -1687,7 +1712,10 @@ object VoidReduction extends { CommutativeMonoidReduction[\()\] }
 end
 
 (* Hack to permit any Number to work non-parametrically. *)
-object SumReduction extends CommutativeMonoidReduction[\Number\]
+object SumReduction extends {
+CommutativeMonoidReduction[\Number\] ,
+DistributesOver[\MaxReductionN\],
+DistributesOver[\MinReductionN\] }
     empty(): Number
     join(a: Number, b: Number): Number
 end
@@ -1696,7 +1724,11 @@ opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
 opr SUM[\T extends Number\](g: Generator[\T\]): Number
 
-object ProdReduction extends CommutativeMonoidReduction[\Number\]
+object ProdReduction extends {CommutativeMonoidReduction[\Number\],
+DistributesOver[\SumReduction\],
+DistributesOver[\MinReductionN\],  (* actually, we need to limit elements positive *)
+DistributesOver[\MaxReductionN\]
+ }
     empty(): Number
     join(a:Number, b:Number): Number
 end
@@ -1704,6 +1736,22 @@ end
 opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
 
 opr PROD[\T extends Number\](g: Generator[\T\]): Number
+
+object MaxReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter toString(): String
+    empty(): Number
+    join(a: Number, b: Number): Number
+end
+opr BIG MAXN[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
+opr BIG MAXN[\T extends Number\](g: Generator[\T\]): Number
+
+object MinReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter toString(): String
+    empty(): Number
+    join(a: Number, b: Number): Number
+end
+opr BIG MINN[\T extends Number\](): Comprehension[\T,Number,Number,Number\]
+opr BIG MINN[\T extends Number\](g: Generator[\T\]): Number
 
 object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
     simpleJoin(a:T, b:T): T
@@ -2275,5 +2323,38 @@ opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean
 opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison
 
 
+(*---------------------------- for Generators-of-Generators ---------------*)
+switchDispatching(r : Boolean) : () 
+dispatchingEnabled() : Boolean
+
+trait SomeGenerator2 end  (* marking for GG *)
+
+(* non-filtered GG *)
+trait Generator2[\ E \] 
+  extends {Generator[\ Generator[\ E \] \], SomeGenerator2}
+  getter seed() : Generator[\ E \]
+
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R
+
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\]
+
+  (* this is just for internal use *)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p : Generator[\E\] -> Condition[\()\], f : E -> R) : R
+
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\]
+
+  filter(p: Generator[\ E \] -> Condition[\()\]): Generator2[\E\]
+end
+
+(*---------------------------Relational Predicates -------------------------*)
+(* base of relational predicates condition *)
+trait RelationalPredicateCondition[\E\] extends { Condition[\()\] } excludes Condition[\()\]
+  relation() : (E, E) -> Boolean
+  target() : Generator[\ E \]
+  cond[\G\](t: () -> G, e: () -> G) : G
+end
+
+(* Shortcut to create a relational predicate *)
+relationalPredicate[\E\](relation : (E, E) -> Boolean) : E -> RelationalPredicateCondition[\ E \]
 
 end
