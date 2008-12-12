@@ -403,7 +403,7 @@ public final class Modifiers {
         return m;
     }
 
-    static final double factor = scalb(1.0,NEXT_AVAIL_MODIFIER);
+    static final double factor = pow(2.0,(double)NEXT_AVAIL_MODIFIER);
 
     /**
      * Generates a random but valid set of modifiers for testing.
