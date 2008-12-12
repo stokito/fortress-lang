@@ -36,6 +36,7 @@ import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.PureList;
@@ -64,10 +65,6 @@ public final class FortressUtil {
 
     public static List<Expr> emptyExprs() {
         return Collections.<Expr>emptyList();
-    }
-
-    public static List<Modifier> emptyModifiers() {
-        return Collections.<Modifier>emptyList();
     }
 
     public static List<Param> emptyParams() {
@@ -150,101 +147,25 @@ public final class FortressUtil {
         });
     }
 
-    private static void multiple(Span span, Modifier m) {
-        resetMods();
-        syntaxError(span, "A modifier must not occur multiple times");
-    }
-    static boolean m_atomic   = false;
-    static boolean m_getter   = false;
-    static boolean m_hidden   = false;
-    static boolean m_io       = false;
-    static boolean m_private  = false;
-    static boolean m_settable = false;
-    static boolean m_setter   = false;
-    static boolean m_test     = false;
-    static boolean m_value    = false;
-    static boolean m_var      = false;
-    static boolean m_widens   = false;
-    static boolean m_wrapped  = false;
-    private static void resetMods() {
-        m_atomic   = false;
-        m_getter   = false;
-        m_hidden   = false;
-        m_io       = false;
-        m_private  = false;
-        m_settable = false;
-        m_setter   = false;
-        m_test     = false;
-        m_value    = false;
-        m_var      = false;
-        m_widens   = false;
-        m_wrapped  = false;
-    }
-    public static void noDuplicate(final Span span, List<Modifier> mods) {
-        for (Modifier mod : mods) {
-            mod.accept(new NodeDepthFirstVisitor_void() {
-                    public void forModifierAtomic(ModifierAtomic m) {
-                        if (m_atomic) multiple(span, m);
-                        else m_atomic = true;
-                    }
-                    public void forModifierGetter(ModifierGetter m) {
-                        if (m_getter) multiple(span, m);
-                        else m_getter = true;
-                    }
-                    public void forModifierHidden(ModifierHidden m) {
-                        if (m_hidden) multiple(span, m);
-                        else m_hidden = true;
-                    }
-                    public void forModifierIO(ModifierIO m) {
-                        if (m_io) multiple(span, m);
-                        else m_io = true;
-                    }
-                    public void forModifierPrivate(ModifierPrivate m) {
-                        if (m_private) multiple(span, m);
-                        else m_private = true;
-                    }
-                    public void forModifierSettable(ModifierSettable m) {
-                        if (m_settable) multiple(span, m);
-                        else m_settable = true;
-                    }
-                    public void forModifierSetter(ModifierSetter m) {
-                        if (m_setter) multiple(span, m);
-                        else m_setter = true;
-                    }
-                    public void forModifierTest(ModifierTest m) {
-                        if (m_test) multiple(span, m);
-                        else m_test = true;
-                    }
-                    public void forModifierValue(ModifierValue m) {
-                        if (m_value) multiple(span, m);
-                        else m_value = true;
-                    }
-                    public void forModifierVar(ModifierVar m) {
-                        if (m_var) multiple(span, m);
-                        else m_var = true;
-                    }
-                    public void forModifierWidens(ModifierWidens m) {
-                        if (m_widens) multiple(span, m);
-                        else m_widens = true;
-                    }
-                    public void forModifierWrapped(ModifierWrapped m) {
-                        if (m_wrapped) multiple(span, m);
-                        else m_wrapped = true;
-                    }
-                });
+    public static Modifiers noDuplicate(final Span span, Iterable<Modifiers> mods) {
+        Modifiers res = Modifiers.None;
+        for (Modifiers mod : mods) {
+            if (res.containsAny(mod)) {
+                syntaxError(span, "Modifier " + mod + " must not occur multiple times");
+            }
+            res = res.combine(mod);
         }
-        resetMods();
+        return res;
     }
 
     public static void checkNoWrapped(Option<List<Param>> optParams) {
         if ( optParams.isSome() ) {
             List<Param> params = optParams.unwrap();
             for ( Param param : params ) {
-                for ( Modifier mod : param.getMods() ) {
-                    if ( mod instanceof ModifierWrapped )
-                        syntaxError(param.getSpan(),
-                                    "The modifier \"wrapped\" cannot " +
-                                    "appear in an API.");
+                if (param.getMods().isWrapped()) {
+                    syntaxError(param.getSpan(),
+                                "The modifier \"wrapped\" cannot " +
+                                "appear in an API.");
                 }
             }
         }
@@ -345,14 +266,6 @@ public final class FortressUtil {
         return true;
     }
 
-    public static boolean getMutable(List<Modifier> mods) {
-        for (Modifier m : mods) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable)
-                return true;
-        }
-        return false;
-    }
-
     public static void allHaveTypes(List<LValue> vars) {
         for (LValue l : vars) {
             if (l.getIdType().isNone())
@@ -372,15 +285,13 @@ public final class FortressUtil {
     public static List<LValue> setMutable(List<LValue> vars, Span span) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar());
-            result.add(NodeFactory.makeLValue(l, mods));
+            result.add(NodeFactory.makeLValue(l, Modifiers.Var));
         }
         return result;
     }
 
     public static List<LValue> setMods(List<LValue> vars,
-                                           List<Modifier> mods) {
+                                       Modifiers mods) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             result.add(NodeFactory.makeLValue(l, mods));
@@ -389,7 +300,7 @@ public final class FortressUtil {
     }
 
     public static List<LValue> setModsAndMutable(List<LValue> vars,
-                                                     List<Modifier> mods) {
+                                                 Modifiers mods) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
             result.add(NodeFactory.makeLValue(l, mods, true));
@@ -400,9 +311,7 @@ public final class FortressUtil {
     public static List<LValue> setMutableLValue(List<LValue> vars, Span span) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar());
-            result.add(NodeFactory.makeLValue(l, mods));
+            result.add(NodeFactory.makeLValue(l, Modifiers.Var));
         }
         return result;
     }
@@ -437,9 +346,7 @@ public final class FortressUtil {
                                                  Type ty) {
         List<LValue> result = new ArrayList<LValue>();
         for (LValue l : vars) {
-            List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar());
-            result.add(NodeFactory.makeLValue(l, ty, mods));
+            result.add(NodeFactory.makeLValue(l, ty, Modifiers.Var));
         }
         return result;
     }
@@ -460,16 +367,14 @@ public final class FortressUtil {
         List<LValue> result = new ArrayList<LValue>();
         int ind = 0;
         for (LValue l : vars) {
-            List<Modifier> mods = new ArrayList<Modifier>();
-            mods.add(new ModifierVar());
-            result.add(NodeFactory.makeLValue(l, tys.get(ind), mods));
+            result.add(NodeFactory.makeLValue(l, tys.get(ind), Modifiers.Var));
             ind += 1;
         }
         return result;
     }
 
-    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
-                                           Option<Type> ty, boolean mutable) {
+    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
+                                       Option<Type> ty, boolean mutable) {
         List<LValue> lvs = new ArrayList<LValue>();
         for (Id id : ids) {
             lvs.add(NodeFactory.makeLValue(id.getSpan(), id, mods, ty, mutable));
@@ -477,25 +382,25 @@ public final class FortressUtil {
         return lvs;
     }
 
-    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
+    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
                                        Type ty, boolean mutable) {
         return ids2Lvs(ids, mods, Option.<Type>some(ty), mutable);
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids, Type ty,
                                            boolean mutable) {
-        return ids2Lvs(ids, emptyModifiers(), Option.<Type>some(ty), mutable);
+        return ids2Lvs(ids, Modifiers.None, Option.<Type>some(ty), mutable);
     }
 
-    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods) {
+    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods) {
         return ids2Lvs(ids, mods, Option.<Type>none(), false);
     }
 
     public static List<LValue> ids2Lvs(List<Id> ids) {
-        return ids2Lvs(ids, emptyModifiers(), Option.<Type>none(), false);
+        return ids2Lvs(ids, Modifiers.None, Option.<Type>none(), false);
     }
 
-    public static List<LValue> ids2Lvs(List<Id> ids, List<Modifier> mods,
+    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
                                            List<Type> tys, boolean mutable) {
         List<LValue> lvs = new ArrayList<LValue>();
         int ind = 0;
@@ -510,10 +415,10 @@ public final class FortressUtil {
 
     public static List<LValue> ids2Lvs(List<Id> ids, List<Type> tys,
                                            boolean mutable) {
-        return ids2Lvs(ids, emptyModifiers(), tys, mutable);
+        return ids2Lvs(ids, Modifiers.None, tys, mutable);
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   FnHeaderFront fhf, FnHeaderClause fhc) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
@@ -525,7 +430,7 @@ public final class FortressUtil {
     }
 
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   IdOrOpOrAnonymousName name, List<StaticParam> sparams,
                                   List<Param> params,
                                   FnHeaderClause fhc) {
@@ -538,7 +443,7 @@ public final class FortressUtil {
                                       where_, contract);
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   IdOrOpOrAnonymousName name, List<Param> params,
                                   Type ty) {
         return NodeFactory.makeFnDecl(span, mods, name,
@@ -546,7 +451,7 @@ public final class FortressUtil {
                                       Option.<Type>some(ty));
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                  FnHeaderFront fhf,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
@@ -558,7 +463,7 @@ public final class FortressUtil {
                                       contract, Option.<Expr>some(expr));
     }
 
-    public static FnDecl mkFnDecl(Span span, List<Modifier> mods, IdOrOpOrAnonymousName name,
+    public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
                                  List<StaticParam> sparams, List<Param> params,
                                  FnHeaderClause fhc, Expr expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();

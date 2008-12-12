@@ -28,7 +28,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
      public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
     public static String errorMsg(Object... messages) {
-        StringBuffer fullMessage = new StringBuffer();
+        StringBuilder fullMessage = new StringBuilder();
         for (Object message : messages) {
             if (message instanceof AbstractNode) {
                 fullMessage.append(makeErrorMsg((AbstractNode)message));
@@ -128,21 +128,6 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
                 + (node.getReturnType().isSome() ? (":" + node.getReturnType().unwrap().accept(this)) : "")
                 ;//+ "@" + NodeUtil.getAt(node.getFnName());
     }
-
-    public String forModifierAbstract(ModifierAbstract node) { return "abstract"; }
-    public String forModifierAtomic(ModifierAtomic node) { return "atomic"; }
-    public String forModifierGetter(ModifierGetter node) { return "getter"; }
-    public String forModifierHidden(ModifierHidden node) { return "hidden"; }
-    public String forModifierIO(ModifierIO node) { return "io"; }
-    public String forModifierOverride(ModifierOverride node) { return "override"; }
-    public String forModifierPrivate(ModifierPrivate node) { return "private"; }
-    public String forModifierSettable(ModifierSettable node) { return "settable"; }
-    public String forModifierSetter(ModifierSetter node) { return "setter"; }
-    public String forModifierTest(ModifierTest node) { return "test"; }
-    public String forModifierValue(ModifierValue node) { return "value"; }
-    public String forModifierVar(ModifierVar node) { return "var"; }
-    public String forModifierWidens(ModifierWidens node) { return "widens"; }
-    public String forModifierWrapped(ModifierWrapped node) { return "wrapped"; }
 
     public String forIdOrOp(IdOrOp node) {
         if ( node instanceof Id )

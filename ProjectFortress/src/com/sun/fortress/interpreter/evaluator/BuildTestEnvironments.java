@@ -53,23 +53,12 @@ public class BuildTestEnvironments extends NodeDepthFirstVisitor<Boolean> {
         tests = new ArrayList<String>();
     }
 
-    public boolean containsTestModifier(List<Modifier> mods) {
-        if (!mods.isEmpty()) {
-            for (Iterator<Modifier> i = mods.iterator(); i.hasNext();) {
-                    Modifier m = i.next();
-                    if (m instanceof ModifierTest)
-                        return true;
-            }
-        }
-        return false;
-    }
-
     public Boolean forFnDecl(FnDecl x) {
         Debug.debug( Debug.Type.INTERPRETER, 2, "ForFnDecl ", x);
         List<StaticParam> optStaticParams = x.getStaticParams();
         String fname = NodeUtil.nameAsMethod(x);
 
-        if (containsTestModifier(x.getMods())) {
+        if (x.getMods().isTest()) {
             tests.add(fname);
         }
         return false;

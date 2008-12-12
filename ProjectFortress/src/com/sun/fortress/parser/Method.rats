@@ -39,10 +39,7 @@ import Spacing;
 FnDecl MdDecl =
      MdDef
    / a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null)
-           mods.add(new ModifierAbstract());
-       if (a2 != null) mods.addAll(a2);
+     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        a3, a4);
      };
@@ -50,7 +47,7 @@ FnDecl MdDecl =
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
      a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { if (a1 == null) a1 = FortressUtil.emptyModifiers();
+     { a1 = Modifiers.nonNull(a1);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
                                        a2, a3, a4);
      };
@@ -58,10 +55,7 @@ FnDecl MdDef =
 /* AbsMdDecl ::= (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause */
 FnDecl AbsMdDecl =
      a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null)
-           mods.add(new ModifierAbstract());
-       if (a2 != null) mods.addAll(a2);
+     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2);;
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        a3, a4);
      };
@@ -104,11 +98,7 @@ FnDecl GetterSetterDecl =
      GetterSetterDef
    / a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null)
-           mods.add(new ModifierAbstract());
-       if (a2 != null) mods.addAll(a2);
-       mods.add(a3);
+     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2,a3);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        a4, a5);
      };
@@ -119,16 +109,15 @@ FnDecl GetterSetterDecl =
 FnDecl GetterSetterDef =
      a1:Mods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
      a5:NoNewlineExpr
-     { if (a1 == null) a1 = new ArrayList<Modifier>();
-       a1.add(a2);
+     { a1 = Modifiers.combine(a1,a2);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), a1,
                                        a3, a4, a5);
      };
 
 /* GetterSetterMod ::= getter w | setter w */
-transient private Modifier GetterSetterMod =
-     a1:getter w { yyValue = new ModifierGetter();}
-   / a1:setter w { yyValue = new ModifierSetter();};
+transient private Modifiers GetterSetterMod =
+     a1:getter w { yyValue = Modifiers.Getter;}
+   / a1:setter w { yyValue = Modifiers.Setter;};
 
 /* AbsGetterSetterDecl ::=
      (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
@@ -136,11 +125,7 @@ transient private Modifier GetterSetterMod =
 FnDecl AbsGetterSetterDecl =
      a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
      a5:FnHeaderClause
-     { List<Modifier> mods = new ArrayList<Modifier>();
-       if (a1 != null)
-           mods.add(new ModifierAbstract());
-       if (a2 != null) mods.addAll(a2);
-       mods.add(a3);
+     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2,a3);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        a4, a5);
      };
@@ -154,8 +139,7 @@ Decl Coercion =
      a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
        List<Param> params = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a2, a3));
-       List<Modifier> mods = new ArrayList<Modifier>();
-       if (a5 != null) mods.add(new ModifierWidens());
+       Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        new Id(span,"coerce"),a1, params, a4, a6);
@@ -169,8 +153,7 @@ Decl AbsCoercion =
      a4:CoercionClauses a5:(w widens)?
      { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
        List<Param> params = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a2, a3));
-       List<Modifier> mods = new ArrayList<Modifier>();
-       if (a5 != null) mods.add(new ModifierWidens());
+       Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
                                        new Id(span, "coerce"),

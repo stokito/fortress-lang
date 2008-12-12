@@ -77,7 +77,6 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
         public Node forTraitDeclOnly(TraitDecl that,
-                                     List<Modifier> mods,
                                      Id name,
                                      List<StaticParam> staticParams,
                                      List<TraitTypeWhere> extendsClause,
@@ -88,13 +87,12 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         if (!that.getName().equals(anyTypeId)) {
             extendsClause = rewriteExtendsClause(that, extendsClause);
         }
-        return super.forTraitDeclOnly(that, mods, name, staticParams, extendsClause,
+        return super.forTraitDeclOnly(that, name, staticParams, extendsClause,
                                       where, decls, excludes, comprises);
     }
 
     @Override
         public Node forObjectDeclOnly(ObjectDecl that,
-                                      List<Modifier> mods,
                                       Id name,
                                       List<StaticParam> staticParams,
                                       List<TraitTypeWhere> extendsClause,
@@ -104,7 +102,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                       Option<List<BaseType>> throwsClause,
                                       Option<Contract> contract) {
         extendsClause = rewriteExtendsClause(that, extendsClause);
-        return super.forObjectDeclOnly(that, mods, name, staticParams, extendsClause,
+        return super.forObjectDeclOnly(that, name, staticParams, extendsClause,
                                        where, decls, params, throwsClause, contract);
     }
 

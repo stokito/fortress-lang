@@ -53,43 +53,18 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
         return Option.<Node>none();
     }
 
-    private boolean containsPrivate(List<Modifier> mods) {
-        boolean result = false;
-        for (Modifier mod : mods) {
-            if ( mod instanceof ModifierPrivate )
-                result = true;
-        }
-        return result;
-    }
-
     private Boolean isPrivate(Decl decl) {
-        return decl.accept( new NodeDepthFirstVisitor<Boolean>() {
-                @Override public Boolean forTraitDecl(TraitDecl that) {
-                    return new Boolean(containsPrivate(that.getMods()));
-                }
-
-                @Override public Boolean forObjectDecl(ObjectDecl that) {
-                    return new Boolean(containsPrivate(that.getMods()));
-                }
-
-                @Override public Boolean forVarDecl(VarDecl that) {
-                    List<LValue> lhs = that.getLhs();
-                    boolean result = false;
-                    for (LValue lv : lhs) {
-                        if ( containsPrivate(lv.getMods()) )
-                            result = true;
-                    }
-                    return new Boolean(result);
-                }
-
-                @Override public Boolean forFnDecl(FnDecl that) {
-                    return new Boolean(containsPrivate(that.getMods()));
-                }
-
-                @Override public Boolean defaultCase(Node that) {
-                    return new Boolean(false);
-                }
-            } ).booleanValue();
+        if (decl instanceof TraitObjectDecl) {
+            return ((TraitObjectDecl)decl).getMods().isPrivate();
+        } else if (decl instanceof VarDecl) {
+            List<LValue> lhs = ((VarDecl)decl).getLhs();
+            for (LValue lv : lhs) {
+                if (lv.getMods().isPrivate()) return true;
+            }
+        } else if (decl instanceof FnDecl) {
+            return ((FnDecl)decl).getMods().isPrivate();
+        }
+        return false;
     }
 
     private List<Decl> declsToDecls(final List<Decl> that) {
@@ -162,13 +137,8 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             for (LValue lvb : that.getLhs()) {
                 if ( lvb.getIdType().isNone() )
                     log(lvb, "The type of " + lvb.getName() + " is required.");
-                if ( inObject && NodeUtil.isVar(lvb.getMods()) ) {
-                    List<Modifier> mods = new ArrayList<Modifier>();
-                    for (Modifier mod : lvb.getMods()) {
-                        if ( ! (mod instanceof ModifierVar) ) {
-                            mods.add( mod );
-                        }
-                    }
+                if ( inObject && lvb.getMods().isVar()) {
+                    Modifiers mods = lvb.getMods().remove(Modifiers.Var);
                     lhs.add( NodeFactory.makeLValue(lvb, mods, false) );
                 } else
                     lhs.add( lvb );
@@ -190,9 +160,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             /* For an abstract method declaration in a component,
                the APIMaker puts the "abstract" modifier in the generated API.
             */
-            List<Modifier> mods = that.getMods();
+            Modifiers mods = that.getMods();
             if ( inTrait && that.getBody().isNone() ) {
-                mods.add(0, new ModifierAbstract());
+                mods = mods.combine(Modifiers.Abstract);
             }
             return Option.<Node>some(
                           NodeFactory.makeFnDecl(that.getSpan(),

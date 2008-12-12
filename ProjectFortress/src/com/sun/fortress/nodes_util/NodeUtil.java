@@ -236,34 +236,8 @@ public class NodeUtil {
         return (params.size() > 2);
     }
 
-    public static boolean isSetterOrGetter(List<Modifier> mods) {
-        NodeDepthFirstVisitor<Boolean> mod_visitor =
-            new NodeDepthFirstVisitor<Boolean>() {
-            @Override public Boolean defaultCase(Node n) { return false; }
-            @Override public Boolean forModifierGetter(ModifierGetter that) { return true; }
-            @Override public Boolean forModifierSetter(ModifierSetter that) { return true; }
-        };
-
-        return
-            IterUtil.fold(mod_visitor.recurOnListOfModifier(mods), false, new Lambda2<Boolean,Boolean,Boolean>(){
-                    public Boolean value(Boolean arg0, Boolean arg1) { return arg0 | arg1; }});
-    }
-
-    public static boolean isVar(List<Modifier> mods) {
-        for (Modifier mod : mods) {
-            if ( mod instanceof ModifierVar )
-                return true;
-        }
-        return false;
-    }
-
     public static boolean isMutable(Param p) {
-        for (Modifier m : p.getMods()) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable) {
-                return true;
-            }
-        }
-        return false;
+        return p.getMods().isMutable();
     }
 
     public final static NodeVisitor<String> nameSuffixGetter =
@@ -574,21 +548,11 @@ public class NodeUtil {
 
 
     public static boolean isGetter(FnDecl decl) {
-        for (Modifier mod : decl.getMods()) {
-            if (mod instanceof ModifierGetter) {
-                return true;
-            }
-        }
-        return false;
+        return decl.getMods().isGetter();
     }
 
     public static boolean isSetter(FnDecl decl) {
-        for (Modifier mod : decl.getMods()) {
-            if (mod instanceof ModifierSetter) {
-                return true;
-            }
-        }
-        return false;
+        return decl.getMods().isSetter();
     }
 
     /* for APIName ******************************************************/

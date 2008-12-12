@@ -35,21 +35,6 @@ import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.Level;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierAbstract;
-import com.sun.fortress.nodes.ModifierAtomic;
-import com.sun.fortress.nodes.ModifierGetter;
-import com.sun.fortress.nodes.ModifierHidden;
-import com.sun.fortress.nodes.ModifierIO;
-import com.sun.fortress.nodes.ModifierOverride;
-import com.sun.fortress.nodes.ModifierPrivate;
-import com.sun.fortress.nodes.ModifierSettable;
-import com.sun.fortress.nodes.ModifierSetter;
-import com.sun.fortress.nodes.ModifierTest;
-import com.sun.fortress.nodes.ModifierValue;
-import com.sun.fortress.nodes.ModifierVar;
-import com.sun.fortress.nodes.ModifierWidens;
-import com.sun.fortress.nodes.ModifierWrapped;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.InFixity;
 import com.sun.fortress.nodes.PreFixity;
@@ -344,8 +329,8 @@ public class Unprinter extends NodeReflection {
                     f.set(node, readOption());
                 } else if (Fixity.class.isAssignableFrom(f.getType())) {
                     f.set(node, readFixity());
-                } else if (Modifier.class.isAssignableFrom(f.getType())) {
-                    f.set(node, readModifier());
+                } else if (Modifiers.class.isAssignableFrom(f.getType())) {
+                    f.set(node, Modifiers.decode(l.name()));
                 } else if (StaticParamKind.class.isAssignableFrom(f.getType())) {
                     f.set(node, readStaticParamKind());
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
@@ -630,42 +615,6 @@ public class Unprinter extends NodeReflection {
             fixity = new UnknownFixity();
         expectPrefix(")");
         return fixity;
-    }
-
-    public Modifier readModifier() throws IOException {
-        expectPrefix("(");
-        String s = l.name();
-        Modifier modifier;
-        if ( "ModifierAbstract".equals(s) )
-            modifier = new ModifierAbstract();
-        else if ( "ModifierAtomic".equals(s) )
-            modifier = new ModifierAtomic();
-        else if ( "ModifierGetter".equals(s) )
-            modifier = new ModifierGetter();
-        else if ( "ModifierHidden".equals(s) )
-            modifier = new ModifierHidden();
-        else if ( "ModifierIO".equals(s) )
-            modifier = new ModifierIO();
-        else if ( "ModifierOverride".equals(s) )
-            modifier = new ModifierOverride();
-        else if ( "ModifierPrivate".equals(s) )
-            modifier = new ModifierPrivate();
-        else if ( "ModifierSettable".equals(s) )
-            modifier = new ModifierSettable();
-        else if ( "ModifierSetter".equals(s) )
-            modifier = new ModifierSetter();
-        else if ( "ModifierTest".equals(s) )
-            modifier = new ModifierTest();
-        else if ( "ModifierValue".equals(s) )
-            modifier = new ModifierValue();
-        else if ( "ModifierVar".equals(s) )
-            modifier = new ModifierVar();
-        else if ( "ModifierWidens".equals(s) )
-            modifier = new ModifierWidens();
-        else
-            modifier = new ModifierWrapped();
-        expectPrefix(")");
-        return modifier;
     }
 
     public StaticParamKind readStaticParamKind() throws IOException {

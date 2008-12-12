@@ -29,8 +29,6 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierSettable;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
@@ -43,6 +41,7 @@ import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.FieldRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 
@@ -143,9 +142,7 @@ public class VarRefContainer {
     private Param makeVarParamFromVarRef(VarRef var,
                                          Span paramSpan,
                                                Option<Type> typeOp) {
-        List<Modifier> mods = new LinkedList<Modifier>();
-        mods.add( new ModifierSettable() );
-        Param param = NodeFactory.makeParam(paramSpan, mods, var.getVarId(), typeOp);
+        Param param = NodeFactory.makeParam(paramSpan, Modifiers.Settable, var.getVarId(), typeOp);
         return param;
     }
 

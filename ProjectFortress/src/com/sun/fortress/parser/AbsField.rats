@@ -34,7 +34,7 @@ import Spacing;
  */
 VarDecl AbsFldDecl = AbsVarDecl ;
 
-List<Modifier> AbsVarMods := AbsFldMods ;
+Modifiers AbsVarMods := AbsFldMods ;
 
 /* ApiFldDecl ::=
      ApiFldMods? NoNewlineFldWTypes

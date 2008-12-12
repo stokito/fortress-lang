@@ -183,14 +183,14 @@ public class NodeFactory {
     public static TraitDecl makeTraitDecl(Span span, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC) {
-        return makeTraitDecl(span, Collections.<Modifier>emptyList(), name,
+        return makeTraitDecl(span, Modifiers.None, name,
                              sparams, extendsC, Option.<WhereClause>none(),
                              Collections.<Decl>emptyList(),
                              Collections.<BaseType>emptyList(),
                              Option.<List<BaseType>>none());
     }
 
-    public static TraitDecl makeTraitDecl(Span span, List<Modifier> mods, Id name,
+    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
                                           List<StaticParam> sparams,
                                           List<TraitTypeWhere> extendsC,
                                           Option<WhereClause> whereC,
@@ -204,7 +204,7 @@ public class NodeFactory {
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls) {
-        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+        return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               extendsC, Option.<WhereClause>none(), decls,
                               Option.<List<Param>>none(),
@@ -214,7 +214,7 @@ public class NodeFactory {
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
                                             Option<List<Param>> params) {
-        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+        return makeObjectDecl(span, Modifiers.None, name,
                               Collections.<StaticParam>emptyList(),
                               Collections.<TraitTypeWhere>emptyList(),
                               Option.<WhereClause>none(),
@@ -228,7 +228,7 @@ public class NodeFactory {
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls,
                                             Option<List<Param>> params) {
-        return makeObjectDecl(span, Collections.<Modifier>emptyList(), name,
+        return makeObjectDecl(span, Modifiers.None, name,
                               sparams, extendsC,
                               Option.<WhereClause>none(), decls,
                               params,
@@ -236,7 +236,7 @@ public class NodeFactory {
                               Option.<Contract>none());
     }
 
-    public static ObjectDecl makeObjectDecl(Span span, List<Modifier> mods, Id name,
+    public static ObjectDecl makeObjectDecl(Span span, Modifiers mods, Id name,
                                             List<StaticParam> sparams,
                                             List<TraitTypeWhere> extendsC,
                                             Option<WhereClause> whereC,
@@ -248,7 +248,7 @@ public class NodeFactory {
                               params, throwsC, contract);
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -259,7 +259,7 @@ public class NodeFactory {
                           Option.<Contract>none());
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<Param> params,
                                     Option<Type> returnType,
@@ -273,7 +273,7 @@ public class NodeFactory {
                           body);
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -287,7 +287,7 @@ public class NodeFactory {
                           Option.<Expr>none(), Option.<Id>none());
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -302,7 +302,7 @@ public class NodeFactory {
                           body, Option.<Id>none());
     }
 
-    public static FnDecl makeFnDecl(Span span, List<Modifier> mods,
+    public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -334,7 +334,7 @@ public class NodeFactory {
 
     public static LValue makeLValue(Span span, Id name, Option<Type> type) {
         return makeLValue(span, name,
-                          Collections.<Modifier>emptyList(),
+                          Modifiers.None,
                           type, false);
     }
 
@@ -353,27 +353,27 @@ public class NodeFactory {
     public static LValue makeLValue(Id name, Id type) {
         return makeLValue(FortressUtil.spanTwo(name, type),
                           name,
-                          Collections.<Modifier>emptyList(),
+                          Modifiers.None,
                           Option.some((Type)makeVarType(type.getSpan(),type)),
                           false);
     }
 
     public static LValue makeLValue(Id id, Type ty) {
-        return makeLValue(id, ty, Collections.<Modifier>emptyList());
+        return makeLValue(id, ty, Modifiers.None);
     }
 
     public static LValue makeLValue(Id id, Type ty,
-                                    List<Modifier> mods) {
+                                    Modifiers mods) {
         return makeLValue(id.getSpan(), id, mods, Option.<Type>some(ty),
-                          FortressUtil.getMutable(mods));
+                          mods.isMutable());
     }
 
     public static LValue makeLValue(String name, Type type) {
         return makeLValue(type.getSpan(), makeId(name),
-                          Collections.<Modifier>emptyList(), Option.some(type), false);
+                          Modifiers.None, Option.some(type), false);
     }
 
-    public static LValue makeLValue(String name, Type type, List<Modifier> mods) {
+    public static LValue makeLValue(String name, Type type, Modifiers mods) {
         return makeLValue(type.getSpan(), makeId(name), mods, Option.some(type), false);
     }
 
@@ -381,7 +381,7 @@ public class NodeFactory {
         return makeLValue(name, makeVarType(type));
     }
 
-    public static LValue makeLValue(LValue lvb, List<Modifier> mods,
+    public static LValue makeLValue(LValue lvb, Modifiers mods,
                                     boolean mutable) {
         return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
@@ -396,12 +396,8 @@ public class NodeFactory {
                           mutable);
     }
 
-    public static LValue makeLValue(LValue lvb, List<Modifier> mods) {
-        boolean mutable = lvb.isMutable();
-        for (Modifier m : mods) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable)
-                mutable = true;
-        }
+    public static LValue makeLValue(LValue lvb, Modifiers mods) {
+        boolean mutable = lvb.isMutable() || mods.isMutable();
         return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
 
@@ -417,27 +413,23 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(LValue lvb, Type ty,
-                                    List<Modifier> mods) {
-        boolean mutable = lvb.isMutable();
-        for (Modifier m : mods) {
-            if (m instanceof ModifierVar || m instanceof ModifierSettable)
-                mutable = true;
-        }
+                                    Modifiers mods) {
+        boolean mutable = lvb.isMutable() || mods.isMutable();
         return makeLValue(lvb.getSpan(), lvb.getName(), mods,
                           Option.<Type>some(ty), mutable);
     }
 
-    public static LValue makeLValue(Span span, Id name, List<Modifier> mods,
+    public static LValue makeLValue(Span span, Id name, Modifiers mods,
                                     Option<Type> type, boolean mutable) {
         return new LValue(span, name, mods, type, mutable);
     }
 
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+    public static Param makeParam(Span span, Modifiers mods, Id name,
                                   Type type) {
         return makeParam(span, mods, name, Option.<Type>some(type));
     }
 
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+    public static Param makeParam(Span span, Modifiers mods, Id name,
                                   Option<Type> type) {
         return makeParam(span, mods, name, type,
                          Option.<Expr>none(), Option.<Type>none());
@@ -448,16 +440,16 @@ public class NodeFactory {
     }
 
     public static Param makeParam(Id id, Type type) {
-        return makeParam(id.getSpan(), Collections.<Modifier>emptyList(), id,
+        return makeParam(id.getSpan(), Modifiers.None, id,
                          Option.<Type>some(type));
     }
 
     public static Param makeParam(Id id, Option<Type> type) {
-        return makeParam(id.getSpan(), Collections.<Modifier>emptyList(), id, type);
+        return makeParam(id.getSpan(), Modifiers.None, id, type);
     }
 
     public static Param makeParam(Span span, Id id, Option<Type> type) {
-        return makeParam(span, Collections.<Modifier>emptyList(), id, type);
+        return makeParam(span, Modifiers.None, id, type);
     }
 
     public static Param makeParam(Param param, Expr expr) {
@@ -466,7 +458,7 @@ public class NodeFactory {
                          param.getVarargsType());
     }
 
-    public static Param makeParam(Param param, List<Modifier> mods) {
+    public static Param makeParam(Param param, Modifiers mods) {
         return makeParam(param.getSpan(), mods, param.getName(),
                          param.getIdType(), param.getDefaultExpr(),
                          param.getVarargsType());
@@ -479,17 +471,17 @@ public class NodeFactory {
     }
 
     public static Param makeVarargsParam(Id name, Type type) {
-        return makeParam(name.getSpan(), Collections.<Modifier>emptyList(), name,
+        return makeParam(name.getSpan(), Modifiers.None, name,
                          Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
     }
 
-    public static Param makeVarargsParam(Param param, List<Modifier> mods) {
+    public static Param makeVarargsParam(Param param, Modifiers mods) {
         return makeParam(param.getSpan(), mods, param.getName(),
                          Option.<Type>none(), Option.<Expr>none(),
                          param.getVarargsType());
     }
 
-    public static Param makeVarargsParam(Span span, List<Modifier> mods,
+    public static Param makeVarargsParam(Span span, Modifiers mods,
                                          Id name, Type type) {
         return makeParam(span, mods, name,
                          Option.<Type>none(), Option.<Expr>none(),
@@ -497,11 +489,11 @@ public class NodeFactory {
     }
 
     public static Param makeAbsParam(Type type) {
-        return makeParam(type.getSpan(), Collections.<Modifier>emptyList(),
+        return makeParam(type.getSpan(), Modifiers.None,
                          new Id(type.getSpan(), "_"), type);
     }
 
-    public static Param makeParam(Span span, List<Modifier> mods, Id name,
+    public static Param makeParam(Span span, Modifiers mods, Id name,
                                   Option<Type> type, Option<Expr> expr,
                                   Option<Type> varargsType) {
         return new Param(span, name, mods, type, expr, varargsType);
@@ -1320,7 +1312,7 @@ public class NodeFactory {
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
         FortressUtil.validId(name);
-        LValue bind = new LValue(span, name, Collections.<Modifier>emptyList(),
+        LValue bind = new LValue(span, name, Modifiers.None,
                                  Option.<Type>none(), true);
         return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
@@ -1329,7 +1321,7 @@ public class NodeFactory {
         Id id = new Id(span, name);
         FortressUtil.validId(id);
         LValue bind = new LValue(span, id,
-                                 Collections.<Modifier>emptyList(),
+                                 Modifiers.None,
                                  Option.<Type>none(), false);
         return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }

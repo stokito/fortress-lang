@@ -58,9 +58,6 @@ import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Label;
 import com.sun.fortress.nodes.LetFn;
 import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierGetter;
-import com.sun.fortress.nodes.ModifierSetter;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -85,6 +82,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -413,7 +411,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
             @Override
             public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
-                if (NodeUtil.isSetterOrGetter(that.getMods())) {
+                if (that.getMods().isGetterSetter()) {
                     accessors.add(that.getName());
                     return Collections.emptySet();
                 } else if (FortressUtil.isFunctionalMethod(that.getParams())) {
@@ -655,7 +653,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             v.checkForShadowingVars(vars);
 
         return forTraitDeclOnly(that,
-				v.recurOnListOfModifier(that.getMods()),
 				(Id) that.getName().accept(v),
 				v.recurOnListOfStaticParam(that.getStaticParams()),
 				extendsClause,
@@ -703,7 +700,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(gettersAndSetters, fields);
 
         return forObjectDeclOnly(that,
-                                 v.recurOnListOfModifier(that.getMods()),
                                  (Id) that.getName().accept(v),
                                  v.recurOnListOfStaticParam(that.getStaticParams()),
                                  extendsClause,
@@ -732,7 +728,6 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
         return forFnDeclOnly(that,
-                            v.recurOnListOfModifier(that.getMods()),
                             (IdOrOpOrAnonymousName) that.getName(),
                             v.recurOnListOfStaticParam(that.getStaticParams()),
                             v.recurOnListOfParam(that.getParams()),

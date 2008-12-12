@@ -55,9 +55,6 @@ import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
-import com.sun.fortress.nodes.Modifier;
-import com.sun.fortress.nodes.ModifierSettable;
-import com.sun.fortress.nodes.ModifierVar;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -82,6 +79,7 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.Modifiers;
 
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
@@ -227,19 +225,19 @@ public abstract class TypeEnv {
 
     static IdOrOpOrAnonymousName removeApi(IdOrOpOrAnonymousName id) {
     	return id.accept(new NodeDepthFirstVisitor<IdOrOpOrAnonymousName>(){
-			@Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
-			@Override
-			public IdOrOpOrAnonymousName forOp(Op that) {
-                            return new Op(that.getSpan(), that.getText(), that.getFixity(), that.isEnclosing());
-			}
-			@Override
-			public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
-				return new AnonymousFnName(that.getSpan());
-			}
-			@Override
-			public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
-				return new ConstructorFnName(that.getSpan(), that.getDef());
-			}
+                @Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
+                @Override
+                public IdOrOpOrAnonymousName forOp(Op that) {
+                    return new Op(that.getSpan(), that.getText(), that.getFixity(), that.isEnclosing());
+                }
+                @Override
+                public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
+                    return new AnonymousFnName(that.getSpan());
+                }
+                @Override
+                public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
+                    return new ConstructorFnName(that.getSpan(), that.getDef());
+                }
     	});
     }
 
@@ -294,7 +292,7 @@ public abstract class TypeEnv {
      * Return the list of modifiers for the given IdOrOpOrAnonymousName (if that
      * IdOrOpOrAnonymousName is in this type environment).
      */
-    public final Option<List<Modifier>> mods(IdOrOpOrAnonymousName var) {
+    public final Option<Modifiers> mods(IdOrOpOrAnonymousName var) {
         Option<BindingLookup> binding = binding(var);
 
         if (binding.isSome()) { return wrap(binding.unwrap().getMods()); }
@@ -322,7 +320,7 @@ public abstract class TypeEnv {
      * Convenience method that takes a String and returns the modifiers for the
      * corresponding Id in this type environment.
      */
-    public final Option<List<Modifier>> mods(String var) {
+    public final Option<Modifiers> mods(String var) {
         return mods(makeId(var));
     }
 
@@ -429,7 +427,7 @@ public abstract class TypeEnv {
 
         private final IdOrOpOrAnonymousName var;
         private final Option<Type> type;
-        private final List<Modifier> mods;
+        private final Modifiers mods;
         private final boolean mutable;
 
         public BindingLookup(LValue binding) {
@@ -449,39 +447,40 @@ public abstract class TypeEnv {
         public BindingLookup(IdOrOpOrAnonymousName _var, Collection<FnDecl> decls) {
             var = _var;
             List<Type> overloads = new ArrayList<Type>();
-            mods = Collections.<Modifier>emptyList();
+            Modifiers mods = Modifiers.None;
             for (FnDecl decl : decls) {
                 overloads.add(genericArrowFromDecl(decl));
-                mods.addAll(decl.getMods());
+                mods = mods.combine(decl.getMods());
             }
+            this.mods = mods;
             type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
             mutable = false;
         }
 
         public BindingLookup(IdOrOpOrAnonymousName _var, Type _type) {
-            this(_var, _type, Collections.<Modifier>emptyList(), false);
+            this(_var, _type, Modifiers.None, false);
         }
 
         public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type) {
-            this(_var, _type, Collections.<Modifier>emptyList(), false);
+            this(_var, _type, Modifiers.None, false);
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, List<Modifier> _mods) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, Modifiers _mods) {
             this(_var, _type, _mods, false);
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, List<Modifier> _mods) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, Modifiers _mods) {
             this(_var, _type, _mods, false);
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, List<Modifier> _mods, boolean _mutable) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Type _type, Modifiers _mods, boolean _mutable) {
             var = _var;
             type = some(_type);
             mods = _mods;
             mutable = _mutable;
         }
 
-        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, List<Modifier> _mods, boolean _mutable) {
+        public BindingLookup(IdOrOpOrAnonymousName _var, Option<Type> _type, Modifiers _mods, boolean _mutable) {
             var = _var;
             type = _type;
             mods = _mods;
@@ -490,21 +489,12 @@ public abstract class TypeEnv {
 
         public IdOrOpOrAnonymousName getVar() { return var; }
         public Option<Type> getType() { return type; }
-        public List<Modifier> getMods() { return mods; }
+        public Modifiers getMods() { return mods; }
 
         public boolean isMutable() {
             if( mutable )
                 return true;
-
-            // Check mods for ModifierVar
-            for( Modifier mod : mods ) {
-                if( mod instanceof ModifierVar )
-                    return true;
-                else if( mod instanceof ModifierSettable )
-                    return true;
-            }
-
-            return false;
+            return mods.isMutable();
         }
 
         @Override
@@ -517,5 +507,5 @@ public abstract class TypeEnv {
     /**
      * Replace all of the inference variables given with their corresponding types.
      */
-	public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
+    public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
 }

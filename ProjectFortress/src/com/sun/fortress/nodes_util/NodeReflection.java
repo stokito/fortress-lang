@@ -21,7 +21,6 @@ import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.InfoNode;
-import com.sun.fortress.nodes.Modifier;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes._Ellipses;
 
@@ -127,7 +126,7 @@ abstract public class NodeReflection {
 
 
     protected Constructor constructorFor(Class cls) {
-        String sn = modifiedSimpleName(cls);
+        String sn = cls.getSimpleName();
         Constructor c = constructorMap.get(sn);
         if (c == null) {
             classFor(sn);
@@ -137,7 +136,7 @@ abstract public class NodeReflection {
     }
 
     protected Constructor constructorZeroFor(Class cls) {
-        String sn = modifiedSimpleName(cls);
+        String sn = cls.getSimpleName();
         Constructor c = constructorMapZero.get(sn);
         if (c == null) {
             c = constructorFor(cls); // This will force init, if possible
@@ -290,12 +289,7 @@ abstract public class NodeReflection {
     };
 
     final protected Field[] getCachedPrintableFields(Class cl) {
-        return getCachedPrintableFields(cl, cl.getSimpleName()); // modifiedSimpleName(cl));
-    }
-
-    private String modifiedSimpleName(Class cl) {
-        return (Modifier.class.isAssignableFrom(cl)) ? "Modifier$"
-                + cl.getSimpleName() : cl.getSimpleName();
+        return getCachedPrintableFields(cl, cl.getSimpleName());
     }
 
     final protected Field[] getCachedPrintableFields(Class cl, String clname) {

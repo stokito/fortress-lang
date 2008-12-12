@@ -189,10 +189,8 @@ public class Printer extends NodeReflection {
             w.append("(");
             w.append(o.getClass().getSimpleName());
             w.append(")");
-        } else if (o instanceof Modifier){
-            w.append("(");
-            w.append(o.getClass().getSimpleName());
-            w.append(")");
+        } else if (o instanceof Modifiers){
+            w.append(((Modifiers)o).encode());
         } else if (o instanceof StaticParamKind){
             w.append("(");
             w.append(o.getClass().getSimpleName());

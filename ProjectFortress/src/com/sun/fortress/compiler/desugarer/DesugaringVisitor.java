@@ -81,34 +81,17 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private boolean hidden(Binding field) {
-        for (Modifier mod : field.getMods()) {
-            if (mod instanceof ModifierHidden) {
-                return true;
-            }
-        }
-        return false;
+        return field.getMods().isHidden();
     }
 
     private boolean settable(Binding field) {
-        for (Modifier mod : field.getMods()) {
-            if (mod instanceof ModifierSettable) {
-                return true;
-            }
-        }
-        return false;
+        return field.getMods().isSettable();
     }
 
     private boolean mutable(Binding field) {
         if ( field instanceof LValue )
             return ((LValue)field).isMutable();
-
-        for (Modifier mod : field.getMods()) {
-            if (mod instanceof ModifierSettable ||
-                mod instanceof ModifierVar) {
-                return true;
-            }
-        }
-        return false;
+        return field.getMods().isMutable();
     }
 
     /**
@@ -145,14 +128,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return false;
     }
 
-    private List<Modifier> removeGetterSetterMod(List<Modifier> mods) {
-        List<Modifier> result = new LinkedList<Modifier>();
-
-        for (Modifier mod : mods) {
-            if (! (mod instanceof ModifierGetter) &&
-                ! (mod instanceof ModifierSetter)) { result.add(mod); }
-        }
-        return result;
+    private Modifiers removeGetterSetterMod(Modifiers mods) {
+        return mods.remove(Modifiers.GetterSetter);
     }
 
     private static final Id mangleName(Id fieldName) {
@@ -226,14 +203,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         return result;
     }
 
+    private static final Modifiers getterNonMods =
+        Modifiers.combine(Modifiers.Settable,Modifiers.Var,Modifiers.Wrapped);
+
     private FnDecl makeGetter(boolean inTrait, Id owner, Binding field) {
-        List<Modifier> mods = new LinkedList<Modifier>();
-        for (Modifier mod : field.getMods()) {
-            if (!(mod instanceof ModifierSettable) &&
-                !(mod instanceof ModifierVar) &&
-                !(mod instanceof ModifierWrapped))
-                mods.add(mod);
-        }
+        Modifiers mods = field.getMods().remove(getterNonMods);
         Id name = field.getName();
         Span span = field.getSpan();
         Expr body;
@@ -265,18 +239,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                           field.getIdType(), Option.<Expr>some(body));
     }
 
+    private static final Modifiers setterNonMods =
+        Modifiers.Settable.combine(Modifiers.Var.combine(Modifiers.Hidden.combine(Modifiers.Wrapped)));
+
     private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
         Span span = field.getSpan();
         Type voidType = NodeFactory.makeVoidType(span);
         Option<Type> ty = field.getIdType();
-        List<Modifier> mods = new LinkedList<Modifier>();
-        for (Modifier mod : field.getMods()) {
-            if (!(mod instanceof ModifierSettable) &&
-                !(mod instanceof ModifierVar) &&
-                !(mod instanceof ModifierHidden) &&
-                !(mod instanceof ModifierWrapped))
-                mods.add(mod);
-        }
+        Modifiers mods = field.getMods().remove(setterNonMods);
         Id name = field.getName();
         List<Param> params = new ArrayList<Param>();
         Id param = NodeFactory.makeId(span, "param_"+name);
@@ -558,7 +528,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
 
-        return forObjectDeclOnly(that, that.getMods(), that.getName(),
+        return forObjectDeclOnly(that, that.getName(),
                                  that.getStaticParams(), that.getExtendsClause(),
                                  that.getWhereClause(), gettersAndDecls, params_result,
                                  that.getThrowsClause(), contract_result);
@@ -576,18 +546,18 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
-        	gettersAndDecls.addFirst(decls_result.get(i));
+            gettersAndDecls.addFirst(decls_result.get(i));
         }
         // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
 
-        return forTraitDeclOnly(that, that.getMods(), that.getName(),
+        return forTraitDeclOnly(that, that.getName(),
                                 that.getStaticParams(), that.getExtendsClause(),
                                 that.getWhereClause(), gettersAndDecls,
                                 that.getExcludesClause(), that.getComprisesClause());
     }
 
     @Override
-    public Node forFnDeclOnly(FnDecl that, List<Modifier> mods_result,
+    public Node forFnDeclOnly(FnDecl that,
                              IdOrOpOrAnonymousName name_result,
                              List<StaticParam> staticParams_result,
                              List<Param> params_result,
@@ -599,7 +569,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<Expr> body_result,
                              Option<Id> implementsUnambiguousName_result)
     {
-        return NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(mods_result),
+        return NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(that.getMods()),
                                       name_result, staticParams_result, params_result,
                                       returnType_result, throwsClause_result,
                                       where_result, contract_result, unambiguousName_result,

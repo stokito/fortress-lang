@@ -3453,7 +3453,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forObjectDecl(final ObjectDecl that) {
 		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getParams(), that.getWhereClause());
-		List<TypeCheckerResult> modsResult = checker_with_sparams.recurOnListOfModifier(that.getMods());
 		TypeCheckerResult nameResult = that.getName().accept(checker_with_sparams);
 		List<TypeCheckerResult> extendsClauseResult = checker_with_sparams.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		TypeCheckerResult whereResult;
@@ -3530,7 +3529,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		ObjectDecl new_node = NodeFactory.makeObjectDecl(that.getSpan(),
-				(List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
+                                                                 that.getMods(),
 				that.getName(),
 				that.getStaticParams(),
 				(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
@@ -3542,7 +3541,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extends_no_obj_result),
-				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, modsResult),
 				nameResult,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extendsClauseResult),
 				whereResult,
@@ -4006,7 +4004,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult forTraitDecl(final TraitDecl that) {
 		TypeChecker checker_with_sparams = this.extend(that.getStaticParams(), that.getWhereClause());
 
-		List<TypeCheckerResult> modsResult = checker_with_sparams.recurOnListOfModifier(that.getMods());
 		List<TypeCheckerResult> extendsClauseResult = checker_with_sparams.recurOnListOfTraitTypeWhere(that.getExtendsClause());
 		TypeCheckerResult whereResult;
 		Option<WhereClause> where;
@@ -4074,7 +4071,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		TraitDecl new_node =
                     NodeFactory.makeTraitDecl(that.getSpan(),
-                                              (List<Modifier>)TypeCheckerResult.astFromResults(modsResult),
+                                              that.getMods(),
                                               that.getName(),
                                               that.getStaticParams(),
                                               (List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClauseResult),
@@ -4084,7 +4081,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                               (Option<List<BaseType>>)TypeCheckerResult.astFromResults(comprisesResult));
 
 		return TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker,
-				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, modsResult),
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extendsClauseResult),
 				whereResult,
 				TypeCheckerResult.compose(new_node, checker_with_sparams.subtypeChecker, extends_trait_result),

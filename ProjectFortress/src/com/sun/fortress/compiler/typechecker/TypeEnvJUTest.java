@@ -18,6 +18,7 @@
 package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Useful;
@@ -40,15 +41,15 @@ public class TypeEnvJUTest extends TestCase {
                                                   makeLValue("z", BAR));
 
     private final TypeEnv moreExtended =
-        extended.extend(makeLValue("a", FOO, Useful.<Modifier>list(new ModifierVar())),
+        extended.extend(makeLValue("a", FOO, Modifiers.Var),
                         makeLValue("b",
                                    BAZ,
-                                   Useful.<Modifier>list(new ModifierAbstract())),
+                                   Modifiers.Abstract),
                         makeLValue("c",
                                    BAR,
-                                   Useful.<Modifier>list(new ModifierWrapped(),
-                                                         new ModifierHidden(),
-                                                         new ModifierSettable())));
+                                   Modifiers.combine(Modifiers.Wrapped,
+                                                     Modifiers.Hidden,
+                                                     Modifiers.Settable)));
 
     public void testEmptyTypeEnv() {
         assertEquals(none(), TypeEnv.make().type(makeId("x")));
@@ -65,9 +66,8 @@ public class TypeEnvJUTest extends TestCase {
     }
 
     public void testLookupMods() {
-        assertEquals(0, moreExtended.mods("x").unwrap().size());
-        assertEquals(Useful.<Modifier>list(new ModifierAbstract()),
-                     moreExtended.mods("b").unwrap());
+        assertEquals(Modifiers.None, moreExtended.mods("x").unwrap());
+        assertEquals(Modifiers.Abstract, moreExtended.mods("b").unwrap());
     }
 
     public void testLookupMutable() {
