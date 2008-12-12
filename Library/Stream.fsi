@@ -38,7 +38,7 @@ end
 trait WriteStream extends { Closeable }
 
     (** %write(JavaString)% and %write(Char)% are the primitive mechanisms 
-        for writing characters to the end of a %FileWriteStream%. 
+        for writing characters to the end of a %WriteStream%. 
         write(JavaString) need not be part of this api, since it is covered by 
         write(String) **)
         
