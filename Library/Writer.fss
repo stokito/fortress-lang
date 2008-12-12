@@ -55,7 +55,7 @@ private package="com.sun.fortress.interpreter.glue.prim"
         end
     end Writer
 
-    object BufferedWriter(under: Writer, size: ZZ32) extends { WriteStream }
+    object BufferedWriter(under: WriteStream, size: ZZ32) extends { WriteStream }
         getter asString(): String = "BufferedWriter on " under.asString
         write(s: String): () = s.writeOn(self)
         write(s: JavaString):() =
