@@ -547,7 +547,7 @@ public abstract class SubtypeChecker {
             case 1: return IterUtil.first(elts);
             default: {
                 List<Type> l = CollectUtil.makeList(elts);
-                return new UnionType(NodeFactory.makeSetSpan("impossible", l),l);
+                return NodeFactory.makeUnionType(NodeFactory.makeSetSpan("impossible", l), false, l);
             }
         }
     }
@@ -566,7 +566,7 @@ public abstract class SubtypeChecker {
             case 1: return IterUtil.first(elts);
             default: {
                 List<Type> l = CollectUtil.makeList(elts);
-                return new IntersectionType(NodeFactory.makeSetSpan("impossible", l),l);
+                return NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", l),l);
             }
         }
     }

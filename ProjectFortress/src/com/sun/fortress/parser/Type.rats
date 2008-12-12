@@ -150,7 +150,7 @@ private Type TypeFront =
    / TupleType
    / TypeRef
    / VoidType
-   / one { yyValue = new DimBase(createSpan(yyStart,1)); };
+   / one { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,1), false); };
 
 /* ParenthesizedType ::= ( w Type w ) */
 private Type ParenthesizedType =
@@ -204,7 +204,7 @@ private Type TypeRef =
      }
    / "Unity"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new DimBase(span);
+         yyValue = NodeFactory.makeDimBase(span, false);
      }
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
@@ -301,11 +301,11 @@ constant inline Action<Type> Exponentiation =
                                       "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");
                if (base instanceof DimExpr) {
-                   return new DimExponent(createSpan(yyStart,yyCount),
-                                          (DimExpr)base, a1);
+                   return NodeFactory.makeDimExponent(createSpan(yyStart,yyCount),
+                                                      false, (DimExpr)base, a1);
                } else { // !(base instanceof DimExpr)
-                   return new DimExponent(createSpan(yyStart,yyCount),
-                                          (Type)base, a1);
+                   return NodeFactory.makeDimExponent(createSpan(yyStart,yyCount),
+                                                      false, (Type)base, a1);
                }
            }};
      }
@@ -352,7 +352,7 @@ constant inline Action<Type> IdLeft =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
-                                                    (Type)base, new DimRef(a1.getSpan(), a1),
+                                                    (Type)base, NodeFactory.makeDimRef(a1.getSpan(), a1),
                                                     Option.<Expr>none());
            }};
      };

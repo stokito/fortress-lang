@@ -525,7 +525,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         opIndex = findAtTop(s, "|");
         if (opIndex == 0) {
-            return new UnionType(span, parseTypeList(s, "|{", "}"));
+            return NodeFactory.makeUnionType(span, false, parseTypeList(s, "|{", "}"));
         }
         else if (opIndex > 0) {
             Type left = parseType(s.substring(0, opIndex));
@@ -535,7 +535,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
         opIndex = findAtTop(s, "&");
         if (opIndex == 0) {
-            return new IntersectionType(span, parseTypeList(s, "&{", "}"));
+            return NodeFactory.makeIntersectionType(span, parseTypeList(s, "&{", "}"));
         }
         else if (opIndex > 0) {
             Type left = parseType(s.substring(0, opIndex));
@@ -566,7 +566,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         if (s.equals("Bottom")) { return BOTTOM; }
 
         if (s.startsWith("#")) {
-            return new _InferenceVarType(span, s);
+            return NodeFactory.make_InferenceVarType(span, false, s);
         }
 
         if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {

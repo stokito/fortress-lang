@@ -208,7 +208,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             new Lambda<Id, Type>() {
             public Type value(Id n) {
                 if (n.equals(Types.ANY_NAME)) {
-                    return new AnyType(that.getSpan());
+                    return new AnyType(that.getSpan(), false);
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
@@ -237,7 +237,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             public Type value(Id n) {
                 List<StaticArg> args = that.getArgs();
                 if (n.equals(Types.ANY_NAME) && args.isEmpty()) {
-                    return new AnyType(that.getSpan());
+                    return new AnyType(that.getSpan(), false);
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
@@ -352,7 +352,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                 return new BoolArg(s, new BoolRef(s, name));
                             }
                             @Override public StaticArg forKindDim(KindDim p) {
-                                return new DimArg(s, new DimRef(s, name));
+                                return new DimArg(s, NodeFactory.makeDimRef(s, name));
                             }
                             @Override public StaticArg forKindInt(KindInt p) {
                                 return new IntArg(s, new IntRef(s, name));
@@ -566,7 +566,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     }
                     @Override
                     public StaticArg forKindDim(KindDim k) {
-                        return new DimArg(arg.getSpan(), new DimRef(arg.getSpan(), (Id)name));
+                        return new DimArg(arg.getSpan(), NodeFactory.makeDimRef(arg.getSpan(), (Id)name));
                     }
                     @Override
                     public StaticArg forKindInt(KindInt k) {

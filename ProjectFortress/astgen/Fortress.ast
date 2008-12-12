@@ -975,7 +975,7 @@ interface Node() extends HasAt;
             /**
              * type
              */
-            root abstract Type(ignoreForEquals boolean parenthesized = false);
+            root abstract Type(ignoreForEquals boolean parenthesized);
                 /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */

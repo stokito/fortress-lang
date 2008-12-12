@@ -648,6 +648,157 @@ public class NodeFactory {
         return new VarType(span, parenthesized, name, lexicalDepth);
     }
 
+    public static DimBinaryOp makeDimBinaryOp(DimBinaryOp t, DimExpr s, DimExpr u, Op o) {
+        return makeDimBinaryOp(t.getSpan(), t.isParenthesized(), s, u, o);
+    }
+
+    public static DimBinaryOp makeDimBinaryOp(Span span, boolean parenthesized,
+                                              DimExpr left, DimExpr right, Op op) {
+        return new DimBinaryOp(span, parenthesized, left, right, op);
+    }
+
+    public static DimUnaryOp makeDimUnaryOp(DimUnaryOp t, DimExpr s) {
+        return makeDimUnaryOp(t.getSpan(), t.isParenthesized(), s, t.getOp());
+    }
+
+    public static DimUnaryOp makeDimUnaryOp(Span span, boolean parenthesized,
+                                            DimExpr dim, Op op) {
+        return new DimUnaryOp(span, parenthesized, dim, op);
+    }
+
+    public static DimExponent makeDimExponent(DimExponent t, Type s) {
+        return makeDimExponent(t.getSpan(), t.isParenthesized(), s,
+                               t.getPower());
+    }
+
+    public static DimExponent makeDimExponent(Span span, boolean parenthesized,
+                                              Type base, IntExpr power) {
+        return new DimExponent(span, parenthesized, base, power);
+    }
+
+    public static DimRef makeDimRef(Span span, String name) {
+        return makeDimRef(span, false, makeId(name));
+    }
+
+    public static DimRef makeDimRef(Span span, Id name) {
+        return new DimRef(span, false, name);
+    }
+
+    public static DimRef makeDimRef(Span span, boolean parenthesized, Id name) {
+        return new DimRef(span, parenthesized, name);
+    }
+
+    public static DimBase makeDimBase(Span span, boolean parenthesized) {
+        return new DimBase(span, parenthesized);
+    }
+
+    public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
+        return makeFixedPointType(t.getSpan(), t.isParenthesized(), t.getName(), s);
+    }
+
+    public static FixedPointType makeFixedPointType(_InferenceVarType name, Type s) {
+        return makeFixedPointType(s.getSpan(), s.isParenthesized(), name, s);
+    }
+
+    public static FixedPointType makeFixedPointType(Span span, boolean parenthesized,
+                                                    _InferenceVarType name, Type body) {
+        return new FixedPointType(span, parenthesized, name, body);
+    }
+
+    public static UnionType makeUnionType(Type t1, Type t2) {
+        return new UnionType(FortressUtil.spanTwo(t1, t2), false,
+                             Arrays.asList(t1, t2));
+    }
+
+    public static UnionType makeUnionType(Set<? extends Type> types){
+        return new UnionType(FortressUtil.spanAll(types), false,
+                             CollectUtil.makeList(types));
+    }
+
+    public static UnionType makeUnionType(Span span, boolean parenthesized,
+                                          List<Type> elements) {
+        return new UnionType(span, parenthesized, elements);
+    }
+
+    public static List<Type> make_InferenceVarTypes(Span s, int size) {
+        List<Type> result = new ArrayList<Type>(size);
+        for (int i = 0; i < size; i++) { result.add(make_InferenceVarType(s)); }
+        return result;
+    }
+
+    public static _InferenceVarType make_InferenceVarType(Span s) {
+        return make_InferenceVarType(s, false, new Object());
+    }
+
+    public static _InferenceVarType make_InferenceVarType(Span span, boolean parenthesized, Object id) {
+        return new _InferenceVarType(span, parenthesized, id);
+    }
+
+    public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
+        return makeTaggedUnitType(t.getSpan(), t.isParenthesized(), s,
+                                  t.getUnitExpr());
+    }
+
+    public static TaggedUnitType makeTaggedUnitType(Span span, boolean parenthesized,
+                                                    Type elem, Expr unit) {
+        return makeTaggedUnitType(span, parenthesized, elem, unit);
+    }
+
+
+    public static MatrixType makeMatrixType(Span span, Type element,
+                                            ExtentRange dimension) {
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        dims.add(dimension);
+        dims = Useful.immutableTrimmedList(dims);
+        return makeMatrixType(span, false, element, dims);
+    }
+
+    public static MatrixType makeMatrixType(Span span, Type element,
+                                            ExtentRange dimension,
+                                            List<ExtentRange> dimensions) {
+        List<ExtentRange> dims = new ArrayList<ExtentRange>();
+        dims.add(dimension);
+        dims.addAll(dimensions);
+        dims = Useful.immutableTrimmedList(dims);
+        return makeMatrixType(span, false, element, dims);
+    }
+
+    public static MatrixType makeMatrixType(Span span, boolean parenthesized,
+                                            Type elem, List<ExtentRange> dim) {
+        return new MatrixType(span, parenthesized, elem, dim);
+    }
+
+    public static ArrayType makeArrayType(Span span, Type element,
+                                          Option<Indices> ind) {
+        Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
+        return makeArrayType(span, false, element, indices);
+    }
+
+    public static ArrayType makeArrayType(Span span, boolean parenthesized,
+                                          Type elem, Indices indices) {
+        return new ArrayType(span, parenthesized, elem, indices);
+    }
+
+    public static IntersectionType makeIntersectionType(Type t1, Type t2) {
+        return makeIntersectionType(FortressUtil.spanTwo(t1, t2), false,
+                                    Arrays.asList(t1, t2));
+    }
+
+    public static IntersectionType makeIntersectionType(Set<? extends Type> types) {
+        return makeIntersectionType(FortressUtil.spanAll(types), false,
+                                    CollectUtil.makeList(types));
+    }
+
+    public static IntersectionType makeIntersectionType(Span span,
+                                                        List<Type> elems) {
+        return new IntersectionType(span, false, elems);
+    }
+
+    public static IntersectionType makeIntersectionType(Span span, boolean parenthesized,
+                                                        List<Type> elems) {
+        return new IntersectionType(span, parenthesized, elems);
+    }
+
     /***************************************************************************/
 
 
@@ -687,25 +838,6 @@ public class NodeFactory {
         return new Id(id.getSpan(), id.getText());
     }
 
-    public static ArrayType makeArrayType(Span span, Type element,
-            Option<Indices> ind) {
-        Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
-        return new ArrayType(span, element, indices);
-    }
-
-    public static DimExponent makeDimExponent(DimExponent t, Type s) {
-        return new DimExponent(t.getSpan(), t.isParenthesized(), s,
-                               t.getPower());
-    }
-
-    public static DimBinaryOp makeDimBinaryOp(DimBinaryOp t, DimExpr s, DimExpr u, Op o) {
-        return new DimBinaryOp(t.getSpan(), t.isParenthesized(), s, u, o);
-    }
-
-    public static DimUnaryOp makeDimUnaryOp(DimUnaryOp t, DimExpr s) {
-        return new DimUnaryOp(t.getSpan(), t.isParenthesized(), s, t.getOp());
-    }
-
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
         Span sp = in_type.getSpan();
         return new TraitTypeWhere(sp, in_type,
@@ -719,23 +851,8 @@ public class NodeFactory {
             return new TraitTypeWhere(in_type.getSpan(), in_type, in_where);
     }
 
-    public static _InferenceVarType make_InferenceVarType(Span s) {
-        return new _InferenceVarType(s, new Object());
-    }
-
-    public static List<Type> make_InferenceVarTypes(Span s, int size) {
-        List<Type> result = new ArrayList<Type>(size);
-        for (int i = 0; i < size; i++) { result.add(make_InferenceVarType(s)); }
-        return result;
-    }
-
     public static KeywordType makeKeywordType(KeywordType t, Type s) {
         return new KeywordType(t.getSpan(), t.getName(), s);
-    }
-
-    public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
-        return new TaggedUnitType(t.getSpan(), t.isParenthesized(), s,
-                                  t.getUnitExpr());
     }
 
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
@@ -750,41 +867,12 @@ public class NodeFactory {
         return new DimArg(s.getSpan(), s);
     }
 
-    public static DimRef makeDimRef(Span span, String name) {
-        return new DimRef(span, makeId(name));
-    }
-
     public static UnitArg makeUnitArg(UnitExpr s) {
         return new UnitArg(s.getSpan(), s);
     }
 
     public static UnitRef makeUnitRef(Span span, String name) {
         return new UnitRef(span, makeId(name));
-    }
-
-    public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
-        return new FixedPointType(t.getSpan(), t.isParenthesized(), t.getName(),
-                s);
-    }
-
-    public static FixedPointType makeFixedPointType(_InferenceVarType name, Type s) {
-        return new FixedPointType(s.getSpan(), s.isParenthesized(), name, s);
-    }
-
-    public static IntersectionType makeIntersectionType(Type t1, Type t2) {
-        return new IntersectionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
-    }
-
-    public static IntersectionType makeIntersectionType(Set<? extends Type> types){
-        return new IntersectionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
-    }
-
-    public static UnionType makeUnionType(Type t1, Type t2) {
-        return new UnionType(FortressUtil.spanTwo(t1, t2), Arrays.asList(t1, t2));
-    }
-
-    public static UnionType makeUnionType(Set<? extends Type> types){
-        return new UnionType(FortressUtil.spanAll(types),CollectUtil.makeList(types));
     }
 
     public static Type makeDomain(Span span, List<Type> elements,
@@ -997,24 +1085,6 @@ public class NodeFactory {
     public static final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {
         public Id value(String arg) { return makeId(arg); }
     };
-
-    public static MatrixType makeMatrixType(Span span, Type element,
-                                            ExtentRange dimension) {
-        List<ExtentRange> dims = new ArrayList<ExtentRange>();
-        dims.add(dimension);
-        dims = Useful.immutableTrimmedList(dims);
-        return new MatrixType(span, element, dims);
-    }
-
-    public static MatrixType makeMatrixType(Span span, Type element,
-                                            ExtentRange dimension,
-                                            List<ExtentRange> dimensions) {
-        List<ExtentRange> dims = new ArrayList<ExtentRange>();
-        dims.add(dimension);
-        dims.addAll(dimensions);
-        dims = Useful.immutableTrimmedList(dims);
-        return new MatrixType(span, element, dims);
-    }
 
     public static Op makeEnclosing(Span in_span, String in_open, String in_close) {
         return new Op(in_span, PrecedenceMap.ONLY.canon(in_open + " " + in_close),
@@ -1289,21 +1359,21 @@ public class NodeFactory {
     public static DimExpr makeInParentheses(DimExpr dim) {
         return dim.accept(new NodeAbstractVisitor<DimExpr>() {
             public DimExpr forDimBase(DimBase t) {
-                return new DimBase(t.getSpan(), true);
+                return makeDimBase(t.getSpan(), true);
             }
             public DimExpr forDimRef(DimRef t) {
-                return new DimRef(t.getSpan(), true, t.getName());
+                return makeDimRef(t.getSpan(), true, t.getName());
             }
             public DimExpr forDimBinaryOp(DimBinaryOp t) {
-                return new DimBinaryOp(t.getSpan(), true, t.getLeft(),
+                return makeDimBinaryOp(t.getSpan(), true, t.getLeft(),
                                        t.getRight(), t.getOp());
             }
             public DimExpr forDimExponent(DimExponent t) {
-                return new DimExponent(t.getSpan(), true, t.getBase(),
-                        t.getPower());
+                return makeDimExponent(t.getSpan(), true, t.getBase(),
+                                       t.getPower());
             }
             public DimExpr forDimUnaryOp(DimUnaryOp t) {
-                return new DimUnaryOp(t.getSpan(), true, t.getDimVal(), t.getOp());
+                return makeDimUnaryOp(t.getSpan(), true, t.getDimVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
@@ -1355,15 +1425,15 @@ public class NodeFactory {
                                      t.getStaticParams(), t.getWhereClause());
             }
             public Type forArrayType(ArrayType t) {
-                return new ArrayType(t.getSpan(), true, t.getElemType(),
-                        t.getIndices());
+                return makeArrayType(t.getSpan(), true, t.getElemType(),
+                                     t.getIndices());
             }
             public Type forVarType(VarType t) {
                 return makeVarType(t.getSpan(), true, t.getName(), t.getLexicalDepth());
             }
             public Type forMatrixType(MatrixType t) {
-                return new MatrixType(t.getSpan(), true, t.getElemType(),
-                        t.getDimensions());
+                return makeMatrixType(t.getSpan(), true, t.getElemType(),
+                                      t.getDimensions());
             }
             public Type forTraitType(TraitType t) {
                 return makeTraitType(t.getSpan(), true, t.getName(),
@@ -1378,7 +1448,7 @@ public class NodeFactory {
                                          t.getDimExpr(), t.getUnitExpr());
             }
             public Type forTaggedUnitType(TaggedUnitType t) {
-                return new TaggedUnitType(t.getSpan(), true, t.getElemType(),
+                return makeTaggedUnitType(t.getSpan(), true, t.getElemType(),
                                           t.getUnitExpr());
             }
             public Type forDimExpr(DimExpr t) {

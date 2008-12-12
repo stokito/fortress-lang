@@ -2536,7 +2536,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
+						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeFnRef(that.getSpan(),
                                                                          that.isParenthesized(),
@@ -2564,12 +2564,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			} else if (arrow_types.size() == 1) { // special case to allow for simpler types
 				type = Option.<Type>some(arrow_types.get(0));
 			} else {
-				type = Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
+				type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 			}
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
+						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeFnRef(that.getSpan(),
                                                                          that.isParenthesized(),
@@ -3845,7 +3845,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
+						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					new_node = ExprFactory.makeOpRef(that.getSpan(),
                                                                          that.isParenthesized(),
                                                                          type,
@@ -3871,7 +3871,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			type = (arrow_types.isEmpty()) ?
 					Option.<Type>none() :
-						Option.<Type>some(new IntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
+						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeOpRef(that.getSpan(),

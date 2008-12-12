@@ -89,7 +89,8 @@ public class InferenceVarTranslator {
         // with instances of a custom class, thus preventing name clashes with variables
         // created elsewhere that wrap Characters (currently, other instances just wrap
         // raw Objects)
-        return new _InferenceVarType(NodeFactory.makeSpan("blame InferenceVarTranslator.nextCanonicalVar"), _canonicalNames.next());
+        return NodeFactory.make_InferenceVarType(NodeFactory.makeSpan("blame InferenceVarTranslator.nextCanonicalVar"),
+                                                 false, _canonicalNames.next());
     }
 
     public Type canonicalizeVars(Type t) {

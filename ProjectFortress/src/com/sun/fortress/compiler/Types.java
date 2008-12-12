@@ -54,8 +54,8 @@ public final class Types {
     //       ImmutableHeapSequence is put into the libraries.
     public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary, "ImmutableArray");
 
-    public static final AnyType ANY = new AnyType(span);
-    public static final BottomType BOTTOM = new BottomType(span);
+    public static final AnyType ANY = new AnyType(span, false);
+    public static final BottomType BOTTOM = new BottomType(span, false);
     public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
 
     public static final Type BOTTOM_DOMAIN = BOTTOM;
@@ -72,7 +72,7 @@ public final class Types {
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");
 
 
-    public static final LabelType LABEL = new LabelType(span);
+    public static final LabelType LABEL = new LabelType(span, false);
 
     public static final TraitType makeVarargsParamType(Type varargsType) {
         return makeTraitType(IMMUTABLE_HEAP_SEQ_NAME, makeTypeArg(varargsType), makeTypeArg(ZZ32));
@@ -126,7 +126,8 @@ public final class Types {
                 case 1: return IterUtil.first(ts);
                 default: {
                     List<Type> l = CollectUtil.makeList(ts);
-                    return new UnionType(NodeFactory.makeSpan("impossible", l), l);
+                    return NodeFactory.makeUnionType(NodeFactory.makeSpan("impossible", l),
+                                                     false, l);
                 }
             }
         }
@@ -146,7 +147,7 @@ public final class Types {
                 case 1: return IterUtil.first(ts);
                 default: {
                     List<Type> l = CollectUtil.makeList(ts);
-                    return new IntersectionType(NodeFactory.makeSpan("impossible", l), l);
+                    return NodeFactory.makeIntersectionType(NodeFactory.makeSpan("impossible", l), l);
                 }
             }
         }

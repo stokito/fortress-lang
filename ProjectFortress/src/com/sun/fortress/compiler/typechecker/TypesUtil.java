@@ -420,7 +420,9 @@ public class TypesUtil {
     						accumulated_constraint.and(t.unwrap().second(),subtype_checker.new SubtypeHistory());
     					}
     				}
-    				return Option.some(Pair.make((Type) new IntersectionType(that.getSpan(),that.isParenthesized(),conjuncts),accumulated_constraint));
+    				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(that.getSpan(),
+                                                                                                     that.isParenthesized(),
+                                                                                                     conjuncts),accumulated_constraint));
     			}
 
     			@Override
