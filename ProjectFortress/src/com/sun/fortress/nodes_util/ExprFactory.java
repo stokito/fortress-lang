@@ -976,7 +976,7 @@ public class ExprFactory {
 
     public static If makeIf(Span sp, IfClause _if) {
         List<IfClause> ifclauses = Collections.singletonList(_if);
-        return new If(sp, ifclauses, Option.<Block>none());
+        return makeIf(sp, ifclauses, Option.<Block>none());
     }
 
     public static If makeIf(Span sp, Expr cond, Block _then, Block _else) {
@@ -1025,6 +1025,267 @@ public class ExprFactory {
         return new CaseExpr(span, parenthesized, exprType, param, compare,
                             equalsOp, inOp, clauses, elseClause);
     }
+
+    public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
+        List<Link> links = new ArrayList<Link>(1);
+        Link link = new Link(NodeFactory.makeSpan(_op, _expr), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        links.add(link);
+        return makeChainExpr(NodeFactory.makeSpan(e, _expr), e, links);
+    }
+
+    public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
+        List<Link> links = new ArrayList<Link>(1);
+        Link link = new Link(NodeFactory.makeSpan(_op, _expr),
+                             makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        links.add(link);
+        return makeChainExpr(sp, e, links);
+    }
+
+    public static ChainExpr makeChainExpr(Span span,
+                                          Expr first, List<Link> links) {
+        return makeChainExpr(span, false, Option.<Type>none(), first, links);
+    }
+
+    public static ChainExpr makeChainExpr(Span span,
+                                          boolean parenthesized,
+                                          Option<Type> exprType,
+                                          Expr first, List<Link> links) {
+        return new ChainExpr(span, parenthesized, exprType, first, links);
+    }
+
+    public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
+        return make_RewriteFnApp(FortressUtil.spanTwo(e_1, e_2), false,
+                                 Option.<Type>none(), e_1, e_2);
+    }
+
+    public static _RewriteFnApp make_RewriteFnApp(Span span,
+                                                  boolean parenthesized,
+                                                  Option<Type> exprType,
+                                                  Expr function,
+                                                  Expr argument) {
+        return new _RewriteFnApp(span, parenthesized, exprType, function,
+                                 argument);
+    }
+
+    public static FieldRef makeFieldRef(FieldRef expr, Span span) {
+        return makeFieldRef(span, expr.isParenthesized(),
+                            expr.getExprType(), expr.getObj(), expr.getField());
+    }
+
+    public static FieldRef makeFieldRef(FieldRef expr, Expr receiver, Id field) {
+        return makeFieldRef(expr.getSpan(), expr.isParenthesized(),
+                            expr.getExprType(), receiver, field);
+    }
+
+    public static FieldRef make_RewriteFieldRef(FieldRef expr,
+                                                Expr receiver, Id field) {
+        return makeFieldRef(expr.getSpan(), expr.isParenthesized(),
+                            expr.getExprType(), receiver, field);
+    }
+
+    public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
+        return makeFieldRef(span, false, Option.<Type>none(), receiver, field);
+    }
+
+    public static FieldRef makeFieldRef(Expr receiver, Id field) {
+        return makeFieldRef(FortressUtil.spanTwo(receiver, field), receiver, field);
+    }
+
+    public static FieldRef makeFieldRef(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> exprType,
+                                        Expr obj, Id field) {
+        return new FieldRef(span, parenthesized, exprType, obj, field);
+    }
+
+    public static AtomicExpr makeAtomicExpr(Span span, Expr expr) {
+        return makeAtomicExpr(span, false, Option.<Type>none(), expr);
+    }
+
+    public static AtomicExpr makeAtomicExpr(Span span,
+                                            boolean parenthesized,
+                                            Option<Type> exprType,
+                                            Expr expr) {
+        return new AtomicExpr(span, parenthesized, exprType, expr);
+    }
+
+    public static For makeFor(Span span,
+                              List<GeneratorClause> gens,
+                              Block body) {
+        return makeFor(span, false, Option.<Type>none(), gens, body);
+    }
+
+    public static For makeFor(Span span,
+                              boolean parenthesized,
+                              Option<Type> exprType,
+                              List<GeneratorClause> gens,
+                              Block body) {
+        return new For(span, parenthesized, exprType, gens, body);
+    }
+
+    public static Spawn makeSpawn(Span span,
+                                  Expr body) {
+        return makeSpawn(span, false, Option.<Type>none(), body);
+    }
+
+    public static Spawn makeSpawn(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  Expr body) {
+        return new Spawn(span, parenthesized, exprType, body);
+    }
+
+
+    public static TryAtomicExpr makeTryAtomicExpr(Span span,
+                                                  Expr expr) {
+        return makeTryAtomicExpr(span, false, Option.<Type>none(), expr);
+    }
+
+    public static TryAtomicExpr makeTryAtomicExpr(Span span,
+                                                  boolean parenthesized,
+                                                  Option<Type> exprType,
+                                                  Expr expr) {
+        return new TryAtomicExpr(span, parenthesized, exprType, expr);
+    }
+
+    public static LetFn makeLetFn(Span span,
+                                  List<Expr> body,
+                                  List<FnDecl> fns) {
+        return makeLetFn(span, false, Option.<Type>none(),
+                         body, fns);
+    }
+
+    public static LetFn makeLetFn(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  List<Expr> body,
+                                  List<FnDecl> fns) {
+        return new LetFn(span, parenthesized, exprType, body, fns);
+    }
+
+    public static Throw makeThrow(Span sp, String st) {
+        Id id = NodeFactory.makeId(sp, WellKnownNames.fortressLibrary, st);
+        return makeThrow(sp, makeVarRef(sp, id));
+    }
+
+    public static Throw makeThrow(Span span,
+                                  Expr expr) {
+        return makeThrow(span, false, Option.<Type>none(), expr);
+    }
+
+    public static Throw makeThrow(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  Expr expr) {
+        return new Throw(span, parenthesized, exprType, expr);
+    }
+
+    public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
+        return makeStringLiteralExpr(span, false, Option.<Type>none(), s);
+    }
+
+    public static StringLiteralExpr makeStringLiteralExpr(Span span,
+                                                          boolean parenthesized,
+                                                          Option<Type> exprType,
+                                                          String text) {
+        return new StringLiteralExpr(span, parenthesized, exprType, text);
+    }
+
+    public static FloatLiteralExpr makeFloatLiteralExpr(Span span,
+                                                        boolean parenthesized,
+                                                        Option<Type> exprType,
+                                                        String text,
+                                                        BigInteger intPart,
+                                                        BigInteger numerator,
+                                                        int denomBase,
+                                                        int denomPower) {
+        return new FloatLiteralExpr(span, parenthesized, exprType, text,
+                                    intPart, numerator, denomBase, denomPower);
+    }
+
+    public static AsExpr makeAsExpr(Span span,
+                                    Expr expr, Type annType) {
+        return makeAsExpr(span, false, Option.<Type>none(), expr, annType);
+    }
+
+    public static AsExpr makeAsExpr(Span span,
+                                    boolean parenthesized,
+                                    Option<Type> exprType,
+                                    Expr expr, Type annType) {
+        return new AsExpr(span, parenthesized, exprType, expr, annType);
+    }
+
+    public static AsIfExpr makeAsIfExpr(Span span,
+                                        Expr expr, Type annType) {
+        return makeAsIfExpr(span, false, Option.<Type>none(), expr, annType);
+    }
+
+    public static AsIfExpr makeAsIfExpr(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> exprType,
+                                        Expr expr, Type annType) {
+        return new AsIfExpr(span, parenthesized, exprType, expr, annType);
+    }
+
+    public static While makeWhile(Span sp, Expr cond) {
+        // Might not work; empty Do may be naughty.
+        return makeWhile(sp, makeGeneratorClause(cond.getSpan(), cond),
+                         makeDo(sp, Collections.<Block>emptyList()));
+    }
+
+    public static While makeWhile(Span span,
+                                  GeneratorClause testExpr,
+                                  Do body) {
+        return makeWhile(span, false, Option.<Type>none(),
+                         testExpr, body);
+    }
+
+    public static While makeWhile(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  GeneratorClause testExpr,
+                                  Do body) {
+        return new While(span, parenthesized, exprType, testExpr, body);
+    }
+
+    public static Label makeLabel(Span span,
+                                  Id name, Block body) {
+        return makeLabel(span, false, Option.<Type>none(), name, body);
+    }
+
+    public static Label makeLabel(Span span,
+                                  boolean parenthesized,
+                                  Option<Type> exprType,
+                                  Id name, Block body) {
+        return new Label(span, parenthesized, exprType, name, body);
+    }
+
+    public static Do makeDo(Span sp, Option<Type> t, Expr e) {
+        List<Expr> b = Collections.singletonList(e);
+        List<Block> body = new ArrayList<Block>(1);
+        body.add(makeBlock(sp, t, false, true, b));
+        return makeDo(sp, false, t, body);
+    }
+
+    public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
+        List<Block> body = new ArrayList<Block>(1);
+        body.add(makeBlock(sp, t, false, true, exprs));
+        return makeDo(sp, false, t, body);
+    }
+
+    public static Do makeDo(Span span,
+                            List<Block> fronts) {
+        return makeDo(span, false, Option.<Type>none(), fronts);
+    }
+
+    public static Do makeDo(Span span,
+                            boolean parenthesized,
+                            Option<Type> exprType,
+                            List<Block> fronts) {
+        return new Do(span, parenthesized, exprType, fronts);
+    }
+
+
 
                                           /*
     public static TupleExpr makeTupleExpr(Span span,
@@ -1126,14 +1387,14 @@ public class ExprFactory {
                 }
             }
         }
-        return new FloatLiteralExpr(span, false, s,
-                intPart, numerator, denomBase, denomPower);
+        return makeFloatLiteralExpr(span, false, Option.<Type>none(), s,
+                                    intPart, numerator, denomBase, denomPower);
     }
 
     public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
         return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
             public LetExpr forLetFn(LetFn expr) {
-                return new LetFn(expr.getSpan(),false, body, expr.getFns());
+                return ExprFactory.makeLetFn(expr.getSpan(), body, expr.getFns());
             }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
                 return makeLocalVarDecl(expr.getSpan(), false, Option.<Type>none(),
@@ -1168,35 +1429,6 @@ public class ExprFactory {
      return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
     }
 
-    public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
-        return new StringLiteralExpr(span, s);
-    }
-
-    public static FieldRef makeFieldRef(FieldRef expr, Span span) {
-        return new FieldRef(span, expr.isParenthesized(),
-                            expr.getExprType(), expr.getObj(), expr.getField());
-    }
-
-    public static FieldRef makeFieldRef(FieldRef expr, Expr receiver, Id field) {
-        return new FieldRef(expr.getSpan(), expr.isParenthesized(),
-                            expr.getExprType(), receiver, field);
-    }
-
-    public static FieldRef make_RewriteFieldRef(FieldRef expr,
-                                                Expr receiver, Id field) {
-        return new FieldRef(expr.getSpan(), expr.isParenthesized(),
-                            expr.getExprType(), receiver, field);
-    }
-
-    public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
-        return new FieldRef(span, receiver, field);
-    }
-
-    public static FieldRef makeFieldRef(Expr receiver, Id field) {
-        return new FieldRef(FortressUtil.spanTwo(receiver, field), false,
-                            receiver, field);
-    }
-
     public static Expr makeReceiver(Iterable<Id> ids) {
         Expr expr = makeVarRef(IterUtil.first(ids));
         for (Id id : IterUtil.skipFirst(ids)) {
@@ -1205,68 +1437,20 @@ public class ExprFactory {
         return expr;
     }
 
-    public static While makeWhile(Span sp, Expr cond) {
-        // Might not work; empty Do may be naughty.
-        return new While(sp, makeGeneratorClause(cond.getSpan(), cond),
-                new Do(sp, Collections.<Block>emptyList()));
-    }
-
-    public static Do makeDo(Span sp, Option<Type> t, Expr e) {
-        List<Expr> b = Collections.singletonList(e);
-        List<Block> body = new ArrayList<Block>(1);
-        body.add(makeBlock(sp, t, false, true, b));
-        return new Do(sp, t, body);
-    }
-
-    public static Do makeDo(Span sp, Option<Type> t, List<Expr> exprs) {
-        List<Block> body = new ArrayList<Block>(1);
-        body.add(makeBlock(sp, t, false, true, exprs));
-        return new Do(sp, t, body);
-    }
-
-    public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
-        List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(NodeFactory.makeSpan(_op, _expr), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
-        links.add(link);
-        return new ChainExpr(NodeFactory.makeSpan(e, _expr), e, links);
-    }
-
-    public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
-     List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(NodeFactory.makeSpan(_op, _expr), makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
-        links.add(link);
-        return new ChainExpr(sp, e, links);
-    }
-
-    /**
-     * Throws a standard (FortressLibrary) exception
-     * @param sp
-     * @param st
-     * @return
-     */
-    public static Throw makeThrow(Span sp, String st) {
-        Id id = NodeFactory.makeId(sp, WellKnownNames.fortressLibrary, st);
-        return new Throw(sp, makeVarRef(sp, id));
-    }
-
-    /**
-     * Uses the Spans from e_1 and e_2.
-     */
-    public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
-        return new _RewriteFnApp(FortressUtil.spanTwo(e_1, e_2), e_1, e_2);
-    }
-
     public static Expr makeInParentheses(Expr expr) {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             @Override
             public Expr for_RewriteFnApp(_RewriteFnApp that) {
-                return new _RewriteFnApp(that.getSpan(),true,that.getFunction(),that.getArgument());
+                return make_RewriteFnApp(that.getSpan(), true, that.getExprType(),
+                                         that.getFunction(), that.getArgument());
             }
         public Expr forAsExpr(AsExpr e) {
-            return new AsExpr(e.getSpan(), true, e.getExpr(), e.getAnnType());
+            return makeAsExpr(e.getSpan(), true, e.getExprType(),
+                              e.getExpr(), e.getAnnType());
         }
         public Expr forAsIfExpr(AsIfExpr e) {
-            return new AsIfExpr(e.getSpan(), true, e.getExpr(), e.getAnnType());
+            return makeAsIfExpr(e.getSpan(), true, e.getExprType(),
+                                e.getExpr(), e.getAnnType());
         }
 
         public Expr forAssignment(Assignment e) {
@@ -1284,17 +1468,19 @@ public class ExprFactory {
                                 e.getClauses(), e.getElseClause());
         }
         public Expr forDo(Do e) {
-            return new Do(e.getSpan(), true, e.getFronts());
+            return makeDo(e.getSpan(), true, e.getExprType(), e.getFronts());
         }
         public Expr forFor(For e) {
-            return new For(e.getSpan(), true, e.getGens(), e.getBody());
+            return makeFor(e.getSpan(), true, e.getExprType(), e.getGens(),
+                           e.getBody());
         }
         public Expr forIf(If e) {
-            return new If(e.getSpan(), true, e.getClauses(),
-                    e.getElseClause());
+            return makeIf(e.getSpan(), true, e.getExprType(),
+                          e.getClauses(), e.getElseClause());
         }
         public Expr forLabel(Label e) {
-            return new Label(e.getSpan(), true, e.getName(), e.getBody());
+            return makeLabel(e.getSpan(), true, e.getExprType(),
+                             e.getName(), e.getBody());
         }
         public Expr forMathPrimary(MathPrimary e) {
             return makeMathPrimary(e.getSpan(), true, e.getExprType(),
@@ -1307,6 +1493,7 @@ public class ExprFactory {
         }
         public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
             return new _RewriteObjectExpr(e.getSpan(), true,
+                                          e.getExprType(),
                     e.getExtendsClause(), e.getDecls(),
                     e.getImplicitTypeParameters(),
                     e.getGenSymName(),
@@ -1329,7 +1516,8 @@ public class ExprFactory {
                                 e.getElseClause());
         }
         public Expr forWhile(While e) {
-            return new While(e.getSpan(), true, e.getTestExpr(), e.getBody());
+            return makeWhile(e.getSpan(), true, e.getExprType(),
+                             e.getTestExpr(), e.getBody());
         }
         public Expr forAccumulator(Accumulator e) {
             return makeAccumulator(e.getSpan(), true, e.getExprType(),
@@ -1337,7 +1525,7 @@ public class ExprFactory {
                                    e.getAccOp(), e.getGens(), e.getBody());
         }
         public Expr forAtomicExpr(AtomicExpr e) {
-            return new AtomicExpr(e.getSpan(), true, e.getExpr());
+            return makeAtomicExpr(e.getSpan(), true, e.getExprType(), e.getExpr());
         }
         public Expr forExit(Exit e) {
             return makeExit(e.getSpan(), true, e.getExprType(),
@@ -1345,13 +1533,14 @@ public class ExprFactory {
         }
 
         public Expr forSpawn(Spawn e) {
-            return new Spawn(e.getSpan(), true, e.getBody());
+            return makeSpawn(e.getSpan(), true, e.getExprType(), e.getBody());
         }
         public Expr forThrow(Throw e) {
-            return new Throw(e.getSpan(), true, e.getExpr());
+            return makeThrow(e.getSpan(), true, e.getExprType(), e.getExpr());
         }
         public Expr forTryAtomicExpr(TryAtomicExpr e) {
-            return new TryAtomicExpr(e.getSpan(), true, e.getExpr());
+            return makeTryAtomicExpr(e.getSpan(), true, e.getExprType(),
+                                     e.getExpr());
         }
         public Expr forFnExpr(FnExpr e) {
             return makeFnExpr(e.getSpan(), true, e.getExprType(), e.getName(),
@@ -1360,7 +1549,7 @@ public class ExprFactory {
                               e.getThrowsClause(), e.getBody());
         }
         public Expr forLetFn(LetFn e) {
-            return new LetFn(e.getSpan(), true, e.getBody(), e.getFns());
+            return makeLetFn(e.getSpan(), true, e.getExprType(), e.getBody(), e.getFns());
         }
         public Expr forLocalVarDecl(LocalVarDecl e) {
             return makeLocalVarDecl(e.getSpan(), true, e.getExprType(),
@@ -1385,7 +1574,8 @@ public class ExprFactory {
                                      e.getElements(), e.isOutermost());
         }
         public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
-            return new FloatLiteralExpr(e.getSpan(), true, e.getText(),
+            return makeFloatLiteralExpr(e.getSpan(), true, e.getExprType(),
+                                        e.getText(),
                     e.getIntPart(), e.getNumerator(),
                     e.getDenomBase(), e.getDenomPower());
         }
@@ -1398,7 +1588,8 @@ public class ExprFactory {
                                        e.getText(), e.getCharVal());
         }
         public Expr forStringLiteralExpr(StringLiteralExpr e) {
-            return new StringLiteralExpr(e.getSpan(), true, e.getText());
+            return makeStringLiteralExpr(e.getSpan(), true, e.getExprType(),
+                                         e.getText());
         }
         public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
             return makeVoidLiteralExpr(e.getSpan(), true, e.getExprType(),
@@ -1413,12 +1604,12 @@ public class ExprFactory {
                                           e.getStaticArgs(), e.getClauses());
         }
         public Expr forChainExpr(ChainExpr e) {
-            return new ChainExpr(e.getSpan(), true, e.getFirst(),
-                    e.getLinks());
+            return makeChainExpr(e.getSpan(), true, e.getExprType(), e.getFirst(),
+                                 e.getLinks());
         }
         public Expr forFieldRef(FieldRef e) {
-            return new FieldRef(e.getSpan(), true, e.getObj(),
-                    e.getField());
+            return makeFieldRef(e.getSpan(), true, e.getExprType(),
+                                e.getObj(), e.getField());
         }
         public Expr forMethodInvocation(MethodInvocation e) {
             return makeMethodInvocation(e.getSpan(), true, e.getExprType(),

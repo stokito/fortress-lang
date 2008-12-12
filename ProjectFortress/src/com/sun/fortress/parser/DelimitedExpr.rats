@@ -65,7 +65,7 @@ Expr DelimitedExpr =
                          "Mismatched identifiers for label expressions:\n'" +
                          a1 + "' at " + a1.getSpan() + " and\n'" +
                          a3 + "' at " + a3.getSpan());
-       yyValue = new Label(createSpan(yyStart,yyCount), false, a1, a2);
+       yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), a1, a2);
      }
    / <ErrorProduction>
      label w a1:OpName w a2:BlockElems w end w a3:OpName
@@ -81,9 +81,9 @@ Expr DelimitedExpr =
                                  "letters is an operator name.");
      }
    / while w a1:GeneratorClause w a2:Do
-     { yyValue = new While(createSpan(yyStart,yyCount), false, a1, a2); }
+     { yyValue = ExprFactory.makeWhile(createSpan(yyStart,yyCount), a1, a2); }
    / for w a1:GeneratorClauseList w a2:DoFront w end
-     { yyValue = new For(createSpan(yyStart,yyCount), false, a1, a2); }
+     { yyValue = ExprFactory.makeFor(createSpan(yyStart,yyCount), a1, a2); }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
      { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
@@ -163,8 +163,8 @@ Expr DelimitedExpr =
 
 /* Do ::= (DoFront w also w)* DoFront w end */
 Do Do = a1s:(DoFront w also w)* a2:DoFront w end
-     { yyValue = new Do(createSpan(yyStart, yyCount), false,
-                        FortressUtil.mkList(a1s.list(), a2));
+     { yyValue = ExprFactory.makeDo(createSpan(yyStart, yyCount),
+                                    FortressUtil.mkList(a1s.list(), a2));
      };
 
 /* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */

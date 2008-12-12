@@ -927,7 +927,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			result_type = Option.none();
 		}
 
-		_RewriteFnApp new_node = new _RewriteFnApp(that.getSpan(),
+		_RewriteFnApp new_node = ExprFactory.make_RewriteFnApp(that.getSpan(),
 				that.isParenthesized(),
 				result_type,
 				(Expr) function_result.ast(),
@@ -1632,7 +1632,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			forAtomic(that.getExpr(),
 					errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
 
-		AtomicExpr new_node = new AtomicExpr(that.getSpan(),
+		AtomicExpr new_node = ExprFactory.makeAtomicExpr(that.getSpan(),
 				that.isParenthesized(),
 				expr_result.type(),
 				(Expr)expr_result.ast());
@@ -2004,7 +2004,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			prev = next;
 		}
 
-		ChainExpr new_node = new ChainExpr(that.getSpan(),
+		ChainExpr new_node = ExprFactory.makeChainExpr(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.BOOLEAN),
 				(Expr)first_result.ast(),
@@ -2144,7 +2144,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		Type result_type = subtypeChecker.join(frontTypes);
-		Do new_node = new Do(that.getSpan(),
+		Do new_node = ExprFactory.makeDo(that.getSpan(),
 				that.isParenthesized(),
 				some(result_type),
 				(List<Block>)TypeCheckerResult.astFromResults(fronts_result));
@@ -2278,7 +2278,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			result_type = Option.none();
 		}
 
-		FieldRef new_node = new FieldRef(that.getSpan(),
+		FieldRef new_node = ExprFactory.makeFieldRef(that.getSpan(),
 				that.isParenthesized(),
 				result_type,
 				(Expr)obj_result.ast(),
@@ -2607,7 +2607,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		String err = "Body type of a for loop must have type VOID but has type " + body_result.type().unwrap();
 		TypeCheckerResult body_void = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), err);
 
-		For for_ = new For(that.getSpan(),
+		For for_ = ExprFactory.makeFor(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.VOID),
 				(List<GeneratorClause>)TypeCheckerResult.astFromResults(gens_result),
@@ -2925,7 +2925,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// Destroy the mappings for this label
 		labelExitTypes.remove(that.getName());
 
-		Label new_node = new Label(that.getSpan(),
+		Label new_node = ExprFactory.makeLabel(that.getSpan(),
 				that.isParenthesized(),
 				labelType,
 				that.getName(),
@@ -2952,7 +2952,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				Option.<Type>some(Types.VOID) :
 					body_results.get(body_results.size()-1).type();
 
-				LetFn new_node = new LetFn(that.getSpan(),
+				LetFn new_node = ExprFactory.makeLetFn(that.getSpan(),
 						that.isParenthesized(),
 						body_type,
 						(List<Expr>)TypeCheckerResult.astFromResults(body_results),
@@ -3028,8 +3028,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                           that.getExprs().size()));
                     }
                     Expr arg = that.getExprs().get(1);
-                    _RewriteFnApp fnApp = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
-                                                            front, arg);
+                    _RewriteFnApp fnApp = ExprFactory.make_RewriteFnApp(front, arg);
 
                     // Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
                     Type freshArrow = NodeFactory.makeArrowType(new Span(),
@@ -3209,9 +3208,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					}
 				}
 				// Otherwise, make a new MathPrimary that is one element shorter, and recur
-				_RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(), arg.getSpan()),
-						front,
-						((ExprMI)arg).getExpr());
+				_RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front,
+                                                                                 ((ExprMI)arg).getExpr());
 				MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
                                                                                       that.isParenthesized(),
                                                                                       that.getExprType(),
@@ -3253,7 +3251,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						item_iter.previous();
 						item_iter.remove(); // remove fn from item list
 						// replace both with fn appication
-						_RewriteFnApp fn = new _RewriteFnApp(new Span(front.getSpan(),arg.getSpan()), front, ((ExprMI)arg).getExpr());
+						_RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front, ((ExprMI)arg).getExpr());
 						item_iter.add(new NonParenthesisDelimitedMI(fn.getSpan(),fn));
 						// static error if the argument is immediately followed by a non-expression element.
 						if( item_iter.hasNext() ) {
@@ -3915,7 +3913,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return TypeCheckerResult.compose(that, subtypeChecker, bodyResult);
 
 		Type expr_type = Types.makeThreadType(bodyResult.type().unwrap());
-		Spawn new_node = new Spawn(that.getSpan(),
+		Spawn new_node = ExprFactory.makeSpawn(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(expr_type),
 				(Expr)bodyResult.ast());
@@ -3927,7 +3925,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forStringLiteralExpr(StringLiteralExpr that) {
-		StringLiteralExpr new_node = new StringLiteralExpr(that.getSpan(),
+		StringLiteralExpr new_node = ExprFactory.makeStringLiteralExpr(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.STRING),
 				that.getText());
@@ -3993,7 +3991,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				Types.EXCEPTION, that.getExpr(), "'throw' can only throw objects of Exception type. " +
 				"This expression is of type " + expr_result.type().unwrap());
 
-		Throw new_node = new Throw(that.getSpan(),
+		Throw new_node = ExprFactory.makeThrow(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.BOTTOM),
 				(Expr)expr_result.ast());
@@ -4114,7 +4112,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			forAtomic(that.getExpr(),
 					errorMsg("A 'spawn' expression must not occur inside a 'try atomic' expression."));
 
-		TryAtomicExpr new_node = new TryAtomicExpr(that.getSpan(),
+		TryAtomicExpr new_node = ExprFactory.makeTryAtomicExpr(that.getSpan(),
 				that.isParenthesized(),
 				expr_result.type(),
 				(Expr)expr_result.ast());
@@ -4227,13 +4225,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 				@Override
 				public Node forAsExpr(AsExpr that) {
-					return new AsExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
-							(Expr)expr_result.ast(), annotatedType);
+					return ExprFactory.makeAsExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
+                                                                      (Expr)expr_result.ast(), annotatedType);
 				}
 
 				@Override
 				public Node forAsIfExpr(AsIfExpr that) {
-					return new AsIfExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
+					return ExprFactory.makeAsIfExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
 							(Expr)expr_result.ast(), annotatedType);
 				}
 			});
@@ -4503,7 +4501,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		body_result.type().unwrap();
 		TypeCheckerResult void_result = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), void_err);
 
-		While new_node = new While(that.getSpan(),
+		While new_node = ExprFactory.makeWhile(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(Types.VOID),
 				(GeneratorClause)res.first().ast(),

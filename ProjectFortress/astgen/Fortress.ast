@@ -442,8 +442,8 @@ interface Node() extends HasAt;
             /**
              * expression
              */
-            root abstract Expr(ignoreForEquals boolean parenthesized = false,
-                               ignoreForEquals Option<Type> exprType = Option.<Type>none());
+            root abstract Expr(ignoreForEquals boolean parenthesized,
+                               ignoreForEquals Option<Type> exprType);
 
                 /**
                  * expression annotated with a type
@@ -887,7 +887,8 @@ interface Node() extends HasAt;
                          *           | Primary Primary
                          * e.g.) x y
                          */
-                        _RewriteFnApp(Expr function, Expr argument) implements InAfterTypeChecking;
+                        _RewriteFnApp(Expr function, Expr argument)
+                                     implements InAfterTypeChecking;
                         /**
                          * expression using operators
                          * (list of ops allows cross-API overloading)

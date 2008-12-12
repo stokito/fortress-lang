@@ -38,7 +38,7 @@ public class _WrappedFValue extends Expr {
      * @throws java.lang.IllegalArgumentException  If any parameter to the constructor is null.
      */
     public _WrappedFValue(Span in_span, boolean in_is_parenthesized, FValue in_fValue) {
-        super(in_span, in_is_parenthesized);
+        super();
         if (in_fValue == null) {
             throw new java.lang.IllegalArgumentException("Parameter 'fValue' to the _WrappedFValue constructor was null");
         }

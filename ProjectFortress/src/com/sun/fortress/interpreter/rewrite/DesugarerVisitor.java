@@ -217,7 +217,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Member() { super(); }
         @Override
         Expr replacement(VarRef original) {
-            return new FieldRef(original.getSpan(), false,
+            return ExprFactory.makeFieldRef(original.getSpan(),
                                 // Use this constructor
                                 // here because it is a
                                 // rewrite.
@@ -456,8 +456,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             return ExprFactory.makeVarRef(s, WellKnownNames.secretSelfName, -1);
         }
         if (i > 0) {
-            return new FieldRef(s, false, dottedReference(s, i - 1),
-                                new Id(s,WellKnownNames.secretParentName));
+            return ExprFactory.makeFieldRef(s, dottedReference(s, i - 1),
+                                            new Id(s,WellKnownNames.secretParentName));
         } else {
             throw new Error("Confusion in member reference numbering.");
         }
@@ -919,7 +919,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 Id newName = new Id(at, "$" + element_index);
                 Option<Type> type = lv.getIdType();
                 newdecls.add(new VarDecl(at, Useful.list(lv),
-                                         Option.<Expr>some(new FieldRef(at, false, init, newName))));
+                                         Option.<Expr>some(ExprFactory.makeFieldRef(at, init, newName))));
                 element_index++;
             }
             return new RewriteHackList(newdecls);
@@ -959,7 +959,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                               usedGenericParameters));
         objectExprs.add(rwoe);
 
-        return visitNode(new _RewriteObjectExprRef(rwoe.getSpan(), rwoe.isParenthesized(), rwoe.getExprType(), rwoe.getGenSymName(), rwoe.getStaticArgs()));
+        return visitNode(new _RewriteObjectExprRef(rwoe.getSpan(),
+                                                   rwoe.isParenthesized(),
+                                                   rwoe.getExprType(),
+                                                   rwoe.getGenSymName(),
+                                                   rwoe.getStaticArgs()));
    }
 
     @Override
@@ -1098,7 +1102,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFor(For f) {
         Block df = f.getBody();
-        Do doBlock = new Do(df.getSpan(),Useful.list(df));
+        Do doBlock = ExprFactory.makeDo(df.getSpan(),Useful.list(df));
         return visitLoop(f.getSpan(), f.getGens(), doBlock);
     }
 

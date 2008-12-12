@@ -122,7 +122,7 @@ public class ASTUtil {
     //           { chain_expr_first = first;
     //             chain_expr_links = links; }))
     static Expr chain(Span span, Expr first, List<Link> links) {
-        return new ChainExpr(span, false, first, links);
+        return ExprFactory.makeChainExpr(span, first, links);
     }
 
     // let loose (exprs : expr list) : expr =

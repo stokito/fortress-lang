@@ -587,7 +587,7 @@ public class ComposingSyntaxDefTranslator {
         String name = FreshName.getFreshName("stringLiteral");
         indents.add(3);
         code.add("StringLiteralExpr " + prefixJavaVariable(name) +
-                 " = new StringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
+                 " = ExprFactory.makeStringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
         return name;
     }
 }
