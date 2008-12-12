@@ -1325,7 +1325,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Assignment new_node;
 		if( that.getAssignOp().isSome() ) {
 			// Create a new Assignment, with an FunctionalRef for each LHS
-			new_node = new Assignment(that.getSpan(),
+			new_node = ExprFactory.makeAssignment(that.getSpan(),
                                                   that.isParenthesized(),
                                                   Option.<Type>some(Types.VOID),
                                                   (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
@@ -1335,12 +1335,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 		else {
 			// Create a new Assignment
-			new_node = new Assignment(that.getSpan(),
+			new_node = ExprFactory.makeAssignment(that.getSpan(),
 					that.isParenthesized(),
 					Option.<Type>some(Types.VOID),
 					(List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
 					that.getAssignOp(),
-					(Expr)rhs_result.ast());
+					(Expr)rhs_result.ast(),
+                                        Option.<List<FunctionalRef>>none());
 		}
 		// This case could not result in open constraints: If there is an FunctionalRef, this must not be
 		// the postInference pass, because AssignmentNodes should exist instead. If there is
@@ -1376,7 +1377,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		};
 
 		// Create a Assignment, with an FunctionalRef for each LHS
-		Assignment new_node = new Assignment(that.getSpan(),
+		Assignment new_node = ExprFactory.makeAssignment(that.getSpan(),
                                                      that.isParenthesized(),
                                                      Option.<Type>some(Types.VOID),
                                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
@@ -1745,7 +1746,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		Type result_type = NodeFactory.makeIntersectionType(CollectUtil.asSet(clause_types));
-		CaseExpr new_node = new CaseExpr(that.getSpan(),
+		CaseExpr new_node = ExprFactory.makeCaseExpr(that.getSpan(),
 				that.isParenthesized(),
 				some(result_type),
 				(Option<Expr>)TypeCheckerResult.astFromResult(param_result_),
@@ -2084,9 +2085,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	public TypeCheckerResult forBlock(Block that) {
             if ( that.isAtomicBlock() )
-                return forAtomic(new Block(that.getSpan(), that.isParenthesized(),
-                                                           that.getExprType(), that.getLoc(),
-                                                           false, that.isWithinDo(), that.getExprs()),
+                return forAtomic(ExprFactory.makeBlock(that.getSpan(), that.isParenthesized(),
+                                                       that.getExprType(), that.getLoc(),
+                                                       false, that.isWithinDo(), that.getExprs()),
                                                  errorMsg("A 'spawn' expression must not occur inside",
                                                           "an 'atomic' do block."));
 
@@ -2117,12 +2118,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 es = (List<Expr>)TypeCheckerResult.astFromResults(exprs_result);
                 body_void = allVoidButLast(exprs_result,that.getExprs());
             }
-            Block new_node = new Block(that.getSpan(),
-                                           that.isParenthesized(),
-                                           result_type,
-                                           (Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
-                                           that.isAtomicBlock(), that.isWithinDo(),
-                                           (List<Expr>)TypeCheckerResult.astFromResults(exprs_result));
+            Block new_node = ExprFactory.makeBlock(that.getSpan(),
+                                                   that.isParenthesized(),
+                                                   result_type,
+                                                   (Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
+                                                   that.isAtomicBlock(), that.isWithinDo(),
+                                                   (List<Expr>)TypeCheckerResult.astFromResults(exprs_result));
             return TypeCheckerResult.compose(new_node,
                                              result_type,
                                              subtypeChecker,
@@ -2227,7 +2228,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				"The union is " + union_of_candidate_types);
 
 		Type result_type = subtypeChecker.join(rhs_types);
-		CaseExpr new_node = new CaseExpr(that.getSpan(),
+		CaseExpr new_node = ExprFactory.makeCaseExpr(that.getSpan(),
 				that.isParenthesized(),
 				some(result_type),
 				that.getParam(), // implicitly NONE
@@ -2840,7 +2841,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		TypeCheckerResult elseClause_result_ = elseClause_result.isNone() ? new TypeCheckerResult(that) : elseClause_result.unwrap();
 
-		If new_node = new If(that.getSpan(),
+		If new_node = ExprFactory.makeIf(that.getSpan(),
 				that.isParenthesized(),
 				some(result_type),
 				(List<IfClause>)TypeCheckerResult.astFromResults(clauses_result),
@@ -3604,8 +3605,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		}
 
-		ObjectExpr new_node = new ObjectExpr(that.getSpan(),
+		ObjectExpr new_node = ExprFactory.makeObjectExpr(that.getSpan(),
 				that.isParenthesized(),
+                                                                 that.getExprType(),
 				(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClause_result),
 				(List<Decl>)TypeCheckerResult.astFromResults(decls_result)
 		);
@@ -4145,7 +4147,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			all_types.add(finally_result.unwrap().type().unwrap());
 
 		Type expr_type = this.subtypeChecker.join(all_types);
-		Try new_node = new Try(that.getSpan(),
+		Try new_node = ExprFactory.makeTry(that.getSpan(),
 				that.isParenthesized(),
 				Option.<Type>some(expr_type),
 				(Block)body_result.ast(),
@@ -4190,11 +4192,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		TupleType tuple_type = NodeFactory.makeTupleType(types);
 
-		TupleExpr new_node = new TupleExpr(that.getSpan(),
-				that.isParenthesized(),
-				Option.<Type>some(tuple_type),
-				(List<Expr>)TypeCheckerResult.astFromResults(exprs_result));
-
+		TupleExpr new_node = ExprFactory.makeTupleExpr(that.getSpan(),
+                                                               that.isParenthesized(),
+                                                               Option.<Type>some(tuple_type),
+                                                               (List<Expr>)TypeCheckerResult.astFromResults(exprs_result),
+                                                               that.getVarargs(),
+                                                               that.getKeywords(),
+                                                               that.isInApp());
 
 		return TypeCheckerResult.compose(new_node, tuple_type,
 				subtypeChecker, exprs_result);
@@ -4334,7 +4338,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						}
 
 						Type result_type = subtypeChecker.join(all_types);
-						Typecase new_node = new Typecase(that.getSpan(),
+						Typecase new_node = ExprFactory.makeTypecase(that.getSpan(),
 								that.isParenthesized(),
 								Option.some(result_type),
 								that.getBindIds(),

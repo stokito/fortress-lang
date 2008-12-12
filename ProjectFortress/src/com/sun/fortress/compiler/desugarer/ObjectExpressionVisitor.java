@@ -455,7 +455,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr,
                                                       freeNames, enclosingSelf);
-        Expr arg = ExprFactory.makeTuple(exprs);
+        Expr arg = ExprFactory.makeTupleExpr(exprs);
         return ExprFactory.make_RewriteFnApp(fnRef, arg);
     }
 
@@ -602,7 +602,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             VoidLiteralExpr voidLit = ExprFactory.makeVoidLiteralExpr(span);
             exprs.add(voidLit);
         } else if( exprs.size() > 1 ) {
-            TupleExpr tuple = ExprFactory.makeTuple(span, exprs);
+            TupleExpr tuple = ExprFactory.makeTupleExpr(span, exprs);
             exprs = new LinkedList<Expr>();
             exprs.add(tuple);
         }

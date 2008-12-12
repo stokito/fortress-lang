@@ -55,7 +55,8 @@ Expr ExprFront :=
   / ... ;
 Expr NoNewlineAssignExpr =
     a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
-    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
+    { yyValue = ExprFactory.makeAssignment(createSpan(yyStart,yyCount),
+                                           a1, a2, a3);};
 
 Action<Expr> ExprTail :=
      <As> NoNewlineAs

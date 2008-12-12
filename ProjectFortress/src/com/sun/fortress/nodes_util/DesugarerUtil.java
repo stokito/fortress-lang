@@ -135,7 +135,7 @@ public class DesugarerUtil {
             /* Single generator as body, with no generator clauses. */
             body = ExprFactory.makeTightJuxt(span,
                                              GENERATE_NAME,
-                                             ExprFactory.makeTuple(body,redVar,unitVar));
+                                             ExprFactory.makeTupleExpr(body,redVar,unitVar));
         } else {
             List<GeneratorClause> squozenGens =
                 new ArrayList<GeneratorClause>(gens.size());
@@ -220,7 +220,7 @@ public class DesugarerUtil {
         Expr init = prevGen.getInit();
         Expr filtered =
             ExprFactory.makeTightJuxt(gen.getSpan(), FILTER_NAME,
-                                      ExprFactory.makeTuple(init,fn));
+                                      ExprFactory.makeTupleExpr(init,fn));
         GeneratorClause res =
             ExprFactory.makeGeneratorClause(prevGen.getSpan(), binds, filtered);
         return res;
@@ -269,7 +269,7 @@ public class DesugarerUtil {
      */
     private static Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
-        Expr params = ExprFactory.makeTuple(g.getInit(), reduction, loopBody);
+        Expr params = ExprFactory.makeTupleExpr(g.getInit(), reduction, loopBody);
         return ExprFactory.makeTightJuxt(g.getSpan(), GENERATE_NAME, params);
     }
 }

@@ -83,7 +83,7 @@ constant inline Action<Expr> AsIf =
 
 /* AssignExpr ::= AssignLefts w AssignOp w Expr */
 Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
-    { yyValue = new Assignment(createSpan(yyStart,yyCount), false, a1, a2, a3);};
+    { yyValue = ExprFactory.makeAssignment(createSpan(yyStart,yyCount), a1, a2, a3);};
 
 /* AssignLefts ::=
      ( w AssignLeft (w , w AssignLeft)* w )
@@ -310,8 +310,8 @@ constant PureList<Expr> Primary =
        for (PureList<Expr> elist : elists) {
            es.add(FortressUtil.buildPrimary(elist));
        }
-       yyValue = PureList.make((Expr)new TupleExpr(createSpan(yyStart,yyCount),
-                                                   false, es));
+       yyValue = PureList.make((Expr)ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                                               es));
      }
    / PrimaryItem ;
 

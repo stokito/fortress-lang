@@ -32,6 +32,7 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
 
+import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 
@@ -255,7 +256,11 @@ public class Transform extends TemplateUpdateVisitor {
             List<TypecaseClause> clauses_result = recurOnListOfTypecaseClause(that.getClauses());
             Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
             setSyntaxEnvironment(save);
-            return new Typecase(NodeFactory.makeSpan(that), exprType_result, newIds, bindExpr_result, clauses_result, elseClause_result);
+            return ExprFactory.makeTypecase(NodeFactory.makeSpan(that),
+                                            that.isParenthesized(),
+                                            exprType_result, newIds,
+                                            bindExpr_result, clauses_result,
+                                            elseClause_result);
         } else {
             return super.forTypecase(that);
         }
