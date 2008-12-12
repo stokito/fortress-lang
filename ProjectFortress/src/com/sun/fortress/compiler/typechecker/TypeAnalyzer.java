@@ -273,8 +273,9 @@ public class TypeAnalyzer {
                                     else {
                                         List<Type> elts = makeList(skipLast(ts));
                                         Type varargs = last(ts);
-                                        return new TupleType(NodeFactory.makeSpan(elts, varargs),
-                                                             elts, Option.<Type>some(varargs));
+                                        return NodeFactory.makeTupleType(NodeFactory.makeSpan(elts, varargs),
+                                                                         false, elts, Option.<Type>some(varargs),
+                                                                         Collections.<KeywordType>emptyList());
                                     }
                                 }
                             };
@@ -339,7 +340,7 @@ public class TypeAnalyzer {
                 Iterable<Type> ranges = liftConjuncts(normalRange, history);
                 Iterable<Type> overloads = cross(domains, ranges, new Lambda2<Type, Type, Type>() {
                     public Type value(Type d, Type r) {
-                        return new ArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect);
+                        return NodeFactory.makeArrowType(NodeFactory.makeSetSpan(d,r), d, r, normalEffect);
                     }
                 });
                 // don't meet, because the arrows here aren't subtypes of each other

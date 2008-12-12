@@ -106,7 +106,7 @@ public class TypesUtil {
             switch (_args.size()) {
                 case 0: return Types.VOID;
                 case 1: return _args.get(0);
-                default: return new TupleType(NodeFactory.makeSpan("impossible", _args), _args);
+                default: return NodeFactory.makeTupleType(NodeFactory.makeSpan("impossible", _args), _args);
             }
         }
 
@@ -430,7 +430,7 @@ public class TypesUtil {
 
     				if(constraints.isSome()) {
     					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
-    					Type new_type = new ArrowType(temp.getSpan(),temp.isParenthesized(),
+    					Type new_type = NodeFactory.makeArrowType(temp.getSpan(),temp.isParenthesized(),
                                                                       temp.getDomain(),temp.getRange(), temp.getEffect(),
                                                                       Collections.<StaticParam>emptyList(),
                                                                       Option.<WhereClause>none());

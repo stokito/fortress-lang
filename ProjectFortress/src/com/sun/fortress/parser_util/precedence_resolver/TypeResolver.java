@@ -76,9 +76,9 @@ public class TypeResolver {
                                        DimExpr expr2) throws TypeConvertFailure {
         DimExpr dim = new DimBinaryOp(span, true, dimToDim(expr0.getDimExpr()),
                                       dimToDim(expr2), product(span));
-        return new TaggedDimType(span, true,
-                                 typeToType(expr0.getElemType()), dim,
-                                 expr0.getUnitExpr());
+        return NodeFactory.makeTaggedDimType(span, true,
+                                             typeToType(expr0.getElemType()), dim,
+                                             expr0.getUnitExpr());
     }
 
     private static Type makeQuotientDim(Span span, TaggedDimType expr0,
@@ -86,9 +86,9 @@ public class TypeResolver {
         throws TypeConvertFailure {
         DimExpr dim = new DimBinaryOp(span, true, dimToDim(expr0.getDimExpr()),
                                       dimToDim(expr2), quotient(span));
-        return new TaggedDimType(span, true,
-                                 typeToType(expr0.getElemType()), dim,
-                                 expr0.getUnitExpr());
+        return NodeFactory.makeTaggedDimType(span, true,
+                                             typeToType(expr0.getElemType()), dim,
+                                             expr0.getUnitExpr());
     }
 
     private static Type makeJuxt(Type first, Type second) throws ReadError {
@@ -98,7 +98,8 @@ public class TypeResolver {
             if (first instanceof TaggedDimType) {
                 return makeProductDim(span, (TaggedDimType)first, dim);
             } else {
-                return new TaggedDimType(span, true, typeToType(first), dim);
+                return NodeFactory.makeTaggedDimType(span, true, typeToType(first), dim,
+                                                     Option.<Expr>none());
             }
         } catch (TypeConvertFailure x) {
             throw new ReadError(span, "Misuse of type juxtaposition.");
@@ -249,9 +250,8 @@ public class TypeResolver {
         Op op = frame.getOp();
         Type first = frame.getArg();
         if (isTypeOp(op)) {
-            return new ArrowType(spanTwo(first, last), true,
-                                 first,
-                                 typeToType(last), frame.getEffect());
+            return NodeFactory.makeArrowType(spanTwo(first, last), first,
+                                             typeToType(last), frame.getEffect());
         } else { // !(isTypeOp(op))
             try {
                 DimExpr _second = typeToDim(last);
@@ -613,10 +613,10 @@ public class TypeResolver {
                 }
             }
             public Type forTaggedDimType(TaggedDimType t) {
-                return new TaggedDimType(t.getSpan(), true,
-                                         typeToType(t.getElemType()),
-                                         makeInParentheses(dimToDim(t.getDimExpr())),
-                                         t.getUnitExpr());
+                return NodeFactory.makeTaggedDimType(t.getSpan(), true,
+                                                     typeToType(t.getElemType()),
+                                                     makeInParentheses(dimToDim(t.getDimExpr())),
+                                                     t.getUnitExpr());
             }
         });
     }
@@ -721,16 +721,18 @@ public class TypeResolver {
         try {
             return dim.accept(new NodeAbstractVisitor<Type>() {
                 public Type forDimRef(DimRef d) {
-                    return new VarType(d.getSpan(),
-                                       d.isParenthesized(),
-                                       d.getName());
+                    return NodeFactory.makeVarType(d.getSpan(),
+                                                   d.isParenthesized(),
+                                                   d.getName(),
+                                                   NodeFactory.lexicalDepth);
                 }
                 public Type forDimBinaryOp(DimBinaryOp d) {
                     try {
-                        return new TaggedDimType(d.getSpan(),
-                                                 d.isParenthesized(),
-                                                 makeInParentheses(dimToType(d.getLeft())),
-                                                 dimToDim(d.getRight()));
+                        return NodeFactory.makeTaggedDimType(d.getSpan(),
+                                                             d.isParenthesized(),
+                                                             makeInParentheses(dimToType(d.getLeft())),
+                                                             dimToDim(d.getRight()),
+                                                             Option.<Expr>none());
                     } catch (TypeConvertFailure e) {
                         return error(e.getMessage());
                     }
@@ -753,11 +755,11 @@ public class TypeResolver {
     private static Type canonicalizeType(Type ty) {
         if (ty instanceof TaggedDimType) {
             TaggedDimType _ty = (TaggedDimType)ty;
-            return new TaggedDimType(_ty.getSpan(),
-                                     _ty.isParenthesized(),
-                                     canonicalizeType(_ty.getElemType()),
-                                     canonicalizeDim(_ty.getDimExpr()),
-                                     _ty.getUnitExpr());
+            return NodeFactory.makeTaggedDimType(_ty.getSpan(),
+                                                 _ty.isParenthesized(),
+                                                 canonicalizeType(_ty.getElemType()),
+                                                 canonicalizeDim(_ty.getDimExpr()),
+                                                 _ty.getUnitExpr());
         } else return ty;
     }
 

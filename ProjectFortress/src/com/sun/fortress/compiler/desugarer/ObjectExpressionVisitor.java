@@ -841,7 +841,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             IntRef intRef = new IntRef(span, (Id)sParam.getName());
             return new IntArg(span, intRef);
         } else if( NodeUtil.isTypeParam(sParam) ) {
-            VarType varType = new VarType(span, (Id)sParam.getName());
+            VarType varType = NodeFactory.makeVarType(span, (Id)sParam.getName());
             return new TypeArg(span, varType);
         } else {
             throw new DesugarerError(

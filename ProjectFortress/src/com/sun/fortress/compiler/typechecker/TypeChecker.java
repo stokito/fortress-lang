@@ -2400,7 +2400,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TupleType domain;
 		if(varargs){
 			Type var = dlist.remove(dlist.size()-1);
-			domain = new TupleType(that.getSpan(), dlist, Option.<Type>some(var));
+			domain = NodeFactory.makeTupleType(that.getSpan(), false, dlist,
+                                                           Option.<Type>some(var),
+                                                           Collections.<KeywordType>emptyList());
 		}
 		else{
 			domain = NodeFactory.makeTupleType(dlist);
