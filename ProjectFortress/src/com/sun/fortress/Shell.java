@@ -279,6 +279,12 @@ public final class Shell {
                 printHelpMessage();
 
             } else { printUsageMessage(); }
+        } catch ( StaticError e ){
+            System.err.println(e);
+            if ( Debug.isOnMax() ){
+                e.printStackTrace();
+            }
+            return_code = -1;
         } catch (UserError error) {
             System.err.println(error.getMessage());
             return_code = -1;
@@ -671,7 +677,7 @@ public final class Shell {
             bcr = specificRepository( path, defaultRepository );
             Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
             name = cuName(file);
-            
+
             if ( isApi(file) ) {
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
