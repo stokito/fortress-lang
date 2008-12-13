@@ -109,7 +109,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             graph.addNode( api );
         }
-        
+
         for ( String root : roots ) {
             ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(root)));
             try{
@@ -224,7 +224,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 /* oh well */
             } catch ( IOException e ){
             }
-            
+
             /* make this component depend on the APIs it imports */
             for ( APIName api : dependencies(node) ){
                 nodeDependsOnApi(node, api);
@@ -292,7 +292,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     public File findFile(APIName name, String suffix) throws FileNotFoundException {
         String dotted = name.toString();
         String slashed = dotted.replaceAll("[.]", "/");
-        dotted = dotted + "." + suffix;
         slashed = slashed + "." + suffix;
         File fdot;
 
@@ -300,7 +299,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         try {
             fdot = path.findFile(slashed);
         } catch (FileNotFoundException ex2) {
-            throw new FileNotFoundException("Could not find " + dotted + " on path " + path);
+            throw new FileNotFoundException(name.getSpan() + ": Could not find API " + dotted + " on path.");
         }
         return fdot;
     }
@@ -403,7 +402,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException>{
         private Map<GraphNode, Long> youngestSourceDependedOn;
         private Map<GraphNode, Boolean> staleOrDependsOnStale;
-        
+
         public OutOfDateVisitor(){
             youngestSourceDependedOn = new HashMap<GraphNode,Long>();
             staleOrDependsOnStale = new HashMap<GraphNode,Boolean>();
@@ -417,7 +416,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 }
             };
         }
-        
+
         Fn<GraphNode,Boolean> outOfDateComponent() {
             return new Fn<GraphNode,Boolean>(){
                 @Override
@@ -441,44 +440,44 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             long youngest = node.getSourceDate();
             youngestSourceDependedOn.put(node, youngest);
-           
+
             List<GraphNode> depends = graph.depends(node);
             Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
             for ( GraphNode next : depends ){
                 long dependent_youngest = handle(next);
                 if (dependent_youngest > youngest) {
-                
+
                     Debug.debug( Debug.Type.REPOSITORY, 1, next + " has younger source than " + next );
                     youngest = dependent_youngest;
                 }
             }
-            
-            
+
+
             youngestSourceDependedOn.put(node, youngest);
-            
+
             return youngest;
         }
-        
+
         private Boolean isStale( GraphNode node ) throws FileNotFoundException {
             if ( staleOrDependsOnStale.containsKey(node) ){
                 return staleOrDependsOnStale.get(node);
             }
-            
+
             boolean stale = youngestSourceDependedOn.get(node) > getCacheDate(node);
-            
+
             // If anything depended on has source that is younger than our compiled code,
             // then this is stale.
             if ( stale ){
                 Debug.debug( Debug.Type.REPOSITORY, 1, node + "or dependent is newer " + youngestSourceDependedOn.get(node) + " than the cache " + getCacheDate(node) );
             }
-            
+
             staleOrDependsOnStale.put(node, stale);
-            
+
             List<GraphNode> depends = graph.depends(node);
             Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
             for ( GraphNode next : depends ){
                 boolean dependent_stale = isStale(next);
-                
+
                 if ( dependent_stale  ){
                     stale = true;
                     Debug.debug( Debug.Type.REPOSITORY, 1, node + " is stale " + next + " is stale" );
@@ -550,7 +549,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private AnalyzeResult parseApis(final Fn<GraphNode, Boolean> these_apis){
-         
+
         List<Api> unparsed = Useful.applyToAll(graph.filter(these_apis),
             new Fn<GraphNode, Api>(){
                 @Override
@@ -558,7 +557,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                     return parseApi((ApiGraphNode) g);
                 }
             });
-        
+
         if (unparsed.size() == 0)
             return new AnalyzeResult(IterUtil.<StaticError>empty());
 

@@ -1,0 +1,6 @@
+component HelloWithMissingAPI
+export Runnable
+
+  run(args:String...):() = printlnSimple "Hello, world!"
+
+end
