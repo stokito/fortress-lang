@@ -105,7 +105,7 @@ public abstract class TypeCheckerTestCase extends TestCase {
             new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
+            extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitDecl ast = NodeFactory.makeTraitDecl(span, NodeFactory.makeId(name), sparams,
                                                   extendsClause);

@@ -354,7 +354,7 @@ public class TypeAnalyzer {
                 else {
                     List<BaseType> reduced = reduceDisjuncts(normalThrows.unwrap(),
                                                              _emptyHistory);
-                    if (reduced.isEmpty()) { return new Effect(NodeFactory.makeSpan(e), e.isIoEffect()); }
+                    if (reduced.isEmpty()) { return NodeFactory.makeEffect(NodeFactory.makeSpan(e), e.isIoEffect()); }
                     else if (reduced.equals(e.getThrowsClause().unwrap())) {
                         return e;
                     }

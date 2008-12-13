@@ -121,9 +121,9 @@ transient private IntConstraint IntConstraint =
  */
 transient IntExpr IntVal =
      a1:IntLiteralExpr
-     { yyValue = new IntBase(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new IntBase(createSpan(yyStart,yyCount), false, a1); }
    / a1:QualifiedName
-     { yyValue = new IntRef(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeIntRef(createSpan(yyStart,yyCount), a1); };
 
 /* IntExpr ::=
      IntVal
@@ -155,7 +155,7 @@ private constant inline Action<IntExpr> SumIntExpr =
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
                Op plus = NodeFactory.makeOpInfix(a1.getSpan(), "+");
-               return new IntBinaryOp(createSpan(yyStart,yyCount),
+               return NodeFactory.makeIntBinaryOp(createSpan(yyStart,yyCount),
                                       (IntExpr)base, a1, plus);
            }};
      };
@@ -165,7 +165,7 @@ private constant inline Action<IntExpr> MinusIntExpr =
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
                Op minus = NodeFactory.makeOpInfix(a1.getSpan(), "-");
-               return new IntBinaryOp(createSpan(yyStart,yyCount),
+               return NodeFactory.makeIntBinaryOp(createSpan(yyStart,yyCount),
                                       (IntExpr)base, a1, minus);
            }};
      };
@@ -175,7 +175,7 @@ private constant inline Action<IntExpr> ProductIntExpr =
      { yyValue = new Action<IntExpr>() {
            public IntExpr run(IntExpr base) {
                Op product = NodeFactory.makeOpInfix(a1.getSpan(), " ");
-               return new IntBinaryOp(createSpan(yyStart,yyCount),
+               return NodeFactory.makeIntBinaryOp(createSpan(yyStart,yyCount),
                                       (IntExpr)base, a1, product);
            }};
      };
@@ -190,8 +190,8 @@ private constant inline Action<IntExpr> ExponentIntExpr =
                    log(((IntExpr)base).getSpan(),
                        "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
-                   return new IntBinaryOp(span, (IntExpr)base, a1, exponent);
-               } return new IntBinaryOp(span, (IntExpr)base, a1, exponent);
+                   return NodeFactory.makeIntBinaryOp(span, (IntExpr)base, a1, exponent);
+               } return NodeFactory.makeIntBinaryOp(span, (IntExpr)base, a1, exponent);
            }};
      };
 
@@ -210,27 +210,27 @@ transient private BoolConstraint BoolConstraintFront =
      NOT w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op not = NodeFactory.makeOpPrefix(span, "NOT");
-       yyValue = new BoolUnaryOp(span, a1, not);
+       yyValue = new BoolUnaryOp(span, false, a1, not);
      }
    / a1:BoolConstraintHead w OR w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "OR");
-       yyValue = new BoolBinaryOp(span, a1, a2, op);
+       yyValue = NodeFactory.makeBoolBinaryOp(span, a1, a2, op);
      }
    / a1:BoolConstraintHead w AND w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "AND");
-       yyValue = new BoolBinaryOp(span, a1, a2, op);
+       yyValue = NodeFactory.makeBoolBinaryOp(span, a1, a2, op);
      }
    / a1:BoolConstraintHead w IMPLIES w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "IMPLIES");
-       yyValue = new BoolBinaryOp(span, a1, a2, op);
+       yyValue = NodeFactory.makeBoolBinaryOp(span, a1, a2, op);
      }
    / a1:BoolConstraintHead w equals w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "=");
-       yyValue = new BoolBinaryOp(span, a1, a2, op);
+       yyValue = NodeFactory.makeBoolBinaryOp(span, a1, a2, op);
      };
 
 transient private BoolExpr BoolConstraintHead =
@@ -251,7 +251,7 @@ private constant inline Action<BoolConstraint> OrBoolConstraint =
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "OR");
-               return new BoolBinaryOp(span, (BoolConstraint)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolConstraint)base, a1, op);
            }};
      };
 
@@ -261,7 +261,7 @@ private constant inline Action<BoolConstraint> AndBoolConstraint =
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "AND");
-               return new BoolBinaryOp(span, (BoolConstraint)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolConstraint)base, a1, op);
            }};
      };
 
@@ -271,7 +271,7 @@ private constant inline Action<BoolConstraint> ImpliesBoolConstraint =
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "IMPLIES");
-               return new BoolBinaryOp(span, (BoolConstraint)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolConstraint)base, a1, op);
            }};
      };
 
@@ -281,7 +281,7 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
            public BoolConstraint run(BoolConstraint base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "");
-               return new BoolBinaryOp(span, (BoolConstraint)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolConstraint)base, a1, op);
            }};
      };
 
@@ -292,11 +292,11 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
  */
 transient private BoolExpr BoolVal =
      a1:"true"
-     { yyValue = new BoolBase(createSpan(yyStart,yyCount), true); }
+     { yyValue = new BoolBase(createSpan(yyStart,yyCount), false, true); }
    / a1:"false"
-     { yyValue = new BoolBase(createSpan(yyStart,yyCount), false); }
+     { yyValue = new BoolBase(createSpan(yyStart,yyCount), false, false); }
    / a1:QualifiedName
-     { yyValue = new BoolRef(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeBoolRef(createSpan(yyStart,yyCount), a1); };
 
 /* BoolExpr ::=
      BoolVal
@@ -314,7 +314,7 @@ transient private BoolExpr BoolExprFront =
    / NOT w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op not = NodeFactory.makeOpPrefix(span, "NOT");
-       yyValue = new BoolUnaryOp(span, a1, not);
+       yyValue = new BoolUnaryOp(span, false, a1, not);
      };
 
 private constant transient Action<BoolExpr> BoolExprTail =
@@ -330,7 +330,7 @@ private constant inline Action<BoolExpr> OrBoolExpr =
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "OR");
-               return new BoolBinaryOp(span, (BoolExpr)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolExpr)base, a1, op);
            }};
      };
 
@@ -340,7 +340,7 @@ private constant inline Action<BoolExpr> AndBoolExpr =
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "AND");
-               return new BoolBinaryOp(span, (BoolExpr)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolExpr)base, a1, op);
            }};
      };
 
@@ -350,7 +350,7 @@ private constant inline Action<BoolExpr> ImpliesBoolExpr =
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "IMPLIES");
-               return new BoolBinaryOp(span, (BoolExpr)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolExpr)base, a1, op);
            }};
      };
 
@@ -360,7 +360,7 @@ private constant inline Action<BoolExpr> EqualsBoolExpr =
            public BoolExpr run(BoolExpr base) {
                Span span = createSpan(yyStart,yyCount);
                Op op = NodeFactory.makeOpInfix(span, "=");
-               return new BoolBinaryOp(span, (BoolExpr)base, a1, op);
+               return NodeFactory.makeBoolBinaryOp(span, (BoolExpr)base, a1, op);
            }};
      };
 
@@ -381,10 +381,10 @@ transient UnitExpr UnitExpr =
 transient private UnitExpr UnitExprFront =
      a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitRef(span, NodeFactory.makeId(span, a1));
+       yyValue = new UnitRef(span, false, NodeFactory.makeId(span, a1));
      }
    / a1:QualifiedName
-     { yyValue = new UnitRef(createSpan(yyStart,yyCount), a1); }
+     { yyValue = new UnitRef(createSpan(yyStart,yyCount), false, a1); }
    / openparen w a1:UnitExpr w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
@@ -399,7 +399,7 @@ private constant inline Action<UnitExpr> ProductUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op product = NodeFactory.makeOpInfix(a1.getSpan(), " ");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, product);
            }};
      };
@@ -409,7 +409,7 @@ private constant inline Action<UnitExpr> QuotientUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op quotient = NodeFactory.makeOpInfix(a1.getSpan(), "/");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, quotient);
            }};
      };
@@ -419,7 +419,7 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op exponent = NodeFactory.makeOpInfix(a1.getSpan(), "^");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount),
+               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, exponent);
            }};
      };
@@ -558,11 +558,11 @@ StaticArg StaticArg =
      { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
    / a1:"true"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolArg(span, new BoolBase(span, true));
+       yyValue = new BoolArg(span, new BoolBase(span, false, true));
      }
    / a1:"false"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolArg(span, new BoolBase(span, false));
+       yyValue = new BoolArg(span, new BoolBase(span, false, false));
      }
    / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
      a1:Type

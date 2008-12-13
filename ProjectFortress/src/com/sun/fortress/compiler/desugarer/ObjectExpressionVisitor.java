@@ -832,13 +832,13 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         Span span = sParam.getSpan();
 
         if( NodeUtil.isBoolParam(sParam) ) {
-            BoolRef boolRef = new BoolRef(span, (Id)sParam.getName());
+            BoolRef boolRef = NodeFactory.makeBoolRef(span, (Id)sParam.getName());
             return new BoolArg(span, boolRef);
         } else if( NodeUtil.isIntParam(sParam) ) {
-            IntRef intRef = new IntRef(span, (Id)sParam.getName());
+            IntRef intRef = NodeFactory.makeIntRef(span, (Id)sParam.getName());
             return new IntArg(span, intRef);
         } else if( NodeUtil.isNatParam(sParam) ) {
-            IntRef intRef = new IntRef(span, (Id)sParam.getName());
+            IntRef intRef = NodeFactory.makeIntRef(span, (Id)sParam.getName());
             return new IntArg(span, intRef);
         } else if( NodeUtil.isTypeParam(sParam) ) {
             VarType varType = NodeFactory.makeVarType(span, (Id)sParam.getName());

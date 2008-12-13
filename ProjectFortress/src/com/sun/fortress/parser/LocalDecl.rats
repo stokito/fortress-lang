@@ -195,7 +195,7 @@ LValue VarWoType =
      { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount), a1); }
    / Unpasting
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = NodeFactory.makeLValue(span, new Id(span, "_"));
+       yyValue = NodeFactory.makeLValue(span, NodeFactory.makeId(span, "_"));
      };
 
 /* Unpasting ::= [ w UnpastingElems w ] */
@@ -226,4 +226,6 @@ private void UnpastingDim =
 
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */
 CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems
-     { yyValue = new CaseClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new CaseClause(createSpan(yyStart,yyCount), a1, a2,
+                                Option.<FunctionalRef>none());
+     };

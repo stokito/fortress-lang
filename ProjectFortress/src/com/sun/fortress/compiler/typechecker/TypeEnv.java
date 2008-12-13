@@ -39,6 +39,7 @@ import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.nodes.AnonymousFnName;
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.ConstructorFnName;
@@ -189,23 +190,23 @@ public abstract class TypeEnv {
             final IdOrOp name = param.getName();
             result.add(param.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
                         public StaticArg forKindBool(KindBool k) {
-                            return new BoolArg(new Span(), new BoolRef(new Span(), (Id)name));
+                            return new BoolArg(new Span(), NodeFactory.makeBoolRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindDim(KindDim k) {
                             return new DimArg(new Span(), NodeFactory.makeDimRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindInt(KindInt k) {
-                            return new IntArg(new Span(), new IntRef(new Span(), (Id)name));
+                            return new IntArg(new Span(), NodeFactory.makeIntRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindNat(KindNat k) {
-                            return new IntArg(new Span(), new IntRef(new Span(), (Id)name));
+                            return new IntArg(new Span(), NodeFactory.makeIntRef(new Span(), (Id)name));
                         }
                         public StaticArg forKindType(KindType k) {
                             return new TypeArg(new Span(),
                                                NodeFactory.makeVarType(new Span(), (Id)name));
                         }
                         public StaticArg forKindUnit(KindUnit k) {
-                            return new UnitArg(new Span(), new UnitRef(new Span(), (Id)name));
+                            return new UnitArg(new Span(), new UnitRef(new Span(), false, (Id)name));
                         }
                         public StaticArg forKindOp(KindOp that) {
                             return new OpArg(new Span(), ExprFactory.makeOpRef((Op)name));
@@ -220,24 +221,29 @@ public abstract class TypeEnv {
     }
 
     static Op removeApi(Op id) {
-    	return new Op(id.getSpan(), id.getText(), id.getFixity(), id.isEnclosing());
+    	return new Op(id.getSpan(), Option.<APIName>none(),
+                      id.getText(), id.getFixity(), id.isEnclosing());
     }
 
     static IdOrOpOrAnonymousName removeApi(IdOrOpOrAnonymousName id) {
     	return id.accept(new NodeDepthFirstVisitor<IdOrOpOrAnonymousName>(){
-                @Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
-                @Override
-                public IdOrOpOrAnonymousName forOp(Op that) {
-                    return new Op(that.getSpan(), that.getText(), that.getFixity(), that.isEnclosing());
-                }
-                @Override
-                public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
-                    return new AnonymousFnName(that.getSpan());
-                }
-                @Override
-                public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
-                    return new ConstructorFnName(that.getSpan(), that.getDef());
-                }
+			@Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
+			@Override
+			public IdOrOpOrAnonymousName forOp(Op that) {
+                            return new Op(that.getSpan(), Option.<APIName>none(),
+                                          that.getText(), that.getFixity(), that.isEnclosing());
+			}
+			@Override
+			public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
+				return new AnonymousFnName(that.getSpan(),
+                                                           Option.<APIName>none());
+			}
+			@Override
+			public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
+				return new ConstructorFnName(that.getSpan(),
+                                                             Option.<APIName>none(),
+                                                             that.getDef());
+			}
     	});
     }
 
@@ -450,7 +456,6 @@ public abstract class TypeEnv {
             Modifiers mods = Modifiers.None;
             for (FnDecl decl : decls) {
                 overloads.add(genericArrowFromDecl(decl));
-                mods = mods.combine(decl.getMods());
             }
             this.mods = mods;
             type = Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", overloads), overloads));
@@ -494,6 +499,7 @@ public abstract class TypeEnv {
         public boolean isMutable() {
             if( mutable )
                 return true;
+
             return mods.isMutable();
         }
 
@@ -507,5 +513,5 @@ public abstract class TypeEnv {
     /**
      * Replace all of the inference variables given with their corresponding types.
      */
-    public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
+	public abstract TypeEnv replaceAllIVars(Map<_InferenceVarType, Type> ivars);
 }

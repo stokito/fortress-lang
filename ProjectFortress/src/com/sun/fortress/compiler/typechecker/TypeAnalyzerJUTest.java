@@ -462,7 +462,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
+            extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitDecl ast;
         if (absDecl) {
@@ -606,11 +606,11 @@ public class TypeAnalyzerJUTest extends TestCase {
     }
 
     private static Effect parseEffect(String s) {
-        if (s.length() == 0) { return new Effect(span); }
+        if (s.length() == 0) { return NodeFactory.makeEffect(span); }
 
         boolean io = false;
         s = s.trim();
-        if (s.equals("io")) { return new Effect(span, true); }
+        if (s.equals("io")) { return NodeFactory.makeEffect(span, true); }
         else if (s.startsWith("io ")) { io = true; s = s.substring(3).trim(); }
         else if (s.endsWith(" io")) { io = true; s = s.substring(0, s.length()-3).trim(); }
 

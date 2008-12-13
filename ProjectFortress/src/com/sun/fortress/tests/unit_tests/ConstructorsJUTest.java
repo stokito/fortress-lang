@@ -76,10 +76,10 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
 
 
     public void testId() {
-        Id id1 = new Id(newSpan("cat", 1, 2, 3), "TheIdString");
-        Id id2 = new Id(newSpan("cat", 1, 2, 3), "TheIdString");
-        Id id3 = new Id(newSpan("cat", 1, 2, 999), "TheIdString");
-        Id id4 = new Id(newSpan("cat", 1, 2, 3), "AnotherString");
+        Id id1 = NodeFactory.makeId(newSpan("cat", 1, 2, 3), "TheIdString");
+        Id id2 = NodeFactory.makeId(newSpan("cat", 1, 2, 3), "TheIdString");
+        Id id3 = NodeFactory.makeId(newSpan("cat", 1, 2, 999), "TheIdString");
+        Id id4 = NodeFactory.makeId(newSpan("cat", 1, 2, 3), "AnotherString");
         Assert.assertEquals(id1, id2);
         Assert.assertTrue(id1.equals(id3)); // We ignore Sourceloc for equality
         Assert.assertFalse(id1.equals(id4));
@@ -87,10 +87,10 @@ public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper 
     }
 
     Id newId(String id, int l, int c1, int c2) {
-        return new Id(newSpan("somefile", l, c1, c2), id);
+        return NodeFactory.makeId(newSpan("somefile", l, c1, c2), id);
     }
     Id newId(String id) {
-        return new Id(newSpan("somefile", 1, 2, 3), id);
+        return NodeFactory.makeId(newSpan("somefile", 1, 2, 3), id);
     }
     public void testAPIName() {
         Span span11 = newSpan("cat", 1, 2, 3);

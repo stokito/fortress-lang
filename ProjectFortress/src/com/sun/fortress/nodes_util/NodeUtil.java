@@ -542,7 +542,7 @@ public class NodeUtil {
 
     public static final Fn<String, Id> StringToIdFn = new Fn<String, Id>() {
             public Id apply(String x) {
-                return new Id(new Span(), x);
+                return NodeFactory.makeId(new Span(), x);
             }
         };
 

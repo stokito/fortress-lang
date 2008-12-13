@@ -61,19 +61,19 @@ FnDecl FnSig =
        if ( d instanceof TupleType ) {
            TupleType _d = (TupleType)d;
            for (Type argT : _d.getElements()) {
-               Id name = new Id(argT.getSpan(), "_");
+               Id name = NodeFactory.makeId(argT.getSpan(), "_");
                params.add(NodeFactory.makeParam(argT.getSpan(), mods, name, argT));
            }
            if (_d.getVarargs().isSome()) {
                Type argT = _d.getVarargs().unwrap();
-               Id name = new Id(argT.getSpan(), "_");
+               Id name = NodeFactory.makeId(argT.getSpan(), "_");
                params.add(NodeFactory.makeVarargsParam(argT.getSpan(), mods, name, argT));
            }
            assert(_d.getKeywords().isEmpty()): "Keyword parameters present"
                + " in a FnSig: " + _d;
 
        } else {
-           Id name = new Id(d.getSpan(), "_");
+           Id name = NodeFactory.makeId(d.getSpan(), "_");
            params.add(NodeFactory.makeParam(d.getSpan(), mods, name, d));
        }
 

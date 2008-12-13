@@ -52,8 +52,8 @@ private TraitTypeWhere TraitTypeWhere =
            where = Option.<WhereClause>none();
        else
            where = Option.some(a2);
-       yyValue = new TraitTypeWhere(createSpan(yyStart,yyCount),
-                                    a1, where);
+       yyValue = NodeFactory.makeTraitTypeWhere(createSpan(yyStart,yyCount),
+                                                a1, where);
      };
 
 /* Extends ::= extends w TraitTypes */
