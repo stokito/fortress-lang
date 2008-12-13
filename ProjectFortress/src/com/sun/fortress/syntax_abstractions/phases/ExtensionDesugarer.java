@@ -34,7 +34,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
@@ -111,17 +111,17 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return super.forApi(that);
     }
 
-    @Override public Node forGrammarDef(GrammarDef that) {
+    @Override public Node forGrammarDecl(GrammarDecl that) {
         Option<GrammarIndex> index = this.grammarIndex(that.getName());
         if (index.isSome()) {
             return rewriteGrammar(that, index.unwrap());
         } else {
             error("Grammar "+that.getName()+" not found", that);
         }
-        return super.forGrammarDef(that);
+        return super.forGrammarDecl(that);
     }
 
-    private Node rewriteGrammar(GrammarDef grammar, GrammarIndex index) {
+    private Node rewriteGrammar(GrammarDecl grammar, GrammarIndex index) {
         Debug.debug(Debug.Type.SYNTAX, 1,
                     "Desugaring extensions for grammar " + grammar.getName());
 
@@ -141,9 +141,9 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         newMembers.addAll(rewriteMembers(grammarExtensionMap, extMap));
 
-        // Recombine into GrammarDef
-        GrammarDef result =
-            new GrammarDef(grammar.getSpan(), grammar.getName(), grammar.getExtendsClause(),
+        // Recombine into GrammarDecl
+        GrammarDecl result =
+            new GrammarDecl(grammar.getSpan(), grammar.getName(), grammar.getExtendsClause(),
                            newMembers, grammar.getTransformers(), grammar.isNativeDef());
         Debug.debug(Debug.Type.SYNTAX, 3,
                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));

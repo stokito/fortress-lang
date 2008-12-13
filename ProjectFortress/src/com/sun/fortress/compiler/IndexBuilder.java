@@ -176,7 +176,7 @@ public class IndexBuilder {
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
             }
-            @Override public void forGrammarDef(GrammarDef d) {
+            @Override public void forGrammarDecl(GrammarDecl d) {
                 buildGrammar(d, grammars);
             }
         };
@@ -520,7 +520,7 @@ public class IndexBuilder {
     /**
      * Create a Grammar and put it in the given map.
      */
-    private void buildGrammar(GrammarDef ast, Map<String, GrammarIndex> grammars) {
+    private void buildGrammar(GrammarDecl ast, Map<String, GrammarIndex> grammars) {
         String name = ast.getName().getText();
         GrammarIndex grammar = new GrammarIndex(ast, buildMembers(ast.getMembers()));
         if (grammars.containsKey(name)) {

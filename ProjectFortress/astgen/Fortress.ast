@@ -385,12 +385,10 @@ interface Node() extends HasAt;
                  * grammar declaration
                  * Names (but not extends elements) must be unqualified.
                  */
-                abstract GrammarDecl(Id name, List<Id> extendsClause);
-                    /**
-                     * grammar definition
-                     */
-                    GrammarDef(List<GrammarMemberDecl> members, List<TransformerDecl> transformers,
-                               boolean nativeDef);
+                GrammarDecl(Id name, List<Id> extendsClause,
+                            List<GrammarMemberDecl> members,
+                            List<TransformerDecl> transformers,
+                            boolean nativeDef);
                 /**
                  * grammar member (nonterminal or terminal) declaration
                  * Names and params must be unqualified.
@@ -1343,21 +1341,13 @@ interface Node() extends HasAt;
                 /**
                  * coercion constraint declared in where clauses
                  * WhereConstraint ::= Type coerces Type
-                 * e.g.) T coerces Identity[\ODOT\]
-                 */
-                WhereCoerces(Type left, Type right);
-                /**
-                 * widening constraint declared in where clauses
-                 * WhereConstraint ::= Type widens Type
-                 * e.g.) T widens S
-                 */
-                WhereWidens(Type left, Type right);
-                /**
-                 * widening coercion constraint declared in where clauses
+                 *                   | Type widens Type
                  * CoercionWhereConstraint ::= Type widens or coerces Type
+                 * e.g.) T coerces Identity[\ODOT\]
+                 * e.g.) T widens S
                  * e.g.) T widens or coerces S
                  */
-                WhereWidensCoerces(Type left, Type right);
+                WhereCoerces(Type left, Type right, boolean coerces, boolean widens);
                 /**
                  * DottedId equality constraint declared in where clauses
                  * WhereConstraint ::= QualifiedName = QualifiedName
@@ -1374,38 +1364,18 @@ interface Node() extends HasAt;
                 /**
                  * integer constraint used in where clauses
                  * WhereConstraint ::= IntConstraint
+                 * IntConstraint ::= IntExpr <= IntExpr
+                 *                 | IntExpr <  IntExpr
+                 *                 | IntExpr >= IntExpr
+                 *                 | IntExpr >  IntExpr
+                 *                 | IntExpr =  IntExpr
+                 * e.g.) b <= c
+                 * e.g.) 0 < a
+                 * e.g.) b >= c
+                 * e.g.) a > 0
+                 * e.g.) 8 = 2^3
                  */
-                abstract IntConstraint(IntExpr left, IntExpr right);
-                    /**
-                     * less than equal constraint declared in where clauses
-                     * IntConstraint ::= IntExpr <= IntExpr
-                     * e.g.) b <= c
-                     */
-                    LEConstraint();
-                    /**
-                     * less than constraint declared in where clauses
-                     * IntConstraint ::= IntExpr < IntExpr
-                     * e.g.) 0 < a
-                     */
-                    LTConstraint();
-                    /**
-                     * greater than equal constraint declared in where clauses
-                     * IntConstraint ::= IntExpr >= IntExpr
-                     * e.g.) b >= c
-                     */
-                    GEConstraint();
-                    /**
-                     * greater than constraint declared in where clauses
-                     * IntConstraint ::= IntExpr > IntExpr
-                     * e.g.) a > 0
-                     */
-                    GTConstraint();
-                    /**
-                     * integer equality constraint declared in where clauses
-                     * IntConstraint ::= IntExpr = IntExpr
-                     * e.g.) 8 = 2^3
-                     */
-                    IEConstraint();
+                IntConstraint(IntExpr left, IntExpr right, Op op);
                 /**
                  * boolean constraint declared in where clauses
                  * WhereConstraint ::= BoolConstraint

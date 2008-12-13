@@ -40,7 +40,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.Component;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.useful.Debug;
@@ -214,7 +214,7 @@ public class Disambiguator {
 
         for (ApiIndex a1: apis) {
             for (Map.Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
-                GrammarDef og = e.getValue().ast();
+                GrammarDecl og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
                 for (Id n: og.getExtendsClause()) {
                     GrammarIndex g = grammars.get(n.getText());

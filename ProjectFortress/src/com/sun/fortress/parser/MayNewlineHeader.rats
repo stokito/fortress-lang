@@ -64,9 +64,13 @@ transient WhereConstraint WhereConstraint =
    / a1:TypeAlias
      { yyValue = new WhereTypeAlias(createSpan(yyStart,yyCount), a1); }
    / a1:Type w coerces w a2:Type
-     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                  true, false);
+     }
    / a1:Type w widens w a2:Type
-     { yyValue = new WhereWidens(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                  false, true);
+     }
    / UnitConstraint
    / a1:QualifiedName w equals w a2:QualifiedName
      { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
@@ -105,15 +109,25 @@ transient UnitConstraint UnitConstraint =
  */
 transient private IntConstraint IntConstraint =
      a1:IntExpr w lessthanequal w a2:IntExpr
-     { yyValue = new LEConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { Op op = NodeFactory.makeOpInfix(a1.getSpan(), "<=");
+       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
    / a1:IntExpr w lessthan w a2:IntExpr
-     { yyValue = new LTConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { Op op = NodeFactory.makeOpInfix(a1.getSpan(), "<");
+       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
    / a1:IntExpr w greaterthanequal w a2:IntExpr
-     { yyValue = new GEConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { Op op = NodeFactory.makeOpInfix(a1.getSpan(), ">=");
+       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
    / a1:IntExpr w greaterthan w a2:IntExpr
-     { yyValue = new GTConstraint(createSpan(yyStart,yyCount), a1, a2); }
+     { Op op = NodeFactory.makeOpInfix(a1.getSpan(), ">");
+       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
    / a1:IntExpr w equals w a2:IntExpr
-     { yyValue = new IEConstraint(createSpan(yyStart,yyCount), a1, a2); };
+     { Op op = NodeFactory.makeOpInfix(a1.getSpan(), "=");
+       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     };
 
 /* IntVal ::=
      IntLiteralExpr

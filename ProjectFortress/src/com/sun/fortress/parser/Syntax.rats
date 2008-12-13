@@ -53,15 +53,15 @@ option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX
 public GrammarDecl GrammarDef =
      native w grammar w a1:Id a3s:(br NonterminalDecl)* w end
      { List<Id> extendedGrammars = Collections.<Id>emptyList();
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, extendedGrammars,
-                                a3s.list(),
-                                new LinkedList<TransformerDecl>(),
-                                /*native*/ true); }
+       yyValue = new GrammarDecl(createSpan(yyStart,yyCount), a1, extendedGrammars,
+                                 a3s.list(),
+                                 new LinkedList<TransformerDecl>(),
+                                 /*native*/ true); }
    / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
        else { ids.addAll(a2); }
-       yyValue = new GrammarDef(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
+       yyValue = new GrammarDecl(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<Id> GrammarExtends = extends w QualifiedNames ;

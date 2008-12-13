@@ -40,7 +40,7 @@ import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
@@ -436,7 +436,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     }
 
-    private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDef that) {
+    private Pair<List<Id>, Collection<GrammarIndex>> getExtendedGrammarIndecies(GrammarDecl that) {
         List<Id> ls = new LinkedList<Id>();
         Collection<GrammarIndex> gs = new LinkedList<GrammarIndex>();
         for (Id name: that.getExtendsClause()) {
@@ -459,7 +459,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forGrammarDefOnly(GrammarDef that, Id name_result,
+    public Node forGrammarDeclOnly(GrammarDecl that, Id name_result,
             List<Id> extends_result,
             List<GrammarMemberDecl> members_result,
             List<TransformerDecl> transformers) {
@@ -468,7 +468,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDef disambiguatedGrammar = new GrammarDef(that.getSpan(), name, p.first(), members_result, transformers, that.isNativeDef());
+        GrammarDecl disambiguatedGrammar = new GrammarDecl(that.getSpan(), name, p.first(), members_result, transformers, that.isNativeDef());
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
 

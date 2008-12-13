@@ -25,7 +25,7 @@ import com.sun.fortress.compiler.disambiguator.NameEnv;
 import com.sun.fortress.compiler.disambiguator.NonterminalNameDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
 import com.sun.fortress.exceptions.StaticError;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -71,14 +71,14 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forGrammarDef(GrammarDef that) {
+    public Node forGrammarDecl(GrammarDecl that) {
         if (this._env.grammarIndex(that.getName()).isSome()) {
             this._currentEnv = new NonterminalEnv(this._env.grammarIndex(that.getName()).unwrap());
         }
         else {
             error("Undefined grammar: " + NodeUtil.nameString(that.getName()), that.getName());
         }
-        return super.forGrammarDef(that);
+        return super.forGrammarDecl(that);
     }
 
     @Override

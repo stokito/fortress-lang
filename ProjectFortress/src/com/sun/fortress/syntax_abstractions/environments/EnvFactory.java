@@ -34,7 +34,7 @@ import com.sun.fortress.compiler.index.NonterminalDefIndex;
 import com.sun.fortress.nodes.AnyCharacterSymbol;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.CharacterClassSymbol;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.KeywordSymbol;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
@@ -127,7 +127,7 @@ public class EnvFactory {
         }
 
         for ( GrammarIndex grammar : grammars ){
-            GrammarDef og = grammar.ast();
+            GrammarDecl og = grammar.ast();
             List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
             for (Id n: og.getExtendsClause()) {
                 Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() + 

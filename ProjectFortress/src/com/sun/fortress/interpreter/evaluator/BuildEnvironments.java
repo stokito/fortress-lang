@@ -678,7 +678,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
           try {
               /* Ignore the type, until later */
-              
+
               if (lvb.isMutable()) {
                   bindInto.putVariablePlaceholder(sname);
               } else {
@@ -715,7 +715,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                   FValue value = new LazilyEvaluatedCell(init, containing);
                   bindInto.assignValue(x, sname, value);
                   bindInto.storeType(x, sname, ft);
-              } 
+              }
           } catch (FortressException pe) {
               throw pe.setContext(x,bindInto);
           }
@@ -1052,11 +1052,6 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     @Override
     public Boolean forGrammarDecl(GrammarDecl that) {
-        return null; // Do nothing
-    }
-
-    @Override
-    public Boolean forGrammarDef(GrammarDef that) {
         return null; // Do nothing
     }
 
