@@ -674,7 +674,7 @@ public class ExprFactory {
                                     Option<List<BaseType>> throwsClause,
                                     Expr body) {
         return makeFnExpr(span, false, Option.<Type>none(),
-                          new AnonymousFnName(span),
+                          new AnonymousFnName(span, Option.<APIName>none()),
                           Collections.<StaticParam>emptyList(), params,
                           returnType, Option.<WhereClause>none(),
                           throwsClause, body);

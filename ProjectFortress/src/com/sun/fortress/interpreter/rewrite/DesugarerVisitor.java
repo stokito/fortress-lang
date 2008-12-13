@@ -457,7 +457,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
         if (i > 0) {
             return ExprFactory.makeFieldRef(s, dottedReference(s, i - 1),
-                                            new Id(s,WellKnownNames.secretParentName));
+                                            NodeFactory.makeId(s,WellKnownNames.secretParentName));
         } else {
             throw new Error("Confusion in member reference numbering.");
         }
@@ -764,7 +764,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forLValue(LValue lvb) {
         Id id = lvb.getName();
         if ("_".equals(id.getText())) {
-            Id newId = new Id(id.getSpan(), WellKnownNames.tempForUnderscore(id));
+            Id newId = NodeFactory.makeId(id.getSpan(), WellKnownNames.tempForUnderscore(id));
             return NodeFactory.makeLValue(lvb, newId);
         }
         return visitNode(lvb);
@@ -916,7 +916,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             newdecls.add(new_vd);
             int element_index = 0;
             for (LValue lv : lhs) {
-                Id newName = new Id(at, "$" + element_index);
+                Id newName = NodeFactory.makeId(at, "$" + element_index);
                 Option<Type> type = lv.getIdType();
                 newdecls.add(new VarDecl(at, Useful.list(lv),
                                          Option.<Expr>some(ExprFactory.makeFieldRef(at, init, newName))));

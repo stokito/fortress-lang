@@ -111,7 +111,8 @@ private NonterminalHeader NonterminalHeader =
               where = Option.<WhereClause>none();
           else
               where = Option.some(whereClauses);
-          yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name, params, staticParams, type1, where);
+          yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name,
+                                          params, staticParams, type1, where);
         };
 
 private Modifiers NonTermMod =

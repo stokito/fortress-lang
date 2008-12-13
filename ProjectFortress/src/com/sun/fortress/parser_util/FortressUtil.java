@@ -87,7 +87,7 @@ public final class FortressUtil {
         return Collections.<Type>emptyList();
     }
 
-    private static Effect effect = new Effect(NodeFactory.makeSpan("singleton"));
+    private static Effect effect = NodeFactory.makeEffect(NodeFactory.makeSpan("singleton"));
 
     public static Effect emptyEffect() {
         return effect;

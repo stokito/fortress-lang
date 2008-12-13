@@ -50,12 +50,12 @@ List<Param> AbsValParam := openparen a1:(w AbsParams)? w closeparen
 Param Param :=
      PlainParam
    / a1:self
-     { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
                                               "self")); };
 
 Param AbsParam :=
      a1:self
-     { yyValue = NodeFactory.makeParam(new Id(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
                                               "self")); }
    / AbsPlainParam;
 

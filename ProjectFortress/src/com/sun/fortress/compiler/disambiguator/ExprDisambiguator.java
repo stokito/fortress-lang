@@ -298,12 +298,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     }
 
     private ExprDisambiguator extendWithSelf(Span span) {
-        Set<Id> selfSet = Collections.singleton(new Id(span, "self"));
+        Set<Id> selfSet = Collections.singleton(NodeFactory.makeId(span, "self"));
         return extendWithVars(selfSet);
     }
 
     private ExprDisambiguator extendWithOutcome(Span span) {
-        Set<Id> outcomeSet = Collections.singleton(new Id(span, "outcome"));
+        Set<Id> outcomeSet = Collections.singleton(NodeFactory.makeId(span, "outcome"));
         return extendWithVars(outcomeSet);
     }
 

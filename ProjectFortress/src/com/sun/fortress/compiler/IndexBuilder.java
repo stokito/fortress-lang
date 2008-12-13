@@ -194,7 +194,7 @@ public class IndexBuilder {
      */
     public static ObjectTraitIndex buildObjectExprIndex(ObjectExpr obj) {
         Span fake_span = NodeFactory.makeSpan("FAKE_SPAN");
-    	Id fake_object_name = new Id(fake_span, "FAKE_NAME");
+    	Id fake_object_name = NodeFactory.makeId(fake_span, "FAKE_NAME");
     	IndexBuilder builder = new IndexBuilder();
 
     	// Make fake object

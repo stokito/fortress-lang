@@ -33,6 +33,7 @@ import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -241,7 +242,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             Span s = (enclosingObjectDecl.isSome() ?
                           enclosingObjectDecl :
                           enclosingTraitDecl).unwrap().getSpan();
-            Option<Type> type = objExprTypeEnv.type( new Id(s, "self") );
+            Option<Type> type = objExprTypeEnv.type( NodeFactory.makeId(s, "self") );
             freeNames.setEnclosingSelfType(type);
         }
 

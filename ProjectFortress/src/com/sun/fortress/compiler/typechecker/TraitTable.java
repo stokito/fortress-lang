@@ -40,7 +40,7 @@ public class TraitTable {
 
     public Option<TypeConsIndex> typeCons(Id name) {
         TypeConsIndex result;
-        Id simpleName = new Id(NodeFactory.makeSpan(name), name.getText());
+        Id simpleName = NodeFactory.makeId(NodeFactory.makeSpan(name), name.getText());
         // TODO: Shouldn't qualified names only point to APIs? -- Dan
         if (name.getApiName().isNone() ||
             currentCompilationUnit.ast().getName().equals(name.getApiName().unwrap())) {

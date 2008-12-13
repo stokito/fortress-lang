@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -130,11 +131,11 @@ public final class FreeNameCollection {
             if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
             } else if( NodeUtil.isBoolParam(spOp.unwrap()) ) {
-                this.add( new BoolRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeBoolRef(var.getSpan(), var.getVarId()) );
             } else if( NodeUtil.isIntParam(spOp.unwrap()) ) {
-                this.add( new IntRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeIntRef(var.getSpan(), var.getVarId()) );
             } else if( NodeUtil.isNatParam(spOp.unwrap()) ) {
-                this.add( new IntRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeIntRef(var.getSpan(), var.getVarId()) );
             } else {
                 throw new DesugarerError( "Unexpected Static Param type " +
                     "found: " + spOp.unwrap() );

@@ -113,7 +113,7 @@ public abstract class NativeApp implements Applicable {
     }
 
     public <RetType> RetType accept(NodeVisitor<RetType> visitor) {
-        return visitor.forId(new Id(NodeFactory.makeSpan(""), ""));
+        return visitor.forId(NodeFactory.makeId(NodeFactory.makeSpan(""), ""));
     }
     public void accept(NodeVisitor_void visitor) {}
     public int generateHashCode() { return 0; }

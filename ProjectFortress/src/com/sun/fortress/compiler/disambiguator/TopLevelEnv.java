@@ -164,13 +164,13 @@ public class TopLevelEnv extends NameEnv {
                                      Map<Id, Set<Id>> table) {
         Id key = entry.getKey();
         if (table.containsKey(key)) {
-            table.get(key).add(new Id(key.getSpan(),
+            table.get(key).add(NodeFactory.makeId(key.getSpan(),
                                       Option.some(apiEntry.getKey()),
                                       key.getText()));
 
         } else {
             Set<Id> matches = new HashSet<Id>();
-            matches.add(new Id(key.getSpan(),
+            matches.add(NodeFactory.makeId(key.getSpan(),
                                Option.some(apiEntry.getKey()),
                                key.getText()));
             table.put(key, matches);
@@ -235,7 +235,7 @@ public class TopLevelEnv extends NameEnv {
 
                 if (fnName instanceof Id ) {
                     Id _fnName = (Id)fnName;
-                    Id name = new Id(_fnName.getSpan(),
+                    Id name = NodeFactory.makeId(_fnName.getSpan(),
                             Option.some(apiEntry.getKey()),
                             _fnName.getText());
                     if (fun_result.containsKey(_fnName)) {
@@ -544,7 +544,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     private Id ignoreApi(Id id) {
-        return new Id(id.getSpan(), id.getText());
+        return NodeFactory.makeId(id.getSpan(), id.getText());
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {

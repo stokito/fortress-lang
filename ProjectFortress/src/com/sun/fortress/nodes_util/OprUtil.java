@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
@@ -138,7 +139,9 @@ public final class OprUtil {
 
     /** Return a new operator with the fixity prepended to the text. */
     public static Op decorateOperator(Op o) {
-        return new Op(o.getSpan(), fixityDecorator(o.getFixity(), o.getText()), o.getFixity(), o.isEnclosing());
+        return new Op(o.getSpan(), Option.<APIName>none(),
+                      fixityDecorator(o.getFixity(), o.getText()),
+                      o.getFixity(), o.isEnclosing());
     }
 
     /** Return a new operator with the fixity stripped from the text. */
@@ -147,7 +150,9 @@ public final class OprUtil {
         if (i < 0) {
             return o;
         }
-        return new Op(o.getSpan(), o.getText().substring(i+1), o.getFixity(), o.isEnclosing());
+        return new Op(o.getSpan(), Option.<APIName>none(),
+                      o.getText().substring(i+1),
+                      o.getFixity(), o.isEnclosing());
     }
 
 }

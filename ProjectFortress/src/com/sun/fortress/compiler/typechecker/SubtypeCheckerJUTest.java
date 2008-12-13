@@ -389,7 +389,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         List<TraitTypeWhere> extendsClause = new ArrayList<TraitTypeWhere>(supers.length);
         for (String sup : supers) {
             BaseType supT = (BaseType) parseType(sup);
-            extendsClause.add(new TraitTypeWhere(span, supT, Option.<WhereClause>none()));
+            extendsClause.add(NodeFactory.makeTraitTypeWhere(span, supT, Option.<WhereClause>none()));
         }
         TraitDecl ast;
         List<StaticParam> sparams = Collections.<StaticParam>emptyList();

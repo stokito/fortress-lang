@@ -142,7 +142,7 @@ Decl Coercion =
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       new Id(span,"coerce"),a1, params, a4, a6);
+                                       NodeFactory.makeId(span,"coerce"),a1, params, a4, a6);
      };
 
 /* AbsCoercion ::=
@@ -156,7 +156,7 @@ Decl AbsCoercion =
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       new Id(span, "coerce"),
+                                       NodeFactory.makeId(span, "coerce"),
                                        a1, params, a4);
     };
 

@@ -303,6 +303,7 @@ maintain proper indentation.
     <delete file="${astgen.src}/FortressAst.scala" />
     <delete file="FortressLibrary.ast"/>
     <delete file="FortressLibrary.tfs"/>
+    <delete file="${basedir}/tests/printing/test_output.txt" />
     <delete file="testFile.txt"/>
     <delete file="${src}/com/sun/fortress/scala_src/nodes/FortressAst.scala" />
     <delete dir="${src}/com/sun/fortress/scalasrc" />

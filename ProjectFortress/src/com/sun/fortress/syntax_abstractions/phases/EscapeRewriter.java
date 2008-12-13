@@ -126,7 +126,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                                       SyntaxSymbol result_symbol) {
         String s = removeEscape(result_id.getText());
         // TODO is span correct below?
-        return new PrefixedSymbol(that.getSpan(), new Id(result_id.getSpan(), s), result_symbol);
+        return new PrefixedSymbol(that.getSpan(), NodeFactory.makeId(result_id.getSpan(), s), result_symbol);
     }
 
     private String removeEscape(String s) {

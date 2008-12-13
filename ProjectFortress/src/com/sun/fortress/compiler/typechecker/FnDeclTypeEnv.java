@@ -66,7 +66,7 @@ class FnDeclTypeEnv extends TypeEnv {
             if (var instanceof Id) {
                 Id _var = (Id)var;
                 if (_var.getApiName().isSome())
-                    return binding(new Id(_var.getSpan(), _var.getText()));
+                    return binding(NodeFactory.makeId(_var.getSpan(), _var.getText()));
             }
             return parent.binding(var);
         }
@@ -101,7 +101,7 @@ class FnDeclTypeEnv extends TypeEnv {
             if (var instanceof Id) {
                 Id _var = (Id)var;
                 if (_var.getApiName().isSome())
-                    return declarationSite(new Id(_var.getSpan(), _var.getText()));
+                    return declarationSite(NodeFactory.makeId(_var.getSpan(), _var.getText()));
             }
             return parent.declarationSite(var);
         }

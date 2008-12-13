@@ -60,7 +60,7 @@ public class FieldSetterMethod extends Method {
 	    // return the implicit parameter
 	    Param p = NodeFactory.makeParam(_ast.getSpan(),
                                             Modifiers.None,
-                                            new Id(_ast.getSpan(), "fakeParamForImplicitSetter"),
+                                            NodeFactory.makeId(_ast.getSpan(), "fakeParamForImplicitSetter"),
                                             _ast.getIdType());
 		return Collections.singletonList(p);
 	}

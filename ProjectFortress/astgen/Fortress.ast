@@ -414,7 +414,8 @@ interface Node() extends HasAt;
             abstract Binding(Id name, Modifiers mods,
                              Option<Type> idType) implements Lhs;
                 /**
-                 * left-hand side of variable declaration
+                 * left-hand side of top-level variable declaration,
+                 * local variable declaration, or field declaration
                  * e.g.) var x: ZZ32
                  * Name must be unqualified.
                  */
@@ -1152,8 +1153,7 @@ interface Node() extends HasAt;
              * effect on arrow types
              * e.g.) throws FailCalled
              */
-            Effect(Option<List<BaseType>> throwsClause = Option.<List<BaseType>>none(),
-                   boolean ioEffect = false);
+            Effect(Option<List<BaseType>> throwsClause, boolean ioEffect);
             /**
              * static argument
              */
@@ -1197,7 +1197,7 @@ interface Node() extends HasAt;
             /**
              * static expression
              */
-            abstract StaticExpr(ignoreForEquals boolean parenthesized = false);
+            abstract StaticExpr(ignoreForEquals boolean parenthesized);
                 /**
                  * integer expression
                  * StaticExpr ::= IntExpr
@@ -1215,7 +1215,7 @@ interface Node() extends HasAt;
                      * IntVal ::= QualifiedName
                      * e.g.) m
                      */
-                    IntRef(Id name, int lexicalDepth=-2147483648);
+                    IntRef(Id name, int lexicalDepth);
                     /**
                      * integer expression with an operator
                      *
@@ -1254,7 +1254,7 @@ interface Node() extends HasAt;
                      * BoolVal ::= QualifiedName
                      * e.g.) ninf
                      */
-                    BoolRef(Id name, int lexicalDepth=-2147483648);
+                    BoolRef(Id name, int lexicalDepth);
                     /**
                      * boolean constraint
                      * BoolExpr ::= BoolConstraint
@@ -1305,10 +1305,8 @@ interface Node() extends HasAt;
              *         | where { WhereConstraintList }
              * e.g.) where { ninf AND NOT nan }
              */
-            WhereClause(List<WhereBinding> bindings
-                            = Collections.<WhereBinding>emptyList(),
-                        List<WhereConstraint> constraints
-                            = Collections.<WhereConstraint>emptyList());
+            WhereClause(List<WhereBinding> bindings,
+                        List<WhereConstraint> constraints);
             /**
              * hidden type variable binding declared in where clauses
              * Names must be unqualified.
@@ -1423,16 +1421,15 @@ interface Node() extends HasAt;
              * CoercionContract ::= Ensures? Invariant?
              * e.g.) requires { n GE 0 } ensures { outcome GE 0 }
              */
-            Contract(Option<List<Expr>> requiresClause = Option.<List<Expr>>none(),
-                     Option<List<EnsuresClause>> ensuresClause =
-                         Option.<List<EnsuresClause>>none(),
-                     Option<List<Expr>> invariantsClause = Option.<List<Expr>>none());
+            Contract(Option<List<Expr>> requiresClause,
+                     Option<List<EnsuresClause>> ensuresClause,
+                     Option<List<Expr>> invariantsClause);
             /**
              * ensures clause used in contracts
              * EnsuresClause ::= Expr (provided Expr)?
              * e.g.) sorted(outcome) provided sorted(input)
              */
-            EnsuresClause(Expr post, Option<Expr> pre = Option.<Expr>none());
+            EnsuresClause(Expr post, Option<Expr> pre);
             /**
              * static parameter
              * Names must be unqualified.
@@ -1467,16 +1464,14 @@ interface Node() extends HasAt;
                  * e.g.) com.sun.fortress.nodes_util
                  *
                  */
-                APIName(List<Id> ids,
-                        ignoreForEquals String text = com.sun.fortress.useful.Useful.<Id>dottedList(in_ids).intern());
+                APIName(List<Id> ids, ignoreForEquals String text);
                 /**
                  * non-API name
                  * SimpleName ::= Id
                  *              | opr Op
                  *              | opr EncloserPair
                  */
-                abstract IdOrOpOrAnonymousName(Option<APIName> apiName
-                                                   = Option.<APIName>none());
+                abstract IdOrOpOrAnonymousName(Option<APIName> apiName);
                     /**
                      * identifier or operator name
                      */
@@ -1541,8 +1536,7 @@ interface Node() extends HasAt;
              * Created in typechecking,
              * because different ops can be chosen for different clauses.
              */
-            CaseClause(Expr matchClause, Block body,
-                       Option<FunctionalRef> op = Option.<FunctionalRef>none());
+            CaseClause(Expr matchClause, Block body, Option<FunctionalRef> op);
             /**
              * catch clause used in try expressions
              * Names must be unqualified.
@@ -1603,9 +1597,7 @@ interface Node() extends HasAt;
              * TraitTypeWhere ::= TraitType Where?
              * e.g.) T[\ninf, nan\] where { ninf AND NOT nan }
              */
-            TraitTypeWhere(BaseType baseType,
-                           Option<WhereClause> whereClause
-                               = Option.<WhereClause>none());
+            TraitTypeWhere(BaseType baseType, Option<WhereClause> whereClause);
             /**
              * array dimensionality
              * ArraySize ::= ExtentRange(, ExtentRange)*
@@ -1657,14 +1649,12 @@ interface Node() extends HasAt;
             /**
              * nonterminal header
              */
-            NonterminalHeader(Modifiers mods = Modifiers.None,   /* Only Modifiers.Private is allowed */
+            NonterminalHeader(Modifiers mods, /* Only Modifiers.Private is allowed */
                               Id name,
                               List<NonterminalParameter> params,
-                              List<StaticParam> staticParams
-                                = Collections.<StaticParam>emptyList(),
+                              List<StaticParam> staticParams,
                               Option<Type> paramType,
-                              Option<WhereClause> whereClause
-                                = Option.<WhereClause>none());
+                              Option<WhereClause> whereClause);
 
             /**
              * nonterminal parameter

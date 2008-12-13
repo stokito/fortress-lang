@@ -346,23 +346,23 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     final Id name = ((VarType) t).getName();
                     return p.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
                             @Override public StaticArg forKindBool(KindBool k) {
-                                return new BoolArg(s, new BoolRef(s, name));
+                                return new BoolArg(s, NodeFactory.makeBoolRef(s, name));
                             }
                             @Override public StaticArg forKindDim(KindDim p) {
                                 return new DimArg(s, NodeFactory.makeDimRef(s, name));
                             }
                             @Override public StaticArg forKindInt(KindInt p) {
-                                return new IntArg(s, new IntRef(s, name));
+                                return new IntArg(s, NodeFactory.makeIntRef(s, name));
                             }
                             @Override public StaticArg forKindNat(KindNat p) {
-                                return new IntArg(s, new IntRef(s, name));
+                                return new IntArg(s, NodeFactory.makeIntRef(s, name));
                                 // TODO: shouldn't there be a NatArg class?
                             }
                             @Override public StaticArg forKindType(KindType p) {
                                 return a;
                             }
                             @Override public StaticArg forKindUnit(KindUnit p) {
-                                return new UnitArg(s, new UnitRef(s, name));
+                                return new UnitArg(s, new UnitRef(s, false, name));
                             }
                             @Override public StaticArg forKindOp(KindOp p) {
                                 mismatch("an identifier");
@@ -558,7 +558,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 final IdOrOp name = param.unwrap().getName();
                 NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
                     @Override public StaticArg forKindBool(KindBool k) {
-                        return new BoolArg(arg.getSpan(), new BoolRef(arg.getSpan(), (Id)name));
+                        return new BoolArg(arg.getSpan(), NodeFactory.makeBoolRef(arg.getSpan(), (Id)name));
                     }
                     @Override
                     public StaticArg forKindDim(KindDim k) {
@@ -566,11 +566,11 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     }
                     @Override
                     public StaticArg forKindInt(KindInt k) {
-                        return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(), (Id)name));
+                        return new IntArg(arg.getSpan(), NodeFactory.makeIntRef(arg.getSpan(), (Id)name));
                     }
                     @Override
                     public StaticArg forKindNat(KindNat k) {
-                        return new IntArg(arg.getSpan(), new IntRef(arg.getSpan(), (Id)name));
+                        return new IntArg(arg.getSpan(), NodeFactory.makeIntRef(arg.getSpan(), (Id)name));
                     }
                     @Override
                     public StaticArg forKindType(KindType k) {
@@ -579,7 +579,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                     @Override
                     public StaticArg forKindUnit(KindUnit k) {
                         return new UnitArg(arg.getSpan(),
-                                           new UnitRef(arg.getSpan(), (Id)name));
+                                           new UnitRef(arg.getSpan(), false, (Id)name));
                     }
                     @Override
                     public StaticArg forKindOp(KindOp that) {
