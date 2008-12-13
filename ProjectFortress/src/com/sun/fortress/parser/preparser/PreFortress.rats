@@ -59,8 +59,14 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 body {
    Span createSpan(int start, int end) {
+        int i = end-2;
+        while ( i >= 0 && yyData[i] == ' ' ) { i--; }
+        if ( i-1 >= start )
+            end = i-1;
+        else
+            end = start;
         Column s = column(start);
-        Column e = column(end-1);
+        Column e = column(end);
         SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column, start);
         SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
         return new Span(slStart, slEnd);
