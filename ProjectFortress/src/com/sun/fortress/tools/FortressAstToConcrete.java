@@ -768,11 +768,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forGrammarDefOnly(GrammarDef that,
-                                              String name_result,
-                                              List<String> extends_result,
-                                              List<String> members_result,
-                                              List<String> transformers_result) {
+    @Override public String forGrammarDeclOnly(GrammarDecl that,
+                                               String name_result,
+                                               List<String> extends_result,
+                                               List<String> members_result,
+                                               List<String> transformers_result) {
         StringBuilder s = new StringBuilder();
 
         if ( that.isNativeDef() ){
@@ -2350,23 +2350,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                                 String left_result,
                                                 String right_result) {
         StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " coerces " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forWhereWidensOnly(WhereWidens that,
-                                               String left_result,
-                                               String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " widens " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forWhereWidensCoercesOnly(WhereWidensCoerces that,
-                                                      String left_result,
-                                                      String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " widens or coerces " ).append( right_result );
+        s.append( left_result );
+        if ( that.isWidens() )
+            s.append( " widens " );
+        if ( that.isCoerces() && that.isWidens() )
+            s.append( "or" );
+        if ( that.isCoerces() )
+            s.append( " coerces " );
+        s.append( right_result );
         return s.toString();
     }
 
@@ -2385,43 +2376,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forLEConstraintOnly(LEConstraint that,
-                                                String left_result,
-                                                String right_result) {
+    @Override public String forIntConstraintOnly(IntConstraint that,
+                                                 String left_result,
+                                                 String right_result,
+                                                 String op_result) {
         StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " <= " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forLTConstraintOnly(LTConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " < " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forGEConstraintOnly(GEConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " >= " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forGTConstraintOnly(GTConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " > " ).append( right_result );
-        return s.toString();
-    }
-
-    @Override public String forIEConstraintOnly(IEConstraint that,
-                                                String left_result,
-                                                String right_result) {
-        StringBuilder s = new StringBuilder();
-        s.append( left_result ).append( " = " ).append( right_result );
+        s.append( left_result ).append( op_result ).append( right_result );
         return s.toString();
     }
 

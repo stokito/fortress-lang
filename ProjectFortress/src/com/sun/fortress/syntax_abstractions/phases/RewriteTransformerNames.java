@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.LinkedList;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -58,10 +58,10 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         api = Option.some(that.getName().toString());
         return super.forApi(that);
     }
-    
-    @Override public Node forGrammarDef(GrammarDef that) {
+
+    @Override public Node forGrammarDecl(GrammarDecl that) {
         grammar = Option.some(that.getName().toString().replace( '.', '_' ));
-        return super.forGrammarDef(that);
+        return super.forGrammarDecl(that);
     }
 
     /* These names might need to be consistently created, rather than use FreshName
@@ -70,7 +70,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
      * api.unwrap() + "_"
      */
     private String transformationName( String name ){
-        return api.unwrap() + "_" + grammar.unwrap() + "_" + 
+        return api.unwrap() + "_" + grammar.unwrap() + "_" +
             FreshName.getFreshName( name + "Transformer" );
     }
 

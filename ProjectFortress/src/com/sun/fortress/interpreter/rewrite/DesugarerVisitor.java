@@ -68,7 +68,7 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.If;
 import com.sun.fortress.nodes.IfClause;
@@ -1132,7 +1132,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forGrammarDef(GrammarDef node) {
+    public Node forGrammarDecl(GrammarDecl node) {
         return node;
     }
 

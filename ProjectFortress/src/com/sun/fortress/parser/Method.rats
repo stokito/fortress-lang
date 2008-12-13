@@ -212,4 +212,6 @@ private List<WhereConstraint> CoercionWhereConstraintList =
 private WhereConstraint CoercionWhereConstraint =
      WhereConstraint
    / a1:Type w widens w or w coerces w a2:Type
-     { yyValue = new WhereWidensCoerces(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                  true, true);
+     };

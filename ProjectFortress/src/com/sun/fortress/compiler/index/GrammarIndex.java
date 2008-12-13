@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.disambiguator.NonterminalEnv;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -37,17 +37,17 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class GrammarIndex {
 
-    private GrammarDef ast;
+    private GrammarDecl ast;
     private List<NonterminalIndex> members;
     private List<GrammarIndex> extendedGrammars;
 
-    public GrammarIndex(GrammarDef ast, List<NonterminalIndex> members) {
+    public GrammarIndex(GrammarDecl ast, List<NonterminalIndex> members) {
         this.ast = ast;
         this.extendedGrammars = new LinkedList<GrammarIndex>();
         this.members = members;
     }
 
-    public GrammarDef ast() {
+    public GrammarDecl ast() {
         return this.ast;
     }
 

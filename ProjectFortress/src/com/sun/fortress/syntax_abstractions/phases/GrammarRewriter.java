@@ -31,7 +31,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
@@ -159,7 +159,7 @@ public class GrammarRewriter {
         }
         for (ApiIndex a1: apis) {
             for (Entry<String,GrammarIndex> e: a1.grammars().entrySet()) {
-                GrammarDef og = e.getValue().ast();
+                GrammarDecl og = e.getValue().ast();
                 List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
                 for (Id n: og.getExtendsClause()) {
                     ls.add(grammars.get(n.getText()));

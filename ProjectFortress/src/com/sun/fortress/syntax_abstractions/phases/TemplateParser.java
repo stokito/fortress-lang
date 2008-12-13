@@ -31,7 +31,7 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
@@ -60,16 +60,16 @@ public class TemplateParser {
     public static Api parseTemplates(final ApiIndex api, final NTEnv ntEnv) {
         final Api raw = TemplateParser.rewriteTemplateVars((Api) api.ast(), ntEnv);
         return (Api) raw.accept(new NodeUpdateVisitor() {
-                @Override public Node forGrammarDef(GrammarDef that) {
+                @Override public Node forGrammarDecl(GrammarDecl that) {
                     if (!that.isNativeDef()){
                         final Class<?> parser = createParser(findGrammar(that));
                         return that.accept(new NodeUpdateVisitor() {
-                                @Override 
+                                @Override
                                     public Node forUnparsedTransformer(UnparsedTransformer that) {
-                                    AbstractNode templateNode = 
-                                        parseTemplate(raw.getName(), 
-                                                      that.getTransformer(), 
-                                                      that.getNonterminal(), 
+                                    AbstractNode templateNode =
+                                        parseTemplate(raw.getName(),
+                                                      that.getTransformer(),
+                                                      that.getNonterminal(),
                                                       parser);
                                     return new NodeTransformer(NodeFactory.makeSpan(templateNode), templateNode);
                                 }
@@ -78,13 +78,13 @@ public class TemplateParser {
                         return that;
                     }
                 }
-                private GrammarIndex findGrammar( GrammarDef grammar ){
+                private GrammarIndex findGrammar( GrammarDecl grammar ){
                     for (GrammarIndex index : api.grammars().values()) {
                         if (index.getName().equals(grammar.getName())) {
                             return index;
                         }
                     }
-                    throw new MacroError("Could not find grammar for " + 
+                    throw new MacroError("Could not find grammar for " +
                                          grammar.getName());
                 }
             });
@@ -98,10 +98,10 @@ public class TemplateParser {
                     return that.accept(new NodeUpdateVisitor() {
                             @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
                                 TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);
-                                Transformer transformer = 
+                                Transformer transformer =
                                     (Transformer) that.getTransformer().accept(tvs);
-                                return new NamedTransformerDef(NodeFactory.makeSpan(that), that.getName(), 
-                                                               that.getParameters(), 
+                                return new NamedTransformerDef(NodeFactory.makeSpan(that), that.getName(),
+                                                               that.getParameters(),
                                                                transformer);
                             }
                         });
@@ -113,13 +113,13 @@ public class TemplateParser {
         return ParserMaker.parserForGrammar(grammar);
     }
 
-    private static AbstractNode parseTemplate(APIName apiName, String stuff, 
+    private static AbstractNode parseTemplate(APIName apiName, String stuff,
                                               Id nonterminal, Class<?> parserClass){
         try {
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
-            ParserBase parser = 
+            ParserBase parser =
                 ParserMediator.getParser(apiName, parserClass, in, apiName.toString());
             xtc.parser.Result result =
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
@@ -138,7 +138,7 @@ public class TemplateParser {
     private static Object invokeMethod( Object obj, String name ){
         Option<Method> method = lookupExpression(obj.getClass(), name);
         if ( ! method.isSome() ){
-            throw new MacroError("Could not find method " + name + 
+            throw new MacroError("Could not find method " + name +
                                  " in " + obj.getClass().getName());
         } else {
             try{

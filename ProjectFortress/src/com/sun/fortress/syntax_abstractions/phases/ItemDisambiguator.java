@@ -28,7 +28,7 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ItemSymbol;
 import com.sun.fortress.nodes.KeywordSymbol;
@@ -94,14 +94,14 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         return super.forApi(that);
     }
 
-    @Override public Node forGrammarDef(GrammarDef that) {
+    @Override public Node forGrammarDecl(GrammarDecl that) {
         Option<GrammarIndex> index = this.grammarIndex(that.getName());
         if (index.isSome()) {
             this._currentGrammarIndex = index.unwrap();
         } else {
             error("Grammar "+that.getName()+" not found", that);
         }
-        return super.forGrammarDef(that);
+        return super.forGrammarDecl(that);
     }
 
     @Override public Node forUnparsedTransformer(UnparsedTransformer that) {

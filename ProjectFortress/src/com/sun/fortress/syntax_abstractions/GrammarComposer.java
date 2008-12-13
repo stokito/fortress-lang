@@ -30,7 +30,7 @@ import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalDef;
@@ -113,7 +113,7 @@ class GrammarComposer {
 
     private void computeNativeNonterminals(PEG peg) {
         for (GrammarIndex grammar : grammarMap.values()) {
-            GrammarDef grammarDef = grammar.ast();
+            GrammarDecl grammarDef = grammar.ast();
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Grammar " + grammarDef.getName() + 
                         " native?: " + grammarDef.isNativeDef());

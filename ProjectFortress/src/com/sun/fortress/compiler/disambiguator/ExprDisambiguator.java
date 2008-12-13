@@ -48,7 +48,7 @@ import com.sun.fortress.nodes.FnRef;
 import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes.For;
 import com.sun.fortress.nodes.GeneratorClause;
-import com.sun.fortress.nodes.GrammarDef;
+import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -1176,7 +1176,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
 
     @Override
-	public Node forGrammarDef(GrammarDef that) {
+	public Node forGrammarDecl(GrammarDecl that) {
         return that;
     }
 }
