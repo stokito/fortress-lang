@@ -22,6 +22,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.LValue;
@@ -58,26 +59,48 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	}
 
     @Override
-	public Node forFnDeclOnly(FnDecl that,
-                                  IdOrOpOrAnonymousName name_result,
-                                  List<StaticParam> staticParams_result, List<Param> params_result,
-                                  Option<Type> returnType_result,
-                                  Option<List<BaseType>> throwsClause_result,
-                                  Option<WhereClause> where_result,
-                                  Option<Contract> contract_result,
-                                  Id unambiguousName_result,
-                                  Option<Expr> body_result,
-                                  Option<Id> implementsUnambiguousName_result) {
-		// Is the return type given?
-		Option<Type> new_ret_type =
-			returnType_result.isNone() ?
-					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
-					returnType_result;
+    public Node forFnDecl(FnDecl that) {
+        FnHeader header = that.getHeader();
+        IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(header.getName());
+        List<StaticParam> staticParams_result = recurOnListOfStaticParam(header.getStaticParams());
+        Option<WhereClause> where_result = recurOnOptionOfWhereClause(header.getWhereClause());
+        Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        Option<Contract> contract_result = recurOnOptionOfContract(header.getContract());
+        List<Param> params_result = recurOnListOfParam(header.getParams());
+        Option<Type> returnType_result = recurOnOptionOfType(header.getReturnType());
+        Id unambiguousName_result = (Id) recur(that.getUnambiguousName());
+        Option<Expr> body_result = recurOnOptionOfExpr(that.getBody());
+        Option<Id> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
+        return  forFnDeclOnly(that, name_result, staticParams_result, params_result,
+                              returnType_result, throwsClause_result,
+                              where_result, contract_result, unambiguousName_result,
+                              body_result, implementsUnambiguousName_result);
+    }
 
-		return super.forFnDeclOnly(that, name_result, staticParams_result,
-				params_result, new_ret_type, throwsClause_result, where_result,
-				contract_result, unambiguousName_result, body_result, implementsUnambiguousName_result);
-	}
+    public Node forFnDeclOnly(FnDecl that,
+                              IdOrOpOrAnonymousName name_result,
+                              List<StaticParam> staticParams_result, List<Param> params_result,
+                              Option<Type> returnType_result,
+                              Option<List<BaseType>> throwsClause_result,
+                              Option<WhereClause> where_result,
+                              Option<Contract> contract_result,
+                              Id unambiguousName_result,
+                              Option<Expr> body_result,
+                              Option<Id> implementsUnambiguousName_result) {
+        // Is the return type given?
+        Option<Type> new_ret_type =
+            returnType_result.isNone() ?
+            Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
+            returnType_result;
+
+        FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
+                                                    name_result, staticParams_result,
+                                                    where_result, throwsClause_result,
+                                                    contract_result,
+                                                    params_result, new_ret_type);
+        return super.forFnDeclOnly(that, header, unambiguousName_result,
+                                   body_result, implementsUnambiguousName_result);
+    }
 
 	@Override
 	public Node forParamOnly(Param that, Id name_result,

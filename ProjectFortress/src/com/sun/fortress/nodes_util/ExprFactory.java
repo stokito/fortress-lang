@@ -690,8 +690,11 @@ public class ExprFactory {
                                     Option<WhereClause> whereClause,
                                     Option<List<BaseType>> throwsClause,
                                     Expr body) {
-        return new FnExpr(span, parenthesized, exprType, name, staticParams,
-                          params, returnType, whereClause, throwsClause, body);
+        FnHeader header = NodeFactory.makeFnHeader(span, Modifiers.None, name, staticParams,
+                                                   whereClause, throwsClause,
+                                                   Option.<Contract>none(), params,
+                                                   returnType);
+        return new FnExpr(span, parenthesized, exprType, header, body);
     }
 
     public static Exit makeExit(Span span,
@@ -1533,10 +1536,10 @@ public class ExprFactory {
                                      e.getExpr());
         }
         public Expr forFnExpr(FnExpr e) {
-            return makeFnExpr(e.getSpan(), true, e.getExprType(), e.getName(),
-                              e.getStaticParams(), e.getParams(),
-                              e.getReturnType(), e.getWhereClause(),
-                              e.getThrowsClause(), e.getBody());
+            return makeFnExpr(e.getSpan(), true, e.getExprType(), e.getHeader().getName(),
+                              e.getHeader().getStaticParams(), e.getHeader().getParams(),
+                              e.getHeader().getReturnType(), e.getHeader().getWhereClause(),
+                              e.getHeader().getThrowsClause(), e.getBody());
         }
         public Expr forLetFn(LetFn e) {
             return makeLetFn(e.getSpan(), true, e.getExprType(), e.getBody(), e.getFns());

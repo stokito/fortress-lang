@@ -314,17 +314,8 @@ interface Node() extends HasAt;
                  * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
                  * e.g.) swap (x, y) = (y, x)
                  */
-                FnDecl(Modifiers mods,
-                       IdOrOpOrAnonymousName name,
-                       List<StaticParam> staticParams,
-                       List<Param> params,
-                       Option<Type> returnType,
-                       Option<List<BaseType>> throwsClause,
-                       Option<WhereClause> whereClause,
-                       Option<Contract> contract,
-                       Id unambiguousName,
-                       Option<Expr> body,
-                       Option<Id> implementsUnambiguousName)
+                FnDecl(FnHeader header, Id unambiguousName,
+                       Option<Expr> body, Option<Id> implementsUnambiguousName)
                       implements Applicable, Generic;
                 /**
                  * Overloading specification
@@ -688,10 +679,7 @@ interface Node() extends HasAt;
                  * Expr ::= fn ValParam IsType? Throws? => Expr
                  * e.g.) fn x => x + 2
                  */
-                FnExpr(IdOrOpOrAnonymousName name, List<StaticParam> staticParams,
-                       List<Param> params, Option<Type> returnType,
-                       Option<WhereClause> whereClause,
-                       Option<List<BaseType>> throwsClause, Expr body)
+                FnExpr(FnHeader header, Expr body)
                       implements Applicable;
                 /**
                  * expression used in block expressions
@@ -1814,11 +1802,7 @@ interface Node() extends HasAt;
          *  - String nameAsMethod(Applicable)
          *  - Option<Expr> getBody(Applicable)
          */
-        interface Applicable(IdOrOpOrAnonymousName name,
-                             List<StaticParam> staticParams,
-                             List<Param> params,
-                             Option<Type> returnType,
-                             Option<WhereClause> whereClause);
+        interface Applicable(FnHeader header);
         /**
          * templates
          */

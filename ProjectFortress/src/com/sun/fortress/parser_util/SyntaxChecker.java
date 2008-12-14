@@ -131,65 +131,65 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 
     public void forFnDeclOnly(FnDecl that) {
         boolean hasBody = that.getBody().isSome();
-        Modifiers mods = that.getMods();
+        Modifiers mods = NodeUtil.getMods(that);
 
         if ( mods.isGetter() ) {
-            if ( ! that.getParams().isEmpty() )
+            if ( ! NodeUtil.getParams(that).isEmpty() )
                 log(that, "Getter declaration should not have a parameter.");
         } else if ( mods.isSetter() ) {
             // Is this really true?  What if we have a tuple-typed setter?
-            if ( ! (that.getParams().size() == 1) )
+            if ( ! (NodeUtil.getParams(that).size() == 1) )
                 log(that, "Setter declaration should have a single parameter.");
         }
 
         if ( inBlock ) { // local function declaration
             if (!Modifiers.LocalFnMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.LocalFnMod) + " cannot modify a local function, " +
-                    that.getName());
+                    NodeUtil.getName(that));
             }
         } else if ( inTrait || inObject ) {
             if (!Modifiers.MethodMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.MethodMod) + " cannot modify a method, " +
-                    that.getName());
+                    NodeUtil.getName(that));
             }
             if ( inComponent ) {
                 if ( inObject && !hasBody ) {
-                    log(that, "Object method " + that.getName() + " lacks a body.");
+                    log(that, "Object method " + NodeUtil.getName(that) + " lacks a body.");
                 }
                 if ( mods.isAbstract() && hasBody) {
-                    log(that, "Method " + that.getName() + " is concrete, but declared abstract.");
+                    log(that, "Method " + NodeUtil.getName(that) + " is concrete, but declared abstract.");
                 }
             } else {
                 if ( mods.isPrivate()) {
                     log(that, "private cannot modify a method " +
-                        that.getName() + " in an API.");
+                        NodeUtil.getName(that) + " in an API.");
                 }
             }
         } else { // top-level function declaration
             if (!Modifiers.FnMod.containsAll(mods)) {
                 log(that, mods.remove(Modifiers.FnMod) +
-                    " cannot modify a function, " + that.getName());
+                    " cannot modify a function, " + NodeUtil.getName(that));
             }
             if ( !inComponent ) {
                 if (mods.isPrivate()) {
                     log(that, "private cannot modify a function " +
-                        that.getName() + " in an API.");
+                        NodeUtil.getName(that) + " in an API.");
                 }
             }
         }
 
         boolean isOprMethod = false;
-        IdOrOpOrAnonymousName name = that.getName();
+        IdOrOpOrAnonymousName name = NodeUtil.getName(that);
         if ( (inTrait || inObject) &&
              (name instanceof Op) ) {
             isOprMethod = (! (((Op)name).isEnclosing()) ) ||
                            ((Op)name).getText().equals("| |");
         }
         boolean hasSelf = false;
-        if ( (! hasBody) && that.getReturnType().isNone() )
+        if ( (! hasBody) && NodeUtil.getReturnType(that).isNone() )
             log(that, "The return type of " + name + " is required.");
 
-        for ( Param p : that.getParams() ) {
+        for ( Param p : NodeUtil.getParams(that) ) {
             if ( p.getName().getText().equals("self") )
                 hasSelf = true;
             if ( (! hasBody) &&

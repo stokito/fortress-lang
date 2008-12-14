@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.BATreeEC;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
@@ -182,25 +183,25 @@ public class FGenericFunction extends GenericFunctionOrConstructor
     }
 
     public  List<StaticParam> getStaticParams() {
-        return  fndef.getStaticParams();
+        return  NodeUtil.getStaticParams(fndef);
     }
 
     public List<Param> getParams() {
-        return fndef.getParams();
+        return NodeUtil.getParams(fndef);
     }
 
 
     protected Option<WhereClause> getWhere() {
-        return fndef.getWhereClause();
+        return NodeUtil.getWhereClause(fndef);
     }
 
      @Override
     public IdOrOpOrAnonymousName getFnName() {
-        return fndef.getName();
+        return NodeUtil.getName(fndef);
     }
 
     public IdOrOpOrAnonymousName getName() {
-        return fndef.getName();
+        return NodeUtil.getName(fndef);
     }
 
     public Applicable getDef() {
@@ -238,7 +239,7 @@ public class FGenericFunction extends GenericFunctionOrConstructor
     // static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
     public Option<Type> getReturnType() {
-         return fndef.getReturnType();
+         return NodeUtil.getReturnType(fndef);
     }
 
 

@@ -455,7 +455,7 @@ public class IndexBuilder {
     private void buildFunction(FnDecl ast,
             Relation<IdOrOpOrAnonymousName, Function> functions) {
         DeclaredFunction df = new DeclaredFunction(ast);
-        functions.add(ast.getName(), df);
+        functions.add(NodeUtil.getName(ast), df);
         functions.add(ast.getUnambiguousName(), df);
     }
 
@@ -472,9 +472,9 @@ public class IndexBuilder {
             Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
             Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions) {
-        Modifiers mods = ast.getMods();
+        Modifiers mods = NodeUtil.getMods(ast);
         // TODO: check for correct modifiers?
-        IdOrOpOrAnonymousName name = ast.getName();
+        IdOrOpOrAnonymousName name = NodeUtil.getName(ast);
         if (mods.isGetter()) {
             if (name instanceof Id) {
                 getters.put((Id) name, new DeclaredMethod(ast, declaringTrait));
@@ -498,7 +498,7 @@ public class IndexBuilder {
         }
         else {
             boolean functional = false;
-            for (Param p : ast.getParams()) {
+            for (Param p : NodeUtil.getParams(ast)) {
                 // TODO: make sure param is valid (for ex., self doesn't have a type)
                 if (p.getName().equals(SELF_NAME)) {
                     if (functional) {

@@ -42,7 +42,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         Boolean change = Boolean.FALSE;
         if (getPass() == 1) {
             // TODO the value obtained should be filtered.
-            IdOrOpOrAnonymousName id = x.getName();
+            IdOrOpOrAnonymousName id = NodeUtil.getName(x);
             String fname = id.stringName();
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
             if (fv != null) {
@@ -166,7 +166,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
             if (aof == ArrowOrFunctional.FUNCTIONAL) {
                 // Only certain things can be a functional method.
                 FnDecl fadod = (FnDecl) adod;
-                String s = fadod.getName().stringName();
+                String s = NodeUtil.getName(fadod).stringName();
                 overloadNames.add(s);
                 exporter.overloadableExportedFunction.add(s);
                 api.overloadableExportedFunction.add(s);

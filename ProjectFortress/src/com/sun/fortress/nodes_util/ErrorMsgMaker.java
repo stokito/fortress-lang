@@ -122,11 +122,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forFnDecl(FnDecl node) {
-        return NodeUtil.nameString(node.getName())
-                + (node.getStaticParams().size() > 0 ? Useful.listInOxfords(mapSelf(node.getStaticParams())) : "")
-                + Useful.listInParens(mapSelf(node.getParams()))
-                + (node.getReturnType().isSome() ? (":" + node.getReturnType().unwrap().accept(this)) : "")
-                ;//+ "@" + NodeUtil.getAt(node.getFnName());
+        return NodeUtil.nameString(NodeUtil.getName(node))
+                + (NodeUtil.getStaticParams(node).size() > 0 ? Useful.listInOxfords(mapSelf(NodeUtil.getStaticParams(node))) : "")
+                + Useful.listInParens(mapSelf(NodeUtil.getParams(node)))
+                + (NodeUtil.getReturnType(node).isSome() ? (":" + NodeUtil.getReturnType(node).unwrap().accept(this)) : "")
+                ;//+ "@" + NodeUtil.getAt(NodeUtil.getFnName(node));
     }
 
     public String forIdOrOp(IdOrOp node) {

@@ -272,14 +272,18 @@ public class Transform extends TemplateUpdateVisitor {
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
-            IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(that.getName());
-            List<StaticParam> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-            List<Param> params_result = Useful.applyToAll(that.getParams(), renameParam);
-            Option<Type> returnType_result = recurOnOptionOfType(that.getReturnType());
-            Option<WhereClause> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
-            Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
+            IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(NodeUtil.getName(that));
+            List<StaticParam> staticParams_result = recurOnListOfStaticParam(NodeUtil.getStaticParams(that));
+            List<Param> params_result = Useful.applyToAll(NodeUtil.getParams(that), renameParam);
+            Option<Type> returnType_result = recurOnOptionOfType(NodeUtil.getReturnType(that));
+            Option<WhereClause> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
+            Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
             Expr body_result = (Expr) recur(that.getBody());
-            Node ret = forFnExprOnly(that, exprType_result, name_result, staticParams_result, params_result, returnType_result, where_result, throwsClause_result, body_result);
+            FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(), name_result,
+                                                        staticParams_result, where_result, throwsClause_result,
+                                                        Option.<Contract>none(), params_result,
+                                                        returnType_result);
+            Node ret = forFnExprOnly(that, exprType_result, header, body_result);
             setSyntaxEnvironment(save);
             return ret;
         } else {
@@ -359,7 +363,7 @@ public class Transform extends TemplateUpdateVisitor {
                                     Id generatedId = generateId(old);
                                     extendSyntaxEnvironment(old, generatedId);
                                     return NodeFactory.makeFnDecl(that.getSpan(),
-                                                                  that.getMods(),
+                                                                  NodeUtil.getMods(that),
                                                                   generatedId,
                                                                   staticParams_result,
                                                                   new_params_result,
@@ -370,7 +374,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                                   body_result);
                                 } else {
                                     return NodeFactory.makeFnDecl(that.getSpan(),
-                                                                  that.getMods(),
+                                                                  NodeUtil.getMods(that),
                                                                   name_result,
                                                                   staticParams_result,
                                                                   new_params_result,

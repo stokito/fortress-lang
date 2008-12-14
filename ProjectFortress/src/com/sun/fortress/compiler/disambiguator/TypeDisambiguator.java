@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.Effect;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.GrammarMemberDecl;
 import com.sun.fortress.nodes.Id;
@@ -182,14 +183,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     @Override public Node forFnDecl(final FnDecl that) {
         TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
 
-        return forFnDeclOnly(that,
+        FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
                 (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                 v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
-                v.recurOnListOfParam(NodeUtil.getParams(that)),
-                v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
-                v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                 v.recurOnOptionOfContract(NodeUtil.getContract(that)),
+                v.recurOnListOfParam(NodeUtil.getParams(that)),
+                v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
+
+        return forFnDeclOnly(that, header,
                 that.getUnambiguousName(),
                 v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
                 that.getImplementsUnambiguousName());

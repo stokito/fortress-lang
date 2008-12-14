@@ -197,7 +197,7 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC) {
-        TraitTypeHeader header = new TraitTypeHeader(span, mods, name, sparams, whereC,
+        TraitTypeHeader header = makeTraitTypeHeader(span, mods, name, sparams, whereC,
                                                      Option.<List<BaseType>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
@@ -247,7 +247,7 @@ public class NodeFactory {
                                             Option<List<Param>> params,
                                             Option<List<BaseType>> throwsC,
                                             Option<Contract> contract) {
-        TraitTypeHeader header = new TraitTypeHeader(span, mods, name, sparams, whereC,
+        TraitTypeHeader header = makeTraitTypeHeader(span, mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
                                                      decls);
         return new ObjectDecl(span, header, params);
@@ -307,6 +307,19 @@ public class NodeFactory {
                           body, Option.<Id>none());
     }
 
+    public static FnHeader makeFnHeader(Span span,
+                                        Modifiers mods,
+                                        IdOrOpOrAnonymousName name,
+                                        List<StaticParam> staticParams,
+                                        Option<WhereClause> whereClause,
+                                        Option<List<BaseType>> throwsClause,
+                                        Option<Contract> contract,
+                                        List<Param> params,
+                                        Option<Type> returnType) {
+        return new FnHeader(span, mods, name, staticParams, whereClause,
+                            throwsClause, contract, params, returnType);
+    }
+
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
@@ -318,9 +331,9 @@ public class NodeFactory {
                                     Id unambiguousName,
                                     Option<Expr> body,
                                     Option<Id> implementsUnambiguousName) {
-        return new FnDecl(span, mods, name, staticParams, params, returnType,
-                          throwsC, whereC, contract, unambiguousName,
-                          body, implementsUnambiguousName);
+        FnHeader header = makeFnHeader(span, mods, name, staticParams, whereC, throwsC,
+                                       contract, params, returnType);
+        return new FnDecl(span, header, unambiguousName, body, implementsUnambiguousName);
     }
 
     public static DimDecl makeDimDecl(Span span, Id dim, Option<Type> derived) {

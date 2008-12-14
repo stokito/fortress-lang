@@ -815,8 +815,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forFnExpr(FnExpr x) {
-        Option<Type> return_type = x.getReturnType();
-        List<Param> params = x.getParams();
+        Option<Type> return_type = NodeUtil.getReturnType(x);
+        List<Param> params = NodeUtil.getParams(x);
         FunctionClosure cl = new FunctionClosure(e, x); // , return_type, params);
         cl.finishInitializing();
         return cl;

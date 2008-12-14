@@ -393,7 +393,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( elt instanceof VarDecl ) {
                 sawField = true;
             } else if ( elt instanceof FnDecl ) {
-                if ( ((FnDecl)elt).getMods().isGetterSetter() ) {
+                if ( NodeUtil.getMods((FnDecl)elt).isGetterSetter() ) {
                     sawGetterSetter = true;
                     if ( sawField ) {
                         accum.add("\n");
@@ -594,17 +594,36 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     /****************************************/
-    @Override public String forFnDeclOnly(FnDecl that,
-                                          final String name_result,
-                                          List<String> staticParams_result,
-                                          List<String> params_result,
-                                          Option<String> returnType_result,
-                                          Option<List<String>> throwsClause_result,
-                                          Option<String> where_result,
-                                          Option<String> contract_result,
-                                          String unambigousName_result,
-                                          Option<String> body_result,
-                                          Option<String> implementsUnambiguousName_result) {
+    @Override public String forFnDecl(FnDecl that) {
+        FnHeader header = that.getHeader();
+        String name_result = recur(header.getName());
+        List<String> staticParams_result = recurOnListOfStaticParam(header.getStaticParams());
+        List<String> params_result = recurOnListOfParam(header.getParams());
+        Option<String> returnType_result = recurOnOptionOfType(header.getReturnType());
+        Option<String> whereClause_result = recurOnOptionOfWhereClause(header.getWhereClause());
+        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        Option<String> contract_result = recurOnOptionOfContract(header.getContract());
+        String unambiguousName_result = recur(that.getUnambiguousName());
+        Option<String> body_result = recurOnOptionOfExpr(that.getBody());
+        Option<String> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
+        return forFnDeclOnly(that, name_result, staticParams_result,
+                             params_result, returnType_result,
+                             throwsClause_result, whereClause_result,
+                             contract_result, unambiguousName_result,
+                             body_result, implementsUnambiguousName_result);
+    }
+
+    public String forFnDeclOnly(FnDecl that,
+                                final String name_result,
+                                List<String> staticParams_result,
+                                List<String> params_result,
+                                Option<String> returnType_result,
+                                Option<List<String>> throwsClause_result,
+                                Option<String> where_result,
+                                Option<String> contract_result,
+                                String unambigousName_result,
+                                Option<String> body_result,
+                                Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
         showMods(s,NodeUtil.getMods(that));
         final String sparams = inOxfordBrackets(staticParams_result);
@@ -1480,14 +1499,31 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forFnExprOnly(FnExpr that, Option<String> exprType_result,
-                                          String name_result,
-                                          List<String> staticParams_result,
-                                          List<String> params_result,
-                                          Option<String> returnType_result,
-                                          Option<String> where_result,
-                                          Option<List<String>> throwsClause_result,
-                                          String body_result) {
+    @Override public String forFnExpr(FnExpr that) {
+        Option<String> exprType_result = recurOnOptionOfType(that.getExprType());
+        FnHeader header = that.getHeader();
+        String name_result = recur(header.getName());
+        List<String> staticParams_result = recurOnListOfStaticParam(header.getStaticParams());
+        List<String> params_result = recurOnListOfParam(header.getParams());
+        Option<String> returnType_result = recurOnOptionOfType(header.getReturnType());
+        Option<String> whereClause_result = recurOnOptionOfWhereClause(header.getWhereClause());
+        Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
+        String body_result = recur(that.getBody());
+        return forFnExprOnly(that, exprType_result,
+                             name_result, staticParams_result, params_result,
+                             returnType_result, whereClause_result,
+                             throwsClause_result,
+                             body_result);
+    }
+
+    public String forFnExprOnly(FnExpr that, Option<String> exprType_result,
+                                String name_result,
+                                List<String> staticParams_result,
+                                List<String> params_result,
+                                Option<String> returnType_result,
+                                Option<String> where_result,
+                                Option<List<String>> throwsClause_result,
+                                String body_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( "fn " );

@@ -85,7 +85,7 @@ class FnTypeEnv extends TypeEnv {
     	// To do this we must find self's type
 
     	Option<Type> self_type_ = Option.none();
-    	for( Param param : fn.getParams() ) {
+    	for( Param param : NodeUtil.getParams(fn) ) {
     		if( param.getName().equals(IndexBuilder.SELF_NAME) ) {
                     if( ! NodeUtil.isVarargsParam(param) )
                         self_type_ = param.getIdType();

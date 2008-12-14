@@ -74,7 +74,7 @@ public class FTypeObject extends FTraitOrObject {
                     }
                 }
             } else if (v instanceof FnDecl) {
-                methods.add(((FnDecl)v).getName());
+                methods.add(NodeUtil.getName((FnDecl)v));
             }
         }
         cannotBeExtended = true;
