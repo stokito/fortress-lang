@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -94,37 +95,37 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     public Option<Node> forTraitDecl(TraitDecl that) {
         if ( ! isPrivate(that) ) {
             inTrait = true;
-            List<Decl> absDecls = declsToDecls(that.getDecls());
+            List<Decl> absDecls = declsToDecls(NodeUtil.getDecls(that));
             inTrait = false;
             return Option.<Node>some(
                           NodeFactory.makeTraitDecl(that.getSpan(),
-                                                    that.getMods(),
-                                                    that.getName(),
-                                                    that.getStaticParams(),
-                                                    that.getExtendsClause(),
-                                                    that.getWhereClause(),
+                                                    NodeUtil.getMods(that),
+                                                    NodeUtil.getName(that),
+                                                    NodeUtil.getStaticParams(that),
+                                                    NodeUtil.getExtendsClause(that),
+                                                    NodeUtil.getWhereClause(that),
                                                     absDecls,
-                                                    that.getExcludesClause(),
-                                                    that.getComprisesClause()));
+                                                    NodeUtil.getExcludesClause(that),
+                                                    NodeUtil.getComprisesClause(that)));
         } else return Option.<Node>none();
     }
 
     public Option<Node> forObjectDecl(ObjectDecl that) {
         if ( ! isPrivate(that) ) {
             inObject = true;
-            List<Decl> absDecls = declsToDecls(that.getDecls());
+            List<Decl> absDecls = declsToDecls(NodeUtil.getDecls(that));
             inObject = false;
             return Option.<Node>some(
                           NodeFactory.makeObjectDecl(that.getSpan(),
-                                                     that.getMods(),
-                                                     that.getName(),
-                                                     that.getStaticParams(),
-                                                     that.getExtendsClause(),
-                                                     that.getWhereClause(),
+                                                     NodeUtil.getMods(that),
+                                                     NodeUtil.getName(that),
+                                                     NodeUtil.getStaticParams(that),
+                                                     NodeUtil.getExtendsClause(that),
+                                                     NodeUtil.getWhereClause(that),
                                                      absDecls,
-                                                     that.getParams(),
-                                                     that.getThrowsClause(),
-                                                     that.getContract()));
+                                                     NodeUtil.getParams(that),
+                                                     NodeUtil.getThrowsClause(that),
+                                                     NodeUtil.getContract(that)));
         } else return Option.<Node>none();
     }
 
@@ -149,9 +150,9 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
 
     public Option<Node> forFnDecl(FnDecl that) {
         if ( ! isPrivate(that) ) {
-            if ( that.getReturnType().isNone() )
-                log(that, "The return type of " + that.getName() + " is required.");
-            for ( Param p : that.getParams() ) {
+            if ( NodeUtil.getReturnType(that).isNone() )
+                log(that, "The return type of " + NodeUtil.getName(that) + " is required.");
+            for ( Param p : NodeUtil.getParams(that) ) {
                 if ( p.getIdType().isNone() &&
                      p.getVarargsType().isNone() &&
                      ! p.getName().getText().equals("self") )
@@ -160,20 +161,20 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             /* For an abstract method declaration in a component,
                the APIMaker puts the "abstract" modifier in the generated API.
             */
-            Modifiers mods = that.getMods();
-            if ( inTrait && that.getBody().isNone() ) {
+            Modifiers mods = NodeUtil.getMods(that);
+            if ( inTrait && NodeUtil.getBody(that).isNone() ) {
                 mods = mods.combine(Modifiers.Abstract);
             }
             return Option.<Node>some(
                           NodeFactory.makeFnDecl(that.getSpan(),
                                                  mods,
-                                                 that.getName(),
-                                                 that.getStaticParams(),
-                                                 that.getParams(),
-                                                 that.getReturnType(),
-                                                 that.getThrowsClause(),
-                                                 that.getWhereClause(),
-                                                 that.getContract(),
+                                                 NodeUtil.getName(that),
+                                                 NodeUtil.getStaticParams(that),
+                                                 NodeUtil.getParams(that),
+                                                 NodeUtil.getReturnType(that),
+                                                 NodeUtil.getThrowsClause(that),
+                                                 NodeUtil.getWhereClause(that),
+                                                 NodeUtil.getContract(that),
                                                  Option.<Expr>none()));
         } else return Option.<Node>none();
     }

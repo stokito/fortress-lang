@@ -88,13 +88,23 @@ interface Node() extends HasAt;
          * object expressions in components or APIs
          */
         interface Generic(List<StaticParam> staticParams);
-            interface GenericWithParams(Option<List<Param>> params,
-                                        List<Decl> decls);
+            interface ObjectConstructor(List<Decl> decls,
+                                        Option<List<Param>> params);
 
         /**
          * top-level node abstract class
          */
         root abstract AbstractNode() extends UIDObject;
+            abstract DeclHeader(Modifiers mods, // except FnExpr
+                                IdOrOpOrAnonymousName name,
+                                List<StaticParam> staticParams,
+                                Option<WhereClause> whereClause,
+                                Option<List<BaseType>> throwsClause, // except TraitDecl
+                                Option<Contract> contract); // except TraitDecl / FnExpr
+                TraitTypeHeader(List<TraitTypeWhere> extendsClause,
+                                List<Decl> decls);
+                FnHeader(List<Param> params, Option<Type> returnType);
+
             /**
              * compilation unit declaration
              * CompilationUnit ::= Component | Api
@@ -263,7 +273,7 @@ interface Node() extends HasAt;
                     ObjectDecl(Option<List<Param>> params,
                                Option<List<BaseType>> throwsClause,
                                Option<Contract> contract)
-                              implements GenericWithParams;
+                              implements ObjectConstructor;
                 /**
                  * variable declaration in components or APIs
                  *
@@ -563,7 +573,7 @@ interface Node() extends HasAt;
                                        List<StaticParam> staticParams,
                                        List<StaticArg> staticArgs,
                                        Option<List<Param>> params)
-                                      implements GenericWithParams;
+                                      implements ObjectConstructor;
                 /**
                  * try expression
                  * DelimitedExpr ::= try BlockElems Catch? (forbid TraitTypes)?
@@ -1477,7 +1487,7 @@ interface Node() extends HasAt;
                          * not created during parsing but during evaluation
                          * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
                          */
-                        ConstructorFnName(GenericWithParams def);
+                        ConstructorFnName(ObjectConstructor def);
             /**
              * array comprehension clause
              * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList
@@ -1619,7 +1629,7 @@ interface Node() extends HasAt;
             /**
              * nonterminal header
              */
-            NonterminalHeader(Modifiers mods, /* Only Modifiers.Private is allowed */
+            NonterminalHeader(Modifiers mods, // Only Modifiers.Private is allowed
                               Id name,
                               List<NonterminalParameter> params,
                               List<StaticParam> staticParams,

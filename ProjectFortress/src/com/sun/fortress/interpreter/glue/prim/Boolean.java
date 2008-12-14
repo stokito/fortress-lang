@@ -24,13 +24,13 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.FBool;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 public class Boolean extends NativeConstructor {
 
     public Boolean(Environment env,
                    FTypeObject selfType,
-                   GenericWithParams def) {
+                   ObjectConstructor def) {
         super(env,selfType,def);
     }
 

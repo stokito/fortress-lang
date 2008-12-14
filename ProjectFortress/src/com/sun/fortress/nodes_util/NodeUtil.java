@@ -37,6 +37,167 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    /* Getters for TraitDecl */
+    public static Modifiers getMods(TraitDecl t) {
+        return t.getMods();
+    }
+
+    public static Id getName(TraitDecl t) {
+        return t.getName();
+    }
+
+    public static List<StaticParam> getStaticParams(TraitDecl t) {
+        return t.getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(TraitDecl t) {
+        return t.getWhereClause();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(TraitDecl t) {
+        return t.getExtendsClause();
+    }
+
+    public static List<Decl> getDecls(TraitDecl t) {
+        return t.getDecls();
+    }
+
+    public static List<BaseType> getExcludesClause(TraitDecl t) {
+        return t.getExcludesClause();
+    }
+
+    public static Option<List<BaseType>> getComprisesClause(TraitDecl t) {
+        return t.getComprisesClause();
+    }
+
+    /* Getters for ObjectDecl */
+    public static Modifiers getMods(ObjectDecl t) {
+        return t.getMods();
+    }
+
+    public static Id getName(ObjectDecl t) {
+        return t.getName();
+    }
+
+    public static List<StaticParam> getStaticParams(ObjectDecl t) {
+        return t.getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(ObjectDecl t) {
+        return t.getWhereClause();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(ObjectDecl t) {
+        return t.getExtendsClause();
+    }
+
+    public static List<Decl> getDecls(ObjectDecl t) {
+        return t.getDecls();
+    }
+
+    public static Option<List<Param>> getParams(ObjectDecl g) {
+        return g.getParams();
+    }
+
+    public static Option<List<BaseType>> getThrowsClause(ObjectDecl g) {
+        return g.getThrowsClause();
+    }
+
+    public static Option<Contract> getContract(ObjectDecl g) {
+        return g.getContract();
+    }
+
+    /* Getters for FnDecl */
+    public static Modifiers getMods(FnDecl t) {
+        return t.getMods();
+    }
+
+    public static IdOrOpOrAnonymousName getName(FnDecl t) {
+        return t.getName();
+    }
+
+    public static List<StaticParam> getStaticParams(FnDecl t) {
+        return t.getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(FnDecl t) {
+        return t.getWhereClause();
+    }
+
+    public static List<Param> getParams(FnDecl g) {
+        return g.getParams();
+    }
+
+    public static Option<Type> getReturnType(FnDecl g) {
+        return g.getReturnType();
+    }
+
+    public static Option<List<BaseType>> getThrowsClause(FnDecl g) {
+        return g.getThrowsClause();
+    }
+
+    public static Option<Contract> getContract(FnDecl g) {
+        return g.getContract();
+    }
+
+    /* Getters for FnExpr */
+    public static IdOrOpOrAnonymousName getName(FnExpr t) {
+        return t.getName();
+    }
+
+    public static List<StaticParam> getStaticParams(FnExpr t) {
+        return t.getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(FnExpr t) {
+        return t.getWhereClause();
+    }
+
+    public static List<Param> getParams(FnExpr g) {
+        return g.getParams();
+    }
+
+    public static Option<Type> getReturnType(FnExpr g) {
+        return g.getReturnType();
+    }
+
+    public static Option<List<BaseType>> getThrowsClause(FnExpr g) {
+        return g.getThrowsClause();
+    }
+
+    /* Getter for Generic */
+    public static List<StaticParam> getStaticParams(Generic g) {
+        return g.getStaticParams();
+    }
+
+    public static Option<List<Param>> getParams(ObjectConstructor g) {
+        return g.getParams();
+    }
+
+    public static List<Decl> getDecls(ObjectConstructor g) {
+        return g.getDecls();
+    }
+
+    public static IdOrOpOrAnonymousName getName(Applicable a) {
+        return a.getName();
+    }
+
+    public static List<StaticParam> getStaticParams(Applicable a) {
+        return a.getStaticParams();
+    }
+
+    public static List<Param> getParams(Applicable a) {
+        return a.getParams();
+    }
+
+    public static Option<Type> getReturnType(Applicable a) {
+        return a.getReturnType();
+    }
+
+    public static Option<WhereClause> getWhereClause(Applicable a) {
+        return a.getWhereClause();
+    }
+
     public static boolean isOpParam(StaticParam p) {
         return p.getKind() instanceof KindOp;
     }

@@ -27,7 +27,7 @@ import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvalVarsEnvironment;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.HasAt;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -40,7 +40,7 @@ public abstract class NativeConstructor extends Constructor {
 
     public NativeConstructor(Environment env,
                              FTypeObject selfType,
-                             GenericWithParams def) {
+                             ObjectConstructor def) {
         super(env,selfType,def);
         nativeConstructors.add(this);
     }

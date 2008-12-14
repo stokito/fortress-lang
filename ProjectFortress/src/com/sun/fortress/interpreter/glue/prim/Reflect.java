@@ -37,7 +37,7 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
 public class Reflect extends NativeConstructor {
@@ -45,7 +45,7 @@ public class Reflect extends NativeConstructor {
 
     volatile ReflectedType it;
 
-    public Reflect(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public Reflect(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
         gcon = (GenericConstructor)env.getLeafValue("Reflect");
     }

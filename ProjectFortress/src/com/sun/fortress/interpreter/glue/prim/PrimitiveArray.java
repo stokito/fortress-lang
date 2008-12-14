@@ -32,12 +32,12 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 public class PrimitiveArray extends NativeConstructor {
     int s0;
 
-    public PrimitiveArray(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public PrimitiveArray(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }

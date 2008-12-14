@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericNativeConstructor;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Expr;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Param;
@@ -53,17 +53,17 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
     }
 
     public static Constructor nativeConstructor(Environment containing,
-            FTypeObject ft, GenericWithParams x, String fname) {
+            FTypeObject ft, ObjectConstructor x, String fname) {
         String pack = containing.getTopLevel().getRootValue("package").getString();
         String classname = pack + "." + fname;
         try {
             Class cl = Class.forName(classname);
             // cl must extend Constructor,
             // cl must have a constructor BetterEnv env, FTypeObject selfType,
-            // GenericWithParams def
+            // ObjectConstructor def
             java.lang.reflect.Constructor ccl = cl.getDeclaredConstructor(
                     Environment.class, FTypeObject.class,
-                    GenericWithParams.class);
+                    ObjectConstructor.class);
             return (Constructor)ccl.newInstance(containing, ft, x);
         } catch (ClassCastException e) {
             return bug(x,containing,
@@ -105,20 +105,20 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
     protected void forObjectDecl1(ObjectDecl x) {
         // List<Modifier> mods;
 
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
 
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
+        Option<List<Param>> params = NodeUtil.getParams(x);
 
         // List<Type> throws_;
         // List<WhereClause> where;
         // Contract contract;
-        // List<Decl> defs = x.getDecls();
+        // List<Decl> defs = NodeUtil.getDecls(x);
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty()
-                 ? new FTypeObject(fname, containing, x, params, x.getDecls(), x)
-                 : new FTypeGeneric(containing, x, x.getDecls(), x);
+                 ? new FTypeObject(fname, containing, x, params, NodeUtil.getDecls(x), x)
+                 : new FTypeGeneric(containing, x, NodeUtil.getDecls(x), x);
 
         // Need to check for overloaded constructor.
 
@@ -169,7 +169,7 @@ public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
             }
         }
 
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        scanForFunctionalMethodNames(ft, NodeUtil.getDecls(x));
 
     }
 }

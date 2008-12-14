@@ -32,7 +32,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.numerics.DirectedRounding;
 
 /**
@@ -40,7 +40,7 @@ import com.sun.fortress.numerics.DirectedRounding;
  */
 public class RR32 extends NativeConstructor {
 
-public RR32(Environment env, FTypeObject selfType, GenericWithParams def) {
+public RR32(Environment env, FTypeObject selfType, ObjectConstructor def) {
     super(env, selfType, def);
 }
 

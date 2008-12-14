@@ -136,16 +136,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * environment with all the newly bound static parameters.
      */
     @Override public Node forTraitDecl(final TraitDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
+        TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
 
         return forTraitDeclOnly(that,
-                (Id) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                v.recurOnListOfDecl(that.getDecls()),
-                v.recurOnListOfBaseType(that.getExcludesClause()),
-                v.recurOnOptionOfListOfBaseType(that.getComprisesClause()));
+                (Id) NodeUtil.getName(that).accept(v),
+                v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
+                v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                v.recurOnListOfDecl(NodeUtil.getDecls(that)),
+                v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
+                v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
 
     /**
@@ -153,17 +153,17 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * environment with all the newly bound static parameters.
      */
     @Override public Node forObjectDecl(final ObjectDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
+        TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
 
         return forObjectDeclOnly(that,
-                (Id) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfTraitTypeWhere(that.getExtendsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                v.recurOnListOfDecl(that.getDecls()),
-                v.recurOnOptionOfListOfParam(that.getParams()),
-                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                v.recurOnOptionOfContract(that.getContract()));
+                (Id) NodeUtil.getName(that).accept(v),
+                v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
+                v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                v.recurOnListOfDecl(NodeUtil.getDecls(that)),
+                v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
+                v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                v.recurOnOptionOfContract(NodeUtil.getContract(that)));
     }
 
     /**
@@ -171,18 +171,18 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      * environment with all the newly bound static parameters.
      */
     @Override public Node forFnDecl(final FnDecl that) {
-        TypeDisambiguator v = this.extend(that.getStaticParams());
+        TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
 
         return forFnDeclOnly(that,
-                (IdOrOpOrAnonymousName) that.getName().accept(v),
-                v.recurOnListOfStaticParam(that.getStaticParams()),
-                v.recurOnListOfParam(that.getParams()),
-                v.recurOnOptionOfType(that.getReturnType()),
-                v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                v.recurOnOptionOfContract(that.getContract()),
+                (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
+                v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                v.recurOnListOfParam(NodeUtil.getParams(that)),
+                v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
+                v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                v.recurOnOptionOfContract(NodeUtil.getContract(that)),
                 that.getUnambiguousName(),
-                v.recurOnOptionOfExpr(that.getBody()),
+                v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
                 that.getImplementsUnambiguousName());
     }
 

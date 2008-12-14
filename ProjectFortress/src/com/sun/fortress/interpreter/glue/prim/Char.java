@@ -31,14 +31,14 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeFn1;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 /**
  * The Char type.
  */
 public class Char extends NativeConstructor {
 
-    public Char(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public Char(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
     }
 

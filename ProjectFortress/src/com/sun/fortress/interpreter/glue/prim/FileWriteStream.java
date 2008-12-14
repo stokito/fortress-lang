@@ -36,13 +36,13 @@ import com.sun.fortress.interpreter.evaluator.values.FVoid;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.useful.Useful;
 
 public class FileWriteStream extends NativeConstructor {
     private static NativeConstructor con = null;
 
-    public FileWriteStream(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public FileWriteStream(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
     }
 

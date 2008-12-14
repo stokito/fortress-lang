@@ -31,14 +31,14 @@ import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 
 public class JavaString extends NativeConstructor {
 
     public JavaString(Environment env,
                   FTypeObject selfType,
-                  GenericWithParams def) {
+                  ObjectConstructor def) {
         super(env,selfType,def);
     }
 
