@@ -28,6 +28,12 @@ import java.util.Set;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.TraitTypeHeader;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Contract;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.ObjectDecl;
@@ -652,12 +658,16 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if ( ! inComponent )
             v.checkForShadowingVars(vars);
 
-        return forTraitDeclOnly(that,
+        TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
 				(Id) NodeUtil.getName(that).accept(v),
 				v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
-				extendsClause,
                                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-				v.recurOnListOfDecl(NodeUtil.getDecls(that)),
+                                Option.<List<BaseType>>none(),
+                                Option.<Contract>none(),
+				extendsClause,
+				v.recurOnListOfDecl(NodeUtil.getDecls(that)));
+
+        return forTraitDeclOnly(that, header,
 				v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
 				v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
@@ -699,15 +709,17 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedGettersAndSetters, fields).
             extendWithFns(gettersAndSetters, fields);
 
-        return forObjectDeclOnly(that,
+        TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
                                  (Id) NodeUtil.getName(that).accept(v),
                                  v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
-                                 extendsClause,
                                  v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-                                 v.recurOnListOfDecl(NodeUtil.getDecls(that)),
-                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
                                  v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
-                                 v.recurOnOptionOfContract(NodeUtil.getContract(that)));
+                                 v.recurOnOptionOfContract(NodeUtil.getContract(that)),
+                                 extendsClause,
+                                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
+
+        return forObjectDeclOnly(that, header,
+                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
     }
 
     /**

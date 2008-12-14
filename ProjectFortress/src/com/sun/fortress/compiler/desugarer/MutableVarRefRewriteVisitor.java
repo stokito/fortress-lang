@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.exceptions.DesugarerError;
+import com.sun.fortress.nodes.TraitTypeHeader;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FieldRef;
@@ -35,6 +36,8 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -71,7 +74,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
                 "); " + "found: " + that + " (" + that.getSpan() + ").");
         }
 
-        List<Decl> decls_result = recurOnListOfDecl( that.getDecls() );
+        List<Decl> decls_result = recurOnListOfDecl( NodeUtil.getDecls(that) );
 
         for( VarRef var : varRefsToRewrite ) {
             VarRefContainer container = mutableVarRefContainerMap.get(var);
@@ -91,11 +94,9 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
             }
         }
 
-        return super.forObjectDeclOnly(that, that.getName(),
-                                       that.getStaticParams(),
-                                       that.getExtendsClause(), that.getWhereClause(),
-                                       decls_result, that.getParams(),
-                                       that.getThrowsClause(), that.getContract());
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeaderWithDecls(that.getHeader(), decls_result );
+
+        return super.forObjectDeclOnly(that, header, that.getParams());
     }
 
     @Override

@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.DesugarerUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.useful.Useful;
@@ -76,34 +77,29 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-        public Node forTraitDeclOnly(TraitDecl that,
-                                     Id name,
-                                     List<StaticParam> staticParams,
-                                     List<TraitTypeWhere> extendsClause,
-                                     Option<WhereClause> where,
-                                     List<Decl> decls,
-                                     List<BaseType> excludes,
-                                     Option<List<BaseType>> comprises) {
-        if (!that.getName().equals(anyTypeId)) {
-            extendsClause = rewriteExtendsClause(that, extendsClause);
+        public Node forTraitDecl(TraitDecl that) {
+        TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
+        List<BaseType> excludesClause_result = recurOnListOfBaseType(that.getExcludesClause());
+        Option<List<BaseType>> comprisesClause_result = recurOnOptionOfListOfBaseType(that.getComprisesClause());
+
+        if (!NodeUtil.getName(that).equals(anyTypeId)) {
+            header_result = NodeFactory.makeTraitTypeHeader(header_result,
+                                                            rewriteExtendsClause(that, header_result.getExtendsClause()));
         }
-        return super.forTraitDeclOnly(that, name, staticParams, extendsClause,
-                                      where, decls, excludes, comprises);
+
+        return super.forTraitDeclOnly(that, header_result,
+                                      excludesClause_result,
+                                      comprisesClause_result);
     }
 
     @Override
-        public Node forObjectDeclOnly(ObjectDecl that,
-                                      Id name,
-                                      List<StaticParam> staticParams,
-                                      List<TraitTypeWhere> extendsClause,
-                                      Option<WhereClause> where,
-                                      List<Decl> decls,
-                                      Option<List<Param>> params,
-                                      Option<List<BaseType>> throwsClause,
-                                      Option<Contract> contract) {
-        extendsClause = rewriteExtendsClause(that, extendsClause);
-        return super.forObjectDeclOnly(that, name, staticParams, extendsClause,
-                                       where, decls, params, throwsClause, contract);
+        public Node forObjectDecl(ObjectDecl that) {
+        TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
+        Option<List<Param>> params_result = recurOnOptionOfListOfParam(that.getParams());
+
+        header_result = NodeFactory.makeTraitTypeHeader(header_result,
+                                                        rewriteExtendsClause(that, header_result.getExtendsClause()));
+        return super.forObjectDeclOnly(that, header_result, params_result);
     }
 
     @Override

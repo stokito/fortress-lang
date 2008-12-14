@@ -93,7 +93,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     public FTypeGeneric(Environment e, Generic d, List<Decl> members, AbstractNode decl) {
         super(NodeUtil.stringName(d), e, decl);
         def = d;
-        params = d.getStaticParams();
+        params = NodeUtil.getStaticParams(d);
         genericAt = d;
         this.members = members;
         original = this;
@@ -103,8 +103,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         super(orig.getName(), orig.getWithin(), orig.getDecl());
         genericAt = orig.getDef();
         def = new_def;
-        params = new_def.getStaticParams();
-        members = new_def.getDecls();
+        params = NodeUtil.getStaticParams(new_def);
+        members = NodeUtil.getDecls(new_def);
         original = orig;
     }
 
@@ -249,8 +249,8 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         if (gen.def instanceof TraitDecl) {
             TraitDecl td = (TraitDecl) gen.def;
-            FTypeTraitInstance ftt = new FTypeTraitInstance(td.getName().getText(),
-                                                    clenv, gen, bind_args, key_args, gen.members);
+            FTypeTraitInstance ftt = new FTypeTraitInstance(NodeUtil.getName(td).getText(),
+                                                            clenv, gen, bind_args, key_args, gen.members);
             FTraitOrObject old = map.put(key_args, ftt); // Must put
                                                          // early to
                                                          // expose for
@@ -270,9 +270,9 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
             rval = ftt;
         } else if (gen.def instanceof ObjectDecl) {
             ObjectDecl td = (ObjectDecl) gen.def;
-            FTypeObject fto = new FTypeObjectInstance(td.getName().getText(),
+            FTypeObject fto = new FTypeObjectInstance(NodeUtil.getName(td).getText(),
                                        clenv, gen, bind_args, key_args,
-                                                      td.getParams(),
+                                                      NodeUtil.getParams(td),
                                                       gen.members);
             map.put(key_args, fto); // Must put early to expose for second
                                     // pass.
@@ -335,7 +335,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     }
 
     public FType typeApply(List<StaticArg> args, Environment e, HasAt x) {
-        List<StaticParam> static_params = def.getStaticParams();
+        List<StaticParam> static_params = NodeUtil.getStaticParams(def);
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != static_params.size()) {

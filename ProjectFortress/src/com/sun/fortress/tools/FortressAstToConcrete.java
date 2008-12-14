@@ -429,14 +429,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
     }
 
-    @Override public String forTraitDeclOnly(TraitDecl that,
-                                             String name_result,
-                                             List<String> staticParams_result,
-                                             List<String> extendsClause_result,
-                                             Option<String> where_result,
-                                             List<String> decls_result,
-                                             List<String> excludes_result,
-                                             Option<List<String>> comprises_result) {
+    public String forTraitDeclOnly(TraitDecl that,
+                                   String name_result,
+                                   List<String> staticParams_result,
+                                   List<String> extendsClause_result,
+                                   Option<String> where_result,
+                                   List<String> decls_result,
+                                   List<String> excludes_result,
+                                   Option<List<String>> comprises_result) {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
@@ -489,15 +489,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
     }
 
-    @Override public String forObjectDeclOnly(ObjectDecl that,
-                                              String name_result,
-                                              List<String> staticParams_result,
-                                              List<String> extendsClause_result,
-                                              Option<String> where_result,
-                                              List<String> decls_result,
-                                              Option<List<String>> params_result,
-                                              Option<List<String>> throwsClause_result,
-                                              Option<String> contract_result) {
+    public String forObjectDeclOnly(ObjectDecl that,
+                                    String name_result,
+                                    List<String> staticParams_result,
+                                    List<String> extendsClause_result,
+                                    Option<String> where_result,
+                                    List<String> decls_result,
+                                    Option<List<String>> params_result,
+                                    Option<List<String>> throwsClause_result,
+                                    Option<String> contract_result) {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();

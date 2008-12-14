@@ -271,7 +271,7 @@ public class IndexBuilder {
     private void buildTrait(TraitDecl ast,
             Map<Id, TypeConsIndex> typeConses,
             final Relation<IdOrOpOrAnonymousName, Function> functions) {
-        final Id name = ast.getName();
+        final Id name = NodeUtil.getName(ast);
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
         final Set<Function> coercions = new HashSet<Function>();
@@ -291,7 +291,7 @@ public class IndexBuilder {
                 NI.nyi();
             }
         };
-        for (Decl decl : ast.getDecls()) {
+        for (Decl decl : NodeUtil.getDecls(ast)) {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ProperTraitIndex(ast, getters, setters, coercions,
@@ -308,7 +308,7 @@ public class IndexBuilder {
             Map<Id, TypeConsIndex> typeConses,
             final Relation<IdOrOpOrAnonymousName, Function> functions,
             Map<Id, Variable> variables) {
-        final Id name = ast.getName();
+        final Id name = NodeUtil.getName(ast);
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Map<Id, Method> getters = new HashMap<Id, Method>();
@@ -339,10 +339,10 @@ public class IndexBuilder {
                 }
             }
             Constructor c = new Constructor(name,
-                    ast.getStaticParams(),
+                    NodeUtil.getStaticParams(ast),
                     ast.getParams(),
-                    ast.getThrowsClause(),
-                    ast.getWhereClause());
+                    NodeUtil.getThrowsClause(ast),
+                    NodeUtil.getWhereClause(ast));
             constructor = Option.some(c);
             functions.add(name, c);
         }
@@ -365,7 +365,7 @@ public class IndexBuilder {
                 NI.nyi();
             }
         };
-        for (Decl decl : ast.getDecls()) {
+        for (Decl decl : NodeUtil.getDecls(ast)) {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,

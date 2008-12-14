@@ -65,14 +65,14 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         Boolean change = Boolean.FALSE;
         // super.forObjectDecl(x);
         if (getPass() == 1) {
-            String fname = NodeUtil.stringName(x.getName());
+            String fname = NodeUtil.stringName(NodeUtil.getName(x));
             valNames.add(fname);
             typeNames.add(fname);
             FValue fv = exporter.getEnvironment().getValueRaw(fname);
             FType ft = exporter.getEnvironment().getRootTypeNull(fname); // toplevel
 
             // This is overloadable if the object is NOT a singleton.
-            if (x.getParams().isSome()) {
+            if (NodeUtil.getParams(x).isSome()) {
                 overloadNames.add(fname);
                 exporter.overloadableExportedFunction.add(fname);
                 api.overloadableExportedFunction.add(fname);
@@ -94,7 +94,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
 
                 //exporter.missingExportedTypes.put(fname);
             }
-            handlePossibleFM(x.getDecls());
+            handlePossibleFM(NodeUtil.getDecls(x));
 
         }
         return change;
@@ -105,7 +105,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
         Boolean change = Boolean.FALSE;
         // super.forTraitDecl(x);
         if (getPass() == 1) {
-            String fname = NodeUtil.stringName(x.getName());
+            String fname = NodeUtil.stringName(NodeUtil.getName(x));
             typeNames.add(fname);
             FType ft = exporter.getEnvironment().getRootTypeNull(fname); // toplevel
             if (ft != null) {
@@ -115,7 +115,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
                 api.unresolvedExports.add(x);
                 //exporter.missingExportedTypes.put(fname);
             }
-            handlePossibleFM(x.getDecls());
+            handlePossibleFM(NodeUtil.getDecls(x));
         }
         return change;
     }

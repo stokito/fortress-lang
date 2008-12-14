@@ -56,7 +56,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
 
     private Boolean isPrivate(Decl decl) {
         if (decl instanceof TraitObjectDecl) {
-            return ((TraitObjectDecl)decl).getMods().isPrivate();
+            return ((TraitObjectDecl)decl).getHeader().getMods().isPrivate();
         } else if (decl instanceof VarDecl) {
             List<LValue> lhs = ((VarDecl)decl).getLhs();
             for (LValue lv : lhs) {

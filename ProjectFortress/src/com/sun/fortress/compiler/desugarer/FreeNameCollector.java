@@ -34,6 +34,7 @@ import com.sun.fortress.exceptions.DesugarerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -657,7 +658,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
     public static Pair<String,Span> genKeyForDeclSite(Node declSite) {
         if(declSite instanceof ObjectDecl) {
             ObjectDecl cast = (ObjectDecl) declSite;
-            String name = "ObjectDecl_" + cast.getName().getText();
+            String name = "ObjectDecl_" + NodeUtil.getName(cast).getText();
             return new Pair<String,Span>( name, cast.getSpan() );
         } else if(declSite instanceof LocalVarDecl) {
             LocalVarDecl cast = (LocalVarDecl) declSite;
@@ -684,10 +685,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         if(enclosingTraitDecl.isSome()) {
             declSpan = enclosingTraitDecl.unwrap().getSpan();
-            declId = enclosingTraitDecl.unwrap().getName();
+            declId = NodeUtil.getName(enclosingTraitDecl.unwrap());
         } else if(enclosingObjectDecl.isSome()) {
             declSpan = enclosingObjectDecl.unwrap().getSpan();
-            declId = enclosingObjectDecl.unwrap().getName();
+            declId = NodeUtil.getName(enclosingObjectDecl.unwrap());
         }
         traitIndex = getTraitIndexForName(declId, declSpan);
 
@@ -948,8 +949,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
                 throw new DesugarerError(root + " != " + that +
                     " in DecledNamesCollector.");
             }
-            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            super.recurOnListOfDecl(that.getDecls());
+            super.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+            super.recurOnListOfDecl(NodeUtil.getDecls(that));
         }
 
         @Override
@@ -959,8 +960,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
                 throw new DesugarerError(root + " != " + that +
                     " in DecledNamesCollector.");
             }
-            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            super.recurOnListOfDecl(that.getDecls());
+            super.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+            super.recurOnListOfDecl(NodeUtil.getDecls(that));
         }
 
         @Override

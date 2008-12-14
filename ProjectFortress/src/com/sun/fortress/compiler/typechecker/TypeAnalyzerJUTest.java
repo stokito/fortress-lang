@@ -27,6 +27,7 @@ import edu.rice.cs.plt.text.TextUtil;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
@@ -399,7 +400,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         Map<Id, TypeConsIndex> traitMap = new HashMap<Id, TypeConsIndex>();
         for (TraitIndex t : traits) {
             traitDecls.add((Decl) t.ast());
-            traitMap.put(t.ast().getName(), t);
+            traitMap.put(NodeUtil.getName(t.ast()), t);
         }
         Api ast = new Api(span,NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
@@ -424,7 +425,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         Map<Id, TypeConsIndex> traitMap = new HashMap<Id, TypeConsIndex>();
         for (TraitIndex t : traits) {
             traitDecls.add((Decl) t.ast());
-            traitMap.put(t.ast().getName(), t);
+            traitMap.put(NodeUtil.getName(t.ast()), t);
         }
         Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(name),
                                                   Collections.<Import>emptyList(),

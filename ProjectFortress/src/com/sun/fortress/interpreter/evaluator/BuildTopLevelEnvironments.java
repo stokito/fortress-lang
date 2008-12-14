@@ -259,8 +259,8 @@ public class BuildTopLevelEnvironments extends BuildEnvironments {
          */
         @Override
         public Boolean forTraitDecl(TraitDecl x) {
-            List<StaticParam> staticParams = x.getStaticParams();
-            Id name = x.getName();
+            List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
+            Id name = NodeUtil.getName(x);
 
             if (staticParams.isEmpty()) {
                     FTypeTrait ftt = (FTypeTrait) containing

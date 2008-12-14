@@ -57,7 +57,7 @@ public class GenericFunctionalMethod extends FGenericFunction implements HasSelf
 
     @Override
     public  List<StaticParam> getStaticParams() {
-        return selfParameterType.getDef().getStaticParams();
+        return NodeUtil.getStaticParams(selfParameterType.getDef());
     }
 
     protected Option<WhereClause> getWhere() {

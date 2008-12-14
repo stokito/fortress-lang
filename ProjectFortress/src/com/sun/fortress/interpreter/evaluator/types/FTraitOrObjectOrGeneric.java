@@ -44,7 +44,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
         this.decl = def;
         boolean isValueType = false;
         if (def instanceof TraitObjectDecl)
-            isValueType = ((TraitObjectDecl) def).getMods().isValue();
+            isValueType = ((TraitObjectDecl) def).getHeader().getMods().isValue();
         this.isValueType = isValueType;
     }
 
