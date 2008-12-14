@@ -516,33 +516,33 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forObjectDecl(ObjectDecl that) {
-        DesugaringVisitor newVisitor = extend(that.getParams(), that.getDecls());
+        DesugaringVisitor newVisitor = extend(NodeUtil.getParams(that), NodeUtil.getDecls(that));
 
-        Option<List<Param>> params_result = mangleParams(newVisitor.recurOnOptionOfListOfParam(that.getParams()));
-        Option<Contract> contract_result = newVisitor.recurOnOptionOfContract(that.getContract());
-        List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+        Option<List<Param>> params_result = mangleParams(newVisitor.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
+        Option<Contract> contract_result = newVisitor.recurOnOptionOfContract(NodeUtil.getContract(that));
+        List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
-        LinkedList<Decl> gettersAndDecls = makeGetterSetters(that.getName(),
-                                                             that.getParams(), that.getDecls());
+        LinkedList<Decl> gettersAndDecls = makeGetterSetters(NodeUtil.getName(that),
+                                                             NodeUtil.getParams(that), NodeUtil.getDecls(that));
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
 
-        return forObjectDeclOnly(that, that.getName(),
-                                 that.getStaticParams(), that.getExtendsClause(),
-                                 that.getWhereClause(), gettersAndDecls, params_result,
-                                 that.getThrowsClause(), contract_result);
+        return forObjectDeclOnly(that, NodeUtil.getName(that),
+                                 NodeUtil.getStaticParams(that), NodeUtil.getExtendsClause(that),
+                                 NodeUtil.getWhereClause(that), gettersAndDecls, params_result,
+                                 NodeUtil.getThrowsClause(that), contract_result);
     }
 
     @Override
     public Node forTraitDecl(TraitDecl that) {
-        DesugaringVisitor newVisitor = extend(that.getDecls());
-        List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(that.getDecls()));
+        DesugaringVisitor newVisitor = extend(NodeUtil.getDecls(that));
+        List<Decl> decls_result = removeVarDecls(newVisitor.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
         // System.err.println("decls_result size = " + decls_result.size());
         LinkedList<Decl> gettersAndDecls = makeGetterSetters(true,
-                                                             that.getName(),
-                                                             that.getDecls());
+                                                             NodeUtil.getName(that),
+                                                             NodeUtil.getDecls(that));
 
         // System.err.println("before: gettersAndDecls size = " + gettersAndDecls.size());
         for (int i = decls_result.size() - 1; i >= 0; i--) {
@@ -550,10 +550,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
         // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
 
-        return forTraitDeclOnly(that, that.getName(),
-                                that.getStaticParams(), that.getExtendsClause(),
-                                that.getWhereClause(), gettersAndDecls,
-                                that.getExcludesClause(), that.getComprisesClause());
+        return forTraitDeclOnly(that, NodeUtil.getName(that),
+                                NodeUtil.getStaticParams(that), NodeUtil.getExtendsClause(that),
+                                NodeUtil.getWhereClause(that), gettersAndDecls,
+                                NodeUtil.getExcludesClause(that), NodeUtil.getComprisesClause(that));
     }
 
     @Override
@@ -569,7 +569,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                              Option<Expr> body_result,
                              Option<Id> implementsUnambiguousName_result)
     {
-        return NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(that.getMods()),
+        return NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(NodeUtil.getMods(that)),
                                       name_result, staticParams_result, params_result,
                                       returnType_result, throwsClause_result,
                                       where_result, contract_result, unambiguousName_result,

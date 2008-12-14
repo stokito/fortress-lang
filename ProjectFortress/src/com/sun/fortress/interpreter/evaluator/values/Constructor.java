@@ -42,11 +42,12 @@ import com.sun.fortress.interpreter.glue.NativeApp;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.GHashMap;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.MultiMap;
@@ -103,27 +104,27 @@ public class Constructor extends NonPrimitive {
     Environment methodsEnv;
 
     public Constructor(Environment env,
-            FTypeObject selfType,
-            GenericWithParams def) {
+                       FTypeObject selfType,
+                       ObjectConstructor def) {
         this(env,
                 selfType,
                 (HasAt) def,
                 NodeFactory.makeConstructorFnName(def),
-                def.getDecls(),
-                def.getParams()
+                NodeUtil.getDecls(def),
+                NodeUtil.getParams(def)
                 );
  //       addParamsToCollection(def, parameterNames);
     }
 
     public Constructor(Environment env,
-            FTypeObject selfType,
-            GenericWithParams def,
-            Option<List<Param>> params) {
+                       FTypeObject selfType,
+                       ObjectConstructor def,
+                       Option<List<Param>> params) {
         this(env,
                 selfType,
                 (HasAt) def,
                 NodeFactory.makeConstructorFnName(def),
-                def.getDecls(),
+                NodeUtil.getDecls(def),
                 params
                 );
  //       addParamsToCollection(def, parameterNames);

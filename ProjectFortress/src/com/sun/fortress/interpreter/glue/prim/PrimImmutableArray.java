@@ -31,14 +31,14 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
 import com.sun.fortress.interpreter.glue.NativeMeth2;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 public class PrimImmutableArray extends NativeConstructor {
     int s0;
 
     public PrimImmutableArray(Environment env,
                               FTypeObject selfType,
-                              GenericWithParams def) {
+                              ObjectConstructor def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }

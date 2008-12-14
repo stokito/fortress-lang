@@ -31,7 +31,8 @@ import com.sun.fortress.interpreter.evaluator.InstantiationLock;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
@@ -52,7 +53,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
 
     public Constructor make(List<FType> args, HasAt within) {
         // Use the generic type to make the specific type
-        String name = odefOrDecl.stringName();
+        String name = NodeUtil.stringName(odefOrDecl);
 
         FTypeGeneric.startPendingTraitFMs();
         FTypeGeneric gt = (FTypeGeneric) env.getRootType(name); // toplevel
@@ -70,7 +71,7 @@ private class Factory implements Factory1P<List<FType>,  Constructor, HasAt> {
         //            List<Parameter> fparams =
         //                EvalType.paramsToParameters(clenv, params.unwrap());
 
-        Constructor cl = makeAConstructor(clenv, ft,  odefOrDecl.getParams());
+        Constructor cl = makeAConstructor(clenv, ft,  NodeUtil.getParams(odefOrDecl));
         FTypeGeneric.flushPendingTraitFMs();
         return cl;
     }
@@ -85,7 +86,7 @@ public Constructor make(List<FType> l,  HasAt within) {
     return memo.make(l,  within);
 }
 
-public GenericConstructor(Environment env, GenericWithParams odefOrDecl, IdOrOpOrAnonymousName cfn) {
+public GenericConstructor(Environment env, ObjectConstructor odefOrDecl, IdOrOpOrAnonymousName cfn) {
     super(env);
     this.env = env;
     this.odefOrDecl = odefOrDecl;
@@ -93,10 +94,10 @@ public GenericConstructor(Environment env, GenericWithParams odefOrDecl, IdOrOpO
 }
 
 Environment env;
-GenericWithParams odefOrDecl;
+ObjectConstructor odefOrDecl;
 IdOrOpOrAnonymousName cfn;
 
-public GenericWithParams getDefOrDecl() {
+public ObjectConstructor getDefOrDecl() {
     return odefOrDecl;
 }
 
@@ -127,7 +128,7 @@ public Simple_fcn typeApply(List<FType> argValues) throws ProgramError {
 }
 
 public Simple_fcn typeApply(List<StaticArg> args, Environment e, HasAt x) {
-    List<StaticParam> params = odefOrDecl.getStaticParams();
+    List<StaticParam> params = NodeUtil.getStaticParams(odefOrDecl);
 
     ArrayList<FType> argValues = argsToTypes(args, e, x, params);
     return make(argValues, x);
@@ -193,7 +194,7 @@ protected Simple_fcn  getSymbolic() throws Error {
                     symbolic_static_args =
                         FGenericFunction.FunctionsAndState.symbolicStaticsByPartition.syncPutIfMissing(this,
                                                                                      createSymbolicInstantiation(getWithin(),
-                                                                                                                 odefOrDecl.getStaticParams(),
+                                                                                                                 NodeUtil.getStaticParams(odefOrDecl),
                                                                                                                  Option.<WhereClause>none(),
                                                                                                                  odefOrDecl));
                 }
@@ -211,13 +212,13 @@ public IdOrOpOrAnonymousName getName() {
 
 public List<StaticParam> getStaticParams() {
     // TODO Auto-generated method stub
-    return odefOrDecl.getStaticParams();
+    return NodeUtil.getStaticParams(odefOrDecl);
 }
 
 public List<Param> getParams() {
     // TODO Auto-generated method stub
-    assert(odefOrDecl.getParams().isSome());
-    return odefOrDecl.getParams().unwrap();
+    assert(NodeUtil.getParams(odefOrDecl).isSome());
+    return NodeUtil.getParams(odefOrDecl).unwrap();
 }
 
 public Option<Type> getReturnType() {

@@ -33,7 +33,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 
 /**
@@ -41,7 +41,7 @@ import com.sun.fortress.nodes.GenericWithParams;
  */
 public class UnsignedLong extends NativeConstructor {
 
-public UnsignedLong(Environment env, FTypeObject selfType, GenericWithParams def) {
+public UnsignedLong(Environment env, FTypeObject selfType, ObjectConstructor def) {
     super(env, selfType, def);
 }
 

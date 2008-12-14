@@ -22,7 +22,7 @@ import java.util.List;
 import com.sun.fortress.interpreter.evaluator.BuildNativeEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes_util.NodeFactory;
 
@@ -33,7 +33,7 @@ public class GenericNativeConstructor extends GenericConstructor {
     private String name;
 
     public GenericNativeConstructor(Environment env,
-            GenericWithParams odefOrDecl, String name) {
+            ObjectConstructor odefOrDecl, String name) {
         super(env, odefOrDecl, NodeFactory.makeId(name));
         this.name = name;
     }

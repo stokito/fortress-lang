@@ -35,14 +35,14 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
 import com.sun.fortress.interpreter.glue.NativeMeth1;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 /**
  * Functions from NN32.
  */
 public class NN32 extends NativeConstructor {
 
-public NN32(Environment env, FTypeObject selfType, GenericWithParams def) {
+public NN32(Environment env, FTypeObject selfType, ObjectConstructor def) {
     super(env,selfType,def);
 }
 

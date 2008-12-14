@@ -620,12 +620,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forTraitDecl(final TraitDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
-        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that)));
+        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
         Triple<Set<Id>, Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames =
-            extractDeclNames(that.getDecls());
+            extractDeclNames(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
@@ -637,7 +637,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // Do not extend the environment with "fields", getters, or setters in a trait.
         // References to all three must have an explicit receiver.
         v = this.
-            extendWithVars(extractStaticExprVars(that.getStaticParams())).
+            extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that))).
             extendWithFns(inheritedGettersAndSetters).
             extendWithFns(inheritedMethods).
             extendWithSelf(that.getSpan()).
@@ -653,13 +653,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             v.checkForShadowingVars(vars);
 
         return forTraitDeclOnly(that,
-				(Id) that.getName().accept(v),
-				v.recurOnListOfStaticParam(that.getStaticParams()),
+				(Id) NodeUtil.getName(that).accept(v),
+				v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
 				extendsClause,
-                                v.recurOnOptionOfWhereClause(that.getWhereClause()),
-				v.recurOnListOfDecl(that.getDecls()),
-				v.recurOnListOfBaseType(that.getExcludesClause()),
-				v.recurOnOptionOfListOfBaseType(that.getComprisesClause()));
+                                v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+				v.recurOnListOfDecl(NodeUtil.getDecls(that)),
+				v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
+				v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
 
     /**
@@ -670,17 +670,17 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Insert inherited method names into the environment.
      */
     @Override public Node forObjectDecl(final ObjectDecl that) {
-        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(that.getStaticParams()));
-        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        ExprDisambiguator v = this.extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that)));
+        List<TraitTypeWhere> extendsClause = v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(that.getDecls());
+        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         // fns does not contain getters and setters
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
-        Set<Id> params = extractParamNames(that.getParams());
+        Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         Set<Id> fields = CollectUtil.union(params, vars);
 
         Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
@@ -688,9 +688,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
 
         v = this.extendWithVars(extractStaticExprVars
-				(that.getStaticParams())).
+				(NodeUtil.getStaticParams(that))).
             extendWithSelf(that.getSpan()).
-            extendWithVars(extractParamNames(that.getParams())).
+            extendWithVars(extractParamNames(NodeUtil.getParams(that))).
             extendWithVars(vars).extendWithFns(fns).
             extendWithFns(inheritedMethods).
             // TODO The following two extensions are problematic; getters and setters should
@@ -700,14 +700,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(gettersAndSetters, fields);
 
         return forObjectDeclOnly(that,
-                                 (Id) that.getName().accept(v),
-                                 v.recurOnListOfStaticParam(that.getStaticParams()),
+                                 (Id) NodeUtil.getName(that).accept(v),
+                                 v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
                                  extendsClause,
-                                 v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                                 v.recurOnListOfDecl(that.getDecls()),
-                                 v.recurOnOptionOfListOfParam(that.getParams()),
-                                 v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                                 v.recurOnOptionOfContract(that.getContract()));
+                                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                                 v.recurOnListOfDecl(NodeUtil.getDecls(that)),
+                                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
+                                 v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                                 v.recurOnOptionOfContract(NodeUtil.getContract(that)));
     }
 
     /**
@@ -718,8 +718,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * TODO: Handle variables bound in where clauses.
      */
     @Override public Node forFnDecl(FnDecl that) {
-        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<Id> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(NodeUtil.getStaticParams(that));
+        Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         checkForValidParams(params);
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
@@ -728,15 +728,15 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
         return forFnDeclOnly(that,
-                            (IdOrOpOrAnonymousName) that.getName(),
-                            v.recurOnListOfStaticParam(that.getStaticParams()),
-                            v.recurOnListOfParam(that.getParams()),
-                            v.recurOnOptionOfType(that.getReturnType()),
-                            v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
-                            v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                            v.recurOnOptionOfContract(that.getContract()),
+                            (IdOrOpOrAnonymousName) NodeUtil.getName(that),
+                            v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                            v.recurOnListOfParam(NodeUtil.getParams(that)),
+                            v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
+                            v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                            v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                            v.recurOnOptionOfContract(NodeUtil.getContract(that)),
                             that.getUnambiguousName(),
-                            v.recurOnOptionOfExpr(that.getBody()),
+                            v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
                             that.getImplementsUnambiguousName());
     }
 
@@ -777,18 +777,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * parameters and 'self'.
      */
     @Override public Node forFnExpr(FnExpr that) {
-        Set<Id> staticExprVars = extractStaticExprVars(that.getStaticParams());
-        Set<Id> params = extractParamNames(that.getParams());
+        Set<Id> staticExprVars = extractStaticExprVars(NodeUtil.getStaticParams(that));
+        Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
         return forFnExprOnly(that, type_result,
-                             (IdOrOpOrAnonymousName) that.getName().accept(v),
-                             v.recurOnListOfStaticParam(that.getStaticParams()),
-                             v.recurOnListOfParam(that.getParams()),
-                             v.recurOnOptionOfType(that.getReturnType()),
-                             v.recurOnOptionOfWhereClause(that.getWhereClause()),
-                             v.recurOnOptionOfListOfBaseType(that.getThrowsClause()),
+                             (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
+                             v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                             v.recurOnListOfParam(NodeUtil.getParams(that)),
+                             v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
+                             v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                             v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                              (Expr) that.getBody().accept(v));
     }
 

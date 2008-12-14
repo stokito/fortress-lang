@@ -415,13 +415,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( inComponent )
             return super.forTraitDecl( that );
         else {
-            String name_result = recur(that.getName());
-            List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
-            List<String> excludes_result = recurOnListOfBaseType(that.getExcludesClause());
-            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(that.getComprisesClause());
-            List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
+            String name_result = recur(NodeUtil.getName(that));
+            List<String> staticParams_result = recurOnListOfStaticParam(NodeUtil.getStaticParams(that));
+            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+            Option<String> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
+            List<String> excludes_result = recurOnListOfBaseType(NodeUtil.getExcludesClause(that));
+            Option<List<String>> comprises_result = recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that));
+            List<String> decls_result = myRecurOnListOfDecl(NodeUtil.getDecls(that));
             return forTraitDeclOnly(that, name_result,
                                     staticParams_result, extendsClause_result,
                                     where_result, decls_result,
@@ -440,7 +440,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         increaseIndent();
-        showMods(s,that.getMods());
+        showMods(s,NodeUtil.getMods(that));
         s.append( "trait " ).append( name_result );
         inOxfordBrackets(s, staticParams_result);
         s = optCurlyBraces(s, " extends ", extendsClause_result, "");
@@ -474,14 +474,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if ( inComponent )
             return super.forObjectDecl( that );
         else {
-            String name_result = recur(that.getName());
-            List<String> staticParams_result = recurOnListOfStaticParam(that.getStaticParams());
-            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            Option<String> where_result = recurOnOptionOfWhereClause(that.getWhereClause());
-            Option<List<String>> params_result = recurOnOptionOfListOfParam(that.getParams());
-            Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(that.getThrowsClause());
-            Option<String> contract_result = recurOnOptionOfContract(that.getContract());
-            List<String> decls_result = myRecurOnListOfDecl(that.getDecls());
+            String name_result = recur(NodeUtil.getName(that));
+            List<String> staticParams_result = recurOnListOfStaticParam(NodeUtil.getStaticParams(that));
+            List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+            Option<String> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
+            Option<List<String>> params_result = recurOnOptionOfListOfParam(NodeUtil.getParams(that));
+            Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
+            Option<String> contract_result = recurOnOptionOfContract(NodeUtil.getContract(that));
+            List<String> decls_result = myRecurOnListOfDecl(NodeUtil.getDecls(that));
             return forObjectDeclOnly(that, name_result,
                                      staticParams_result, extendsClause_result,
                                      where_result, decls_result, params_result,
@@ -502,7 +502,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         increaseIndent();
 
-        showMods(s,that.getMods());
+        showMods(s,NodeUtil.getMods(that));
         s.append( "object " ).append( name_result );
         inOxfordBrackets(s, staticParams_result);
         if ( params_result.isSome() ){
@@ -606,10 +606,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                           Option<String> body_result,
                                           Option<String> implementsUnambiguousName_result) {
         StringBuilder s = new StringBuilder();
-        showMods(s,that.getMods());
+        showMods(s,NodeUtil.getMods(that));
         final String sparams = inOxfordBrackets(staticParams_result);
         final String vparams = inParentheses(params_result);
-        s.append( that.getName().accept( new NodeDepthFirstVisitor<String>(){
+        s.append( NodeUtil.getName(that).accept( new NodeDepthFirstVisitor<String>(){
 
             @Override public String forId(final Id idThat) {
                 return name_result + sparams + inParentheses(inParentheses(vparams));

@@ -26,10 +26,10 @@ import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.interpreter.glue.NativeMeth0;
-import com.sun.fortress.nodes.GenericWithParams;
+import com.sun.fortress.nodes.ObjectConstructor;
 
 public class TNFoo extends NativeConstructor {
-    public TNFoo(Environment env, FTypeObject selfType, GenericWithParams def) {
+    public TNFoo(Environment env, FTypeObject selfType, ObjectConstructor def) {
         super(env, selfType, def);
         // TODO Auto-generated constructor stub
     }

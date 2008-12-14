@@ -269,7 +269,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
 
     private void forFnDecl1(FnDecl x) {
-        List<StaticParam> optStaticParams = x.getStaticParams();
+        List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
         FValue cl;
 
@@ -290,7 +290,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
    // Overridden in BuildTraitEnvironment
    protected void forFnDecl3(FnDecl x) {
-       List<StaticParam> optStaticParams = x.getStaticParams();
+       List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
        String fname = NodeUtil.nameAsMethod(x);
        Fcn fcn = (Fcn)containing.getLeafValue(fname);
        fcn.finishInitializing();
@@ -306,7 +306,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      */
     @Override
     public Boolean forFnDecl(FnDecl x) {
-        if (x.getBody().isNone())
+        if (NodeUtil.getBody(x).isNone())
             bug("Function definition should have a body expression.");
 
         switch (getPass()) {
@@ -451,19 +451,19 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         // List<Modifier> mods;
 
         Environment e = containing;
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
 
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
+        Option<List<Param>> params = NodeUtil.getParams(x);
 
         // List<Type> throws_;
         // Contract contract;
-        // List<Decl> defs = x.getDecls();
+        // List<Decl> defs = NodeUtil.getDecls(x);
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft;
         ft = staticParams.isEmpty() ?
-                  new FTypeObject(fname, e, x, params, x.getDecls(), x)
-                : new FTypeGeneric(e, x, x.getDecls(), x);
+                  new FTypeObject(fname, e, x, params, NodeUtil.getDecls(x), x)
+                : new FTypeGeneric(e, x, NodeUtil.getDecls(x), x);
 
         // Need to check for overloaded constructor.
 
@@ -513,7 +513,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             }
         }
 
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        scanForFunctionalMethodNames(ft, NodeUtil.getDecls(x));
 
     }
 
@@ -546,10 +546,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      private void forObjectDecl2(ObjectDecl x) {
 
         Environment e = containing;
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
 
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
+        Option<List<Param>> params = NodeUtil.getParams(x);
 
         String fname = NodeUtil.nameString(name);
         FType ft;
@@ -579,10 +579,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
     private void forObjectDecl3(ObjectDecl x) {
         Environment e = containing;
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
 
-        List<StaticParam> staticParams = x.getStaticParams();
-        Option<List<Param>> params = x.getParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
+        Option<List<Param>> params = NodeUtil.getParams(x);
 
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft = (FTraitOrObjectOrGeneric) containing.getRootType(fname); // toplevel
@@ -601,14 +601,14 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
             //  cl.setParams(Collections.<Parameter> emptyList());
             cl.finishInitializing();
         }
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        scanForFunctionalMethodNames(ft, NodeUtil.getDecls(x));
     }
     private void forObjectDecl4(ObjectDecl x) {
 
         Environment e = containing;
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
 
-        Option<List<Param>> params = x.getParams();
+        Option<List<Param>> params = NodeUtil.getParams(x);
 
         String fname = NodeUtil.nameString(name);
 
@@ -801,9 +801,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
     private void forTraitDecl1(TraitDecl x) {
         // TODO Auto-generated method stub
-        List<StaticParam> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
         // List<Modifier> mods;
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
         // List<Type> excludes;
         // Option<List<Type>> bounds;
         FTraitOrObjectOrGeneric ft;
@@ -812,30 +812,30 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
         if (!staticParams.isEmpty()) {
 
-            FTypeGeneric ftg = new FTypeGeneric(containing, x, x.getDecls(), x);
+            FTypeGeneric ftg = new FTypeGeneric(containing, x, NodeUtil.getDecls(x), x);
             guardedPutType(fname, ftg, x);
-            //scanForFunctionalMethodNames(ftg, x.getDecls(), ftg);
+            //scanForFunctionalMethodNames(ftg, NodeUtil.getDecls(x), ftg);
            ft = ftg;
         } else {
 
             Environment interior = containing; // new BetterEnv(containing, x);
-            FTypeTrait ftt = new FTypeTrait(fname, interior, x, x.getDecls(), x);
+            FTypeTrait ftt = new FTypeTrait(fname, interior, x, NodeUtil.getDecls(x), x);
             guardedPutType(fname, ftt, x);
-            //scanForFunctionalMethodNames(ftt, x.getDecls(), ftt);
+            //scanForFunctionalMethodNames(ftt, NodeUtil.getDecls(x), ftt);
             ft = ftt;
         }
 
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        scanForFunctionalMethodNames(ft, NodeUtil.getDecls(x));
     }
     private void forTraitDecl2(TraitDecl x) {
         // TODO Auto-generated method stub
-        List<StaticParam> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
         // List<Modifier> mods;
         // List<Type> excludes;
         // Option<List<Type>> bounds;
 
         if (staticParams.isEmpty()) {
-            Id name = x.getName();
+            Id name = NodeUtil.getName(x);
             FTypeTrait ftt =
                 (FTypeTrait) containing.getRootType(NodeUtil.nameString(name)); // toplevel
             Environment interior = ftt.getWithin();
@@ -843,10 +843,10 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
         }
     }
     private void forTraitDecl3(TraitDecl x) {
-        Id name = x.getName();
+        Id name = NodeUtil.getName(x);
         String fname = NodeUtil.nameString(name);
         FTraitOrObjectOrGeneric ft =  (FTraitOrObjectOrGeneric) containing.getRootType(fname); // toplevel
-        scanForFunctionalMethodNames(ft, x.getDecls());
+        scanForFunctionalMethodNames(ft, NodeUtil.getDecls(x));
     }
 
     private void forTraitDecl4(TraitDecl x) {
@@ -858,25 +858,25 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
      * @param interior
      */
     public void finishTrait(TraitDecl x, FTypeTrait ftt, Environment interior) {
-        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
+        List<BaseType> extends_ = NodeUtil.getTypes(NodeUtil.getExtendsClause(x));
         // TODO What if I don't
         // interior = interior.extendAt(x);
 
         EvalType et;
-        if ( x.getWhereClause().isSome() )
-            et = processWhereClauses(x.getWhereClause().unwrap(), interior);
+        if ( NodeUtil.getWhereClause(x).isSome() )
+            et = processWhereClauses(NodeUtil.getWhereClause(x).unwrap(), interior);
         else
             et = new EvalType(interior);
 
         List<FType> extl = et.getFTypeListFromList(extends_);
-        List<FType> excl = et.getFTypeListFromList(x.getExcludesClause());
+        List<FType> excl = et.getFTypeListFromList(NodeUtil.getExcludesClause(x));
         ftt.setExtendsAndExcludes(extl, excl, interior);
-        Option<List<BaseType>> comprs = x.getComprisesClause();
+        Option<List<BaseType>> comprs = NodeUtil.getComprisesClause(x);
         if (!comprs.isNone()) {
             List<FType> c = et.getFTypeListFromList(comprs.unwrap());
             ftt.setComprises(Useful.<FType>set(c));
         }
-        List<Decl> fns = x.getDecls();
+        List<Decl> fns = NodeUtil.getDecls(x);
 
         // doTraitMethodDefs(ftt, null); /* NOTICE THE DIFFERENT ENVIRONMENT! */
 

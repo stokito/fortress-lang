@@ -849,7 +849,7 @@ public class NodeFactory {
         return new TraitTypeWhere(span, type, where);
     }
 
-    public static ConstructorFnName makeConstructorFnName(GenericWithParams def) {
+    public static ConstructorFnName makeConstructorFnName(ObjectConstructor def) {
         return new ConstructorFnName(def.getSpan(), Option.<APIName>none(), def);
     }
 
