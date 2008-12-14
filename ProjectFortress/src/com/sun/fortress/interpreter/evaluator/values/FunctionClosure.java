@@ -96,7 +96,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     @Override
     public boolean isOverride() {
         if (def instanceof FnDecl) {
-            return ((FnDecl) def).getMods().isOverride();
+            return NodeUtil.getMods((FnDecl) def).isOverride();
         }
         return false;
     }
@@ -106,7 +106,7 @@ public class FunctionClosure extends NonPrimitive implements Scope {
      */
     @Override
     public IdOrOpOrAnonymousName getFnName() {
-        return def.getName();
+        return NodeUtil.getName(def);
     }
 
     protected HasAt getAt() {
@@ -242,8 +242,8 @@ public class FunctionClosure extends NonPrimitive implements Scope {
     public void finishInitializing() {
         // This needs to be done right with a generic.
         Applicable x = getDef();
-        List<Param> params = x.getParams();
-        Option<Type> rt = x.getReturnType();
+        List<Param> params = NodeUtil.getParams(x);
+        Option<Type> rt = NodeUtil.getReturnType(x);
         Environment env = getEvalEnv(); // should need this for types,
                                     // below.
         FType ft = EvalType.getFTypeFromOption(rt, env, BottomType.ONLY);

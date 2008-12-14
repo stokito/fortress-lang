@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.NodeVisitor_void;
 import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Juxt;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.Applicable;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Pair;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -82,7 +84,7 @@ public abstract class NativeApp implements Applicable {
             bug("Duplicate NativeApp.init call.");
         }
         this.a = app;
-        int aty = app.getParams().size();
+        int aty = NodeUtil.getParams(app).size();
         // Dock functional methods by 1 for the self parameter.
         // This lets us treat methods and functional methods identically
         // on the native Java side, which simplifies life immensely.
@@ -91,20 +93,21 @@ public abstract class NativeApp implements Applicable {
             error(app, "Arity of type "+aty
                        +" does not match native arity "+getArity());
         }
-        if (app.getReturnType()==null || app.getReturnType().isNone()) {
+        if (NodeUtil.getReturnType(app)==null || NodeUtil.getReturnType(app).isNone()) {
             error(app,"Please specify a Fortress return type.");
         }
     }
 
     /* Except for getBody() these just delegate to a. */
     public Expr getBody() { return null; }
-    public List<Param> getParams() { return a.getParams(); }
-    public Option<Type> getReturnType() { return a.getReturnType(); }
+    public FnHeader getHeader() { return a.getHeader(); }
+    public List<Param> getParams() { return a.getHeader().getParams(); }
+    public Option<Type> getReturnType() { return a.getHeader().getReturnType(); }
     public List<StaticParam> getStaticParams() {
-        return a.getStaticParams();
+        return a.getHeader().getStaticParams();
     }
-    public IdOrOpOrAnonymousName getName() { return a.getName(); }
-    public Option<WhereClause> getWhereClause() { return a.getWhereClause(); }
+    public IdOrOpOrAnonymousName getName() { return a.getHeader().getName(); }
+    public Option<WhereClause> getWhereClause() { return a.getHeader().getWhereClause(); }
     public String at() { return a.at(); }
     public String stringName() { return a.stringName(); }
 

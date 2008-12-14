@@ -998,12 +998,12 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         @Override
         public void forFnDecl(FnDecl that) {
-            IdOrOpOrAnonymousName name = that.getName();
+            IdOrOpOrAnonymousName name = NodeUtil.getName(that);
             if(name instanceof Id) {
                 decledNames.add((Id) name);
             } else {
                 throw new DesugarerError(that.getSpan(), "Unexpected type " +
-                        "for FnDecl name " + that.getName() + " when " +
+                        "for FnDecl name " + NodeUtil.getName(that) + " when " +
                         "when parsing decls for object expr at " +
                         root.getSpan() );
             }

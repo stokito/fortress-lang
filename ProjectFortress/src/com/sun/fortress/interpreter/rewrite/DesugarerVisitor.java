@@ -842,14 +842,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
 
-        List<Param> params = fndef.getParams();
-        // fndef.getFnName(); handled at top level.
-        List<StaticParam> tparams = fndef.getStaticParams();
+        List<Param> params = NodeUtil.getParams(fndef);
+        // NodeUtil.getFnName(fndef); handled at top level.
+        List<StaticParam> tparams = NodeUtil.getStaticParams(fndef);
 
         paramsToLocals(params);
         immediateDef = tparamsToLocals(tparams, immediateDef);
 
-        Option<Contract> _contract = fndef.getContract();
+        Option<Contract> _contract = NodeUtil.getContract(fndef);
         Option<List<Expr>> _requires;
         Option<List<EnsuresClause>> _ensures;
         Option<List<Expr>> _invariants;
@@ -876,13 +876,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             if (_requires.isSome())   b = translateRequires(_requires, b);
 
             // Remove the original contract, add the translation
-            FnDecl f = NodeFactory.makeFnDecl(fndef.getSpan(), fndef.getMods(),
-                                              fndef.getName(),
-                                              fndef.getStaticParams(),
-                                              fndef.getParams(),
-                                              fndef.getReturnType(),
-                                              fndef.getThrowsClause(),
-                                              fndef.getWhereClause(),
+            FnDecl f = NodeFactory.makeFnDecl(fndef.getSpan(), NodeUtil.getMods(fndef),
+                                              NodeUtil.getName(fndef),
+                                              NodeUtil.getStaticParams(fndef),
+                                              NodeUtil.getParams(fndef),
+                                              NodeUtil.getReturnType(fndef),
+                                              NodeUtil.getThrowsClause(fndef),
+                                              NodeUtil.getWhereClause(fndef),
                                               Option.<Contract>none(),
                                               Option.<Expr>some(b));
 
@@ -977,7 +977,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forFnExpr(FnExpr fndef) {
         atTopLevelInsideTraitOrObject = false;
         lexicalNestingDepth++;
-        List<Param> params = fndef.getParams();
+        List<Param> params = NodeUtil.getParams(fndef);
         paramsToLocals(params);
         return visitNode(fndef);
     }
@@ -1330,7 +1330,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 if (aof == ArrowOrFunctional.FUNCTIONAL) {
                     // Only certain things can be a functional method.
                     FnDecl fadod = (FnDecl) adod;
-                    String s = fadod.getName().stringName();
+                    String s = NodeUtil.getName(fadod).stringName();
                     arrows.add(s);
                     functionals.add(s);
                     var_rewrites_put(s, new FunctionalMethod());

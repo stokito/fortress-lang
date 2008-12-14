@@ -92,60 +92,60 @@ public class NodeUtil {
 
     /* Getters for FnDecl */
     public static Modifiers getMods(FnDecl f) {
-        return f.getMods();
+        return f.getHeader().getMods();
     }
 
     public static IdOrOpOrAnonymousName getName(FnDecl f) {
-        return f.getName();
+        return f.getHeader().getName();
     }
 
     public static List<StaticParam> getStaticParams(FnDecl f) {
-        return f.getStaticParams();
+        return f.getHeader().getStaticParams();
     }
 
     public static Option<WhereClause> getWhereClause(FnDecl f) {
-        return f.getWhereClause();
+        return f.getHeader().getWhereClause();
     }
 
     public static List<Param> getParams(FnDecl f) {
-        return f.getParams();
+        return f.getHeader().getParams();
     }
 
     public static Option<Type> getReturnType(FnDecl f) {
-        return f.getReturnType();
+        return f.getHeader().getReturnType();
     }
 
     public static Option<List<BaseType>> getThrowsClause(FnDecl f) {
-        return f.getThrowsClause();
+        return f.getHeader().getThrowsClause();
     }
 
     public static Option<Contract> getContract(FnDecl f) {
-        return f.getContract();
+        return f.getHeader().getContract();
     }
 
     /* Getters for FnExpr */
     public static IdOrOpOrAnonymousName getName(FnExpr f) {
-        return f.getName();
+        return f.getHeader().getName();
     }
 
     public static List<StaticParam> getStaticParams(FnExpr f) {
-        return f.getStaticParams();
+        return f.getHeader().getStaticParams();
     }
 
     public static Option<WhereClause> getWhereClause(FnExpr f) {
-        return f.getWhereClause();
+        return f.getHeader().getWhereClause();
     }
 
     public static List<Param> getParams(FnExpr f) {
-        return f.getParams();
+        return f.getHeader().getParams();
     }
 
     public static Option<Type> getReturnType(FnExpr f) {
-        return f.getReturnType();
+        return f.getHeader().getReturnType();
     }
 
     public static Option<List<BaseType>> getThrowsClause(FnExpr f) {
-        return f.getThrowsClause();
+        return f.getHeader().getThrowsClause();
     }
 
     /* Getter for Generic */
@@ -153,7 +153,7 @@ public class NodeUtil {
         if ( g instanceof TraitObjectDecl )
             return ((TraitObjectDecl)g).getHeader().getStaticParams();
         else if ( g instanceof FnDecl )
-            return ((FnDecl)g).getStaticParams();
+            return ((FnDecl)g).getHeader().getStaticParams();
         else if ( g instanceof _RewriteObjectExpr )
             return ((_RewriteObjectExpr)g).getStaticParams();
         else {
@@ -162,6 +162,7 @@ public class NodeUtil {
         }
     }
 
+    /* Getters for ObjectConstructor */
     public static Option<List<Param>> getParams(ObjectConstructor g) {
         return g.getParams();
     }
@@ -173,24 +174,25 @@ public class NodeUtil {
             return ((_RewriteObjectExpr)g).getDecls();
     }
 
+    /* Getters for Applicable */
     public static IdOrOpOrAnonymousName getName(Applicable a) {
-        return a.getName();
+        return a.getHeader().getName();
     }
 
     public static List<StaticParam> getStaticParams(Applicable a) {
-        return a.getStaticParams();
+        return a.getHeader().getStaticParams();
     }
 
     public static List<Param> getParams(Applicable a) {
-        return a.getParams();
+        return a.getHeader().getParams();
     }
 
     public static Option<Type> getReturnType(Applicable a) {
-        return a.getReturnType();
+        return a.getHeader().getReturnType();
     }
 
     public static Option<WhereClause> getWhereClause(Applicable a) {
-        return a.getWhereClause();
+        return a.getHeader().getWhereClause();
     }
 
     public static boolean isOpParam(StaticParam p) {
@@ -330,7 +332,7 @@ public class NodeUtil {
      */
     public static int selfParameterIndex(Applicable d) {
         int i = 0;
-        for (Param p : d.getParams()) {
+        for (Param p : NodeUtil.getParams(d)) {
             Id name = p.getName();
                 if (WellKnownNames.defaultSelfName.equals(nameString(name))) {
                 return i;
@@ -342,7 +344,7 @@ public class NodeUtil {
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
-        String name = nameString(app.getName());
+        String name = nameString(NodeUtil.getName(app));
             int spi = selfParameterIndex(app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + name;
@@ -614,7 +616,7 @@ public class NodeUtil {
             else return new UnitIterable<String>(nameString(ids.get(0)));
             }
             public IterableOnce<String> forFnExpr(FnExpr d) {
-                return new UnitIterable<String>(nameString(d.getName()));
+                return new UnitIterable<String>(nameString(d.getHeader().getName()));
             }
             public IterableOnce<String> forFnDecl(FnDecl d) {
                 return new UnitIterable<String>(nameString(getName(d)));
@@ -704,11 +706,11 @@ public class NodeUtil {
 
 
     public static boolean isGetter(FnDecl decl) {
-        return decl.getMods().isGetter();
+        return getMods(decl).isGetter();
     }
 
     public static boolean isSetter(FnDecl decl) {
-        return decl.getMods().isSetter();
+        return getMods(decl).isSetter();
     }
 
     /* for APIName ******************************************************/

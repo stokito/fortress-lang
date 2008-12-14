@@ -108,7 +108,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
        return null;
     }
     private void forFnDecl1(FnDecl x) {
-        List<StaticParam> optStaticParams = x.getStaticParams();
+        List<StaticParam> optStaticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
 
         if (!optStaticParams.isEmpty()) {
@@ -130,7 +130,7 @@ public class BuildTraitEnvironment extends BuildEnvironments {
     private void forFnDecl2(FnDecl x) {
     }
     protected void forFnDecl3(FnDecl x) {
-        List<StaticParam> staticParams = x.getStaticParams();
+        List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
         String fname = NodeUtil.nameAsMethod(x);
         if (!staticParams.isEmpty()) {
             // GENERIC

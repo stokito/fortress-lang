@@ -496,7 +496,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // Handle static params from the enclosing nested FnDecl
         for(Node n : scopeStack) {
             if(n instanceof FnDecl) {
-                sParams = ((FnDecl) n).getStaticParams();
+                sParams = NodeUtil.getStaticParams((FnDecl) n);
                 for(StaticParam sp : sParams) {
                     args.add( makeStaticArgFromStaticParam(sp) );
                 }
@@ -687,7 +687,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // Handle static params from the enclosing nested FnDecl
         for(Node n : scopeStack) {
             if(n instanceof FnDecl) {
-                sParams = ((FnDecl) n).getStaticParams();
+                sParams = NodeUtil.getStaticParams((FnDecl) n);
                 sParamsCopy.addAll(sParams);
             }
         }

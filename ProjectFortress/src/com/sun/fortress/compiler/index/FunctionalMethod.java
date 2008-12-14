@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -69,20 +70,20 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public List<Param> parameters() {
-		return _ast.getParams();
+		return NodeUtil.getParams(_ast);
 	}
 
 	@Override
 	public List<StaticParam> staticParameters() {
-		return _ast.getStaticParams();
+		return NodeUtil.getStaticParams(_ast);
 	}
 
 	@Override
 	public Iterable<BaseType> thrownTypes() {
-		if(  _ast.getThrowsClause().isSome() )
+		if(  NodeUtil.getThrowsClause(_ast).isSome() )
 			return Collections.emptyList();
 		else
-			return Collections.unmodifiableList(_ast.getThrowsClause().unwrap());
+			return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class FunctionalMethod extends Function {
 
 	@Override
 	public Type getReturnType() {
-		return _ast.getReturnType().unwrap();
+		return NodeUtil.getReturnType(_ast).unwrap();
 	}
 
 	@Override

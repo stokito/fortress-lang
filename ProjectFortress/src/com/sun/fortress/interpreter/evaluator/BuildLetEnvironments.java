@@ -65,11 +65,10 @@ public class BuildLetEnvironments extends NodeAbstractVisitor<FValue> {
         for (int i = 0; i < fns.size(); i++) {
             FnDecl fn = fns.get(i);
 
-            IdOrOpOrAnonymousName name = fn.getName();
-            //Expr expr = fn.getBody();
+            IdOrOpOrAnonymousName name = NodeUtil.getName(fn);
             String fname = NodeUtil.nameString(name);
-            List<Param> params = fn.getParams();
-            Option<Type> retType = fn.getReturnType();
+            List<Param> params = NodeUtil.getParams(fn);
+            Option<Type> retType = NodeUtil.getReturnType(fn);
 
             FunctionClosure cl = new FunctionClosure(containing, fn);
             try {

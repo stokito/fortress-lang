@@ -164,13 +164,13 @@ public class NodeComparator {
     }
 
     public static int compare(FnDecl left, FnDecl right) {
-        IdOrOpOrAnonymousName fn0 = left.getName();
-        IdOrOpOrAnonymousName fn1 = right.getName();
+        IdOrOpOrAnonymousName fn0 = NodeUtil.getName(left);
+        IdOrOpOrAnonymousName fn1 = NodeUtil.getName(right);
         int x = NodeComparator.compare(fn0, fn1);
         if (x != 0)  return x;
-        x = compare(left.getStaticParams(), right.getStaticParams());
+        x = compare(NodeUtil.getStaticParams(left), NodeUtil.getStaticParams(right));
         if (x != 0)  return x;
-        x = paramListComparer.compare(left.getParams(), right.getParams());
+        x = paramListComparer.compare(NodeUtil.getParams(left), NodeUtil.getParams(right));
         return x;
     }
 

@@ -141,13 +141,13 @@ public abstract class TypeEnv {
 
     protected static ArrowType genericArrowFromDecl(FnDecl decl) {
         return NodeFactory.makeArrowType(decl.getSpan(), false,
-                             domainFromParams(decl.getParams()),
+                             domainFromParams(NodeUtil.getParams(decl)),
                              // all types have been filled in at this point
-                             decl.getReturnType().unwrap(),
+                             NodeUtil.getReturnType(decl).unwrap(),
                              makeEffect(decl.getSpan().getEnd(),
-                                        decl.getThrowsClause()),
-                             decl.getStaticParams(),
-                             decl.getWhereClause());
+                                        NodeUtil.getThrowsClause(decl)),
+                             NodeUtil.getStaticParams(decl),
+                             NodeUtil.getWhereClause(decl));
     }
 
     /**
@@ -446,7 +446,7 @@ public abstract class TypeEnv {
         public BindingLookup(IdOrOpOrAnonymousName _var, FnDecl decl) {
             var = _var;
             type = Option.<Type>wrap(genericArrowFromDecl(decl));
-            mods = decl.getMods();
+            mods = NodeUtil.getMods(decl);
             mutable = false;
         }
 

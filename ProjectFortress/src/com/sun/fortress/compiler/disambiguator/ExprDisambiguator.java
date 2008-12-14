@@ -48,6 +48,7 @@ import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
 import com.sun.fortress.nodes.FnRef;
@@ -417,14 +418,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
             @Override
             public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
-                if (that.getMods().isGetterSetter()) {
-                    accessors.add(that.getName());
+                if (NodeUtil.getMods(that).isGetterSetter()) {
+                    accessors.add(NodeUtil.getName(that));
                     return Collections.emptySet();
-                } else if (FortressUtil.isFunctionalMethod(that.getParams())) {
+                } else if (FortressUtil.isFunctionalMethod(NodeUtil.getParams(that))) {
                     // don't add functional methods! they go at the top level...
                     return Collections.emptySet();
                 } else {
-                    return Collections.singleton(that.getName());
+                    return Collections.singleton(NodeUtil.getName(that));
                 }
             }
         };
@@ -735,24 +736,24 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         checkForValidParams(params);
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
+        FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
+                            (IdOrOpOrAnonymousName) NodeUtil.getName(that),
+                            v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                            v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
+                            v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                            v.recurOnOptionOfContract(NodeUtil.getContract(that)),
+                            v.recurOnListOfParam(NodeUtil.getParams(that)),
+                            v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
+
         // No need to recur on the name, as we will not modify it and we have already checked
         // for shadowing in forObjectDecl. Also, if this FnDecl is a getter, we allow it
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
-        return forFnDeclOnly(that,
-                            (IdOrOpOrAnonymousName) NodeUtil.getName(that),
-                            v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
-                            v.recurOnListOfParam(NodeUtil.getParams(that)),
-                            v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
-                            v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
-                            v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
-                            v.recurOnOptionOfContract(NodeUtil.getContract(that)),
-                            that.getUnambiguousName(),
-                            v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
-                            that.getImplementsUnambiguousName());
+        return forFnDeclOnly(that, header,
+                             that.getUnambiguousName(),
+                             v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
+                             that.getImplementsUnambiguousName());
     }
-
-
 
     /**
      * Currently we don't descend into dimensions or units.
@@ -794,18 +795,19 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forFnExprOnly(that, type_result,
+
+        FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
                              (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                              v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
-                             v.recurOnListOfParam(NodeUtil.getParams(that)),
-                             v.recurOnOptionOfType(NodeUtil.getReturnType(that)),
                              v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                              v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
+                             Option.<Contract>none(),
+                             v.recurOnListOfParam(NodeUtil.getParams(that)),
+                             v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
+
+        return forFnExprOnly(that, type_result, header,
                              (Expr) that.getBody().accept(v));
     }
-
-
-
 
     @Override
 	public Node forCatch(Catch that) {
@@ -939,7 +941,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     private Set<IdOrOpOrAnonymousName> extractDefinedFnNames(Iterable<FnDecl> fnDefs) {
         Set<IdOrOpOrAnonymousName> result = new HashSet<IdOrOpOrAnonymousName>();
-        for (FnDecl fd : fnDefs) { result.add(fd.getName()); }
+        for (FnDecl fd : fnDefs) { result.add(NodeUtil.getName(fd)); }
         // multiple instances of the same name are allowed
         return result;
     }

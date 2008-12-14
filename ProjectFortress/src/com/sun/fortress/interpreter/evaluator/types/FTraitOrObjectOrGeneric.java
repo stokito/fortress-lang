@@ -105,7 +105,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // If it is a functional method, it is definitely a
                     // FnDecl
                     FnDecl fndod = (FnDecl) dod;
-                    String fndodname = NodeUtil.nameString(fndod.getName());
+                    String fndodname = NodeUtil.nameString(NodeUtil.getName(fndod));
                     // cl = new OverloadedFunction(fndod.getName(),
                     // getEnv());
 
@@ -129,7 +129,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // If it is a functional method, it is definitely a
                     // FnDecl
                     FnDecl fndod = (FnDecl) dod;
-                    String fndodname = NodeUtil.nameString(fndod.getName());
+                    String fndodname = NodeUtil.nameString(NodeUtil.getName(fndod));
 
                     Fcn cl = new FunctionalMethod(getWithin(), fndod, spi, x);
                     if (x instanceof GenericTypeInstance) {
@@ -171,7 +171,7 @@ public abstract class FTraitOrObjectOrGeneric extends FType {
                     // System.err.println("Functional method " + dod + "
                     // pass
                     // "+pass);
-                    String fndodname = NodeUtil.nameString(fndod.getName());
+                    String fndodname = NodeUtil.nameString(NodeUtil.getName(fndod));
 
                     Fcn fcn = (Fcn) topLevel.getRootValue(fndodname);
 

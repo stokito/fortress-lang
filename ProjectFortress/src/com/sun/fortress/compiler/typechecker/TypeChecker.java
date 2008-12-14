@@ -2941,7 +2941,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	public TypeCheckerResult forLetFn(LetFn that) {
 		Relation<IdOrOpOrAnonymousName, FnDecl> fnDefs = new IndexedRelation<IdOrOpOrAnonymousName, FnDecl>(false);
 		for (FnDecl fnDef : that.getFns()) {
-			fnDefs.add(fnDef.getName(), fnDef);
+			fnDefs.add(NodeUtil.getName(fnDef), fnDef);
 		}
 
 		TypeChecker newChecker = this.extendWithFnDecls(fnDefs);

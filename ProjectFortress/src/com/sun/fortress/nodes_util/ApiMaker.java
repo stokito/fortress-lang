@@ -63,7 +63,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 if (lv.getMods().isPrivate()) return true;
             }
         } else if (decl instanceof FnDecl) {
-            return ((FnDecl)decl).getMods().isPrivate();
+            return ((FnDecl)decl).getHeader().getMods().isPrivate();
         }
         return false;
     }

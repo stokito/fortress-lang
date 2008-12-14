@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes_util.NodeComparator;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
@@ -88,7 +89,7 @@ public class GenericMethod extends MethodClosure implements
             // It looks like it might be, or else good enough.  The disambiguating
             // pass effectively hides all the names defined in the interior
             // of the trait.
-            List<StaticParam> params = getDef().getStaticParams();
+            List<StaticParam> params = NodeUtil.getStaticParams(getDef());
             EvalType.bindGenericParameters(params, args, clenv, location,
                     getDef());
             clenv.bless();
@@ -118,7 +119,7 @@ public class GenericMethod extends MethodClosure implements
     //    }
 
     public MethodClosure typeApply(List<StaticArg> args, Environment e, HasAt location) {
-        List<StaticParam> params = getDef().getStaticParams();
+        List<StaticParam> params = NodeUtil.getStaticParams(getDef());
 
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != params.size()) {
@@ -145,13 +146,13 @@ public class GenericMethod extends MethodClosure implements
 
     public void finishInitializing() {
         Applicable x = getDef();
-        List<Param> params = x.getParams();
-        Option<Type> rt = x.getReturnType();
+        List<Param> params = NodeUtil.getParams(x);
+        Option<Type> rt = NodeUtil.getReturnType(x);
         Environment env = getEnv(); // should need this for types,
         // below.
         // TODO work in progress
         // Inject type parameters into environment as symbolics
-        List<StaticParam> tparams = getDef().getStaticParams();
+        List<StaticParam> tparams = NodeUtil.getStaticParams(getDef());
 
         FType ft = EvalType.getFTypeFromOption(rt, env, FTypeTop.ONLY);
         List<Parameter> fparams = EvalType.paramsToParameters(env, params);
@@ -166,14 +167,14 @@ public class GenericMethod extends MethodClosure implements
             Applicable a0 = arg0.getDef();
             Applicable a1 = arg1.getDef();
 
-            IdOrOpOrAnonymousName fn0 = a0.getName();
-            IdOrOpOrAnonymousName fn1 = a1.getName();
+            IdOrOpOrAnonymousName fn0 = NodeUtil.getName(a0);
+            IdOrOpOrAnonymousName fn1 = NodeUtil.getName(a1);
             int x = NodeComparator.compare(fn0, fn1);
             if (x != 0)
                 return x;
 
-            List<StaticParam> oltp0 = a0.getStaticParams();
-            List<StaticParam> oltp1 = a1.getStaticParams();
+            List<StaticParam> oltp0 = NodeUtil.getStaticParams(a0);
+            List<StaticParam> oltp1 = NodeUtil.getStaticParams(a1);
 
             return NodeComparator.compare(oltp0, oltp1);
 
@@ -211,19 +212,19 @@ public class GenericMethod extends MethodClosure implements
     // static final GenericFullComparer genFullComparer = new GenericFullComparer();
 
     public IdOrOpOrAnonymousName getName() {
-        return getDef().getName();
+        return NodeUtil.getName(getDef());
     }
 
     public List<StaticParam> getStaticParams() {
-        return getDef().getStaticParams();
+        return NodeUtil.getStaticParams(getDef());
     }
 
     public List<Param> getParams() {
-        return getDef().getParams();
+        return NodeUtil.getParams(getDef());
     }
 
     public Option<Type> getReturnType() {
-        return getDef().getReturnType();
+        return NodeUtil.getReturnType(getDef());
     }
 
 
