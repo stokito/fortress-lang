@@ -32,8 +32,11 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.TraitTypeHeader;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
@@ -48,12 +51,11 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forObjectDecl(ObjectDecl that) {
-        List<Decl> decls_result = recurOnListOfDecl(that.getDecls());
-        return super.forObjectDeclOnly(that, that.getName(),
-                                       that.getStaticParams(),
-                                       that.getExtendsClause(), that.getWhereClause(),
-                                       decls_result, that.getParams(),
-                                       that.getThrowsClause(), that.getContract());
+        List<Decl> decls_result = recurOnListOfDecl(NodeUtil.getDecls(that));
+
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeaderWithDecls(that.getHeader(), decls_result );
+
+        return super.forObjectDeclOnly(that, header, that.getParams());
     }
 
     @Override

@@ -19,6 +19,7 @@ package com.sun.fortress.nodes_util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import edu.rice.cs.plt.tuple.Option;
@@ -37,31 +38,33 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    /* Getters for TraitObjectDecl */
+
+    public static Modifiers getMods(TraitObjectDecl t) {
+        return t.getHeader().getMods();
+    }
+
+    public static Id getName(TraitObjectDecl t) {
+        return (Id)t.getHeader().getName();
+    }
+
+    public static List<Decl> getDecls(TraitObjectDecl t) {
+        return t.getHeader().getDecls();
+    }
+
+    public static List<StaticParam> getStaticParams(TraitObjectDecl t) {
+        return t.getHeader().getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(TraitObjectDecl o) {
+        return o.getHeader().getWhereClause();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(TraitObjectDecl t) {
+        return t.getHeader().getExtendsClause();
+    }
+
     /* Getters for TraitDecl */
-    public static Modifiers getMods(TraitDecl t) {
-        return t.getMods();
-    }
-
-    public static Id getName(TraitDecl t) {
-        return t.getName();
-    }
-
-    public static List<StaticParam> getStaticParams(TraitDecl t) {
-        return t.getStaticParams();
-    }
-
-    public static Option<WhereClause> getWhereClause(TraitDecl t) {
-        return t.getWhereClause();
-    }
-
-    public static List<TraitTypeWhere> getExtendsClause(TraitDecl t) {
-        return t.getExtendsClause();
-    }
-
-    public static List<Decl> getDecls(TraitDecl t) {
-        return t.getDecls();
-    }
-
     public static List<BaseType> getExcludesClause(TraitDecl t) {
         return t.getExcludesClause();
     }
@@ -71,103 +74,92 @@ public class NodeUtil {
     }
 
     /* Getters for ObjectDecl */
-    public static Modifiers getMods(ObjectDecl t) {
-        return t.getMods();
+    public static Option<List<Param>> getParams(ObjectDecl o) {
+        return o.getParams();
     }
 
-    public static Id getName(ObjectDecl t) {
-        return t.getName();
+    public static Option<List<BaseType>> getThrowsClause(ObjectDecl o) {
+        return o.getHeader().getThrowsClause();
     }
 
-    public static List<StaticParam> getStaticParams(ObjectDecl t) {
-        return t.getStaticParams();
-    }
-
-    public static Option<WhereClause> getWhereClause(ObjectDecl t) {
-        return t.getWhereClause();
-    }
-
-    public static List<TraitTypeWhere> getExtendsClause(ObjectDecl t) {
-        return t.getExtendsClause();
+    public static Option<Contract> getContract(ObjectDecl o) {
+        return o.getHeader().getContract();
     }
 
     public static List<Decl> getDecls(ObjectDecl t) {
-        return t.getDecls();
-    }
-
-    public static Option<List<Param>> getParams(ObjectDecl g) {
-        return g.getParams();
-    }
-
-    public static Option<List<BaseType>> getThrowsClause(ObjectDecl g) {
-        return g.getThrowsClause();
-    }
-
-    public static Option<Contract> getContract(ObjectDecl g) {
-        return g.getContract();
+        return t.getHeader().getDecls();
     }
 
     /* Getters for FnDecl */
-    public static Modifiers getMods(FnDecl t) {
-        return t.getMods();
+    public static Modifiers getMods(FnDecl f) {
+        return f.getMods();
     }
 
-    public static IdOrOpOrAnonymousName getName(FnDecl t) {
-        return t.getName();
+    public static IdOrOpOrAnonymousName getName(FnDecl f) {
+        return f.getName();
     }
 
-    public static List<StaticParam> getStaticParams(FnDecl t) {
-        return t.getStaticParams();
+    public static List<StaticParam> getStaticParams(FnDecl f) {
+        return f.getStaticParams();
     }
 
-    public static Option<WhereClause> getWhereClause(FnDecl t) {
-        return t.getWhereClause();
+    public static Option<WhereClause> getWhereClause(FnDecl f) {
+        return f.getWhereClause();
     }
 
-    public static List<Param> getParams(FnDecl g) {
-        return g.getParams();
+    public static List<Param> getParams(FnDecl f) {
+        return f.getParams();
     }
 
-    public static Option<Type> getReturnType(FnDecl g) {
-        return g.getReturnType();
+    public static Option<Type> getReturnType(FnDecl f) {
+        return f.getReturnType();
     }
 
-    public static Option<List<BaseType>> getThrowsClause(FnDecl g) {
-        return g.getThrowsClause();
+    public static Option<List<BaseType>> getThrowsClause(FnDecl f) {
+        return f.getThrowsClause();
     }
 
-    public static Option<Contract> getContract(FnDecl g) {
-        return g.getContract();
+    public static Option<Contract> getContract(FnDecl f) {
+        return f.getContract();
     }
 
     /* Getters for FnExpr */
-    public static IdOrOpOrAnonymousName getName(FnExpr t) {
-        return t.getName();
+    public static IdOrOpOrAnonymousName getName(FnExpr f) {
+        return f.getName();
     }
 
-    public static List<StaticParam> getStaticParams(FnExpr t) {
-        return t.getStaticParams();
+    public static List<StaticParam> getStaticParams(FnExpr f) {
+        return f.getStaticParams();
     }
 
-    public static Option<WhereClause> getWhereClause(FnExpr t) {
-        return t.getWhereClause();
+    public static Option<WhereClause> getWhereClause(FnExpr f) {
+        return f.getWhereClause();
     }
 
-    public static List<Param> getParams(FnExpr g) {
-        return g.getParams();
+    public static List<Param> getParams(FnExpr f) {
+        return f.getParams();
     }
 
-    public static Option<Type> getReturnType(FnExpr g) {
-        return g.getReturnType();
+    public static Option<Type> getReturnType(FnExpr f) {
+        return f.getReturnType();
     }
 
-    public static Option<List<BaseType>> getThrowsClause(FnExpr g) {
-        return g.getThrowsClause();
+    public static Option<List<BaseType>> getThrowsClause(FnExpr f) {
+        return f.getThrowsClause();
     }
 
     /* Getter for Generic */
     public static List<StaticParam> getStaticParams(Generic g) {
-        return g.getStaticParams();
+        if ( g instanceof TraitObjectDecl )
+            return ((TraitObjectDecl)g).getHeader().getStaticParams();
+        else if ( g instanceof FnDecl )
+            return ((FnDecl)g).getStaticParams();
+        else if ( g instanceof _RewriteObjectExpr )
+            return ((_RewriteObjectExpr)g).getStaticParams();
+        else {
+            System.out.println("LOG: " + g.getClass());
+            return Collections.<StaticParam>emptyList();
+        }
     }
 
     public static Option<List<Param>> getParams(ObjectConstructor g) {
@@ -175,7 +167,10 @@ public class NodeUtil {
     }
 
     public static List<Decl> getDecls(ObjectConstructor g) {
-        return g.getDecls();
+        if ( g instanceof ObjectDecl )
+            return ((ObjectDecl)g).getHeader().getDecls();
+        else
+            return ((_RewriteObjectExpr)g).getDecls();
     }
 
     public static IdOrOpOrAnonymousName getName(Applicable a) {
@@ -559,7 +554,7 @@ public class NodeUtil {
         }
             @Override
         public String forFnDecl(FnDecl node) {
-            return nameString(node.getName());
+            return nameString(getName(node));
         }
             @Override
         public String forIdOrOpOrAnonymousName(IdOrOpOrAnonymousName node) {
@@ -567,7 +562,7 @@ public class NodeUtil {
         }
             @Override
         public String forObjectDecl(ObjectDecl node) {
-            return node.getName().getText();
+            return getName(node).getText();
         }
             @Override
         public String for_RewriteObjectExpr(_RewriteObjectExpr node) {
@@ -575,7 +570,7 @@ public class NodeUtil {
         }
             @Override
         public String forTraitDecl(TraitDecl node) {
-            return node.getName().getText();
+            return getName(node).getText();
         }
             @Override
         public String forTypeAlias(TypeAlias node) {
@@ -622,7 +617,7 @@ public class NodeUtil {
                 return new UnitIterable<String>(nameString(d.getName()));
             }
             public IterableOnce<String> forFnDecl(FnDecl d) {
-                return new UnitIterable<String>(nameString(d.getName()));
+                return new UnitIterable<String>(nameString(getName(d)));
             }
             public IterableOnce<String> forLetFn(LetFn d) {
                 return new UnitIterable<String>(d.getClass().getSimpleName());
@@ -631,7 +626,7 @@ public class NodeUtil {
                 return new IterableOnceForLValueList(d.getLhs());
             }
             public IterableOnce<String> forObjectDecl(ObjectDecl d) {
-                return new UnitIterable<String>(d.getName().getText());
+                return new UnitIterable<String>(getName(d).getText());
             }
             public IterableOnce<String> for_RewriteObjectExpr(_RewriteObjectExpr d) {
                 return new UnitIterable<String>(d.getGenSymName());
@@ -650,7 +645,7 @@ public class NodeUtil {
                 return new UnitIterable<String>(d.getName().getText());
             }
             public IterableOnce<String> forTraitDecl(TraitDecl d) {
-                return new UnitIterable<String>(d.getName().getText());
+                return new UnitIterable<String>(getName(d).getText());
             }
             public IterableOnce<String> forTypeAlias(TypeAlias d) {
                 return new UnitIterable<String>(d.getName().getText());

@@ -200,7 +200,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         // Some rewriting required for this ObjectDecl (i.e. it has var
         // params being captured and mutated by some object expression(s)
         if( rewriteList != null ) {
-            String uniqueSuffix = that.getName().getText() + nextUniqueId();
+            String uniqueSuffix = NodeUtil.getName(that).getText() + nextUniqueId();
 
             List<VarRef> mutableVarRefsForThisNode
                 = updateMutableVarRefContainerMap(uniqueSuffix, rewriteList);
@@ -208,7 +208,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
             for(VarRef var : mutableVarRefsForThisNode) {
                 VarRefContainer container = mutableVarRefContainerMap.get(var);
                 newObjectDecls.add( container.containerDecl() );
-                Pair<Id,Id> keyPair = new Pair<Id,Id>( that.getName(), var.getVarId() );
+                Pair<Id,Id> keyPair = new Pair<Id,Id>( NodeUtil.getName(that), var.getVarId() );
                 // Use an empty span; the correct span will be filled in
                 // later at the use site
                 boxedRefMap.put( keyPair,
@@ -434,7 +434,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                       ObjectExpr objExpr,
                                       FreeNameCollection freeNames) {
         Span span = objExpr.getSpan();
-        Id originalName = lifted.getName();
+        Id originalName = NodeUtil.getName(lifted);
         List<IdOrOp> fns = new LinkedList<IdOrOp>();
         fns.add(originalName);
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
@@ -475,9 +475,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<StaticArg> args = new LinkedList<StaticArg>();
 
         if( enclosingTraitDecl != null ) {
-            sParams = enclosingTraitDecl.getStaticParams();
+            sParams = NodeUtil.getStaticParams(enclosingTraitDecl);
         } else if( enclosingObjectDecl != null ) {
-            sParams = enclosingObjectDecl.getStaticParams();
+            sParams = NodeUtil.getStaticParams(enclosingObjectDecl);
         } else {
             if( boolRefs.isEmpty() == false ||  // sanity check
                 intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {
@@ -668,9 +668,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         List<StaticParam> sParams = null;
 
         if( enclosingTraitDecl != null ) {
-            sParams = enclosingTraitDecl.getStaticParams();
+            sParams = NodeUtil.getStaticParams(enclosingTraitDecl);
         } else if( enclosingObjectDecl != null ) {
-            sParams = enclosingObjectDecl.getStaticParams();
+            sParams = NodeUtil.getStaticParams(enclosingObjectDecl);
         } else {
             if( boolRefs.isEmpty() == false ||  // sanity check
                 intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {
@@ -852,9 +852,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private Id getEnclosingTraitObjectName() {
         Id enclosingId = null;
         if(enclosingTraitDecl != null){
-            enclosingId = enclosingTraitDecl.getName();
+            enclosingId = NodeUtil.getName(enclosingTraitDecl);
         } else if(enclosingObjectDecl != null) {
-            enclosingId = enclosingObjectDecl.getName();
+            enclosingId = NodeUtil.getName(enclosingObjectDecl);
         }
 
         return enclosingId;

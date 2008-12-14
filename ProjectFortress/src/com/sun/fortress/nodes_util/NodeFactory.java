@@ -197,8 +197,11 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC) {
-        return new TraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
-                             excludesC, comprisesC);
+        TraitTypeHeader header = new TraitTypeHeader(span, mods, name, sparams, whereC,
+                                                     Option.<List<BaseType>>none(),
+                                                     Option.<Contract>none(),
+                                                     extendsC, decls);
+        return new TraitDecl(span, header, excludesC, comprisesC);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
@@ -244,8 +247,10 @@ public class NodeFactory {
                                             Option<List<Param>> params,
                                             Option<List<BaseType>> throwsC,
                                             Option<Contract> contract) {
-        return new ObjectDecl(span, mods, name, sparams, extendsC, whereC, decls,
-                              params, throwsC, contract);
+        TraitTypeHeader header = new TraitTypeHeader(span, mods, name, sparams, whereC,
+                                                     throwsC, contract, extendsC,
+                                                     decls);
+        return new ObjectDecl(span, header, params);
     }
 
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
@@ -1061,6 +1066,42 @@ public class NodeFactory {
     public static IntRef makeIntRef(Span span, boolean parenthesized,
                                     Id name, int depth) {
         return new IntRef(span, parenthesized, name, depth);
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
+                                                      List<TraitTypeWhere> extendsC) {
+        return makeTraitTypeHeader(header.getSpan(), header.getMods(), header.getName(),
+                                   header.getStaticParams(), header.getWhereClause(),
+                                   header.getThrowsClause(), header.getContract(),
+                                   extendsC, header.getDecls());
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeaderWithDecls(TraitTypeHeader header,
+                                                               List<Decl> decls) {
+        return makeTraitTypeHeader(header, decls, header.getContract());
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
+                                                      List<Decl> decls,
+                                                      Option<Contract> contract) {
+        return makeTraitTypeHeader(header.getSpan(), header.getMods(), header.getName(),
+                                   header.getStaticParams(), header.getWhereClause(),
+                                   header.getThrowsClause(), contract,
+                                   header.getExtendsClause(), decls);
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(Span span,
+                                                      Modifiers mods,
+                                                      IdOrOpOrAnonymousName name,
+                                                      List<StaticParam> staticParams,
+                                                      Option<WhereClause> whereClause,
+                                                      Option<List<BaseType>> throwsClause,
+                                                      Option<Contract> contract,
+                                                      List<TraitTypeWhere> extendsClause,
+                                                      List<Decl> decls) {
+        return new TraitTypeHeader(span, mods, name, staticParams, whereClause,
+                                   throwsClause, contract, extendsClause,
+                                   decls);
     }
 
     /***************************************************************************/

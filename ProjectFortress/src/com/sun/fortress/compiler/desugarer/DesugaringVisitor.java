@@ -528,10 +528,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
 
-        return forObjectDeclOnly(that, NodeUtil.getName(that),
-                                 NodeUtil.getStaticParams(that), NodeUtil.getExtendsClause(that),
-                                 NodeUtil.getWhereClause(that), gettersAndDecls, params_result,
-                                 NodeUtil.getThrowsClause(that), contract_result);
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getHeader(), gettersAndDecls, contract_result);
+        return forObjectDeclOnly(that, header, params_result);
     }
 
     @Override
@@ -550,10 +548,10 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
         // System.err.println("after: gettersAndDecls size = " + gettersAndDecls.size());
 
-        return forTraitDeclOnly(that, NodeUtil.getName(that),
-                                NodeUtil.getStaticParams(that), NodeUtil.getExtendsClause(that),
-                                NodeUtil.getWhereClause(that), gettersAndDecls,
-                                NodeUtil.getExcludesClause(that), NodeUtil.getComprisesClause(that));
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeaderWithDecls(that.getHeader(), gettersAndDecls);
+
+        return forTraitDeclOnly(that, header, NodeUtil.getExcludesClause(that),
+                                NodeUtil.getComprisesClause(that));
     }
 
     @Override

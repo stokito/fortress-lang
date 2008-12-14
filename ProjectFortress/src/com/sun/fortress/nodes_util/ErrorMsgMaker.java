@@ -62,7 +62,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTraitObjectDecl(TraitObjectDecl node) {
-        return node.getClass().getSimpleName() + " " + node.getName() + " at " + node.getSpan().begin.at();
+        return node.getClass().getSimpleName() + " " + NodeUtil.getName(node) + " at " + node.getSpan().begin.at();
     }
 
     public String forAbstractNode(AbstractNode node) {

@@ -56,8 +56,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forObjectDecl(ObjectDecl that) {
          // Add a type to self parameters of methods
-        Type self_type = NodeFactory.makeTraitType(that.getName(),
-                                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
+        Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
+                                                   TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
         ObjectDecl that_new = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
         return super.forObjectDecl(that_new);
     }
@@ -65,8 +65,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forTraitDecl(TraitDecl that) {
         // Add a type to self parameters of methods
-        Type self_type = NodeFactory.makeTraitType(that.getName(),
-                                                   TypeEnv.staticParamsToArgs(that.getStaticParams()));
+        Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
+                                                   TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
         TraitDecl that_new = (TraitDecl)this.replaceSelfParamsWithType(that, self_type);
         return super.forTraitDecl(that_new);
     }

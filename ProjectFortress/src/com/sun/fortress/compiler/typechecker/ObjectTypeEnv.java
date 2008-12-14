@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.FortressUtil;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -72,33 +73,33 @@ class ObjectTypeEnv extends TypeEnv {
 
         Type type;
         ObjectDecl decl = (ObjectDecl)objIndex.ast();
-        if (decl.getStaticParams().isEmpty()) {
-            if (decl.getParams().isNone()) {
+        if (NodeUtil.getStaticParams(decl).isEmpty()) {
+            if (NodeUtil.getParams(decl).isNone()) {
                 // No static params, no normal params
                 type = NodeFactory.makeTraitType(_var);
             } else {
                 // No static params, some normal params
                 type = NodeFactory.makeArrowType(var.getSpan(),
-                                     domainFromParams(decl.getParams().unwrap()),
+                                     domainFromParams(NodeUtil.getParams(decl).unwrap()),
                                      NodeFactory.makeTraitType(_var));
             }
         } else {
-            if (decl.getParams().isNone()) {
+            if (NodeUtil.getParams(decl).isNone()) {
                 // Some static params, no normal params
-                type = NodeFactory.makeGenericSingletonType(_var, decl.getStaticParams());
+                type = NodeFactory.makeGenericSingletonType(_var, NodeUtil.getStaticParams(decl));
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
                 type = NodeFactory.makeArrowType(decl.getSpan(), false,
-                                     domainFromParams(decl.getParams().unwrap()),
-                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(decl.getStaticParams())),
+                                     domainFromParams(NodeUtil.getParams(decl).unwrap()),
+                                     NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(decl))),
                                                  FortressUtil.emptyEffect(),
-                                     decl.getStaticParams(),
-                                     decl.getWhereClause());
+                                     NodeUtil.getStaticParams(decl),
+                                     NodeUtil.getWhereClause(decl));
             }
         }
 
-        return Option.some(new BindingLookup(var, type, decl.getMods()));
+        return Option.some(new BindingLookup(var, type, NodeUtil.getMods(decl)));
     }
 
     @Override

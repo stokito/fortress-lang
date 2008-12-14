@@ -947,8 +947,8 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     public void finishObjectTrait(ObjectDecl x, FTypeObject ftt) {
-        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
-        finishObjectTrait(extends_, null, x.getWhereClause(), ftt, containing, x);
+        List<BaseType> extends_ = NodeUtil.getTypes(NodeUtil.getExtendsClause(x));
+        finishObjectTrait(extends_, null, NodeUtil.getWhereClause(x), ftt, containing, x);
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {

@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Factory1P;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Memo1P;
@@ -64,7 +65,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     }
 
     public IdOrOpOrAnonymousName getName() {
-        return odecl.getName();
+        return NodeUtil.getName(odecl);
     }
 
     public String getString() {
@@ -77,7 +78,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     }
 
     public List<StaticParam> getStaticParams() {
-        return odecl.getStaticParams();
+        return NodeUtil.getStaticParams(odecl);
     }
 
     public FObject typeApply(List<FType> argValues, HasAt location) {
@@ -89,7 +90,7 @@ public class GenericSingleton extends FValue implements Factory1P<List<FType>, F
     }
 
     public FObject typeApply(List<StaticArg> args, Environment e, HasAt x) {
-        List<StaticParam> params = odecl.getStaticParams();
+        List<StaticParam> params = NodeUtil.getStaticParams(odecl);
         ArrayList<FType> argValues = GenericConstructor.argsToTypes(args, e, x, params);
         return make(argValues, x);
     }

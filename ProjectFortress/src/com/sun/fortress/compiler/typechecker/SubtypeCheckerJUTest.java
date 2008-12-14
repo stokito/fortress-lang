@@ -326,7 +326,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         Map<Id, TypeConsIndex> traitMap = new HashMap<Id, TypeConsIndex>();
         for (TraitIndex t : traits) {
             traitDecls.add((Decl) t.ast());
-            traitMap.put(t.ast().getName(), t);
+            traitMap.put(NodeUtil.getName(t.ast()), t);
         }
         Api ast = new Api(span, NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
@@ -351,7 +351,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         Map<Id, TypeConsIndex> traitMap = new HashMap<Id, TypeConsIndex>();
         for (TraitIndex t : traits) {
             traitDecls.add((Decl) t.ast());
-            traitMap.put(t.ast().getName(), t);
+            traitMap.put(NodeUtil.getName(t.ast()), t);
         }
         Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(span, name),
                                                   Collections.<Import>emptyList(),

@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 
 /**
@@ -61,7 +62,7 @@ public abstract class TraitIndex extends TypeConsIndex {
 
     public TraitObjectDecl ast() { return _ast; }
 
-    public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
+    public List<StaticParam> staticParameters() { return NodeUtil.getStaticParams(_ast); }
 
     public List<Id> hiddenParameters() { return Collections.emptyList(); }
 
@@ -73,7 +74,7 @@ public abstract class TraitIndex extends TypeConsIndex {
     public Iterable<Pair<Type, Type>> typeConstraints() { return IterUtil.empty(); }
 
     public List<TraitTypeWhere> extendsTypes() {
-        return _ast.getExtendsClause();
+        return NodeUtil.getExtendsClause(_ast);
     }
 
     public Map<Id, Method> getters() {

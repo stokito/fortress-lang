@@ -1017,10 +1017,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      // All the methods and fields defined in object and the
         // extended traits
         // are mapped to "self".
-        List<Decl> defs = od.getDecls();
-        Option<List<Param>> params = od.getParams();
-        List<StaticParam> tparams = od.getStaticParams();
-        List<BaseType> xtends = NodeUtil.getTypes(od.getExtendsClause());
+        List<Decl> defs = NodeUtil.getDecls(od);
+        Option<List<Param>> params = NodeUtil.getParams(od);
+        List<StaticParam> tparams = NodeUtil.getStaticParams(od);
+        List<BaseType> xtends = NodeUtil.getTypes(NodeUtil.getExtendsClause(od));
 
         // TODO wip
         lexicalNestingDepth++;
@@ -1040,8 +1040,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forTraitDecl(TraitDecl td) {
-        List<Decl> defs = td.getDecls();
-        List<StaticParam> tparams = td.getStaticParams();
+        List<Decl> defs = NodeUtil.getDecls(td);
+        List<StaticParam> tparams = NodeUtil.getStaticParams(td);
         // TODO wip
         lexicalNestingDepth++;
         objectNestingDepth++;
@@ -1241,7 +1241,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * @param td
      */
     private void accumulateMembersFromExtends(TraitDecl td) {
-        accumulateMembersFromExtends(NodeUtil.getTypes(td.getExtendsClause()),
+        accumulateMembersFromExtends(NodeUtil.getTypes(NodeUtil.getExtendsClause(td)),
                 rewrites);
     }
 
@@ -1294,7 +1294,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                  *  If it is a constructor, it is also an arrow type.
                  *
                  */
-                String s = od.getName().getText();
+                String s = NodeUtil.getName(od).getText();
                 obj_rewrites_put(s, new Local());
 
                 if (params.isNone())
@@ -1316,7 +1316,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (Decl d : defs) {
             if (d instanceof TraitObjectDecl) {
                 TraitObjectDecl dod = (TraitObjectDecl) d;
-                List <Decl> tdecls = dod.getDecls();
+                List <Decl> tdecls = NodeUtil.getDecls(dod);
                 handlePossibleFM(tdecls);
             } else {
                 // Thankfully, do nothing.
@@ -1545,7 +1545,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                             // as all the members
                             // types.add(s); // The trait is known by this
                             // name.
-                            for (Decl dd : tdod.getDecls()) {
+                            for (Decl dd : NodeUtil.getDecls(tdod)) {
                                 String sdd = dd.stringName();
                                 if (dd instanceof VarDecl) {
                                     //visited.add(tdod);
@@ -1565,7 +1565,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                 }
                                 members.add(sdd);
                             }
-                            accumulateTraitsAndMethods(NodeUtil.getTypes(tdod.getExtendsClause()),
+                            accumulateTraitsAndMethods(NodeUtil.getTypes(NodeUtil.getExtendsClause(tdod)),
                                                        tr.env, members, types,
                                                        arrow_names, not_arrow_names,
                                                        visited);

@@ -87,8 +87,9 @@ interface Node() extends HasAt;
          * implemented by trait, object, and function declarations and
          * object expressions in components or APIs
          */
-        interface Generic(List<StaticParam> staticParams);
-            interface ObjectConstructor(List<Decl> decls,
+        interface Generic(); // List<StaticParam> staticParams
+            interface ObjectConstructor(//List<StaticParam> staticParams,
+                                        //List<Decl> decls
                                         Option<List<Param>> params);
 
         /**
@@ -179,13 +180,7 @@ interface Node() extends HasAt;
                  * trait or object declaration in components or APIs
                  * Name must be unqualified.
                  */
-                abstract TraitObjectDecl(Modifiers mods,
-                                         Id name,
-                                         List<StaticParam> staticParams,
-                                         List<TraitTypeWhere> extendsClause,
-                                         Option<WhereClause> whereClause,
-                                         List<Decl> decls)
-                                         implements Generic;
+                abstract TraitObjectDecl(TraitTypeHeader header) implements Generic;
                     /**
                      * trait declaration in components or APIs
                      *
@@ -230,7 +225,7 @@ interface Node() extends HasAt;
                      *       end
                      */
                     TraitDecl(List<BaseType> excludesClause,
-                              Option<List<BaseType>> comprisesClause) implements Generic;
+                              Option<List<BaseType>> comprisesClause);
                     /**
                      * object declaration in components or APIs
                      *
@@ -270,9 +265,7 @@ interface Node() extends HasAt;
                      *         length() = 0
                      *       end
                      */
-                    ObjectDecl(Option<List<Param>> params,
-                               Option<List<BaseType>> throwsClause,
-                               Option<Contract> contract)
+                    ObjectDecl(Option<List<Param>> params)
                               implements ObjectConstructor;
                 /**
                  * variable declaration in components or APIs

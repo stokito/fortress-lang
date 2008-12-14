@@ -86,13 +86,13 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 
     public void forTraitDecl(TraitDecl that) {
         inTrait = true;
-        Modifiers mods = that.getMods();
+        Modifiers mods = NodeUtil.getMods(that);
         if (!Modifiers.TraitMod.containsAll(mods)) {
             log(that, mods.remove(Modifiers.TraitMod) + " cannot modify a trait, " +
-                that.getName());
+                NodeUtil.getName(that));
         }
         if ( inApi && mods.isPrivate() ) {
-            log(that, "private trait " + that.getName() +
+            log(that, "private trait " + NodeUtil.getName(that) +
                 " most not appear in an API.");
         }
         super.forTraitDecl( that );
@@ -101,13 +101,13 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
 
     public void forObjectDecl(ObjectDecl that) {
         inObject = true;
-        Modifiers mods = that.getMods();
+        Modifiers mods = NodeUtil.getMods(that);
         if (!Modifiers.ObjectMod.containsAll(mods)) {
             log(that, mods.remove(Modifiers.ObjectMod) + " cannot modify an object, " +
-                that.getName());
+                NodeUtil.getName(that));
         }
         if ( inApi && mods.isPrivate() ) {
-            log(that, "private object " + that.getName() +
+            log(that, "private object " + NodeUtil.getName(that) +
                 " most not appear in an API.");
         }
         super.forObjectDecl( that );
