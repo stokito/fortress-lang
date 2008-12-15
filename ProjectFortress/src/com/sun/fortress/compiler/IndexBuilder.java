@@ -199,8 +199,8 @@ public class IndexBuilder {
 
     	// Make fake object
     	ObjectDecl decl = NodeFactory.makeObjectDecl(fake_span, fake_object_name,
-                                                     obj.getExtendsClause(),
-                                                     obj.getDecls());
+                                                     NodeUtil.getExtendsClause(obj),
+                                                     NodeUtil.getDecls(obj));
 
     	Map<Id,TypeConsIndex> index_holder = new HashMap<Id,TypeConsIndex>();
     	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(), new HashMap<Id,Variable>());

@@ -78,33 +78,43 @@ interface Node() extends HasAt;
      */
     interface ASTNode(ignoreForEquals Span span);
         /**
-         * left-hand-side of assignments, local variable declarations, or
-         * top-level variable declarations
-         */
-        interface Lhs();
-        /**
          * with static parameters
          * implemented by trait, object, and function declarations and
          * object expressions in components or APIs
          */
-        interface Generic(); // List<StaticParam> staticParams
-            interface ObjectConstructor(//List<StaticParam> staticParams,
-                                        //List<Decl> decls
+        interface Generic(GenericHeader header);
+            /**
+             * with static parameters, value parameters, and declarations
+             * implemented by object declaration and
+             * object expressions in components or APIs
+             */
+            interface ObjectConstructor(TraitTypeHeader header,
                                         Option<List<Param>> params);
-
         /**
          * top-level node abstract class
          */
         root abstract AbstractNode() extends UIDObject;
-            abstract DeclHeader(Modifiers mods, // except FnExpr
-                                IdOrOpOrAnonymousName name,
-                                List<StaticParam> staticParams,
-                                Option<WhereClause> whereClause,
-                                Option<List<BaseType>> throwsClause, // except TraitDecl
-                                Option<Contract> contract); // except TraitDecl / FnExpr
-                TraitTypeHeader(List<TraitTypeWhere> extendsClause,
-                                List<Decl> decls);
-                FnHeader(List<Param> params, Option<Type> returnType);
+            /**
+             * with static parameters
+             */
+            abstract GenericHeader(List<StaticParam> staticParams);
+                /**
+                 * common header for trait/object/function declaration/expression
+                 */
+                abstract DeclHeader(Modifiers mods, // except FnExpr
+                                    IdOrOpOrAnonymousName name,
+                                    Option<WhereClause> whereClause,
+                                    Option<List<BaseType>> throwsClause, // except TraitDecl
+                                    Option<Contract> contract); // except TraitDecl / FnExpr
+                    /**
+                     * common header for trait/object declaration/expression
+                     */
+                    TraitTypeHeader(List<TraitTypeWhere> extendsClause,
+                                    List<Decl> decls);
+                    /**
+                     * common header for function declaration/expression
+                     */
+                    FnHeader(List<Param> params, Option<Type> returnType);
 
             /**
              * compilation unit declaration
@@ -538,8 +548,7 @@ interface Node() extends HasAt;
                 /**
                  * object expression
                  */
-                abstract AbstractObjectExpr(List<TraitTypeWhere> extendsClause,
-                                            List<Decl> decls);
+                abstract AbstractObjectExpr(TraitTypeHeader header);
                     /**
                      * object expression
                      * DelimitedExpr ::= object ExtendsWhere? GoInAnObject? end
@@ -554,7 +563,6 @@ interface Node() extends HasAt;
                      */
                     _RewriteObjectExpr(Map<String, StaticParam> implicitTypeParameters,
                                        String genSymName,
-                                       List<StaticParam> staticParams,
                                        List<StaticArg> staticArgs,
                                        Option<List<Param>> params)
                                       implements ObjectConstructor;
@@ -1796,6 +1804,11 @@ interface Node() extends HasAt;
              * eliminated after the type checking phase
              */
             interface OutAfterTypeChecking();
+        /**
+         * left-hand-side of assignments, local variable declarations, or
+         * top-level variable declarations
+         */
+        interface Lhs();
         /**
          * functional declaration or function expression
          * nodes_util.NodeUtil declares the following static methods:

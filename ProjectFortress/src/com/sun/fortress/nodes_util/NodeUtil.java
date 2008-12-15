@@ -86,8 +86,21 @@ public class NodeUtil {
         return o.getHeader().getContract();
     }
 
-    public static List<Decl> getDecls(ObjectDecl t) {
-        return t.getHeader().getDecls();
+    public static List<Decl> getDecls(ObjectDecl o) {
+        return o.getHeader().getDecls();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(ObjectDecl o) {
+        return o.getHeader().getExtendsClause();
+    }
+
+    /* Getters for ObjectExpr */
+    public static List<Decl> getDecls(ObjectExpr o) {
+        return o.getHeader().getDecls();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(ObjectExpr o) {
+        return o.getHeader().getExtendsClause();
     }
 
     /* Getters for FnDecl */
@@ -150,16 +163,7 @@ public class NodeUtil {
 
     /* Getter for Generic */
     public static List<StaticParam> getStaticParams(Generic g) {
-        if ( g instanceof TraitObjectDecl )
-            return ((TraitObjectDecl)g).getHeader().getStaticParams();
-        else if ( g instanceof FnDecl )
-            return ((FnDecl)g).getHeader().getStaticParams();
-        else if ( g instanceof _RewriteObjectExpr )
-            return ((_RewriteObjectExpr)g).getStaticParams();
-        else {
-            System.out.println("LOG: " + g.getClass());
-            return Collections.<StaticParam>emptyList();
-        }
+        return g.getHeader().getStaticParams();
     }
 
     /* Getters for ObjectConstructor */
@@ -168,10 +172,11 @@ public class NodeUtil {
     }
 
     public static List<Decl> getDecls(ObjectConstructor g) {
-        if ( g instanceof ObjectDecl )
-            return ((ObjectDecl)g).getHeader().getDecls();
-        else
-            return ((_RewriteObjectExpr)g).getDecls();
+        return g.getHeader().getDecls();
+    }
+
+    public static List<TraitTypeWhere> getExtendsClause(ObjectConstructor g) {
+        return g.getHeader().getExtendsClause();
     }
 
     /* Getters for Applicable */

@@ -279,8 +279,8 @@ public class Transform extends TemplateUpdateVisitor {
             Option<WhereClause> where_result = recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that));
             Option<List<BaseType>> throwsClause_result = recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that));
             Expr body_result = (Expr) recur(that.getBody());
-            FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(), name_result,
-                                                        staticParams_result, where_result, throwsClause_result,
+            FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(), staticParams_result, name_result,
+                                                        where_result, throwsClause_result,
                                                         Option.<Contract>none(), params_result,
                                                         returnType_result);
             Node ret = forFnExprOnly(that, exprType_result, header, body_result);

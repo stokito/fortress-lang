@@ -835,7 +835,16 @@ public class ExprFactory {
                                             Option<Type> exprType,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls) {
-        return new ObjectExpr(span, parenthesized, exprType, extendsC, decls);
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(span, NodeFactory.makeId(span, "_"),
+                                                                 extendsC, decls);
+        return makeObjectExpr(span, parenthesized, exprType, header);
+    }
+
+    public static ObjectExpr makeObjectExpr(Span span,
+                                            boolean parenthesized,
+                                            Option<Type> exprType,
+                                            TraitTypeHeader header) {
+        return new ObjectExpr(span, parenthesized, exprType, header);
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
@@ -854,7 +863,7 @@ public class ExprFactory {
             }
         }
         return make_RewriteObjectExpr(expr.getSpan(), false, Option.<Type>none(),
-                                      expr.getExtendsClause(), expr.getDecls(),
+                                      NodeUtil.getExtendsClause(expr), NodeUtil.getDecls(expr),
                                       implicit_type_parameters, WellKnownNames.objectExprName(expr),
                                       stParams, staticArgs,
                                       Option.some(Collections.<Param>emptyList()));
@@ -870,9 +879,16 @@ public class ExprFactory {
                                                             List<StaticParam> staticParams,
                                                             List<StaticArg> staticArgs,
                                                             Option<List<Param>> params) {
-        return new _RewriteObjectExpr(span, parenthesized, exprType, extendsC,
-                                      decls, implicitTypeParameters, genSymName,
-                                      staticParams, staticArgs, params);
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(span, Modifiers.None,
+                                                                 NodeFactory.makeId(span,genSymName),
+                                                                 staticParams,
+                                                                 Option.<WhereClause>none(),
+                                                                 Option.<List<BaseType>>none(),
+                                                                 Option.<Contract>none(),
+                                                                 extendsC, decls);
+        return new _RewriteObjectExpr(span, parenthesized, exprType, header,
+                                      implicitTypeParameters, genSymName,
+                                      staticArgs, params);
     }
 
     public static Assignment makeAssignment(Span span, List<Lhs> lhs,
@@ -1482,16 +1498,15 @@ public class ExprFactory {
         }
         public Expr forObjectExpr(ObjectExpr e) {
             return makeObjectExpr(e.getSpan(), true, e.getExprType(),
-                                  e.getExtendsClause(), e.getDecls());
+                                  e.getHeader());
         }
         public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
             return new _RewriteObjectExpr(e.getSpan(), true,
                                           e.getExprType(),
-                    e.getExtendsClause(), e.getDecls(),
-                    e.getImplicitTypeParameters(),
-                    e.getGenSymName(),
-                    e.getStaticParams(),
-                    e.getStaticArgs(), e.getParams());
+                                          e.getHeader(),
+                                          e.getImplicitTypeParameters(),
+                                          e.getGenSymName(),
+                                          e.getStaticArgs(), e.getParams());
         }
         public Expr forTry(Try e) {
             return makeTry(e.getSpan(), true, e.getExprType(), e.getBody(),

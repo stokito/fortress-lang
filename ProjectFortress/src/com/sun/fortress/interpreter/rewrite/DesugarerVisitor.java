@@ -936,8 +936,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node for_RewriteObjectExpr(_RewriteObjectExpr oe) {
-        List<Decl> defs = oe.getDecls();
-        List<BaseType> xtends = NodeUtil.getTypes(oe.getExtendsClause());
+        List<Decl> defs = NodeUtil.getDecls(oe);
+        List<BaseType> xtends = NodeUtil.getTypes(NodeUtil.getExtendsClause(oe));
         objectNestingDepth++;
         lexicalNestingDepth++;
         atTopLevelInsideTraitOrObject = true;

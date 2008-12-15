@@ -969,8 +969,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             // we only want the names declared in the outer-most objExpr
             // so skip the inner ones
             if(root != that) return;
-            super.recurOnListOfTraitTypeWhere(that.getExtendsClause());
-            super.recurOnListOfDecl(that.getDecls());
+            super.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+            super.recurOnListOfDecl(NodeUtil.getDecls(that));
         }
 
         @Override
