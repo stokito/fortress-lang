@@ -39,9 +39,10 @@ public CompilationUnit File =
        String cuname = yyValue.getName().toString();
        if (!Shell.checkCompilationUnitName(filename,
                                            cuname))
-           yyValue = syntaxError(span,
-                                 "Component/API names must match their enclosing file names, from name="
-                                 + filename+", from contents="+cuname);
+           yyValue = syntaxError(yyValue.getName().getSpan(),
+                                 "    Component/API names must match their enclosing file names." +
+                                 "\n    File name: " + filename +
+                                 "\n    Component name: " + cuname);
      }
    / w Exports w semicolon? w Imports w semicolon? w (_)* // Error production
      { yyValue = syntaxError(createSpan(yyStart,yyCount),

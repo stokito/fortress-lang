@@ -25,7 +25,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
-     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
+    public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
     public static String errorMsg(Object... messages) {
         StringBuilder fullMessage = new StringBuilder();

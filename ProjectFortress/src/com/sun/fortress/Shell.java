@@ -627,25 +627,36 @@ public final class Shell {
                 invalidFlag(s, phase);
             compile(rest, out, phase);
         } else {
-            APIName name = trueApiName( s );
-            Path path = sourcePath( s, name );
+            try {
+                APIName name = trueApiName( s );
+                Path path = sourcePath( s, name );
 
-            String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-            Iterable<? extends StaticError> errors = compile(path, file_name, out );
-            int num_errors = IterUtil.sizeOf(errors);
-            if ( !IterUtil.isEmpty(errors) ) {
-                for (StaticError error: errors) {
-                    System.err.println(error);
+                String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
+                Iterable<? extends StaticError> errors = compile(path, file_name, out );
+                int num_errors = IterUtil.sizeOf(errors);
+                if ( !IterUtil.isEmpty(errors) ) {
+                    for (StaticError error: errors) {
+                        System.err.println(error);
+                    }
+                    String err_string;
+                    if (num_errors == 0) {
+                        err_string = "File " + file_name + " compiled successfully.";
+                    } else {
+                        err_string = "File " + file_name + " has " + num_errors + " error" +
+                            (num_errors == 1 ? "." : "s.");
+                    }
+                    System.err.println(err_string);
+                    System.exit(-1);
                 }
-                String err_string;
-                if (num_errors == 0) {
-                    err_string = "File " + file_name + " compiled successfully.";
+            } catch (ProgramError e) {
+                System.err.println(e.getMessage());
+                e.printInterpreterStackTrace(System.err);
+                if (Debug.isOnMax()) {
+                    e.printStackTrace();
                 } else {
-                    err_string = "File " + file_name + " has " + num_errors + " error" +
-                        (num_errors == 1 ? "." : "s.");
+                    System.err.println(turnOnDebugMessage);
                 }
-                System.err.println(err_string);
-                System.exit(-1);
+                System.exit(1);
             }
         }
     }
