@@ -320,7 +320,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
 
     @Override
     public FType defaultCase(Node n) {
-        return bug(n,errorMsg("Can't EvalType this node type."));
+        return bug(n,errorMsg("Can't EvalType this node type " + n.getClass()));
     }
 
     public FType forOpArg(OpArg b) {

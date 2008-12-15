@@ -32,6 +32,7 @@ import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.AbstractNode;
+import com.sun.fortress.nodes.DataNode;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.Level;
@@ -334,7 +335,8 @@ public class Unprinter extends NodeReflection {
                 } else if (StaticParamKind.class.isAssignableFrom(f.getType())) {
                     f.set(node, readStaticParamKind());
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
-                        || Lhs.class.isAssignableFrom(f.getType())) {
+                           || Lhs.class.isAssignableFrom(f.getType())
+                           || DataNode.class.isAssignableFrom(f.getType())) {
                     expectPrefix("(");
                     f.set(node, readNode(l.name()));
                 }

@@ -187,7 +187,7 @@ public class TypesUtil {
                     @Override
                     public Pair<Option<ArrowType>, ConstraintFormula> forArrowType(
                             ArrowType that) {
-                        return this.arrowTypeHelper(that, that.getStaticParams());
+                        return this.arrowTypeHelper(that, NodeUtil.getStaticParams(that));
                     }
                 });
             ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory());
@@ -421,18 +421,20 @@ public class TypesUtil {
     					}
     				}
     				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(that.getSpan(),
-                                                                                                     that.isParenthesized(),
+                                                                                                     NodeUtil.isParenthesized(that),
                                                                                                      conjuncts),accumulated_constraint));
     			}
 
     			@Override
     			public Option<Pair<Type,ConstraintFormula>> forArrowType(ArrowType that) {
 
-    				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,that.getStaticParams(), subtype_checker);
+    				Option<ConstraintFormula> constraints = StaticTypeReplacer.argsMatchParams(static_args,
+                                                                                                           NodeUtil.getStaticParams(that),
+                                                                                                           subtype_checker);
 
     				if(constraints.isSome()) {
-    					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(that.getStaticParams(),static_args));
-    					Type new_type = NodeFactory.makeArrowType(temp.getSpan(),temp.isParenthesized(),
+    					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(NodeUtil.getStaticParams(that),static_args));
+    					Type new_type = NodeFactory.makeArrowType(temp.getSpan(),NodeUtil.isParenthesized(temp),
                                                                       temp.getDomain(),temp.getRange(), temp.getEffect(),
                                                                       Collections.<StaticParam>emptyList(),
                                                                       Option.<WhereClause>none());
@@ -501,7 +503,7 @@ public class TypesUtil {
         for(Type overloaded_type : overloaded_types ) {
             for( Type conj : conjuncts(overloaded_type) ) {
                 Boolean b = conj.accept(new TypeAbstractVisitor<Boolean>(){
-                    @Override public Boolean forArrowType(ArrowType that) { return !that.getStaticParams().isEmpty(); }
+                    @Override public Boolean forArrowType(ArrowType that) { return !NodeUtil.getStaticParams(that).isEmpty(); }
                     @Override public Boolean forType(Type that) { return Boolean.FALSE; }
                 });
                 if( b ) return true;

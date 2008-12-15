@@ -197,7 +197,7 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC) {
-        TraitTypeHeader header = makeTraitTypeHeader(span, mods, name, sparams, whereC,
+        TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      Option.<List<BaseType>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
@@ -247,7 +247,7 @@ public class NodeFactory {
                                             Option<List<Param>> params,
                                             Option<List<BaseType>> throwsC,
                                             Option<Contract> contract) {
-        TraitTypeHeader header = makeTraitTypeHeader(span, mods, name, sparams, whereC,
+        TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      throwsC, contract, extendsC,
                                                      decls);
         return new ObjectDecl(span, header, params);
@@ -307,8 +307,7 @@ public class NodeFactory {
                           body, Option.<Id>none());
     }
 
-    public static FnHeader makeFnHeader(Span span,
-                                        Modifiers mods,
+    public static FnHeader makeFnHeader(Modifiers mods,
                                         IdOrOpOrAnonymousName name,
                                         List<StaticParam> staticParams,
                                         Option<WhereClause> whereClause,
@@ -316,7 +315,7 @@ public class NodeFactory {
                                         Option<Contract> contract,
                                         List<Param> params,
                                         Option<Type> returnType) {
-        return new FnHeader(span, staticParams, mods, name, whereClause,
+        return new FnHeader(staticParams, mods, name, whereClause,
                             throwsClause, contract, params, returnType);
     }
 
@@ -331,7 +330,7 @@ public class NodeFactory {
                                     Id unambiguousName,
                                     Option<Expr> body,
                                     Option<Id> implementsUnambiguousName) {
-        FnHeader header = makeFnHeader(span, mods, name, staticParams, whereC, throwsC,
+        FnHeader header = makeFnHeader(mods, name, staticParams, whereC, throwsC,
                                        contract, params, returnType);
         return new FnDecl(span, header, unambiguousName, body, implementsUnambiguousName);
     }
@@ -517,6 +516,22 @@ public class NodeFactory {
         return new Param(span, name, mods, type, expr, varargsType);
     }
 
+    public static TypeInfo makeTypeInfo() {
+        return makeTypeInfo(false);
+    }
+
+    public static TypeInfo makeTypeInfo(boolean parenthesized) {
+        return makeTypeInfo(parenthesized,
+                            Collections.<StaticParam>emptyList(),
+                            Option.<WhereClause> none());
+    }
+
+    public static TypeInfo makeTypeInfo(boolean parenthesized,
+                                        List<StaticParam> sparams,
+                                        Option<WhereClause> where) {
+        return new TypeInfo(parenthesized, sparams, where);
+    }
+
     public static ArrowType makeArrowType(Span span, Type domain, Type range,
                                           Effect effect) {
         return makeArrowType(span, false, domain, range, effect,
@@ -533,8 +548,8 @@ public class NodeFactory {
                                           Type domain, Type range, Effect effect,
                                           List<StaticParam> sparams,
                                           Option<WhereClause> where) {
-        return new ArrowType(span, parenthesized, domain, range, effect,
-                             sparams, where);
+        TypeInfo info = makeTypeInfo(parenthesized, sparams, where);
+        return new ArrowType(span, info, domain, range, effect);
     }
 
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
@@ -554,23 +569,25 @@ public class NodeFactory {
                                           List<Type> elements,
                                           Option<Type> varargs,
                                           List<KeywordType> keywords) {
-        return new TupleType(span, parenthesized, elements, varargs, keywords);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new TupleType(span, info, elements, varargs, keywords);
     }
 
     public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
                                                   DimExpr u) {
-        return makeTaggedDimType(t.getSpan(), t.isParenthesized(), s, u,
+        return makeTaggedDimType(t.getSpan(), NodeUtil.isParenthesized(t), s, u,
                                  t.getUnitExpr());
     }
 
     public static TaggedDimType makeTaggedDimType(Span span, boolean parenthesized,
                                                   Type elem, DimExpr dim,
                                                   Option<Expr> unit) {
-        return new TaggedDimType(span, parenthesized, elem, dim, unit);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new TaggedDimType(span, info, elem, dim, unit);
     }
 
     public static TraitType makeTraitType(TraitType original) {
-        return makeTraitType(original.getSpan(), original.isParenthesized(),
+        return makeTraitType(original.getSpan(), NodeUtil.isParenthesized(original),
                              original.getName(), original.getArgs(),
                              Collections.<StaticParam>emptyList());
 
@@ -578,7 +595,7 @@ public class NodeFactory {
 
     public static TraitType makeTraitType(TraitType t,
                                           List<StaticArg> args) {
-        return makeTraitType(t.getSpan(), t.isParenthesized(),
+        return makeTraitType(t.getSpan(), NodeUtil.isParenthesized(t),
                              t.getName(), args);
     }
 
@@ -633,7 +650,8 @@ public class NodeFactory {
     public static TraitType makeTraitType(Span span, boolean parenthesized,
                                           Id name, List<StaticArg> sargs,
                                           List<StaticParam> sparams) {
-        return new TraitType(span, parenthesized, name, sargs, sparams);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new TraitType(span, info, name, sargs, sparams);
     }
 
     public static VarType makeVarType(String string) {
@@ -649,41 +667,45 @@ public class NodeFactory {
     }
 
     public static VarType makeVarType(VarType original, int lexicalNestedness) {
-        return makeVarType(original.getSpan(), original.isParenthesized(),
+        return makeVarType(original.getSpan(), NodeUtil.isParenthesized(original),
                            original.getName(), lexicalNestedness);
     }
 
     public static VarType makeVarType(Span span, boolean parenthesized,
                                       Id name, int lexicalDepth) {
-        return new VarType(span, parenthesized, name, lexicalDepth);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new VarType(span, info, name, lexicalDepth);
     }
 
     public static DimBinaryOp makeDimBinaryOp(DimBinaryOp t, DimExpr s, DimExpr u, Op o) {
-        return makeDimBinaryOp(t.getSpan(), t.isParenthesized(), s, u, o);
+        return makeDimBinaryOp(t.getSpan(), NodeUtil.isParenthesized(t), s, u, o);
     }
 
     public static DimBinaryOp makeDimBinaryOp(Span span, boolean parenthesized,
                                               DimExpr left, DimExpr right, Op op) {
-        return new DimBinaryOp(span, parenthesized, left, right, op);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new DimBinaryOp(span, info, left, right, op);
     }
 
     public static DimUnaryOp makeDimUnaryOp(DimUnaryOp t, DimExpr s) {
-        return makeDimUnaryOp(t.getSpan(), t.isParenthesized(), s, t.getOp());
+        return makeDimUnaryOp(t.getSpan(), NodeUtil.isParenthesized(t), s, t.getOp());
     }
 
     public static DimUnaryOp makeDimUnaryOp(Span span, boolean parenthesized,
                                             DimExpr dim, Op op) {
-        return new DimUnaryOp(span, parenthesized, dim, op);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new DimUnaryOp(span, info, dim, op);
     }
 
     public static DimExponent makeDimExponent(DimExponent t, Type s) {
-        return makeDimExponent(t.getSpan(), t.isParenthesized(), s,
+        return makeDimExponent(t.getSpan(), NodeUtil.isParenthesized(t), s,
                                t.getPower());
     }
 
     public static DimExponent makeDimExponent(Span span, boolean parenthesized,
                                               Type base, IntExpr power) {
-        return new DimExponent(span, parenthesized, base, power);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new DimExponent(span, info, base, power);
     }
 
     public static DimRef makeDimRef(Span span, String name) {
@@ -691,43 +713,47 @@ public class NodeFactory {
     }
 
     public static DimRef makeDimRef(Span span, Id name) {
-        return new DimRef(span, false, name);
+        return makeDimRef(span, false, name);
     }
 
     public static DimRef makeDimRef(Span span, boolean parenthesized, Id name) {
-        return new DimRef(span, parenthesized, name);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new DimRef(span, info, name);
     }
 
     public static DimBase makeDimBase(Span span, boolean parenthesized) {
-        return new DimBase(span, parenthesized);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new DimBase(span, info);
     }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
-        return makeFixedPointType(t.getSpan(), t.isParenthesized(), t.getName(), s);
+        return makeFixedPointType(t.getSpan(), NodeUtil.isParenthesized(t), t.getName(), s);
     }
 
     public static FixedPointType makeFixedPointType(_InferenceVarType name, Type s) {
-        return makeFixedPointType(s.getSpan(), s.isParenthesized(), name, s);
+        return makeFixedPointType(s.getSpan(), NodeUtil.isParenthesized(s), name, s);
     }
 
     public static FixedPointType makeFixedPointType(Span span, boolean parenthesized,
                                                     _InferenceVarType name, Type body) {
-        return new FixedPointType(span, parenthesized, name, body);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new FixedPointType(span, info, name, body);
     }
 
     public static UnionType makeUnionType(Type t1, Type t2) {
-        return new UnionType(FortressUtil.spanTwo(t1, t2), false,
+        return makeUnionType(FortressUtil.spanTwo(t1, t2), false,
                              Arrays.asList(t1, t2));
     }
 
     public static UnionType makeUnionType(Set<? extends Type> types){
-        return new UnionType(FortressUtil.spanAll(types), false,
+        return makeUnionType(FortressUtil.spanAll(types), false,
                              CollectUtil.makeList(types));
     }
 
     public static UnionType makeUnionType(Span span, boolean parenthesized,
                                           List<Type> elements) {
-        return new UnionType(span, parenthesized, elements);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new UnionType(span, info, elements);
     }
 
     public static List<Type> make_InferenceVarTypes(Span s, int size) {
@@ -741,11 +767,12 @@ public class NodeFactory {
     }
 
     public static _InferenceVarType make_InferenceVarType(Span span, boolean parenthesized, Object id) {
-        return new _InferenceVarType(span, parenthesized, id);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new _InferenceVarType(span, info, id);
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
-        return makeTaggedUnitType(t.getSpan(), t.isParenthesized(), s,
+        return makeTaggedUnitType(t.getSpan(), NodeUtil.isParenthesized(t), s,
                                   t.getUnitExpr());
     }
 
@@ -775,7 +802,8 @@ public class NodeFactory {
 
     public static MatrixType makeMatrixType(Span span, boolean parenthesized,
                                             Type elem, List<ExtentRange> dim) {
-        return new MatrixType(span, parenthesized, elem, dim);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new MatrixType(span, info, elem, dim);
     }
 
     public static ArrayType makeArrayType(Span span, Type element,
@@ -786,7 +814,8 @@ public class NodeFactory {
 
     public static ArrayType makeArrayType(Span span, boolean parenthesized,
                                           Type elem, Indices indices) {
-        return new ArrayType(span, parenthesized, elem, indices);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new ArrayType(span, info, elem, indices);
     }
 
     public static IntersectionType makeIntersectionType(Type t1, Type t2) {
@@ -801,12 +830,13 @@ public class NodeFactory {
 
     public static IntersectionType makeIntersectionType(Span span,
                                                         List<Type> elems) {
-        return new IntersectionType(span, false, elems);
+        return makeIntersectionType(span, false, elems);
     }
 
     public static IntersectionType makeIntersectionType(Span span, boolean parenthesized,
                                                         List<Type> elems) {
-        return new IntersectionType(span, parenthesized, elems);
+        TypeInfo info = makeTypeInfo(parenthesized);
+        return new IntersectionType(span, info, elems);
     }
 
     /** Create an "empty" effect at the given location. */
@@ -840,7 +870,7 @@ public class NodeFactory {
     }
 
     public static Effect makeEffect(Span span, boolean ioEffect) {
-        return new Effect(span, Option.<List<BaseType>>none(), ioEffect);
+        return makeEffect(span, Option.<List<BaseType>>none(), ioEffect);
     }
 
 
@@ -1083,7 +1113,7 @@ public class NodeFactory {
 
     public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
                                                       List<TraitTypeWhere> extendsC) {
-        return makeTraitTypeHeader(header.getSpan(), header.getMods(), header.getName(),
+        return makeTraitTypeHeader(header.getMods(), header.getName(),
                                    header.getStaticParams(), header.getWhereClause(),
                                    header.getThrowsClause(), header.getContract(),
                                    extendsC, header.getDecls());
@@ -1097,31 +1127,28 @@ public class NodeFactory {
     public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
                                                       List<Decl> decls,
                                                       Option<Contract> contract) {
-        return makeTraitTypeHeader(header.getSpan(), header.getMods(), header.getName(),
+        return makeTraitTypeHeader(header.getMods(), header.getName(),
                                    header.getStaticParams(), header.getWhereClause(),
                                    header.getThrowsClause(), contract,
                                    header.getExtendsClause(), decls);
     }
 
-    public static TraitTypeHeader makeTraitTypeHeader(Span span,
-                                                      List<TraitTypeWhere> extendsC,
+    public static TraitTypeHeader makeTraitTypeHeader(List<TraitTypeWhere> extendsC,
                                                       List<Decl> decls) {
-        return makeTraitTypeHeader(span, makeId(span,"_"), extendsC, decls);
+        return makeTraitTypeHeader(makeId("_"), extendsC, decls);
     }
 
-    public static TraitTypeHeader makeTraitTypeHeader(Span span,
-                                                      IdOrOpOrAnonymousName name,
+    public static TraitTypeHeader makeTraitTypeHeader(IdOrOpOrAnonymousName name,
                                                       List<TraitTypeWhere> extendsClause,
                                                       List<Decl> decls) {
-        return makeTraitTypeHeader(span, Modifiers.None, name,
+        return makeTraitTypeHeader(Modifiers.None, name,
                                    Collections.<StaticParam>emptyList(),
                                    Option.<WhereClause>none(),
                                    Option.<List<BaseType>>none(), Option.<Contract>none(),
                                    extendsClause, decls);
     }
 
-    public static TraitTypeHeader makeTraitTypeHeader(Span span,
-                                                      Modifiers mods,
+    public static TraitTypeHeader makeTraitTypeHeader(Modifiers mods,
                                                       IdOrOpOrAnonymousName name,
                                                       List<StaticParam> staticParams,
                                                       Option<WhereClause> whereClause,
@@ -1129,9 +1156,21 @@ public class NodeFactory {
                                                       Option<Contract> contract,
                                                       List<TraitTypeWhere> extendsClause,
                                                       List<Decl> decls) {
-        return new TraitTypeHeader(span, staticParams, mods, name, whereClause,
+        return new TraitTypeHeader(staticParams, mods, name, whereClause,
                                    throwsClause, contract, extendsClause,
                                    decls);
+    }
+
+    public static AnyType makeAnyType(Span span) {
+        return new AnyType(span, makeTypeInfo());
+    }
+
+    public static BottomType makeBottomType(Span span) {
+        return new BottomType(span, makeTypeInfo());
+    }
+
+    public static LabelType makeLabelType(Span span) {
+        return new LabelType(span, makeTypeInfo());
     }
 
     /***************************************************************************/
@@ -1580,7 +1619,8 @@ public class NodeFactory {
             public Type forArrowType(ArrowType t) {
                 return makeArrowType(t.getSpan(), true, t.getDomain(),
                                      t.getRange(), t.getEffect(),
-                                     t.getStaticParams(), t.getWhereClause());
+                                     NodeUtil.getStaticParams(t),
+                                     NodeUtil.getWhereClause(t));
             }
             public Type forArrayType(ArrayType t) {
                 return makeArrayType(t.getSpan(), true, t.getElemType(),
@@ -1641,14 +1681,14 @@ public class NodeFactory {
     public static NamedType makeNamedType(APIName api, NamedType type) {
         if (type instanceof VarType) {
             return makeVarType(type.getSpan(),
-                               type.isParenthesized(),
+                               NodeUtil.isParenthesized(type),
                                makeId(api, type.getName()),
                                lexicalDepth);
         }
         else { // type instanceof TraitType
             TraitType _type = (TraitType)type;
             return makeTraitType(_type.getSpan(),
-                                 _type.isParenthesized(),
+                                 NodeUtil.isParenthesized(_type),
                                  makeId(api, _type.getName()),
                                  _type.getArgs(),
                                  _type.getStaticParams());

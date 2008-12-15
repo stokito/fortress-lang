@@ -38,6 +38,20 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    /* Getters for Type */
+
+    public static boolean isParenthesized(Type t) {
+        return t.getInfo().isParenthesized();
+    }
+
+    public static List<StaticParam> getStaticParams(Type t) {
+        return t.getInfo().getStaticParams();
+    }
+
+    public static Option<WhereClause> getWhereClause(Type t) {
+        return t.getInfo().getWhereClause();
+    }
+
     /* Getters for TraitObjectDecl */
 
     public static Modifiers getMods(TraitObjectDecl t) {

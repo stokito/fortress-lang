@@ -976,7 +976,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     if(constraint.isSome()) {
                         // make a trait type that is GenericType instantiated
                         t = NodeFactory.makeTraitType(_t.getSpan(),
-                                                      _t.isParenthesized(),
+                                                      NodeUtil.isParenthesized(_t),
                                                       _t.getName(),
                                                       that.getStaticArgs());
                         accumulated_constraints = constraint.unwrap();
@@ -2498,7 +2498,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 									ArrowType gen_arr_type) {
 								// If the arrow type is generic, it needs static args, so make up inference variables
 								List<StaticArg> new_args =
-									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
+									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), NodeUtil.getStaticParams(gen_arr_type).size()));
 								Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args, TypeChecker.this.subtypeChecker);
 
 								if( instantiated_type.isNone() )
@@ -3803,7 +3803,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 									ArrowType gen_arr_type) {
 								// If the arrow type is generic, it needs static args, so make up inference variables
 								List<StaticArg> new_args =
-									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), gen_arr_type.getStaticParams().size()));
+									TypesUtil.staticArgsFromTypes(NodeFactory.make_InferenceVarTypes(that.getSpan(), NodeUtil.getStaticParams(gen_arr_type).size()));
 								Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(gen_arr_type, new_args,TypeChecker.this.subtypeChecker);
 								if( instantiated_type.isNone() )
 									return none();

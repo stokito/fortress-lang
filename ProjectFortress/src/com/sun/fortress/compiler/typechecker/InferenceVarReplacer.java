@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes.TypeInfo;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
@@ -47,7 +48,7 @@ public class InferenceVarReplacer extends NodeUpdateVisitor {
 
 
 	@Override
-	public Node for_InferenceVarTypeOnly(_InferenceVarType that) {
+	public Node for_InferenceVarTypeOnly(_InferenceVarType that, TypeInfo info_result) {
 		if(map.containsKey(that)){
 			return map.get(that);
 		}

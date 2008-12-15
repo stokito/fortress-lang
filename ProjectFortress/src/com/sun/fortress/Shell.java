@@ -60,6 +60,9 @@ import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.nodes_util.ApiMaker;
 
 public final class Shell {
+    private static String turnOnDebugMessage =
+        "Turn on \"-debug interpreter\" for Java-level stack trace.";
+
     static boolean test;
 
     /* This object groups in one place all the public static flags that
@@ -497,7 +500,7 @@ public final class Shell {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level stack trace.");
+                System.err.println(turnOnDebugMessage);
             }
             System.exit(1);
         } catch (ProgramError e) {
@@ -506,7 +509,7 @@ public final class Shell {
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level stack trace.");
+                System.err.println(turnOnDebugMessage);
             }
             System.exit(1);
         } catch ( FileNotFoundException f ){
@@ -792,7 +795,7 @@ public final class Shell {
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level stack trace.");
+                System.err.println(turnOnDebugMessage);
             }
             System.exit(1);
         } catch (FortressException e) {
@@ -801,7 +804,7 @@ public final class Shell {
             if (Debug.isOnMax()) {
                 e.printStackTrace();
             } else {
-                System.err.println("Turn on -debug for Java-level stack trace.");
+                System.err.println(turnOnDebugMessage);
             }
             System.exit(1);
         }
@@ -891,7 +894,7 @@ public final class Shell {
                     if (Debug.isOnMax()) {
                         e.printStackTrace();
                     } else {
-                        System.err.println("Turn on -debug for Java-level stack trace.");
+                        System.err.println(turnOnDebugMessage);
                     }
                     System.exit(1);
                 }

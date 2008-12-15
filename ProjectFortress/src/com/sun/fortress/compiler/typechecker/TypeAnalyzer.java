@@ -226,7 +226,9 @@ public class TypeAnalyzer {
         debug.logStart("t", t);
         Type result = (Type) t.accept(new NodeUpdateVisitor() {
 
-                @Override public BaseType forTraitTypeOnly(TraitType t, Id name, List<StaticArg> normalArgs,
+                @Override public BaseType forTraitTypeOnly(TraitType t,
+                                                           TypeInfo i,
+                                                           Id name, List<StaticArg> normalArgs,
                                                            List<StaticParam> normalParams) {
                 Option<TypeConsIndex> ind = _table.typeCons(name);
              if(ind.isNone()){
@@ -244,7 +246,8 @@ public class TypeAnalyzer {
                     return (BaseType) subst.value(aliasIndex.type()).accept(this);
                 }
                 else if (index instanceof TraitIndex) {
-                    return (BaseType) super.forTraitTypeOnly(t, name, normalArgs, normalParams);
+                    return (BaseType) super.forTraitTypeOnly(t, i,
+                                                             name, normalArgs, normalParams);
                 }
                 else if (index == null) {
                     throw new IllegalArgumentException("Unrecognized name: " + name);
@@ -254,7 +257,9 @@ public class TypeAnalyzer {
                 }
             }
 
-                @Override public Type forTupleTypeOnly(TupleType t, List<Type> normalElements,
+                @Override public Type forTupleTypeOnly(TupleType t,
+                                                       TypeInfo i,
+                                                       List<Type> normalElements,
                                                        Option<Type> normalVarargs,
                                                        List<KeywordType> keywords) {
                     if ( normalVarargs.isNone() ) {
@@ -291,7 +296,8 @@ public class TypeAnalyzer {
                         List<Type> args_result = recurOnListOfType(that.getElements());
                         Option<Type> varargs_result = recurOnOptionOfType(that.getVarargs());
                         List<KeywordType> keywords_result = recurOnListOfKeywordType(that.getKeywords());
-                        return forTupleTypeOnly(that, args_result, varargs_result, keywords_result);
+                        return forTupleTypeOnly(that, that.getInfo(),
+                                                args_result, varargs_result, keywords_result);
                     } else {
                         // recur on a single args type rather than each element individually
                         Type args = stripKeywords(that);
@@ -319,10 +325,10 @@ public class TypeAnalyzer {
                 return makeUnion(map(cross(elementDisjuncts), handleDisjunct));
             }
 
-            @Override public Type forArrowTypeOnly(ArrowType t, Type normalDomain, Type normalRange,
-                                                   final Effect normalEffect,
-                                                   List<StaticParam> staticParams,
-                                                   Option<WhereClause> whereClause) {
+            @Override public Type forArrowTypeOnly(ArrowType t,
+                                                   TypeInfo i,
+                                                   Type normalDomain, Type normalRange,
+                                                   final Effect normalEffect) {
                 Type domainArg = stripKeywords(normalDomain);
                 final Map<Id, Type> domainKeys = extractKeywords(normalDomain);
                 Iterable<Type> domainTs = compose(domainArg, domainKeys.values());
@@ -364,12 +370,15 @@ public class TypeAnalyzer {
                 }
             }
 
-            @Override public Type forUnionTypeOnly(UnionType t, List<Type> normalElements) {
+            @Override public Type forUnionTypeOnly(UnionType t,
+                                                   TypeInfo i,
+                                                   List<Type> normalElements) {
                 Type result = jn(normalElements, history);
                 return t.equals(result) ? t : result;
             }
 
             @Override public Type forIntersectionTypeOnly(IntersectionType t,
+                                                          TypeInfo i,
                                                           List<Type> normalElements) {
                 Type result = mt(normalElements, history);
                 return t.equals(result) ? t : result;
