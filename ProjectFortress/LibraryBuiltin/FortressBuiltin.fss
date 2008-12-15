@@ -158,6 +158,9 @@ value object Float extends RR64
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
     opr ^(self, b:Float):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:RR32):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:Number):RR64 = self^(asFloat(b))
     (** Shouldn't need this extra declaration. **)
     opr ^(self, b:AnyIntegral):RR64 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
@@ -322,6 +325,9 @@ value object RR32 extends RR64
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivDown")
     opr ^(self, b:RR32):RR32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
+    opr ^(self, b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:Number):RR64 = self^asFloat(b)
     (** Shouldn't need this extra declaration. **)
     opr ^(self, b:ZZ64):RR32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
