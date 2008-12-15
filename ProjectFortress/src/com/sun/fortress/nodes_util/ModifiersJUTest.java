@@ -19,13 +19,10 @@ package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.useful.TestCaseWrapper;
 import static com.sun.fortress.nodes_util.Modifiers.*;
+import junit.framework.AssertionFailedError;
 
-/**
- * More tests are needed over NodeFactory. This is a start.
- */
 public class ModifiersJUTest extends TestCaseWrapper {
     public void checkPairing(Modifiers m, Modifiers n, Modifiers mn) {
-        assertFalse(m.equals(n));
         assertEquals(mn,n.combine(m));
         assertEquals(mn,combine(n,m));
         assertEquals(mn,combine(null,mn));
@@ -36,11 +33,11 @@ public class ModifiersJUTest extends TestCaseWrapper {
         assertEquals(mn.remove(m),n.remove(m));
         assertEquals(mn.remove(n),m.remove(n));
         assertEquals(mn.equals(m),m.containsAll(n));
-        assertTrue(mn.containsAny(m));
-        assertTrue(mn.containsAny(n));
-        assertTrue(mn.containsAny(mn));
-        assertTrue(m.containsAny(mn));
-        assertTrue(n.containsAny(mn));
+        assertEquals(mn.containsAny(m),!m.equals(None));
+        assertEquals(mn.containsAny(n),!n.equals(None));
+        assertEquals(mn.containsAny(mn),!mn.equals(None));
+        assertEquals(m.containsAny(mn),!m.equals(None));
+        assertEquals(n.containsAny(mn),!n.equals(None));
         assertTrue(mn.containsAll(m));
         assertTrue(mn.containsAll(n));
         assertTrue(mn.containsAll(mn));
@@ -79,9 +76,11 @@ public class ModifiersJUTest extends TestCaseWrapper {
             assertEquals(None,m.remove(m));
             assertEquals(decode(m.encode()), m);
             assertEquals(m.encode().length(), 3);
+            assertFalse(m.equals(None));
             for (int j=i+1; j < modifiersByBit.length; j++) {
                 Modifiers n = modifiersByBit[j];
                 Modifiers mn = m.combine(n);
+                assertFalse(m.equals(n));
                 checkPairing(m,n,mn);
                 assertEquals(mn.remove(m),n);
                 assertEquals(mn.remove(n),m);
@@ -97,12 +96,19 @@ public class ModifiersJUTest extends TestCaseWrapper {
             Modifiers m = randomForTest();
             Modifiers n = randomForTest();
             Modifiers mn = m.combine(n);
-            checkPairing(m,n,mn);
-            assertTrue(m.containsAll(m.remove(n)));
-            assertEquals(mn.containsAny(m),!m.equals(None));
-            assertEquals(m.containsAny(mn),!m.equals(None));
-            assertTrue(mn.containsAll(m));
-            assertEquals(m.containsAny(n), !m.remove(n).equals(m));
+            try {
+                checkPairing(m,n,mn);
+                assertTrue(m.containsAll(m.remove(n)));
+                assertEquals(mn.containsAny(m),!m.equals(None));
+                assertEquals(m.containsAny(mn),!m.equals(None));
+                assertTrue(mn.containsAll(m));
+                assertEquals(m.containsAny(n), !m.remove(n).equals(m));
+            } catch (AssertionFailedError e) {
+                System.err.println("m = "+ m);
+                System.err.println("n = "+ n);
+                System.err.println("mn = "+ mn);
+                throw e;
+            }
         }
     }
 }
