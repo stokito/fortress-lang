@@ -73,8 +73,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                       TraitTypeHeader header) {
         Span span = that.getSpan();
         List<TraitTypeWhere> extendsClause = rewriteExtendsClause(that, header.getExtendsClause());
-        header = NodeFactory.makeTraitTypeHeader(span,
-                                                 NodeFactory.makeId(span,"_"),
+        header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                  extendsClause,
                                                  header.getDecls());
         return super.forObjectExprOnly(that, exprType_result, header);

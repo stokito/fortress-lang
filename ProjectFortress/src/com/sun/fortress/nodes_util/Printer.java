@@ -213,6 +213,23 @@ public class Printer extends NodeReflection {
             dumpFields(w, indent, x, oneLiner, fields, true);
             w.append(")");
             oneLinerNesting -= oneLinerNestingInc;
+        } else if (o instanceof DataNode) {
+            DataNode x = (DataNode) o;
+            Class cl = x.getClass();
+            String clname = cl.getSimpleName();
+            int oneLinerNestingInc = (o instanceof APIName || o instanceof LiteralExpr ||
+                                      o instanceof VarRef || o instanceof Op) ? 1 : 0;
+            oneLinerNesting += oneLinerNestingInc;
+
+            boolean oneLiner = oneLineVarRef
+                    && (oneLinerNesting > 0 || o instanceof Op
+                            || o instanceof VarType || o instanceof Id || o instanceof Wrapper);
+            Field[] fields = getCachedPrintableFields(cl, clname);
+            w.append("(");
+            w.append(clname);
+            dumpFields(w, indent, x, oneLiner, fields, true);
+            w.append(")");
+            oneLinerNesting -= oneLinerNestingInc;
         } else if ( o instanceof Map ){
             w.append("(Map ");
             java.util.Set<Map.Entry> set = ((Map) o ).entrySet();

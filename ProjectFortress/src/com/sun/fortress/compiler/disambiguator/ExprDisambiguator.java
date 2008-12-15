@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.TypeInfo;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TraitTypeHeader;
 import com.sun.fortress.nodes.WhereClause;
@@ -526,8 +527,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedGettersAndSetters, vars).
             extendWithFns(gettersAndSetters, vars);
 
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getSpan(),
-                                                                 extendsClause,
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(extendsClause,
                                                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
         return forObjectExprOnly(that, typeResult, header);
     }
@@ -761,7 +761,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forTaggedDimType(TaggedDimType that) {
-        return forTaggedDimTypeOnly(that,
+        return forTaggedDimTypeOnly(that, that.getInfo(),
                                     (Type)that.getElemType().accept(this),
                                     that.getDimExpr(),
                                     that.getUnitExpr());
@@ -772,7 +772,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forTaggedUnitType(TaggedUnitType that) {
-        return forTaggedUnitTypeOnly(that,
+        return forTaggedUnitTypeOnly(that, that.getInfo(),
                                      (Type)that.getElemType().accept(this),
                                      that.getUnitExpr());
     }

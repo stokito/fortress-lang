@@ -673,8 +673,8 @@ public abstract class SubtypeChecker {
                     ArrowType tt = (ArrowType)t;
                     return (subdomain(tt.getDomain(), ss.getDomain(), h) &&
                             subtype(ss.getRange(), tt.getRange(), h) &&
-                            equivalentStaticParams(ss.getStaticParams(),
-                                                   tt.getStaticParams(), h));
+                            equivalentStaticParams(NodeUtil.getStaticParams(ss),
+                                                   NodeUtil.getStaticParams(tt), h));
                 }
             }
             // [S-Tuple] p; Delta |- si <: ti

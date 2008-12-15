@@ -690,7 +690,7 @@ public class ExprFactory {
                                     Option<WhereClause> whereClause,
                                     Option<List<BaseType>> throwsClause,
                                     Expr body) {
-        FnHeader header = NodeFactory.makeFnHeader(span, Modifiers.None, name, staticParams,
+        FnHeader header = NodeFactory.makeFnHeader(Modifiers.None, name, staticParams,
                                                    whereClause, throwsClause,
                                                    Option.<Contract>none(), params,
                                                    returnType);
@@ -835,7 +835,7 @@ public class ExprFactory {
                                             Option<Type> exprType,
                                             List<TraitTypeWhere> extendsC,
                                             List<Decl> decls) {
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(span, NodeFactory.makeId(span, "_"),
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span, "_"),
                                                                  extendsC, decls);
         return makeObjectExpr(span, parenthesized, exprType, header);
     }
@@ -879,7 +879,7 @@ public class ExprFactory {
                                                             List<StaticParam> staticParams,
                                                             List<StaticArg> staticArgs,
                                                             Option<List<Param>> params) {
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(span, Modifiers.None,
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(Modifiers.None,
                                                                  NodeFactory.makeId(span,genSymName),
                                                                  staticParams,
                                                                  Option.<WhereClause>none(),

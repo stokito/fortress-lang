@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.TypeInfo;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TraitTypeHeader;
 import com.sun.fortress.nodes.WhereClause;
@@ -207,8 +208,10 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             domainResult = (Type) domain.accept(this);
         Type rangeResult = (Type) that.getRange().accept(this);
         Effect effectResult = (Effect) that.getEffect().accept(this);
-        return forArrowTypeOnly(that, domainResult, rangeResult, effectResult,
-                                that.getStaticParams(), that.getWhereClause());
+        TypeInfo infoResult = NodeFactory.makeTypeInfo(NodeUtil.isParenthesized(that),
+                                                       NodeUtil.getStaticParams(that),
+                                                       NodeUtil.getWhereClause(that));
+        return forArrowTypeOnly(that, infoResult, domainResult, rangeResult, effectResult);
     }
 
     @Override public Node forVarType(final VarType that) {
@@ -217,7 +220,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             new Lambda<Id, Type>() {
             public Type value(Id n) {
                 if (n.equals(Types.ANY_NAME)) {
-                    return new AnyType(that.getSpan(), false);
+                    return NodeFactory.makeAnyType(that.getSpan());
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
@@ -246,7 +249,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             public Type value(Id n) {
                 List<StaticArg> args = that.getArgs();
                 if (n.equals(Types.ANY_NAME) && args.isEmpty()) {
-                    return new AnyType(that.getSpan(), false);
+                    return NodeFactory.makeAnyType(that.getSpan());
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);

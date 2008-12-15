@@ -511,8 +511,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
         Span span = that.getSpan();
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(span,
-                                                                 NodeFactory.makeId(span,"_"),
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                                  NodeUtil.getExtendsClause(that),
                                                                  gettersAndDecls);
         return forObjectExprOnly(that, that.getExprType(), header);

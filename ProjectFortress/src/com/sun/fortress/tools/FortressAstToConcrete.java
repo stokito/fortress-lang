@@ -1978,18 +1978,27 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             that.isParenthesized() );
     }
 
-    @Override public String forDimBaseOnly(DimBase that) {
+    @Override public String forTypeInfoOnly(TypeInfo that,
+                                            List<String> staticParams,
+                                            Option<String> whereClause) {
+        return "";
+    }
+
+    @Override public String forDimBaseOnly(DimBase that,
+                                          String info) {
         return handleParen( "Unity",
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forDimRefOnly(DimRef that,
+                                          String info,
                                           String name_result) {
         return handleParen( name_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forDimBinaryOpOnly(DimBinaryOp that,
+                                               String info,
                                                String left,
                                                String right,
                                                String op) {
@@ -2000,10 +2009,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( right );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forDimExponentOnly(DimExponent that,
+                                               String info,
                                                String base_result,
                                                String power_result) {
         StringBuilder s = new StringBuilder();
@@ -2012,10 +2022,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( power_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forDimUnaryOpOnly(DimUnaryOp that,
+                                              String info,
                                               String val_result,
                                               String op_result) {
         StringBuilder s = new StringBuilder();
@@ -2031,24 +2042,29 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAnyTypeOnly(AnyType that) {
+    @Override public String forAnyTypeOnly(AnyType that,
+                                           String info) {
         return handleParen( "Any",
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forBottomTypeOnly(BottomType that) {
+    @Override public String forBottomTypeOnly(BottomType that,
+                                             String info) {
         return "(* BottomType *)";
     }
 
-    @Override public String forVarTypeOnly(VarType that, String name_result) {
+    @Override public String forVarTypeOnly(VarType that,
+                                           String info,
+                                           String name_result) {
         return handleParen( name_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forTraitTypeOnly(TraitType that,
+                                             String info,
                                              String name_result,
                                              List<String> args_result,
                                              List<String> params_result) {
@@ -2061,6 +2077,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forArrayTypeOnly(ArrayType that,
+                                             String info,
                                              String type_result,
                                              String indices_result) {
         StringBuilder s = new StringBuilder();
@@ -2071,10 +2088,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "]" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forMatrixTypeOnly(MatrixType that,
+                                              String info,
                                               String type_result,
                                               List<String> dimensions) {
         StringBuilder s = new StringBuilder();
@@ -2090,10 +2108,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forTaggedDimTypeOnly(TaggedDimType that,
+                                                 String info,
                                                  String type_result,
                                                  String dim_result,
                                                  Option<String> unit_result) {
@@ -2113,10 +2132,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append(")");
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forTaggedUnitTypeOnly(TaggedUnitType that,
+                                                  String info,
                                                   String type_result,
                                                   String unit_result) {
         StringBuilder s = new StringBuilder();
@@ -2125,15 +2145,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( unit_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forArrowTypeOnly(ArrowType that,
+                                             String info,
                                              String domain_result,
                                              String range_result,
-                                             String effect_result,
-                                             List<String> staticParams_result,
-                                             Option<String> whereClause_result) {
+                                             String effect_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( domain_result );
@@ -2142,14 +2161,16 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( effect_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String for_InferenceVarTypeOnly(_InferenceVarType that) {
+    @Override public String for_InferenceVarTypeOnly(_InferenceVarType that,
+                                                     String info) {
         return "(* _InferenceVarType *)";
     }
 
     @Override public String forIntersectionTypeOnly(IntersectionType that,
+                                                    String info,
                                                     List<String> elements_result) {
         StringBuilder s = new StringBuilder();
 
@@ -2161,6 +2182,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forUnionTypeOnly(UnionType that,
+                                             String info,
                                              List<String> elements_result) {
         StringBuilder s = new StringBuilder();
 
@@ -2172,6 +2194,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String forFixedPointTypeOnly(FixedPointType that,
+                                                  String info,
                                                   String name_result,
                                                   String body_result) {
         StringBuilder s = new StringBuilder();
@@ -2185,11 +2208,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forLabelTypeOnly(LabelType that) {
+    @Override public String forLabelTypeOnly(LabelType that,
+                                             String info) {
         return "(* LabelType *)";
     }
 
     @Override public String forTupleTypeOnly(TupleType that,
+                                             String info,
                                              List<String> args_result,
                                              Option<String> varargs_result,
                                              List<String> keywords_result) {

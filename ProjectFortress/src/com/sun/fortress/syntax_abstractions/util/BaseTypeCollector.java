@@ -20,6 +20,7 @@ package com.sun.fortress.syntax_abstractions.util;
 import java.util.List;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 public class BaseTypeCollector extends NodeDepthFirstVisitor<String> {
 
@@ -35,13 +36,16 @@ public class BaseTypeCollector extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forTraitTypeOnly(TraitType that, String name_result,
+    public String forTraitTypeOnly(TraitType that,
+                                   String info,
+                                   String name_result,
                                    List<String> args_result,
                                    List<String> params_result) {
         if (args_result.size() == 0)
             return that.getName().getText();
         if (args_result.size() != 1)
-            return super.forTraitTypeOnly(that, name_result, args_result, params_result);
+            return super.forTraitTypeOnly(that, info,
+                                          name_result, args_result, params_result);
         return args_result.get(0);
     }
 

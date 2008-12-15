@@ -95,28 +95,6 @@ interface Node() extends HasAt;
          */
         root abstract AbstractNode() extends UIDObject;
             /**
-             * with static parameters
-             */
-            abstract GenericHeader(List<StaticParam> staticParams);
-                /**
-                 * common header for trait/object/function declaration/expression
-                 */
-                abstract DeclHeader(Modifiers mods, // except FnExpr
-                                    IdOrOpOrAnonymousName name,
-                                    Option<WhereClause> whereClause,
-                                    Option<List<BaseType>> throwsClause, // except TraitDecl
-                                    Option<Contract> contract); // except TraitDecl / FnExpr
-                    /**
-                     * common header for trait/object declaration/expression
-                     */
-                    TraitTypeHeader(List<TraitTypeWhere> extendsClause,
-                                    List<Decl> decls);
-                    /**
-                     * common header for function declaration/expression
-                     */
-                    FnHeader(List<Param> params, Option<Type> returnType);
-
-            /**
              * compilation unit declaration
              * CompilationUnit ::= Component | Api
              */
@@ -182,6 +160,8 @@ interface Node() extends HasAt;
              * Alias must be unqualified.
              */
             AliasedAPIName(APIName apiName, Option<Id> alias);
+
+            /** Begin Decl nodes *********************************************** */
             /**
              * declaration in components or APIs
              */
@@ -410,6 +390,8 @@ interface Node() extends HasAt;
                          * nonterminal extending definition in nonterminal declarations
                          */
                         NonterminalExtensionDef();
+            /** End Decl nodes ************************************************* */
+
             /**
              * left-hand side of variable declaration or value parameter
              */
@@ -442,6 +424,8 @@ interface Node() extends HasAt;
                  * It is a varargs parameter if the varargsType field is set.
                  */
                 Param(Option<Expr> defaultExpr, Option<Type> varargsType);
+
+            /** Begin Expr nodes *********************************************** */
             /**
              * expression
              */
@@ -970,10 +954,13 @@ interface Node() extends HasAt;
                              */
                             ArrayElements(int dimension, List<ArrayExpr> elements,
                                           boolean outermost);
+            /** End Expr nodes ************************************************* */
+
+            /** Begin Type nodes *********************************************** */
             /**
              * type
              */
-            root abstract Type(ignoreForEquals boolean parenthesized);
+            root abstract Type(TypeInfo info);
                 /**
                  * base types: things that can be extended, excluded, thrown, etc.
                  */
@@ -1073,9 +1060,7 @@ interface Node() extends HasAt;
                  * <whereClause>
                  * type of a generic function, used during static checking
                  */
-                ArrowType(Type domain, Type range, Effect effect,
-                          List<StaticParam> staticParams,
-                          Option<WhereClause> whereClause);
+                ArrowType(Type domain, Type range, Effect effect);
                 /**
                  * inferred type
                  * Used internally for type analysis
@@ -1146,11 +1131,9 @@ interface Node() extends HasAt;
                      * e.g.) Length / Time
                      */
                     DimBinaryOp(DimExpr left, DimExpr right, Op op);
-            /**
-             * effect on arrow types
-             * e.g.) throws FailCalled
-             */
-            Effect(Option<List<BaseType>> throwsClause, boolean ioEffect);
+            /** End Type nodes ************************************************* */
+
+            /** Begin StaticArg nodes ****************************************** */
             /**
              * static argument
              */
@@ -1191,6 +1174,9 @@ interface Node() extends HasAt;
                  * e.g.) dimensionless
                  */
                 UnitArg(UnitExpr unitArg);
+            /** End StaticArg nodes ******************************************** */
+
+            /** Begin StaticExpr nodes ***************************************** */
             /**
              * static expression
              */
@@ -1296,6 +1282,13 @@ interface Node() extends HasAt;
                      * e.g.) meter^2
                      */
                     UnitBinaryOp(UnitExpr left, UnitExpr right, Op op);
+            /** End StaticExpr nodes ******************************************* */
+
+            /**
+             * effect on arrow types
+             * e.g.) throws FailCalled
+             */
+            Effect(Option<List<BaseType>> throwsClause, boolean ioEffect);
             /**
              * where clause used in trait, object, and functional declarations
              * Where ::= where [\ WhereBindingList \] ({ WhereConstraintList })?
@@ -1834,6 +1827,42 @@ interface Node() extends HasAt;
          * root class for information nodes
          */
         abstract InfoNode() extends UIDObject;
+            /**
+             * with fields to be emitted to the cached files
+             */
+            abstract DataNode();
+                /**
+                 * with static parameters
+                 */
+                abstract GenericHeader(List<StaticParam> staticParams);
+                    /**
+                     * common header for trait/object/function declaration/expression
+                     */
+                    abstract DeclHeader(Modifiers mods, // except FnExpr
+                                        IdOrOpOrAnonymousName name,
+                                        Option<WhereClause> whereClause,
+                                        Option<List<BaseType>> throwsClause, // except TraitDecl
+                                        Option<Contract> contract); // except TraitDecl / FnExpr
+                        /**
+                         * common header for trait/object declaration/expression
+                         */
+                        TraitTypeHeader(List<TraitTypeWhere> extendsClause,
+                                        List<Decl> decls);
+                        /**
+                         * common header for function declaration/expression
+                         */
+                        FnHeader(List<Param> params, Option<Type> returnType);
+                /**
+                 * common header for expressions
+                 */
+                ExprInfo(ignoreForEquals boolean parenthesized,
+                         ignoreForEquals Option<Type> exprType);
+                /**
+                 * common header for types
+                 */
+                TypeInfo(ignoreForEquals boolean parenthesized,
+                         List<StaticParam> staticParams,
+                         Option<WhereClause> whereClause);
             /*
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.
