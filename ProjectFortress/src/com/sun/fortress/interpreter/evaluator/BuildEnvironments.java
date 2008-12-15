@@ -952,7 +952,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     public void finishObjectTrait(_RewriteObjectExpr x, FTypeObject ftt) {
-        List<BaseType> extends_ = NodeUtil.getTypes(x.getExtendsClause());
+        List<BaseType> extends_ = NodeUtil.getTypes(NodeUtil.getExtendsClause(x));
         // _RewriteObjectExpr has no excludes clause.
         finishObjectTrait(extends_, null, null, ftt, containing, x);
     }

@@ -145,8 +145,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     @Override public Node forTraitDecl(final TraitDecl that) {
         TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
-                (Id) NodeUtil.getName(that).accept(v),
                 v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                (Id) NodeUtil.getName(that).accept(v),
                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                 Option.<List<BaseType>>none(),
                 Option.<Contract>none(),
@@ -164,8 +164,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     @Override public Node forObjectDecl(final ObjectDecl that) {
         TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
-                (Id) NodeUtil.getName(that).accept(v),
                 v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                (Id) NodeUtil.getName(that).accept(v),
                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                 Option.<List<BaseType>>none(),
                 Option.<Contract>none(),
@@ -184,8 +184,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
-                (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                 v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                 v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                 v.recurOnOptionOfContract(NodeUtil.getContract(that)),

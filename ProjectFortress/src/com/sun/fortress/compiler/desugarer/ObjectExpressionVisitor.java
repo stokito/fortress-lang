@@ -617,8 +617,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         Span span = target.getSpan();
         Id liftedObjId = NodeFactory.makeId(span, name);
 
-        List<TraitTypeWhere> extendsClauses = target.getExtendsClause();
-        List<Decl> decls = target.getDecls();
+        List<TraitTypeWhere> extendsClauses = NodeUtil.getExtendsClause(target);
+        List<Decl> decls = NodeUtil.getDecls(target);
         List<FnRef> freeMethodRefs = freeNames.getFreeMethodRefs();
 
         Option<List<Param>> params = null;

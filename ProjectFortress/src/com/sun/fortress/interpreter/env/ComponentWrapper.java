@@ -169,24 +169,24 @@ public class ComponentWrapper extends CUWrapper {
 
             for (_RewriteObjectExpr oe : NodeUtil.getObjectExprs( comp )) {
                 String name = oe.getGenSymName();
-                List<StaticParam> params = oe.getStaticParams();
+                List<StaticParam> params = NodeUtil.getStaticParams(oe);
                 if (params.isEmpty()) {
                     // Regular constructor
-                    FTypeObject fto = new FTypeObject(name, env, oe, oe.getParams(),
-                                                      oe.getDecls(), oe);
+                    FTypeObject fto = new FTypeObject(name, env, oe, NodeUtil.getParams(oe),
+                                                      NodeUtil.getDecls(oe), oe);
                     env.putType(name, fto);
-                    BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(oe.getExtendsClause()),
+                    BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(NodeUtil.getExtendsClause(oe)),
                                                         null, null, fto, env, oe);
                     Constructor con = new Constructor(env, fto, oe,
                                                       NodeFactory.makeId(name),
-                                                      oe.getDecls(),
+                                                      NodeUtil.getDecls(oe),
                                                       Option.<List<Param>>none());
 
                     env.putValue(name, con);
                     con.finishInitializing();
                 } else {
                     // Generic constructor
-                    FTypeGeneric fto = new FTypeGeneric(env, oe, oe.getDecls(), oe);
+                    FTypeGeneric fto = new FTypeGeneric(env, oe, NodeUtil.getDecls(oe), oe);
                     env.putType(name, fto);
                     GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeId(name));
                     env.putValue(name, con);

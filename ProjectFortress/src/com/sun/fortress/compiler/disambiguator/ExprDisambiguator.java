@@ -501,10 +501,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forObjectExpr(ObjectExpr that) {
-        List<TraitTypeWhere> extendsClause = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+        List<TraitTypeWhere> extendsClause = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
         // Include trait declarations and inherited methods
-        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(that.getDecls());
+        Triple<Set<Id>,Set<IdOrOpOrAnonymousName>, Set<IdOrOpOrAnonymousName>> declNames = extractDeclNames(NodeUtil.getDecls(that));
         Set<Id> vars = declNames.first();
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
@@ -526,9 +526,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedGettersAndSetters, vars).
             extendWithFns(gettersAndSetters, vars);
 
-        return forObjectExprOnly(that, typeResult,
-                                 extendsClause,
-                                 v.recurOnListOfDecl(that.getDecls()));
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getSpan(),
+                                                                 extendsClause,
+                                                                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
+        return forObjectExprOnly(that, typeResult, header);
     }
 
     // Make sure we don't infinitely explore supertraits that are acyclic
@@ -660,8 +661,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             v.checkForShadowingVars(vars);
 
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
-				(Id) NodeUtil.getName(that).accept(v),
 				v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+				(Id) NodeUtil.getName(that).accept(v),
                                 v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                                 Option.<List<BaseType>>none(),
                                 Option.<Contract>none(),
@@ -711,8 +712,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(gettersAndSetters, fields);
 
         TraitTypeHeader header = (TraitTypeHeader)forTraitTypeHeaderOnly(that.getHeader(),
-                                 (Id) NodeUtil.getName(that).accept(v),
                                  v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                                 (Id) NodeUtil.getName(that).accept(v),
                                  v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                                  v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                                  v.recurOnOptionOfContract(NodeUtil.getContract(that)),
@@ -737,8 +738,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
-                            (IdOrOpOrAnonymousName) NodeUtil.getName(that),
                             v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                            (IdOrOpOrAnonymousName) NodeUtil.getName(that),
                             v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                             v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                             v.recurOnOptionOfContract(NodeUtil.getContract(that)),
@@ -797,8 +798,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Type> type_result = recurOnOptionOfType(that.getExprType());
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
-                             (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                              v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
+                             (IdOrOpOrAnonymousName) NodeUtil.getName(that).accept(v),
                              v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                              v.recurOnOptionOfListOfBaseType(NodeUtil.getThrowsClause(that)),
                              Option.<Contract>none(),

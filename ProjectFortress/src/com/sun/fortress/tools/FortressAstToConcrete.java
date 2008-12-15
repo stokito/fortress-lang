@@ -1240,9 +1240,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
 
     @Override public String forObjectExprOnly(ObjectExpr that, Option<String> exprType_result,
-                                              List<String> extendsClause_result,
-                                              List<String> decls_result) {
+                                              String header_result) {
         StringBuilder s = new StringBuilder();
+        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+        List<String> decls_result = recurOnListOfDecl(NodeUtil.getDecls(that));
 
         increaseIndent();
         s.append( "object " );
@@ -1259,14 +1260,15 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override public String for_RewriteObjectExprOnly(_RewriteObjectExpr that, Option<String> exprType_result,
-                                                      List<String> extendsClause_result,
-                                                      List<String> decls_result,
-                                                      List<String> staticParams_result,
+                                                      String header_result,
                                                       List<String> staticArgs_result,
                                                       Option<List<String>> params_result) {
         StringBuilder s = new StringBuilder();
 
         s.append( "object " );
+        List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
+        List<String> decls_result = recurOnListOfDecl(NodeUtil.getDecls(that));
+
         s = optCurlyBraces(s, "extends ", extendsClause_result, "");
         if ( ! decls_result.isEmpty() ) {
             s.append( "\n" );

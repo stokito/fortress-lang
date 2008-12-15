@@ -316,7 +316,7 @@ public class NodeFactory {
                                         Option<Contract> contract,
                                         List<Param> params,
                                         Option<Type> returnType) {
-        return new FnHeader(span, mods, name, staticParams, whereClause,
+        return new FnHeader(span, staticParams, mods, name, whereClause,
                             throwsClause, contract, params, returnType);
     }
 
@@ -1104,6 +1104,23 @@ public class NodeFactory {
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(Span span,
+                                                      List<TraitTypeWhere> extendsC,
+                                                      List<Decl> decls) {
+        return makeTraitTypeHeader(span, makeId(span,"_"), extendsC, decls);
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(Span span,
+                                                      IdOrOpOrAnonymousName name,
+                                                      List<TraitTypeWhere> extendsClause,
+                                                      List<Decl> decls) {
+        return makeTraitTypeHeader(span, Modifiers.None, name,
+                                   Collections.<StaticParam>emptyList(),
+                                   Option.<WhereClause>none(),
+                                   Option.<List<BaseType>>none(), Option.<Contract>none(),
+                                   extendsClause, decls);
+    }
+
+    public static TraitTypeHeader makeTraitTypeHeader(Span span,
                                                       Modifiers mods,
                                                       IdOrOpOrAnonymousName name,
                                                       List<StaticParam> staticParams,
@@ -1112,7 +1129,7 @@ public class NodeFactory {
                                                       Option<Contract> contract,
                                                       List<TraitTypeWhere> extendsClause,
                                                       List<Decl> decls) {
-        return new TraitTypeHeader(span, mods, name, staticParams, whereClause,
+        return new TraitTypeHeader(span, staticParams, mods, name, whereClause,
                                    throwsClause, contract, extendsClause,
                                    decls);
     }

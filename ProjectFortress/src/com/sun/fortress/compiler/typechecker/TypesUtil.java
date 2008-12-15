@@ -451,7 +451,7 @@ public class TypesUtil {
      * @return
      */
     public static Type getObjectExprType(ObjectExpr obj) {
-    	List<Type> extends_types = CollectUtil.makeList(IterUtil.map(obj.getExtendsClause(),
+    	List<Type> extends_types = CollectUtil.makeList(IterUtil.map(NodeUtil.getExtendsClause(obj),
     			new Lambda<TraitTypeWhere,Type>(){
     		public Type value(TraitTypeWhere arg0) {
     			return arg0.getBaseType();

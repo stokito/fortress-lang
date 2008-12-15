@@ -94,7 +94,8 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
             returnType_result;
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
-                                                    name_result, staticParams_result,
+                                                    staticParams_result,
+                                                    name_result,
                                                     where_result, throwsClause_result,
                                                     contract_result,
                                                     params_result, new_ret_type);

@@ -3554,11 +3554,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forObjectExpr(final ObjectExpr that) {
-		List<TypeCheckerResult> extendsClause_result = recurOnListOfTraitTypeWhere(that.getExtendsClause());
+		List<TypeCheckerResult> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
 
 		// Verify that no extends clauses try to extend an object.
 		List<TypeCheckerResult> extends_traits_result = CollectUtil.makeList(
-				IterUtil.map(that.getExtendsClause(), new Lambda<TraitTypeWhere,TypeCheckerResult>() {
+				IterUtil.map(NodeUtil.getExtendsClause(that), new Lambda<TraitTypeWhere,TypeCheckerResult>() {
 					public TypeCheckerResult value(TraitTypeWhere arg0) {
 						return assertTrait(arg0.getBaseType(), that, "Objects can only extend traits.", arg0);
 					}}));
@@ -3566,7 +3566,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// Extend the type checker with all of the field decls
 		TypeChecker method_checker = this;
 		TypeChecker field_checker = this;
-		for( Decl decl : that.getDecls() ) {
+		for( Decl decl : NodeUtil.getDecls(that) ) {
 			if( decl instanceof VarDecl ) {
 				VarDecl _decl = (VarDecl)decl;
 				method_checker = method_checker.extend(_decl.getLhs());
@@ -3576,7 +3576,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// Extend type checker with methods and functions that will now be in scope as regular functions
 		ObjectTraitIndex obj_index = IndexBuilder.buildObjectExprIndex(that);
 		Relation<IdOrOpOrAnonymousName,Method> methods = obj_index.dottedMethods();
-		methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(that.getExtendsClause()), methods);
+		methods = new UnionRelation<IdOrOpOrAnonymousName, Method>(inheritedMethods(NodeUtil.getExtendsClause(that)), methods);
 		method_checker = method_checker.extendWithMethods(methods);
 		method_checker = method_checker.extendWithFunctions(obj_index.functionalMethods());
 
@@ -3586,8 +3586,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				obj_type)));
 
 		// Typecheck each declaration
-		List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(that.getDecls().size());
-		for (Decl decl: that.getDecls()) {
+		List<TypeCheckerResult> decls_result = new ArrayList<TypeCheckerResult>(NodeUtil.getDecls(that).size());
+		for (Decl decl: NodeUtil.getDecls(that)) {
 			if (decl instanceof FnDecl) {
 				// Methods get a few more things in scope than everything else
 				decls_result.add(decl.accept(method_checker));
@@ -3604,7 +3604,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		ObjectExpr new_node = ExprFactory.makeObjectExpr(that.getSpan(),
-				that.isParenthesized(),
+                                                                 that.isParenthesized(),
                                                                  that.getExprType(),
 				(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClause_result),
 				(List<Decl>)TypeCheckerResult.astFromResults(decls_result)
