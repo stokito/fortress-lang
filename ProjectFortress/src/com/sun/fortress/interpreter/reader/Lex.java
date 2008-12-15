@@ -26,13 +26,18 @@ import com.sun.fortress.nodes_util.Unprinter;
 
 public class Lex {
     BufferedReader reader;
+    String name;
 
     int last = -1;
 
     int lastread = -1;
 
     public Lex(BufferedReader r) {
+        this(r, "unnamed file");
+    }
+    public Lex(BufferedReader r, String name) {
         this.reader = r;
+        this.name = name;
     }
 
     int line = 1;
@@ -287,12 +292,12 @@ public class Lex {
 
     public void unexpected(String got, String wanted) throws IOException {
         throw new IOException("Near line " + line + " and column " + column
-                + " got " + got + ", wanted " + wanted);
+                + " got " + got + ", wanted " + wanted + ", reading " + name);
     }
 
     public void unexpected(String got) throws IOException {
         throw new IOException("Near line " + line + " and column " + column
-                + " got " + got);
+                + " got " + got + ", reading " + name);
     }
 
     public Lex lp() throws IOException {
@@ -327,7 +332,7 @@ public class Lex {
                 throw new IOException("Expected " + s.substring(0, i) + "["
                         + s.substring(i, i + 1) + "]" + s.substring(i + 1)
                         + " saw [" + (char) c + "] instead at line " + line()
-                        + " and column " + column());
+                        + " and column " + column() + " of " + name);
             }
             c = read();
             i++;
@@ -339,12 +344,12 @@ public class Lex {
             throw new IOException("Expected " + s.substring(0, i) + "["
                     + s.substring(i, i + 1) + "]" + s.substring(i + 1)
                     + " saw [" + (char) c + "] instead at line " + line()
-                    + " and column " + column());
+                    + " and column " + column() + " of " + name);
 
         } else {
             throw new IOException("Expected " + s
                     + " followed by whitespace but saw [" + (char) c
-                    + "] instead at line " + line() + " and column " + column());
+                    + "] instead at line " + line() + " and column " + column() + " of " + name);
 
         }
     }
@@ -370,7 +375,7 @@ public class Lex {
                 throw new IOException("Expected " + s.substring(0, i) + "["
                         + s.substring(i, i + 1) + "]" + s.substring(i + 1)
                         + " saw [" + (char) c + "] instead at line " + line()
-                        + " and column " + column());
+                        + " and column " + column()  + " of " + name);
             c = read();
             i++;
         }
@@ -380,7 +385,7 @@ public class Lex {
             throw new IOException("Expected " + s.substring(0, i) + "["
                     + s.substring(i, i + 1) + "]" + s.substring(i + 1)
                     + " saw [" + (char) c + "] instead at line " + line()
-                    + " and column " + column());
+                    + " and column " + column()  + " of " + name);
 
         }
     }
@@ -404,7 +409,7 @@ public class Lex {
         if (s.startsWith("F"))
             return false;
         throw new IOException("Expected true or false, saw " + s + "instead at line " + line()
-                    + " and column " + column());
+                    + " and column " + column()  + " of " + name);
 
     }
 

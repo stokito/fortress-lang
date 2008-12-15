@@ -89,7 +89,7 @@ public class ASTIO {
                                                       BufferedReader br)
         throws IOException
     {
-        Lex lex = new Lex(br);
+        Lex lex = new Lex(br, reportedFileName);
         try {
             Unprinter up = new Unprinter(lex);
             lex.name();

@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -94,7 +95,12 @@ public class FileTests {
             Runtime runtime = Runtime.getRuntime();
             System.out.print("  ") ; System.out.print(f); System.out.print(" "); System.out.flush();
             
-            Process p = runtime.exec(scriptName);
+            ProcessBuilder pb = new ProcessBuilder(scriptName);
+            Map<String, String> env = pb.environment();
+            if (! env.containsKey("FORTRESS_HOME")) {
+                env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);
+            }
+            Process p = pb.start();
             InputStream err = p.getErrorStream();
             InputStream out = p.getInputStream();
             OutputStream in = p.getOutputStream();
