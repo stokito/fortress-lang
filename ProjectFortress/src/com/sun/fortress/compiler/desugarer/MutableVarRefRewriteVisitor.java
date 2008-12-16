@@ -68,10 +68,10 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     public Node forObjectDecl(ObjectDecl that) {
         if( entryNode instanceof ObjectDecl &&
             (that.equals(entryNode) == false ||
-             entryNode.getSpan().equals(that.getSpan()) == false) ) {
+             NodeUtil.getSpan(entryNode).equals(NodeUtil.getSpan(that)) == false) ) {
             throw new DesugarerError("Wrong entry node for the rewriting " +
-                "pass!  Expected: " + entryNode + " (" + entryNode.getSpan() +
-                "); " + "found: " + that + " (" + that.getSpan() + ").");
+                "pass!  Expected: " + entryNode + " (" + NodeUtil.getSpan(entryNode) +
+                "); " + "found: " + that + " (" + NodeUtil.getSpan(that) + ").");
         }
 
         List<Decl> decls_result = recurOnListOfDecl( NodeUtil.getDecls(that) );
@@ -79,7 +79,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
         for( VarRef var : varRefsToRewrite ) {
             VarRefContainer container = mutableVarRefContainerMap.get(var);
             if( container == null ) {
-                throw new DesugarerError(var.getSpan(),
+                throw new DesugarerError(NodeUtil.getSpan(var),
                         "VarRefContainer for " + var +
                         " is not found in map while rewriting " + that);
             }
@@ -103,7 +103,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     public Node forLocalVarDecl(LocalVarDecl that) {
         // This is not the node that we are trying to rewrite
         if( that.equals(entryNode) == false ||
-            entryNode.getSpan().equals(that.getSpan()) == false ) {
+            NodeUtil.getSpan(entryNode).equals(NodeUtil.getSpan(that)) == false ) {
             return super.forLocalVarDecl(that);
         }
 
@@ -113,7 +113,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
         for( VarRef var : varRefsToRewrite ) {
             VarRefContainer container = mutableVarRefContainerMap.get(var);
             if( container == null ) {
-                throw new DesugarerError(var.getSpan(),
+                throw new DesugarerError(NodeUtil.getSpan(var),
                         "VarRefContainer for " + var +
                         " is not found in map while rewriting " + that);
             }
@@ -125,7 +125,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
 // its container type.
 //            Node origDeclNode = container.origDeclNode();
 //            if( origDeclNode.equals(that) == false ) {
-//                throw new DesugarerError(that.getSpan(),
+//                throw new DesugarerError(NodeUtil.getSpan(that),
 //                    "Unexpected node in rewriteList when rewriting " + that);
 //            } else {
                 if( newLocalVarDecl == null ) {
@@ -151,7 +151,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
     public Node forVarRef(VarRef that) {
         if( varRefsToRewrite.contains(that) ) {
             VarRefContainer container = mutableVarRefContainerMap.get(that);
-            return container.containerFieldRef( that.getSpan() );
+            return container.containerFieldRef( NodeUtil.getSpan(that) );
         } else {
             return super.forVarRef(that);
         }

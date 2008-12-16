@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.TupleExpr;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.interpreter.evaluator._WrappedFValue;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -56,7 +57,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
     private Expr wrapEval(Expr x, String desc) {
         FValue v = x.accept(evaluator);
         if (v instanceof FObject) {
-            return new _WrappedFValue(x.getSpan(), false, v);
+            return new _WrappedFValue(NodeUtil.getSpan(x), false, v);
         }
         return error(x,evaluator.e, desc);
     }
@@ -67,7 +68,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
         Iterator<Expr> eIt = es.iterator();
         for (FValue unw : unwrapped) {
             Expr e = eIt.next();
-            res.add(new _WrappedFValue(e.getSpan(), false, unw));
+            res.add(new _WrappedFValue(NodeUtil.getSpan(e), false, unw));
         }
         return res;
     }
@@ -91,7 +92,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
     public Lhs forSubscriptExpr(SubscriptExpr x) {
         Expr warray = wrapEval(x.getObj(), "Indexing non-object.");
         List<Expr> wsubs = wrapEvalParallel(x.getSubs());
-        return ExprFactory.makeSubscriptExpr(x.getSpan(), warray, wsubs,
+        return ExprFactory.makeSubscriptExpr(NodeUtil.getSpan(x), warray, wsubs,
                                              x.getOp(), x.getStaticArgs());
     }
 
@@ -102,7 +103,7 @@ public class LHSToLValue extends NodeAbstractVisitor<Lhs>  {
     public Lhs forFieldRef(FieldRef x) {
         Expr from = wrapEval(x.getObj(), "Non-object in field selection");
         // TODO need to generalize to dotted names.
-        return ExprFactory.makeFieldRef(x.getSpan(), from, x.getField());
+        return ExprFactory.makeFieldRef(NodeUtil.getSpan(x), from, x.getField());
     }
 
     public Lhs forVarRef(VarRef x) {

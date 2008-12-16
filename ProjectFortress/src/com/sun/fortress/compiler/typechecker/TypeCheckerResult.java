@@ -276,7 +276,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
                                                             Node node, TypeEnv env) {
             if ( ! ( node instanceof ASTNode ) )
                 bug(node, "Only ASTNodes are supported.");
-            return addNodeTypeEnvEntries(result, Collections.singletonMap(Pair.make(node, ((ASTNode)node).getSpan()), env));
+            return addNodeTypeEnvEntries(result, Collections.singletonMap(Pair.make(node, NodeUtil.getSpan((ASTNode)node)), env));
 	}
 
 	/**
@@ -467,7 +467,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
         List<VarType> var_types = new LinkedList<VarType>();
         for( StaticParam static_param : staticParams ) {
             if( NodeUtil.isTypeParam(static_param) ) {
-                var_types.add(NodeFactory.makeVarType(static_param.getSpan(), (Id)static_param.getName()));
+                var_types.add(NodeFactory.makeVarType(NodeUtil.getSpan(static_param), (Id)static_param.getName()));
             }
         }
         return new TypeCheckerResult(this.ast,

@@ -122,7 +122,7 @@ public class _WrappedFValue extends Expr {
         writer.print("_WrappedFValue:");
         writer.indent();
 
-        Span temp_span = getSpan();
+        Span temp_span = NodeUtil.getSpan(this);
         writer.startLine();
         writer.print("span = ");
         if (lossless) {

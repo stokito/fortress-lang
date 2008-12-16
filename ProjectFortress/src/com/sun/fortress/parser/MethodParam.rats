@@ -89,7 +89,7 @@ FnHeaderFront OpHeaderFront :=
            }
            name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(leftOp.getSpan(),
+           name = syntaxError(NodeUtil.getSpan(leftOp),
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
@@ -127,7 +127,7 @@ FnHeaderFront AbsOpHeaderFront :=
            }
            name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(leftOp.getSpan(),
+           name = syntaxError(NodeUtil.getSpan(leftOp),
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();

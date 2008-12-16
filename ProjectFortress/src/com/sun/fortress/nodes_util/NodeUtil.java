@@ -38,7 +38,17 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    /* Getters for ASTNode */
+
+    public static Span getSpan(ASTNode n) {
+        return n.getSpan();
+    }
+
     /* Getters for Expr */
+
+    public static Span getSpan(Expr e) {
+        return e.getSpan();
+    }
 
     public static boolean isParenthesized(Expr e) {
         return e.getInfo().isParenthesized();
@@ -49,6 +59,10 @@ public class NodeUtil {
     }
 
     /* Getters for Type */
+
+    public static Span getSpan(Type t) {
+        return t.getSpan();
+    }
 
     public static boolean isParenthesized(Type t) {
         return t.getInfo().isParenthesized();
@@ -441,7 +455,7 @@ public class NodeUtil {
             else return OprUtil.fixityDecorator(n.getFixity(), n.getText());
         }
         public String forAnonymousFnName(AnonymousFnName n) {
-            return n.getSpan().toString();
+            return getSpan(n).toString();
         }
     };
 
@@ -475,7 +489,7 @@ public class NodeUtil {
             }
         }
         public String forAnonymousFnName(AnonymousFnName n) {
-            return n.getSpan().toString();
+            return getSpan(n).toString();
         }
         public String forConstructorFnName(ConstructorFnName n) {
             // TODO Auto-generated method stub
@@ -532,7 +546,7 @@ public class NodeUtil {
         else return OprUtil.fixityDecorator(n.getFixity(), n.getText());
     }
     public static String nameString(AnonymousFnName n) {
-        return n.getSpan().toString();
+        return getSpan(n).toString();
     }
     public static String nameString(ConstructorFnName n) {
         // TODO Auto-generated method stub

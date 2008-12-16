@@ -79,7 +79,7 @@ class ObjectTypeEnv extends TypeEnv {
                 type = NodeFactory.makeTraitType(_var);
             } else {
                 // No static params, some normal params
-                type = NodeFactory.makeArrowType(var.getSpan(),
+                type = NodeFactory.makeArrowType(NodeUtil.getSpan(var),
                                      domainFromParams(NodeUtil.getParams(decl).unwrap()),
                                      NodeFactory.makeTraitType(_var));
             }
@@ -90,7 +90,7 @@ class ObjectTypeEnv extends TypeEnv {
             } else {
                 // Some static params, some normal params
                 // TODO: handle type variables bound in where clause
-                type = NodeFactory.makeArrowType(decl.getSpan(), false,
+                type = NodeFactory.makeArrowType(NodeUtil.getSpan(decl), false,
                                      domainFromParams(NodeUtil.getParams(decl).unwrap()),
                                      NodeFactory.makeTraitType(_var, TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(decl))),
                                                  FortressUtil.emptyEffect(),

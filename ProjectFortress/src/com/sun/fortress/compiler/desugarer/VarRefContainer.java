@@ -68,14 +68,14 @@ public class VarRefContainer {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
             CONTAINER_DECL_PREFIX + "_" + uniqueSuffix +
             "_" + origVar.getVarId().getText();
-        return NodeFactory.makeId( origDeclNode.getSpan(), name );
+        return NodeFactory.makeId( NodeUtil.getSpan(origDeclNode), name );
     }
 
     public Id containerVarId() {
         String name = ObjectExpressionVisitor.MANGLE_CHAR +
             CONTAINER_FIELD_PREFIX + "_" + uniqueSuffix +
             "_" + origVar.getVarId().getText();
-        return NodeFactory.makeId( origDeclNode.getSpan(), name );
+        return NodeFactory.makeId( NodeUtil.getSpan(origDeclNode), name );
     }
 
     public ASTNode origDeclNode() {
@@ -91,28 +91,28 @@ public class VarRefContainer {
     public ObjectDecl containerDecl() {
         List<Param> params = new LinkedList<Param>();
         Param param = makeVarParamFromVarRef( origVar,
-                                              origDeclNode.getSpan(),
+                                              NodeUtil.getSpan(origDeclNode),
                                               NodeUtil.getExprType(origVar) );
         params.add(param);
 
         ObjectDecl container =
-            NodeFactory.makeObjectDecl( origDeclNode.getSpan(), containerDeclId(),
+            NodeFactory.makeObjectDecl( NodeUtil.getSpan(origDeclNode), containerDeclId(),
                                         Option.<List<Param>>some(params) );
 
         return container;
     }
 
     public Param containerTypeParam() {
-        return NodeFactory.makeParam( origDeclNode.getSpan(),
+        return NodeFactory.makeParam( NodeUtil.getSpan(origDeclNode),
                                       containerVarId(), containerType() );
     }
 
     public VarDecl containerField() {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( NodeFactory.makeLValue(origDeclNode.getSpan(), containerVarId(),
+        lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode), containerVarId(),
                                         containerType()) );
-        VarDecl field = new VarDecl( origDeclNode.getSpan(),
+        VarDecl field = new VarDecl( NodeUtil.getSpan(origDeclNode),
                                      lhs, Option.<Expr>some(makeCallToContainerObj()) );
 
         return field;
@@ -133,9 +133,9 @@ public class VarRefContainer {
     public LocalVarDecl containerLocalVarDecl(List<Expr> bodyExprs) {
         List<LValue> lhs = new LinkedList<LValue>();
         // set the field to be immutable
-        lhs.add( NodeFactory.makeLValue(origDeclNode.getSpan(), containerVarId(),
+        lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode), containerVarId(),
                                         containerType()) );
-        LocalVarDecl ret = ExprFactory.makeLocalVarDecl( origDeclNode.getSpan(),
+        LocalVarDecl ret = ExprFactory.makeLocalVarDecl( NodeUtil.getSpan(origDeclNode),
                             lhs, makeCallToContainerObj(), bodyExprs );
 
         return ret;
@@ -150,7 +150,7 @@ public class VarRefContainer {
 
     private Expr makeCallToContainerObj() {
         List<IdOrOp> fns = new LinkedList<IdOrOp>();
-        Span origSpan = origDeclNode.getSpan();
+        Span origSpan = NodeUtil.getSpan(origDeclNode);
 
         fns.add( containerDeclId() );
         FnRef fnRefToDecl = ExprFactory.makeFnRef( origSpan, false,

@@ -18,6 +18,7 @@
 package com.sun.fortress.exceptions;
 
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.ASTNode;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -45,6 +46,6 @@ public class MacroError extends CompilerError {
     }
 
     public MacroError(ASTNode node, String msg) {
-        super(node.getSpan(), msg);
+        super(NodeUtil.getSpan(node), msg);
     }
 }

@@ -140,11 +140,11 @@ public abstract class TypeEnv {
     }
 
     protected static ArrowType genericArrowFromDecl(FnDecl decl) {
-        return NodeFactory.makeArrowType(decl.getSpan(), false,
+        return NodeFactory.makeArrowType(NodeUtil.getSpan(decl), false,
                              domainFromParams(NodeUtil.getParams(decl)),
                              // all types have been filled in at this point
                              NodeUtil.getReturnType(decl).unwrap(),
-                             makeEffect(decl.getSpan().getEnd(),
+                             makeEffect(NodeUtil.getSpan(decl).getEnd(),
                                         NodeUtil.getThrowsClause(decl)),
                              NodeUtil.getStaticParams(decl),
                              NodeUtil.getWhereClause(decl));
@@ -170,9 +170,9 @@ public abstract class TypeEnv {
                     }
                 } else { // No type is explicitly declared for this parameter.
                     if (param.getDefaultExpr().isSome()) { // We have a keyword param.
-                        keywordTypes.add(makeKeywordType(param.getName(), NodeFactory.make_InferenceVarType(param.getSpan())));
+                        keywordTypes.add(makeKeywordType(param.getName(), NodeFactory.make_InferenceVarType(NodeUtil.getSpan(param))));
                     } else { // We have an ordinary param.
-                        paramTypes.add(NodeFactory.make_InferenceVarType(param.getSpan()));
+                        paramTypes.add(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(param)));
                     }
                 }
             } else { // We have a varargs param.
@@ -221,7 +221,7 @@ public abstract class TypeEnv {
     }
 
     static Op removeApi(Op id) {
-    	return new Op(id.getSpan(), Option.<APIName>none(),
+    	return new Op(NodeUtil.getSpan(id), Option.<APIName>none(),
                       id.getText(), id.getFixity(), id.isEnclosing());
     }
 
@@ -230,17 +230,17 @@ public abstract class TypeEnv {
 			@Override public IdOrOpOrAnonymousName forId(Id that) { return removeApi(that); }
 			@Override
 			public IdOrOpOrAnonymousName forOp(Op that) {
-                            return new Op(that.getSpan(), Option.<APIName>none(),
+                            return new Op(NodeUtil.getSpan(that), Option.<APIName>none(),
                                           that.getText(), that.getFixity(), that.isEnclosing());
 			}
 			@Override
 			public IdOrOpOrAnonymousName forAnonymousFnName(AnonymousFnName that) {
-				return new AnonymousFnName(that.getSpan(),
+				return new AnonymousFnName(NodeUtil.getSpan(that),
                                                            Option.<APIName>none());
 			}
 			@Override
 			public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
-				return new ConstructorFnName(that.getSpan(),
+				return new ConstructorFnName(NodeUtil.getSpan(that),
                                                              Option.<APIName>none(),
                                                              that.getDef());
 			}
@@ -287,7 +287,7 @@ public abstract class TypeEnv {
                 // called. This is necessary because TypeEnvs are immutable.
                 // It's up to the type checker to accumulate the constraints
                 // on implicit types.
-                return Option.<Type>wrap(NodeFactory.make_InferenceVarType(var.getSpan()));
+                return Option.<Type>wrap(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(var)));
             }
         } else {
             return Option.none();

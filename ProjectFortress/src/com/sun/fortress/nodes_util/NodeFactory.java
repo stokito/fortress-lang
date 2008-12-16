@@ -55,7 +55,7 @@ public class NodeFactory {
      * @param start
      * @return  the span from a node.
      */public static Span makeSpan(ASTNode node) {
-        return node.getSpan();
+        return NodeUtil.getSpan(node);
     }
 
     /**
@@ -74,7 +74,7 @@ public class NodeFactory {
      * @return the span encompassing the spans of both nodes.
      */
      public static Span makeSpan(ASTNode start, ASTNode finish) {
-        return makeSpan(start.getSpan(), finish.getSpan());
+        return makeSpan(NodeUtil.getSpan(start), NodeUtil.getSpan(finish));
     }
 
     /**
@@ -161,7 +161,7 @@ public class NodeFactory {
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name) {
-        return new AliasedSimpleName(name.getSpan(), name,
+        return new AliasedSimpleName(NodeUtil.getSpan(name), name,
                                      Option.<IdOrOpOrAnonymousName>none());
     }
 
@@ -172,7 +172,7 @@ public class NodeFactory {
     }
 
     public static AliasedAPIName makeAliasedAPIName(APIName api) {
-        return new AliasedAPIName(api.getSpan(), api, Option.<Id>none());
+        return new AliasedAPIName(NodeUtil.getSpan(api), api, Option.<Id>none());
     }
 
     public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
@@ -364,14 +364,14 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(Id id) {
-        return makeLValue(id.getSpan(), id);
+        return makeLValue(NodeUtil.getSpan(id), id);
     }
 
     public static LValue makeLValue(Id name, Id type) {
         return makeLValue(FortressUtil.spanTwo(name, type),
                           name,
                           Modifiers.None,
-                          Option.some((Type)makeVarType(type.getSpan(),type)),
+                          Option.some((Type)makeVarType(NodeUtil.getSpan(type),type)),
                           false);
     }
 
@@ -381,17 +381,17 @@ public class NodeFactory {
 
     public static LValue makeLValue(Id id, Type ty,
                                     Modifiers mods) {
-        return makeLValue(id.getSpan(), id, mods, Option.<Type>some(ty),
+        return makeLValue(NodeUtil.getSpan(id), id, mods, Option.<Type>some(ty),
                           mods.isMutable());
     }
 
     public static LValue makeLValue(String name, Type type) {
-        return makeLValue(type.getSpan(), makeId(name),
+        return makeLValue(NodeUtil.getSpan(type), makeId(name),
                           Modifiers.None, Option.some(type), false);
     }
 
     public static LValue makeLValue(String name, Type type, Modifiers mods) {
-        return makeLValue(type.getSpan(), makeId(name), mods, Option.some(type), false);
+        return makeLValue(NodeUtil.getSpan(type), makeId(name), mods, Option.some(type), false);
     }
 
     public static LValue makeLValue(String name, String type) {
@@ -400,39 +400,39 @@ public class NodeFactory {
 
     public static LValue makeLValue(LValue lvb, Modifiers mods,
                                     boolean mutable) {
-        return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
 
     public static LValue makeLValue(LValue lvb, Id name) {
-        return makeLValue(lvb.getSpan(), name, lvb.getMods(), lvb.getIdType(),
+        return makeLValue(NodeUtil.getSpan(lvb), name, lvb.getMods(), lvb.getIdType(),
                           lvb.isMutable());
     }
 
     public static LValue makeLValue(LValue lvb, boolean mutable) {
-        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(), lvb.getIdType(),
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(), lvb.getIdType(),
                           mutable);
     }
 
     public static LValue makeLValue(LValue lvb, Modifiers mods) {
         boolean mutable = lvb.isMutable() || mods.isMutable();
-        return makeLValue(lvb.getSpan(), lvb.getName(), mods, lvb.getIdType(), mutable);
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
 
     public static LValue makeLValue(LValue lvb, Type ty) {
-        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(),
                           Option.<Type>some(ty), lvb.isMutable());
     }
 
     public static LValue makeLValue(LValue lvb, Type ty,
                                     boolean mutable) {
-        return makeLValue(lvb.getSpan(), lvb.getName(), lvb.getMods(),
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(),
                           Option.<Type>some(ty), mutable);
     }
 
     public static LValue makeLValue(LValue lvb, Type ty,
                                     Modifiers mods) {
         boolean mutable = lvb.isMutable() || mods.isMutable();
-        return makeLValue(lvb.getSpan(), lvb.getName(), mods,
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods,
                           Option.<Type>some(ty), mutable);
     }
 
@@ -457,12 +457,12 @@ public class NodeFactory {
     }
 
     public static Param makeParam(Id id, Type type) {
-        return makeParam(id.getSpan(), Modifiers.None, id,
+        return makeParam(NodeUtil.getSpan(id), Modifiers.None, id,
                          Option.<Type>some(type));
     }
 
     public static Param makeParam(Id id, Option<Type> type) {
-        return makeParam(id.getSpan(), Modifiers.None, id, type);
+        return makeParam(NodeUtil.getSpan(id), Modifiers.None, id, type);
     }
 
     public static Param makeParam(Span span, Id id, Option<Type> type) {
@@ -470,30 +470,30 @@ public class NodeFactory {
     }
 
     public static Param makeParam(Param param, Expr expr) {
-        return makeParam(param.getSpan(), param.getMods(), param.getName(),
+        return makeParam(NodeUtil.getSpan(param), param.getMods(), param.getName(),
                          param.getIdType(), Option.<Expr>some(expr),
                          param.getVarargsType());
     }
 
     public static Param makeParam(Param param, Modifiers mods) {
-        return makeParam(param.getSpan(), mods, param.getName(),
+        return makeParam(NodeUtil.getSpan(param), mods, param.getName(),
                          param.getIdType(), param.getDefaultExpr(),
                          param.getVarargsType());
     }
 
     public static Param makeParam(Param param, Id newId) {
-        return makeParam(param.getSpan(), param.getMods(), newId,
+        return makeParam(NodeUtil.getSpan(param), param.getMods(), newId,
                          param.getIdType(), param.getDefaultExpr(),
                          param.getVarargsType());
     }
 
     public static Param makeVarargsParam(Id name, Type type) {
-        return makeParam(name.getSpan(), Modifiers.None, name,
+        return makeParam(NodeUtil.getSpan(name), Modifiers.None, name,
                          Option.<Type>none(), Option.<Expr>none(), Option.<Type>some(type));
     }
 
     public static Param makeVarargsParam(Param param, Modifiers mods) {
-        return makeParam(param.getSpan(), mods, param.getName(),
+        return makeParam(NodeUtil.getSpan(param), mods, param.getName(),
                          Option.<Type>none(), Option.<Expr>none(),
                          param.getVarargsType());
     }
@@ -506,8 +506,8 @@ public class NodeFactory {
     }
 
     public static Param makeAbsParam(Type type) {
-        return makeParam(type.getSpan(), Modifiers.None,
-                         makeId(type.getSpan(), "_"), type);
+        return makeParam(NodeUtil.getSpan(type), Modifiers.None,
+                         makeId(NodeUtil.getSpan(type), "_"), type);
     }
 
     public static Param makeParam(Span span, Modifiers mods, Id name,
@@ -555,7 +555,7 @@ public class NodeFactory {
 
     public static ArrowType makeArrowType(Span span, Type domain, Type range) {
         return makeArrowType(span, domain, range,
-                             makeEffect(range.getSpan().getEnd()));
+                             makeEffect(NodeUtil.getSpan(range).getEnd()));
     }
 
     public static ArrowType makeArrowType(Span span, boolean parenthesized,
@@ -567,7 +567,7 @@ public class NodeFactory {
     }
 
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
-        return makeTupleType(t.getSpan(), tys);
+        return makeTupleType(NodeUtil.getSpan(t), tys);
     }
 
     public static TupleType makeTupleType(List<Type> elements) {
@@ -589,7 +589,7 @@ public class NodeFactory {
 
     public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
                                                   DimExpr u) {
-        return makeTaggedDimType(t.getSpan(), NodeUtil.isParenthesized(t), s, u,
+        return makeTaggedDimType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s, u,
                                  t.getUnitExpr());
     }
 
@@ -601,7 +601,7 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(TraitType original) {
-        return makeTraitType(original.getSpan(), NodeUtil.isParenthesized(original),
+        return makeTraitType(NodeUtil.getSpan(original), NodeUtil.isParenthesized(original),
                              original.getName(), original.getArgs(),
                              Collections.<StaticParam>emptyList());
 
@@ -609,12 +609,12 @@ public class NodeFactory {
 
     public static TraitType makeTraitType(TraitType t,
                                           List<StaticArg> args) {
-        return makeTraitType(t.getSpan(), NodeUtil.isParenthesized(t),
+        return makeTraitType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t),
                              t.getName(), args);
     }
 
     public static TraitType makeTraitType(Id name, StaticArg... args) {
-        return makeTraitType(name.getSpan(), false, name, Arrays.asList(args));
+        return makeTraitType(NodeUtil.getSpan(name), false, name, Arrays.asList(args));
     }
 
     /** Signature separates the first element in order to guarantee a non-empty arg list. */
@@ -654,11 +654,11 @@ public class NodeFactory {
 
     public static TraitType makeTraitType(Id name,
                                           List<StaticArg> sargs) {
-        return makeTraitType(name.getSpan(), false, name, sargs);
+        return makeTraitType(NodeUtil.getSpan(name), false, name, sargs);
     }
 
     public static TraitType makeTraitType(Id name) {
-        return makeTraitType(name.getSpan(), false, name);
+        return makeTraitType(NodeUtil.getSpan(name), false, name);
     }
 
     public static TraitType makeTraitType(Span span, boolean parenthesized,
@@ -681,7 +681,7 @@ public class NodeFactory {
     }
 
     public static VarType makeVarType(VarType original, int lexicalNestedness) {
-        return makeVarType(original.getSpan(), NodeUtil.isParenthesized(original),
+        return makeVarType(NodeUtil.getSpan(original), NodeUtil.isParenthesized(original),
                            original.getName(), lexicalNestedness);
     }
 
@@ -692,7 +692,7 @@ public class NodeFactory {
     }
 
     public static DimBinaryOp makeDimBinaryOp(DimBinaryOp t, DimExpr s, DimExpr u, Op o) {
-        return makeDimBinaryOp(t.getSpan(), NodeUtil.isParenthesized(t), s, u, o);
+        return makeDimBinaryOp(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s, u, o);
     }
 
     public static DimBinaryOp makeDimBinaryOp(Span span, boolean parenthesized,
@@ -702,7 +702,7 @@ public class NodeFactory {
     }
 
     public static DimUnaryOp makeDimUnaryOp(DimUnaryOp t, DimExpr s) {
-        return makeDimUnaryOp(t.getSpan(), NodeUtil.isParenthesized(t), s, t.getOp());
+        return makeDimUnaryOp(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s, t.getOp());
     }
 
     public static DimUnaryOp makeDimUnaryOp(Span span, boolean parenthesized,
@@ -712,7 +712,7 @@ public class NodeFactory {
     }
 
     public static DimExponent makeDimExponent(DimExponent t, Type s) {
-        return makeDimExponent(t.getSpan(), NodeUtil.isParenthesized(t), s,
+        return makeDimExponent(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s,
                                t.getPower());
     }
 
@@ -741,11 +741,11 @@ public class NodeFactory {
     }
 
     public static FixedPointType makeFixedPointType(FixedPointType t, Type s) {
-        return makeFixedPointType(t.getSpan(), NodeUtil.isParenthesized(t), t.getName(), s);
+        return makeFixedPointType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), t.getName(), s);
     }
 
     public static FixedPointType makeFixedPointType(_InferenceVarType name, Type s) {
-        return makeFixedPointType(s.getSpan(), NodeUtil.isParenthesized(s), name, s);
+        return makeFixedPointType(NodeUtil.getSpan(s), NodeUtil.isParenthesized(s), name, s);
     }
 
     public static FixedPointType makeFixedPointType(Span span, boolean parenthesized,
@@ -786,7 +786,7 @@ public class NodeFactory {
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
-        return makeTaggedUnitType(t.getSpan(), NodeUtil.isParenthesized(t), s,
+        return makeTaggedUnitType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s,
                                   t.getUnitExpr());
     }
 
@@ -894,16 +894,16 @@ public class NodeFactory {
     }
 
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
-        Span sp = in_type.getSpan();
+        Span sp = NodeUtil.getSpan(in_type);
         return makeTraitTypeWhere(sp, in_type,
                                   Option.<WhereClause>none());
     }
 
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type, Option<WhereClause> in_where) {
         if ( in_where.isSome() )
-            return makeTraitTypeWhere(new Span(in_type.getSpan(), in_where.unwrap().getSpan()), in_type, in_where);
+            return makeTraitTypeWhere(new Span(NodeUtil.getSpan(in_type), NodeUtil.getSpan(in_where.unwrap())), in_type, in_where);
         else
-            return makeTraitTypeWhere(in_type.getSpan(), in_type, in_where);
+            return makeTraitTypeWhere(NodeUtil.getSpan(in_type), in_type, in_where);
     }
 
     public static TraitTypeWhere makeTraitTypeWhere(Span span, BaseType type,
@@ -912,7 +912,7 @@ public class NodeFactory {
     }
 
     public static ConstructorFnName makeConstructorFnName(ObjectConstructor def) {
-        return new ConstructorFnName(def.getSpan(), Option.<APIName>none(), def);
+        return new ConstructorFnName(NodeUtil.getSpan(def), Option.<APIName>none(), def);
     }
 
     public static Id makeId(Span span, String name) {
@@ -929,7 +929,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(Id id, String newName) {
-        return makeId(id.getSpan(), id.getApiName(), newName);
+        return makeId(NodeUtil.getSpan(id), id.getApiName(), newName);
     }
 
     public static Id makeId(Span span, Id id) {
@@ -940,7 +940,7 @@ public class NodeFactory {
         Span span;
         Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) {
-            span = id.getSpan();
+            span = NodeUtil.getSpan(id);
             api = Option.none();
         }
         else {
@@ -1000,7 +1000,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(Option<APIName> api, Id name) {
-        return makeId(name.getSpan(), api, name.getText());
+        return makeId(NodeUtil.getSpan(name), api, name.getText());
     }
 
     public static Id makeId(Span span, APIName api, String name) {
@@ -1030,7 +1030,7 @@ public class NodeFactory {
         if (rest.getApiName().isSome()) {
             ids.addAll(rest.getApiName().unwrap().getIds());
         }
-        ids.add(makeId(rest.getSpan(), rest.getText()));
+        ids.add(makeId(NodeUtil.getSpan(rest), rest.getText()));
         ids = Useful.immutableTrimmedList(ids);
         return makeAPIName(FortressUtil.spanTwo(first, rest), ids);
     }
@@ -1048,7 +1048,7 @@ public class NodeFactory {
     }
 
     public static APIName makeAPIName(Id s) {
-        return makeAPIName(s.getSpan(), Useful.list(s));
+        return makeAPIName(NodeUtil.getSpan(s), Useful.list(s));
     }
 
     public static APIName makeAPIName(Span span, List<Id> apis, String text) {
@@ -1076,7 +1076,7 @@ public class NodeFactory {
     }
 
     public static BoolRef makeBoolRef(BoolRef old, int depth) {
-        return makeBoolRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
+        return makeBoolRef(NodeUtil.getSpan(old), old.isParenthesized(), old.getName(), depth);
     }
 
     public static BoolRef makeBoolRef(Span span, Id name) {
@@ -1113,7 +1113,7 @@ public class NodeFactory {
     }
 
     public static IntRef makeIntRef(IntRef old, int depth) {
-        return makeIntRef(old.getSpan(), old.isParenthesized(), old.getName(), depth);
+        return makeIntRef(NodeUtil.getSpan(old), old.isParenthesized(), old.getName(), depth);
     }
 
     public static IntRef makeIntRef(Span span, Id name) {
@@ -1199,27 +1199,27 @@ public class NodeFactory {
     }
 
     public static Id makeIdFromLast(Id id) {
-        return makeId(id.getSpan(), id.getText());
+        return makeId(NodeUtil.getSpan(id), id.getText());
     }
 
     public static KeywordType makeKeywordType(KeywordType t, Type s) {
-        return new KeywordType(t.getSpan(), t.getName(), s);
+        return new KeywordType(NodeUtil.getSpan(t), t.getName(), s);
     }
 
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
-        return new TypeArg(t.getSpan(), s);
+        return new TypeArg(NodeUtil.getSpan(t), s);
     }
 
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
-        return new DimArg(t.getSpan(), s);
+        return new DimArg(NodeUtil.getSpan(t), s);
     }
 
     public static DimArg makeDimArg(DimExpr s) {
-        return new DimArg(s.getSpan(), s);
+        return new DimArg(NodeUtil.getSpan(s), s);
     }
 
     public static UnitArg makeUnitArg(UnitExpr s) {
-        return new UnitArg(s.getSpan(), s);
+        return new UnitArg(NodeUtil.getSpan(s), s);
     }
 
     public static UnitRef makeUnitRef(Span span, String name) {
@@ -1321,7 +1321,7 @@ public class NodeFactory {
     }
 
     public static Op makeOp(Op op, String name) {
-        return new Op(op.getSpan(), Option.<APIName>none(),
+        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name),
                       op.getFixity(), op.isEnclosing());
     }
@@ -1339,7 +1339,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpInfix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), infix, op.isEnclosing());
+        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), infix, op.isEnclosing());
     }
 
     public static Op makeOpPrefix(Span span, String name) {
@@ -1348,7 +1348,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPrefix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), prefix, op.isEnclosing());
+        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), prefix, op.isEnclosing());
     }
 
     public static Op makeOpPostfix(Span span, String name) {
@@ -1357,7 +1357,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(op.getSpan(), op.getApiName(), op.getText(), postfix, op.isEnclosing());
+        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), postfix, op.isEnclosing());
     }
 
     /**
@@ -1365,17 +1365,17 @@ public class NodeFactory {
      * type of op, so that the same subtype of Op is created.
      */
     public static Op makeOp(final APIName api, Op op) {
-        return new Op(op.getSpan(), Option.some(api),
+        return new Op(NodeUtil.getSpan(op), Option.some(api),
                       op.getText(), op.getFixity(), op.isEnclosing() );
     }
 
     public static Op makeOpNofix(Op op) {
-        return new Op(op.getSpan(), Option.<APIName>none(),
+        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
                       op.getText(), nofix, op.isEnclosing());
     }
 
     public static Op makeOpMultifix(Op op) {
-        return new Op(op.getSpan(), Option.<APIName>none(),
+        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
                       op.getText(), multifix, op.isEnclosing());
     }
 
@@ -1400,9 +1400,9 @@ public class NodeFactory {
             String left  = _op.split(" ")[0];
             String right = "BIG " + _op.substring(left.length()+1);
             left  = "BIG " + left;
-            return makeEnclosing(op.getSpan(), left, right);
+            return makeEnclosing(NodeUtil.getSpan(op), left, right);
         } else
-            return new Op(op.getSpan(), Option.<APIName>none(),
+            return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
                           PrecedenceMap.ONLY.canon("BIG " + op.getText()), big, op.isEnclosing() );
     }
 
@@ -1477,7 +1477,7 @@ public class NodeFactory {
     }
 
     public static TypeArg makeTypeArg(Type ty) {
-        return new TypeArg(ty.getSpan(), ty);
+        return new TypeArg(NodeUtil.getSpan(ty), ty);
     }
 
     public static TypeArg makeTypeArg(Span span, String string) {
@@ -1548,16 +1548,16 @@ public class NodeFactory {
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
             public BoolExpr forBoolBase(BoolBase b) {
-                return new BoolBase(b.getSpan(), true, b.isBoolVal());
+                return new BoolBase(NodeUtil.getSpan(b), true, b.isBoolVal());
             }
             public BoolExpr forBoolRef(BoolRef b) {
-                return makeBoolRef(b.getSpan(), true, b.getName(), b.getLexicalDepth());
+                return makeBoolRef(NodeUtil.getSpan(b), true, b.getName(), b.getLexicalDepth());
             }
             public BoolExpr forBoolUnaryOp(BoolUnaryOp b) {
-                return new BoolUnaryOp(b.getSpan(), true, b.getBoolVal(), b.getOp());
+                return new BoolUnaryOp(NodeUtil.getSpan(b), true, b.getBoolVal(), b.getOp());
             }
             public BoolExpr forBoolBinaryOp(BoolBinaryOp b) {
-                return makeBoolBinaryOp(b.getSpan(), true,
+                return makeBoolBinaryOp(NodeUtil.getSpan(b), true,
                                         b.getLeft(), b.getRight(), b.getOp());
             }
             public BoolExpr defaultCase(Node x) {
@@ -1570,21 +1570,21 @@ public class NodeFactory {
     public static DimExpr makeInParentheses(DimExpr dim) {
         return dim.accept(new NodeAbstractVisitor<DimExpr>() {
             public DimExpr forDimBase(DimBase t) {
-                return makeDimBase(t.getSpan(), true);
+                return makeDimBase(NodeUtil.getSpan(t), true);
             }
             public DimExpr forDimRef(DimRef t) {
-                return makeDimRef(t.getSpan(), true, t.getName());
+                return makeDimRef(NodeUtil.getSpan(t), true, t.getName());
             }
             public DimExpr forDimBinaryOp(DimBinaryOp t) {
-                return makeDimBinaryOp(t.getSpan(), true, t.getLeft(),
+                return makeDimBinaryOp(NodeUtil.getSpan(t), true, t.getLeft(),
                                        t.getRight(), t.getOp());
             }
             public DimExpr forDimExponent(DimExponent t) {
-                return makeDimExponent(t.getSpan(), true, t.getBase(),
+                return makeDimExponent(NodeUtil.getSpan(t), true, t.getBase(),
                                        t.getPower());
             }
             public DimExpr forDimUnaryOp(DimUnaryOp t) {
-                return makeDimUnaryOp(t.getSpan(), true, t.getDimVal(), t.getOp());
+                return makeDimUnaryOp(NodeUtil.getSpan(t), true, t.getDimVal(), t.getOp());
             }
             public DimExpr defaultCase(Node x) {
                 return bug(x, "makeInParentheses: " + x.getClass() +
@@ -1596,13 +1596,13 @@ public class NodeFactory {
     public static IntExpr makeInParentheses(IntExpr ie) {
         return ie.accept(new NodeAbstractVisitor<IntExpr>() {
             public IntExpr forIntBase(IntBase i) {
-                return new IntBase(i.getSpan(), true, i.getIntVal());
+                return new IntBase(NodeUtil.getSpan(i), true, i.getIntVal());
             }
             public IntExpr forIntRef(IntRef i) {
-                return makeIntRef(i.getSpan(), true, i.getName(), i.getLexicalDepth());
+                return makeIntRef(NodeUtil.getSpan(i), true, i.getName(), i.getLexicalDepth());
             }
             public IntExpr forIntBinaryOp(IntBinaryOp i) {
-                return makeIntBinaryOp(i.getSpan(), true, i.getLeft(),
+                return makeIntBinaryOp(NodeUtil.getSpan(i), true, i.getLeft(),
                                        i.getRight(), i.getOp());
             }
             public IntExpr defaultCase(Node x) {
@@ -1615,10 +1615,10 @@ public class NodeFactory {
     public static UnitExpr makeInParentheses(UnitExpr be) {
         return be.accept(new NodeAbstractVisitor<UnitExpr>() {
             public UnitExpr forUnitRef(UnitRef b) {
-                return new UnitRef(b.getSpan(), true, b.getName());
+                return new UnitRef(NodeUtil.getSpan(b), true, b.getName());
             }
             public UnitExpr forUnitBinaryOp(UnitBinaryOp i) {
-                return new UnitBinaryOp(i.getSpan(), true, i.getLeft(),
+                return new UnitBinaryOp(NodeUtil.getSpan(i), true, i.getLeft(),
                                         i.getRight(), i.getOp());
             }
             public UnitExpr defaultCase(Node x) {
@@ -1631,36 +1631,36 @@ public class NodeFactory {
     public static Type makeInParentheses(Type ty) {
         return ty.accept(new NodeAbstractVisitor<Type>() {
             public Type forArrowType(ArrowType t) {
-                return makeArrowType(t.getSpan(), true, t.getDomain(),
+                return makeArrowType(NodeUtil.getSpan(t), true, t.getDomain(),
                                      t.getRange(), t.getEffect(),
                                      NodeUtil.getStaticParams(t),
                                      NodeUtil.getWhereClause(t));
             }
             public Type forArrayType(ArrayType t) {
-                return makeArrayType(t.getSpan(), true, t.getElemType(),
+                return makeArrayType(NodeUtil.getSpan(t), true, t.getElemType(),
                                      t.getIndices());
             }
             public Type forVarType(VarType t) {
-                return makeVarType(t.getSpan(), true, t.getName(), t.getLexicalDepth());
+                return makeVarType(NodeUtil.getSpan(t), true, t.getName(), t.getLexicalDepth());
             }
             public Type forMatrixType(MatrixType t) {
-                return makeMatrixType(t.getSpan(), true, t.getElemType(),
+                return makeMatrixType(NodeUtil.getSpan(t), true, t.getElemType(),
                                       t.getDimensions());
             }
             public Type forTraitType(TraitType t) {
-                return makeTraitType(t.getSpan(), true, t.getName(),
+                return makeTraitType(NodeUtil.getSpan(t), true, t.getName(),
                                      t.getArgs(), t.getStaticParams());
             }
             public Type forTupleType(TupleType t) {
-                return makeTupleType(t.getSpan(), true, t.getElements(),
+                return makeTupleType(NodeUtil.getSpan(t), true, t.getElements(),
                                      t.getVarargs(), t.getKeywords());
             }
             public Type forTaggedDimType(TaggedDimType t) {
-                return makeTaggedDimType(t.getSpan(), true, t.getElemType(),
+                return makeTaggedDimType(NodeUtil.getSpan(t), true, t.getElemType(),
                                          t.getDimExpr(), t.getUnitExpr());
             }
             public Type forTaggedUnitType(TaggedUnitType t) {
-                return makeTaggedUnitType(t.getSpan(), true, t.getElemType(),
+                return makeTaggedUnitType(NodeUtil.getSpan(t), true, t.getElemType(),
                                           t.getUnitExpr());
             }
             public Type forDimExpr(DimExpr t) {
@@ -1694,14 +1694,14 @@ public class NodeFactory {
 
     public static NamedType makeNamedType(APIName api, NamedType type) {
         if (type instanceof VarType) {
-            return makeVarType(type.getSpan(),
+            return makeVarType(NodeUtil.getSpan(type),
                                NodeUtil.isParenthesized(type),
                                makeId(api, type.getName()),
                                lexicalDepth);
         }
         else { // type instanceof TraitType
             TraitType _type = (TraitType)type;
-            return makeTraitType(_type.getSpan(),
+            return makeTraitType(NodeUtil.getSpan(_type),
                                  NodeUtil.isParenthesized(_type),
                                  makeId(api, _type.getName()),
                                  _type.getArgs(),
@@ -1710,7 +1710,7 @@ public class NodeFactory {
     }
 
     public static TraitType makeGenericSingletonType(Id name, List<StaticParam> params) {
-        return makeTraitType(name.getSpan(), false, name,
+        return makeTraitType(NodeUtil.getSpan(name), false, name,
                              Collections.<StaticArg>emptyList(), params);
     }
 

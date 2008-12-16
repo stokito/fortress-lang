@@ -40,10 +40,10 @@ Type Type =
        else {
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
-               yyValue = NodeFactory.makeTaggedDimType(_ty.getSpan(), false, _ty.getElemType(),
+               yyValue = NodeFactory.makeTaggedDimType(NodeUtil.getSpan(_ty), false, _ty.getElemType(),
                                                        _ty.getDimExpr(), Option.some(a2));
            } else {
-               yyValue = syntaxError(ty.getSpan(),
+               yyValue = syntaxError(NodeUtil.getSpan(ty),
                                      "A dimension type is expected.");
            }
        }
@@ -236,7 +236,7 @@ constant inline Action<Type> ArrayTypeSize =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation or a vector type or an " +
                                       "array type should not be immediately followed by " +
@@ -296,7 +296,7 @@ constant inline Action<Type> Exponentiation =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
                    NodeUtil.isExponentiation(a1))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");
@@ -318,7 +318,7 @@ constant inline Action<Type> Exponentiation =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");
@@ -352,7 +352,7 @@ constant inline Action<Type> IdLeft =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
-                                                    (Type)base, NodeFactory.makeDimRef(a1.getSpan(), a1),
+                                                    (Type)base, NodeFactory.makeDimRef(NodeUtil.getSpan(a1), a1),
                                                     Option.<Expr>none());
            }};
      };
@@ -414,7 +414,7 @@ constant inline Action<Type> ArrayTypeSizeTrait =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation or a vector type or an " +
                                       "array type should not be immediately followed by " +
@@ -439,7 +439,7 @@ constant inline Action<Type> ExponentiationTrait =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base) ||
                    NodeUtil.isExponentiation(a1))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");
@@ -456,7 +456,7 @@ constant inline Action<Type> ExponentiationTrait =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base))
-                   return syntaxError(((Type)base).getSpan(),
+                   return syntaxError(NodeUtil.getSpan((Type)base),
                                       "Syntax Error: an " +
                                       "exponentiation should not be immediately followed " +
                                       "by an exponentiation.");

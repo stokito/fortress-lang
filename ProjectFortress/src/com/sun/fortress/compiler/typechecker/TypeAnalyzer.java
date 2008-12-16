@@ -706,7 +706,7 @@ public class TypeAnalyzer {
         Option<StaticParam> param = _typeEnv.staticParam(s.getName());
 
         if( param.isNone() )
-            return bug("We are being asked about some type that is not in scope: " + s + " @ " + s.getSpan());
+            return bug("We are being asked about some type that is not in scope: " + s + " @ " + NodeUtil.getSpan(s));
 
         StaticParam that = param.unwrap();
         ConstraintFormula result = FALSE;

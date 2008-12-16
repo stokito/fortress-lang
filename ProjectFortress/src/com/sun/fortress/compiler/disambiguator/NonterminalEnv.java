@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Debug;
 
@@ -78,7 +79,7 @@ public class NonterminalEnv {
                 @Override public void forNonterminalDefOnly(NonterminalDef that) {
                     GrammarDecl currentGrammar = NonterminalEnv.this.getGrammarIndex().ast();
 
-                    Span span = e.getName().getSpan();
+                    Span span = NodeUtil.getSpan(e.getName());
                     String key = e.getName().getText();
                     APIName api = constructNonterminalApi(currentGrammar.getName());
                     Id qname = NodeFactory.makeId(span, api, key);
@@ -109,7 +110,7 @@ public class NonterminalEnv {
         for (NonterminalIndex e: grammar.getDeclaredNonterminals()) {
             GrammarDecl currentGrammar = grammar.ast();
 
-            Span span = e.getName().getSpan();
+            Span span = NodeUtil.getSpan(e.getName());
             String key = e.getName().getText();
             APIName api = constructNonterminalApi(currentGrammar.getName());
             Id qname = NodeFactory.makeId(span, api, key);
@@ -141,8 +142,8 @@ public class NonterminalEnv {
             api = bug("NonterminalEnv.constructNonterminalApi failed! " + grammarName + " was unqualified.");
         List<Id> ls = new LinkedList<Id>();
         ls.addAll(api.getIds());
-        ls.add(NodeFactory.makeId(grammarName.getSpan(), grammarName.getText()));
-        return NodeFactory.makeAPIName(grammarName.getSpan(), ls);
+        ls.add(NodeFactory.makeId(NodeUtil.getSpan(grammarName), grammarName.getText()));
+        return NodeFactory.makeAPIName(NodeUtil.getSpan(grammarName), ls);
     }
 
     /**

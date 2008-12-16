@@ -51,7 +51,7 @@ CompilationUnit Program =
        String cuname = yyValue.getName().toString();
        if (!Shell.checkCompilationUnitName(filename,
                                            cuname))
-           yyValue = syntaxError(yyValue.getName().getSpan(),
+           yyValue = syntaxError(NodeUtil.getSpan(yyValue.getName()),
                                  "Component/API names must match their enclosing file names, from name="
                                  + filename+", from contents="+cuname);
      }

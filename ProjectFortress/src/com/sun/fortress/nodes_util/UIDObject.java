@@ -51,7 +51,7 @@ public class UIDObject implements HasAt {
 
     public String at() {
         if (this instanceof AbstractNode)
-            return ((AbstractNode) this).getSpan().toString();
+            return NodeUtil.getSpan((AbstractNode) this).toString();
         return bug(this, "Class " + this.getClass().toString() + " needs to a case in UIDObject.at()");
     }
 

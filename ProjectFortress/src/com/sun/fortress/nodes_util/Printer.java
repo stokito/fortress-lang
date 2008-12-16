@@ -209,7 +209,7 @@ public class Printer extends NodeReflection {
             Field[] fields = getCachedPrintableFields(cl, clname);
             w.append("(");
             w.append(clname);
-            dumpSpan(x.getSpan(), w);
+            dumpSpan(NodeUtil.getSpan(x), w);
             dumpFields(w, indent, x, oneLiner, fields, true);
             w.append(")");
             oneLinerNesting -= oneLinerNestingInc;

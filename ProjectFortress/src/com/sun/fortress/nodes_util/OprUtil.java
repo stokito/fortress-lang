@@ -51,7 +51,7 @@ public final class OprUtil {
     public static Op getOp(Op op) {
         if (isEnclosing(op)) {
             String open  = op.getText().split(" ")[0];
-            return NodeFactory.makeOpInfix(op.getSpan(), open);
+            return NodeFactory.makeOpInfix(NodeUtil.getSpan(op), open);
         } else { // op instanceof Op
             return (Op)op;
         }
@@ -100,7 +100,7 @@ public final class OprUtil {
         if (isNotEnclosing(n)) {
             Op op = n;
             if (hasSuffixColon(op) || hasPrefixColon(op)) {
-                op = NodeFactory.makeOp(op.getSpan(),noColonText(op),
+                op = NodeFactory.makeOp(NodeUtil.getSpan(op),noColonText(op),
                                         op.getFixity());
             }
             if (op != n) return op;
@@ -139,7 +139,7 @@ public final class OprUtil {
 
     /** Return a new operator with the fixity prepended to the text. */
     public static Op decorateOperator(Op o) {
-        return new Op(o.getSpan(), Option.<APIName>none(),
+        return new Op(NodeUtil.getSpan(o), Option.<APIName>none(),
                       fixityDecorator(o.getFixity(), o.getText()),
                       o.getFixity(), o.isEnclosing());
     }
@@ -150,7 +150,7 @@ public final class OprUtil {
         if (i < 0) {
             return o;
         }
-        return new Op(o.getSpan(), Option.<APIName>none(),
+        return new Op(NodeUtil.getSpan(o), Option.<APIName>none(),
                       o.getText().substring(i+1),
                       o.getFixity(), o.isEnclosing());
     }

@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
@@ -64,7 +65,7 @@ public class ASTUtil {
     // let prefix (span : span) (op : op) (arg : expr) : expr =
     //     opr span (node op.node_span (`Opr op)) [arg]
     static Expr prefix(Op op, Expr arg) {
-        return ExprFactory.makeOpExpr(arg.getSpan(),
+        return ExprFactory.makeOpExpr(NodeUtil.getSpan(arg),
                                       NodeFactory.makeOpPrefix(op), arg);
     }
 
@@ -142,10 +143,8 @@ public class ASTUtil {
         if (size == 0) return new Span();
         else { // size != 0
             Object[] _exprs = exprs.toArray();
-            return new Span(((RealExpr)Array.get(_exprs,0)).getExpr().
-                                             getSpan().getBegin(),
-                            ((RealExpr)Array.get(_exprs,size-1)).getExpr().
-                                             getSpan().getEnd());
+            return new Span(NodeUtil.getSpan(((RealExpr)Array.get(_exprs,0)).getExpr()).getBegin(),
+                            NodeUtil.getSpan(((RealExpr)Array.get(_exprs,size-1)).getExpr()).getEnd());
         }
     }
 }

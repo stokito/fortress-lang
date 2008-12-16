@@ -1851,16 +1851,22 @@ interface Node() extends HasAt;
                          */
                         FnHeader(List<Param> params, Option<Type> returnType);
                 /**
-                 * common header for expressions
+                 * common header for AST nodes
                  */
-                ExprInfo(ignoreForEquals boolean parenthesized,
-                         ignoreForEquals Option<Type> exprType);
-                /**
-                 * common header for types
-                 */
-                TypeInfo(ignoreForEquals boolean parenthesized,
-                         List<StaticParam> staticParams,
-                         Option<WhereClause> whereClause);
+                abstract ASTNodeInfo();
+                    /**
+                     * common header for parenthesized node
+                     */
+                    abstract ParenthesizedInfo(ignoreForEquals boolean parenthesized);
+                        /**
+                         * common header for expressions
+                         */
+                        ExprInfo(ignoreForEquals Option<Type> exprType);
+                        /**
+                         * common header for types
+                         */
+                        TypeInfo(List<StaticParam> staticParams,
+                                 Option<WhereClause> whereClause);
             /*
              * Keeps track of ellipses properties. This is special cased
              * in the Printer and UnPrinter so be careful if Level is changed.

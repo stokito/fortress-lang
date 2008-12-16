@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.Relation;
@@ -66,7 +67,7 @@ class FnDeclTypeEnv extends TypeEnv {
             if (var instanceof Id) {
                 Id _var = (Id)var;
                 if (_var.getApiName().isSome())
-                    return binding(NodeFactory.makeId(_var.getSpan(), _var.getText()));
+                    return binding(NodeFactory.makeId(NodeUtil.getSpan(_var), _var.getText()));
             }
             return parent.binding(var);
         }
@@ -101,7 +102,7 @@ class FnDeclTypeEnv extends TypeEnv {
             if (var instanceof Id) {
                 Id _var = (Id)var;
                 if (_var.getApiName().isSome())
-                    return declarationSite(NodeFactory.makeId(_var.getSpan(), _var.getText()));
+                    return declarationSite(NodeFactory.makeId(NodeUtil.getSpan(_var), _var.getText()));
             }
             return parent.declarationSite(var);
         }

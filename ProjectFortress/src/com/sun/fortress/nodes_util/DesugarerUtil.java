@@ -114,7 +114,7 @@ public class DesugarerUtil {
         List<Id> binds = g.getBind();
         List<Param> params = new ArrayList<Param>(binds.size());
         for (Id b : binds) params.add(NodeFactory.makeParam(b));
-        Expr res = ExprFactory.makeFnExpr(g.getSpan(),params,body);
+        Expr res = ExprFactory.makeFnExpr(NodeUtil.getSpan(g),params,body);
         return res;
     }
 
@@ -156,12 +156,12 @@ public class DesugarerUtil {
             gens = squozenGens;
             i = gens.size();
             if (nestedGeneratorOpportunity(gens,body)) {
-                System.out.println(span+" and\n"+body.getSpan()+
+                System.out.println(span+" and\n"+NodeUtil.getSpan(body)+
                                    ": Generator of generator opportunity?");
             }
             // Wrap the body in parentheses (as a singleton tuple) so that it can be considered
             // as the argument in a function application (denoted by the true argument).
-            body = ExprFactory.makeTightJuxt(body.getSpan(), false,
+            body = ExprFactory.makeTightJuxt(NodeUtil.getSpan(body), false,
                                              Useful.list(unitVar, body), true);
             for (i--; i>=0; i--) {
                 body = oneGenerator(gens.get(i), redVar, body);
@@ -219,10 +219,10 @@ public class DesugarerUtil {
         // binds <- __filter(init,fn)
         Expr init = prevGen.getInit();
         Expr filtered =
-            ExprFactory.makeTightJuxt(gen.getSpan(), FILTER_NAME,
+            ExprFactory.makeTightJuxt(NodeUtil.getSpan(gen), FILTER_NAME,
                                       ExprFactory.makeTupleExpr(init,fn));
         GeneratorClause res =
-            ExprFactory.makeGeneratorClause(prevGen.getSpan(), binds, filtered);
+            ExprFactory.makeGeneratorClause(NodeUtil.getSpan(prevGen), binds, filtered);
         return res;
     }
 
@@ -270,6 +270,6 @@ public class DesugarerUtil {
     private static Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
         Expr params = ExprFactory.makeTupleExpr(g.getInit(), reduction, loopBody);
-        return ExprFactory.makeTightJuxt(g.getSpan(), GENERATE_NAME, params);
+        return ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), GENERATE_NAME, params);
     }
 }

@@ -338,7 +338,7 @@ public class Transform extends TemplateUpdateVisitor {
                           Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                           extendSyntaxEnvironment(old, generatedId);
                         */
-                        return NodeFactory.makeParam(that.getSpan(), that.getMods(),
+                        return NodeFactory.makeParam(NodeUtil.getSpan(that), that.getMods(),
                                                      generatedId, type_result,
                                                      defaultExpr_result,
                                                      Option.<Type>none());
@@ -348,7 +348,7 @@ public class Transform extends TemplateUpdateVisitor {
                         Id generatedId = generateId(old);
                         Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                         extendSyntaxEnvironment(old, generatedId);
-                        return NodeFactory.makeParam(that.getSpan(), that.getMods(),
+                        return NodeFactory.makeParam(NodeUtil.getSpan(that), that.getMods(),
                                                      generatedId, Option.<Type>none(), Option.<Expr>none(),
                                                      varargsType_result);
                     }
@@ -372,7 +372,7 @@ public class Transform extends TemplateUpdateVisitor {
                                     Id old = (Id) ((Id)name_result).accept(transformer);
                                     Id generatedId = generateId(old);
                                     extendSyntaxEnvironment(old, generatedId);
-                                    return NodeFactory.makeFnDecl(that.getSpan(),
+                                    return NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
                                                                   NodeUtil.getMods(that),
                                                                   generatedId,
                                                                   staticParams_result,
@@ -383,7 +383,7 @@ public class Transform extends TemplateUpdateVisitor {
                                                                   contract_result,
                                                                   body_result);
                                 } else {
-                                    return NodeFactory.makeFnDecl(that.getSpan(),
+                                    return NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
                                                                   NodeUtil.getMods(that),
                                                                   name_result,
                                                                   staticParams_result,
@@ -423,7 +423,7 @@ public class Transform extends TemplateUpdateVisitor {
                             Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return NodeFactory.makeLValue(that.getSpan(), generatedId, that.getMods(),
+                            return NodeFactory.makeLValue(NodeUtil.getSpan(that), generatedId, that.getMods(),
                                                           type_result, that.isMutable());
                         }
                     });

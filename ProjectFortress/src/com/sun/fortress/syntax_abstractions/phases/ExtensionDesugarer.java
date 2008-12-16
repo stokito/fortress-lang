@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SuperSyntaxDef;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.tools.FortressAstToConcrete;
@@ -143,7 +144,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         // Recombine into GrammarDecl
         GrammarDecl result =
-            new GrammarDecl(grammar.getSpan(), grammar.getName(), grammar.getExtendsClause(),
+            new GrammarDecl(NodeUtil.getSpan(grammar), grammar.getName(), grammar.getExtendsClause(),
                            newMembers, grammar.getTransformers(), grammar.isNativeDef());
         Debug.debug(Debug.Type.SYNTAX, 3,
                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
@@ -226,7 +227,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         List<SyntaxDecl> resultDecls = new ArrayList<SyntaxDecl>();
         for (NonterminalExtensionDef extension : extensions) {
-            if (theSpan == null) theSpan = extension.getSpan();
+            if (theSpan == null) theSpan = NodeUtil.getSpan(extension);
             for (SyntaxDecl decl : extension.getSyntaxDecls()) {
                 if (decl instanceof SyntaxDef) {
                     resultDecls.add(decl);
@@ -250,7 +251,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                 }
             }
         }
-        if (theSpan == null) theSpan = name.getSpan(); // FIXME: maybe pick a better span
+        if (theSpan == null) theSpan = NodeUtil.getSpan(name); // FIXME: maybe pick a better span
         for (GrammarIndex eg : extendingGrammars) {
             if (availableGrammarNames.contains(eg.getName())) {
                 resultDecls.add(new SuperSyntaxDef(theSpan, Option.some("private"),

@@ -206,7 +206,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             for (int i = 0; i < _vars.length - 1; i++) {
                 for (int j = i + 1; j < _vars.length; j++) {
                     if (_vars[i].equals(_vars[j])) {
-                        error("Variable " + _vars[i] + " is already declared at " + ((Id)_vars[j]).getSpan(), (Id)_vars[i]);
+                        error("Variable " + _vars[i] + " is already declared at " + NodeUtil.getSpan((Id)_vars[j]), (Id)_vars[i]);
                     }
                 }
             }
@@ -521,7 +521,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = this.
             extendWithVars(vars).
             extendWithFns(inheritedMethods).
-            extendWithSelf(that.getSpan()).
+            extendWithSelf(NodeUtil.getSpan(that)).
             extendWithFns(fns).
             // TODO The following two extensions are problematic; getters and setters should
             // not be referred to without explicit receivers in most (all?) cases. But the
@@ -652,7 +652,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithVars(extractStaticExprVars(NodeUtil.getStaticParams(that))).
             extendWithFns(inheritedGettersAndSetters).
             extendWithFns(inheritedMethods).
-            extendWithSelf(that.getSpan()).
+            extendWithSelf(NodeUtil.getSpan(that)).
             extendWithVars(vars).
             extendWithFns(fns).
             // TODO The following two extensions are problematic; getters and setters should
@@ -705,7 +705,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         v = this.extendWithVars(extractStaticExprVars
 				(NodeUtil.getStaticParams(that))).
-            extendWithSelf(that.getSpan()).
+            extendWithSelf(NodeUtil.getSpan(that)).
             extendWithVars(extractParamNames(NodeUtil.getParams(that))).
             extendWithVars(vars).extendWithFns(fns).
             extendWithFns(inheritedMethods).
@@ -829,7 +829,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forContract(Contract that) {
-        ExprDisambiguator v = extendWithOutcome(that.getSpan());
+        ExprDisambiguator v = extendWithOutcome(NodeUtil.getSpan(that));
         return forContractOnly(that,
                                v.recurOnOptionOfListOfExpr(that.getRequiresClause()),
                                v.recurOnOptionOfListOfEnsuresClause(that.getEnsuresClause()),
@@ -979,7 +979,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 return that;
             }
             else if( objs.size() == 1 ) {
-                return ExprFactory.makeVarRef(that.getSpan(), IterUtil.first(objs), that.getStaticArgs());
+                return ExprFactory.makeVarRef(NodeUtil.getSpan(that), IterUtil.first(objs), that.getStaticArgs());
             }
             else {
                 error("Name may refer to: " + NodeUtil.namesString(objs), that);
@@ -1042,7 +1042,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     // no change -- no need to recreate the VarRef
                     return that;
                 }
-                else { result = ExprFactory.makeVarRef(that.getSpan(), newName); }
+                else { result = ExprFactory.makeVarRef(NodeUtil.getSpan(that), newName); }
             }
             else if (vars.isEmpty() && !fns.isEmpty() ) {
                 result = ExprFactory.makeFnRef(name,CollectUtil.makeList(fns));
@@ -1067,7 +1067,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                     return that;
                 }
                 else {
-                    result = ExprFactory.makeVarRef(name.getSpan(), name);
+                    result = ExprFactory.makeVarRef(NodeUtil.getSpan(name), name);
                 }
                 // error("Unrecognized name: " + NodeUtil.nameString(name), that);
                 // return that;
@@ -1089,7 +1089,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         if ( result_.isNone() ) {
             // Make sure to populate the 'originalName' field.
-            return ExprFactory.makeOpRef(that.getSpan(), NodeUtil.isParenthesized(that),
+            return ExprFactory.makeOpRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                          NodeUtil.getExprType(that), that.getStaticArgs(),
                                          that.getLexicalDepth(),
                                          (Op)IterUtil.first(that.getNames()),
@@ -1116,18 +1116,18 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 Set<Id> types = _env.explicitTypeConsNames((Id)fn_name);
                 if( !types.isEmpty() ) {
                     // create _RewriteObjectRef
-                    VarRef obj = ExprFactory.makeVarRef(that.getSpan(), (Id)fn_name, that.getStaticArgs());
+                    VarRef obj = ExprFactory.makeVarRef(NodeUtil.getSpan(that), (Id)fn_name, that.getStaticArgs());
                     return obj.accept(this);
                 }
             } else {
                 //error("Function " + that + " could not be disambiguated.", that);
                 // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-                return ExprFactory.makeFnRef(that.getSpan(), NodeUtil.isParenthesized(that), (Id)fn_name,
+                return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
                                              that.getNames(), that.getStaticArgs());
             }
         }
 
-        return ExprFactory.makeFnRef(that.getSpan(), NodeUtil.isParenthesized(that), (Id)fn_name,
+        return ExprFactory.makeFnRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that), (Id)fn_name,
                                      CollectUtil.makeList(fns), that.getStaticArgs());
     }
 
@@ -1147,7 +1147,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
 
-        FunctionalRef result = ExprFactory.makeOpRef(that.getSpan(), NodeUtil.isParenthesized(that),
+        FunctionalRef result = ExprFactory.makeOpRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                                      NodeUtil.getExprType(that),
                                                      that.getStaticArgs(),
                                                      that.getLexicalDepth(),
@@ -1196,12 +1196,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
         Option<Expr> with = returnExpr_result.isSome() ?
             returnExpr_result :
-            wrap((Expr)ExprFactory.makeVoidLiteralExpr(that.getSpan()));
+            wrap((Expr)ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(that)));
 
         if (target.isNone() || _innerMostLabel.isNone()) {
             error("Exit occurs outside of a label", that);
         }
-        Exit newExit = ExprFactory.makeExit(that.getSpan(), info.isParenthesized(),
+        Exit newExit = ExprFactory.makeExit(NodeUtil.getSpan(that), info.isParenthesized(),
                                             info.getExprType(), target, with);
         if (newExit.equals(that)) {
             return that;

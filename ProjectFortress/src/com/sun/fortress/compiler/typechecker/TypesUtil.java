@@ -169,7 +169,7 @@ public class TypesUtil {
                                         new Lambda<StaticParam,StaticArg>() {
                                     public StaticArg value(StaticParam arg0) {
                                         // This is only legal if StaticParam is a TypeParam!!!
-                                        Type t = NodeFactory.make_InferenceVarType(arg0.getSpan());
+                                        Type t = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(arg0));
                                         return new TypeArg(NodeFactory.makeSpan(t), t);
                                     }}));
                         }
@@ -420,7 +420,7 @@ public class TypesUtil {
     						accumulated_constraint.and(t.unwrap().second(),subtype_checker.new SubtypeHistory());
     					}
     				}
-    				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(that.getSpan(),
+    				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(NodeUtil.getSpan(that),
                                                                                                      NodeUtil.isParenthesized(that),
                                                                                                      conjuncts),accumulated_constraint));
     			}
@@ -434,7 +434,7 @@ public class TypesUtil {
 
     				if(constraints.isSome()) {
     					ArrowType temp = (ArrowType) that.accept(new StaticTypeReplacer(NodeUtil.getStaticParams(that),static_args));
-    					Type new_type = NodeFactory.makeArrowType(temp.getSpan(),NodeUtil.isParenthesized(temp),
+    					Type new_type = NodeFactory.makeArrowType(NodeUtil.getSpan(temp),NodeUtil.isParenthesized(temp),
                                                                       temp.getDomain(),temp.getRange(), temp.getEffect(),
                                                                       Collections.<StaticParam>emptyList(),
                                                                       Option.<WhereClause>none());

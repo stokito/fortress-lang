@@ -561,11 +561,11 @@ MathItem MathItem =
      Subscripting
    / Exponentiation
    / a1:ParenthesisDelimited
-     { yyValue = new ParenthesisDelimitedMI(a1.getSpan(), a1); }
+     { yyValue = new ParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:LiteralExpr
-     { yyValue = new NonParenthesisDelimitedMI(a1.getSpan(), a1); }
+     { yyValue = new NonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:VarOrFnRef
-     { yyValue = new NonParenthesisDelimitedMI(a1.getSpan(), a1); }
+     { yyValue = new NonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:self
      { Span span = createSpan(yyStart,yyCount);
        Expr expr = ExprFactory.makeVarRef(span, a1);
@@ -625,7 +625,7 @@ ExponentiationMI Exponentiation =
                                       Option.some(a2));
      }
    / a1:ExponentOp
-     { yyValue = new ExponentiationMI(a1.getSpan(), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
+     { yyValue = new ExponentiationMI(NodeUtil.getSpan(a1), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
 
 /* Exponent ::=
      ParenthesisDelimited

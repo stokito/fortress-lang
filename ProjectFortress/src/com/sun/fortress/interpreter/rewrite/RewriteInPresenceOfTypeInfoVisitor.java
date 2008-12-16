@@ -55,7 +55,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
         Id id = (Id)idn;
 
         if (sargs.size() > 0)
-            return (ExprFactory.make_RewriteFnRef(fr.getSpan(),
+            return (ExprFactory.make_RewriteFnRef(NodeUtil.getSpan(fr),
                                       NodeUtil.isParenthesized(fr),
                                       NodeUtil.getExprType(fr),
                                       ExprFactory.makeVarRef(id),
@@ -63,7 +63,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
-            return (ExprFactory.makeVarRef(id.getSpan(), NodeUtil.isParenthesized(fr),
+            return (ExprFactory.makeVarRef(NodeUtil.getSpan(id), NodeUtil.isParenthesized(fr),
                                            NodeUtil.getExprType(fr), id)).accept(this);
         }
 
@@ -72,7 +72,7 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
     @Override
     public Node forTraitType(TraitType it) {
         if (it.getArgs().size() == 0) {
-            return (NodeFactory.makeVarType(it.getSpan(), it.getName())).accept(this);
+            return (NodeFactory.makeVarType(NodeUtil.getSpan(it), it.getName())).accept(this);
         }
         return super.forTraitType(it);
     }

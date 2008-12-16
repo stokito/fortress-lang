@@ -47,7 +47,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
         try {
             if ( ! ( that instanceof ASTNode ) )
                 bug(that, "Only ASTNodes are supported.");
-            writer.write( ((ASTNode)that).getSpan() + " : " + message + "\n" );
+            writer.write( NodeUtil.getSpan((ASTNode)that) + " : " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the api tool failed!");
         }
@@ -80,7 +80,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     }
 
     public Option<Node> forComponent(Component that) {
-        Node result = new Api(that.getSpan(),
+        Node result = new Api(NodeUtil.getSpan(that),
                               that.getName(),
                               that.getImports(),
                               declsToDecls(that.getDecls()));
@@ -98,7 +98,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             List<Decl> absDecls = declsToDecls(NodeUtil.getDecls(that));
             inTrait = false;
             return Option.<Node>some(
-                          NodeFactory.makeTraitDecl(that.getSpan(),
+                          NodeFactory.makeTraitDecl(NodeUtil.getSpan(that),
                                                     NodeUtil.getMods(that),
                                                     NodeUtil.getName(that),
                                                     NodeUtil.getStaticParams(that),
@@ -116,7 +116,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
             List<Decl> absDecls = declsToDecls(NodeUtil.getDecls(that));
             inObject = false;
             return Option.<Node>some(
-                          NodeFactory.makeObjectDecl(that.getSpan(),
+                          NodeFactory.makeObjectDecl(NodeUtil.getSpan(that),
                                                      NodeUtil.getMods(that),
                                                      NodeUtil.getName(that),
                                                      NodeUtil.getStaticParams(that),
@@ -144,7 +144,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 } else
                     lhs.add( lvb );
             }
-            return Option.<Node>some(new VarDecl(that.getSpan(), lhs, Option.<Expr>none()));
+            return Option.<Node>some(new VarDecl(NodeUtil.getSpan(that), lhs, Option.<Expr>none()));
         } else return Option.<Node>none();
     }
 
@@ -166,7 +166,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 mods = mods.combine(Modifiers.Abstract);
             }
             return Option.<Node>some(
-                          NodeFactory.makeFnDecl(that.getSpan(),
+                          NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
                                                  mods,
                                                  NodeUtil.getName(that),
                                                  NodeUtil.getStaticParams(that),
