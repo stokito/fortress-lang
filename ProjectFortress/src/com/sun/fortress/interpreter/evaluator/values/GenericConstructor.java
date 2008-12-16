@@ -141,8 +141,7 @@ public static ArrayList<FType> argsToTypes(List<StaticArg> args,
     if (args.size() != params.size() ) {
         error(x, e,
               errorMsg("Generic instantiation (size) mismatch, expected ",
-                       Useful.listInOxfords(params), " got ",
-                       Useful.listInOxfords(args)));
+                       params, " got ", args));
     }
     EvalType et = new EvalType(e);
     ArrayList<FType> argValues = et.forStaticArgList(args);
