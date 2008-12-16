@@ -35,7 +35,7 @@ public abstract class Functional {
 
     /**
      * Returns a version of this Functional, with params replaced with args.
-     *  The contract of this method requires
+     * The contract of this method requires
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
     public abstract Functional instantiate(List<StaticParam> params, List<StaticArg> args);

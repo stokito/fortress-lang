@@ -41,51 +41,55 @@ public class DisambiguatePhase extends Phase {
 
         // Build a new GlobalEnvironment consisting of all APIs in a global
         // repository combined with all APIs that have been processed in the
-        // previous
-        // step. For now, we are implementing pure static linking, so there is
-        // no global repository.
-        GlobalEnvironment rawApiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(repository.apis(), previous.apis()));
+        // previous step. For now, we are implementing pure static linking, so 
+        // there is no global repository.
+        GlobalEnvironment rawApiEnv = 
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(), 
+                                                            previous.apis()));
 
         // Rewrite all API ASTs so they include only fully qualified names,
-        // relying
-        // on the rawApiEnv constructed in the previous step. Note that, after
-        // this
-        // step, the rawApiEnv is stale and needs to be rebuilt with the new API
-        // ASTs.
-        Disambiguator.ApiResult apiDR = Disambiguator.disambiguateApis(previous
-                .apiIterator(), rawApiEnv, repository.apis());
+        // relying on the rawApiEnv constructed in the previous step. Note that, 
+        // after this step, the rawApiEnv is stale and needs to be rebuilt with 
+        // the new API ASTs.
+        Disambiguator.ApiResult apiDR = 
+            Disambiguator.disambiguateApis(previous.apiIterator(), 
+                                           rawApiEnv, 
+                                           repository.apis());
         if (!apiDR.isSuccessful()) {
             throw new MultipleStaticError(apiDR.errors());
         }
 
         // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR = IndexBuilder.buildApis(apiDR.apis(),
-                lastModified);
+        IndexBuilder.ApiResult apiIR = 
+            IndexBuilder.buildApis(apiDR.apis(), lastModified);
         if (!apiIR.isSuccessful()) {
             throw new MultipleStaticError(apiIR.errors());
         }
 
         // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(repository.apis(), apiIR.apis()));
+        GlobalEnvironment apiEnv = 
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
+                                                            apiIR.apis()));
 
-        Disambiguator.ComponentResult componentDR = Disambiguator
-                .disambiguateComponents(previous.componentIterator(), apiEnv,
-                        previous.components());
+        Disambiguator.ComponentResult componentDR = 
+            Disambiguator.disambiguateComponents(previous.componentIterator(), 
+                                                 apiEnv,
+                                                 previous.components());
         if (!componentDR.isSuccessful()) {
             throw new MultipleStaticError(componentDR.errors());
         }
 
         // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentsDone = IndexBuilder
-                .buildComponents(componentDR.components(), lastModified);
+        IndexBuilder.ComponentResult componentsDone = 
+            IndexBuilder.buildComponents(componentDR.components(), lastModified);
         if (!componentsDone.isSuccessful()) {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
-        return new AnalyzeResult(apiIR.apis(), componentsDone.components(),
-                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
+        return new AnalyzeResult(apiIR.apis(), 
+                                 componentsDone.components(),
+                                 IterUtil.<StaticError> empty(), 
+                                 previous.typeCheckerOutput());
 
     }
 

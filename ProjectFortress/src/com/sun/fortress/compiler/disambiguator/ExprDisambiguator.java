@@ -1063,7 +1063,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // For now, assume it does refer to an inherited method.
                 if (fields.isEmpty()) {
                     // no change -- no need to recreate the VarRef
-                    error("No definitions match variable reference " + name +".", name);
+                    error("Variable " + name +" is not defined.", name);
                     return that;
                 }
                 else {
@@ -1133,7 +1133,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
     /**
      * Disambiguates an OpRef, but instead of reporting an error if it cannot be
-     * disambiguated, it returns NONE, which other methods can then used to decide
+     * disambiguated, it returns NONE, which other methods can then use to decide
      * if they want to report an error.
      */
     private Option<FunctionalRef> opRefHelper(FunctionalRef that) {

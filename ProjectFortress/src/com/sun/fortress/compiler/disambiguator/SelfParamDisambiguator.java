@@ -48,14 +48,14 @@ import edu.rice.cs.plt.tuple.Option;
  * becomes
  * {@code trait Foo f(self:Foo) : () end}
  * This method will only replace parameters "down" to the next
- * object or trait declaration. When then new trait or object is declared,
+ * object or trait declaration. When the new trait or object is declared,
  * this method will be called again. This method is guaranteed to return
  * the type of node given.
  */
 public class SelfParamDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forObjectDecl(ObjectDecl that) {
-         // Add a type to self parameters of methods
+        // Add a type to self parameters of methods
         Type self_type = NodeFactory.makeTraitType(NodeUtil.getName(that),
                                                    TypeEnv.staticParamsToArgs(NodeUtil.getStaticParams(that)));
         ObjectDecl that_new = (ObjectDecl)this.replaceSelfParamsWithType(that, self_type);
