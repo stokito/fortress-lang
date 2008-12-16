@@ -69,14 +69,14 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
         public Node forObjectExprOnly(ObjectExpr that,
-                                      Option<Type> exprType_result,
+                                      ExprInfo info,
                                       TraitTypeHeader header) {
         Span span = that.getSpan();
         List<TraitTypeWhere> extendsClause = rewriteExtendsClause(that, header.getExtendsClause());
         header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                  extendsClause,
                                                  header.getDecls());
-        return super.forObjectExprOnly(that, exprType_result, header);
+        return super.forObjectExprOnly(that, info, header);
     }
 
     @Override
@@ -118,8 +118,8 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
         if( prefix || suffix ) {
             OpExpr new_op = ExprFactory.makeOpExpr(that.getSpan(),
-                                                   that.isParenthesized(),
-                                                   that.getExprType(),
+                                                   NodeUtil.isParenthesized(that),
+                                                   NodeUtil.getExprType(that),
                                                    that.getInfix_op(),
                                                    that.getArgs());
             return recur(new_op);
@@ -140,8 +140,8 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         }
         else {
             new_op = ExprFactory.makeOpExpr(that.getSpan(),
-                                            that.isParenthesized(),
-                                            that.getExprType(),
+                                            NodeUtil.isParenthesized(that),
+                                            NodeUtil.getExprType(that),
                                             op_result,
                                             args_result);
         }

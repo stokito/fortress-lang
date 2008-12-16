@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
@@ -54,16 +55,16 @@ public class RewriteInPresenceOfTypeInfoVisitor extends NodeUpdateVisitor {
         Id id = (Id)idn;
 
         if (sargs.size() > 0)
-            return (new _RewriteFnRef(fr.getSpan(),
-                                      fr.isParenthesized(),
-                                      fr.getExprType(),
+            return (ExprFactory.make_RewriteFnRef(fr.getSpan(),
+                                      NodeUtil.isParenthesized(fr),
+                                      NodeUtil.getExprType(fr),
                                       ExprFactory.makeVarRef(id),
                                       sargs)).accept(this);
 
         else {
             //throw new Error("Unexpected FnRef " + fr);
-            return (ExprFactory.makeVarRef(id.getSpan(), fr.isParenthesized(),
-                                           fr.getExprType(), id)).accept(this);
+            return (ExprFactory.makeVarRef(id.getSpan(), NodeUtil.isParenthesized(fr),
+                                           NodeUtil.getExprType(fr), id)).accept(this);
         }
 
     }

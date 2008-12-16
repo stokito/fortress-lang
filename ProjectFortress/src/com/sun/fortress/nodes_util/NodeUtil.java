@@ -38,6 +38,16 @@ import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 
 public class NodeUtil {
 
+    /* Getters for Expr */
+
+    public static boolean isParenthesized(Expr e) {
+        return e.getInfo().isParenthesized();
+    }
+
+    public static Option<Type> getExprType(Expr e) {
+        return e.getInfo().getExprType();
+    }
+
     /* Getters for Type */
 
     public static boolean isParenthesized(Type t) {

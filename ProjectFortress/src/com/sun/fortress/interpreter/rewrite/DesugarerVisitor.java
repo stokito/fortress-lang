@@ -678,8 +678,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         // remove these nodes and they should never appear at this
         // phase of execution. However, now we simply create an OpExpr.
         Node node = ExprFactory.makeOpExpr(op.getSpan(),
-                                           op.isParenthesized(),
-                                           op.getExprType(),
+                                           NodeUtil.isParenthesized(op),
+                                           NodeUtil.getExprType(op),
                                            op.getInfix_op(),
                                            op.getArgs());
         return visitNode(node);
@@ -959,11 +959,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                               usedGenericParameters));
         objectExprs.add(rwoe);
 
-        return visitNode(new _RewriteObjectExprRef(rwoe.getSpan(),
-                                                   rwoe.isParenthesized(),
-                                                   rwoe.getExprType(),
-                                                   rwoe.getGenSymName(),
-                                                   rwoe.getStaticArgs()));
+        return visitNode(ExprFactory.make_RewriteObjectExprRef(rwoe));
    }
 
     @Override
@@ -1122,7 +1118,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                                         NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
                                                         Environment.TOP_LEVEL)));
 
-        _RewriteFnRef fn = new _RewriteFnRef(s.getSpan(), false, Option.<Type>none(),
+       _RewriteFnRef fn = ExprFactory.make_RewriteFnRef(s.getSpan(), false, Option.<Type>none(),
                                              in_fn, args);
 
         List<Param> params = Collections.emptyList();
@@ -1607,7 +1603,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             VarRef vre = (VarRef) expr;
             if (vre.getLexicalDepth() == -1) {
                 return ExprFactory.makeMethodInvocation(node.getSpan(),
-                        false, node.getExprType(),
+                        false, NodeUtil.getExprType(node),
                         ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
                         (Id) vre.getVarId(),
                         visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
@@ -1620,7 +1616,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             FieldRef selfDotSomething = (FieldRef) visit(first);
 
             return ExprFactory.makeMethodInvocation(node.getSpan(),
-                                    false, node.getExprType(),
+                                    false, NodeUtil.getExprType(node),
                                     selfDotSomething.getObj(), // this will rewrite in the future.
                                     selfDotSomething.getField(),
                                     visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
@@ -1645,7 +1641,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Node arg = visit(((ExprMI)node.getRest().get(0)).getExpr());
 
         return ExprFactory.makeMethodInvocation(node.getSpan(),
-                                false, node.getExprType(),
+                                false, NodeUtil.getExprType(node),
                                 selfDotSomething.getObj(), // this will rewrite in the future.
                                 selfDotSomething.getField(),
                                     (Expr)arg

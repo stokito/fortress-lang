@@ -1083,21 +1083,21 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return s.toString();
     }
 
-    @Override public String forAsExprOnly(AsExpr that, Option<String> exprType_result,
+    @Override public String forAsExprOnly(AsExpr that, String info,
                                           String expr_result,
                                           String type_result) {
         return handleParen( expr_result + " as " + type_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAsIfExprOnly(AsIfExpr that, Option<String> exprType_result,
+    @Override public String forAsIfExprOnly(AsIfExpr that, String info,
                                             String expr_result,
                                             String type_result) {
         return handleParen( expr_result + " asif " + type_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAssignmentOnly(Assignment that, Option<String> exprType_result,
+    @Override public String forAssignmentOnly(Assignment that, String info,
                                               List<String> lhs_result,
                                               Option<String> opr_result,
                                               String rhs_result,
@@ -1113,7 +1113,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( rhs_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forBlock(Block that) {
@@ -1125,7 +1125,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return result;
     }
 
-    @Override public String forBlockOnly(Block that, Option<String> exprType_result,
+    @Override public String forBlockOnly(Block that, String info,
                                          Option<String> loc_result,
                                          List<String> exprs_result) {
         StringBuilder s = new StringBuilder();
@@ -1144,10 +1144,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         decreaseIndent();
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forCaseExprOnly(CaseExpr that, Option<String> exprType_result,
+    @Override public String forCaseExprOnly(CaseExpr that, String info,
                                             Option<String> param_result,
                                             Option<String> compare_result,
                                             String equalsOp_result,
@@ -1171,10 +1171,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forDoOnly(Do that, Option<String> exprType_result,
+    @Override public String forDoOnly(Do that, String info,
                                       List<String> fronts_result) {
         StringBuilder s = new StringBuilder();
 
@@ -1182,10 +1182,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forForOnly(For that, Option<String> exprType_result,
+    @Override public String forForOnly(For that, String info,
                                        List<String> gens_result,
                                        String body_result) {
         StringBuilder s = new StringBuilder();
@@ -1196,10 +1196,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forIfOnly(If that, Option<String> exprType_result,
+    @Override public String forIfOnly(If that, String info,
                                       List<String> clauses_result,
                                       Option<String> elseClause_result) {
         StringBuilder s = new StringBuilder();
@@ -1222,10 +1222,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forLabelOnly(Label that, Option<String> exprType_result,
+    @Override public String forLabelOnly(Label that, String info,
                                          String name_result,
                                          String body_result) {
         StringBuilder s = new StringBuilder();
@@ -1235,11 +1235,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend " ).append( name_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
 
-    @Override public String forObjectExprOnly(ObjectExpr that, Option<String> exprType_result,
+    @Override public String forObjectExprOnly(ObjectExpr that, String info,
                                               String header_result) {
         StringBuilder s = new StringBuilder();
         List<String> extendsClause_result = recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that));
@@ -1256,10 +1256,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         decreaseIndent();
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String for_RewriteObjectExprOnly(_RewriteObjectExpr that, Option<String> exprType_result,
+    @Override public String for_RewriteObjectExprOnly(_RewriteObjectExpr that, String info,
                                                       String header_result,
                                                       List<String> staticArgs_result,
                                                       Option<List<String>> params_result) {
@@ -1277,10 +1277,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "\nend" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forTryOnly(Try that, Option<String> exprType_result,
+    @Override public String forTryOnly(Try that, String info,
                                        String body_result,
                                        Option<String> catchClause_result,
                                        List<String> forbid_result,
@@ -1301,10 +1301,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append("end");
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forTupleExprOnly(TupleExpr that, Option<String> exprType_result,
+    @Override public String forTupleExprOnly(TupleExpr that, String info,
                                              List<String> exprs_result,
                                              Option<String> varargs_result,
                                              List<String> keywords_result) {
@@ -1333,7 +1333,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         } else {
             if ( exprs_result.size() == 1 )
                 return handleParen( exprs_result.get(0),
-                                    that.isParenthesized() );
+                                    NodeUtil.isParenthesized(that) );
             else {
                 StringBuilder s = new StringBuilder();
 
@@ -1346,7 +1346,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
     }
 
-    @Override public String forTypecaseOnly(Typecase that, Option<String> exprType_result,
+    @Override public String forTypecaseOnly(Typecase that, String info,
                                             List<String> bindIds_result,
                                             Option<String> bindExpr_result,
                                             List<String> clauses_result,
@@ -1370,10 +1370,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append("end");
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forWhileOnly(While that, Option<String> exprType_result,
+    @Override public String forWhileOnly(While that, String info,
                                          String test_result,
                                          String body_result) {
         StringBuilder s = new StringBuilder();
@@ -1382,10 +1382,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( " " ).append( body_result );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAccumulatorOnly(Accumulator that, Option<String> exprType_result,
+    @Override public String forAccumulatorOnly(Accumulator that, String info,
                                                List<String> staticArgs_result,
                                                String opr_result,
                                                List<String> gens_result,
@@ -1434,7 +1434,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     /* Possible differences in the original Fortress program and
@@ -1443,7 +1443,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
        "BIG" may appear before an array comprehension.
        In AST, that information is gone because it has no meaning.
      */
-    @Override public String forArrayComprehensionOnly(ArrayComprehension that, Option<String> exprType_result,
+    @Override public String forArrayComprehensionOnly(ArrayComprehension that, String info,
                                                       List<String> staticArgs_result,
                                                       List<String> clauses_result) {
         StringBuilder s = new StringBuilder();
@@ -1455,18 +1455,18 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( "]" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAtomicExprOnly(AtomicExpr that, Option<String> exprType_result,
+    @Override public String forAtomicExprOnly(AtomicExpr that, String info,
                                               String expr_result) {
         StringBuilder s = new StringBuilder();
         s.append( "atomic " ).append( expr_result );
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forExitOnly(Exit that, Option<String> exprType_result,
+    @Override public String forExitOnly(Exit that, String info,
                                         Option<String> target_result,
                                         Option<String> returnExpr_result) {
         StringBuilder s = new StringBuilder();
@@ -1480,29 +1480,28 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forSpawnOnly(Spawn that, Option<String> exprType_result,
+    @Override public String forSpawnOnly(Spawn that, String info,
                                          String body_result) {
         return handleParen( "spawn " + body_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forThrowOnly(Throw that, Option<String> exprType_result,
+    @Override public String forThrowOnly(Throw that, String info,
                                          String expr_result) {
         return handleParen( "throw " + expr_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forTryAtomicExprOnly(TryAtomicExpr that, Option<String> exprType_result,
+    @Override public String forTryAtomicExprOnly(TryAtomicExpr that, String info,
                                                  String expr_result) {
         return handleParen( "tryatomic " + expr_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forFnExpr(FnExpr that) {
-        Option<String> exprType_result = recurOnOptionOfType(that.getExprType());
         FnHeader header = that.getHeader();
         String name_result = recur(header.getName());
         List<String> staticParams_result = recurOnListOfStaticParam(header.getStaticParams());
@@ -1511,14 +1510,14 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         Option<String> whereClause_result = recurOnOptionOfWhereClause(header.getWhereClause());
         Option<List<String>> throwsClause_result = recurOnOptionOfListOfBaseType(header.getThrowsClause());
         String body_result = recur(that.getBody());
-        return forFnExprOnly(that, exprType_result,
+        return forFnExprOnly(that, "",
                              name_result, staticParams_result, params_result,
                              returnType_result, whereClause_result,
                              throwsClause_result,
                              body_result);
     }
 
-    public String forFnExprOnly(FnExpr that, Option<String> exprType_result,
+    public String forFnExprOnly(FnExpr that, String info,
                                 String name_result,
                                 List<String> staticParams_result,
                                 List<String> params_result,
@@ -1537,10 +1536,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( " => ").append(body_result);
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forLetFnOnly(LetFn that, Option<String> exprType_result,
+    @Override public String forLetFnOnly(LetFn that, String info,
                                          List<String> body_result,
                                          List<String> fns_result) {
         StringBuilder s = new StringBuilder();
@@ -1552,21 +1551,20 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     @Override public String forLocalVarDecl(LocalVarDecl that) {
-        Option<String> exprType_result = recurOnOptionOfType(that.getExprType());
         List<String> lhs_result = recurOnListOfLValue(that.getLhs());
         Option<String> rhs_result = recurOnOptionOfExpr(that.getRhs());
         for (LValue lv : that.getLhs()) {
             locals.add(lv.getName().getText());
         }
         List<String> body_result = recurOnListOfExpr(that.getBody());
-        return forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
+        return forLocalVarDeclOnly(that, "", body_result, lhs_result, rhs_result);
     }
 
-    @Override public String forLocalVarDeclOnly(LocalVarDecl that, Option<String> exprType_result,
+    @Override public String forLocalVarDeclOnly(LocalVarDecl that, String info,
                                                 List<String> body_result,
                                                 List<String> lhs_result,
                                                 Option<String> rhs_result) {
@@ -1594,10 +1592,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forSubscriptExprOnly(SubscriptExpr that, Option<String> exprType_result,
+    @Override public String forSubscriptExprOnly(SubscriptExpr that, String info,
                                                  String obj_result,
                                                  List<String> subs_result,
                                                  Option<String> op_result,
@@ -1623,44 +1621,44 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( " " ).append( right );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forFloatLiteralExprOnly(FloatLiteralExpr that, Option<String> exprType_result) {
+    @Override public String forFloatLiteralExprOnly(FloatLiteralExpr that, String info) {
         return handleParen( that.getText(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forIntLiteralExprOnly(IntLiteralExpr that, Option<String> exprType_result) {
+    @Override public String forIntLiteralExprOnly(IntLiteralExpr that, String info) {
         return handleParen( that.getText(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forCharLiteralExprOnly(CharLiteralExpr that, Option<String> exprType_result) {
+    @Override public String forCharLiteralExprOnly(CharLiteralExpr that, String info) {
         return handleParen( "'" +
                             that.getText().replaceAll( "\\\\", "\\\\\\\\" )
                                           .replaceAll( "\\\"", "\\\\\"" )
                                           .replaceAll( "\\t", "\\\\t" )
                                           .replaceAll( "\\n", "\\\\n" ) +
                             "'",
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forStringLiteralExprOnly(StringLiteralExpr that, Option<String> exprType_result) {
+    @Override public String forStringLiteralExprOnly(StringLiteralExpr that, String info) {
         return handleParen( "\"" +
                             that.getText().replaceAll( "\\\\", "\\\\\\\\" )
                                           .replaceAll( "\\\"", "\\\\\"" )
                                           .replaceAll( "\\t", "\\\\t" )
                                           .replaceAll( "\\n", "\\\\n" ) +
                             "\"",
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forVoidLiteralExprOnly(VoidLiteralExpr that, Option<String> exprType_result) {
+    @Override public String forVoidLiteralExprOnly(VoidLiteralExpr that, String info) {
         return "()";
     }
 
-    @Override public String forVarRefOnly(VarRef that, Option<String> exprType_result,
+    @Override public String forVarRefOnly(VarRef that, String info,
                                           String var_result,
                                           List<String> staticArgs_result) {
         if ( NodeUtil.isSingletonObject( that ) ) {
@@ -1670,13 +1668,13 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             inOxfordBrackets(s, staticArgs_result);
 
             return handleParen( s.toString(),
-                                that.isParenthesized() );
+                                NodeUtil.isParenthesized(that) );
         } else
             return handleParen( var_result,
-                                that.isParenthesized() );
+                                NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forFieldRefOnly(FieldRef that, Option<String> exprType_result,
+    @Override public String forFieldRefOnly(FieldRef that, String info,
                                             String obj_result,
                                             String field_result) {
         StringBuilder s = new StringBuilder();
@@ -1684,10 +1682,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( obj_result ).append( "." ).append( field_result ) ;
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forFnRefOnly(FnRef that, Option<String> exprType_result,
+    @Override public String forFnRefOnly(FnRef that, String info,
                                          List<String> staticArgs_result,
                                          String originalName_result,
                                          List<String> fns_result,
@@ -1699,10 +1697,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         inOxfordBrackets(s, staticArgs_result);
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String for_RewriteFnRefOnly(_RewriteFnRef that, Option<String> exprType_result,
+    @Override public String for_RewriteFnRefOnly(_RewriteFnRef that, String info,
                                                  String fn_result,
                                                  List<String> staticArgs_result) {
         StringBuilder s = new StringBuilder();
@@ -1711,20 +1709,20 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         inOxfordBrackets(s, staticArgs_result);
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forOpRefOnly(OpRef that, Option<String> exprType_result,
+    @Override public String forOpRefOnly(OpRef that, String info,
                                          List<String> staticArgs_result,
                                          String originalName_result,
                                          List<String> ops_result,
                                          Option<List<String>> overloadings_result,
                                          Option<String> type_result) {
         return handleParen( canonicalOp(originalName_result),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forJuxtOnly(Juxt that, Option<String> exprType_result,
+    @Override public String forJuxtOnly(Juxt that, String info,
                                         String multiJuxt_result,
                                         String infixJuxt_result,
                                         List<String> exprs_result) {
@@ -1738,7 +1736,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             for ( String expr : IterUtil.skipFirst(exprs_result) ){
                 s.append( inParentheses(expr) );
             }
-            if ( that.isParenthesized() )
+            if ( NodeUtil.isParenthesized(that) )
                 return "(" + s.toString() + ")";
             else
                 return s.toString();
@@ -1748,11 +1746,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 s.append( " " );
             }
             return handleParen( s.toString(),
-                                that.isParenthesized() );
+                                NodeUtil.isParenthesized(that) );
         }
     }
 
-    @Override public String for_RewriteFnAppOnly(_RewriteFnApp that, Option<String> exprType_result,
+    @Override public String for_RewriteFnAppOnly(_RewriteFnApp that, String info,
                                                  String function_result,
                                                  String argument_result) {
         StringBuilder s = new StringBuilder();
@@ -1761,7 +1759,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( inParentheses(argument_result) );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
     private boolean isDiv(String oper){
@@ -1792,7 +1790,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return result.toString();
     }
 
-    @Override public String forOpExprOnly(final OpExpr that, Option<String> exprType_result,
+    @Override public String forOpExprOnly(final OpExpr that, String info,
                                           final String op_result,
                                           final List<String> args_result) {
         StringBuilder s = new StringBuilder();
@@ -1877,10 +1875,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         }));
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, Option<String> exprType_result,
+    @Override public String forAmbiguousMultifixOpExprOnly(AmbiguousMultifixOpExpr that, String info,
                                                            String infix_op_result,
                                                            String multifix_op_result,
                                                            List<String> args_result) {
@@ -1889,10 +1887,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( join( args_result, " "+infix_op_result+" " ) );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forChainExprOnly(ChainExpr that, Option<String> exprType_result,
+    @Override public String forChainExprOnly(ChainExpr that, String info,
                                              String first_result,
                                              List<String> links_result) {
         StringBuilder s = new StringBuilder();
@@ -1901,10 +1899,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( join(links_result, " ") );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forCoercionInvocationOnly(CoercionInvocation that, Option<String> exprType_result,
+    @Override public String forCoercionInvocationOnly(CoercionInvocation that, String info,
                                                       String type_result,
                                                       List<String> staticArgs_result,
                                                       String arg_result) {
@@ -1916,10 +1914,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( inParentheses(arg_result) );
 
         return "(* " + handleParen( s.toString(),
-                                    that.isParenthesized() ) + " *)";
+                                    NodeUtil.isParenthesized(that) ) + " *)";
     }
 
-    @Override public String forMethodInvocationOnly(MethodInvocation that, Option<String> exprType_result,
+    @Override public String forMethodInvocationOnly(MethodInvocation that, String info,
                                                     String obj_result,
                                                     String method_result,
                                                     List<String> staticArgs_result,
@@ -1931,10 +1929,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( inParentheses(arg_result) );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forMathPrimaryOnly(MathPrimary that, Option<String> exprType_result,
+    @Override public String forMathPrimaryOnly(MathPrimary that, String info,
                                                String multiJuxt_result,
                                                String infixJuxt_result,
                                                String front_result,
@@ -1945,17 +1943,17 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         s.append( join(rest_result, "") );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forArrayElementOnly(ArrayElement that, Option<String> exprType_result,
+    @Override public String forArrayElementOnly(ArrayElement that, String info,
                                                 List<String> staticArgs_result,
                                                 String element_result) {
         return handleParen( element_result,
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
     }
 
-    @Override public String forArrayElementsOnly(ArrayElements that, Option<String> exprType_result,
+    @Override public String forArrayElementsOnly(ArrayElements that, String info,
                                                  List<String> staticArgs_result,
                                                  List<String> elements_result) {
         StringBuilder s = new StringBuilder();
@@ -1975,7 +1973,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             s.append( " ]" );
 
         return handleParen( s.toString(),
-                            that.isParenthesized() );
+                            NodeUtil.isParenthesized(that) );
+    }
+
+    @Override public String forExprInfoOnly(ExprInfo info,
+                                            Option<String> type) {
+        return "";
     }
 
     @Override public String forTypeInfoOnly(TypeInfo that,

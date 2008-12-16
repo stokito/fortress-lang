@@ -1066,8 +1066,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
     @Override
     public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
         return this.forOpExpr(ExprFactory.makeOpExpr(that.getSpan(),
-                                                     that.isParenthesized(),
-                                                     that.getExprType(),
+                                                     NodeUtil.isParenthesized(that),
+                                                     NodeUtil.getExprType(that),
                                                      that.getMultifix_op(),
                                                      that.getArgs()));
     }

@@ -114,10 +114,12 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     public Node forVarRef(VarRef that){
-        Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+        Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
         Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() + " in hygiene environment = " + var_result);
-        return forVarRefOnly(that, exprType_result, var_result, that.getStaticArgs());
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                         exprType_result);
+        return forVarRefOnly(that, info, var_result, that.getStaticArgs());
     }
 
     /*
@@ -170,7 +172,7 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forFor(For that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             List<GeneratorClause> gens_result = Useful.applyToAll(that.getGens(), new Fn<GeneratorClause, GeneratorClause>(){
                 public GeneratorClause apply(GeneratorClause value){
                     return handleGeneratorClause(value);
@@ -178,7 +180,9 @@ public class Transform extends TemplateUpdateVisitor {
             });
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return forForOnly(that, exprType_result, gens_result, body_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                             exprType_result);
+            return forForOnly(that, info, gens_result, body_result);
         } else {
             return super.forFor(that);
         }
@@ -187,11 +191,13 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forWhile(While that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             GeneratorClause test_result = handleGeneratorClause(that.getTestExpr());
             Do body_result = (Do) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return forWhileOnly(that, exprType_result, test_result, body_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                     exprType_result);
+            return forWhileOnly(that, info, test_result, body_result);
         } else {
             return super.forWhile(that);
         }
@@ -213,13 +219,15 @@ public class Transform extends TemplateUpdateVisitor {
 
     public Node forExit(Exit that) {
         if ( rename ){
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             Option<Id> target_result = recurOnOptionOfId(that.getTarget());
             if ( target_result.isSome() ){
                 target_result = Option.some(syntaxEnvironment.lookup(target_result.unwrap()));
             }
             Option<Expr> returnExpr_result = recurOnOptionOfExpr(that.getReturnExpr());
-            return forExitOnly(that, exprType_result, target_result, returnExpr_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                             exprType_result);
+            return forExitOnly(that, info, target_result, returnExpr_result);
         } else {
             return super.forExit(that);
         }
@@ -228,13 +236,13 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forLabel(Label that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             Id name_result = (Id) recur(that.getName());
             Id newId = generateId(name_result);
             extendSyntaxEnvironment(name_result, newId);
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return ExprFactory.makeLabel(NodeFactory.makeSpan(that), that.isParenthesized(),
+            return ExprFactory.makeLabel(NodeFactory.makeSpan(that), NodeUtil.isParenthesized(that),
                                          exprType_result, newId, body_result);
         } else {
             return super.forLabel(that);
@@ -244,7 +252,7 @@ public class Transform extends TemplateUpdateVisitor {
     public Node forTypecase(Typecase that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             // List<Id> bindIds_result = recurOnListOfId(that.getBindIds());
             List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id,Id>(){
                 public Id apply(Id value){
@@ -258,7 +266,7 @@ public class Transform extends TemplateUpdateVisitor {
             Option<Block> elseClause_result = recurOnOptionOfBlock(that.getElseClause());
             setSyntaxEnvironment(save);
             return ExprFactory.makeTypecase(NodeFactory.makeSpan(that),
-                                            that.isParenthesized(),
+                                            NodeUtil.isParenthesized(that),
                                             exprType_result, newIds,
                                             bindExpr_result, clauses_result,
                                             elseClause_result);
@@ -271,7 +279,7 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(NodeUtil.getName(that));
             List<StaticParam> staticParams_result = recurOnListOfStaticParam(NodeUtil.getStaticParams(that));
             List<Param> params_result = Useful.applyToAll(NodeUtil.getParams(that), renameParam);
@@ -283,7 +291,9 @@ public class Transform extends TemplateUpdateVisitor {
                                                         where_result, throwsClause_result,
                                                         Option.<Contract>none(), params_result,
                                                         returnType_result);
-            Node ret = forFnExprOnly(that, exprType_result, header, body_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                             exprType_result);
+            Node ret = forFnExprOnly(that, info, header, body_result);
             setSyntaxEnvironment(save);
             return ret;
         } else {
@@ -351,7 +361,7 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             List<Expr> body_result = recurOnListOfExpr(that.getBody());
             List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
                 public FnDecl apply(FnDecl fn){
@@ -388,7 +398,9 @@ public class Transform extends TemplateUpdateVisitor {
                         });
                 }
             });
-            Node ret = forLetFnOnly(that, exprType_result, body_result, fns_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                             exprType_result);
+            Node ret = forLetFnOnly(that, info, body_result, fns_result);
             setSyntaxEnvironment(save);
             return ret;
         } else {
@@ -400,7 +412,7 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
-            Option<Type> exprType_result = recurOnOptionOfType(that.getExprType());
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
             List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
                 public LValue apply(LValue value){
@@ -431,7 +443,9 @@ public class Transform extends TemplateUpdateVisitor {
                 }
             });
             */
-            Node ret = forLocalVarDeclOnly(that, exprType_result, body_result, lhs_result, rhs_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                             exprType_result);
+            Node ret = forLocalVarDeclOnly(that, info, body_result, lhs_result, rhs_result);
             setSyntaxEnvironment(save);
             return ret;
         } else {

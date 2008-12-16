@@ -70,7 +70,7 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
             exprs_result.add(mi);
         }
         return forJuxtOnly(that,
-                           that.getExprType(), that.getMultiJuxt(),
+                           that.getInfo(), that.getMultiJuxt(),
                            that.getInfixJuxt(), exprs_result);
     }
 
@@ -84,15 +84,15 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
            if ( ! (name instanceof Id) )
                bug(name, "The name field of FnRef should be Id.");
            MethodInvocation mi = ExprFactory.makeMethodInvocation( fnRef.getSpan(),
-                                                                   fnRef.isParenthesized(),
-                                                                   fnRef.getExprType(),
+                                                                   NodeUtil.isParenthesized(fnRef),
+                                                                   NodeUtil.getExprType(fnRef),
                                                                    receiver, (Id)name,
                                                                    fnRef.getStaticArgs(),
                                                                    arg );
            return mi;
         }
 
-        return for_RewriteFnAppOnly(that, that.getExprType(), function, arg);
+        return for_RewriteFnAppOnly(that, that.getInfo(), function, arg);
     }
 
     private MethodInvocation makeMethodInvocationFrom(FnRef fnRef,
@@ -110,8 +110,8 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
             bug(name, "The name field of FnRef should be Id.");
 
         mi = ExprFactory.makeMethodInvocation( fnRef.getSpan(),
-                                               fnRef.isParenthesized(),
-                                               fnRef.getExprType(),
+                                               NodeUtil.isParenthesized(fnRef),
+                                               NodeUtil.getExprType(fnRef),
                                                receiver, (Id)name,
                                                fnRef.getStaticArgs(),
                                                argExpr );

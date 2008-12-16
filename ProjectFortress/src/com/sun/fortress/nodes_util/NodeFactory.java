@@ -516,6 +516,20 @@ public class NodeFactory {
         return new Param(span, name, mods, type, expr, varargsType);
     }
 
+    public static ExprInfo makeExprInfo() {
+        return makeExprInfo(false);
+    }
+
+    public static ExprInfo makeExprInfo(boolean parenthesized) {
+        return makeExprInfo(parenthesized,
+                            Option.<Type>none());
+    }
+
+    public static ExprInfo makeExprInfo(boolean parenthesized,
+                                        Option<Type> ty) {
+        return new ExprInfo(parenthesized, ty);
+    }
+
     public static TypeInfo makeTypeInfo() {
         return makeTypeInfo(false);
     }
@@ -523,7 +537,7 @@ public class NodeFactory {
     public static TypeInfo makeTypeInfo(boolean parenthesized) {
         return makeTypeInfo(parenthesized,
                             Collections.<StaticParam>emptyList(),
-                            Option.<WhereClause> none());
+                            Option.<WhereClause>none());
     }
 
     public static TypeInfo makeTypeInfo(boolean parenthesized,

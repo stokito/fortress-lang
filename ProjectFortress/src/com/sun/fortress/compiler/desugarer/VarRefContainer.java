@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -90,7 +91,8 @@ public class VarRefContainer {
     public ObjectDecl containerDecl() {
         List<Param> params = new LinkedList<Param>();
         Param param = makeVarParamFromVarRef( origVar,
-                                origDeclNode.getSpan(), origVar.getExprType() );
+                                              origDeclNode.getSpan(),
+                                              NodeUtil.getExprType(origVar) );
         params.add(param);
 
         ObjectDecl container =

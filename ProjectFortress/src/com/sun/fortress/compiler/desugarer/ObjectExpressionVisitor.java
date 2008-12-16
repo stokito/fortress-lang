@@ -568,13 +568,14 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
                 exitWithExpr = exit.getReturnExpr();
                 if( exitWithExpr.isSome() ) {
-                    exitWithTypeOp = exitWithExpr.unwrap().getExprType();
+                    exitWithTypeOp = NodeUtil.getExprType(exitWithExpr.unwrap());
                     if( exitWithTypeOp.isSome() ) {
                         VarRef var = ExprFactory.makeVarRef(exitSpan,
                                                             exitWithTypeOp,
                                                             exitWithId);
                         exitFnBody = ExprFactory.makeExit(exitSpan,
-                            exit.getExprType(), exit.getTarget(), var);
+                                                          NodeUtil.getExprType(exit),
+                                                          exit.getTarget(), var);
                         exitFnExprParams.add(
                             NodeFactory.makeParam(exitWithId, exitWithTypeOp) );
                     } else {
@@ -724,7 +725,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     // Default value for modifier and default expression
                     // FIXME: What if it has a type that's not visible at top level?
                     // FIXME: what span should I use?
-                    type = var.getExprType();
+                    type = NodeUtil.getExprType(var);
                     param = NodeFactory.makeParam(var.getVarId(), type);
                     params.add(param);
                 }
@@ -736,7 +737,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // Default value for modifier and default expression
                 // FIXME: What if it has a type that's not visible at top level?
                 // FIXME: what span should I use?
-                type = fn.getExprType();
+                type = NodeUtil.getExprType(fn);
                 IdOrOp name = fn.getOriginalName();
                 if ( ! (name instanceof Id) )
                     bug(name, "The name field of FnRef should be Id.");
@@ -757,7 +758,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                                     "Exit target label is not disambiguated!");
                 if(retExpr.isSome()) {
                     retType = unwrapIfSomeElseError(
-                                retExpr.unwrap().getExprType(),
+                                NodeUtil.getExprType(retExpr.unwrap()),
                                 exitSpan,
                                 "Exit with expr of an unknown type!" );
                 } else { // exit with no expr

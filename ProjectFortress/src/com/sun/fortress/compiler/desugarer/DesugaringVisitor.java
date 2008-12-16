@@ -219,9 +219,11 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 FieldRef rewrite = ExprFactory.makeFieldRef(fieldRef, span);
                 assert( rewrite.getObj() instanceof VarRef );
                 VarRef obj = (VarRef)rewrite.getObj();
-                obj = ExprFactory.makeVarRef(obj, obj.getExprType(),
+                obj = ExprFactory.makeVarRef(obj, NodeUtil.getExprType(obj),
                                              mangleName(obj.getVarId()));
-                body = (Expr)forFieldRefOnly(rewrite, field.getIdType(),
+                ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(rewrite),
+                                                         field.getIdType());
+                body = (Expr)forFieldRefOnly(rewrite, info,
                                              obj, rewrite.getField());
             } else {
                 body = ExprFactory.makeVarRef(span, mangleName(name));
@@ -261,7 +263,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 FieldRef rewrite = ExprFactory.makeFieldRef(fieldRef, field.getSpan());
                 assert( rewrite.getObj() instanceof VarRef );
                 VarRef obj = (VarRef)rewrite.getObj();
-                obj = ExprFactory.makeVarRef(obj, obj.getExprType(),
+                obj = ExprFactory.makeVarRef(obj, NodeUtil.getExprType(obj),
                                              mangleName(obj.getVarId()));
                 assign = ExprFactory.makeMethodInvocation(rewrite.getSpan(), false,
                                                           Option.some(voidType), obj,
@@ -390,12 +392,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                         Expr rhs = rhs_result;
                         if ( that.getAssignOp().isSome() ) {
                             Expr _lhs = (Expr)lhs_that.accept(DesugaringVisitor.this);
-                            rhs = ExprFactory.makeOpExpr(span, lhs_that.isParenthesized(),
-                                                         lhs_that.getExprType(),
+                            rhs = ExprFactory.makeOpExpr(span, NodeUtil.isParenthesized(lhs_that),
+                                                         NodeUtil.getExprType(lhs_that),
                                                          that.getAssignOp().unwrap(),
                                                          Arrays.asList(_lhs, rhs));
                         }
-                        return ExprFactory.makeMethodInvocation(span, that.isParenthesized(),
+                        return ExprFactory.makeMethodInvocation(span, NodeUtil.isParenthesized(that),
                                                                 voidType, obj,
                                                                 lhs_that.getField(),
                                                                 rhs);
@@ -420,7 +422,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                  (tuple_0, tuple_1, tuple_2) = tuple_3
                  (x := tuple0, y.f(tuple1), z := tuple2)
             */
-            boolean paren = that.isParenthesized();
+            boolean paren = NodeUtil.isParenthesized(that);
             Option<FunctionalRef> opr = that.getAssignOp();
             List<Expr>   assigns   = new ArrayList<Expr>();
             List<LValue> secondLhs = new ArrayList<LValue>();
@@ -451,13 +453,13 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
      * Recur on VarRef to change to a mangled name if it's a field ref.
      */
     @Override
-    public Node forVarRefOnly(VarRef that, Option<Type> exprType_result,
+    public Node forVarRefOnly(VarRef that, ExprInfo info,
                               Id varResult, List<StaticArg> staticArg_result) {
         // After disambiguation, the Id in a VarRef should have an empty API.
         assert(varResult.getApiName().isNone());
 
         if (fieldsInScope.contains(varResult)) {
-            return ExprFactory.makeVarRef(that, exprType_result,
+            return ExprFactory.makeVarRef(that, NodeUtil.getExprType(that),
                                           mangleName(varResult));
         } else {
             return that;
@@ -465,14 +467,14 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forFieldRefOnly(FieldRef that, Option<Type> exprType_result,
+    public Node forFieldRefOnly(FieldRef that, ExprInfo info,
                                 Expr obj_result, Id field_result) {
         return ExprFactory.makeMethodInvocation(that, obj_result, field_result,
                                                 ExprFactory.makeVoidLiteralExpr(that.getSpan()));
     }
 
     @Override
-    public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
+    public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs_result,
                              IdOrOp fnResult, List<IdOrOp> fns_result,
                              Option<List<FunctionalRef>> overloadings_result,
@@ -491,7 +493,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 newFns.add(mangleName((Id)n));
             }
 
-            return ExprFactory.makeFnRef(that, exprType_result,
+            return ExprFactory.makeFnRef(that, NodeUtil.getExprType(that),
                                          mangleName(name), newFns,
                                          staticArgs_result, overloadings_result);
         } else {
@@ -514,7 +516,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                                  NodeUtil.getExtendsClause(that),
                                                                  gettersAndDecls);
-        return forObjectExprOnly(that, that.getExprType(), header);
+        return forObjectExprOnly(that, that.getInfo(), header);
     }
 
     @Override
