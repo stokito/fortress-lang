@@ -30,7 +30,7 @@ parens(gp:ZZ32, p:ZZ32, s:String):String =
 
 trait Term extends Equality[\Term\]
         comprises { Lambda, App, Var, FreeVar, Const }
-    getter toString(): String = pretty(0)
+    getter asString(): String = pretty(0)
     getter inst(): Term = self
     pretty(p:ZZ32): String = ugly()
     ugly(): String
@@ -243,7 +243,7 @@ object Parser(f:FileReadStream)
             char(0) => fail ("unexpected eof in arg list, last arg " id)
             ')'  => fail ("unexpected ')' in arg list, last arg " id)
             else => if isDigit(curr) then
-                        fail ("unexpected digit " curr.toString() " in arg list")
+                        fail ("unexpected digit " curr.asString() " in arg list")
                     else
                         mkLambda(id,parseLambdaF(newlineOK))
                     end
@@ -257,7 +257,7 @@ object Parser(f:FileReadStream)
     parseParens(newlineOK:Boolean): Term = do
         r = parseReqTerm(true)
         if curr=/=')' then
-            fail("unexpected terminator " curr.toString() ", expected ')'")
+            fail("unexpected terminator " curr.asString() ", expected ')'")
         end
         skip(newlineOK)
         r

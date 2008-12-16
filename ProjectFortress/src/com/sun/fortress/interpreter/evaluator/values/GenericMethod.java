@@ -124,9 +124,8 @@ public class GenericMethod extends MethodClosure implements
         // Evaluate each of the args in e, inject into clenv.
         if (args.size() != params.size()) {
             error(location, e,
-                  "Generic instantiation (size) mismatch, expected "
-                  + Useful.listInParens(params)
-                  + " got " + Useful.listInParens(args));
+                  errorMsg("Generic instantiation (size) mismatch, expected ",
+                           params," got ",args));
         }
         EvalType et = new EvalType(e);
         // TODO Can combine these two functions if we enhance the memo and factory

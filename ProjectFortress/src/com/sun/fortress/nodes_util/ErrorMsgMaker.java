@@ -249,10 +249,10 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
         return NodeUtil.nameString(node.getName()) + r;
     }
 
-    public String forStatiParam(StaticParam node) {
+    public String forStaticParam(StaticParam node) {
         final String name = NodeUtil.nameString(node.getName());
         return node.getKind().accept(new NodeAbstractVisitor<String>() {
-                @Override public String forKindType(KindType k) { return "type " + name; }
+                @Override public String forKindType(KindType k) { return name; }
                 @Override public String forKindInt(KindInt k) { return "int " + name; }
                 @Override public String forKindNat(KindNat k) { return "nat " + name; }
                 @Override public String forKindBool(KindBool k) { return "bool " + name; }
