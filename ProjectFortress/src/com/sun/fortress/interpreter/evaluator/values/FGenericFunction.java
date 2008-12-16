@@ -172,8 +172,8 @@ public class FGenericFunction extends GenericFunctionOrConstructor
         if (argValues.size() != params.size() ) {
             error(location,
                   errorMsg("Generic instantiation (size) mismatch, expected ",
-                           Useful.listInParens(params), " got ",
-                           Useful.listInParens(argValues)));
+                           Useful.listInOxfords(params), " got ",
+                           Useful.listInOxfords(argValues)));
         }
         return make(argValues, location);
     }

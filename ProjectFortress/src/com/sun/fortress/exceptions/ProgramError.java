@@ -17,6 +17,7 @@
 
 package com.sun.fortress.exceptions;
 
+import java.util.List;
 
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.nodes.AbstractNode;
@@ -31,17 +32,29 @@ public class ProgramError extends FortressException {
      */
     private static final long serialVersionUID = 6117319678737763138L;
 
+    private static void errorSer(StringBuilder s, Object message) {
+        if (message == null) {
+            s.append("null");
+        } else if (message instanceof AbstractNode) {
+            s.append(makeErrorMsg((AbstractNode)message));
+        } else if (message instanceof List<?>) {
+            boolean first = true;
+            s.append("[");
+            for (Object elt : (List<?>)message) {
+                if (!first) s.append(",");
+                first = false;
+                errorSer(s,elt);
+            }
+            s.append("]");
+        } else {
+            s.append(message.toString());
+        }
+    }
+
     public static String errorMsg(Object... messages) {
-        StringBuffer fullMessage = new StringBuffer();
+        StringBuilder fullMessage = new StringBuilder();
         for (Object message : messages) {
-            if (message == null) {
-                fullMessage.append("null");
-            } else if (message instanceof AbstractNode) {
-                fullMessage.append(makeErrorMsg((AbstractNode)message));
-            }
-            else {
-                fullMessage.append(message.toString());
-            }
+            errorSer(fullMessage, message);
         }
         return fullMessage.toString();
     }

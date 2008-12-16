@@ -1,43 +1,43 @@
 (*******************************************************************************
-  Generator-of-Generators Library is copyrighted free software by Kento Emoto 
-  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative 
-  research on Fortress Programming Language between Sun Microsystems, 
-  Inc. and the University of Tokyo.  
-  
-  You can redistribute it and/or modify it under the following 
+  Generator-of-Generators Library is copyrighted free software by Kento Emoto
+  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative
+  research on Fortress Programming Language between Sun Microsystems,
+  Inc. and the University of Tokyo.
+
+  You can redistribute it and/or modify it under the following
   BSD-style license or the Sun Contributor Agreement that Kento Emoto signed.
-  
-  
+
+
   Copyright (c) 2008 by Kento Emoto
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
-  modification, are permitted provided that the following conditions 
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
   are met:
-  
-      * Redistributions of source code must retain the above copyright 
+
+      * Redistributions of source code must retain the above copyright
         notice, this list of conditions and the following disclaimer.
-      * Redistributions in binary form must reproduce the above copyright 
-        notice, this list of conditions and the following disclaimer 
-        in the documentation and/or other materials provided with the 
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer
+        in the documentation and/or other materials provided with the
         distribution.
-      * Neither the name of Kento Emoto nor the names of its 
-        contributors may be used to endorse or promote products derived 
+      * Neither the name of Kento Emoto nor the names of its
+        contributors may be used to endorse or promote products derived
         from this software without specific prior written permission.
-  
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
-  
+
+
  ******************************************************************************)
 
 
@@ -86,7 +86,7 @@ run(args:String...) : () = do
   switchDispatching(false)
   println("")
   println("")
-  println("Without optimization by dispatching in GGs (slow ;;)") 
+  println("Without optimization by dispatching in GGs (slow ;;)")
   demo[\Number,Number\]("Array", xit, xs, xu, id)
   demo[\Number,Number\]("List", lxit, lxs, lxu, id)
   demo[\Number,Number\]("Set", sxit, sxs, sxu, id)
@@ -106,8 +106,8 @@ end
 testing[\E,F\](x:Generator[\E\], gg : Generator[\E\] -> Generator2[\E\], f:E->F, ggstr : String) = do
 
   p1 = relationalPredicate[\E\](fn (a, b) => |f a - f b| < 4)
-  p2 = relationalPredicate[\E\](fn (a, b) => f a < f b) 
-  
+  p2 = relationalPredicate[\E\](fn (a, b) => f a < f b)
+
   xi  = gg(x)
   xif = xi.filter(p1)
   xiff = xif.filter(p2)
@@ -118,22 +118,22 @@ testing[\E,F\](x:Generator[\E\], gg : Generator[\E\] -> Generator2[\E\], f:E->F,
   println(ggstr "x filtered by flat4 = "  ( list(xif) ) )
   println(ggstr "x filtered by flat4 and ascending = "  ( list(xiff) ) )
 *)
-  psxi = SUM[\F\] <| PROD[\F\] <| f y | y <- ys |> | ys <- xi |>  
+  psxi = SUM[\F\] <|[\F\] PROD[\F\] <|[\F\] f y | y <- ys |> | ys <- xi |>
   println("product sum of " ggstr " of x = " psxi)
 
-  psxif = SUM[\F\] <| PROD[\F\] <| f y | y <- ys |> | ys <- xi, p1 ys |>
+  psxif = SUM[\F\] <|[\F\] PROD[\F\] <|[\F\] f y | y <- ys |> | ys <- xi, p1 ys |>
   println("product sum of " ggstr " of x filtered by flat4 = " psxif)
 
-  psxiff = SUM[\F\] <| PROD[\F\] <| f y | y <- ys |> | ys <- xi, p1 ys, p2 ys |>
+  psxiff = SUM[\F\] <|[\F\] PROD[\F\] <|[\F\] f y | y <- ys |> | ys <- xi, p1 ys, p2 ys |>
   println("product sum of " ggstr " of x filtered by flat4 and ascending = " psxiff)
 
-  msxi = BIG MAX[\F\] <| SUM[\F\] <| f y | y <- ys |> | ys <- xi |>  
+  msxi = BIG MAX[\F\] <|[\F\] SUM[\F\] <|[\F\] f y | y <- ys |> | ys <- xi |>
   println("max sum of " ggstr " of x = " msxi)
 
-  msxif = BIG MAX[\F\] <| SUM[\F\] <| f y | y <- ys |> | ys <- xi, p1 ys |>
+  msxif = BIG MAX[\F\] <|[\F\] SUM[\F\] <|[\F\] f y | y <- ys |> | ys <- xi, p1 ys |>
   println("max sum of " ggstr " of x filtered by flat4 = " msxif)
 
-  msxiff = BIG MAX[\F\] <| SUM[\F\] <| f y | y <- ys |> | ys <- xi, p1 ys, p2 ys |>
+  msxiff = BIG MAX[\F\] <|[\F\] SUM[\F\] <|[\F\] f y | y <- ys |> | ys <- xi, p1 ys, p2 ys |>
   println("max sum of " ggstr " of x filtered by flat4 and ascending = " msxiff)
 
 end
@@ -141,4 +141,4 @@ end
 
 
 end
- 
+
