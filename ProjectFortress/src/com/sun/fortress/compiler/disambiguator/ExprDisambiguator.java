@@ -49,6 +49,7 @@ import com.sun.fortress.nodes.DimDecl;
 import com.sun.fortress.nodes.Do;
 import com.sun.fortress.nodes.Exit;
 import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.ExprInfo;
 import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnExpr;
@@ -333,11 +334,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             uninitializedNames = definedNames;
         }
 
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         //NameEnv newEnv = new LocalVarEnv(_env, definedNames);
         ExprDisambiguator v = extendWithVars(definedNames, uninitializedNames);
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
-        return forLocalVarDeclOnly(that, type_result , bodyResult, lhsResult, rhsResult);
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that), type_result);
+        return forLocalVarDeclOnly(that, info, bodyResult, lhsResult, rhsResult);
     }
 
     private Set<Id> extractDefinedVarNames(Iterable<? extends LValue> lvalues) {
@@ -510,7 +512,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> gettersAndSetters = declNames.second();
         Set<IdOrOpOrAnonymousName> fns = declNames.third();
 
-        Option<Type> typeResult = recurOnOptionOfType(that.getExprType());
+        Option<Type> typeResult = recurOnOptionOfType(NodeUtil.getExprType(that));
 
         Pair<Set<Id>, Set<IdOrOpOrAnonymousName>> inherited = inheritedMethods(extendsClause);
         Set<Id> inheritedGettersAndSetters = inherited.first();
@@ -529,7 +531,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(extendsClause,
                                                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
-        return forObjectExprOnly(that, typeResult, header);
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 typeResult);
+        return forObjectExprOnly(that, info, header);
     }
 
     // Make sure we don't infinitely explore supertraits that are acyclic
@@ -795,7 +799,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<Id> params = extractParamNames(NodeUtil.getParams(that));
         ExprDisambiguator v = extendWithVars(staticExprVars).extendWithVars(params);
 
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
                              v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
@@ -806,7 +810,9 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnListOfParam(NodeUtil.getParams(that)),
                              v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
 
-        return forFnExprOnly(that, type_result, header,
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forFnExprOnly(that, info, header,
                              (Expr) that.getBody().accept(v));
     }
 
@@ -835,8 +841,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // Accumulator can bind variables
         Pair<List<GeneratorClause>, Set<Id>> pair = bindInListGenClauses(this, that.getGens());
         ExprDisambiguator extended_d = this.extendWithVars(pair.second());
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forAccumulatorOnly(that, type_result,
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forAccumulatorOnly(that, info,
                                   recurOnListOfStaticArg(that.getStaticArgs()),
                                   (Op)that.getAccOp().accept(this),
                                   pair.first(),
@@ -865,8 +873,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         GeneratorClause gen = that.getTestExpr();
         ExprDisambiguator e_d = this.extendWithVars(Useful.set(gen.getBind()));
 
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forWhileOnly(that, type_result,
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forWhileOnly(that, info,
                             (GeneratorClause)that.getTestExpr().accept(this),
                             (Do)that.getBody().accept(e_d));
     }
@@ -885,8 +895,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         else
             e_d = this.extendWithVarsNoCheck(bound_ids);
 
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forTypecaseOnly(that, type_result,
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forTypecaseOnly(that, info,
                                that.getBindIds(),
                                that.getBindExpr().isSome() ? Option.<Expr>some((Expr)that.getBindExpr().unwrap().accept(this)) : Option.<Expr>none(),
                                e_d.recurOnListOfTypecaseClause(that.getClauses()),
@@ -921,10 +933,13 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
     @Override
 	public Node forFor(For that) {
         Pair<List<GeneratorClause>, Set<Id>> pair = bindInListGenClauses(this, that.getGens());
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
 
         ExprDisambiguator new_disambiguator = this.extendWithVars(pair.second());
-        return forForOnly(that, type_result,
+
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forForOnly(that, info,
                           pair.first(),
                           (Block)that.getBody().accept(new_disambiguator));
     }
@@ -935,8 +950,10 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v = extendWithLocalFns(definedNames);
         List<FnDecl> fnsResult = v.recurOnListOfFnDecl(that.getFns());
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forLetFnOnly(that, type_result, bodyResult, fnsResult);
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forLetFnOnly(that, info, bodyResult, fnsResult);
     }
 
 
@@ -1032,7 +1049,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 // TODO: insert correct number of to-infer arguments?
             }
             else if( vars.size() == 1&& fns.isEmpty() && objs.size() == 1 ) {
-                result = ExprFactory.make_RewriteObjectRef(that.isParenthesized(), IterUtil.first(objs));
+                result = ExprFactory.make_RewriteObjectRef(NodeUtil.isParenthesized(that), IterUtil.first(objs));
             }
             else if (!vars.isEmpty() || !fns.isEmpty() || !objs.isEmpty()) {
                 // To be replaced by a 'shadowing' pass
@@ -1061,7 +1078,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         for (Id field : fields) {
             result = ExprFactory.makeFieldRef(result, field);
         }
-        if (that.isParenthesized()) {
+        if (NodeUtil.isParenthesized(that)) {
             result = ExprFactory.makeInParentheses(result);
         }
         return result;
@@ -1072,8 +1089,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         if ( result_.isNone() ) {
             // Make sure to populate the 'originalName' field.
-            return ExprFactory.makeOpRef(that.getSpan(), that.isParenthesized(),
-                                         that.getExprType(), that.getStaticArgs(),
+            return ExprFactory.makeOpRef(that.getSpan(), NodeUtil.isParenthesized(that),
+                                         NodeUtil.getExprType(that), that.getStaticArgs(),
                                          that.getLexicalDepth(),
                                          (Op)IterUtil.first(that.getNames()),
                                          that.getNames(),
@@ -1105,12 +1122,12 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             } else {
                 //error("Function " + that + " could not be disambiguated.", that);
                 // TODO: The above line is giving fits to the tests, but it'd be nice to pass.
-                return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), (Id)fn_name,
+                return ExprFactory.makeFnRef(that.getSpan(), NodeUtil.isParenthesized(that), (Id)fn_name,
                                              that.getNames(), that.getStaticArgs());
             }
         }
 
-        return ExprFactory.makeFnRef(that.getSpan(), that.isParenthesized(), (Id)fn_name,
+        return ExprFactory.makeFnRef(that.getSpan(), NodeUtil.isParenthesized(that), (Id)fn_name,
                                      CollectUtil.makeList(fns), that.getStaticArgs());
     }
 
@@ -1130,8 +1147,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return Option.none();
         }
 
-        FunctionalRef result = ExprFactory.makeOpRef(that.getSpan(), that.isParenthesized(),
-                                                     that.getExprType(),
+        FunctionalRef result = ExprFactory.makeOpRef(that.getSpan(), NodeUtil.isParenthesized(that),
+                                                     NodeUtil.getExprType(that),
                                                      that.getStaticArgs(),
                                                      that.getLexicalDepth(),
                                                      op_name, CollectUtil.makeList(ops),
@@ -1155,9 +1172,11 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             error("Operator " + op_name + " cannot be disambiguated.", that.getOp());
             op_result = (FunctionalRef)recur(that.getOp());
         }
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
-        return forOpExprOnly(that, type_result, op_result, args_result);
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forOpExprOnly(that, info, op_result, args_result);
     }
 
     @Override public Node forLabel(Label that) {
@@ -1166,12 +1185,14 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         NameEnv newEnv = new LocalVarEnv(_env, labels);
         ExprDisambiguator v =  new ExprDisambiguator(newEnv, _uninitializedNames, _errors,
                                                      Option.wrap(that.getName()));
-        Option<Type> type_result = recurOnOptionOfType(that.getExprType());
-        return forLabelOnly(that, type_result, (Id) that.getName().accept(v),
+        Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+                                                 type_result);
+        return forLabelOnly(that, info, (Id) that.getName().accept(v),
                             (Block) that.getBody().accept(v));
     }
 
-    @Override public Node forExitOnly(Exit that, Option<Type> exprType_result, Option<Id> target_result, Option<Expr> returnExpr_result) {
+    @Override public Node forExitOnly(Exit that, ExprInfo info, Option<Id> target_result, Option<Expr> returnExpr_result) {
         Option<Id> target = target_result.isSome() ? target_result : _innerMostLabel;
         Option<Expr> with = returnExpr_result.isSome() ?
             returnExpr_result :
@@ -1180,8 +1201,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         if (target.isNone() || _innerMostLabel.isNone()) {
             error("Exit occurs outside of a label", that);
         }
-        Exit newExit = ExprFactory.makeExit(that.getSpan(), that.isParenthesized(),
-                                            exprType_result, target, with);
+        Exit newExit = ExprFactory.makeExit(that.getSpan(), info.isParenthesized(),
+                                            info.getExprType(), target, with);
         if (newExit.equals(that)) {
             return that;
         } else {

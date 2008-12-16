@@ -84,8 +84,8 @@ public class ASTUtil {
         FunctionalRef multifix_op = ExprFactory.makeOpRef(multifix_op_);
 
         if (args.size() > 2) {
-            return new AmbiguousMultifixOpExpr(span, false, Option.<Type>none(),
-                                               infix_op, multifix_op, args);
+            return ExprFactory.makeAmbiguousMultifixOpExpr(span,
+                                                           infix_op, multifix_op, args);
         }
         else if (args.size() == 2) {
         	return ExprFactory.makeOpExpr(span, infix_op, args);

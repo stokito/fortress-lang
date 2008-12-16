@@ -697,7 +697,7 @@ public final class FortressUtil {
                     syntaxError(e.getSpan(), "Misparsed variable introduction!");
                 }
             } else {
-                if (isEquality(e) && !e.isParenthesized())
+                if (isEquality(e) && !NodeUtil.isParenthesized(e))
                     syntaxError(e.getSpan(),
                                 "Equality testing expressions should be parenthesized.");
                 else es.add(0, e);

@@ -43,6 +43,31 @@ public class ExprFactory {
     private static FunctionalRef infixJuxt = makeInfixJuxt();
     public static int lexicalDepth = -2147483648;
 
+    public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that,
+                                                                      boolean parenthesized) {
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, NodeUtil.getExprType(that));
+        return makeAmbiguousMultifixOpExpr(that.getSpan(), info,
+                                           that.getInfix_op(), that.getMultifix_op(),
+                                           that.getArgs());
+    }
+
+    public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(Span span,
+                                                                      FunctionalRef infix_op,
+                                                                      FunctionalRef multifix_op,
+                                                                      List<Expr> args) {
+        ExprInfo info = NodeFactory.makeExprInfo(false, Option.<Type>none());
+        return makeAmbiguousMultifixOpExpr(span, info, infix_op, multifix_op,
+                                           args);
+    }
+
+    public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(Span span,
+                                                                      ExprInfo info,
+                                                                      FunctionalRef infix_op,
+                                                                      FunctionalRef multifix_op,
+                                                                      List<Expr> args) {
+        return new AmbiguousMultifixOpExpr(span, info, infix_op, multifix_op, args);
+    }
+
     public static ArrayElement makeArrayElement(Expr elem) {
         return makeArrayElement(elem.getSpan(), false, Option.<Type>none(),
                                 Collections.<StaticArg>emptyList(), elem);
@@ -52,7 +77,8 @@ public class ExprFactory {
                                                 Option<Type> ty,
                                                 List<StaticArg> staticArgs,
                                                 Expr elem) {
-        return new ArrayElement(span, parenthesized, ty, staticArgs, elem);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new ArrayElement(span, info, staticArgs, elem);
     }
 
     public static ArrayElements makeArrayElements(Span span, int dim,
@@ -64,7 +90,7 @@ public class ExprFactory {
 
     public static ArrayElements makeArrayElements(ArrayElements a,
                                                   boolean outermost) {
-        return makeArrayElements(a.getSpan(), a.isParenthesized(), a.getExprType(),
+        return makeArrayElements(a.getSpan(), NodeUtil.isParenthesized(a), NodeUtil.getExprType(a),
                                  a.getStaticArgs(), a.getDimension(),
                                  a.getElements(), outermost);
     }
@@ -72,7 +98,7 @@ public class ExprFactory {
     public static ArrayElements makeArrayElements(ArrayElements a,
                                                   List<StaticArg> staticArgs,
                                                   boolean outermost) {
-        return makeArrayElements(a.getSpan(), a.isParenthesized(), a.getExprType(),
+        return makeArrayElements(a.getSpan(), NodeUtil.isParenthesized(a), NodeUtil.getExprType(a),
                                  staticArgs, a.getDimension(), a.getElements(),
                                  outermost);
     }
@@ -83,7 +109,8 @@ public class ExprFactory {
                                                   int dim,
                                                   List<ArrayExpr> elems,
                                                   boolean outermost) {
-        return new ArrayElements(span, parenthesized, ty, staticArgs, dim, elems,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new ArrayElements(span, info, staticArgs, dim, elems,
                                  outermost);
     }
 
@@ -97,13 +124,14 @@ public class ExprFactory {
                                               Option<Type> ty, FunctionalRef multi,
                                               FunctionalRef infix, Expr front,
                                               List<MathItem> rest) {
-        return new MathPrimary(span, parenthesized, ty, multi, infix, front, rest);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new MathPrimary(span, info, multi, infix, front, rest);
     }
 
     public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
                                                         Id field, Expr expr) {
-        return makeMethodInvocation(that.getSpan(), that.isParenthesized(),
-                                    that.getExprType(), obj, field, expr);
+        return makeMethodInvocation(that.getSpan(), NodeUtil.isParenthesized(that),
+                                    NodeUtil.getExprType(that), obj, field, expr);
     }
 
     public static MethodInvocation makeMethodInvocation(Span span,
@@ -132,13 +160,13 @@ public class ExprFactory {
     }
 
     public static MethodInvocation makeMethodInvocation(Span span,
-                                                        boolean isParenthesized,
-                                                        Option<Type> type,
+                                                        boolean parenthesized,
+                                                        Option<Type> ty,
                                                         Expr obj, Id field,
                                                         List<StaticArg> staticArgs,
                                                         Expr expr) {
-        return new MethodInvocation(span, isParenthesized, type, obj, field,
-                                    staticArgs, expr);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new MethodInvocation(span, info, obj, field, staticArgs, expr);
     }
 
     public static OpExpr makeOpExpr(Span span, Op op) {
@@ -198,15 +226,16 @@ public class ExprFactory {
         return makeOpExpr(FortressUtil.spanTwo(e_1, e_2), op, e_1, e_2);
     }
 
-    public static OpExpr makeOpExpr(Span span, boolean isParenthesized,
+    public static OpExpr makeOpExpr(Span span, boolean parenthesized,
                                     Option<Type> ty, FunctionalRef op,
                                     List<Expr> exprs) {
-        return new OpExpr(span, isParenthesized, ty, op, exprs);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new OpExpr(span, info, op, exprs);
     }
 
     public static Juxt makeTightJuxt(Juxt that, List<Expr> exprs) {
-     return makeJuxt(that.getSpan(), that.isParenthesized(),
-                     that.getExprType(),
+     return makeJuxt(that.getSpan(), NodeUtil.isParenthesized(that),
+                     NodeUtil.getExprType(that),
                      that.getMultiJuxt(), that.getInfixJuxt(),
                      Useful.immutableTrimmedList(exprs),
                      that.isFnApp(), true);
@@ -246,17 +275,30 @@ public class ExprFactory {
                         exprs, isFnApp, tight);
     }
 
-    public static Juxt makeJuxt(Span span, boolean isParenthesized,
-                                Option<Type> type,
+    public static Juxt makeJuxt(Span span, boolean parenthesized,
+                                Option<Type> ty,
                                 FunctionalRef multi, FunctionalRef infix,
                                 List<Expr> exprs, boolean isFnApp,
                                 boolean tight) {
-        return new Juxt(span, isParenthesized, type, multi, infix,
-                        exprs, isFnApp, tight);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Juxt(span, info, multi, infix, exprs, isFnApp, tight);
+    }
+
+    public static _RewriteFnRef make_RewriteFnRef(Span span, boolean parenthesized,
+                                                  Option<Type> ty, Expr expr,
+                                                  List<StaticArg> sargs) {
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return make_RewriteFnRef(span, info, expr, sargs);
+    }
+
+    public static _RewriteFnRef make_RewriteFnRef(Span span, ExprInfo info,
+                                                  Expr expr,
+                                                  List<StaticArg> sargs) {
+        return new _RewriteFnRef(span, info, expr, sargs);
     }
 
     public static FnRef make_RewriteFnRefOverloading(Span span, FnRef original, Type type) {
-        return makeFnRef(span, original.isParenthesized(), original.getExprType(),
+        return makeFnRef(span, NodeUtil.isParenthesized(original), NodeUtil.getExprType(original),
                          original.getStaticArgs(), original.getLexicalDepth(),
                          original.getOriginalName(), original.getNames(),
                          original.getOverloadings(), Option.<Type>some(type));
@@ -312,8 +354,8 @@ public class ExprFactory {
     }
 
     public static FnRef makeFnRef(FnRef original, int lexicalNestedness) {
-        return makeFnRef(original.getSpan(), original.isParenthesized(),
-                         original.getExprType(), original.getStaticArgs(),
+        return makeFnRef(original.getSpan(), NodeUtil.isParenthesized(original),
+                         NodeUtil.getExprType(original), original.getStaticArgs(),
                          lexicalNestedness,
                          original.getOriginalName(), original.getNames(),
                          original.getOverloadings(), original.getOverloadingType());
@@ -322,7 +364,7 @@ public class ExprFactory {
     public static FnRef makeFnRef(FnRef that, Option<Type> ty, Id name,
                                   List<IdOrOp> ids, List<StaticArg> sargs,
                                   Option<List<FunctionalRef>> overloadings) {
-        return makeFnRef(that.getSpan(), that.isParenthesized(), ty,
+        return makeFnRef(that.getSpan(), NodeUtil.isParenthesized(that), ty,
                          sargs, lexicalDepth, name, ids,
                          overloadings, Option.<Type>none());
     }
@@ -334,21 +376,22 @@ public class ExprFactory {
                          Option.<List<FunctionalRef>>none());
     }
 
-    public static FnRef makeFnRef(Span span, boolean isParenthesized,
-                                  Option<Type> type,
+    public static FnRef makeFnRef(Span span, boolean parenthesized,
+                                  Option<Type> ty,
                                   List<StaticArg> staticArgs,
                                   int lexicalDepth,
                                   IdOrOp name, List<IdOrOp> names,
                                   Option<List<FunctionalRef>> overloadings,
                                   Option<Type> overloadingType) {
-        return new FnRef(span, isParenthesized, type, staticArgs,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new FnRef(span, info, staticArgs,
                          lexicalDepth, name, names, overloadings, overloadingType);
     }
 
     public static FunctionalRef make_RewriteOpRefOverloading(Span span,
                                                              FunctionalRef original,
                                                              Type type) {
-        return makeOpRef(span, original.isParenthesized(), original.getExprType(),
+        return makeOpRef(span, NodeUtil.isParenthesized(original), NodeUtil.getExprType(original),
                          original.getStaticArgs(), original.getLexicalDepth(),
                          original.getOriginalName(), original.getNames(),
                          original.getOverloadings(), Option.<Type>some(type));
@@ -370,22 +413,28 @@ public class ExprFactory {
     }
 
     public static Expr makeOpRef(FunctionalRef original, int lexicalNestedness) {
-        return makeOpRef(original.getSpan(), original.isParenthesized(),
-                         original.getExprType(), original.getStaticArgs(),
+        return makeOpRef(original.getSpan(), NodeUtil.isParenthesized(original),
+                         NodeUtil.getExprType(original), original.getStaticArgs(),
                          lexicalNestedness, original.getOriginalName(),
                          original.getNames(), original.getOverloadings(),
                          original.getOverloadingType());
     }
 
-    public static FunctionalRef makeOpRef(Span span, boolean isParenthesized,
-                                          Option<Type> type,
+    public static FunctionalRef makeOpRef(Span span, boolean parenthesized,
+                                          Option<Type> ty,
                                           List<StaticArg> staticArgs,
                                           int lexicalDepth,
                                           IdOrOp name, List<IdOrOp> names,
                                           Option<List<FunctionalRef>> overloadings,
                                           Option<Type> overloadingType) {
-        return new OpRef(span, isParenthesized, type, staticArgs,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new OpRef(span, info, staticArgs,
                          lexicalDepth, name, names, overloadings, overloadingType);
+    }
+
+    public static _RewriteObjectExprRef make_RewriteObjectExprRef(_RewriteObjectExpr rwoe) {
+        return new _RewriteObjectExprRef(rwoe.getSpan(), rwoe.getInfo(),
+                                         rwoe.getGenSymName(), rwoe.getStaticArgs());
     }
 
     public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj,
@@ -447,12 +496,13 @@ public class ExprFactory {
     }
 
     public static VarRef makeVarRef(VarRef old, int depth) {
-        return makeVarRef(old.getSpan(), old.isParenthesized(), old.getExprType(),
+        return makeVarRef(old.getSpan(), NodeUtil.isParenthesized(old),
+                          NodeUtil.getExprType(old),
                           old.getVarId(), old.getStaticArgs(), depth);
     }
 
     public static VarRef makeVarRef(VarRef var, Option<Type> type, Id name) {
-        return makeVarRef(var.getSpan(), var.isParenthesized(), type, name);
+        return makeVarRef(var.getSpan(), NodeUtil.isParenthesized(var), type, name);
     }
 
     public static VarRef makeVarRef(Span span, boolean isParenthesized,
@@ -461,10 +511,11 @@ public class ExprFactory {
                           Collections.<StaticArg>emptyList(), lexicalDepth);
     }
 
-    public static VarRef makeVarRef(Span span, boolean isParenthesized,
-                                    Option<Type> exprType, Id varId,
+    public static VarRef makeVarRef(Span span, boolean parenthesized,
+                                    Option<Type> ty, Id varId,
                                     List<StaticArg> staticArgs, int lexicalDepth) {
-        return new VarRef(span, isParenthesized, exprType, varId, staticArgs,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new VarRef(span, info, varId, staticArgs,
                           lexicalDepth);
     }
 
@@ -518,10 +569,11 @@ public class ExprFactory {
 
     public static IntLiteralExpr makeIntLiteralExpr(Span span,
                                                     boolean parenthesized,
-                                                    Option<Type> exprType,
+                                                    Option<Type> ty,
                                                     String text,
                                                     BigInteger intVal) {
-        return new IntLiteralExpr(span, parenthesized, exprType, text, intVal);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new IntLiteralExpr(span, info, text, intVal);
     }
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
@@ -531,10 +583,11 @@ public class ExprFactory {
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span,
                                                       boolean parenthesized,
-                                                      Option<Type> exprType,
+                                                      Option<Type> ty,
                                                       String text,
                                                       int charVal) {
-        return new CharLiteralExpr(span, parenthesized, exprType, text, charVal);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new CharLiteralExpr(span, info, text, charVal);
     }
 
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span) {
@@ -543,9 +596,10 @@ public class ExprFactory {
 
     public static VoidLiteralExpr makeVoidLiteralExpr(Span span,
                                                       boolean parenthesized,
-                                                      Option<Type> exprType,
+                                                      Option<Type> ty,
                                                       String text) {
-        return new VoidLiteralExpr(span, parenthesized, exprType, text);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new VoidLiteralExpr(span, info, text);
     }
 
     public static Expr makeSubscripting(Span span,
@@ -587,12 +641,12 @@ public class ExprFactory {
 
     public static SubscriptExpr makeSubscriptExpr(Span span,
                                                   boolean parenthesized,
-                                                  Option<Type> exprType,
+                                                  Option<Type> ty,
                                                   Expr obj, List<Expr> subs,
                                                   Option<Op> op,
                                                   List<StaticArg> staticArgs) {
-        return new SubscriptExpr(span, parenthesized, exprType, obj, subs, op,
-                                 staticArgs);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new SubscriptExpr(span, info, obj, subs, op, staticArgs);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Id p, Expr _r, Expr _body_expr) {
@@ -649,11 +703,12 @@ public class ExprFactory {
 
     public static LocalVarDecl makeLocalVarDecl(Span span,
                                                 boolean parenthesized,
-                                                Option<Type> exprType,
+                                                Option<Type> ty,
                                                 List<Expr> body,
                                                 List<LValue> lhs,
                                                 Option<Expr> rhs) {
-        return new LocalVarDecl(span, parenthesized, exprType, body, lhs, rhs);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new LocalVarDecl(span, info, body, lhs, rhs);
     }
 
     public static FnExpr makeFnExpr(Span span,
@@ -682,7 +737,7 @@ public class ExprFactory {
 
     public static FnExpr makeFnExpr(Span span,
                                     boolean parenthesized,
-                                    Option<Type> exprType,
+                                    Option<Type> ty,
                                     IdOrOpOrAnonymousName name,
                                     List<StaticParam> staticParams,
                                     List<Param> params,
@@ -694,7 +749,8 @@ public class ExprFactory {
                                                    whereClause, throwsClause,
                                                    Option.<Contract>none(), params,
                                                    returnType);
-        return new FnExpr(span, parenthesized, exprType, header, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new FnExpr(span, info, header, body);
     }
 
     public static Exit makeExit(Span span,
@@ -713,10 +769,11 @@ public class ExprFactory {
 
     public static Exit makeExit(Span span,
                                 boolean parenthesized,
-                                Option<Type> typeOp,
+                                Option<Type> ty,
                                 Option<Id> targetOp,
                                 Option<Expr> retExpr) {
-        return new Exit(span, parenthesized, typeOp, targetOp, retExpr);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Exit(span, info, targetOp, retExpr);
     }
 
     public static ArrayComprehension makeArrayComprehension(Span span,
@@ -728,10 +785,11 @@ public class ExprFactory {
 
     public static ArrayComprehension makeArrayComprehension(Span span,
                                                             boolean parenthesized,
-                                                            Option<Type> exprType,
+                                                            Option<Type> ty,
                                                             List<StaticArg> staticArgs,
                                                             List<ArrayComprehensionClause> clauses) {
-        return new ArrayComprehension(span, parenthesized, exprType, staticArgs, clauses);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new ArrayComprehension(span, info, staticArgs, clauses);
     }
 
     public static Accumulator makeAccumulator(Span span,
@@ -745,13 +803,13 @@ public class ExprFactory {
 
     public static Accumulator makeAccumulator(Span span,
                                               boolean parenthesized,
-                                              Option<Type> exprType,
+                                              Option<Type> ty,
                                               List<StaticArg> staticArgs,
                                               Op accOp,
                                               List<GeneratorClause> gens,
                                               Expr body) {
-        return new Accumulator(span, parenthesized, exprType, staticArgs,
-                               accOp, gens, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Accumulator(span, info, staticArgs, accOp, gens, body);
     }
 
     /**
@@ -762,20 +820,21 @@ public class ExprFactory {
      * @return
      */
     public static Typecase makeTypecase(Typecase tc, List<Id> lid, Expr expr) {
-        return makeTypecase(tc.getSpan(), tc.isParenthesized(), tc.getExprType(),
+        return makeTypecase(tc.getSpan(), NodeUtil.isParenthesized(tc),
+                            NodeUtil.getExprType(tc),
                             lid, Option.wrap(expr), tc.getClauses(),
                             tc.getElseClause());
     }
 
     public static Typecase makeTypecase(Span span,
                                         boolean parenthesized,
-                                        Option<Type> exprType,
+                                        Option<Type> ty,
                                         List<Id> bindIds,
                                         Option<Expr> bindExpr,
                                         List<TypecaseClause> clauses,
                                         Option<Block> elseClause) {
-        return new Typecase(span, parenthesized, exprType, bindIds, bindExpr,
-                            clauses, elseClause);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Typecase(span, info, bindIds, bindExpr, clauses, elseClause);
     }
 
     public static TupleExpr makeTupleExpr(List<Expr> exprs) {
@@ -794,13 +853,13 @@ public class ExprFactory {
 
     public static TupleExpr makeTupleExpr(Span span,
                                           boolean parenthesized,
-                                          Option<Type> exprType,
+                                          Option<Type> ty,
                                           List<Expr> exprs,
                                           Option<Expr> varargs,
                                           List<KeywordExpr> keywords,
                                           boolean inApp) {
-        return new TupleExpr(span, parenthesized, exprType, exprs, varargs,
-                             keywords, inApp);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new TupleExpr(span, info, exprs, varargs, keywords, inApp);
     }
 
     public static Try makeTry(Span span,
@@ -814,13 +873,13 @@ public class ExprFactory {
 
     public static Try makeTry(Span span,
                               boolean parenthesized,
-                              Option<Type> exprType,
+                              Option<Type> ty,
                               Block body,
                               Option<Catch> catchClause,
                               List<BaseType> forbidClause,
                               Option<Block> finallyClause) {
-        return new Try(span, parenthesized, exprType, body, catchClause,
-                       forbidClause, finallyClause);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Try(span, info, body, catchClause, forbidClause, finallyClause);
     }
 
     public static ObjectExpr makeObjectExpr(Span span,
@@ -842,9 +901,10 @@ public class ExprFactory {
 
     public static ObjectExpr makeObjectExpr(Span span,
                                             boolean parenthesized,
-                                            Option<Type> exprType,
+                                            Option<Type> ty,
                                             TraitTypeHeader header) {
-        return new ObjectExpr(span, parenthesized, exprType, header);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new ObjectExpr(span, info, header);
     }
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(ObjectExpr expr,
@@ -871,7 +931,7 @@ public class ExprFactory {
 
     public static _RewriteObjectExpr make_RewriteObjectExpr(Span span,
                                                             boolean parenthesized,
-                                                            Option<Type> exprType,
+                                                            Option<Type> ty,
                                                             List<TraitTypeWhere> extendsC,
                                                             List<Decl> decls,
                                                             Map<String, StaticParam> implicitTypeParameters,
@@ -886,7 +946,21 @@ public class ExprFactory {
                                                                  Option.<List<BaseType>>none(),
                                                                  Option.<Contract>none(),
                                                                  extendsC, decls);
-        return new _RewriteObjectExpr(span, parenthesized, exprType, header,
+        return make_RewriteObjectExpr(span, parenthesized, ty, header,
+                                      implicitTypeParameters, genSymName,
+                                      staticArgs, params);
+    }
+
+    public static _RewriteObjectExpr make_RewriteObjectExpr(Span span,
+                                                            boolean parenthesized,
+                                                            Option<Type> ty,
+                                                            TraitTypeHeader header,
+                                                            Map<String, StaticParam> implicitTypeParameters,
+                                                            String genSymName,
+                                                            List<StaticArg> staticArgs,
+                                                            Option<List<Param>> params) {
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new _RewriteObjectExpr(span, info, header,
                                       implicitTypeParameters, genSymName,
                                       staticArgs, params);
     }
@@ -919,23 +993,23 @@ public class ExprFactory {
 
     public static Assignment makeAssignment(Span span,
                                             boolean parenthesized,
-                                            Option<Type> exprType,
+                                            Option<Type> ty,
                                             List<Lhs> lhs,
                                             Option<FunctionalRef> assignOp,
                                             Expr rhs,
                                             Option<List<FunctionalRef>> opsForLhs) {
-        return new Assignment(span, parenthesized, exprType, lhs, assignOp,
-                              rhs, opsForLhs);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Assignment(span, info, lhs, assignOp, rhs, opsForLhs);
     }
 
     public static Block makeBlock(Expr e) {
         List<Expr> b = Collections.singletonList(e);
-        return makeBlock(e.getSpan(), e.getExprType(), b);
+        return makeBlock(e.getSpan(), NodeUtil.getExprType(e), b);
     }
 
     public static Block makeBlock(Span sp, Expr e) {
         List<Expr> b = Collections.singletonList(e);
-        return makeBlock(sp, e.getExprType(), b);
+        return makeBlock(sp, NodeUtil.getExprType(e), b);
     }
 
     public static Block makeBlock(Span span,
@@ -959,13 +1033,13 @@ public class ExprFactory {
 
     public static Block makeBlock(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   Option<Expr> loc,
                                   boolean atomicBlock,
                                   boolean withinDo,
                                   List<Expr> exprs) {
-        return new Block(span, parenthesized, exprType, loc, atomicBlock,
-                         withinDo, exprs);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Block(span, info, loc, atomicBlock, withinDo, exprs);
     }
 
     public static If makeIf(Span span,
@@ -1015,11 +1089,11 @@ public class ExprFactory {
 
     public static If makeIf(Span span,
                             boolean parenthesized,
-                            Option<Type> exprType,
+                            Option<Type> ty,
                             List<IfClause> clauses,
                             Option<Block> elseClause) {
-        return new If(span, parenthesized, exprType,
-                      clauses, elseClause);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new If(span, info, clauses, elseClause);
     }
 
     public static CaseExpr makeCaseExpr(Span span,
@@ -1034,14 +1108,15 @@ public class ExprFactory {
 
     public static CaseExpr makeCaseExpr(Span span,
                                         boolean parenthesized,
-                                        Option<Type> exprType,
+                                        Option<Type> ty,
                                         Option<Expr> param,
                                         Option<FunctionalRef> compare,
                                         FunctionalRef equalsOp,
                                         FunctionalRef inOp,
                                         List<CaseClause> clauses,
                                         Option<Block> elseClause) {
-        return new CaseExpr(span, parenthesized, exprType, param, compare,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new CaseExpr(span, info, param, compare,
                             equalsOp, inOp, clauses, elseClause);
     }
 
@@ -1067,9 +1142,10 @@ public class ExprFactory {
 
     public static ChainExpr makeChainExpr(Span span,
                                           boolean parenthesized,
-                                          Option<Type> exprType,
+                                          Option<Type> ty,
                                           Expr first, List<Link> links) {
-        return new ChainExpr(span, parenthesized, exprType, first, links);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new ChainExpr(span, info, first, links);
     }
 
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
@@ -1079,27 +1155,27 @@ public class ExprFactory {
 
     public static _RewriteFnApp make_RewriteFnApp(Span span,
                                                   boolean parenthesized,
-                                                  Option<Type> exprType,
+                                                  Option<Type> ty,
                                                   Expr function,
                                                   Expr argument) {
-        return new _RewriteFnApp(span, parenthesized, exprType, function,
-                                 argument);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new _RewriteFnApp(span, info, function, argument);
     }
 
     public static FieldRef makeFieldRef(FieldRef expr, Span span) {
-        return makeFieldRef(span, expr.isParenthesized(),
-                            expr.getExprType(), expr.getObj(), expr.getField());
+        return makeFieldRef(span, NodeUtil.isParenthesized(expr),
+                            NodeUtil.getExprType(expr), expr.getObj(), expr.getField());
     }
 
     public static FieldRef makeFieldRef(FieldRef expr, Expr receiver, Id field) {
-        return makeFieldRef(expr.getSpan(), expr.isParenthesized(),
-                            expr.getExprType(), receiver, field);
+        return makeFieldRef(expr.getSpan(), NodeUtil.isParenthesized(expr),
+                            NodeUtil.getExprType(expr), receiver, field);
     }
 
     public static FieldRef make_RewriteFieldRef(FieldRef expr,
                                                 Expr receiver, Id field) {
-        return makeFieldRef(expr.getSpan(), expr.isParenthesized(),
-                            expr.getExprType(), receiver, field);
+        return makeFieldRef(expr.getSpan(), NodeUtil.isParenthesized(expr),
+                            NodeUtil.getExprType(expr), receiver, field);
     }
 
     public static FieldRef makeFieldRef(Span span, Expr receiver, Id field) {
@@ -1112,9 +1188,10 @@ public class ExprFactory {
 
     public static FieldRef makeFieldRef(Span span,
                                         boolean parenthesized,
-                                        Option<Type> exprType,
+                                        Option<Type> ty,
                                         Expr obj, Id field) {
-        return new FieldRef(span, parenthesized, exprType, obj, field);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new FieldRef(span, info, obj, field);
     }
 
     public static AtomicExpr makeAtomicExpr(Span span, Expr expr) {
@@ -1123,9 +1200,10 @@ public class ExprFactory {
 
     public static AtomicExpr makeAtomicExpr(Span span,
                                             boolean parenthesized,
-                                            Option<Type> exprType,
+                                            Option<Type> ty,
                                             Expr expr) {
-        return new AtomicExpr(span, parenthesized, exprType, expr);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new AtomicExpr(span, info, expr);
     }
 
     public static For makeFor(Span span,
@@ -1136,10 +1214,11 @@ public class ExprFactory {
 
     public static For makeFor(Span span,
                               boolean parenthesized,
-                              Option<Type> exprType,
+                              Option<Type> ty,
                               List<GeneratorClause> gens,
                               Block body) {
-        return new For(span, parenthesized, exprType, gens, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new For(span, info, gens, body);
     }
 
     public static Spawn makeSpawn(Span span,
@@ -1149,9 +1228,10 @@ public class ExprFactory {
 
     public static Spawn makeSpawn(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   Expr body) {
-        return new Spawn(span, parenthesized, exprType, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Spawn(span, info, body);
     }
 
 
@@ -1162,9 +1242,10 @@ public class ExprFactory {
 
     public static TryAtomicExpr makeTryAtomicExpr(Span span,
                                                   boolean parenthesized,
-                                                  Option<Type> exprType,
+                                                  Option<Type> ty,
                                                   Expr expr) {
-        return new TryAtomicExpr(span, parenthesized, exprType, expr);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new TryAtomicExpr(span, info, expr);
     }
 
     public static LetFn makeLetFn(Span span,
@@ -1176,10 +1257,11 @@ public class ExprFactory {
 
     public static LetFn makeLetFn(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   List<Expr> body,
                                   List<FnDecl> fns) {
-        return new LetFn(span, parenthesized, exprType, body, fns);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new LetFn(span, info, body, fns);
     }
 
     public static Throw makeThrow(Span sp, String st) {
@@ -1194,9 +1276,10 @@ public class ExprFactory {
 
     public static Throw makeThrow(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   Expr expr) {
-        return new Throw(span, parenthesized, exprType, expr);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Throw(span, info, expr);
     }
 
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
@@ -1205,20 +1288,22 @@ public class ExprFactory {
 
     public static StringLiteralExpr makeStringLiteralExpr(Span span,
                                                           boolean parenthesized,
-                                                          Option<Type> exprType,
+                                                          Option<Type> ty,
                                                           String text) {
-        return new StringLiteralExpr(span, parenthesized, exprType, text);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new StringLiteralExpr(span, info, text);
     }
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span,
                                                         boolean parenthesized,
-                                                        Option<Type> exprType,
+                                                        Option<Type> ty,
                                                         String text,
                                                         BigInteger intPart,
                                                         BigInteger numerator,
                                                         int denomBase,
                                                         int denomPower) {
-        return new FloatLiteralExpr(span, parenthesized, exprType, text,
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new FloatLiteralExpr(span, info, text,
                                     intPart, numerator, denomBase, denomPower);
     }
 
@@ -1229,9 +1314,10 @@ public class ExprFactory {
 
     public static AsExpr makeAsExpr(Span span,
                                     boolean parenthesized,
-                                    Option<Type> exprType,
+                                    Option<Type> ty,
                                     Expr expr, Type annType) {
-        return new AsExpr(span, parenthesized, exprType, expr, annType);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new AsExpr(span, info, expr, annType);
     }
 
     public static AsIfExpr makeAsIfExpr(Span span,
@@ -1241,9 +1327,10 @@ public class ExprFactory {
 
     public static AsIfExpr makeAsIfExpr(Span span,
                                         boolean parenthesized,
-                                        Option<Type> exprType,
+                                        Option<Type> ty,
                                         Expr expr, Type annType) {
-        return new AsIfExpr(span, parenthesized, exprType, expr, annType);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new AsIfExpr(span, info, expr, annType);
     }
 
     public static While makeWhile(Span sp, Expr cond) {
@@ -1261,10 +1348,11 @@ public class ExprFactory {
 
     public static While makeWhile(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   GeneratorClause testExpr,
                                   Do body) {
-        return new While(span, parenthesized, exprType, testExpr, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new While(span, info, testExpr, body);
     }
 
     public static Label makeLabel(Span span,
@@ -1274,9 +1362,10 @@ public class ExprFactory {
 
     public static Label makeLabel(Span span,
                                   boolean parenthesized,
-                                  Option<Type> exprType,
+                                  Option<Type> ty,
                                   Id name, Block body) {
-        return new Label(span, parenthesized, exprType, name, body);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Label(span, info, name, body);
     }
 
     public static Do makeDo(Span sp, Option<Type> t, Expr e) {
@@ -1299,9 +1388,10 @@ public class ExprFactory {
 
     public static Do makeDo(Span span,
                             boolean parenthesized,
-                            Option<Type> exprType,
+                            Option<Type> ty,
                             List<Block> fronts) {
-        return new Do(span, parenthesized, exprType, fronts);
+        ExprInfo info = NodeFactory.makeExprInfo(parenthesized, ty);
+        return new Do(span, info, fronts);
     }
 
     public static FloatLiteralExpr makeFloatLiteralExpr(Span span, String s) {
@@ -1450,198 +1540,196 @@ public class ExprFactory {
         return expr.accept(new NodeAbstractVisitor<Expr>() {
             @Override
             public Expr for_RewriteFnApp(_RewriteFnApp that) {
-                return make_RewriteFnApp(that.getSpan(), true, that.getExprType(),
+                return make_RewriteFnApp(that.getSpan(), true, NodeUtil.getExprType(that),
                                          that.getFunction(), that.getArgument());
             }
         public Expr forAsExpr(AsExpr e) {
-            return makeAsExpr(e.getSpan(), true, e.getExprType(),
+            return makeAsExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                               e.getExpr(), e.getAnnType());
         }
         public Expr forAsIfExpr(AsIfExpr e) {
-            return makeAsIfExpr(e.getSpan(), true, e.getExprType(),
+            return makeAsIfExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                 e.getExpr(), e.getAnnType());
         }
 
         public Expr forAssignment(Assignment e) {
-            return makeAssignment(e.getSpan(), true, e.getExprType(),
+            return makeAssignment(e.getSpan(), true, NodeUtil.getExprType(e),
                                   e.getLhs(), e.getAssignOp(), e.getRhs(),
                                   e.getOpsForLhs());
         }
         public Expr forBlock(Block e) {
-            return makeBlock(e.getSpan(), true, e.getExprType(), e.getLoc(),
+            return makeBlock(e.getSpan(), true, NodeUtil.getExprType(e), e.getLoc(),
                              e.isAtomicBlock(), e.isWithinDo(), e.getExprs());
         }
         public Expr forCaseExpr(CaseExpr e) {
-            return makeCaseExpr(e.getSpan(), true, e.getExprType() , e.getParam(),
+            return makeCaseExpr(e.getSpan(), true, NodeUtil.getExprType(e) , e.getParam(),
                                 e.getCompare(), e.getEqualsOp(), e.getInOp(),
                                 e.getClauses(), e.getElseClause());
         }
         public Expr forDo(Do e) {
-            return makeDo(e.getSpan(), true, e.getExprType(), e.getFronts());
+            return makeDo(e.getSpan(), true, NodeUtil.getExprType(e), e.getFronts());
         }
         public Expr forFor(For e) {
-            return makeFor(e.getSpan(), true, e.getExprType(), e.getGens(),
+            return makeFor(e.getSpan(), true, NodeUtil.getExprType(e), e.getGens(),
                            e.getBody());
         }
         public Expr forIf(If e) {
-            return makeIf(e.getSpan(), true, e.getExprType(),
+            return makeIf(e.getSpan(), true, NodeUtil.getExprType(e),
                           e.getClauses(), e.getElseClause());
         }
         public Expr forLabel(Label e) {
-            return makeLabel(e.getSpan(), true, e.getExprType(),
+            return makeLabel(e.getSpan(), true, NodeUtil.getExprType(e),
                              e.getName(), e.getBody());
         }
         public Expr forMathPrimary(MathPrimary e) {
-            return makeMathPrimary(e.getSpan(), true, e.getExprType(),
+            return makeMathPrimary(e.getSpan(), true, NodeUtil.getExprType(e),
                                    e.getMultiJuxt(), e.getInfixJuxt(),
                                    e.getFront(), e.getRest());
         }
         public Expr forObjectExpr(ObjectExpr e) {
-            return makeObjectExpr(e.getSpan(), true, e.getExprType(),
+            return makeObjectExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                   e.getHeader());
         }
         public Expr for_RewriteObjectExpr(_RewriteObjectExpr e) {
-            return new _RewriteObjectExpr(e.getSpan(), true,
-                                          e.getExprType(),
+            return make_RewriteObjectExpr(e.getSpan(), true,
+                                          NodeUtil.getExprType(e),
                                           e.getHeader(),
                                           e.getImplicitTypeParameters(),
                                           e.getGenSymName(),
                                           e.getStaticArgs(), e.getParams());
         }
         public Expr forTry(Try e) {
-            return makeTry(e.getSpan(), true, e.getExprType(), e.getBody(),
+            return makeTry(e.getSpan(), true, NodeUtil.getExprType(e), e.getBody(),
                            e.getCatchClause(), e.getForbidClause(),
                            e.getFinallyClause());
         }
         public Expr forTupleExpr(TupleExpr e) {
-            return makeTupleExpr(e.getSpan(), true, e.getExprType(),
+            return makeTupleExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                  e.getExprs(), e.getVarargs(), e.getKeywords(),
                                  e.isInApp());
         }
         public Expr forTypecase(Typecase e) {
-            return makeTypecase(e.getSpan(), true, e.getExprType(), e.getBindIds(),
+            return makeTypecase(e.getSpan(), true, NodeUtil.getExprType(e), e.getBindIds(),
                                 e.getBindExpr(), e.getClauses(),
                                 e.getElseClause());
         }
         public Expr forWhile(While e) {
-            return makeWhile(e.getSpan(), true, e.getExprType(),
+            return makeWhile(e.getSpan(), true, NodeUtil.getExprType(e),
                              e.getTestExpr(), e.getBody());
         }
         public Expr forAccumulator(Accumulator e) {
-            return makeAccumulator(e.getSpan(), true, e.getExprType(),
+            return makeAccumulator(e.getSpan(), true, NodeUtil.getExprType(e),
                                    e.getStaticArgs(),
                                    e.getAccOp(), e.getGens(), e.getBody());
         }
         public Expr forAtomicExpr(AtomicExpr e) {
-            return makeAtomicExpr(e.getSpan(), true, e.getExprType(), e.getExpr());
+            return makeAtomicExpr(e.getSpan(), true, NodeUtil.getExprType(e), e.getExpr());
         }
         public Expr forExit(Exit e) {
-            return makeExit(e.getSpan(), true, e.getExprType(),
+            return makeExit(e.getSpan(), true, NodeUtil.getExprType(e),
                             e.getTarget(), e.getReturnExpr());
         }
 
         public Expr forSpawn(Spawn e) {
-            return makeSpawn(e.getSpan(), true, e.getExprType(), e.getBody());
+            return makeSpawn(e.getSpan(), true, NodeUtil.getExprType(e), e.getBody());
         }
         public Expr forThrow(Throw e) {
-            return makeThrow(e.getSpan(), true, e.getExprType(), e.getExpr());
+            return makeThrow(e.getSpan(), true, NodeUtil.getExprType(e), e.getExpr());
         }
         public Expr forTryAtomicExpr(TryAtomicExpr e) {
-            return makeTryAtomicExpr(e.getSpan(), true, e.getExprType(),
+            return makeTryAtomicExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                      e.getExpr());
         }
         public Expr forFnExpr(FnExpr e) {
-            return makeFnExpr(e.getSpan(), true, e.getExprType(), e.getHeader().getName(),
+            return makeFnExpr(e.getSpan(), true, NodeUtil.getExprType(e), e.getHeader().getName(),
                               e.getHeader().getStaticParams(), e.getHeader().getParams(),
                               e.getHeader().getReturnType(), e.getHeader().getWhereClause(),
                               e.getHeader().getThrowsClause(), e.getBody());
         }
         public Expr forLetFn(LetFn e) {
-            return makeLetFn(e.getSpan(), true, e.getExprType(), e.getBody(), e.getFns());
+            return makeLetFn(e.getSpan(), true, NodeUtil.getExprType(e), e.getBody(), e.getFns());
         }
         public Expr forLocalVarDecl(LocalVarDecl e) {
-            return makeLocalVarDecl(e.getSpan(), true, e.getExprType(),
+            return makeLocalVarDecl(e.getSpan(), true, NodeUtil.getExprType(e),
                                     e.getBody(), e.getLhs(), e.getRhs());
         }
         public Expr forOpExpr(OpExpr e) {
-            return makeOpExpr(e.getSpan(), true, e.getExprType(), e.getOp(), e.getArgs());
+            return makeOpExpr(e.getSpan(), true, NodeUtil.getExprType(e), e.getOp(), e.getArgs());
         }
         @Override
             public Expr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-            return new AmbiguousMultifixOpExpr(that.getSpan(), true, that.getExprType(),
-                                               that.getInfix_op(), that.getMultifix_op(),
-                                               that.getArgs());
+            return makeAmbiguousMultifixOpExpr(that, true);
         }
         public Expr forArrayElement(ArrayElement e) {
-            return makeArrayElement(e.getSpan(), true, e.getExprType(),
+            return makeArrayElement(e.getSpan(), true, NodeUtil.getExprType(e),
                                     e.getStaticArgs(), e.getElement());
         }
         public Expr forArrayElements(ArrayElements e) {
-            return makeArrayElements(e.getSpan(), true, e.getExprType(),
+            return makeArrayElements(e.getSpan(), true, NodeUtil.getExprType(e),
                                      e.getStaticArgs(), e.getDimension(),
                                      e.getElements(), e.isOutermost());
         }
         public Expr forFloatLiteralExpr(FloatLiteralExpr e) {
-            return makeFloatLiteralExpr(e.getSpan(), true, e.getExprType(),
+            return makeFloatLiteralExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                         e.getText(),
                     e.getIntPart(), e.getNumerator(),
                     e.getDenomBase(), e.getDenomPower());
         }
         public Expr forIntLiteralExpr(IntLiteralExpr e) {
-            return makeIntLiteralExpr(e.getSpan(), true, e.getExprType(),
+            return makeIntLiteralExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                       e.getText(), e.getIntVal());
         }
         public Expr forCharLiteralExpr(CharLiteralExpr e) {
-            return makeCharLiteralExpr(e.getSpan(), true, e.getExprType(),
+            return makeCharLiteralExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                        e.getText(), e.getCharVal());
         }
         public Expr forStringLiteralExpr(StringLiteralExpr e) {
-            return makeStringLiteralExpr(e.getSpan(), true, e.getExprType(),
+            return makeStringLiteralExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                          e.getText());
         }
         public Expr forVoidLiteralExpr(VoidLiteralExpr e) {
-            return makeVoidLiteralExpr(e.getSpan(), true, e.getExprType(),
+            return makeVoidLiteralExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                        e.getText());
         }
         public Expr forVarRef(VarRef e) {
-            return makeVarRef(e.getSpan(), true, e.getExprType(), e.getVarId(),
+            return makeVarRef(e.getSpan(), true, NodeUtil.getExprType(e), e.getVarId(),
                               e.getStaticArgs(), e.getLexicalDepth());
         }
         public Expr forArrayComprehension(ArrayComprehension e) {
-            return makeArrayComprehension(e.getSpan(), true, e.getExprType(),
+            return makeArrayComprehension(e.getSpan(), true, NodeUtil.getExprType(e),
                                           e.getStaticArgs(), e.getClauses());
         }
         public Expr forChainExpr(ChainExpr e) {
-            return makeChainExpr(e.getSpan(), true, e.getExprType(), e.getFirst(),
+            return makeChainExpr(e.getSpan(), true, NodeUtil.getExprType(e), e.getFirst(),
                                  e.getLinks());
         }
         public Expr forFieldRef(FieldRef e) {
-            return makeFieldRef(e.getSpan(), true, e.getExprType(),
+            return makeFieldRef(e.getSpan(), true, NodeUtil.getExprType(e),
                                 e.getObj(), e.getField());
         }
         public Expr forMethodInvocation(MethodInvocation e) {
-            return makeMethodInvocation(e.getSpan(), true, e.getExprType(),
+            return makeMethodInvocation(e.getSpan(), true, NodeUtil.getExprType(e),
                                         e.getObj(), e.getMethod(),
                                         e.getStaticArgs(), e.getArg());
         }
         public Expr forJuxt(Juxt e) {
-            return makeJuxt(e.getSpan(), true, e.getExprType(),
+            return makeJuxt(e.getSpan(), true, NodeUtil.getExprType(e),
                             e.getMultiJuxt(), e.getInfixJuxt(),
                             e.getExprs(), e.isFnApp(), e.isTight());
         }
         public Expr forFnRef(FnRef e) {
-            return makeFnRef(e.getSpan(), true, e.getExprType(), e.getStaticArgs(),
+            return makeFnRef(e.getSpan(), true, NodeUtil.getExprType(e), e.getStaticArgs(),
                              e.getLexicalDepth(), e.getOriginalName(), e.getNames(),
                              e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forOpRef(OpRef e) {
-            return makeOpRef(e.getSpan(), true, e.getExprType(),
-                                         e.getStaticArgs(), e.getLexicalDepth(),
-                                         e.getOriginalName(), e.getNames(),
-                                         e.getOverloadings(), e.getOverloadingType());
+            return makeOpRef(e.getSpan(), true, NodeUtil.getExprType(e),
+                             e.getStaticArgs(), e.getLexicalDepth(),
+                             e.getOriginalName(), e.getNames(),
+                             e.getOverloadings(), e.getOverloadingType());
         }
         public Expr forSubscriptExpr(SubscriptExpr e) {
-            return makeSubscriptExpr(e.getSpan(), true, e.getExprType(),
+            return makeSubscriptExpr(e.getSpan(), true, NodeUtil.getExprType(e),
                                      e.getObj(), e.getSubs(), e.getOp(),
                                      e.getStaticArgs());
         }
@@ -1682,8 +1770,8 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpInfix((Op)op.getOriginalName());
 
-     FunctionalRef new_op = makeOpRef(op.getSpan(), op.isParenthesized(),
-                                      op.getExprType(), op.getStaticArgs(),
+     FunctionalRef new_op = makeOpRef(op.getSpan(), NodeUtil.isParenthesized(op),
+                                      NodeUtil.getExprType(op), op.getStaticArgs(),
                                       op.getLexicalDepth(), new_original_name,
                                       new_ops, op.getOverloadings(),
                                       op.getOverloadingType());
@@ -1707,8 +1795,8 @@ public class ExprFactory {
      else
       new_original_name = NodeFactory.makeOpPostfix((Op)op.getOriginalName());
 
-     FunctionalRef new_op = makeOpRef(op.getSpan(), op.isParenthesized(),
-                                      op.getExprType(), op.getStaticArgs(),
+     FunctionalRef new_op = makeOpRef(op.getSpan(), NodeUtil.isParenthesized(op),
+                                      NodeUtil.getExprType(op), op.getStaticArgs(),
                                       op.getLexicalDepth(), new_original_name,
                                       new_ops, op.getOverloadings(),
                                       op.getOverloadingType());

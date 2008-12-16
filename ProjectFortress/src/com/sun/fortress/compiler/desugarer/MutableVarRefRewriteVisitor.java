@@ -143,7 +143,7 @@ public class MutableVarRefRewriteVisitor extends NodeUpdateVisitor {
         List<Expr> new_body_result = new ArrayList<Expr>(1);
         new_body_result.add(newLocalVarDecl);
 
-        return super.forLocalVarDeclOnly( that, that.getExprType(),
+        return super.forLocalVarDeclOnly( that, that.getInfo(),
                             new_body_result, that.getLhs(), that.getRhs() );
     }
 

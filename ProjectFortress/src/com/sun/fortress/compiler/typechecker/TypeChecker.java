@@ -887,7 +887,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			TypeCheckerResult fn_result = findStaticallyMostApplicableFn(destructFnOverloadings(fns.getOverloadings().unwrap()),
                                                                                      arg_type, fns, fns.getOriginalName());
 			// Now just check the rewritten expression by the normal means
-			return for_RewriteFnAppOnly(that,Option.<TypeCheckerResult>none(), fn_result, arg_result);
+			return for_RewriteFnAppOnly(that, Option.<TypeCheckerResult>none(), fn_result, arg_result);
 		}
 		else {
 			// Add constraints from the arguments, since they may affect overloading choice
@@ -905,7 +905,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 
-	@Override
 	public TypeCheckerResult for_RewriteFnAppOnly(_RewriteFnApp that, Option<TypeCheckerResult> exprType_result,
 			TypeCheckerResult function_result, TypeCheckerResult argument_result) {
 		// check sub expressions
@@ -928,7 +927,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		_RewriteFnApp new_node = ExprFactory.make_RewriteFnApp(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				result_type,
 				(Expr) function_result.ast(),
 				(Expr) argument_result.ast());
@@ -955,7 +954,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				subtypeChecker, function_result, argument_result, result, successful);
 	}
 
-	public TypeCheckerResult for_RewriteObjectRefOnly(VarRef that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult for_RewriteObjectRefOnly(VarRef that, TypeCheckerResult exprType_result,
                                                           TypeCheckerResult obj_result,
                                                           List<TypeCheckerResult> staticArgs_result) {
             Type t;
@@ -994,7 +993,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 return bug("Unexpected type for ObjectRef.");
             }
 
-            Node new_node = ExprFactory.makeVarRef(that.getSpan(), that.isParenthesized(),
+            Node new_node = ExprFactory.makeVarRef(that.getSpan(), NodeUtil.isParenthesized(that),
                                                    Option.<Type>some(t),
                                                    (Id) obj_result.ast(),
                                                    (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
@@ -1009,8 +1008,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// See if we can successfully typecheck this expression as a multifix one.
 		TypeCheckerResult multi_result =
 			(ExprFactory.makeOpExpr(that.getSpan(),
-                                                that.isParenthesized(),
-                                                that.getExprType(),
+                                                NodeUtil.isParenthesized(that),
+                                                NodeUtil.getExprType(that),
                                                 that.getMultifix_op(),
                                                 that.getArgs()).accept(this));
 
@@ -1047,7 +1046,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	// This case is only called for single element arrays ( e.g., [5] )
 	// and not for pieces of ArrayElements
 	@Override
-	public TypeCheckerResult forArrayElementOnly(ArrayElement that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forArrayElementOnly(ArrayElement that, TypeCheckerResult exprType_result,
 			List<TypeCheckerResult> staticArgs_result,
 			TypeCheckerResult element_result) {
 
@@ -1072,7 +1071,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			IntArg lower = NodeFactory.makeIntArgVal(""+0);
 			IntArg size = NodeFactory.makeIntArgVal(""+1);
 			Type t=Types.makeArrayKType(1, Useful.list(elem, lower, size));
-			Node new_node=ExprFactory.makeArrayElement(that.getSpan(), that.isParenthesized(),
+			Node new_node=ExprFactory.makeArrayElement(that.getSpan(), NodeUtil.isParenthesized(that),
                                                                    Option.some(t),
                                                                    (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
                                                                    (Expr) element_result.ast());
@@ -1085,7 +1084,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						((TypeArg)that.getStaticArgs().get(0)).getTypeArg(), that,
 						element_result.type().unwrap()+" must be a subtype of "+((TypeArg)that.getStaticArgs().get(0)).getTypeArg());
 				Type t=Types.makeArrayKType(1, that.getStaticArgs());
-				Node new_node=ExprFactory.makeArrayElement(that.getSpan(), that.isParenthesized(),
+				Node new_node=ExprFactory.makeArrayElement(that.getSpan(), NodeUtil.isParenthesized(that),
                                                                            Option.some(t),
                                                                            (List<StaticArg>) TypeCheckerResult.astFromResults(staticArgs_result),
                                                                            (Expr) element_result.ast());
@@ -1255,7 +1254,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		};
 		ArrayElements new_node=ExprFactory.makeArrayElements(that.getSpan(),
-                                                                     that.isParenthesized(),
+                                                                     NodeUtil.isParenthesized(that),
                                                                      Option.some(return_type) ,
                                                                      that.getStaticArgs(),
                                                                      that.getDimension(),
@@ -1326,7 +1325,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if( that.getAssignOp().isSome() ) {
 			// Create a new Assignment, with an FunctionalRef for each LHS
 			new_node = ExprFactory.makeAssignment(that.getSpan(),
-                                                  that.isParenthesized(),
+                                                  NodeUtil.isParenthesized(that),
                                                   Option.<Type>some(Types.VOID),
                                                   (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
                                                   that.getAssignOp(),
@@ -1336,7 +1335,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		else {
 			// Create a new Assignment
 			new_node = ExprFactory.makeAssignment(that.getSpan(),
-					that.isParenthesized(),
+					NodeUtil.isParenthesized(that),
 					Option.<Type>some(Types.VOID),
 					(List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
 					that.getAssignOp(),
@@ -1378,7 +1377,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		// Create a Assignment, with an FunctionalRef for each LHS
 		Assignment new_node = ExprFactory.makeAssignment(that.getSpan(),
-                                                     that.isParenthesized(),
+                                                     NodeUtil.isParenthesized(that),
                                                      Option.<Type>some(Types.VOID),
                                                      (List<Lhs>)TypeCheckerResult.astFromResults(lhs_results),
                                                      that.getAssignOp(),
@@ -1633,7 +1632,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					errorMsg("A 'spawn' expression must not occur inside an 'atomic' expression."));
 
 		AtomicExpr new_node = ExprFactory.makeAtomicExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				expr_result.type(),
 				(Expr)expr_result.ast());
 		return TypeCheckerResult.compose(new_node, expr_result.type(), subtypeChecker, expr_result);
@@ -1747,7 +1746,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type result_type = NodeFactory.makeIntersectionType(CollectUtil.asSet(clause_types));
 		CaseExpr new_node = ExprFactory.makeCaseExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				some(result_type),
 				(Option<Expr>)TypeCheckerResult.astFromResult(param_result_),
 				(Option<FunctionalRef>)TypeCheckerResult.astFromResult(compare_result_),
@@ -2005,7 +2004,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		ChainExpr new_node = ExprFactory.makeChainExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.BOOLEAN),
 				(Expr)first_result.ast(),
 				(List<Link>)TypeCheckerResult.astFromResults(link_result));
@@ -2019,7 +2018,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forCharLiteralExpr(CharLiteralExpr that) {
 		CharLiteralExpr new_node = ExprFactory.makeCharLiteralExpr(that.getSpan(),
-                                                                           that.isParenthesized(),
+                                                                           NodeUtil.isParenthesized(that),
                                                                            Option.<Type>some(Types.CHAR),
                                                                            that.getText(),
                                                                            that.getCharVal());
@@ -2085,8 +2084,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	public TypeCheckerResult forBlock(Block that) {
             if ( that.isAtomicBlock() )
-                return forAtomic(ExprFactory.makeBlock(that.getSpan(), that.isParenthesized(),
-                                                       that.getExprType(), that.getLoc(),
+                return forAtomic(ExprFactory.makeBlock(that.getSpan(), NodeUtil.isParenthesized(that),
+                                                       NodeUtil.getExprType(that), that.getLoc(),
                                                        false, that.isWithinDo(), that.getExprs()),
                                                  errorMsg("A 'spawn' expression must not occur inside",
                                                           "an 'atomic' do block."));
@@ -2119,7 +2118,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 body_void = allVoidButLast(exprs_result,that.getExprs());
             }
             Block new_node = ExprFactory.makeBlock(that.getSpan(),
-                                                   that.isParenthesized(),
+                                                   NodeUtil.isParenthesized(that),
                                                    result_type,
                                                    (Option<Expr>)TypeCheckerResult.astFromResult(loc_result_),
                                                    that.isAtomicBlock(), that.isWithinDo(),
@@ -2134,7 +2133,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forDoOnly(Do that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> fronts_result) {
+	public TypeCheckerResult forDoOnly(Do that, TypeCheckerResult exprType_result, List<TypeCheckerResult> fronts_result) {
 		// Get union of all clauses' types
 		List<Type> frontTypes = new ArrayList<Type>();
 		for (TypeCheckerResult frontResult : fronts_result) {
@@ -2145,7 +2144,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type result_type = subtypeChecker.join(frontTypes);
 		Do new_node = ExprFactory.makeDo(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				some(result_type),
 				(List<Block>)TypeCheckerResult.astFromResults(fronts_result));
 
@@ -2197,7 +2196,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		Exit new_node = ExprFactory.makeExit(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.BOTTOM),
 				that.getTarget(),
 				some((Expr)withResult.ast()));
@@ -2229,7 +2228,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type result_type = subtypeChecker.join(rhs_types);
 		CaseExpr new_node = ExprFactory.makeCaseExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				some(result_type),
 				that.getParam(), // implicitly NONE
 				that.getCompare(),
@@ -2244,7 +2243,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forFieldRefOnly(FieldRef that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forFieldRefOnly(FieldRef that, TypeCheckerResult exprType_result,
 			TypeCheckerResult obj_result, TypeCheckerResult field_result) {
 
 		// We need the type of the receiver
@@ -2279,7 +2278,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		FieldRef new_node = ExprFactory.makeFieldRef(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				result_type,
 				(Expr)obj_result.ast(),
 				that.getField());
@@ -2444,8 +2443,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		ArrowType arr = NodeFactory.makeArrowType(FortressUtil.spanTwo(domain, return_type),
 				domain, return_type);
 		FnExpr new_node = ExprFactory.makeFnExpr(that.getSpan(),
-				that.isParenthesized(),
-				that.getExprType(),
+				NodeUtil.isParenthesized(that),
+				NodeUtil.getExprType(that),
 				NodeUtil.getName(that),
 				NodeUtil.getStaticParams(that),
 				NodeUtil.getParams(that),
@@ -2459,7 +2458,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forFnRefOnly(final FnRef that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forFnRefOnly(final FnRef that, TypeCheckerResult exprType_result,
                                               List<TypeCheckerResult> staticArgs_result,
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> fns_result,
@@ -2520,7 +2519,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 					// create new FnRef for this application of static params
 					FnRef fn_ref = ExprFactory.makeFnRef(that.getSpan(),
-                                                                             that.isParenthesized(),
+                                                                             NodeUtil.isParenthesized(that),
                                                                              some(new_type),
                                                                              new_args,
                                                                              that.getLexicalDepth(),
@@ -2539,7 +2538,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeFnRef(that.getSpan(),
-                                                                         that.isParenthesized(),
+                                                                         NodeUtil.isParenthesized(that),
                                                                          type,
                                                                          that.getStaticArgs(),
                                                                          that.getLexicalDepth(),
@@ -2572,7 +2571,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeFnRef(that.getSpan(),
-                                                                         that.isParenthesized(),
+                                                                         NodeUtil.isParenthesized(that),
                                                                          type,
                                                                          that.getStaticArgs(),
                                                                          that.getLexicalDepth(),
@@ -2591,13 +2590,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forFor(For that) {
 		Pair<List<TypeCheckerResult>,List<LValue>> pair = recurOnListsOfGeneratorClauseBindings(that.getGens());
-		Option<TypeCheckerResult> type_result = recurOnOptionOfType(that.getExprType());
+		Option<TypeCheckerResult> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
 		TypeChecker extend = this.extend(pair.second());
 		TypeCheckerResult body_result = that.getBody().accept(extend);
 		return forForOnly(that, type_result, pair.first(), body_result);
 	}
 
-	@Override
 	public TypeCheckerResult forForOnly(For that, Option<TypeCheckerResult> exprType_result, List<TypeCheckerResult> gens_result, TypeCheckerResult body_result) {
 
 		if( body_result.type().isNone() ) {
@@ -2610,7 +2608,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult body_void = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), err);
 
 		For for_ = ExprFactory.makeFor(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.VOID),
 				(List<GeneratorClause>)TypeCheckerResult.astFromResults(gens_result),
 				(Block)body_result.ast());
@@ -2844,7 +2842,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult elseClause_result_ = elseClause_result.isNone() ? new TypeCheckerResult(that) : elseClause_result.unwrap();
 
 		If new_node = ExprFactory.makeIf(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				some(result_type),
 				(List<IfClause>)TypeCheckerResult.astFromResults(clauses_result),
 				(Option<Block>)TypeCheckerResult.astFromResult(elseClause_result));
@@ -2874,7 +2872,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forIntLiteralExpr(IntLiteralExpr that) {
 		IntLiteralExpr new_node = ExprFactory.makeIntLiteralExpr(that.getSpan(),
-                                                                         that.isParenthesized(),
+                                                                         NodeUtil.isParenthesized(that),
                                                                          Option.<Type>some(Types.INT_LITERAL),
                                                                          that.getText(), that.getIntVal());
 		return new TypeCheckerResult(new_node, Types.INT_LITERAL);
@@ -2928,7 +2926,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		labelExitTypes.remove(that.getName());
 
 		Label new_node = ExprFactory.makeLabel(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				labelType,
 				that.getName(),
 				(Block)bodyResult.ast());
@@ -2955,7 +2953,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					body_results.get(body_results.size()-1).type();
 
 				LetFn new_node = ExprFactory.makeLetFn(that.getSpan(),
-						that.isParenthesized(),
+						NodeUtil.isParenthesized(that),
 						body_type,
 						(List<Expr>)TypeCheckerResult.astFromResults(body_results),
 						(List<FnDecl>)TypeCheckerResult.astFromResults(fn_results));
@@ -3004,7 +3002,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					body_results.get(body_results.size()-1).type();
 
 				LocalVarDecl new_node = ExprFactory.makeLocalVarDecl(that.getSpan(),
-						that.isParenthesized(),
+						NodeUtil.isParenthesized(that),
 						body_type,
 						(List<Expr>)TypeCheckerResult.astFromResults(body_results),
 						that.getLhs(),
@@ -3039,7 +3037,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);
 
                     // Type check the other nodes and recur on the fn app.
-                    Option<TypeCheckerResult> exprType_result = this.recurOnOptionOfType(that.getExprType());
+                    Option<TypeCheckerResult> exprType_result = this.recurOnOptionOfType(NodeUtil.getExprType(that));
                     TypeCheckerResult arg_result = arg.accept(this);
                     TypeCheckerResult fnApp_result = this.for_RewriteFnAppOnly(fnApp,
                                                                                exprType_result,
@@ -3054,14 +3052,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Iterable<Expr> rest = IterUtil.skipFirst(that.getExprs());
                 List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
                             public MathItem value(Expr arg0) {
-                                if( arg0.isParenthesized() || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
+                                if( NodeUtil.isParenthesized(arg0) || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
                                     return new ParenthesisDelimitedMI(arg0.getSpan(),arg0);
                                 else
                                     return new NonParenthesisDelimitedMI(arg0.getSpan(),arg0);
                             }}));
                 MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
-                                                               that.isParenthesized(),
-                                                               that.getExprType(),
+                                                               NodeUtil.isParenthesized(that),
+                                                               NodeUtil.getExprType(that),
                                                                that.getMultiJuxt(),
                                                                that.getInfixJuxt(),
                                                                front, items);
@@ -3071,7 +3069,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
 
 	@Override
-	public TypeCheckerResult forJuxtOnly(Juxt that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forJuxtOnly(Juxt that, TypeCheckerResult exprType_result,
                                              TypeCheckerResult multiJuxt_result,
                                              TypeCheckerResult infixJuxt_result,
                                              List<TypeCheckerResult> exprs_result) {
@@ -3134,8 +3132,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 // TODO: Separate pass?
                 // (2) Treat the sequence that remains as a multifix application of the juxtaposition operator. The rules for multifix operators then apply:
                 OpExpr multi_op_expr = ExprFactory.makeOpExpr(that.getSpan(),
-                                                              that.isParenthesized(),
-                                                              that.getExprType(),
+                                                              NodeUtil.isParenthesized(that),
+                                                              NodeUtil.getExprType(that),
                                                               that.getMultiJuxt(),
                                                               new_juxt_exprs);
                 TypeCheckerResult multi_op_result = multi_op_expr.accept(this);
@@ -3213,8 +3211,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				_RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front,
                                                                                  ((ExprMI)arg).getExpr());
 				MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
-                                                                                      that.isParenthesized(),
-                                                                                      that.getExprType(),
+                                                                                      NodeUtil.isParenthesized(that),
+                                                                                      NodeUtil.getExprType(that),
                                                                                       that.getMultiJuxt(),
                                                                                       that.getInfixJuxt(),
                                                                                       fn,
@@ -3264,8 +3262,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						}
 						// Otherwise, make a new MathPrimary that is one element shorter, and recur
 						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
-                                                                                                      that.isParenthesized(),
-                                                                                                      that.getExprType(),
+                                                                                                      NodeUtil.isParenthesized(that),
+                                                                                                      NodeUtil.getExprType(that),
                                                                                                       that.getMultiJuxt(),
                                                                                                       that.getInfixJuxt(),
                                                                                                       that.getFront(),
@@ -3298,8 +3296,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					if( last_expr_is_front ) {
 						// in our new MathPrimary, place this expression at the front
 						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
-                                                                                                      that.isParenthesized(),
-                                                                                                      that.getExprType(),
+                                                                                                      NodeUtil.isParenthesized(that),
+                                                                                                      NodeUtil.getExprType(that),
                                                                                                       that.getMultiJuxt(),
                                                                                                       that.getInfixJuxt(),
                                                                                                       new_expr, new_items);
@@ -3312,8 +3310,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						MathItem new_item = new ParenthesisDelimitedMI(new_expr.getSpan(),new_expr);
 						item_iter.add(new_item); // replace both item with new item
 						MathPrimary new_primary = ExprFactory.makeMathPrimary(that.getSpan(),
-                                                                                                      that.isParenthesized(),
-                                                                                                      that.getExprType(),
+                                                                                                      NodeUtil.isParenthesized(that),
+                                                                                                      NodeUtil.getExprType(that),
                                                                                                       that.getMultiJuxt(),
                                                                                                       that.getInfixJuxt(),
                                                                                                       that.getFront(),
@@ -3335,7 +3333,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forMethodInvocation(MethodInvocation that) {
-		Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(that.getExprType());
+		Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
 		TypeCheckerResult obj_result = recur(that.getObj());
 		TypeCheckerResult method_result = recur(that.getMethod());
 		List<TypeCheckerResult> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
@@ -3348,7 +3346,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return new_checker.forMethodInvocationOnly(that, exprType_result, obj_result, method_result, staticArgs_result, arg_result);
 	}
 
-	@Override
 	public TypeCheckerResult forMethodInvocationOnly(MethodInvocation that, Option<TypeCheckerResult> exprType_result,
 			TypeCheckerResult obj_result, TypeCheckerResult DONTUSE,
 			List<TypeCheckerResult> staticArgs_result,
@@ -3396,7 +3393,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Type range = subtypeChecker.meet(ranges);
 			range = subtypeChecker.normalize(range);
 			MethodInvocation new_node = ExprFactory.makeMethodInvocation(that.getSpan(),
-                                                                                     that.isParenthesized(),
+                                                                                     NodeUtil.isParenthesized(that),
                                                                                      Option.<Type>some(range),
                                                                                      (Expr)obj_result.ast(),
                                                                                      that.getMethod(),
@@ -3604,8 +3601,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 
 		ObjectExpr new_node = ExprFactory.makeObjectExpr(that.getSpan(),
-                                                                 that.isParenthesized(),
-                                                                 that.getExprType(),
+                                                                 NodeUtil.isParenthesized(that),
+                                                                 NodeUtil.getExprType(that),
 				(List<TraitTypeWhere>)TypeCheckerResult.astFromResults(extendsClause_result),
 				(List<Decl>)TypeCheckerResult.astFromResults(decls_result)
 		);
@@ -3703,7 +3700,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		}
 	}
 
-	@Override
 	public TypeCheckerResult forOpExprOnly(OpExpr that, Option<TypeCheckerResult> exprType_result,
 			TypeCheckerResult op_result,
 			List<TypeCheckerResult> args_result) {
@@ -3740,7 +3736,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Type applicationType = app_result.unwrap().first();
 
 		OpExpr new_node = ExprFactory.makeOpExpr(that.getSpan(),
-                                                         that.isParenthesized(),
+                                                         NodeUtil.isParenthesized(that),
                                                          Option.<Type>some(applicationType),
                                                          (FunctionalRef)op_result.ast(),
                                                          (List<Expr>)TypeCheckerResult.astFromResults(args_result));
@@ -3767,7 +3763,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forOpRefOnly(final OpRef that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forOpRefOnly(final OpRef that, TypeCheckerResult exprType_result,
                                               List<TypeCheckerResult> staticArgs_result,
                                               TypeCheckerResult originalName_result,
                                               List<TypeCheckerResult> ops_result,
@@ -3827,8 +3823,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 
 					FunctionalRef new_op_ref = ExprFactory.makeOpRef(that.getSpan(),
-                                                                                         that.isParenthesized(),
-                                                                                         that.getExprType(),
+                                                                                         NodeUtil.isParenthesized(that),
+                                                                                         NodeUtil.getExprType(that),
                                                                                          new_args,
                                                                                          that.getLexicalDepth(),
                                                                                          that.getOriginalName(),
@@ -3845,7 +3841,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					Option.<Type>none() :
 						Option.<Type>some(NodeFactory.makeIntersectionType(NodeFactory.makeSetSpan("impossible", arrow_types), arrow_types));
 					new_node = ExprFactory.makeOpRef(that.getSpan(),
-                                                                         that.isParenthesized(),
+                                                                         NodeUtil.isParenthesized(that),
                                                                          type,
                                                                          that.getStaticArgs(),
                                                                          that.getLexicalDepth(),
@@ -3873,7 +3869,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 					constraints = accumulated_constraints;
 					new_node = ExprFactory.makeOpRef(that.getSpan(),
-                                                                         that.isParenthesized(),
+                                                                         NodeUtil.isParenthesized(that),
                                                                          type,
                                                              (List<StaticArg>)TypeCheckerResult.astFromResults(staticArgs_result),
                                                              that.getLexicalDepth(),
@@ -3914,7 +3910,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type expr_type = Types.makeThreadType(bodyResult.type().unwrap());
 		Spawn new_node = ExprFactory.makeSpawn(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(expr_type),
 				(Expr)bodyResult.ast());
 
@@ -3926,7 +3922,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forStringLiteralExpr(StringLiteralExpr that) {
 		StringLiteralExpr new_node = ExprFactory.makeStringLiteralExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.STRING),
 				that.getText());
 		return new TypeCheckerResult(new_node, Types.STRING);
@@ -3935,7 +3931,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forSubscriptExpr(SubscriptExpr that) {
-		Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(that.getExprType());
+		Option<TypeCheckerResult> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
 		TypeCheckerResult obj_result = recur(that.getObj());
 		List<TypeCheckerResult> subs_result = recurOnListOfExpr(that.getSubs());
 		Option<TypeCheckerResult> op_result = recurOnOptionOfOp(that.getOp());
@@ -3951,7 +3947,6 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		return new_checker.forSubscriptExprOnly(that, exprType_result, obj_result, subs_result, op_result, staticArgs_result);
 	}
 
-	@Override
 	public TypeCheckerResult forSubscriptExprOnly(SubscriptExpr that, Option<TypeCheckerResult> exprType_result,
 			TypeCheckerResult obj_result, List<TypeCheckerResult> subs_result,
 			Option<TypeCheckerResult> DONT_USE,
@@ -3977,7 +3972,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forThrowOnly(Throw that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forThrowOnly(Throw that, TypeCheckerResult exprType_result,
 			TypeCheckerResult expr_result) {
 
 		if( expr_result.type().isNone() ) {
@@ -3992,7 +3987,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				"This expression is of type " + expr_result.type().unwrap());
 
 		Throw new_node = ExprFactory.makeThrow(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.BOTTOM),
 				(Expr)expr_result.ast());
 
@@ -4113,14 +4108,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					errorMsg("A 'spawn' expression must not occur inside a 'try atomic' expression."));
 
 		TryAtomicExpr new_node = ExprFactory.makeTryAtomicExpr(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				expr_result.type(),
 				(Expr)expr_result.ast());
 		return TypeCheckerResult.compose(new_node, expr_result.type(), subtypeChecker, expr_result);
 	}
 
 	@Override
-	public TypeCheckerResult forTryOnly(Try that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forTryOnly(Try that, TypeCheckerResult exprType_result,
 			TypeCheckerResult body_result, Option<TypeCheckerResult> catch_result,
 			List<TypeCheckerResult> forbid_result, Option<TypeCheckerResult> finally_result) {
 		// gather all sub-results
@@ -4146,7 +4141,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		Type expr_type = this.subtypeChecker.join(all_types);
 		Try new_node = ExprFactory.makeTry(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(expr_type),
 				(Block)body_result.ast(),
 				(Option<Catch>)TypeCheckerResult.astFromResult(catch_result),
@@ -4161,7 +4156,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	}
 
 	@Override
-	public TypeCheckerResult forTupleExprOnly(TupleExpr that, Option<TypeCheckerResult> exprType_result,
+	public TypeCheckerResult forTupleExprOnly(TupleExpr that, TypeCheckerResult exprType_result,
                                                   List<TypeCheckerResult> exprs_result,
                                                   Option<TypeCheckerResult> varargs_result,
                                                   List<TypeCheckerResult> keywords_result) {
@@ -4191,7 +4186,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TupleType tuple_type = NodeFactory.makeTupleType(types);
 
 		TupleExpr new_node = ExprFactory.makeTupleExpr(that.getSpan(),
-                                                               that.isParenthesized(),
+                                                               NodeUtil.isParenthesized(that),
                                                                Option.<Type>some(tuple_type),
                                                                (List<Expr>)TypeCheckerResult.astFromResults(exprs_result),
                                                                that.getVarargs(),
@@ -4225,13 +4220,13 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 				@Override
 				public Node forAsExpr(AsExpr that) {
-					return ExprFactory.makeAsExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
+					return ExprFactory.makeAsExpr(that.getSpan(), NodeUtil.isParenthesized(that), some(annotatedType),
                                                                       (Expr)expr_result.ast(), annotatedType);
 				}
 
 				@Override
 				public Node forAsIfExpr(AsIfExpr that) {
-					return ExprFactory.makeAsIfExpr(that.getSpan(), that.isParenthesized(), some(annotatedType),
+					return ExprFactory.makeAsIfExpr(that.getSpan(), NodeUtil.isParenthesized(that), some(annotatedType),
 							(Expr)expr_result.ast(), annotatedType);
 				}
 			});
@@ -4337,7 +4332,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 						Type result_type = subtypeChecker.join(all_types);
 						Typecase new_node = ExprFactory.makeTypecase(that.getSpan(),
-								that.isParenthesized(),
+								NodeUtil.isParenthesized(that),
 								Option.some(result_type),
 								that.getBindIds(),
 								(Option<Expr>)TypeCheckerResult.astFromResult(bind_expr_result_),
@@ -4451,7 +4446,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forVarRefOnly(VarRef that,
-                                               Option<TypeCheckerResult> exprType_result,
+                                               TypeCheckerResult exprType_result,
                                                TypeCheckerResult var_result,
                                                List<TypeCheckerResult> staticArgs_result) {
             if ( NodeUtil.isSingletonObject(that) )
@@ -4470,7 +4465,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 	@Override
 	public TypeCheckerResult forVoidLiteralExpr(VoidLiteralExpr that) {
 		VoidLiteralExpr new_node = ExprFactory.makeVoidLiteralExpr(that.getSpan(),
-                                                                           that.isParenthesized(),
+                                                                           NodeUtil.isParenthesized(that),
                                                                            Option.<Type>some(Types.VOID),
                                                                            that.getText());
 		return new TypeCheckerResult(new_node, Types.VOID);
@@ -4502,7 +4497,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TypeCheckerResult void_result = this.checkSubtype(body_result.type().unwrap(), Types.VOID, that.getBody(), void_err);
 
 		While new_node = ExprFactory.makeWhile(that.getSpan(),
-				that.isParenthesized(),
+				NodeUtil.isParenthesized(that),
 				Option.<Type>some(Types.VOID),
 				(GeneratorClause)res.first().ast(),
 				(Do)body_result.ast());

@@ -35,7 +35,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
     final private Map<String, List<IdOrOp>> overloadedOperators = new HashMap<String, List<IdOrOp>>();
 
     @Override
-    public Node forFnRefOnly(FnRef that, Option<Type> exprType_result,
+    public Node forFnRefOnly(FnRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> fns,
                              Option<List<FunctionalRef>> overloadings,
                              Option<Type> type_result) {
@@ -58,13 +58,13 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             IdOrOp overloadingId = NodeFactory.makeId(overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
-        return super.forFnRefOnly(that, exprType_result, staticArgs , originalName, fns,
+        return super.forFnRefOnly(that, info, staticArgs , originalName, fns,
                                   overloadings, type_result);
     }
 
 
     @Override
-    public Node forOpRefOnly(OpRef that, Option<Type> exprType_result,
+    public Node forOpRefOnly(OpRef that, ExprInfo info,
                              List<StaticArg> staticArgs, IdOrOp originalName, List<IdOrOp> ops,
                              Option<List<FunctionalRef>> overloadings,
                              Option<Type> type_result) {
@@ -87,7 +87,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             IdOrOp overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan(that), overloadingName);
             ops = Collections.unmodifiableList(Collections.singletonList(overloadingOp));
         }
-        return super.forOpRefOnly(that, exprType_result, staticArgs, originalName, ops,
+        return super.forOpRefOnly(that, info, staticArgs, originalName, ops,
                                   overloadings, type_result);
     }
 

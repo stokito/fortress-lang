@@ -64,7 +64,7 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
         final IdOrOp originalName = op.getOriginalName();
         final List<IdOrOp> ops = op.getNames();
         final List<StaticArg> args = op.getStaticArgs();
-        final Option<Type> otype = op.getExprType();
+        final Option<Type> otype = NodeUtil.getExprType(op);
         final Type type = otype.isNone() ? null : otype.unwrap();
 
         Op n_originalName = (Op) recur(originalName);
@@ -73,7 +73,7 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
         Type n_type = type == null ? (Type) null : (Type) recur(type);
 
         if (args != n_args || originalName != n_originalName || ops != n_ops || type != n_type) {
-            return ExprFactory.makeOpRef(op.getSpan(), op.isParenthesized(),
+            return ExprFactory.makeOpRef(op.getSpan(), NodeUtil.isParenthesized(op),
                                          Option.wrap(n_type), n_args,
                                          Environment.TOP_LEVEL,
                                          n_originalName, n_ops,

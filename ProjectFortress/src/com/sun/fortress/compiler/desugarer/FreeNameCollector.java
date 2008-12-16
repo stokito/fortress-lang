@@ -380,7 +380,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             }
         }
 
-        recurOnOptionOfType(that.getExprType());
+        recurOnOptionOfType(NodeUtil.getExprType(that));
         recurOnOptionOfId(that.getTarget());
         recurOnOptionOfExpr(that.getReturnExpr());
         forExitOnly(that);
@@ -395,7 +395,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 	    }
 
         forVarRefDoFirst(that);
-        recurOnOptionOfType(that.getExprType());
+        recurOnOptionOfType(NodeUtil.getExprType(that));
         recur(that.getVarId());
 
 		Debug.debug(Debug.Type.COMPILER,
@@ -438,7 +438,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             bug(n, "The name field of FnRef should be Id.");
         Id name = (Id)n;
         forFnRefDoFirst(that);
-        recurOnOptionOfType(that.getExprType());
+        recurOnOptionOfType(NodeUtil.getExprType(that));
         recur(name);
         recurOnListOfIdOrOp(that.getNames());
         recurOnListOfStaticArg(that.getStaticArgs());
