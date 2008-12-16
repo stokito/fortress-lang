@@ -97,7 +97,7 @@ object H extends Radical
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 0
     canonical():Boolean = true
-    toString():String = "H"
+    asString():String = "H"
 end H
 
 (* Rad objects are the internal nodes of the trees.*)
@@ -112,7 +112,7 @@ object Rad (r1:Radical, r2:Radical, r3:Radical) extends Radical
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3|
     canonical():Boolean = r1 <= r2 <= r3
-    toString():String =
+    asString():String =
         case self of
             methyl => "M";  ethyl  => "E"; propyl => "p3"
             butyl  => "b4"; pentyl => "p5"
@@ -284,7 +284,7 @@ object Paraffin (r1:Radical, r2:Radical, r3:Radical, r4:Radical)
 
     (* The following are for debugging and for testing. *)
     opr |self|:ZZ32 = 1 + |r1| + |r2| + |r3| + |r4| 
-    toString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
+    asString():String = "[P " r1 " " r1 " " r3 " " r4 " ]"
 end Paraffin
 
 (*
@@ -373,7 +373,7 @@ genParaffins = genParaffins0
 
 run(args:String...) = do
     if |args| = 0 then printUsage() end
-    n_p:ZZ32 = if |args| < 1 then 5   else strToInt args[0] end
+    n_p:ZZ32 = if |args| < 1 then 6   else strToInt args[0] end
     n_r:ZZ32 = if |args| < 2 then n_p else strToInt args[1] end
 
     println("===== Enumerate/count paraffins & radicals by Turner's method. =====")

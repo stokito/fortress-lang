@@ -341,8 +341,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
         if (args.size() != static_params.size()) {
             error(x, e,
                   errorMsg("Generic instantiation (size) mismatch, expected ",
-                           Useful.listInOxfords(static_params),
-                           " got ", Useful.listInOxfords(args)));
+                           static_params," got ",args));
         }
         EvalType et = new EvalType(e);
         ArrayList<FType> argValues = et.forStaticArgList(args);
