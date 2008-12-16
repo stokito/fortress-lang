@@ -299,7 +299,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         try {
             fdot = path.findFile(slashed);
         } catch (FileNotFoundException ex2) {
-            throw new FileNotFoundException(name.getSpan() + ": Could not find API " + dotted + " on path.");
+            throw new FileNotFoundException(NodeUtil.getSpan(name) + ": Could not find API " + dotted + " on path.");
         }
         return fdot;
     }

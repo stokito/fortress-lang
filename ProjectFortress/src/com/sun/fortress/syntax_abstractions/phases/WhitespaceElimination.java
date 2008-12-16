@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.WhitespaceSymbol;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import com.sun.fortress.useful.Debug;
 
@@ -39,7 +40,7 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
         boolean ignoreWhitespace = false;
         while (it.hasNext()) {
             SyntaxSymbol symbol = it.next();
-            if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {			
+            if (!ignoreWhitespace || !(symbol instanceof WhitespaceSymbol)) {
                 if (symbol instanceof NoWhitespaceSymbol) {
                     symbol = ((NoWhitespaceSymbol) symbol).getSymbol();
                     ignoreWhitespace = true;
@@ -51,6 +52,6 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
                 Debug.debug( Debug.Type.SYNTAX, 1, "[whitespace] Throwing out symbol ", symbol );
             }
         }
-        return new SyntaxDef(that.getSpan(), that.getModifier(), ls, that.getTransformer());
+        return new SyntaxDef(NodeUtil.getSpan(that), that.getModifier(), ls, that.getTransformer());
     }
 }

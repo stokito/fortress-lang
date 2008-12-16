@@ -224,7 +224,7 @@ Param Param :=
      a1:ParamFldMods? a2:PlainParam
      { if (a1 != null) {
            if (a1.isMutable() && a2.getIdType().isNone())
-               syntaxError(a2.getSpan(),
+               syntaxError(NodeUtil.getSpan(a2),
                            "Mutable fields should be declared with their types.");
            yyValue = NodeFactory.makeParam(a2, a1);
        } else yyValue = a2;

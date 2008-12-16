@@ -144,7 +144,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
     public Type getInstantiationForFunctionalMethodInference() {
         List<StaticArg> statics = paramsToArgs();
-        Id in = NodeFactory.makeId(def.getSpan(), name);
+        Id in = NodeFactory.makeId(NodeUtil.getSpan(def), name);
         TraitType inst_type = NodeFactory.makeTraitType(NodeFactory.makeSpan(in, statics),
                                                         false, in, statics,
                                                         Collections.<StaticParam>emptyList());
@@ -163,14 +163,14 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
 
         private TypeArg idNameToTypeArg(Id idn) {
-            return new TypeArg(idn.getSpan(),
-                               NodeFactory.makeVarType(idn.getSpan(), idn));
+            return new TypeArg(NodeUtil.getSpan(idn),
+                               NodeFactory.makeVarType(NodeUtil.getSpan(idn), idn));
         }
 
         @Override
         public StaticArg forStaticParam(StaticParam that) {
             if ( NodeUtil.isOpParam(that) )
-        	return new OpArg(that.getSpan(), ExprFactory.makeOpRef((Op)that.getName()));
+        	return new OpArg(NodeUtil.getSpan(that), ExprFactory.makeOpRef((Op)that.getName()));
             else
                 return idNameToTypeArg((Id)that.getName());
         }

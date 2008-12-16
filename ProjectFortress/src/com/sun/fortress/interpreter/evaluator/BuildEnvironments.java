@@ -503,9 +503,9 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
                 guardedPutValue(containing, WellKnownNames.obfuscatedSingletonConstructorName(fname, x), cl, x);
 
                 // Create a little expression to run the constructor.
-                Expr init = ExprFactory.makeTightJuxt(x.getSpan(),
-                                                      ExprFactory.makeVarRef(x.getSpan(), WellKnownNames.obfuscatedSingletonConstructorName(fname, x), 0),
-                                                      ExprFactory.makeVoidLiteralExpr(x.getSpan()));
+                Expr init = ExprFactory.makeTightJuxt(NodeUtil.getSpan(x),
+                                                      ExprFactory.makeVarRef(NodeUtil.getSpan(x), WellKnownNames.obfuscatedSingletonConstructorName(fname, x), 0),
+                                                      ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(x)));
                 FValue init_value = new LazilyEvaluatedCell(init, containing);
                 putValue(bindInto, fname, init_value);
 

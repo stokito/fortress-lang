@@ -83,7 +83,7 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
            IdOrOp name = fnRef.getOriginalName();
            if ( ! (name instanceof Id) )
                bug(name, "The name field of FnRef should be Id.");
-           MethodInvocation mi = ExprFactory.makeMethodInvocation( fnRef.getSpan(),
+           MethodInvocation mi = ExprFactory.makeMethodInvocation( NodeUtil.getSpan(fnRef),
                                                                    NodeUtil.isParenthesized(fnRef),
                                                                    NodeUtil.getExprType(fnRef),
                                                                    receiver, (Id)name,
@@ -103,13 +103,13 @@ public class DottedMethodRewriteVisitor extends NodeUpdateVisitor {
         if(args.size() == 1) {
             argExpr = args.get(0);
         } else {
-            argExpr = ExprFactory.makeTupleExpr(fnRef.getSpan(), args);
+            argExpr = ExprFactory.makeTupleExpr(NodeUtil.getSpan(fnRef), args);
         }
         IdOrOp name = fnRef.getOriginalName();
         if ( ! (name instanceof Id) )
             bug(name, "The name field of FnRef should be Id.");
 
-        mi = ExprFactory.makeMethodInvocation( fnRef.getSpan(),
+        mi = ExprFactory.makeMethodInvocation( NodeUtil.getSpan(fnRef),
                                                NodeUtil.isParenthesized(fnRef),
                                                NodeUtil.getExprType(fnRef),
                                                receiver, (Id)name,

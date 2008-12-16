@@ -217,11 +217,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Member() { super(); }
         @Override
         Expr replacement(VarRef original) {
-            return ExprFactory.makeFieldRef(original.getSpan(),
+            return ExprFactory.makeFieldRef(NodeUtil.getSpan(original),
                                 // Use this constructor
                                 // here because it is a
                                 // rewrite.
-                                dottedReference(original.getSpan(),
+                                dottedReference(NodeUtil.getSpan(original),
                                                 objectNestingDepth - objectNestedness),
                                 filterQID(original.getVarId()));
         }
@@ -234,7 +234,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     private class SelfRewrite extends Member {
         SelfRewrite() {}
         Expr replacement(VarRef original) {
-            Expr expr = dottedReference(original.getSpan(),
+            Expr expr = dottedReference(NodeUtil.getSpan(original),
                     objectNestingDepth - objectNestedness);
             return expr;
         }
@@ -659,10 +659,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<APIName> exports_result = recurOnListOfAPIName(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
-        decls_result.add( new _RewriteObjectExprDecl(com.getSpan(), objectExprs) );
-        decls_result.add( new _RewriteFunctionalMethodDecl(com.getSpan(), Useful.list(functionals)) );
+        decls_result.add( new _RewriteObjectExprDecl(NodeUtil.getSpan(com), objectExprs) );
+        decls_result.add( new _RewriteFunctionalMethodDecl(NodeUtil.getSpan(com), Useful.list(functionals)) );
 
-        AbstractNode nn = NodeFactory.makeComponent(com.getSpan(),
+        AbstractNode nn = NodeFactory.makeComponent(NodeUtil.getSpan(com),
                                                     name_result, imports_result,
                                                     decls_result,
                                                     com.is_native(), exports_result);
@@ -677,7 +677,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      // NEB: This code is temporary. Very soon the static end will
         // remove these nodes and they should never appear at this
         // phase of execution. However, now we simply create an OpExpr.
-        Node node = ExprFactory.makeOpExpr(op.getSpan(),
+        Node node = ExprFactory.makeOpExpr(NodeUtil.getSpan(op),
                                            NodeUtil.isParenthesized(op),
                                            NodeUtil.getExprType(op),
                                            op.getInfix_op(),
@@ -764,7 +764,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     public Node forLValue(LValue lvb) {
         Id id = lvb.getName();
         if ("_".equals(id.getText())) {
-            Id newId = NodeFactory.makeId(id.getSpan(), WellKnownNames.tempForUnderscore(id));
+            Id newId = NodeFactory.makeId(NodeUtil.getSpan(id), WellKnownNames.tempForUnderscore(id));
             return NodeFactory.makeLValue(lvb, newId);
         }
         return visitNode(lvb);
@@ -870,13 +870,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
              (_ensures.isSome() || _requires.isSome() || _invariants.isSome()) ) {
             List<Expr> exprs = new ArrayList<Expr>();
             exprs.add(fndef.getBody().unwrap());
-            Block b = ExprFactory.makeBlock(_contract.unwrap().getSpan(), exprs);
+            Block b = ExprFactory.makeBlock(NodeUtil.getSpan(_contract.unwrap()), exprs);
             if (_invariants.isSome()) b = translateInvariants(_invariants, b);
             if (_ensures.isSome())    b = translateEnsures(_ensures, b);
             if (_requires.isSome())   b = translateRequires(_requires, b);
 
             // Remove the original contract, add the translation
-            FnDecl f = NodeFactory.makeFnDecl(fndef.getSpan(), NodeUtil.getMods(fndef),
+            FnDecl f = NodeFactory.makeFnDecl(NodeUtil.getSpan(fndef), NodeUtil.getMods(fndef),
                                               NodeUtil.getName(fndef),
                                               NodeUtil.getStaticParams(fndef),
                                               NodeUtil.getParams(fndef),
@@ -911,7 +911,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             lhs = (List<LValue>) recurOnListOfLValue(lhs);
             ArrayList<VarDecl> newdecls = new ArrayList<VarDecl>(1+lhs.size());
             String temp = WellKnownNames.tempTupleName(vd);
-            Span at = vd.getSpan();
+            Span at = NodeUtil.getSpan(vd);
             VarDecl new_vd = NodeFactory.makeVarDecl(at, temp, init);
             newdecls.add(new_vd);
             int element_index = 0;
@@ -1087,10 +1087,10 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             args.add(g.getInit());
             args.add(bindsAndBody(g,w.getBody()));
             Expr cond =
-                ExprFactory.makeTightJuxt(g.getSpan(),
+                ExprFactory.makeTightJuxt(NodeUtil.getSpan(g),
                                           Q_WHILECOND_NAME,
-                                          ExprFactory.makeTupleExpr(w.getSpan(),args));
-            w = ExprFactory.makeWhile(w.getSpan(),cond);
+                                          ExprFactory.makeTupleExpr(NodeUtil.getSpan(w),args));
+            w = ExprFactory.makeWhile(NodeUtil.getSpan(w),cond);
         }
         return (Expr)visitNode(w);
     }
@@ -1098,14 +1098,14 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     @Override
     public Node forFor(For f) {
         Block df = f.getBody();
-        Do doBlock = ExprFactory.makeDo(df.getSpan(),Useful.list(df));
-        return visitLoop(f.getSpan(), f.getGens(), doBlock);
+        Do doBlock = ExprFactory.makeDo(NodeUtil.getSpan(df),Useful.list(df));
+        return visitLoop(NodeUtil.getSpan(f), f.getGens(), doBlock);
     }
 
     @Override
     public Node forSpawn(Spawn s) {
         Expr body = s.getBody();
-        Span sp   = s.getSpan();
+        Span sp   = NodeUtil.getSpan(s);
         // If the user writes Spawn(foo) instead of Spawn(foo()) we get an inexplicable error
         // message.  We might want to put in a check for that someday.
 
@@ -1118,13 +1118,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                                         NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
                                                         Environment.TOP_LEVEL)));
 
-       _RewriteFnRef fn = ExprFactory.make_RewriteFnRef(s.getSpan(), false, Option.<Type>none(),
+       _RewriteFnRef fn = ExprFactory.make_RewriteFnRef(NodeUtil.getSpan(s), false, Option.<Type>none(),
                                              in_fn, args);
 
         List<Param> params = Collections.emptyList();
         FnExpr fnExpr = ExprFactory.makeFnExpr(sp, params, (Expr) rewrittenExpr);
 
-        return visitNode(ExprFactory.makeTightJuxt(s.getSpan(), fn, fnExpr));
+        return visitNode(ExprFactory.makeTightJuxt(NodeUtil.getSpan(s), fn, fnExpr));
     }
 
     @Override
@@ -1176,8 +1176,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             refs.add(ExprFactory.makeVarRef(b));
 
         return ExprFactory.makeTupleExpr(
-                new Span(binds.get(0).getSpan(),
-                         binds.get(binds.size()-1).getSpan()),
+                new Span(NodeUtil.getSpan(binds.get(0)),
+                         NodeUtil.getSpan(binds.get(binds.size()-1))),
                 refs);
     }
 
@@ -1194,16 +1194,16 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             args.add(g.getInit());
             args.add(bindsAndBody(g,c.getBody()));
             if (elsePart != null) args.add(thunk(elsePart));
-            return ExprFactory.makeTightJuxt(c.getSpan(),
+            return ExprFactory.makeTightJuxt(NodeUtil.getSpan(c),
                                              Q_COND_NAME,
-                                             ExprFactory.makeTupleExpr(c.getSpan(),args));
+                                             ExprFactory.makeTupleExpr(NodeUtil.getSpan(c),args));
         }
         // if expr then body else elsePart end is preserved
         // (but we replace elif chains by nesting).
         if (elsePart==null) {
-            return ExprFactory.makeIf(c.getSpan(), c);
+            return ExprFactory.makeIf(NodeUtil.getSpan(c), c);
         } else {
-            return ExprFactory.makeIf(c.getSpan(), c, ExprFactory.makeBlock(elsePart));
+            return ExprFactory.makeIf(NodeUtil.getSpan(c), c, ExprFactory.makeBlock(elsePart));
         }
     }
 
@@ -1219,7 +1219,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         for (int i = gens.size()-1; i >= 0; i--) {
             GeneratorClause g = gens.get(i);
             Expr loopBody = bindsAndBody(g, body);
-            Expr loopSel = ExprFactory.makeFieldRef(g.getSpan(),
+            Expr loopSel = ExprFactory.makeFieldRef(NodeUtil.getSpan(g),
                                                     g.getInit(), LOOP_NAME);
             body = ExprFactory.makeTightJuxt(span, loopSel,loopBody);
         }
@@ -1229,7 +1229,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     /** Given expr e, return (fn () => e) */
     Expr thunk(Expr e) {
-        return ExprFactory.makeFnExpr(e.getSpan(),
+        return ExprFactory.makeFnExpr(NodeUtil.getSpan(e),
                                       Collections.<Param>emptyList(), e);
     }
 
@@ -1602,11 +1602,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         if (expr instanceof VarRef) {
             VarRef vre = (VarRef) expr;
             if (vre.getLexicalDepth() == -1) {
-                return ExprFactory.makeMethodInvocation(node.getSpan(),
+                return ExprFactory.makeMethodInvocation(NodeUtil.getSpan(node),
                         false, NodeUtil.getExprType(node),
-                        ExprFactory.makeVarRef(node.getSpan(), WellKnownNames.secretSelfName), // this will rewrite in the future.
+                        ExprFactory.makeVarRef(NodeUtil.getSpan(node), WellKnownNames.secretSelfName), // this will rewrite in the future.
                         (Id) vre.getVarId(),
-                        visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
+                        visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(node)) : //TODO wrong span
                         visitedArgs.size() == 1 ? visitedArgs.get(0) :
                             ExprFactory.makeTupleExpr(NodeFactory.makeSpan("impossible", visitedArgs),
                                                       visitedArgs));
@@ -1615,11 +1615,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
             FieldRef selfDotSomething = (FieldRef) visit(first);
 
-            return ExprFactory.makeMethodInvocation(node.getSpan(),
+            return ExprFactory.makeMethodInvocation(NodeUtil.getSpan(node),
                                     false, NodeUtil.getExprType(node),
                                     selfDotSomething.getObj(), // this will rewrite in the future.
                                     selfDotSomething.getField(),
-                                    visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : //TODO wrong span
+                                    visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(node)) : //TODO wrong span
                                     visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                         ExprFactory.makeTupleExpr(NodeFactory.makeSpan("impossible", visitedArgs), visitedArgs));
         }
@@ -1640,13 +1640,13 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         //        List<MathItem> visitedArgs = visitList(exprs);
         Node arg = visit(((ExprMI)node.getRest().get(0)).getExpr());
 
-        return ExprFactory.makeMethodInvocation(node.getSpan(),
+        return ExprFactory.makeMethodInvocation(NodeUtil.getSpan(node),
                                 false, NodeUtil.getExprType(node),
                                 selfDotSomething.getObj(), // this will rewrite in the future.
                                 selfDotSomething.getField(),
                                     (Expr)arg
                                     /*
-                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(node.getSpan()) : // wrong span
+                                visitedArgs.size() == 0 ? ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(node)) : // wrong span
                                 visitedArgs.size() == 1 ? visitedArgs.get(0) :
                                     new TupleExpr(visitedArgs)
                                     */
@@ -1656,7 +1656,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
    private Block translateRequires(Option<List<Expr>> _requires, Block b)  {
         List<Expr> r = _requires.unwrap(Collections.<Expr>emptyList());
         for (Expr e : r) {
-            Span sp = e.getSpan();
+            Span sp = NodeUtil.getSpan(e);
             GeneratorClause cond =
                 ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(), e);
             If _if = ExprFactory.makeIf(sp, new IfClause(sp,cond,b),
@@ -1669,7 +1669,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     private Block translateEnsures(Option<List<EnsuresClause>> _ensures, Block b) {
         List<EnsuresClause> es = _ensures.unwrap(Collections.<EnsuresClause>emptyList());
         for (EnsuresClause e : es) {
-            Span sp = e.getSpan();
+            Span sp = NodeUtil.getSpan(e);
             Id t1 = gensymId("t1");
             Block inner_block =
                 ExprFactory.makeBlock(sp,
@@ -1698,7 +1698,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     private Block translateInvariants(Option<List<Expr>> _invariants, Block b) {
         for (Expr e : _invariants.unwrap(Collections.<Expr>emptyList())) {
-            Span sp = e.getSpan();
+            Span sp = NodeUtil.getSpan(e);
             Id t1 = gensymId("t1");
             Id t_outcome = gensymId(WellKnownNames.outcome);
             Id t2 = gensymId("t2");

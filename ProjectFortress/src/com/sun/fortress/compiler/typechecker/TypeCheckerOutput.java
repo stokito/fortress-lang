@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Typecase;
 import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -79,7 +80,7 @@ public class TypeCheckerOutput {
     public TypeEnv getTypeEnv(Node n) {
         if ( ! ( n instanceof ASTNode ) )
             bug(n, "Only ASTNodes are supported.");
-        Span s = ((ASTNode)n).getSpan();
+        Span s = NodeUtil.getSpan((ASTNode)n);
         Pair<Node,Span> p = Pair.make(n, s);
         return this.nodeTypeEnvs.get(p);
     }
@@ -102,98 +103,98 @@ public class TypeCheckerOutput {
 			@Override
 			public void forCatch(Catch that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forCatch(that);
 			}
 
 			@Override
 			public void forFnDecl(FnDecl that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forFnDecl(that);
 			}
 
 			@Override
 			public void forFnExpr(FnExpr that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forFnExpr(that);
 			}
 
 			@Override
 			public void forForOnly(For that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forForOnly(that);
 			}
 
 			@Override
 			public void forIfClause(IfClause that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forIfClause(that);
 			}
 
 			@Override
 			public void forLabel(Label that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forLabel(that);
 			}
 
 			@Override
 			public void forLetFn(LetFn that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forLetFn(that);
 			}
 
 			@Override
 			public void forLocalVarDecl(LocalVarDecl that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forLocalVarDecl(that);
 			}
 
 			@Override
 			public void forObjectDecl(ObjectDecl that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forObjectDecl(that);
 			}
 
 			@Override
 			public void forObjectExpr(ObjectExpr that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forObjectExpr(that);
 			}
 
 			@Override
 			public void forSpawn(Spawn that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forSpawn(that);
 			}
 
 			@Override
 			public void forTraitDecl(TraitDecl that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forTraitDecl(that);
 			}
 
 			@Override
 			public void forTypecase(Typecase that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forTypecase(that);
 			}
 
 			@Override
 			public void forWhile(While that) {
 				// TODO Auto-generated method stub
-				removed.remove(Pair.make(that,that.getSpan()));
+				removed.remove(Pair.make(that,NodeUtil.getSpan(that)));
 				super.forWhile(that);
 			}
 

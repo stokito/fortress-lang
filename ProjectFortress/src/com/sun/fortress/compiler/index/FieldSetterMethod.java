@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -58,9 +59,9 @@ public class FieldSetterMethod extends Method {
 	@Override
 	public List<Param> parameters() {
 	    // return the implicit parameter
-	    Param p = NodeFactory.makeParam(_ast.getSpan(),
+	    Param p = NodeFactory.makeParam(NodeUtil.getSpan(_ast),
                                             Modifiers.None,
-                                            NodeFactory.makeId(_ast.getSpan(), "fakeParamForImplicitSetter"),
+                                            NodeFactory.makeId(NodeUtil.getSpan(_ast), "fakeParamForImplicitSetter"),
                                             _ast.getIdType());
 		return Collections.singletonList(p);
 	}

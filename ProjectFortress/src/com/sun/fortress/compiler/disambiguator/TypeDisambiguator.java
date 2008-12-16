@@ -220,7 +220,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             new Lambda<Id, Type>() {
             public Type value(Id n) {
                 if (n.equals(Types.ANY_NAME)) {
-                    return NodeFactory.makeAnyType(that.getSpan());
+                    return NodeFactory.makeAnyType(NodeUtil.getSpan(that));
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
@@ -229,7 +229,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                               that);
                         return that;
                     }
-                    return NodeFactory.makeTraitType(that.getSpan(), false, n);
+                    return NodeFactory.makeTraitType(NodeUtil.getSpan(that), false, n);
                 }
             }
         };
@@ -249,7 +249,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             public Type value(Id n) {
                 List<StaticArg> args = that.getArgs();
                 if (n.equals(Types.ANY_NAME) && args.isEmpty()) {
-                    return NodeFactory.makeAnyType(that.getSpan());
+                    return NodeFactory.makeAnyType(NodeUtil.getSpan(that));
                 }
                 else {
                     TypeConsIndex typeCons = _env.typeConsIndex(n);
@@ -269,7 +269,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                         newArgs.add(updated);
                     }
                     return changed ?
-                    NodeFactory.makeTraitType(that.getSpan(), n, newArgs) : that;
+                    NodeFactory.makeTraitType(NodeUtil.getSpan(that), n, newArgs) : that;
                 }
             }
         };
@@ -357,7 +357,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             @Override public StaticArg forTypeArg(final TypeArg a) {
                 final Type t = a.getTypeArg();
                 if (t instanceof VarType) {
-                    final Span s = a.getSpan();
+                    final Span s = NodeUtil.getSpan(a);
                     final Id name = ((VarType) t).getName();
                     return p.getKind().accept(new NodeAbstractVisitor<StaticArg>() {
                             @Override public StaticArg forKindBool(KindBool k) {
@@ -470,7 +470,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
     @Override public Node forSuperSyntaxDefOnly(SuperSyntaxDef that, Id nonterminal_result, Id grammar_result) {
         Id disambiguatedGrammar = handleGrammarName(grammar_result);
-        return new SuperSyntaxDef(that.getSpan(), that.getModifier(), nonterminal_result, disambiguatedGrammar);
+        return new SuperSyntaxDef(NodeUtil.getSpan(that), that.getModifier(), nonterminal_result, disambiguatedGrammar);
     }
 
     @Override
@@ -483,7 +483,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDecl disambiguatedGrammar = new GrammarDecl(that.getSpan(), name, p.first(), members_result, transformers, that.isNativeDef());
+        GrammarDecl disambiguatedGrammar = new GrammarDecl(NodeUtil.getSpan(that), name, p.first(), members_result, transformers, that.isNativeDef());
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
 
@@ -505,7 +505,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             APIName realApi = realApiOpt.unwrap();
             Id newN;
             if (originalApi == realApi) { newN = name; }
-            else { newN = NodeFactory.makeId(name.getSpan(), realApi, name); }
+            else { newN = NodeFactory.makeId(NodeUtil.getSpan(name), realApi, name); }
 
             if (!_env.hasQualifiedGrammar(newN)) {
                 error("Undefined grammar: " + NodeUtil.nameString(newN), newN);
@@ -573,38 +573,38 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 final IdOrOp name = param.unwrap().getName();
                 NodeAbstractVisitor<StaticArg> v =new NodeAbstractVisitor<StaticArg>(){
                     @Override public StaticArg forKindBool(KindBool k) {
-                        return new BoolArg(arg.getSpan(), NodeFactory.makeBoolRef(arg.getSpan(), (Id)name));
+                        return new BoolArg(NodeUtil.getSpan(arg), NodeFactory.makeBoolRef(NodeUtil.getSpan(arg), (Id)name));
                     }
                     @Override
                     public StaticArg forKindDim(KindDim k) {
-                        return new DimArg(arg.getSpan(), NodeFactory.makeDimRef(arg.getSpan(), (Id)name));
+                        return new DimArg(NodeUtil.getSpan(arg), NodeFactory.makeDimRef(NodeUtil.getSpan(arg), (Id)name));
                     }
                     @Override
                     public StaticArg forKindInt(KindInt k) {
-                        return new IntArg(arg.getSpan(), NodeFactory.makeIntRef(arg.getSpan(), (Id)name));
+                        return new IntArg(NodeUtil.getSpan(arg), NodeFactory.makeIntRef(NodeUtil.getSpan(arg), (Id)name));
                     }
                     @Override
                     public StaticArg forKindNat(KindNat k) {
-                        return new IntArg(arg.getSpan(), NodeFactory.makeIntRef(arg.getSpan(), (Id)name));
+                        return new IntArg(NodeUtil.getSpan(arg), NodeFactory.makeIntRef(NodeUtil.getSpan(arg), (Id)name));
                     }
                     @Override
                     public StaticArg forKindType(KindType k) {
-                        return new TypeArg(arg.getSpan(),t);
+                        return new TypeArg(NodeUtil.getSpan(arg),t);
                     }
                     @Override
                     public StaticArg forKindUnit(KindUnit k) {
-                        return new UnitArg(arg.getSpan(),
-                                           new UnitRef(arg.getSpan(), false, (Id)name));
+                        return new UnitArg(NodeUtil.getSpan(arg),
+                                           new UnitRef(NodeUtil.getSpan(arg), false, (Id)name));
                     }
                     @Override
                     public StaticArg forKindOp(KindOp that) {
-                        return new OpArg(arg.getSpan(), ExprFactory.makeOpRef( (Op)name));
+                        return new OpArg(NodeUtil.getSpan(arg), ExprFactory.makeOpRef( (Op)name));
                     }
                 };
                 return param.unwrap().getKind().accept(v);
             }
         }
-        return new TypeArg(arg.getSpan(),t);
+        return new TypeArg(NodeUtil.getSpan(arg),t);
     }
 
 }

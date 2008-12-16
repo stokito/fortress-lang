@@ -57,6 +57,7 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Useful;
@@ -154,7 +155,7 @@ public class TopLevelEnv extends NameEnv {
         }
         else if (errorIfUnavailable) {
             _errors.add(StaticError.make("Attempt to import an API not in the repository: " + name.getIds(),
-                                        name.getSpan().toString()));
+                                        NodeUtil.getSpan(name).toString()));
         }
 
     }
@@ -164,13 +165,13 @@ public class TopLevelEnv extends NameEnv {
                                      Map<Id, Set<Id>> table) {
         Id key = entry.getKey();
         if (table.containsKey(key)) {
-            table.get(key).add(NodeFactory.makeId(key.getSpan(),
+            table.get(key).add(NodeFactory.makeId(NodeUtil.getSpan(key),
                                       Option.some(apiEntry.getKey()),
                                       key.getText()));
 
         } else {
             Set<Id> matches = new HashSet<Id>();
-            matches.add(NodeFactory.makeId(key.getSpan(),
+            matches.add(NodeFactory.makeId(NodeUtil.getSpan(key),
                                Option.some(apiEntry.getKey()),
                                key.getText()));
             table.put(key, matches);
@@ -221,7 +222,7 @@ public class TopLevelEnv extends NameEnv {
     			}
     			@Override
     			public Op forOp(Op that) {
-                            return new Op(that.getSpan(),Option.some(api),that.getText(),that.getFixity(), that.isEnclosing());
+                            return new Op(NodeUtil.getSpan(that),Option.some(api),that.getText(),that.getFixity(), that.isEnclosing());
     			}});
     	return result;
     }
@@ -235,7 +236,7 @@ public class TopLevelEnv extends NameEnv {
 
                 if (fnName instanceof Id ) {
                     Id _fnName = (Id)fnName;
-                    Id name = NodeFactory.makeId(_fnName.getSpan(),
+                    Id name = NodeFactory.makeId(NodeUtil.getSpan(_fnName),
                             Option.some(apiEntry.getKey()),
                             _fnName.getText());
                     if (fun_result.containsKey(_fnName)) {
@@ -269,7 +270,7 @@ public class TopLevelEnv extends NameEnv {
         Map<String, Set<Id>> result = new HashMap<String, Set<Id>>();
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (Map.Entry<String, GrammarIndex> grammarEntry: apiEntry.getValue().grammars().entrySet()) {
-                Span span = grammarEntry.getValue().getName().getSpan();
+                Span span = NodeUtil.getSpan(grammarEntry.getValue().getName());
                 String key = grammarEntry.getKey();
                 Id id = NodeFactory.makeId(span, apiEntry.getKey(), key);
                 if (result.containsKey(key)) {
@@ -317,7 +318,7 @@ public class TopLevelEnv extends NameEnv {
             // A name defined in this CU should only be qualified if this is an API
             Id result_id;
             if( _current instanceof ApiIndex )
-                result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
+                result_id = NodeFactory.makeId(_current.ast().getName(), name, NodeUtil.getSpan(name));
             else if( _current instanceof ComponentIndex )
                 result_id = apiQualifyIfComponentExports(((ComponentIndex)_current), name);
             else
@@ -350,7 +351,7 @@ public class TopLevelEnv extends NameEnv {
                 if( result_.isSome() )
                     return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + name);
 
-                result_ = Option.some(NodeFactory.makeId(api_name, name, name.getSpan()));
+                result_ = Option.some(NodeFactory.makeId(api_name, name, NodeUtil.getSpan(name)));
             }
         }
 
@@ -368,7 +369,7 @@ public class TopLevelEnv extends NameEnv {
             // A name defined in this CU should only be qualified if this is an API
             Id result_id;
             if( _current instanceof ApiIndex )
-                result_id = NodeFactory.makeId(_current.ast().getName(), name, name.getSpan());
+                result_id = NodeFactory.makeId(_current.ast().getName(), name, NodeUtil.getSpan(name));
             else
                 result_id = name;
 
@@ -394,7 +395,7 @@ public class TopLevelEnv extends NameEnv {
             IdOrOp result_id;
             if( _current instanceof ApiIndex ) {
                 if ( name instanceof Id )
-                    result_id = NodeFactory.makeId(_current.ast().getName(), (Id)name, name.getSpan());
+                    result_id = NodeFactory.makeId(_current.ast().getName(), (Id)name, NodeUtil.getSpan(name));
                 else
                     result_id = NodeFactory.makeOp(_current.ast().getName(), (Op)name);
             } else
@@ -416,7 +417,7 @@ public class TopLevelEnv extends NameEnv {
             ApiIndex apiIndex = (ApiIndex) _current;
 			if (apiIndex.grammars().containsKey(name)) {
                 GrammarIndex g = apiIndex.grammars().get(name);
-                Span span = g.getName().getSpan();
+                Span span = NodeUtil.getSpan(g.getName());
 				APIName api = apiIndex.ast().getName();
 				Id qname = NodeFactory.makeId(span , api , g.getName().getText());
                 return Collections.singleton(qname);
@@ -544,7 +545,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     private Id ignoreApi(Id id) {
-        return NodeFactory.makeId(id.getSpan(), id.getText());
+        return NodeFactory.makeId(NodeUtil.getSpan(id), id.getText());
     }
 
     public Option<GrammarIndex> grammarIndex(final Id name) {

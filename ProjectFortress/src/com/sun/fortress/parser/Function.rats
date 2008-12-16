@@ -54,33 +54,33 @@ FnDecl FnSig =
        final List<Param>  params = FortressUtil.emptyParams();
 
        if (!(a2 instanceof ArrowType)) {
-           syntaxError(a2.getSpan(),
+           syntaxError(NodeUtil.getSpan(a2),
                        "Abstract function declaration should have an arrow type.");
        }
        Type d = ((ArrowType) a2).getDomain();
        if ( d instanceof TupleType ) {
            TupleType _d = (TupleType)d;
            for (Type argT : _d.getElements()) {
-               Id name = NodeFactory.makeId(argT.getSpan(), "_");
-               params.add(NodeFactory.makeParam(argT.getSpan(), mods, name, argT));
+               Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
+               params.add(NodeFactory.makeParam(NodeUtil.getSpan(argT), mods, name, argT));
            }
            if (_d.getVarargs().isSome()) {
                Type argT = _d.getVarargs().unwrap();
-               Id name = NodeFactory.makeId(argT.getSpan(), "_");
-               params.add(NodeFactory.makeVarargsParam(argT.getSpan(), mods, name, argT));
+               Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
+               params.add(NodeFactory.makeVarargsParam(NodeUtil.getSpan(argT), mods, name, argT));
            }
            assert(_d.getKeywords().isEmpty()): "Keyword parameters present"
                + " in a FnSig: " + _d;
 
        } else {
-           Id name = NodeFactory.makeId(d.getSpan(), "_");
-           params.add(NodeFactory.makeParam(d.getSpan(), mods, name, d));
+           Id name = NodeFactory.makeId(NodeUtil.getSpan(d), "_");
+           params.add(NodeFactory.makeParam(NodeUtil.getSpan(d), mods, name, d));
        }
 
        /*
        We could do this, if we had a suitable value for bottomExpr:
        for (KeywordType k : d.getKeywords()) {
-           params.add(NodeFactory.makeParam(k.getSpan(), mods,
+           params.add(NodeFactory.makeParam(NodeUtil.getSpan(k), mods,
                                             k.getName(), k.getType(), bottomExpr,
                                             Option.<Type>none()));
        }

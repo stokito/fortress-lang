@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 
@@ -71,7 +72,7 @@ public class OverloadRewriter {
         OverloadRewriteVisitor visitor = new OverloadRewriteVisitor();
         comp = (Component) comp.accept(visitor);
         List<Decl> decls = comp.getDecls();
-        Span span = comp.getSpan();
+        Span span = NodeUtil.getSpan(comp);
 
         // Add rewritten overloaded functions
         Map<String, List<IdOrOp>> overloadedFunctions = visitor.getOverloadedFunctions();

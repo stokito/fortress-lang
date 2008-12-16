@@ -61,10 +61,10 @@ Expr DelimitedExpr =
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getText().equals(a3.getText()))
-             syntaxError(a1.getSpan(),
+             syntaxError(NodeUtil.getSpan(a1),
                          "Mismatched identifiers for label expressions:\n'" +
-                         a1 + "' at " + a1.getSpan() + " and\n'" +
-                         a3 + "' at " + a3.getSpan());
+                         a1 + "' at " + NodeUtil.getSpan(a1) + " and\n'" +
+                         a3 + "' at " + NodeUtil.getSpan(a3));
        yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), a1, a2);
      }
    / <ErrorProduction>

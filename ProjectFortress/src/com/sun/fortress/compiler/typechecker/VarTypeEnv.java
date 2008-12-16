@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -78,7 +79,7 @@ class VarTypeEnv extends TypeEnv {
                 Param param = _result.ast();
                 Option<Type> type = typeFromParam(param);
 
-                return some(new BindingLookup(makeLValue(param.getSpan(), param.getName(),
+                return some(new BindingLookup(makeLValue(NodeUtil.getSpan(param), param.getName(),
                                                          param.getMods(), type, false)));
             }
         } else {

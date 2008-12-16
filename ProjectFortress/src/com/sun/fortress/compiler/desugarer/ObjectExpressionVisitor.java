@@ -371,7 +371,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 	    objExprNestingLevel++;
 		scopeStack.push(that);
 
-        FreeNameCollection freeNames = objExprToFreeNames.get(that.getSpan());
+        FreeNameCollection freeNames = objExprToFreeNames.get(NodeUtil.getSpan(that));
 
         /*
          * A map mapping from Exit node to its corresponding exitFnParam info
@@ -400,9 +400,9 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         NodeUpdateVisitor rewriter = new NodeUpdateVisitor() {
                 @Override
                 public Node forExit(Exit that) {
-                    Span span = that.getSpan();
+                    Span span = NodeUtil.getSpan(that);
                     Id labelId = unwrapIfSomeElseError( that.getTarget(),
-                                    that.getSpan(),
+                                    NodeUtil.getSpan(that),
                                     "Exit target label is not disambiguated!" );
                     Pair<Span,Id> exitKey = new Pair<Span,Id>(span, labelId);
                     Pair<Id,Type> exitFnInfo = exitFnParamMap.get(exitKey);
@@ -433,7 +433,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private Expr makeCallToLiftedObj(ObjectDecl lifted,
                                       ObjectExpr objExpr,
                                       FreeNameCollection freeNames) {
-        Span span = objExpr.getSpan();
+        Span span = NodeUtil.getSpan(objExpr);
         Id originalName = NodeUtil.getName(lifted);
         List<IdOrOp> fns = new LinkedList<IdOrOp>();
         fns.add(originalName);
@@ -481,7 +481,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         } else {
             if( boolRefs.isEmpty() == false ||  // sanity check
                 intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {
-                throw new DesugarerError( target.getSpan(),
+                throw new DesugarerError( NodeUtil.getSpan(target),
                         "Found refences to static params outside " +
                         "of Trait/ObjectDecl!");
             }
@@ -509,7 +509,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     private List<Expr> makeArgsForCallToLiftedObj(ObjectExpr objExpr,
                                                   FreeNameCollection freeNames,
                                                   VarRef enclosingSelf) {
-        Span span = objExpr.getSpan();
+        Span span = NodeUtil.getSpan(objExpr);
 
         List<VarRef> freeVarRefs = freeNames.getFreeVarRefs();
         List<FnRef> freeFnRefs = freeNames.getFreeFnRefs();
@@ -522,15 +522,15 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     VarRefContainer container =
                         mutableVarRefContainerMap.get(var);
                     if(container != null) {
-                        exprs.add( container.containerVarRef(var.getSpan()) );
+                        exprs.add( container.containerVarRef(NodeUtil.getSpan(var)) );
                     } else {
-                        throw new DesugarerError(objExpr.getSpan(),
+                        throw new DesugarerError(NodeUtil.getSpan(objExpr),
                             var.getVarId() + " is mutable but not found in "
                             + "the mutableVarRefContainerMap!");
                     }
                 }  else {
                     VarRef newVar =
-                        ExprFactory.makeVarRef( var.getSpan(), var.getVarId() );
+                        ExprFactory.makeVarRef( NodeUtil.getSpan(var), var.getVarId() );
                     exprs.add(newVar);
                 }
             }
@@ -561,7 +561,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
              * site.
              */
             for(Exit exit : freeExitLabels) {
-                Span exitSpan = exit.getSpan();
+                Span exitSpan = NodeUtil.getSpan(exit);
                 exitFnExprParams = new LinkedList<Param>();
                 exitWithId = NodeFactory.makeId( exitSpan,
                                 MANGLE_CHAR+EXIT_WITH_PARAM );
@@ -615,7 +615,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                               FreeNameCollection freeNames,
                               Map<Pair<Span,Id>,Pair<Id,Type>> exitFnParamMap) {
         String name = getMangledName(target);
-        Span span = target.getSpan();
+        Span span = NodeUtil.getSpan(target);
         Id liftedObjId = NodeFactory.makeId(span, name);
 
         List<TraitTypeWhere> extendsClauses = NodeUtil.getExtendsClause(target);
@@ -631,7 +631,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         if( freeMethodRefs.isEmpty() == false ) {
             // Use the span for the obj expr that we are lifting
             // FIXME: Is this the right span to use??
-            enclosingSelf = makeEnclosingSelfParam( target.getSpan(),
+            enclosingSelf = makeEnclosingSelfParam( NodeUtil.getSpan(target),
                                         freeNames.getEnclosingSelfType() );
         }
 
@@ -675,7 +675,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         } else {
             if( boolRefs.isEmpty() == false ||  // sanity check
                 intRefs.isEmpty() == false || varTypes.isEmpty() == false ) {
-                throw new DesugarerError( target.getSpan(),
+                throw new DesugarerError( NodeUtil.getSpan(target),
                         "Found refences to static params outside " +
                         "of Trait/ObjectDecl!");
             }
@@ -717,7 +717,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                     if(container != null) {
                         params.add( container.containerTypeParam() );
                     } else {
-                        throw new DesugarerError(target.getSpan(),
+                        throw new DesugarerError(NodeUtil.getSpan(target),
                             var.getVarId() + " is mutable but not found in "
                             + "the mutableVarRefContainerMap!");
                     }
@@ -749,7 +749,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
         if(freeExitLabels != null) {
             int exitIndex = 0;
             for(Exit exit : freeExitLabels) {
-                Span exitSpan = exit.getSpan();
+                Span exitSpan = NodeUtil.getSpan(exit);
                 Option<Expr> retExpr = exit.getReturnExpr();
                 Type retType = null;
                 Type exitFnType = null;
@@ -830,7 +830,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     // small helper methods
     private StaticArg makeStaticArgFromStaticParam(StaticParam sParam) {
-        Span span = sParam.getSpan();
+        Span span = NodeUtil.getSpan(sParam);
 
         if( NodeUtil.isBoolParam(sParam) ) {
             BoolRef boolRef = NodeFactory.makeBoolRef(span, (Id)sParam.getName());
@@ -862,7 +862,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     private VarRef makeVarRefFromParam(Param param) {
-        VarRef varRef = ExprFactory.makeVarRef( param.getSpan(),
+        VarRef varRef = ExprFactory.makeVarRef( NodeUtil.getSpan(param),
                                                 param.getIdType(),
                                                 param.getName() );
         return varRef;

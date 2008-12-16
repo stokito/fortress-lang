@@ -17,6 +17,7 @@
 
 package com.sun.fortress.parser_util.precedence_resolver;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Left;
 import com.sun.fortress.parser_util.precedence_opexpr.LooseInfix;
 import com.sun.fortress.parser_util.precedence_opexpr.OpExprVisitor;
@@ -39,35 +40,35 @@ public class SpanGetterVisitor implements OpExprVisitor<Span> {
    **/
 
    public Span forRealExpr(RealExpr that) {
-     return that.getExpr().getSpan();
+     return NodeUtil.getSpan(that.getExpr());
    }
 
    public Span forRealType(RealType that) {
-     return that.getType().getSpan();
+     return NodeUtil.getSpan(that.getType());
    }
 
    /* Methods to visit an item. */
    public Span forLeft(Left that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 
    public Span forRight(Right that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 
    public Span forTightInfix(TightInfix that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 
    public Span forLooseInfix(LooseInfix that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 
    public Span forPrefix(Prefix that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 
    public Span forPostfix(Postfix that) {
-     return that.getOp().getSpan();
+     return NodeUtil.getSpan(that.getOp());
    }
 }

@@ -50,7 +50,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         try {
             if ( ! ( that instanceof ASTNode ) )
                 bug(that, "Only ASTNodes are supported.");
-            writer.write( ((ASTNode)that).getSpan() + " : " + message + "\n" );
+            writer.write( NodeUtil.getSpan((ASTNode)that) + " : " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the syntax checker failed!");
         }

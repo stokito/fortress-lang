@@ -110,7 +110,7 @@ class FnTypeEnv extends TypeEnv {
                                                                         Collections.<BaseType>emptyList(),
                                                                         Option.<Type>none(), false,
                                                                         new KindType());
-					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(p.getSpan()));
+					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(p)));
 					return Pair.make(p, a);
 				}});
 
@@ -145,7 +145,7 @@ class FnTypeEnv extends TypeEnv {
                 overloadedTypes.add(replaceGenericSelfParamsWithInferenceVars(decl));
             } else { // fn instanceof Constructor
                 final Constructor _fn = (Constructor)fn;
-                Span loc = _fn.declaringTrait().getSpan();
+                Span loc = NodeUtil.getSpan(_fn.declaringTrait());
                 // Make trait name fully qualified, since Constructors are not.
                 Id qualified_trait_name = NodeFactory.makeId(var.getApiName(), _fn.declaringTrait());
                 Type selfType = makeTraitType(qualified_trait_name,

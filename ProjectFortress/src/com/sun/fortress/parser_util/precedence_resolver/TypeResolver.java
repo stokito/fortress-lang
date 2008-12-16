@@ -108,8 +108,8 @@ public class TypeResolver {
     }
 
     public static Type makeMatrixType(Span span, Type type, IntExpr power) {
-        StaticArg arg = new IntArg(power.getSpan(), power);
-        ExtentRange er = new ExtentRange(power.getSpan(),
+        StaticArg arg = new IntArg(NodeUtil.getSpan(power), power);
+        ExtentRange er = new ExtentRange(NodeUtil.getSpan(power),
                                          Option.<StaticArg>none(),
                                          Option.some(arg),
                                          Option.<Op>none());
@@ -150,11 +150,11 @@ public class TypeResolver {
                                                            typeToDim(e));
                                 return rest.cons(new TypeLoose(_op,effect,_new));
                             } else {
-                                throw new ReadError(first.getSpan(),
+                                throw new ReadError(NodeUtil.getSpan(first),
                                                     "Dimensions are expected.");
                             }
                         } catch (TypeConvertFailure x) {
-                            throw new ReadError(first.getSpan(),
+                            throw new ReadError(NodeUtil.getSpan(first),
                                                 "Dimensions are expected.");
                         }
                     } else // op.getText().equals("->") ||
@@ -214,11 +214,11 @@ public class TypeResolver {
                                                            typeToDim(e));
                                 return rest.cons(new TypeTight(_op,effect,_new));
                             } else {
-                                throw new ReadError(first.getSpan(),
+                                throw new ReadError(NodeUtil.getSpan(first),
                                                     "Dimensions are expected.");
                             }
                         } catch (TypeConvertFailure x) {
-                            throw new ReadError(first.getSpan(),
+                            throw new ReadError(NodeUtil.getSpan(first),
                                                 "Dimensions are expected.");
                         }
                   } else // op.getText().equals("->") ||
@@ -274,10 +274,10 @@ public class TypeResolver {
                          // op.getText().equals("per")
                         return NodeFactory.makeDimBinaryOp(span, true, _first, _second,
                                                quotient(span));
-                    //                    throw new ReadError(op.getSpan(), "DimExpr is expected.");
+                    //                    throw new ReadError(NodeUtil.getSpan(op), "DimExpr is expected.");
                 }
             } catch (TypeConvertFailure x) {
-                throw new ReadError(op.getSpan(), "DimExpr is expected.");
+                throw new ReadError(NodeUtil.getSpan(op), "DimExpr is expected.");
             }
 
         }
@@ -332,13 +332,13 @@ public class TypeResolver {
             // Errors
             if (first instanceof JuxtInfix) {
                 Op op = ((JuxtInfix)first).getOp();
-                throw new ReadError(op.getSpan(),
+                throw new ReadError(NodeUtil.getSpan(op),
                                     "Interpreted " + op.getText() +
                                     " with no left operand as infix.");
             } else { // first instanceof RealType
                 PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>)opTypes).getRest();
                 if (rest.isEmpty()) {
-                    throw new ReadError(((RealType)first).getType().getSpan(),
+                    throw new ReadError(NodeUtil.getSpan(((RealType)first).getType()),
                                         "Nonexhaustive pattern matching.");
                 } else { // !rest.isEmpty()
                     Cons<InfixOpExpr> _rest = (Cons<InfixOpExpr>)rest;
@@ -351,7 +351,7 @@ public class TypeResolver {
                                             "Failed to process juxtaposition.");
                     } else { // second instanceof JuxtInfix
                         Op op = ((JuxtInfix)second).getOp();
-                        throw new ReadError(op.getSpan(),
+                        throw new ReadError(NodeUtil.getSpan(op),
                                             "Interpreted " + op.getText() +
                                             " with no right operand as infix.");
                     }
@@ -457,16 +457,16 @@ public class TypeResolver {
                     try {
                         DimExpr e =
                             typeToDim(((RealType)__opTypes.getFirst()).getType());
-                        return _rest.cons(new RealType(NodeFactory.makeDimUnaryOp(e.getSpan(), true,
+                        return _rest.cons(new RealType(NodeFactory.makeDimUnaryOp(NodeUtil.getSpan(e), true,
                                                                  e, op)));
                     } catch (TypeConvertFailure x) {
-                        throw new ReadError(op.getSpan(),
+                        throw new ReadError(NodeUtil.getSpan(op),
                                             "Prefix operator " + op.toString() +
                                             " without argument.");
                     }
                 } else {
                     Op op = ((Prefix)first).getOp();
-                    throw new ReadError(op.getSpan(), "Prefix operator " +
+                    throw new ReadError(NodeUtil.getSpan(op), "Prefix operator " +
                                         op.toString() + " without argument.");
                 }
             } else { // first isinstanceof InfixOpExpr
@@ -549,7 +549,7 @@ public class TypeResolver {
             }
             if (first instanceof TightInfix &&
                 isDiv(((TightInfix)first).getOp())) {
-                throw new ReadError(((TightInfix)first).getOp().getSpan(),
+                throw new ReadError(NodeUtil.getSpan(((TightInfix)first).getOp()),
                                     "Misuse of tight division.");
             } else {
                 return (resolveTightDiv(rest)).cons(first);
@@ -574,16 +574,16 @@ public class TypeResolver {
                     Cons<PostfixOpExpr> _rest = (Cons<PostfixOpExpr>)rest;
                     Op op = ((Postfix)(_rest.getFirst())).getOp();
                     PureList<PostfixOpExpr> restRest = _rest.getRest();
-                    DimExpr dim = NodeFactory.makeDimUnaryOp(_first.getSpan(),
+                    DimExpr dim = NodeFactory.makeDimUnaryOp(NodeUtil.getSpan(_first),
                                                              NodeUtil.isParenthesized(_first),
                                                              _first, op);
                     return resolvePostfix(restRest.cons(new RealType(dim)));
                 } catch (TypeConvertFailure x) {
-                    throw new ReadError(((Postfix)first).getOp().getSpan(),
+                    throw new ReadError(NodeUtil.getSpan(((Postfix)first).getOp()),
                                         "Postfix operator %s without argument.");
                 }
             } else if (first instanceof Postfix) {
-                throw new ReadError(((Postfix)first).getOp().getSpan(),
+                throw new ReadError(NodeUtil.getSpan(((Postfix)first).getOp()),
                                     "Postfix operator %s without argument.");
             } else { // first instanceof PrefixOpExpr
                 return (resolvePostfix(rest)).cons((PrefixOpExpr)first);
@@ -603,7 +603,7 @@ public class TypeResolver {
     private static Type typeToType(Type type) {
         return (Type) type.accept(new NodeUpdateVisitor() {
             public Type forDimExponent(DimExponent t) {
-                return makeMatrixType(t.getSpan(), typeToType(t.getBase()),
+                return makeMatrixType(NodeUtil.getSpan(t), typeToType(t.getBase()),
                                       t.getPower());
             }
             public Type forDimExpr(DimExpr t) {
@@ -614,7 +614,7 @@ public class TypeResolver {
                 }
             }
             public Type forTaggedDimType(TaggedDimType t) {
-                return NodeFactory.makeTaggedDimType(t.getSpan(), true,
+                return NodeFactory.makeTaggedDimType(NodeUtil.getSpan(t), true,
                                                      typeToType(t.getElemType()),
                                                      makeInParentheses(dimToDim(t.getDimExpr())),
                                                      t.getUnitExpr());
@@ -630,7 +630,7 @@ public class TypeResolver {
                 }
                 public DimExpr forDimExponent(DimExponent t) {
                     try {
-                        return NodeFactory.makeDimExponent(t.getSpan(),
+                        return NodeFactory.makeDimExponent(NodeUtil.getSpan(t),
                                                NodeUtil.isParenthesized(t),
                                                typeToDim(t.getBase()),
                                                t.getPower());
@@ -647,7 +647,7 @@ public class TypeResolver {
                                          "a type is found.");
                         ExtentRange dimension = dimensions.get(0);
                         IntArg power = (IntArg)dimension.getSize().unwrap();
-                        return NodeFactory.makeDimExponent(t.getSpan(),
+                        return NodeFactory.makeDimExponent(NodeUtil.getSpan(t),
                                                NodeUtil.isParenthesized(t),
                                                typeToDim(t.getElemType()),
                                                power.getIntVal());
@@ -659,11 +659,11 @@ public class TypeResolver {
                 public DimExpr forTaggedDimType(TaggedDimType t) {
                     try {
                         if (t.getUnitExpr().isNone()) {
-                            return NodeFactory.makeDimBinaryOp(t.getSpan(),
+                            return NodeFactory.makeDimBinaryOp(NodeUtil.getSpan(t),
                                                    NodeUtil.isParenthesized(t),
                                                    typeToDim(t.getElemType()),
                                                    t.getDimExpr(),
-                                                   product(t.getSpan()));
+                                                   product(NodeUtil.getSpan(t)));
                         } else
                             return error(t, "A dimension is expected " +
                                          "but a type is found.");
@@ -673,7 +673,7 @@ public class TypeResolver {
                     }
                 }
                 public DimExpr forVarType(VarType t) {
-                    return NodeFactory.makeDimRef(t.getSpan(),
+                    return NodeFactory.makeDimRef(NodeUtil.getSpan(t),
                                                   NodeUtil.isParenthesized(t),
                                                   t.getName());
                 }
@@ -691,7 +691,7 @@ public class TypeResolver {
         return dim.accept(new NodeAbstractVisitor<DimExpr>() {
             public DimExpr forDimExponent(DimExponent d) {
                 try {
-                    return NodeFactory.makeDimExponent(d.getSpan(),
+                    return NodeFactory.makeDimExponent(NodeUtil.getSpan(d),
                                            NodeUtil.isParenthesized(d),
                                            typeToDim(d.getBase()),
                                            d.getPower());
@@ -700,14 +700,14 @@ public class TypeResolver {
                 }
             }
             public DimExpr forDimBinaryOp(DimBinaryOp d) {
-                return NodeFactory.makeDimBinaryOp(d.getSpan(),
+                return NodeFactory.makeDimBinaryOp(NodeUtil.getSpan(d),
                                        NodeUtil.isParenthesized(d),
                                        dimToDim(d.getLeft()),
                                        dimToDim(d.getRight()),
                                        d.getOp());
             }
             public DimExpr forDimUnaryOp(DimUnaryOp d) {
-                return NodeFactory.makeDimUnaryOp(d.getSpan(),
+                return NodeFactory.makeDimUnaryOp(NodeUtil.getSpan(d),
                                  NodeUtil.isParenthesized(d),
                                  dimToDim(d.getDimVal()),
                                  d.getOp());
@@ -722,14 +722,14 @@ public class TypeResolver {
         try {
             return dim.accept(new NodeAbstractVisitor<Type>() {
                 public Type forDimRef(DimRef d) {
-                    return NodeFactory.makeVarType(d.getSpan(),
+                    return NodeFactory.makeVarType(NodeUtil.getSpan(d),
                                                    NodeUtil.isParenthesized(d),
                                                    d.getName(),
                                                    NodeFactory.lexicalDepth);
                 }
                 public Type forDimBinaryOp(DimBinaryOp d) {
                     try {
-                        return NodeFactory.makeTaggedDimType(d.getSpan(),
+                        return NodeFactory.makeTaggedDimType(NodeUtil.getSpan(d),
                                                              NodeUtil.isParenthesized(d),
                                                              makeInParentheses(dimToType(d.getLeft())),
                                                              dimToDim(d.getRight()),
@@ -739,7 +739,7 @@ public class TypeResolver {
                     }
                 }
                 public Type forDimExponent(DimExponent d) {
-                    return makeMatrixType(d.getSpan(),
+                    return makeMatrixType(NodeUtil.getSpan(d),
                                           typeToType(d.getBase()),
                                           d.getPower());
                 }
@@ -756,7 +756,7 @@ public class TypeResolver {
     private static Type canonicalizeType(Type ty) {
         if (ty instanceof TaggedDimType) {
             TaggedDimType _ty = (TaggedDimType)ty;
-            return NodeFactory.makeTaggedDimType(_ty.getSpan(),
+            return NodeFactory.makeTaggedDimType(NodeUtil.getSpan(_ty),
                                                  NodeUtil.isParenthesized(_ty),
                                                  canonicalizeType(_ty.getElemType()),
                                                  canonicalizeDim(_ty.getDimExpr()),
@@ -786,26 +786,26 @@ public class TypeResolver {
                         right = canonicalizeDim(_right.getRight());
                     } else
                         left = canonicalizeDim(left);
-                    return NodeFactory.makeDimBinaryOp(d.getSpan(),
+                    return NodeFactory.makeDimBinaryOp(NodeUtil.getSpan(d),
                                            NodeUtil.isParenthesized(d),
-                                           left, right, product(d.getSpan()));
+                                           left, right, product(NodeUtil.getSpan(d)));
                 } else {
-                    return NodeFactory.makeDimBinaryOp(d.getSpan(),
+                    return NodeFactory.makeDimBinaryOp(NodeUtil.getSpan(d),
                                            NodeUtil.isParenthesized(d),
                                            canonicalizeDim(d.getLeft()),
                                            canonicalizeDim(d.getRight()),
-                                           quotient(d.getSpan()));
+                                           quotient(NodeUtil.getSpan(d)));
 
                 }
             }
             public DimExpr forDimExponent(DimExponent d) {
-                return NodeFactory.makeDimExponent(d.getSpan(),
+                return NodeFactory.makeDimExponent(NodeUtil.getSpan(d),
                                        NodeUtil.isParenthesized(d),
                                        canonicalizeDim((DimExpr)d.getBase()),
                                        d.getPower());
             }
             public DimExpr forDimUnaryOp(DimUnaryOp d) {
-                return NodeFactory.makeDimUnaryOp(d.getSpan(),
+                return NodeFactory.makeDimUnaryOp(NodeUtil.getSpan(d),
                                  NodeUtil.isParenthesized(d),
                                  canonicalizeDim(d.getDimVal()),
                                  d.getOp());

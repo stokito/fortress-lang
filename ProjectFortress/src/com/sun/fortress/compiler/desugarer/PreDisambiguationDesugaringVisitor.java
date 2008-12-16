@@ -60,7 +60,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         if (extendsClause.size() > 0) return extendsClause;
         if ( ! ( whence instanceof ASTNode ) )
             bug(whence, "Only ASTNodes are supported.");
-        Id objectId = NodeFactory.makeId(((ASTNode)whence).getSpan(),
+        Id objectId = NodeFactory.makeId(NodeUtil.getSpan((ASTNode)whence),
                                          WellKnownNames.objectTypeName);
         TraitType typeObject = NodeFactory.makeTraitType(objectId);
         TraitTypeWhere extendsObject = NodeFactory.makeTraitTypeWhere(typeObject);
@@ -71,7 +71,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         public Node forObjectExprOnly(ObjectExpr that,
                                       ExprInfo info,
                                       TraitTypeHeader header) {
-        Span span = that.getSpan();
+        Span span = NodeUtil.getSpan(that);
         List<TraitTypeWhere> extendsClause = rewriteExtendsClause(that, header.getExtendsClause());
         header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                  extendsClause,
@@ -117,7 +117,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         boolean suffix = OprUtil.hasSuffixColon(op_name);
 
         if( prefix || suffix ) {
-            OpExpr new_op = ExprFactory.makeOpExpr(that.getSpan(),
+            OpExpr new_op = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),
                                                    NodeUtil.isParenthesized(that),
                                                    NodeUtil.getExprType(that),
                                                    that.getInfix_op(),
@@ -139,7 +139,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             new_op = that;
         }
         else {
-            new_op = ExprFactory.makeOpExpr(that.getSpan(),
+            new_op = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),
                                             NodeUtil.isParenthesized(that),
                                             NodeUtil.getExprType(that),
                                             op_result,
@@ -149,7 +149,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     private static Expr thunk(Expr e) {
-        return ExprFactory.makeFnExpr(e.getSpan(),
+        return ExprFactory.makeFnExpr(NodeUtil.getSpan(e),
                                       Collections.<Param>emptyList(), e);
     }
 
@@ -174,7 +174,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         qop = OprUtil.noColon(qop);
         Iterator<Expr> i = args.iterator();
         Expr res = i.next();
-        Span sp = opExp.getSpan();
+        Span sp = NodeUtil.getSpan(opExp);
         while (i.hasNext()) {
             Expr arg = (Expr)i.next();
             if (prefix) {
@@ -190,7 +190,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
 	public Node forAccumulator(Accumulator that) {
-        return visitAccumulator(that.getSpan(), that.getGens(),
+        return visitAccumulator(NodeUtil.getSpan(that), that.getGens(),
                                 that.getAccOp(), that.getBody(),
                                 that.getStaticArgs());
     }

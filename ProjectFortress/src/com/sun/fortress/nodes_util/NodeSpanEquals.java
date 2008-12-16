@@ -33,7 +33,7 @@ public class NodeSpanEquals<T extends ASTNode> {
         	return false;
         }
         ASTNode oNode = (ASTNode) other;
-        return (node.equals(other) && node.getSpan().equals(oNode.getSpan()));
+        return (node.equals(other) && NodeUtil.getSpan(node).equals(NodeUtil.getSpan(oNode)));
     }
 
     public T getNode() {

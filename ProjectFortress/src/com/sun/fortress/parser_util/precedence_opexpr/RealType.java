@@ -55,7 +55,7 @@ public class RealType extends Object implements InfixOpExpr {
    public java.lang.String toString() {
       java.io.StringWriter w = new java.io.StringWriter();
       output(w);
-      return w.toString() + " at " + _type.getSpan();
+      return w.toString() + " at " + NodeUtil.getSpan(_type);
    }
 
    /**

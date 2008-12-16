@@ -48,8 +48,8 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 	public Node forLValueOnly(LValue that, Id name_result,
                                   Option<Type> type_result) {
 		if( type_result.isNone() ) {
-			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(that.getName().getSpan()));
-			return NodeFactory.makeLValue(that.getSpan(), name_result,
+			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that.getName())));
+			return NodeFactory.makeLValue(NodeUtil.getSpan(that), name_result,
                                                       that.getMods(), new_type,
                                                       that.isMutable());
 		}
@@ -90,7 +90,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
         // Is the return type given?
         Option<Type> new_ret_type =
             returnType_result.isNone() ?
-            Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
+            Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that))) :
             returnType_result;
 
         FnHeader header = (FnHeader)forFnHeaderOnly(that.getHeader(),
@@ -112,7 +112,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 		// Is the type given?
 		Option<Type> new_type =
 			type_result.isNone() ?
-					Option.<Type>some(NodeFactory.make_InferenceVarType(that.getSpan())) :
+					Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that))) :
 						type_result;
 
 		return super.forParamOnly(that, name_result, new_type,

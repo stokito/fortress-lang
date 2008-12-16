@@ -42,10 +42,10 @@ Type NoNewlineType =
        else {
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
-               yyValue = NodeFactory.makeTaggedDimType(_ty.getSpan(), false, _ty.getElemType(),
+               yyValue = NodeFactory.makeTaggedDimType(NodeUtil.getSpan(_ty), false, _ty.getElemType(),
                                                        _ty.getDimExpr(), Option.some(a2));
            } else {
-               yyValue = syntaxError(ty.getSpan(),
+               yyValue = syntaxError(NodeUtil.getSpan(ty),
                                      "A dimension type is expected.");
            }
        }

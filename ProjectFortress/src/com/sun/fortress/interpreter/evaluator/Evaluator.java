@@ -363,7 +363,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 FValue region = regionExp.accept(this);
             }
             if (f.isAtomicBlock())
-                return forAtomicExpr(ExprFactory.makeAtomicExpr(x.getSpan(), f));
+                return forAtomicExpr(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f));
             return f.accept(new Evaluator(this));
        }
 
@@ -375,7 +375,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
                locs.add(f.getLoc().unwrap());
            }
            if (f.isAtomicBlock())
-               tasks[i] = new TupleTask(ExprFactory.makeAtomicExpr(x.getSpan(), f), this);
+               tasks[i] = new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this);
            else
                tasks[i] = new TupleTask(f, new Evaluator(this));
        }
@@ -1065,7 +1065,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     // dumb. Nels
     @Override
     public FValue forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
-        return this.forOpExpr(ExprFactory.makeOpExpr(that.getSpan(),
+        return this.forOpExpr(ExprFactory.makeOpExpr(NodeUtil.getSpan(that),
                                                      NodeUtil.isParenthesized(that),
                                                      NodeUtil.getExprType(that),
                                                      that.getMultifix_op(),

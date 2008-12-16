@@ -22,6 +22,7 @@ import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
@@ -67,7 +68,7 @@ class MethodTypeEnv extends TypeEnv {
             } else if (method instanceof FieldGetterMethod) {
                 FieldGetterMethod _method = (FieldGetterMethod)method;
                 Binding binding = _method.ast();
-                overloads.add(makeArrowType(binding.getSpan(),
+                overloads.add(makeArrowType(NodeUtil.getSpan(binding),
                                             Types.VOID,
                                              // all types have been filled in at this point
                                             binding.getIdType().unwrap()));
@@ -76,7 +77,7 @@ class MethodTypeEnv extends TypeEnv {
                 final FieldSetterMethod _method = (FieldSetterMethod)method;
                 Binding binding = _method.ast();
 
-                overloads.add(makeArrowType(binding.getSpan(),
+                overloads.add(makeArrowType(NodeUtil.getSpan(binding),
                                             binding.getIdType().unwrap(),
                                             // all types have been filled in at this point
                                             Types.VOID));

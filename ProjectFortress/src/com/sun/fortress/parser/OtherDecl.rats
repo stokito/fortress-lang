@@ -51,12 +51,12 @@ List<DimUnitDecl> DimUnitDecl =
        for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
        if ( a1 instanceof Id ) {
            dim = NodeFactory.makeDimDecl(span, (Id)a1, Option.wrap(a2));
-           ty = NodeFactory.makeVarType(a1.getSpan(), (Id)a1);
+           ty = NodeFactory.makeVarType(NodeUtil.getSpan(a1), (Id)a1);
        } else {
            log(span, a1 + " is not a valid dimension name.");
            Id id = NodeFactory.bogusId(span);
            dim = NodeFactory.makeDimDecl(span, id, Option.wrap(a2));
-           ty = NodeFactory.makeVarType(a1.getSpan(), id);
+           ty = NodeFactory.makeVarType(NodeUtil.getSpan(a1), id);
        }
        if ( a4 instanceof Id ) {
            ids.add((Id)a4);

@@ -36,6 +36,7 @@ import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.Depth;
 import com.sun.fortress.syntax_abstractions.environments.Depth.BaseDepth;
@@ -122,12 +123,12 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
                 }
                 public BaseType forListDepth(ListDepth depth) {
                     return NodeFactory.makeTraitType
-                        (NodeFactory.makeId(baseType.getSpan(), "List"),
+                        (NodeFactory.makeId(NodeUtil.getSpan(baseType), "List"),
                          NodeFactory.makeTypeArg(depth.getParent().accept(this)));
                 }
                 public BaseType forOptionDepth(OptionDepth depth) {
                     return NodeFactory.makeTraitType
-                        (NodeFactory.makeId(baseType.getSpan(), "Maybe"),
+                        (NodeFactory.makeId(NodeUtil.getSpan(baseType), "Maybe"),
                          NodeFactory.makeTypeArg(depth.getParent().accept(this)));
                 }
             });
@@ -272,7 +273,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
         String var = varbuffer.toString();
         if ( ! (src instanceof ASTNode) )
             bug(src, "Only AST nodes are supported.");
-        Id varId = NodeFactory.makeId(((ASTNode)src).getSpan(), var);
+        Id varId = NodeFactory.makeId(NodeUtil.getSpan((ASTNode)src), var);
         Option<BaseType> otype = tryLookupType(varId);
 
         // FIXME! Add back support for parameters.

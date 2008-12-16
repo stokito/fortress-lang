@@ -209,7 +209,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private FnDecl makeGetter(boolean inTrait, Id owner, Binding field) {
         Modifiers mods = field.getMods().remove(getterNonMods);
         Id name = field.getName();
-        Span span = field.getSpan();
+        Span span = NodeUtil.getSpan(field);
         Expr body;
         if ( boxedRefMap.isSome() ) {
             Map<Pair<Id,Id>,FieldRef> map = boxedRefMap.unwrap();
@@ -245,7 +245,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Modifiers.Settable.combine(Modifiers.Var.combine(Modifiers.Hidden.combine(Modifiers.Wrapped)));
 
     private FnDecl makeSetter(boolean inTrait, Id owner, Binding field) {
-        Span span = field.getSpan();
+        Span span = NodeUtil.getSpan(field);
         Type voidType = NodeFactory.makeVoidType(span);
         Option<Type> ty = field.getIdType();
         Modifiers mods = field.getMods().remove(setterNonMods);
@@ -260,12 +260,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
             Pair<Id,Id> keyPair = new Pair( owner, name );
             if ( map.containsKey( keyPair ) ) {
                 FieldRef fieldRef = map.get( keyPair );
-                FieldRef rewrite = ExprFactory.makeFieldRef(fieldRef, field.getSpan());
+                FieldRef rewrite = ExprFactory.makeFieldRef(fieldRef, NodeUtil.getSpan(field));
                 assert( rewrite.getObj() instanceof VarRef );
                 VarRef obj = (VarRef)rewrite.getObj();
                 obj = ExprFactory.makeVarRef(obj, NodeUtil.getExprType(obj),
                                              mangleName(obj.getVarId()));
-                assign = ExprFactory.makeMethodInvocation(rewrite.getSpan(), false,
+                assign = ExprFactory.makeMethodInvocation(NodeUtil.getSpan(rewrite), false,
                                                           Option.some(voidType), obj,
                                                           rewrite.getField(), rhs);
             } else {
@@ -358,7 +358,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                     // System.err.println(mangleName(lval.getName()));
                     newLVals.add(NodeFactory.makeLValue(lval, mangleName(lval.getName())));
                 }
-                return NodeFactory.makeVarDecl(that.getSpan(), newLVals, that.getInit());
+                return NodeFactory.makeVarDecl(NodeUtil.getSpan(that), newLVals, that.getInit());
             }
 
             /* Do not descend into object expressions. Instead, we mangle their
@@ -407,7 +407,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forAssignment(final Assignment that) {
-        final Span span = that.getSpan();
+        final Span span = NodeUtil.getSpan(that);
         List<Lhs> lhs = that.getLhs();
         int size = lhs.size();
         final Expr rhs_result = (Expr) that.getRhs().accept(this);
@@ -470,7 +470,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     public Node forFieldRefOnly(FieldRef that, ExprInfo info,
                                 Expr obj_result, Id field_result) {
         return ExprFactory.makeMethodInvocation(that, obj_result, field_result,
-                                                ExprFactory.makeVoidLiteralExpr(that.getSpan()));
+                                                ExprFactory.makeVoidLiteralExpr(NodeUtil.getSpan(that)));
     }
 
     @Override
@@ -512,7 +512,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
-        Span span = that.getSpan();
+        Span span = NodeUtil.getSpan(that);
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                                  NodeUtil.getExtendsClause(that),
                                                                  gettersAndDecls);
@@ -572,7 +572,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         Id unambiguousName_result = (Id) recur(that.getUnambiguousName());
         Option<Expr> body_result = recurOnOptionOfExpr(that.getBody());
         Option<Id> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
-        return  NodeFactory.makeFnDecl(that.getSpan(), removeGetterSetterMod(NodeUtil.getMods(that)),
+        return  NodeFactory.makeFnDecl(NodeUtil.getSpan(that), removeGetterSetterMod(NodeUtil.getMods(that)),
                                        name_result, staticParams_result, params_result,
                                        returnType_result, throwsClause_result,
                                        where_result, contract_result, unambiguousName_result,

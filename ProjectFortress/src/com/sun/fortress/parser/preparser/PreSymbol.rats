@@ -44,7 +44,7 @@ Op EncloserPair =
            yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount),
                                                a1.getText(), a2.getText());
        else
-           yyValue = syntaxError(a2.getSpan(), "Mismatched Enclosers.");
+           yyValue = syntaxError(NodeUtil.getSpan(a2), "Mismatched Enclosers.");
      };
 
 transient void bar = "|";

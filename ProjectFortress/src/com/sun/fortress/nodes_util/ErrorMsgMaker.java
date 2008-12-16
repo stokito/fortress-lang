@@ -62,11 +62,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTraitObjectDecl(TraitObjectDecl node) {
-        return node.getClass().getSimpleName() + " " + NodeUtil.getName(node) + " at " + node.getSpan().begin.at();
+        return node.getClass().getSimpleName() + " " + NodeUtil.getName(node) + " at " + NodeUtil.getSpan(node).begin.at();
     }
 
     public String forAbstractNode(AbstractNode node) {
-        return node.getClass().getSimpleName() + " at " + node.getSpan().begin.at();
+        return node.getClass().getSimpleName() + " at " + NodeUtil.getSpan(node).begin.at();
     }
 
     public String forArrowType(ArrowType node) {
@@ -307,9 +307,9 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forVarDecl(VarDecl node) {
         if (node.getInit().isSome())
-            return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().unwrap().accept(this) + node.getSpan();
+            return Useful.listInParens(mapSelf(node.getLhs())) + "=" + node.getInit().unwrap().accept(this) + NodeUtil.getSpan(node);
         else
-            return "abstract " + Useful.listInParens(mapSelf(node.getLhs())) + node.getSpan();
+            return "abstract " + Useful.listInParens(mapSelf(node.getLhs())) + NodeUtil.getSpan(node);
     }
 
     public String forAnyType(AnyType node) {

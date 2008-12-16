@@ -84,7 +84,7 @@ public class TypeAnalyzerUtil {
                 });
         }
         for (Id id : hiddenParams) {
-            typeSubs.put(id, NodeFactory.make_InferenceVarType(id.getSpan()));
+            typeSubs.put(id, NodeFactory.make_InferenceVarType(NodeUtil.getSpan(id)));
         }
 
         return new Lambda<Type, Type>() {
@@ -102,7 +102,7 @@ public class TypeAnalyzerUtil {
                     /** Handle arguments to opr parameters */
                     @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OpArg(n.getSpan(), ExprFactory.makeOpRef(opSubs.get(n.getName())));
+                            return new OpArg(NodeUtil.getSpan(n), ExprFactory.makeOpRef(opSubs.get(n.getName())));
                         }
                         else { return n; }
                     }

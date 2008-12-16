@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.UnparsedTransformer;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.IdentifierUtil;
 import com.sun.fortress.useful.HasAt;
@@ -127,7 +128,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
 
     private SyntaxSymbol nameResolution(ItemSymbol item) {
         if (IdentifierUtil.validId(item.getItem())) {
-            Id name = makeId(item.getSpan(), item.getItem());
+            Id name = makeId(NodeUtil.getSpan(item), item.getItem());
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
             Option<Id> oname =
                 nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
@@ -144,15 +145,15 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     }
 
     private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
-        return new NonterminalSymbol(that.getSpan(), name);
+        return new NonterminalSymbol(NodeUtil.getSpan(that), name);
     }
 
     private KeywordSymbol makeKeywordSymbol(ItemSymbol that) {
-        return new KeywordSymbol(that.getSpan(), that.getItem());
+        return new KeywordSymbol(NodeUtil.getSpan(that), that.getItem());
     }
 
     private TokenSymbol makeTokenSymbol(ItemSymbol that) {
-        return new TokenSymbol(that.getSpan(), that.getItem());
+        return new TokenSymbol(NodeUtil.getSpan(that), that.getItem());
     }
 
     private static Id makeId(Span span, String item) {

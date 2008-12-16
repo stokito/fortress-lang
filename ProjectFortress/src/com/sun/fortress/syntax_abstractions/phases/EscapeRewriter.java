@@ -34,6 +34,7 @@ import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.parser_util.SyntaxUtil;
 
@@ -74,7 +75,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forAnyCharacterSymbol(AnyCharacterSymbol that) {
-        return new AnyCharacterSymbol(that.getSpan());
+        return new AnyCharacterSymbol(NodeUtil.getSpan(that));
     }
 
     @Override
@@ -88,8 +89,8 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
                     String begin = removeLeadingEscape(that.getBeginSymbol(), head);
                     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
-                    String end = removeTrailingEscape(that.getSpan(), that.getEndSymbol(), tail);
-                    head.add(new CharacterInterval(that.getSpan(), begin, end));
+                    String end = removeTrailingEscape(NodeUtil.getSpan(that), that.getEndSymbol(), tail);
+                    head.add(new CharacterInterval(NodeUtil.getSpan(that), begin, end));
                     head.addAll(tail);
                     return head;
                 }
@@ -98,26 +99,26 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                 public List<CharacterSymbol> forCharSymbol(CharSymbol that) {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
                     String s = removeLeadingEscape(that.getString(), head);
-                    head.add(new CharSymbol(that.getSpan(), s));
+                    head.add(new CharSymbol(NodeUtil.getSpan(that), s));
                     return head;
                 }
 
             });
             ls.addAll(ncs);
         }
-        return new CharacterClassSymbol(that.getSpan(), ls);
+        return new CharacterClassSymbol(NodeUtil.getSpan(that), ls);
     }
 
     @Override
     public Node forKeywordSymbol(KeywordSymbol that) {
         String s = removeEscape(that.getToken());
-        return new KeywordSymbol(that.getSpan(), s);
+        return new KeywordSymbol(NodeUtil.getSpan(that), s);
     }
 
     @Override
     public Node forTokenSymbol(TokenSymbol that) {
         String s = removeEscape(that.getToken());
-        return new TokenSymbol(that.getSpan(), s);
+        return new TokenSymbol(NodeUtil.getSpan(that), s);
     }
 
     @Override
@@ -126,7 +127,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                                       SyntaxSymbol result_symbol) {
         String s = removeEscape(result_id.getText());
         // TODO is span correct below?
-        return new PrefixedSymbol(that.getSpan(), NodeFactory.makeId(result_id.getSpan(), s), result_symbol);
+        return new PrefixedSymbol(NodeUtil.getSpan(that), NodeFactory.makeId(NodeUtil.getSpan(result_id), s), result_symbol);
     }
 
     private String removeEscape(String s) {

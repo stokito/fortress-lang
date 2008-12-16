@@ -105,7 +105,7 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
                     else
                         new_type = type_result;
 
-                    return NodeFactory.makeParam(that.getSpan(),
+                    return NodeFactory.makeParam(NodeUtil.getSpan(that),
                                                  that.getMods(),
                                                  that.getName(),
                                                  new_type,

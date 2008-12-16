@@ -169,7 +169,7 @@ FnHeaderFront OpHeaderFront =
            }
            name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(leftOp.getSpan(),
+           name = syntaxError(NodeUtil.getSpan(leftOp),
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
@@ -196,7 +196,7 @@ FnHeaderFront OpHeaderFront =
      { Span span = createSpan(yyStart,yyCount);
        Op op = (Op)a1;
        if (big != null)
-           op = NodeFactory.makeOpBig(op.getSpan(), "BIG " + op.getText());
+           op = NodeFactory.makeOpBig(NodeUtil.getSpan(op), "BIG " + op.getText());
        else if (op.getText().equals("BIG +") ||
                 op.getText().equals("BIG juxtaposition")) {
            op = op;
@@ -209,7 +209,7 @@ FnHeaderFront OpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = syntaxError(op.getSpan(),
+           op = syntaxError(NodeUtil.getSpan(op),
                             "Operator fixity is invalid in its declaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
@@ -243,7 +243,7 @@ FnHeaderFront AbsOpHeaderFront =
            }
            name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(leftOp.getSpan(),
+           name = syntaxError(NodeUtil.getSpan(leftOp),
                               "Mismatched enclosing operator definition: " +
                               left + " and " + right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
@@ -270,7 +270,7 @@ FnHeaderFront AbsOpHeaderFront =
      { Span span = createSpan(yyStart,yyCount);
        Op op = (Op)a1;
        if (big != null)
-           op = NodeFactory.makeOpBig(op.getSpan(), "BIG " + op.getText());
+           op = NodeFactory.makeOpBig(NodeUtil.getSpan(op), "BIG " + op.getText());
        else if (op.getText().equals("BIG +") ||
                 op.getText().equals("BIG juxtaposition")) {
            op = op;
@@ -283,7 +283,7 @@ FnHeaderFront AbsOpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = syntaxError(op.getSpan(),
+           op = syntaxError(NodeUtil.getSpan(op),
                             "Operator fixity is invalid in its declaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);

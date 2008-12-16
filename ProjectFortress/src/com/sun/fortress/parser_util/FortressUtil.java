@@ -163,7 +163,7 @@ public final class FortressUtil {
             List<Param> params = optParams.unwrap();
             for ( Param param : params ) {
                 if (param.getMods().isWrapped()) {
-                    syntaxError(param.getSpan(),
+                    syntaxError(NodeUtil.getSpan(param),
                                 "The modifier \"wrapped\" cannot " +
                                 "appear in an API.");
                 }
@@ -202,7 +202,7 @@ public final class FortressUtil {
         name.accept(new NodeDepthFirstVisitor_void(){
             public void forIdOnly(Id id){
                 if (id.getText().equals("outcome"))
-                    syntaxError(id.getSpan(),
+                    syntaxError(NodeUtil.getSpan(id),
                                 "Invalid variable name: 'outcome' is a reserved word.");
             }
 
@@ -269,7 +269,7 @@ public final class FortressUtil {
     public static void allHaveTypes(List<LValue> vars) {
         for (LValue l : vars) {
             if (l.getIdType().isNone())
-                syntaxError(l.getSpan(),
+                syntaxError(NodeUtil.getSpan(l),
                             "Mutable variables should be declared with their types.");
         }
     }
@@ -377,7 +377,7 @@ public final class FortressUtil {
                                        Option<Type> ty, boolean mutable) {
         List<LValue> lvs = new ArrayList<LValue>();
         for (Id id : ids) {
-            lvs.add(NodeFactory.makeLValue(id.getSpan(), id, mods, ty, mutable));
+            lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id), id, mods, ty, mutable));
         }
         return lvs;
     }
@@ -405,7 +405,7 @@ public final class FortressUtil {
         List<LValue> lvs = new ArrayList<LValue>();
         int ind = 0;
         for (Id id : ids) {
-            lvs.add(NodeFactory.makeLValue(id.getSpan(), id, mods,
+            lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id), id, mods,
                                            Option.<Type>some(tys.get(ind)),
                                            mutable));
             ind += 1;
@@ -524,7 +524,7 @@ public final class FortressUtil {
                 elems.add(elem);
                 return ExprFactory.makeArrayElements(span, dim, elems);
             } else if (elements.size() == 0) {
-                return syntaxError(multi.getSpan(),
+                return syntaxError(NodeUtil.getSpan(multi),
                                    "Empty array/matrix literal.");
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
@@ -533,7 +533,7 @@ public final class FortressUtil {
                 return ExprFactory.makeArrayElements(span, _dim, elements);
             }
         } else {
-            return syntaxError(multi.getSpan(),
+            return syntaxError(NodeUtil.getSpan(multi),
                                "ArrayElement or ArrayElements is expected.");
         }
     }
@@ -628,7 +628,7 @@ public final class FortressUtil {
 //   join one.node_span two.node_span
 
     public static Span spanTwo(ASTNode s1, ASTNode s2) {
-        return new Span(s1.getSpan().getBegin(), s2.getSpan().getEnd());
+        return new Span(NodeUtil.getSpan(s1).getBegin(), NodeUtil.getSpan(s2).getEnd());
     }
 
     public static Span spanTwo(Span s1, Span s2) {
@@ -642,24 +642,24 @@ public final class FortressUtil {
     public static Span spanAll(Object[] nodes, int size) {
         if (size == 0) return new Span();
         else { // size != 0
-            return new Span(((ASTNode)Array.get(nodes,0)).getSpan().getBegin(),
-                            ((ASTNode)Array.get(nodes,size-1)).getSpan().getEnd());
+            return new Span(NodeUtil.getSpan((ASTNode)Array.get(nodes,0)).getBegin(),
+                            NodeUtil.getSpan((ASTNode)Array.get(nodes,size-1)).getEnd());
         }
     }
 
     public static Span spanAll(Iterable<? extends ASTNode> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(); }
         else {
-            return new Span(IterUtil.first(nodes).getSpan().getBegin(),
-                            IterUtil.last(nodes).getSpan().getEnd());
+            return new Span(NodeUtil.getSpan(IterUtil.first(nodes)).getBegin(),
+                            NodeUtil.getSpan(IterUtil.last(nodes)).getEnd());
         }
     }
 
     public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends ASTNode> nodes) {
         if (IterUtil.isEmpty(nodes)) { return new Span(defaultLoc, defaultLoc); }
         else {
-            return new Span(IterUtil.first(nodes).getSpan().getBegin(),
-                            IterUtil.last(nodes).getSpan().getEnd());
+            return new Span(NodeUtil.getSpan(IterUtil.first(nodes)).getBegin(),
+                            NodeUtil.getSpan(IterUtil.last(nodes)).getEnd());
         }
     }
 
@@ -694,11 +694,11 @@ public final class FortressUtil {
                     _e = ExprFactory.makeLetExpr(_e, es);
                     es = mkList((Expr)_e);
                 } else {
-                    syntaxError(e.getSpan(), "Misparsed variable introduction!");
+                    syntaxError(NodeUtil.getSpan(e), "Misparsed variable introduction!");
                 }
             } else {
                 if (isEquality(e) && !NodeUtil.isParenthesized(e))
-                    syntaxError(e.getSpan(),
+                    syntaxError(NodeUtil.getSpan(e),
                                 "Equality testing expressions should be parenthesized.");
                 else es.add(0, e);
             }

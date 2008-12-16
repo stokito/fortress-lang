@@ -39,7 +39,7 @@ public CompilationUnit File =
        String cuname = yyValue.getName().toString();
        if (!Shell.checkCompilationUnitName(filename,
                                            cuname))
-           yyValue = syntaxError(yyValue.getName().getSpan(),
+           yyValue = syntaxError(NodeUtil.getSpan(yyValue.getName()),
                                  "    Component/API names must match their enclosing file names." +
                                  "\n    File name: " + filename +
                                  "\n    Component name: " + cuname);

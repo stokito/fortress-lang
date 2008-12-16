@@ -131,11 +131,11 @@ public final class FreeNameCollection {
             if( spOp.isNone() ) { // it's not a static param
                 newFreeVarRefs.add(var);
             } else if( NodeUtil.isBoolParam(spOp.unwrap()) ) {
-                this.add( NodeFactory.makeBoolRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeBoolRef(NodeUtil.getSpan(var), var.getVarId()) );
             } else if( NodeUtil.isIntParam(spOp.unwrap()) ) {
-                this.add( NodeFactory.makeIntRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeIntRef(NodeUtil.getSpan(var), var.getVarId()) );
             } else if( NodeUtil.isNatParam(spOp.unwrap()) ) {
-                this.add( NodeFactory.makeIntRef(var.getSpan(), var.getVarId()) );
+                this.add( NodeFactory.makeIntRef(NodeUtil.getSpan(var), var.getVarId()) );
             } else {
                 throw new DesugarerError( "Unexpected Static Param type " +
                     "found: " + spOp.unwrap() );

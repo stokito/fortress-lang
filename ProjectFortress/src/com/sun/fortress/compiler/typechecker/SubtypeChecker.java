@@ -94,7 +94,7 @@ public abstract class SubtypeChecker {
     public static Type normalize(Type t) {
         if (isArray(t)) {
             ArrayType tt = (ArrayType)t;
-            Span span = tt.getSpan();
+            Span span = NodeUtil.getSpan(tt);
             TypeArg elem = NodeFactory.makeTypeArg(tt.getElemType());
             IntArg zero = NodeFactory.makeIntArgVal("0");
             List<ExtentRange> dims = tt.getIndices().getExtents();
@@ -178,7 +178,7 @@ public abstract class SubtypeChecker {
                 // Or first.getBase() == second.getBase() == 0
                 if (first.getBase().isNone() && second.getBase().isNone() &&
                     first.getSize().isSome() && second.getSize().isSome()) {
-                    Span span = tt.getSpan();
+                    Span span = NodeUtil.getSpan(tt);
                     Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Matrix");
                     return NodeFactory.makeTraitType(span, false, name,
                                                      NodeFactory.makeTypeArg(tt.getElemType()),
@@ -273,7 +273,7 @@ public abstract class SubtypeChecker {
                     /** Handle arguments to opr parameters */
                     @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OpArg(n.getSpan(),ExprFactory.makeOpRef(opSubs.get(n.getName())));
+                            return new OpArg(NodeUtil.getSpan(n),ExprFactory.makeOpRef(opSubs.get(n.getName())));
                         }
                         else { return n; }
                     }

@@ -231,8 +231,8 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
         TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(that);
         if( objExprTypeEnv == null ) {
-            new DesugarerError( that.getSpan(), "The typeEnv associated " +
-                "with node " + that + " at span " + that.getSpan() +
+            new DesugarerError( NodeUtil.getSpan(that), "The typeEnv associated " +
+                "with node " + that + " at span " + NodeUtil.getSpan(that) +
                 " is null!" );
         }
 
@@ -240,9 +240,9 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             (enclosingObjectDecl.isSome() || enclosingTraitDecl.isSome()) ) {
             // use the "self" id to get the right type of the
             // enclosing object / trait decl
-            Span s = (enclosingObjectDecl.isSome() ?
-                          enclosingObjectDecl :
-                          enclosingTraitDecl).unwrap().getSpan();
+            Span s = NodeUtil.getSpan((enclosingObjectDecl.isSome() ?
+                                       enclosingObjectDecl :
+                                       enclosingTraitDecl).unwrap());
             Option<Type> type = objExprTypeEnv.type( NodeFactory.makeId(s, "self") );
             freeNames.setEnclosingSelfType(type);
         }
@@ -257,7 +257,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             filterFreeMutableVarRefs( that, freeNames.getFreeVarRefs() );
         freeNames.setFreeMutableVarRefs(mutableVars);
 
-        objExprToFreeNames.put( that.getSpan(), freeNames.makeCopy() );
+        objExprToFreeNames.put( NodeUtil.getSpan(that), freeNames.makeCopy() );
 
         // Update the declsToVarRefs list
         if(mutableVars != null) {
@@ -265,7 +265,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             	Option<Node> declNodeOp =
                     objExprTypeEnv.declarationSite( var.getVarId() );
         		if(declNodeOp.isNone()) {
-        		    throw new DesugarerError( var.getSpan(),
+        		    throw new DesugarerError( NodeUtil.getSpan(var),
                                 "Decl node for " + var + " is null!" );
                 }
 
@@ -284,7 +284,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
                 } else if( declNode instanceof Param ||
                            declNode instanceof LValue ) {
                     if( enclosingObjectDecl.isNone() ) {
-    		            throw new DesugarerError( var.getSpan(),
+    		            throw new DesugarerError( NodeUtil.getSpan(var),
                             "Unexpected decl node for " + var + "; " +
                             "Decl node is: " + declNode +
                             ", and no enclosing object decl found." );
@@ -292,7 +292,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
                         declSite = enclosingObjectDecl.unwrap();
                     }
                 } else {
-    		        throw new DesugarerError( var.getSpan(),
+    		        throw new DesugarerError( NodeUtil.getSpan(var),
                             "Unexpected type for decl node of " + var +
                             "; Decl node is: " + declNode );
                 }
@@ -356,7 +356,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
             // this label _is_ captured
             target = innerMostLabel.getName();  */
-            throw new DesugarerError( that.getSpan(),
+            throw new DesugarerError( NodeUtil.getSpan(that),
                         "Exit target label is not disambiguated!" );
         }
 
@@ -632,17 +632,17 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         } else if(enclosingObjectDecl.isSome()) {
             enclosingId = enclosingObjectDecl.unwrap().getName();
         } else {
-            throw new DesugarerError( that.getSpan(), "VarType " +
+            throw new DesugarerError( NodeUtil.getSpan(that), "VarType " +
                     that + " found outside of Trait/ObjectDecl!" );
         }
 
         Pair<Id,Id> key = new Pair<Id,Id>( enclosingId, typeName );
         Option<StaticParam> spOp = objExprTypeEnv.staticParam(typeName);
         if( spOp.isNone() ) {
-            throw new DesugarerError( that.getSpan(), "Cannot find the "
+            throw new DesugarerError( NodeUtil.getSpan(that), "Cannot find the "
                         + "decl site (StaticParam) of VarType " + that );
         } else if( (spOp.unwrap() instanceof TypeParam) == false ) {
-            throw new DesugarerError( that.getSpan(), "Unexpected type "
+            throw new DesugarerError( NodeUtil.getSpan(that), "Unexpected type "
                      + "for decl site of VarType " + that + " found!  "
                      + "Expected: TypeParam; found: " + spOp.unwrap() );
         } else {
@@ -659,7 +659,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         if(declSite instanceof ObjectDecl) {
             ObjectDecl cast = (ObjectDecl) declSite;
             String name = "ObjectDecl_" + NodeUtil.getName(cast).getText();
-            return new Pair<String,Span>( name, cast.getSpan() );
+            return new Pair<String,Span>( name, NodeUtil.getSpan(cast) );
         } else if(declSite instanceof LocalVarDecl) {
             LocalVarDecl cast = (LocalVarDecl) declSite;
             String name = "LocalVarDecl";
@@ -667,7 +667,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             for(LValue lvalue : lhs) {
                 name += ( "_" + lvalue.getName().getText() );
             }
-            return new Pair<String,Span>( name, cast.getSpan() );
+            return new Pair<String,Span>( name, NodeUtil.getSpan(cast) );
         } else {
             throw new DesugarerError("Unexpected node type to " +
                                      "genKeyForDeclSite: " + declSite);
@@ -684,10 +684,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         }
 
         if(enclosingTraitDecl.isSome()) {
-            declSpan = enclosingTraitDecl.unwrap().getSpan();
+            declSpan = NodeUtil.getSpan(enclosingTraitDecl.unwrap());
             declId = NodeUtil.getName(enclosingTraitDecl.unwrap());
         } else if(enclosingObjectDecl.isSome()) {
-            declSpan = enclosingObjectDecl.unwrap().getSpan();
+            declSpan = NodeUtil.getSpan(enclosingObjectDecl.unwrap());
             declId = NodeUtil.getName(enclosingObjectDecl.unwrap());
         }
         traitIndex = getTraitIndexForName(declId, declSpan);
@@ -697,7 +697,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 	private boolean isDeclaredInObjExpr(IdOrOp name) {
         ObjectExpr innerMostObjExpr = objExprStack.peek();
-        Span objExprSpan = innerMostObjExpr.getSpan();
+        Span objExprSpan = NodeUtil.getSpan(innerMostObjExpr);
 		TypeEnv objExprTypeEnv = typeCheckerOutput.getTypeEnv(innerMostObjExpr);
 
         if(objExprTypeEnv == null) {
@@ -854,7 +854,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         } else {
             TraitIndex superTraitIndex;
             for(Id superType : extendedTypeNames) {
-                superTraitIndex = getTraitIndexForName(superType, name.getSpan());
+                superTraitIndex = getTraitIndexForName(superType, NodeUtil.getSpan(name));
                 if( superTraitIndex.getters().containsKey(name) ||
                     superTraitIndex.dottedMethods().containsFirst(name) ||
                     superTraitIndex.functionalMethods().containsFirst(name) ) {
@@ -878,7 +878,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
 
 		if(typeEnv == null) {
 		    throw new DesugarerError("TypeEnv associated with" +
-                    " object expression at span " + objExpr.getSpan() +
+                    " object expression at span " + NodeUtil.getSpan(objExpr) +
                     " is not found.");
 		}
 
@@ -924,7 +924,7 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             if( (root instanceof TraitDecl == false) &&
                 (root instanceof ObjectDecl == false) &&
                 (root instanceof ObjectExpr == false) ) {
-                throw new DesugarerError(((ASTNode)root).getSpan(),
+                throw new DesugarerError(NodeUtil.getSpan((ASTNode)root),
                     "DecledNamesCollector does not accept node of type " +
                     root.getClass() + " as root.");
             }
@@ -977,10 +977,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
         public void forTraitTypeWhere(TraitTypeWhere that) {
             BaseType baseType = that.getBaseType();
             if( (baseType instanceof NamedType) == false ) {
-                throw new DesugarerError(that.getSpan(),
+                throw new DesugarerError(NodeUtil.getSpan(that),
                         "Unexpected type found for TraitTypeWhere " + that +
                         " when parsing extends clauses for object expr at " +
-                        root.getSpan() );
+                        NodeUtil.getSpan(root) );
             }
             Id typeName = ((NamedType) baseType).getName();
             extendedTypeNames.add(typeName);
@@ -1002,10 +1002,10 @@ public final class FreeNameCollector extends NodeDepthFirstVisitor_void {
             if(name instanceof Id) {
                 decledNames.add((Id) name);
             } else {
-                throw new DesugarerError(that.getSpan(), "Unexpected type " +
+                throw new DesugarerError(NodeUtil.getSpan(that), "Unexpected type " +
                         "for FnDecl name " + NodeUtil.getName(that) + " when " +
                         "when parsing decls for object expr at " +
-                        root.getSpan() );
+                        NodeUtil.getSpan(root) );
             }
         }
 

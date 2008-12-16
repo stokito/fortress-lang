@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpRef;
 import com.sun.fortress.nodes.FunctionalRef;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.parser_util.FortressUtil;
@@ -159,12 +160,12 @@ public class Resolver {
                     Cons<PostfixOpExpr> _rest = (Cons<PostfixOpExpr>)rest;
                     Op op = ((Postfix)(_rest.getFirst())).getOp();
                     PureList<PostfixOpExpr> restRest = _rest.getRest();
-                    Expr expr = ASTUtil.postfix(_first.getSpan(), _first, op);
+                    Expr expr = ASTUtil.postfix(NodeUtil.getSpan(_first), _first, op);
 
                     return resolvePostfix(restRest.cons(new RealExpr(expr)));
                 }
             else if (first instanceof Postfix) {
-                throw new ReadError(((Postfix)first).getOp().getSpan(),
+                throw new ReadError(NodeUtil.getSpan(((Postfix)first).getOp()),
                                     "Postfix operator %s without argument.");
             }
             else { // first instanceof PrefixOpExpr
@@ -238,7 +239,7 @@ public class Resolver {
       }
       if (first instanceof TightInfix &&
           isDiv(((TightInfix)first).getOp())) {
-        throw new ReadError(((TightInfix)first).getOp().getSpan(),
+        throw new ReadError(NodeUtil.getSpan(((TightInfix)first).getOp()),
                             "Misuse of " + ((TightInfix)first).getOp().getText()
                             + ".");
       }
@@ -284,12 +285,12 @@ public class Resolver {
               if (first instanceof LoosePrefix &&
                   third instanceof TightInfix) {
                   Op _op = ((TightInfix)third).getOp();
-                  throw new ReadError(op.getSpan(), "Loose prefix operator " +
+                  throw new ReadError(NodeUtil.getSpan(op), "Loose prefix operator " +
                                       op.toString() + " near tight operator " +
                                       _op.toString() + ".");
               } else if (first instanceof TightPrefix &&
                          third instanceof RealExpr && !noSpace) {
-                  throw new ReadError(op.getSpan(),
+                  throw new ReadError(NodeUtil.getSpan(op),
                                       "Prefix operator " + op.toString() +
                                       " near loose juxtaposition.");
               }
@@ -299,7 +300,7 @@ public class Resolver {
                                               e)));
         } else {
           Op op = ((Prefix)first).getOp();
-          throw new ReadError(op.getSpan(),
+          throw new ReadError(NodeUtil.getSpan(op),
                               "Prefix operator " + op.toString() +
                               " without argument.");
         }
@@ -499,14 +500,14 @@ public class Resolver {
       InfixOpExpr first = ((Cons<InfixOpExpr>)opExprs).getFirst();
       if (first instanceof JuxtInfix) {
         Op op = ((JuxtInfix)first).getOp();
-        throw new ReadError(op.getSpan(),
+        throw new ReadError(NodeUtil.getSpan(op),
                             "Interpreted " + op.getText() +
                             " with no left operand as infix.");
       }
       else { // first instanceof RealExpr
         PureList<InfixOpExpr> rest = ((Cons<InfixOpExpr>)opExprs).getRest();
         if (rest.isEmpty()) {
-            throw new ReadError(((RealExpr)first).getExpr().getSpan(),
+            throw new ReadError(NodeUtil.getSpan(((RealExpr)first).getExpr()),
                                 "Nonexhaustive pattern matching.");
         }
         else { // !rest.isEmpty()
@@ -522,7 +523,7 @@ public class Resolver {
           }
           else { // second instanceof JuxtInfix
             Op op = ((JuxtInfix)second).getOp();
-            throw new ReadError(op.getSpan(),
+            throw new ReadError(NodeUtil.getSpan(op),
                                 "Interpreted " + op.getText() +
                                 " with no right operand as infix.");
           }
@@ -597,7 +598,7 @@ public class Resolver {
       return ASTUtil.chain(span, first, buildLinks(op, rest, last).toJavaList());
     }
     else { // links.isEmpty()
-      throw new ReadError(last.getSpan(), "Empty chain expression.");
+      throw new ReadError(NodeUtil.getSpan(last), "Empty chain expression.");
     }
   }
 
@@ -611,12 +612,12 @@ public class Resolver {
   {
       FunctionalRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
-        return PureList.<Link>make(new Link(new Span(_first.getSpan(), last.getSpan()),_first,last));
+        return PureList.<Link>make(new Link(new Span(NodeUtil.getSpan(_first), NodeUtil.getSpan(last)),_first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Link l = new Link(new Span(_first.getSpan(),link.getA().getSpan()),_first, link.getA());
+      Link l = new Link(new Span(NodeUtil.getSpan(_first),NodeUtil.getSpan(link.getA())),_first, link.getA());
       Op op = NodeFactory.makeOpInfix(link.getB());
       return (buildLinks(op, _links.getRest(), last)).cons(l);
     }
@@ -722,7 +723,7 @@ public class Resolver {
         Op _op;
 
         if (links.isEmpty()) {
-          throw new ReadError(op.getSpan(), "Empty chain expression.");
+          throw new ReadError(NodeUtil.getSpan(op), "Empty chain expression.");
         }
         else {
           _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -735,7 +736,7 @@ public class Resolver {
           return looseInfixStack(finishInfixFrame(e,frame),op,rest);
         }
         else if (prec instanceof Equal) {
-          throw new ReadError(op.getSpan(),
+          throw new ReadError(NodeUtil.getSpan(op),
                               "Chaining operator " + op.getText() +
                               " not parsed as such.");
         }
@@ -749,7 +750,7 @@ public class Resolver {
       else { // frame instanceof TightChain
         PureList<ExprOpPair> links = ((TightChain)frame).getLinks();
         if (links.isEmpty()) {
-          throw new ReadError(op.getSpan(), "Empty chain expression.");
+          throw new ReadError(NodeUtil.getSpan(op), "Empty chain expression.");
         }
         else {
           Op _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -867,7 +868,7 @@ public class Resolver {
         Op _op;
 
         if (links.isEmpty()) {
-          throw new ReadError(op.getSpan(), "Empty chain expression.");
+          throw new ReadError(NodeUtil.getSpan(op), "Empty chain expression.");
         }
         else {
           _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -881,7 +882,7 @@ public class Resolver {
           return tightInfixStack(finishInfixFrame(e,frame),op,rest);
         }
         else if (prec instanceof Equal) {
-          throw new ReadError(op.getSpan(),
+          throw new ReadError(NodeUtil.getSpan(op),
                               "Chaining operator " + op.getText() +
                               " not parsed as such.");
         }
@@ -895,7 +896,7 @@ public class Resolver {
       else { // frame instanceof LooseChain
         PureList<ExprOpPair> links = ((LooseChain)frame).getLinks();
         if (links.isEmpty()) {
-          throw new ReadError(op.getSpan(), "Empty chain expression.");
+          throw new ReadError(NodeUtil.getSpan(op), "Empty chain expression.");
         }
         else {
           Op _op = ((Cons<ExprOpPair>)links).getFirst().getB();
@@ -977,7 +978,7 @@ public class Resolver {
                               (PureList.make(new ExprOpPair(e,op))));
         }
         else if (prec instanceof Equal) {
-          throw new ReadError(_op.getSpan(),
+          throw new ReadError(NodeUtil.getSpan(_op),
                               "Chaining operator " + _op.getText() +
                               " not parsed as such.");
         }
@@ -987,7 +988,7 @@ public class Resolver {
                               " and " + op.getText() + ".");
         }
       } else if (frame instanceof TightChain) {
-        throw new ReadError(op.getSpan(),
+        throw new ReadError(NodeUtil.getSpan(op),
                             "Chaining with inconsistent spacing: TightChain in LooseChainStack");
       }
       else { // frame instanceof LooseChain
@@ -1061,7 +1062,7 @@ public class Resolver {
                               (PureList.make(new ExprOpPair(e,op))));
         }
         else if (prec instanceof Equal) {
-          throw new ReadError(_op.getSpan(),
+          throw new ReadError(NodeUtil.getSpan(_op),
                               "Chaining operator " + _op.getText() +
                               " not parsed as such.");
         }
@@ -1072,7 +1073,7 @@ public class Resolver {
         }
       }
       else if (frame instanceof LooseChain) {
-        throw new ReadError(op.getSpan(),
+        throw new ReadError(NodeUtil.getSpan(op),
                             "Chaining with inconsistent spacing:LooseChain in TightChainStack");
       }
       else { // frame instanceof TightChain
@@ -1148,7 +1149,7 @@ public class Resolver {
 
     else { // stack instanceof Layer
       Op op = ((Layer) stack).getOp();
-      throw new ReadError(op.getSpan(), "Left encloser " + op.getText() +
+      throw new ReadError(NodeUtil.getSpan(op), "Left encloser " + op.getText() +
                                         " without right encloser.");
     }
   }
@@ -1180,7 +1181,7 @@ public class Resolver {
       return resolveOpsEnclosing(opExprs.cons(expr), layer.getNext());
     }
     else {
-      throw new ReadError(op.getSpan(),
+      throw new ReadError(NodeUtil.getSpan(op),
                           "Right encloser without left encloser.");
     }
   }
