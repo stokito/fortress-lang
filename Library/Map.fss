@@ -321,7 +321,7 @@ object NodeMap[\Key,Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,
                 else => notDone := false
             end
         end
-        Just[\Key,Val\](t.getPair())
+        Just[\(Key,Val)\](t.getPair())
       end
     extractMinimum():Just[\(Key,Val,Map[\Key,Val\])\] =
         if (k,v,delmin) <- left.extractMinimum() then
