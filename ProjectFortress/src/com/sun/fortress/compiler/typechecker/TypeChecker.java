@@ -921,7 +921,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			result_type = Option.some(app_result.unwrap().first());
 		}
 		else {
-			String err = "Applicable overloading of function " + that.getFunction() + " could not be found for argument type " + argument_result.type(); // error message needs work
+			String err = "Applicable overloading of function " + that.getFunction() + 
+                            " could not be found for argument type " + argument_result.type(); // error message needs work
 			result = new TypeCheckerResult(that, TypeError.make(err, that));
 			result_type = Option.none();
 		}
@@ -1543,7 +1544,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			@Override public TypeCheckerResult forOpRef(OpRef that) {
                             if ( isPostInference(that) ) {
                                 Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
-                                return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()), args_type, that, that.getOriginalName());
+                                return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()), 
+                                                                      args_type, that, that.getOriginalName());
                             }
 
                             TypeCheckerResult op_result = TypeChecker.this.recur(that);
@@ -1553,7 +1555,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(arg_type, rhs_type), downwardConstraint);
 
                             if( app_result.isNone() ) {
-                                String err = "No overloading of " + that.getOriginalName() + " can be found that applies to types " + arg_type + " and " + rhs_type + ".";
+                                String err = "No overloading of " + that.getOriginalName() + " can be found that applies to types " + 
+                                    arg_type + " and " + rhs_type + ".";
                                 return new TypeCheckerResult(that, TypeError.make(err, that));
                             }
                             else {
@@ -3754,7 +3757,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			new_node = (OpExpr)temp1.second();
 			Pair<Boolean,Node> temp2 = TypesUtil.closeConstraints(applicationType, subtypeChecker, result);
 			applicationType = (Type)temp2.second();
-			if(!temp1.first() || !temp2.first()){
+			if(!temp1.first() || !temp2.first()) {
 				String err = "Call to operator " + that.getOp() + " has invalid arguments, " + argTypes;
 				successful = new TypeCheckerResult(that, TypeError.make(err,that));
 			}
@@ -3775,7 +3778,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return TypeCheckerResult.compose(that, subtypeChecker, ops_result);
 		}
 
-		List<Type> overloaded_types = CollectUtil.makeList(IterUtil.map(ops_result, new Lambda<TypeCheckerResult, Type>(){
+		List<Type> overloaded_types = CollectUtil.makeList(IterUtil.map(ops_result, new Lambda<TypeCheckerResult, Type>() {
 			public Type value(TypeCheckerResult arg0) { return arg0.type().unwrap(); }
 		}));
 
@@ -3783,7 +3786,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		Option<Type> type;
 		ConstraintFormula constraints=ConstraintFormula.TRUE;
 
-		// If no static args are given, but overloadings require them, we'll create a
+		// If no static args are given, but overloadings require them, we'll create an,
 		// OpRef with the overloading field set.
 		if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
 			List<FunctionalRef> overloadings = new ArrayList<FunctionalRef>();

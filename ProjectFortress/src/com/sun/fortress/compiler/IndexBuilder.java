@@ -285,7 +285,7 @@ public class IndexBuilder {
             }
             @Override public void forFnDecl(FnDecl d) {
                 buildMethod(d, name, getters, setters, coercions, dottedMethods,
-                        functionalMethods, functions);
+                            functionalMethods, functions);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();

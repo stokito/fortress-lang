@@ -464,7 +464,7 @@ maintain proper indentation.
   </target>
 
   <target name="compile" depends="compileCommon, makeAST, parser, operatorsGen"
-          description="Compile all Fortress code.">
+          description="Compile all Fortress code written in Java (Scala code is ignored).">
     <depend srcdir="${src}"
             destdir="${build}"
             closure="yes"
@@ -485,6 +485,11 @@ maintain proper indentation.
       <exclude name="${usefulPackage}/*.java"/>
       <exclude name="${unicodePackage}/*.java"/>
     </javac>
+  </target>
+
+  <target name="compileAll" depends="compile"
+          description="Compile all Fortress code.">
+    <property name="scala.not.cleaned" value="false"/>
     <scalac
         srcdir="${src}"
         destdir="${build}"
@@ -498,13 +503,6 @@ maintain proper indentation.
     <javac destdir="${build}" srcdir="${src}/com/sun/fortress/numerics">
       <classpath refid="compile.classpath"/>
     </javac>
-    <scalac
-        srcdir="${src}/com/sun/fortress/numerics"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="**/*.scala"/>
-    </scalac>
 
     <java failonerror="true"
           classname="com.sun.fortress.numerics.CheckBlasEnvironment">
@@ -619,15 +617,6 @@ maintain proper indentation.
       <exclude name="${usefulPackage}/*.java"/>
       <exclude name="${unicodePackage}/*.java"/>
     </javac>
-    <scalac
-        srcdir="${src}"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="**/*.scala"/>
-      <exclude name="${usefulPackage}/*.scala"/>
-      <exclude name="${unicodePackage}/*.scala"/>
-    </scalac>
   </target>
 
   <target name="compileCommon" depends="init"
@@ -649,14 +638,6 @@ maintain proper indentation.
       <include name="${blahblahblah}/useful/*.java"/>
       <include name="${blahblahblah}/unicode/*.java"/>
     </javac>
-    <scalac
-        srcdir="${src}"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="${blahblahblah}/useful/*.scala"/>
-      <include name="${blahblahblah}/unicode/*.scala"/>
-    </scalac>
   </target>
 
   <target name="compileCommonLint" depends="init"
@@ -678,14 +659,6 @@ maintain proper indentation.
       <include name="${usefulPackage}/*.java"/>
       <include name="${unicodePackage}/*.java"/>
     </javac>
-    <scalac
-        srcdir="${src}"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="${usefulPackage}/*.scala"/>
-      <include name="${unicodePackage}/*.scala"/>
-    </scalac>
   </target>
 
 
@@ -732,7 +705,11 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="test" depends="compile"
+  <target name="test" depends="clean, compileAll, testFast"
+          description="Clean, compile everything, and run all unit and system tests.">
+  </target>
+
+  <target name="testFast" 
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -1109,13 +1086,6 @@ maintain proper indentation.
       <classpath refid="compile.classpath"/>
       <include name="${packagePrefix}/parser/FortressInstrumented.java"/>
     </javac>
-    <scalac
-        srcdir="${src}"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="${packagePrefix}/parser/FortressInstrumented.scala"/>
-    </scalac>
   </target>
 
   <target name="grammarCoverage" depends="compileGrammarCoverage">

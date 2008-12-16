@@ -29,7 +29,9 @@
 
   <target name="compile">
     <ant target="compile"/>
-    <ant dir="../scala" target="compile"/>
+  </target>
+  <target name="compileAll">
+    <ant target="compileAll"/>
   </target>
   <target name="blas">
     <ant target="blas"/>
@@ -39,7 +41,6 @@
   </target>
   <target name="clean">
     <ant target="clean"/>
-    <ant dir="../scala" target="clean"/>
   </target>
   <target name="cleanCache">
     <ant target="cleanCache"/>
@@ -49,6 +50,9 @@
   </target>
   <target name="testOnly">
     <ant target="testOnly" />
+  </target>
+  <target name="testFast">
+    <ant target="testFast" />
   </target>
   <target name="testsyntax">
     <ant target="testsyntax" />

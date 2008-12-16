@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import com.sun.fortress.repository.FortressRepository;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.FortressException;
@@ -34,7 +35,7 @@ import com.sun.fortress.useful.NI;
  * the APIName is in the environment. This can be done by calling the
  * definesApi method.
  */
-abstract public class GlobalEnvironment {
+public abstract class GlobalEnvironment {
     abstract public Map<APIName, ApiIndex> apis();
 
     abstract public boolean definesApi(APIName name);
@@ -93,7 +94,6 @@ abstract public class GlobalEnvironment {
 
         @Override
         public Map<APIName, ApiIndex> apis() {
-            // TODO Auto-generated method stub
             return repository.apis();
         }
 
@@ -120,7 +120,7 @@ abstract public class GlobalEnvironment {
         final private FortressRepository r1, r2;
 
         /**
-         * Tries to use the result form the first repository, but does not try hard.
+         * Tries to use the result from the first repository, but does not try hard.
          * If missing, tries (harder) to use the second repository.
          * @param fr1
          * @param fr2
@@ -147,17 +147,16 @@ abstract public class GlobalEnvironment {
 
         @Override
         public Map<APIName, ApiIndex> apis() {
-            // TODO Auto-generated method stub
-            return NI.nyi("Thought this was not called.");
+            Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
+            apis.putAll(r1.apis());
+            apis.putAll(r2.apis());
+            return apis;
         }
 
         @Override
         public boolean definesApi(APIName name) {
             try {
-                ApiIndex ai = r1.apis().get(name);
-            if (ai != null)
-                 return true;
-              return null != r2.getApi(name);
+                return (r1.getApi(name) != null) || (r2.getApi(name) != null);
             } catch (FileNotFoundException e) {
                 return false;
             } catch (IOException e) {

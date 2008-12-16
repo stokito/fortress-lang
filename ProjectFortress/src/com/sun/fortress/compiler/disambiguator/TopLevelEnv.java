@@ -73,7 +73,10 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 public class TopLevelEnv extends NameEnv {
-    private static final Set<String> WELL_KNOWN_APIS = Useful.set(WellKnownNames.fortressLibrary, WellKnownNames.fortressBuiltin, WellKnownNames.anyTypeName);
+    private static final Set<String> WELL_KNOWN_APIS = 
+        Useful.set(WellKnownNames.fortressLibrary, 
+                   WellKnownNames.fortressBuiltin, 
+                   WellKnownNames.anyTypeName);
 
     private final GlobalEnvironment _originalGlobalEnv; // environment as it is created by the compiler
     private final GlobalEnvironment _filteredGlobalEnv; // environment that only includes "imported" names
@@ -95,7 +98,7 @@ public class TopLevelEnv extends NameEnv {
         _errors = errors;
 
         GlobalEnvironment filtered_global_env;
-        if( current instanceof ApiIndex ) {
+        if (current instanceof ApiIndex) {
          // Filter env based on what this api imports
           Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), ((Api)current.ast()));
           filtered_global_env = new GlobalEnvironment.FromMap(filtered);
@@ -349,7 +352,8 @@ public class TopLevelEnv extends NameEnv {
 
             if( api.typeConses().containsKey(name) ) {
                 if( result_.isSome() )
-                    return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + name);
+                    return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + 
+                                  name);
 
                 result_ = Option.some(NodeFactory.makeId(api_name, name, NodeUtil.getSpan(name)));
             }

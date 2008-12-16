@@ -81,8 +81,9 @@ public class Disambiguator {
      * Disambiguate the names of nonterminals.
      */
     private static List<Api> disambiguateGrammarMembers(Collection<ApiIndex> apis,
-            List<StaticError> errors,
-            GlobalEnvironment globalEnv) {
+                                                        List<StaticError> errors,
+                                                        GlobalEnvironment globalEnv) 
+    {
         List<Api> results = new ArrayList<Api>();
         for (ApiIndex index : apis) {
             // ApiIndex index = globalEnv.api(api.getName());
@@ -121,73 +122,78 @@ public class Disambiguator {
      * @param globalEnv The current global environment.
      * @param repository_apis Apis that already exist in the repository.
      */
-    public static ApiResult disambiguateApis(Iterable<Api> apis_to_disambiguate,
-            GlobalEnvironment globalEnv, Map<APIName, ApiIndex> repository_apis) {
+    public static ApiResult disambiguateApis(Iterable<Api> apisToDisambiguate,
+                                             GlobalEnvironment globalEnv, 
+                                             Map<APIName, ApiIndex> repositoryApis) 
+    {
           	
-    	repository_apis = Collections.unmodifiableMap(repository_apis);
+    	repositoryApis = Collections.unmodifiableMap(repositoryApis);
     	
         List<StaticError> errors = new ArrayList<StaticError>();
         
-        // First, loop through apis disambiguating types.
-        List<Api> new_apis = new ArrayList<Api>();
-        for( Api api : apis_to_disambiguate ) {
-        	 ApiIndex index = globalEnv.api(api.getName());
+        // First, loop through apis, disambiguating types.
+        List<Api> newApis = new ArrayList<Api>();
+        for (Api api : apisToDisambiguate) {
+            ApiIndex index = globalEnv.api(api.getName());
         	 
-        	 NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
         	 
-        	 Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
+            Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
              
-             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
-             Api spd_result = (Api)api.accept(self_disambig);
+            SelfParamDisambiguator selfDisambig = new SelfParamDisambiguator();
+            Api spdResult = (Api) api.accept(selfDisambig);
              
-             List<StaticError> newErrs = new ArrayList<StaticError>();
-             TypeDisambiguator td = 
-                 new TypeDisambiguator(env, onDemandImports, newErrs);
-             Api tdResult = (Api) spd_result.accept(td);
+            List<StaticError> newErrs = new ArrayList<StaticError>();
+            TypeDisambiguator td = 
+                new TypeDisambiguator(env, onDemandImports, newErrs);
+            Api tdResult = (Api) spdResult.accept(td);
              
-             if( newErrs.isEmpty() )
-            	 new_apis.add(tdResult);
-             else 
+            if (newErrs.isEmpty()) {
+                newApis.add(tdResult);
+            } else {
              	errors.addAll(newErrs);
+            }
         }
         
         // Go no further if we couldn't disambiguate the types.
         if( errors.size() > 0 ) {
-        	return new ApiResult(new_apis, errors);
+        	return new ApiResult(newApis, errors);
         }
         
         // then, rebuild the indices
-        IndexBuilder.ApiResult rebuilt_indx = IndexBuilder.buildApis(new_apis, System.currentTimeMillis());
-        GlobalEnvironment new_global_env = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
-        		rebuilt_indx.apis()));
+        IndexBuilder.ApiResult rebuiltIndx = IndexBuilder.buildApis(newApis, System.currentTimeMillis());
+        GlobalEnvironment newGlobalEnv = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
+                                                                                         rebuiltIndx.apis()));
 
-        // Finally, disambiguate the expressions using the rebuild indices.
+        // Finally, disambiguate the expressions using the rebuilt indices.
         List<Api> results = new ArrayList<Api>();
-        for( Api api : new_apis ) {
-        	ApiIndex index = new_global_env.api(api.getName());
+        for (Api api : newApis) {
+            ApiIndex index = newGlobalEnv.api(api.getName());
         	
-        	NameEnv env = new TopLevelEnv(new_global_env, index, errors);
+            NameEnv env = new TopLevelEnv(newGlobalEnv, index, errors);
         	
-        	List<StaticError> newErrs = new ArrayList<StaticError>();
-        	ExprDisambiguator ed = 
-                new ExprDisambiguator(env, newErrs);
+            List<StaticError> newErrs = new ArrayList<StaticError>();
+            ExprDisambiguator ed = new ExprDisambiguator(env, newErrs);
             Api edResult = (Api) api.accept(ed);
-            if (newErrs.isEmpty())
+            if (newErrs.isEmpty()) {
             	results.add(edResult);
-            else 
+            } else {
             	errors.addAll(newErrs);
+            }
         }
         
-        IndexBuilder.ApiResult rebuilt_indx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
-        GlobalEnvironment new_global_env2 = new GlobalEnvironment.FromMap(CollectUtil.union(repository_apis,
-        		rebuilt_indx2.apis()));
+        IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
+        GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
+                                                                                          rebuiltIndx2.apis()));
 
-        initializeGrammarIndexExtensions(rebuilt_indx2.apis().values(), globalEnv.apis().values() );
-        results = disambiguateGrammarMembers(rebuilt_indx2.apis().values(), errors, new_global_env2);
+        initializeGrammarIndexExtensions(rebuiltIndx2.apis().values(), globalEnv.apis().values() );
+        results = disambiguateGrammarMembers(rebuiltIndx2.apis().values(), errors, newGlobalEnv2);
         return new ApiResult(results, errors);
     }
 
-    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, Collection<ApiIndex> moreApis ) {
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
+                                                                                      Collection<ApiIndex> moreApis ) 
+    {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
 
