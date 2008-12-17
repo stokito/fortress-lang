@@ -199,14 +199,14 @@ genRadicals000 (n:ZZ32) = do
     rads
 end
 
-Genradicals000 (n:ZZ32) = do
+genRadicals0000 (n:ZZ32) = do
     rads = array[\List[\Radical\]\](n+1)
     threeRads    = BIG GENERATOR[ri<-rads[i], rj<-rads[j], rk<-rads[k]](ri,rj,rk)
 
     rads[0] := <|[\Radical\] H|>
     rads[q] := <|[\Radical\] Rad (ri,rj,rk) |
                    (i,j,k)<-partition3 q, (ri,rj,rk)<-threeRads  |>,
-        i<-seq(1:n)
+        q<-seq(1:n)
 end
 *)
 
@@ -247,7 +247,7 @@ genRadicals1 (n:ZZ32) = do
     rads
 end
 
-(* Try for syntax for iteration *)
+(* Iteration syntax *)
 genRadicals2 (n:ZZ32) = do
     rads = array[\List[\Radical\]\](n+1)
     rads[0] := <|[\Radical\] H|>
