@@ -53,346 +53,346 @@ export PrefixSet
    An ancillary method: joining strings by separating them with the given string
  ***)
 object StringJoinReduction(s:String) extends MonoidReduction[\String\]
-  getter toString():String = "StringJoinReduction(" s ")"
-  empty():String = ""
-  join(a:String, b:String): String = do
-    if   a.isEmpty() then
-      b
-    elif b.isEmpty() then
-      a
-    else
-      a || s || b
+    getter toString():String = "StringJoinReduction(" s ")"
+    empty():String = ""
+    join(a:String, b:String): String = do
+        if   a.isEmpty() then
+            b
+        elif b.isEmpty() then
+            a
+        else
+            a || s || b
+        end
     end
-  end
 end
 
 
 
 
 trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
-    extends { Generator[\F\], Equality[\PrefixSet[\E,F\]\] }
+        extends { Generator[\F\], Equality[\PrefixSet[\E,F\]\] }
 
-  getter indexValuePairs():ZeroIndexed[\(ZZ32,F)\] =
-    IndexValuePrefixSetGenerator[\E,F\](self)
+    getter indexValuePairs():ZeroIndexed[\(ZZ32,F)\] =
+        IndexValuePrefixSetGenerator[\E,F\](self)
 
-  isMember():Boolean
-  children():Map[\E,PrefixSet[\E,F\]\]
+    isMember():Boolean
+    children():Map[\E,PrefixSet[\E,F\]\]
 
-  size():ZZ32
+    size():ZZ32
 
-  isEmpty():Boolean = (NOT isMember()) AND children().isEmpty()
+    isEmpty():Boolean = (NOT isMember()) AND children().isEmpty()
 
-  prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: F->R):R = do
-    t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
-    if isMember() then
-      r.join(body(prefix), t)
-    else
-      t
-    end
-  end
-  generate[\R\](r: Reduction[\R\], body:F->R):R = prefixGenerate[\R\](emptyList[\E\](), r, body)
-
-  prefixSeqgen[\R\](prefix:F, r: Reduction[\R\], body: F->R):R = do
-    t:R = children().seqgen[\R\](r, fn (k,v) => v.prefixSeqgen[\R\](prefix.addRight(k),r,body))
-    if isMember() then
-      r.join(body(prefix),t)
-    else
-      t
-    end
-  end
-  seqgen[\R\](r: Reduction[\R\], body: F->R):R = prefixSeqgen[\R\](emptyList[\E\](), r, body)
-
-  seq(self): SequentialGenerator[\F\] = SeqPrefixSetGenerator[\E,F\](self)
-
-  asString():String = "{/" seqgen[\String\](StringJoinReduction(", "), fn(x:F) => x.asString()) "/}"
-
-
-  opr IN(x:F, self):Boolean = do
-    if (h,t) <- x.extractLeft() then
-      if z <- (children().member(h)) then
-        t IN z
-      else
-        false
-      end
-    else
-      isMember()
-    end
-  end
-
-
-  add(x:F): PrefixSet[\E,F\] = do
-    if (h,t) <- x.extractLeft() then
-      f(z:Maybe[\PrefixSet[\E,F\]\]):Maybe[\PrefixSet[\E,F\]\] = do
-        if a <- z then
-          Just[\PrefixSet[\E,F\]\](a.add(t))
+    prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: F->R):R = do
+        t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
+        if isMember() then
+            r.join(body(prefix), t)
         else
-          Just[\PrefixSet[\E,F\]\](emptyPrefixSet[\E,F\]().add(t))
+            t
         end
-      end
-      fastPrefixSet[\E,F\](isMember(),children().updateWith(f, h))
-    else
-      fastPrefixSet[\E,F\](true,children())
     end
-  end
+    generate[\R\](r: Reduction[\R\], body:F->R):R = prefixGenerate[\R\](emptyList[\E\](), r, body)
 
-
-  delete(x:F): PrefixSet[\E,F\] = do
-    if (h,t) <- x.extractLeft() then
-      z = children().member(h)
-      if a <- z then
-        prefixSet[\E,F\](isMember(), children().update(h,a.delete(t)))
-      else
-        self
-      end
-    else
-      prefixSet[\E,F\](false,children())
-    end
-  end
-
-
-  opr =(self, s2:PrefixSet[\E,F\]):Boolean = (isMember() = s2.isMember()) AND (children() = s2.children())
-
-
-  (* Expensive indexing code begins here *)
-
-  opr[i:ZZ32]:F = do
-    if isMember() AND (i = 0) then
-      emptyList[\E\]()
-    else
-      var c:ZZ32
-      c := (if isMember() then 1 else 0 end)
-      label Search
-        for (k,v) <- seq(children()) do
-          s = v.size()
-          if c + s > i then
-            exit Search with v[i-c].addLeft(k)
-          else
-            c += s
-          end
-        end
-        throw NotFound
-      end Search
-    end
-  end
-
-  indexOf(self,x:F):Maybe[\ZZ32\] = do
-    if (x IN self) then
-      Just[\ZZ32\](self.indexOfMember(x))
-    else
-      Nothing[\ZZ32\]
-    end
-  end
-
-  indexOfMember(self,x:F):ZZ32 = do
-    if (h,t) <- x.extractLeft() then
-      label Search
-        var c:ZZ32 = (if isMember() then 1 else 0 end)
-        for (k,v) <- seq(children()) do
-          if (k=h) then
-            exit Search with c+v.indexOfMember(t)
-          else
-            c += v.size()
-          end
-        end
-      end Search
-    else
-      0
-    end
-  end
-
-  (** Split at index x, meaning left result has size = x or
-      left result has size < x and right result is empty. **)
-  splitIndex(x:ZZ32):(PrefixSet[\E,F\],PrefixSet[\E,F\]) = do
-    (a,_,b) = splitAt(self[x])
-    (a,b.add(x))
-  end
-
-  prefixivgen[\R\](prefix:F, i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = do
-    var i:ZZ32
-    var a:R
-    if isMember() then
-      a := body(i0,prefix)
-      i := i0 + 1
-    else
-      a := r.empty()
-      i := i0
-    end
-    for (l,x) <- seq(children()) do
-      a := r.join(a, x.prefixivgen[\R\](prefix.addRight(l), i, r, body))
-      i := i + |x|
-    end
-    a
-  end
-
-  ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = prefixivgen[\R\](emptyList[\E\](), i0, r, body)
-  (* Expensive indexing code ends here *)
-
-  minimum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMinimum() end
-  getMinimum():F throws NotFound = do
-    if isMember() then
-      emptyList[\E\]()
-    elif (k,v) <- children().minimum() then
-      v.getMinimum().addLeft(k)
-    else
-       throw NotFound
-    end
-  end
-
-  maximum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMaximum() end
-  getMaximum():F throws NotFound = do
-    if (k,v) <- children().maximum() then
-      v.getMaximum().addLeft(k)
-    else
-      emptyList[\E\]()
-    end
-  end
-
-  deleteMinimum():PrefixSet[\E,F\] =
-    if (_, res) <- extractMinimum() then res else self end
-  deleteMaximum():PrefixSet[\E,F\] =
-    if (_, res) <- extractMaximum() then res else self end
-
-  extractMinimum():Maybe[\(F, PrefixSet[\E,F\])\] = do
-    if isMember() then
-      Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), fastPrefixSet[\E,F\](false, children()))
-    elif (k,v,r) <- children().extractMinimum() then
-      (m,s) = v.extractMinimum().get()
-      Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](false, r.add(k,s)))
-    else
-      Nothing[\(F, PrefixSet[\E,F\])\]
-    end
-  end
-
-  extractMaximum():Maybe[\(F, PrefixSet[\E,F\])\] = do
-    if (k,v,r) <- children().extractMaximum() then
-      (m,s) = v.extractMaximum().get()
-      Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](isMember(), r.add(k,s)))
-    elif isMember() then
-      Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), emptyPrefixSet[\E,F\]())
-    else
-      Nothing[\(F, PrefixSet[\E,F\])\]
-    end
-  end
-
-
-
-  (* Concatenation: assumes that all the values on the right are greater than all those on the left. *)
-  concat(s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    leftm = children().extractMaximum()
-    rightm = s2.children().extractMinimum()
-    if (leftmaxkey,leftmaxval,left) <- leftm then
-      if (rightminkey,rightminval,right) <- rightm then
-        if leftmaxkey<rightminkey then
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().concat(s2.children()))
+    prefixSeqgen[\R\](prefix:F, r: Reduction[\R\], body: F->R):R = do
+        t:R = children().seqgen[\R\](r, fn (k,v) => v.prefixSeqgen[\R\](prefix.addRight(k),r,body))
+        if isMember() then
+            r.join(body(prefix),t)
         else
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey, leftmaxval.concat(rightminval), right))
+            t
         end
-      else
-        self
-      end
-    else
-      s2
     end
-  end
+    seqgen[\R\](r: Reduction[\R\], body: F->R):R = prefixSeqgen[\R\](emptyList[\E\](), r, body)
 
-  concat3(v:F, s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    leftm = children().extractMaximum()
-    rightm = s2.children().extractMinimum()
-    if NOT leftm.holds() then
-      s2
-    elif NOT rightm.holds() then
-      self
-    else 
-      (leftmaxkey,leftmaxval,left) = leftm.get()
-      (rightminkey,rightminval,right) = rightm.get()
+    seq(self): SequentialGenerator[\F\] = SeqPrefixSetGenerator[\E,F\](self)
 
-      if (|v| = 0) then
-        if leftmaxkey<rightminkey then
-          fastPrefixSet[\E,F\](true, children().concat(s2.children()))
+    asString():String = "{/" seqgen[\String\](StringJoinReduction(", "), fn(x:F) => x.asString()) "/}"
+
+
+    opr IN(x:F, self):Boolean = do
+        if (h,t) <- x.extractLeft() then
+            if z <- (children().member(h)) then
+                t IN z
+            else
+                false
+            end
         else
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey, leftmaxval.concat(rightminval), right))
+            isMember()
         end
-      else
-        (midh, midt) = v.extractLeft()
-        if   leftmaxkey<midh<rightminkey then
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().concat3(midh,singletonPrefixSet(midt),s2.children()))
-        elif leftmaxkey=midh<rightminkey then
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey,leftmaxval.concat(singletonPrefixSet(midt)),s2.children()))
-        elif leftmaxkey<midh=rightminkey then
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(),children().concat3(rightminkey,singletonPrefixSet(midt).concat(rightminval),right))
-        else (*) leftmaxkey=midh=rightminkey
-          fastPrefixSet[\E,F\](isMember() OR s2.isMember(),left.concat3(leftmaxkey,leftmaxval.concat3(midt,rightminval),right))
+    end
+
+
+    add(x:F): PrefixSet[\E,F\] = do
+        if (h,t) <- x.extractLeft() then
+            f(z:Maybe[\PrefixSet[\E,F\]\]):Maybe[\PrefixSet[\E,F\]\] = do
+                if a <- z then
+                    Just[\PrefixSet[\E,F\]\](a.add(t))
+                else
+                    Just[\PrefixSet[\E,F\]\](emptyPrefixSet[\E,F\]().add(t))
+                end
+            end
+            fastPrefixSet[\E,F\](isMember(),children().updateWith(f, h))
+        else
+            fastPrefixSet[\E,F\](true,children())
         end
-      end
     end
-  end
 
-  (* Could we replace some of the prefixSet calls with fastPrefixSet? *)
-  splitAt(x:F):(PrefixSet[\E,F\],Boolean,PrefixSet[\E,F\]) = do
-    if (h,t) <- x.extractLeft() then
-      (l,m,r) = children().splitAt(h)
-      if a <- m then
-        (lb,b,rb) = a.splitAt(t)
-        (prefixSet(isMember(), l.add(a,lb)), b, prefixSet(false, r.add(a,rb)))
-      else
-        (prefixSet(isMember(), l), false, prefixSet(isMember(), r))
-      end
-    else
-      (emptyPrefixSet[\E,F\](), isMember(), fastPrefixSet(false, children()))
+
+    delete(x:F): PrefixSet[\E,F\] = do
+        if (h,t) <- x.extractLeft() then
+            z = children().member(h)
+            if a <- z then
+                prefixSet[\E,F\](isMember(), children().update(h,a.delete(t)))
+            else
+                self
+            end
+        else
+            prefixSet[\E,F\](false,children())
+        end
     end
-  end
 
 
-  opr SUBSETEQ(self, other:PrefixSet[\E,F\]): Boolean = (other.isMember() OR NOT isMember()) AND (BIG AND[(k,v) <- children()]  (k IN other.children()) AND (children()[k] SUBSETEQ (other.children())[k]))
-  opr SUBSET(self, other:PrefixSet[\E,F\]): Boolean = (NOT (self = other)) AND (self SUBSETEQ other)
+    opr =(self, s2:PrefixSet[\E,F\]):Boolean = (isMember() = s2.isMember()) AND (children() = s2.children())
 
-  opr SUPSETEQ(self, other:PrefixSet[\E,F\]): Boolean = other SUBSETEQ self
-  opr SUPSET(self, other:PrefixSet[\E,F\]): Boolean = other SUBSET self
 
-  opr SETCMP(self, other:PrefixSet[\E,F\]): Comparison = do
-    if (self = other) then
-      EqualTo
-    elif (self SUBSETEQ other) then
-      LessThan
-    elif (other SUBSETEQ self) then
-      GreaterThan
-    else
-      Unordered
+    (* Expensive indexing code begins here *)
+
+    opr[i:ZZ32]:F = do
+        if isMember() AND (i = 0) then
+            emptyList[\E\]()
+        else
+            var c:ZZ32
+            c := (if isMember() then 1 else 0 end)
+            label Search
+                for (k,v) <- seq(children()) do
+                    s = v.size()
+                    if c + s > i then
+                        exit Search with v[i-c].addLeft(k)
+                    else
+                        c += s
+                    end
+                end
+                throw NotFound
+            end Search
+        end
     end
-  end
+
+    indexOf(self,x:F):Maybe[\ZZ32\] = do
+        if (x IN self) then
+            Just[\ZZ32\](self.indexOfMember(x))
+        else
+            Nothing[\ZZ32\]
+        end
+    end
+
+    indexOfMember(self,x:F):ZZ32 = do
+        if (h,t) <- x.extractLeft() then
+            label Search
+                var c:ZZ32 = (if isMember() then 1 else 0 end)
+                for (k,v) <- seq(children()) do
+                    if (k=h) then
+                        exit Search with c+v.indexOfMember(t)
+                    else
+                        c += v.size()
+                    end
+                end
+            end Search
+        else
+            0
+        end
+    end
+
+    (** Split at index x, meaning left result has size = x or
+        left result has size < x and right result is empty. **)
+    splitIndex(x:ZZ32):(PrefixSet[\E,F\],PrefixSet[\E,F\]) = do
+        (a,_,b) = splitAt(self[x])
+        (a,b.add(x))
+    end
+
+    prefixivgen[\R\](prefix:F, i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = do
+        var i:ZZ32
+        var a:R
+        if isMember() then
+            a := body(i0,prefix)
+            i := i0 + 1
+        else
+            a := r.empty()
+            i := i0
+        end
+        for (l,x) <- seq(children()) do
+            a := r.join(a, x.prefixivgen[\R\](prefix.addRight(l), i, r, body))
+            i := i + |x|
+        end
+        a
+    end
+
+    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,F)->R): R = prefixivgen[\R\](emptyList[\E\](), i0, r, body)
+    (* Expensive indexing code ends here *)
+
+    minimum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMinimum() end
+    getMinimum():F throws NotFound = do
+        if isMember() then
+            emptyList[\E\]()
+        elif (k,v) <- children().minimum() then
+            v.getMinimum().addLeft(k)
+        else
+             throw NotFound
+        end
+    end
+
+    maximum():Maybe[\F\] = if isEmpty() then Nothing[\F\] else Just[\F\] getMaximum() end
+    getMaximum():F throws NotFound = do
+        if (k,v) <- children().maximum() then
+            v.getMaximum().addLeft(k)
+        else
+            emptyList[\E\]()
+        end
+    end
+
+    deleteMinimum():PrefixSet[\E,F\] =
+        if (_, res) <- extractMinimum() then res else self end
+    deleteMaximum():PrefixSet[\E,F\] =
+        if (_, res) <- extractMaximum() then res else self end
+
+    extractMinimum():Maybe[\(F, PrefixSet[\E,F\])\] = do
+        if isMember() then
+            Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), fastPrefixSet[\E,F\](false, children()))
+        elif (k,v,r) <- children().extractMinimum() then
+            (m,s) = v.extractMinimum().get()
+            Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](false, r.add(k,s)))
+        else
+            Nothing[\(F, PrefixSet[\E,F\])\]
+        end
+    end
+
+    extractMaximum():Maybe[\(F, PrefixSet[\E,F\])\] = do
+        if (k,v,r) <- children().extractMaximum() then
+            (m,s) = v.extractMaximum().get()
+            Just[\(F, PrefixSet[\E,F\])\](m.addLeft(k), prefixSet[\E,F\](isMember(), r.add(k,s)))
+        elif isMember() then
+            Just[\(F, PrefixSet[\E,F\])\](emptyList[\E\](), emptyPrefixSet[\E,F\]())
+        else
+            Nothing[\(F, PrefixSet[\E,F\])\]
+        end
+    end
 
 
-  opr |self|:ZZ32 = size()
 
-  opr UNION(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
-    mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
-    ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u UNION v)
-    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
-  end
+    (* Concatenation: assumes that all the values on the right are greater than all those on the left. *)
+    concat(s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        leftm = children().extractMaximum()
+        rightm = s2.children().extractMinimum()
+        if (leftmaxkey,leftmaxval,left) <- leftm then
+            if (rightminkey,rightminval,right) <- rightm then
+                if leftmaxkey<rightminkey then
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().concat(s2.children()))
+                else
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey, leftmaxval.concat(rightminval), right))
+                end
+            else
+                self
+            end
+        else
+            s2
+        end
+    end
 
-  opr INTERSECTION(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Nothing[\PrefixSet[\E,F\]\]
-    mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = mapping[\E,PrefixSet[\E,F\]\]()
-    ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u INTERSECTION v)
-    prefixSet[\E,F\](isMember() AND s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
-  end
+    concat3(v:F, s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        leftm = children().extractMaximum()
+        rightm = s2.children().extractMinimum()
+        if NOT leftm.holds() then
+            s2
+        elif NOT rightm.holds() then
+            self
+        else 
+            (leftmaxkey,leftmaxval,left) = leftm.get()
+            (rightminkey,rightminval,right) = rightm.get()
 
-  opr SYMDIFF(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
-    mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
-    ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u SYMDIFF v)
-    prefixSet[\E,F\](isMember() XOR s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
-  end
+            if (|v| = 0) then
+                if leftmaxkey<rightminkey then
+                    fastPrefixSet[\E,F\](true, children().concat(s2.children()))
+                else
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey, leftmaxval.concat(rightminval), right))
+                end
+            else
+                (midh, midt) = v.extractLeft()
+                if   leftmaxkey<midh<rightminkey then
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().concat3(midh,singletonPrefixSet(midt),s2.children()))
+                elif leftmaxkey=midh<rightminkey then
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(), left.concat3(leftmaxkey,leftmaxval.concat(singletonPrefixSet(midt)),s2.children()))
+                elif leftmaxkey<midh=rightminkey then
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(),children().concat3(rightminkey,singletonPrefixSet(midt).concat(rightminval),right))
+                else (*) leftmaxkey=midh=rightminkey
+                    fastPrefixSet[\E,F\](isMember() OR s2.isMember(),left.concat3(leftmaxkey,leftmaxval.concat3(midt,rightminval),right))
+                end
+            end
+        end
+    end
 
-  opr DIFFERENCE(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
-    ifThis(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
-    mapThis(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
-    ifThat(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Nothing[\PrefixSet[\E,F\]\]
-    mapThat(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = mapping[\E,PrefixSet[\E,F\]\]()
-    ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u DIFFERENCE v)
-    prefixSet[\E,F\](isMember() AND NOT s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifThis,ifThat,mapThis,mapThat,s2.children()))
-  end
+    (* Could we replace some of the prefixSet calls with fastPrefixSet? *)
+    splitAt(x:F):(PrefixSet[\E,F\],Boolean,PrefixSet[\E,F\]) = do
+        if (h,t) <- x.extractLeft() then
+            (l,m,r) = children().splitAt(h)
+            if a <- m then
+                (lb,b,rb) = a.splitAt(t)
+                (prefixSet(isMember(), l.add(a,lb)), b, prefixSet(false, r.add(a,rb)))
+            else
+                (prefixSet(isMember(), l), false, prefixSet(isMember(), r))
+            end
+        else
+            (emptyPrefixSet[\E,F\](), isMember(), fastPrefixSet(false, children()))
+        end
+    end
+
+
+    opr SUBSETEQ(self, other:PrefixSet[\E,F\]): Boolean = (other.isMember() OR NOT isMember()) AND (BIG AND[(k,v) <- children()]    (k IN other.children()) AND (children()[k] SUBSETEQ (other.children())[k]))
+    opr SUBSET(self, other:PrefixSet[\E,F\]): Boolean = (NOT (self = other)) AND (self SUBSETEQ other)
+
+    opr SUPSETEQ(self, other:PrefixSet[\E,F\]): Boolean = other SUBSETEQ self
+    opr SUPSET(self, other:PrefixSet[\E,F\]): Boolean = other SUBSET self
+
+    opr SETCMP(self, other:PrefixSet[\E,F\]): Comparison = do
+        if (self = other) then
+            EqualTo
+        elif (self SUBSETEQ other) then
+            LessThan
+        elif (other SUBSETEQ self) then
+            GreaterThan
+        else
+            Unordered
+        end
+    end
+
+
+    opr |self|:ZZ32 = size()
+
+    opr UNION(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
+        mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
+        ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u UNION v)
+        fastPrefixSet[\E,F\](isMember() OR s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
+    end
+
+    opr INTERSECTION(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Nothing[\PrefixSet[\E,F\]\]
+        mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = mapping[\E,PrefixSet[\E,F\]\]()
+        ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u INTERSECTION v)
+        prefixSet[\E,F\](isMember() AND s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
+    end
+
+    opr SYMDIFF(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        ifOne(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
+        mapOne(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
+        ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u SYMDIFF v)
+        prefixSet[\E,F\](isMember() XOR s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,s2.children()))
+    end
+
+    opr DIFFERENCE(self,s2:PrefixSet[\E,F\]):PrefixSet[\E,F\] = do
+        ifThis(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](v)
+        mapThis(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = a
+        ifThat(k:E, v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Nothing[\PrefixSet[\E,F\]\]
+        mapThat(a:Map[\E,PrefixSet[\E,F\]\]):Map[\E,PrefixSet[\E,F\]\] = mapping[\E,PrefixSet[\E,F\]\]()
+        ifBoth(k:E, u:PrefixSet[\E,F\], v:PrefixSet[\E,F\]):Maybe[\PrefixSet[\E,F\]\] = Just[\PrefixSet[\E,F\]\](u DIFFERENCE v)
+        prefixSet[\E,F\](isMember() AND NOT s2.isMember(), children().combine[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](ifBoth,ifThis,ifThat,mapThis,mapThat,s2.children()))
+    end
 
 
 end
@@ -401,10 +401,10 @@ end
 
 (* A PrefixSet with given children: 'unsafe' as it assumes it is not given any useless tree structure *)
 object fastPrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](v:Boolean,c:Map[\E,PrefixSet[\E,F\]\]) extends PrefixSet[\E,F\]
-  fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size())
-  isMember():Boolean = v
-  children():Map[\E,PrefixSet[\E,F\]\] = c
-  size():ZZ32 = fixedsize
+    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size())
+    isMember():Boolean = v
+    children():Map[\E,PrefixSet[\E,F\]\] = c
+    size():ZZ32 = fixedsize
 end
 
 
@@ -416,11 +416,11 @@ emptyPrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]():Prefi
 
 
 singletonPrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](x:F):PrefixSet[\E,F\] = do
-  if (h,t) <- x.extractLeft() then
-    prefixSet[\E,F\](false, singleton[\E,PrefixSet[\E,F\]\](h,singletonPrefixSet[\E,F\](t)))
-  else
-    fastPrefixSet[\E,F\](true, mapping[\E,PrefixSet[\E,F\]\]())
-  end
+    if (h,t) <- x.extractLeft() then
+        prefixSet[\E,F\](false, singleton[\E,PrefixSet[\E,F\]\](h,singletonPrefixSet[\E,F\](t)))
+    else
+        fastPrefixSet[\E,F\](true, mapping[\E,PrefixSet[\E,F\]\]())
+    end
 end
 
 
@@ -501,7 +501,7 @@ opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Gen
 
 
 value object SeqPrefixSetGenerator[\E extends StandardTotalOrder[\E\],F extends List[\E\]\](s: PrefixSet[\E,F\])
-       extends SequentialGenerator[\F\]
+        extends SequentialGenerator[\F\]
     getter size():ZZ32 = |s|
     getter isEmpty():Boolean = s.isEmpty()
     opr |self|: ZZ32 = |s|
