@@ -70,7 +70,7 @@ printUsage() = do
     println "1 arg  => paraffins and radicals to size args[0]"
     println "2 args => paraffins to size args[0] radicals to size args[1]"
     println "Examples:"
-    println "fortress turnersParaffins0.fss     => print usage info; paraffins=5  radicals=5"
+    println "fortress turnersParaffins0.fss     => print usage info; paraffins=6  radicals=6"
     println "fortress turnersParaffins0.fss 3   => paraffins=3  radicals=3"
     println "fortress turnersParaffins0.fss 4 6 => paraffins=4  radicals=6"
 end
@@ -131,6 +131,23 @@ y3:Radical     = Rad (H,      methyl, methyl)
 t4:Radical     = Rad (methyl, methyl, methyl)
 y4:Radical     = Rad (H,      H,      y3    )
 z4:Radical     = Rad (H,      methyl, ethyl )
+
+(* radsSmall is useful for testing.
+It's written in a stylized way to avoid the following bug:
+http://projectfortress.sun.com/Projects/Community/ticket/46
+Eventually I'd like to write the following:
+radsSmall = [<|H|> <|methyl|> <|ethyl|> <|propyl,y3|> <|butyl,y4,z4,t4|>]
+*)
+radsSmall = do
+    rs:List[\Radical\][5] =
+        [<|[\Radical\] H|>
+         <|[\Radical\] methyl|>
+         <|[\Radical\] ethyl|>
+         <|[\Radical\] propyl, y3|>
+         <|[\Radical\] butyl, y4, z4, t4|>
+        ]
+    rs
+end
 
 (*
 Construct an array of lists of all radicals from size 0 to size n.
@@ -437,15 +454,6 @@ test testRadicalConstruction () = do
     assert (3, |y3|);               assert (4, |t4|)
     assert (4, |y4|);               assert (4, |z4|)
 
-    radsSmall:List[\Radical\][5] =
-        [<|[\Radical\] H|>
-         <|[\Radical\] methyl|>
-         <|[\Radical\] ethyl|>
-         <|[\Radical\] propyl, y3|>
-         <|[\Radical\] butyl, y4, z4, t4|>
-        ]
-    (* Move above to top level after bug disallowing it is fixed. *)
-
     rsFlat = concat radsSmall
     for i<-0#|rsFlat|, j<-0#|rsFlat| do
         if i=j then assert(rsFlat[i] = rsFlat[j])
@@ -456,19 +464,6 @@ end
 
 test testRadicalGeneration() = do
     println("***** Radical Generation Tests *****")
-
-    radsSmall:List[\Radical\][5] =
-        [<|[\Radical\] H|>
-         <|[\Radical\] methyl|>
-         <|[\Radical\] ethyl|>
-         <|[\Radical\] propyl, y3|>
-         <|[\Radical\] butyl, y4, z4, t4|>
-        ]
-(*
-After type inference is online ...
-    radsSmall = [<|H|> <|methyl|> <|ethyl|> <|propyl,y3|> <|butyl,y4,z4,t4|>]
-Also ... move to top level ... .
-*)
 
     for (nCarbons,rads)<-seq (genRadicals 7).indexValuePairs do
         println ("Number of carbons: " nCarbons)
@@ -502,8 +497,24 @@ hexane3:Paraffin  = Paraffin (H,      methyl, ethyl,  ethyl  )
 hexane4:Paraffin  = Paraffin (H,      methyl, methyl, y3     )
 hexane5:Paraffin  = Paraffin (H,      H,      methyl, t4     )
 
-parsSmall = array[\List[\Paraffin\]\] 7
-(*
+parsSmall = do
+    ps:List[\Paraffin\][7] =
+    [<|[\Paraffin\] |>
+     <|[\Paraffin\] methane|>
+     <|[\Paraffin\] ethane|>
+     <|[\Paraffin\] propane|>
+     <|[\Paraffin\] butane1, butane2|>
+     <|[\Paraffin\] pentane1, pentane2, pentane3|>
+     <|[\Paraffin\] hexane1, hexane2, hexane3, hexane4, hexane5|>
+    ]
+    ps
+end
+
+(* The preceeding code works around the following bug:
+http://projectfortress.sun.com/Projects/Community/ticket/46
+
+Without bug 46, I'd prefer either of the following:
+
 parsSmall =
     [<|[\Paraffin\] |>
      <|[\Paraffin\] methane|>
@@ -518,22 +529,7 @@ parsSmall =
      <|butane1, butane2|>
      <|pentane1, pentane2, pentane3|>
      <|hexane1, hexane2, hexane3, hexane4, hexane5|>]
-
-Utility testing routine to work around a bug in the interpreter:
-http://projectfortress.sun.com/Projects/Community/ticket/46
-When this bug is resolved, the following code can be replaced
-by the above commented out code.
 *)
-test setSmallParaffins () = do
-    (* Establish some values for testing *)
-    parsSmall[0] := <|[\Paraffin\] |>
-    parsSmall[1] := <|[\Paraffin\] methane|>
-    parsSmall[2] := <|[\Paraffin\] ethane|>
-    parsSmall[3] := <|[\Paraffin\] propane|>
-    parsSmall[4] := <|[\Paraffin\] butane1, butane2|>
-    parsSmall[5] := <|[\Paraffin\] pentane1, pentane2, pentane3|>
-    parsSmall[6] := <|[\Paraffin\] hexane1, hexane2, hexane3, hexane4, hexane5|>
-end
 
 test testParaffinConstruction () = do
     println("***** Paraffin Construction Tests *****")
@@ -660,8 +656,6 @@ test testParaffinQuotient () = do
     println("----- Small oneGen, twoGen and generators closure tests pass. -----")
     println("----- Small quotient tests pass. -----")
 
-    setSmallParaffins ()
-
     q4 = quotient <|[\Paraffin\] p | p<-parsSmall[4]|>
     println(" quotient over paraffins of size 4: " q4)
     assert(2, |q4|)
@@ -676,7 +670,6 @@ end
 
 test testParaffinGeneration() = do
     println("***** Paraffin Generation Tests *****")
-    setSmallParaffins ()
     for (index,pars)<-seq (genParaffins 4).indexValuePairs do
         (nCarbons, nPars) = (index+1, |pars|)
         println ("Number of carbons: " nCarbons)
