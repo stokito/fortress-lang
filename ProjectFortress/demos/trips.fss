@@ -56,14 +56,14 @@ object trip (a:ZZ32, b:ZZ32, c:ZZ32)
     extends StandardTotalOrder[\trip\]
     opr CMP(self, other:trip):TotalComparison =
         (a CMP other.a) LEXICO (b CMP other.b) LEXICO (c CMP other.c)
-    toString():String = "[trip " a " " b  " " c "]"
+    asString():String = "[trip " a " " b  " " c "]"
 end trip
 
 (* When I did this exercise, using an object was a much faster way to
 represent a triple than a tuple or a list, likely due to genericity.
 Perhaps that will always be so as data structures shoud be cheap.
 
-Note: CMP & toString follow canonical patterns. Perhaps they could be
+Note: CMP & asString follow canonical patterns. Perhaps they could be
 specified implicitly or as defaults. *)
 
 (* The following definitions work around problems that arose when I tried the
@@ -102,7 +102,7 @@ max value as the argument, and the generator function. *)
 object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
     extends StandardTotalOrder[\trip\]
     opr CMP(self, other:generator):TotalComparison = doc CMP other.doc
-    toString():String = "[generator " doc " max: " max "]"
+    asString():String = "[generator " doc " max: " max "]"
 end generator
 
 generators = <|

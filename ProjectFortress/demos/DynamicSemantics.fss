@@ -23,20 +23,20 @@ export DynamicSemantics
 (* Runtime value ***************************************************************)
 trait RuntimeValue comprises { Val, FnValue }
   getValue(): Value
-  toString(): String
+  asString(): String
   toSource(): String
 end
 
 object Val(v: Value) extends RuntimeValue
   getValue() = v
-  toString() = v.toString()
+  asString() = v.asString()
   toSource() = v.toSource()
 end
 
 object FnValue(fun: FnExpr, sigma: Map[\String, RuntimeValue\])
   extends RuntimeValue
   getValue() = fun
-  toString() = "(" fun.toString() ", " sigma ")"
+  asString() = "(" fun.asString() ", " sigma ")"
   toSource() = fun.toSource()
 end
 

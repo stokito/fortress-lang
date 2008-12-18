@@ -227,7 +227,7 @@ trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,
     self.children[index].search(k)
   end
 
-  toString():String = "{" self.keys.toString() ", " self.children.toString() "}"
+  asString():String = "{" self.keys.asString() ", " self.children.asString() "}"
 
   add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
     tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - height())

@@ -49,8 +49,8 @@ run(args:String...):() = do
     atomic times += 1
   end
   assert(times,1," WRONG number of times.")
-  assert(a.toString(),"Nothing","Nothing.toString()")
-  assert(b.toString(),"Just(true)", "Just(true).toString()")
+  assert(a.asString(),"Nothing","Nothing.asString()")
+  assert(b.asString(),"Just(true)", "Just(true).asString()")
 end
 
 end

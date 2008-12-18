@@ -21,17 +21,17 @@ export Executable
 
 assertStr[\T\](a:ZZ32, b:ZZ32, s:String, l: List[\T\]) =
   if a=/=b then
-    fail(a "=/=" b ": " s l.toString())
+    fail(a "=/=" b ": " s l.asString())
   end
 
 assertStr[\T\](a:Boolean, s:String, l: List[\T\]) =
   if NOT a then
-    fail("Failed assertion: " s l.toString())
+    fail("Failed assertion: " s l.asString())
   end
 
 assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
   if NOT a then
-    fail("Failed assertion: " s l.toString() " and " r.toString())
+    fail("Failed assertion: " s l.asString() " and " r.asString())
   end
 
 chkApp(tl: List[\ZZ32\], t : List[\Any\]) = do

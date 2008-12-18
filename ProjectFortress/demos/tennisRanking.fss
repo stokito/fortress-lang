@@ -182,13 +182,13 @@ object Player(name:String, initRanking:ZZ32, initWon:ZZ32, initLost:ZZ32,
   tostring():String =
     name "    " (twoToStr totalWon) " / " totalLost " (" thisWon " / " thisLost ")      " (totalWon+totalLost) " (" (thisWon+thisLost) ")       " totalPoints " (" thisPoints ")"//
 
-(* toString() returns the following:
+(* asString() returns the following:
      ranking  name  totalWon / totalLost (thisWon / thisLost)  totalgames (thisGames)  totalPoints (thisPoints)
  *)
-  toString():String = (twoToStr ranking) "  " (tostring())
+  asString():String = (twoToStr ranking) "  " (tostring())
 
-(* toStringTie() does not return the ranking *)
-  toStringTie():String = "    " (tostring())
+(* asStringTie() does not return the ranking *)
+  asStringTie():String = "    " (tostring())
 
 end
 
@@ -511,9 +511,9 @@ printTable(fout:WriteStream, arr:Array[\(ZZ32,String),ZZ32\]) =
       (* print a player with the new ranking result *)
       if player.totalPoints = points
       then player.ranking := ranking
-           fout.print(player.toStringTie())
+           fout.print(player.asStringTie())
       else player.ranking := i+1; ranking := i+1; points := player.totalPoints
-           fout.print(player.toString())
+           fout.print(player.asString())
       end
       (* find MVP players *)
       if player.thisPoints = mvp

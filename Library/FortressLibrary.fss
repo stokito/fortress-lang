@@ -2794,7 +2794,7 @@ end
     Nothing becomes zero
 **)
 object LiftedCommutativeMonoidReduction[\R\](org : CommutativeMonoidReduction[\R\]) extends ActualReduction[\R,AnyMaybe\]
-    getter toString(): String = org.toString() "(Lifted)"
+    getter asString(): String = org.asString() "(Lifted)"
     empty(): Nothing[\R\] = Just(org.empty())
     join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
         if av <- a then
@@ -2943,7 +2943,7 @@ end
 
 (* MAX without lifting for Numbers... (what is -1/0?)*)
 object MaxReductionN extends {CommutativeMonoidReduction[\Number\] }
-    getter toString(): String = "MaxReductionN"
+    getter asString(): String = "MaxReductionN"
     empty(): Number = -1/0
     join(a: Number, b: Number): Number = a MAX b
 end
@@ -2954,7 +2954,7 @@ opr BIG MAXN[\T extends Number\](g: Generator[\T\]) =
     __bigOperatorSugar[\T,Number,Number,Number\](BIG MAXN[\T\](), g)
 
 object MinReductionN extends {CommutativeMonoidReduction[\Number\] }
-    getter toString(): String = "MinReductionN"
+    getter asString(): String = "MinReductionN"
     empty(): Number = 1/0
     join(a: Number, b: Number): Number = a MIN b
 end

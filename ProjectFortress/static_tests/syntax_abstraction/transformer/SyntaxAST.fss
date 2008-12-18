@@ -21,7 +21,7 @@ component SyntaxAST
   export SyntaxAST
 
   object SelectQuery(val:List[\String\]) 
-    toString():String = val
+    asString():String = val
   end
 
 end

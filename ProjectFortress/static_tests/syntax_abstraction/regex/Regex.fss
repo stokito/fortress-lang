@@ -23,7 +23,7 @@ export Regex
     end
 
     object Regexp( elements : List[\Element\] )
-        toString():String = "/" (BIG || elements) "/"
+        asString():String = "/" (BIG || elements) "/"
         raw():String = (BIG || elements)
         (*
         opr =(self,s:String):Boolean = match(self.raw(),s)
@@ -34,79 +34,79 @@ export Regex
     end
 
     object RepeatElement(e:Element) extends Element
-        toString():String = e "*"
+        asString():String = e "*"
     end
     
     object RepeatNonGreedyElement(e:Element) extends Element
-        toString():String = e "*?"
+        asString():String = e "*?"
     end
 
     object RepeatExactlyElement(e:Element, n:ZZ32) extends Element
-        toString():String = e "{" n "}"
+        asString():String = e "{" n "}"
     end
 
     object RepeatMinElement(e:Element, n:ZZ32) extends Element
-        toString():String = e "{" n ",}"
+        asString():String = e "{" n ",}"
     end
 
     object RepeatMaxElement(e:Element, n:ZZ32) extends Element
-        toString():String = e "{," n "}"
+        asString():String = e "{," n "}"
     end
 
     object RepeatBetweenElement(e:Element, n1:ZZ32, n2:ZZ32) extends Element
-        toString():String = e "{" n1 ", " n2 "}"
+        asString():String = e "{" n1 ", " n2 "}"
     end
     
     object RepeatOneElement(e:Element) extends Element
-        toString():String = e "+"
+        asString():String = e "+"
     end
     
     object RepeatOneNonGreedyElement(e:Element) extends Element
-        toString():String = e "+?"
+        asString():String = e "+?"
     end
     
     object MaybeElement(e:Element) extends Element
-        toString():String = e "?"
+        asString():String = e "?"
     end
 
     object GroupElement(e:List[\Element\]) extends Element
-        toString():String = "(" (BIG || e) ")"
+        asString():String = "(" (BIG || e) ")"
     end
 
     object RangeElement(s1:String,s2:String) extends Element
-        toString():String = s1 "-" s2
+        asString():String = s1 "-" s2
     end
     
     object ClassElement(e:List[\Element\]) extends Element
-        toString():String = "[" (BIG || e) "]"
+        asString():String = "[" (BIG || e) "]"
     end
     
     object InverseClassElement(e:List[\Element\]) extends Element
-        toString():String = "[^" (BIG || e) "]"
+        asString():String = "[^" (BIG || e) "]"
     end
     
     object StartElement() extends Element
-        toString():String = "^"
+        asString():String = "^"
     end
     
     object AnyElement() extends Element
-        toString():String = "."
+        asString():String = "."
     end
 
     object EndElement() extends Element
-        toString():String = "$"
+        asString():String = "$"
     end
 
     object CharElement(s:String) extends Element
-        toString():String = s
+        asString():String = s
     end
     
     object EscapedElement(s:String) extends Element
-        toString():String = "\\" s
+        asString():String = "\\" s
     end
     
     object AlternateElement() extends Element
-        toString():String = "|"
+        asString():String = "|"
     end
     
 end

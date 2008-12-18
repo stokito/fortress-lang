@@ -96,7 +96,7 @@ processFile(name:String):() = do
     acq = nanoTime()
     time("Acquired words",start,acq)
     var invDatabase:Map[\ZZ32,List[\String\]\] =
-        BIG UNIONUNION [(x,y) <-database] makeInv(x.toString(),y)
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString(),y)
     inv = nanoTime()
     time("Inverted database",acq,inv)
     try

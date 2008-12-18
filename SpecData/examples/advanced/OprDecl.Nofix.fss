@@ -22,7 +22,7 @@ component OprDecl.Nofix
 export Executable
 
 object ImplicitRange
-  toString() = "ImplicitRange"
+  asString() = "ImplicitRange"
 end
 
 (** EXAMPLE **)

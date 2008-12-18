@@ -19,11 +19,11 @@ component Exception
 export Executable
 
 object Scooby extends CheckedException
-    toString(): String = "ScoobyDoobyDoo"
+    asString(): String = "ScoobyDoobyDoo"
 end
 
 object Shaggy extends CheckedException
-    toString(): String = "RuhRohRaggy"
+    asString(): String = "RuhRohRaggy"
 end
 
 (* test1 tests basic catch mechanism *)
@@ -112,7 +112,7 @@ test5():() = do
     catch e
         Shaggy => x := e
     end
-    assert(x.toString(), "RuhRohRaggy", "Test5: Improper binding of exception");
+    assert(x.asString(), "RuhRohRaggy", "Test5: Improper binding of exception");
 end
 
 (* Test6 tests that catch clauses match before forbid clauses *)

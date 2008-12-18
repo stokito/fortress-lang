@@ -21,7 +21,7 @@ component SyntaxRepetition
   export SyntaxRepetition
 
   object SelectQuery(val:List[\String\]) 
-    toString():String = val
+    asString():String = val
   end
 
 (*  object GrammarHelper() 

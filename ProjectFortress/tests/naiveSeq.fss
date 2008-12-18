@@ -28,7 +28,7 @@ tst(a:Number, b:Number, c:String): () =
 object NewRange(lo:ZZ32,sz:ZZ32) extends Generator[\ZZ32\]
   getter size() = sz
   opr |self| : ZZ32 = sz
-  toString() = "[" lo "#" sz "]"
+  asString() = "[" lo "#" sz "]"
   generate[\R\](r:Reduction[\R\], m:ZZ32->R): R =
     if sz < 1 then
       r.empty()

@@ -91,11 +91,11 @@ run(args:String...):()=do
                              {3}  init init init init init {1}  {4}  init;
                              init init {5}  init {1}  init init {9}  init;
                              {9}  init {7}  {8}  init {4}  {6}  init {2} ]
-   println(board.toString())
+   println(board.asString())
    println("Starting parallel sudoku solver")
    recordTime(6.847)
    propagate(board)
    printTime(6.847)
-   println(board.toString())
+   println(board.asString())
 end
 end
