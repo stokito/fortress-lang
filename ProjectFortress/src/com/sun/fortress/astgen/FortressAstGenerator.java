@@ -371,13 +371,13 @@ public class FortressAstGenerator extends CodeGenerator {
             if ( c.isAbstract() ){
                 writer.println(sub( "trait @name @extends @fields end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c) ));
             } else {
-                String toString;
+                String asString;
                 if ( isApi ){
-                    toString = "toString():String";
+                    asString = "asString():String";
                 } else {
-                    toString = sub("toString():String = \"@name\"", "@name", c.name());
+                    asString = sub("asString():String = \"@name\"", "@name", c.name());
                 }
-                writer.println(sub( "object @name @fields @extends\n @toString\n end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c), "@toString", toString ));
+                writer.println(sub( "object @name @fields @extends\n @asString\n end", "@name", c.name(), "@extends", extendsClause(c), "@fields", fields(c), "@asString", asString ));
             }
         }
     }
