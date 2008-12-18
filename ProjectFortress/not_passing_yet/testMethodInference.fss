@@ -28,13 +28,13 @@ end
 object true extends Boolean
 apply[\T\](x:T, y:T):T = x
 unary[\T\](x:T):T = x
-toString():String = "true"
+asString():String = "true"
 end
 
 object false extends Boolean
 apply[\T\](x:T, y:T):T = y
 unary[\T\](x:T):T = x
-toString():String = "false"
+asString():String = "false"
 end
 
 run(args:String...):() = do

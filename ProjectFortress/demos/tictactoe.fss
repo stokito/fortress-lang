@@ -33,7 +33,7 @@ playerOne = "X"
 playerTwo = "O"
 
 object IllegalMove(n) extends Exception
-    toString() = "Illegal move at " n
+    asString() = "Illegal move at " n
 end
 
 (* Returns a string copied x times *)
@@ -61,7 +61,7 @@ player(id) =
 
 (* Represents the tic-tac-toe board *)
 object Board(rows)
-    toString() = do
+    asString() = do
         var all:String = ""
         for y <- seq(0#boardSize) do
             for x <- seq(0#boardSize) do

@@ -22,6 +22,6 @@ export Sql
     end
 
     object SqlObject extends SqlThing
-        toString():String = "Sql"
+        asString():String = "Sql"
     end
 end

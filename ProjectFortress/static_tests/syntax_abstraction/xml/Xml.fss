@@ -24,7 +24,7 @@ component Xml
 
   trait Content
     hasElements():Boolean = false
-    toString():String
+    asString():String
   end
 
   object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
@@ -37,14 +37,14 @@ component Xml
         for x <- seq(content_) do
           s := s (typecase x of
                    Element => // x.toXml()
-                   else => x.toString()
+                   else => x.asString()
                   end)
         end
         s := s "</" endTag ">"
         s
       end
 
-    toString():String = toXml()
+    asString():String = toXml()
 
     children():List[\Element\] =
         content_.map[\Element\](fn x => cast[\Element\](x))
@@ -78,7 +78,7 @@ component Xml
   end
 
   object CData(v:String) extends Content
-    toString():String = v
+    asString():String = v
   end
 
 end

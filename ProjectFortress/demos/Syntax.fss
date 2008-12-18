@@ -29,7 +29,7 @@ initSyntax() = atomic in_id := 0
 (* abstract syntax tree *)
 trait Ast
   getId(): ZZ32
-  toString(): String
+  asString(): String
   toSource(): String
 end
 
@@ -39,8 +39,8 @@ object Program(decls: List[\FnDecl\], expr: Expr) extends Ast
   id = nextId()
   getId() = id
 
-  toString() =
-    (BIG //[d <- decls] (indent d.toString())) // // indent expr.toString()
+  asString() =
+    (BIG //[d <- decls] (indent d.asString())) // // indent expr.asString()
 
   toSource() =
     (BIG //[d <- decls] (indent d.toSource())) // // indent expr.toSource()
@@ -51,7 +51,7 @@ end
 object FnDecl(name: String, param: String, body: Expr) extends Ast
   id = nextId()
   getId() = id
-  toString() = name "_" id "(" param ") = " body.toString()
+  asString() = name "_" id "(" param ") = " body.asString()
   toSource() = name        "(" param ") = " body.toSource()
 end
 
@@ -66,23 +66,23 @@ trait Expr extends Ast comprises { Value, Var, App, If } end
 object Var(name: String) extends Expr
   id = nextId()
   getId() = id
-  toString() = name "_" id
+  asString() = name "_" id
   toSource() = name
 end
 
 object App(function: Expr, argument: Expr) extends Expr
   id = nextId()
   getId() = id
-  toString() = function.toString() "(_" id " " argument.toString() ")"
+  asString() = function.asString() "(_" id " " argument.asString() ")"
   toSource() = function.toSource() "("         argument.toSource() ")"
 end
 
 object If(cond: Expr, thenB: Expr, elseB: Expr) extends Expr
   id = nextId()
   getId() = id
-  toString() =
-    ("if_" id " " cond.toString() "\n" indent "then " thenB.toString() "\n"
-     indent "else " elseB.toString() "\n" indent "end")
+  asString() =
+    ("if_" id " " cond.asString() "\n" indent "then " thenB.asString() "\n"
+     indent "else " elseB.asString() "\n" indent "end")
   toSource() =
     ("if  "   " " cond.toSource() "\n" indent "then " thenB.toSource() "\n"
      indent "else " elseB.toSource() "\n" indent "end")
@@ -98,22 +98,22 @@ trait Value extends Expr comprises { FnExpr, True, False } end
 object FnExpr(param: String, body: Expr) extends Value
   id = nextId()
   getId() = id
-  toString() = "fn_" id " " param " => " body.toString()
+  asString() = "fn_" id " " param " => " body.asString()
   toSource() = "fn"     " " param " => " body.toSource()
 end
 
 object True extends Value
   id = nextId()
   getId() = id
-  toString() = "true"
-  toSource() = toString()
+  asString() = "true"
+  toSource() = asString()
 end
 
 object False extends Value
   id = nextId()
   getId() = id
-  toString() = "false"
-  toSource() = toString()
+  asString() = "false"
+  toSource() = asString()
 end
 
 end

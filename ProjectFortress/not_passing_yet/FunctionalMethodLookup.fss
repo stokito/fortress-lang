@@ -32,7 +32,7 @@ end
 (** Unord is the outcome of a CMP b when a and b are partially
     ordered and no ordering relationship exists between them. **)
 object Unord extends Comp
-    getter toString(): String = "Unord"
+    getter asString(): String = "Unord"
     opr EQL(self, other:Unord): Boolean = do
         println("Unord EQL Unord")
         true
@@ -61,7 +61,7 @@ trait TotalComp
 end
 
 object LessTh extends TotalComp
-    getter toString(): String = "LessTh"
+    getter asString(): String = "LessTh"
     opr EQL(self, other:LessTh): Boolean = do
         println("LessTh EQL LessTh")
         true
@@ -74,7 +74,7 @@ object LessTh extends TotalComp
 end
 
 object GreaterTh extends TotalComp
-    getter toString(): String = "GreaterTh"
+    getter asString(): String = "GreaterTh"
     opr EQL(self, other:GreaterTh): Boolean = do
         println("GreaterTh EQL GreaterTh")
         true
@@ -86,7 +86,7 @@ object GreaterTh extends TotalComp
 end
 
 object EqTo extends TotalComp
-    getter toString(): String = "EqTo"
+    getter asString(): String = "EqTo"
     opr EQL(self, other:EqTo): Boolean = do
         println("EqTo EQL EqTo")
         true
@@ -141,7 +141,7 @@ trait StdTotalOrder[\Self extends StdTotalOrder[\Self\]\]
 end
 
 object Foo extends StdPartialOrder[\Foo\]
-    getter toString():String = "Foo"
+    getter asString():String = "Foo"
     opr CMP(self, other:Foo):Comp = EqTo
 end
 

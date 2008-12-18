@@ -29,22 +29,22 @@ object rat(i:ZZ32, j:ZZ32)
   opr OTIMES(self, other:ZZ32):rat = rat(i OTIMES other, j OTIMES other)
   (* this next is not called, but it makes for a tricky overloading *)
   opr OTIMES(other:ZZ32, self):rat = rat(self.i OTIMES other, self.j OTIMES other)
-  toString():String = "(" i ", " j ")"
+  asString():String = "(" i ", " j ")"
   area():ZZ32 = i OTIMES j
 end
 
 run(args:String...):()=do
   a:rat = rat(1,0)
-  println a.toString()
+  println a.asString()
 
   b:rat = rat(0,1)
-  println b.toString()
+  println b.asString()
 
   c = a OPLUS b
-  println c.toString()
+  println c.asString()
 
   d = c OTIMES (2 OTIMES 2)
-  println d.toString()
+  println d.asString()
 
 end
 

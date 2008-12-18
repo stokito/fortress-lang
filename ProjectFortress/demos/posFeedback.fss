@@ -51,7 +51,7 @@ object Stats
     negOut = 0
     histogram = array2[\ZZ32,2,365\](0)
     overAYear : ZZ32 := 0
-    getter toString() = do
+    getter asString() = do
         (n0,med) = median(0#365, fn (i) =>
                                      histogram[posOut,i]+histogram[negOut,i])
         n = n0 + overAYear
@@ -127,9 +127,9 @@ object Entity(var positivity: ZZ32,
         array1[\ZZ32,10\](filler)
       end
 
-    getter toString(): String =
+    getter asString(): String =
         ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time //
-         facts.toString())
+         facts.asString())
 
     otherResult(result: ZZ32): ZZ32 = 1 - result
     eventToResult(kind: ZZ32): ZZ32 = (kind+1) DIV 2

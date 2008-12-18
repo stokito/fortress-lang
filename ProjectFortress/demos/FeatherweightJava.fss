@@ -92,12 +92,12 @@ trait Expr
   isVal(): Boolean = false
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr
     ensures { outcome.isVal() }
-  toString(): String
+  asString(): String
 end
 
 object Var(x: String) extends Expr
   opr =(self, other: Var) = (x = other.x)
-  toString(): String = x
+  asString(): String = x
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = theta[x]
 end
 
@@ -107,7 +107,7 @@ object New(tag: Type, args: List[\Expr\]) extends Expr
   opr =(self, other: New) =
     (tag = other.tag) AND (BIG AND[i <- args.indices()] args[i] = other.args[i])
 
-  toString() = "new " tag.toString() <|[\String\] a.toString() | a <- args|>
+  asString() = "new " tag.asString() <|[\String\] a.asString() | a <- args|>
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
     New(tag, <|[\Expr\] arg.eval(CT_, theta) | arg <- args |>)
@@ -117,7 +117,7 @@ object Proj(receiver: Expr, field: String) extends Expr
   opr =(self, other: Proj) =
     (receiver = other.receiver) AND (field = other.field)
 
-  toString() = (receiver.toString() "." field)
+  asString() = (receiver.asString() "." field)
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
     CT_.field(cast[\New\](receiver.eval(CT_, theta)), field)
@@ -127,7 +127,7 @@ object Invk(receiver: Expr, m_name: String, args: List[\Expr\]) extends Expr
   opr =(self, other: Invk) =
     (receiver = other.receiver) AND (m_name = other.m_name) AND (args = other.args)
 
-  toString() = (receiver.toString "." m_name args)
+  asString() = (receiver.asString "." m_name args)
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     rec_v = cast[\New\](receiver.eval(CT_, theta))
@@ -143,7 +143,7 @@ end
 object Cast(typ: Type, term: Expr) extends Expr
   opr =(self, other: Cast) = (typ = other.typ) AND (term = other.term)
 
-  toString() = ("(" typ.toString() ")" term.toString())
+  asString() = ("(" typ.asString() ")" term.asString())
 
   eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
     cast_v = cast[\New\](term.eval(CT_, theta))
@@ -155,14 +155,14 @@ end
 
 (* Types *)
 object Type(name: String)
-  toString() = name
+  asString() = name
   opr =(self, other:Type) = (name = other.name)
 end
 
 
 (* Syntactic Subcomponents *)
 object Decl(typ: Type, name: String)
-  toString() = typ " " name ";"
+  asString() = typ " " name ";"
 end
 object Cons(tag: Type, params: List[\Decl\],
             super: List[\Var\], this: List[\Init\])

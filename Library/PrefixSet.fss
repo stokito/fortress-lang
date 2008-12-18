@@ -53,7 +53,7 @@ export PrefixSet
    An ancillary method: joining strings by separating them with the given string
  ***)
 object StringJoinReduction(s:String) extends MonoidReduction[\String\]
-    getter toString():String = "StringJoinReduction(" s ")"
+    getter asString():String = "StringJoinReduction(" s ")"
     empty():String = ""
     join(a:String, b:String): String = do
         if   a.isEmpty() then
