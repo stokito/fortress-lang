@@ -38,15 +38,15 @@ end
 
 trait WriteStream extends { Closeable }
 
-    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms 
+    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms
         for writing characters to  a %WriteStream%. **)
-        
+
     abstract write(s: String):()
     abstract write(c: Char):()
-    
+
     (** %write(Any)% converts its argument to a String using %asString%
         and appends the result to the stream. **)
-    write(x: Any):() =  
+    write(x: Any):() =
             typecase x of
                 Object ⇒ write x.asString
                 else   ⇒ write ("" || x)                   (* handles tuples *)
@@ -58,14 +58,23 @@ trait WriteStream extends { Closeable }
         appended together to the end of the stream.  To avoid
         interleaving with concurrent output to the same stream, this
         append step is done monolithically. **)
-    writes(x:Generator[\Any\]):() = writes(x,"")   
+    writes(x:Generator[\Any\]):() = writes(x,"")
     writes(x: Generator[\Any\], rest: String):() =
-        write((BIG ||[e ← x] 
+        write((BIG ||[e ← x]
                    typecase e of
                         String ⇒ e
                         Object ⇒ e.asString
                         else   ⇒ ("" || e)                 (* handles tuples *)
                    end) || rest)
+
+    (** %print% and %println% convert each of their arguments to a
+        string using %asString% unless the element is already a
+        %String% in which case it is left alone.  The resulting
+        strings are appended together monolithically to the end of the
+        stream.  The %println% method also appends a newline.  Both
+        then flush the stream. *)
+    print(args:Any...): () = do writes(args,""); flush() end
+    println(args:Any...): () = do writes(args,"\n"); flush() end
 
     (** %flush% any output to the stream that is still buffered. **)
     abstract flush():()

@@ -37,14 +37,14 @@ end
 
 trait WriteStream extends { Closeable }
 
-    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms 
-        for writing characters to the end of a %WriteStream%. 
-        write(JavaString) need not be part of this api, since it is covered by 
+    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms
+        for writing characters to the end of a %WriteStream%.
+        write(JavaString) need not be part of this api, since it is covered by
         write(String) **)
-        
+
     write(c:Char):()
     write(s:String):()
-    
+
     (** %write(Any)% converts its argument to a String using %toString%
         and appends the result to the stream. **)
     write(x:Any):()
@@ -56,6 +56,15 @@ trait WriteStream extends { Closeable }
         interleaving with concurrent output to the same stream, this
         append step is done monolithically. **)
     writes(x:Generator[\Any\]):()
+
+    (** %print% and %println% convert each of their arguments to a
+        string using %asString% unless the element is already a
+        %String% in which case it is left alone.  The resulting
+        strings are appended together monolithically to the end of the
+        stream.  The %println% method also appends a newline.  Both
+        then flush the stream. *)
+    print(args:Any...): ()
+    println(args:Any...): ()
 
     (** %flush% any output to the stream that is still buffered. **)
     flush():()
