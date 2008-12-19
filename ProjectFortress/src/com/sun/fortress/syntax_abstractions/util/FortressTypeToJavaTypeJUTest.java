@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import junit.framework.TestCase;
 
@@ -37,7 +38,7 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     private Span span = NodeFactory.makeSpan("bogus");
 
-    private VarType stringType = NodeFactory.makeVarType(span, NodeFactory.makeId("FortressBuiltin", "String"));
+    private VarType stringType = NodeFactory.makeVarType(span, NodeFactory.makeId(WellKnownNames.fortressBuiltin(), "String"));
     private String stringTypeResult = "String";
     private VarType fortressASTType = NodeFactory.makeVarType(span, NodeFactory.makeId("FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";
@@ -68,17 +69,17 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     }
 
     public void testTypeTranslatorTraitTypeMaybeFortressASTType() {
-        TraitType type = mkTraitType("FortressLibrary", "Maybe", fortressASTType);
+        TraitType type = mkTraitType(WellKnownNames.fortressLibrary(), "Maybe", fortressASTType);
         assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeJustFortressASTType() {
-        TraitType type = mkTraitType("FortressLibrary", "Just", fortressASTType);
+        TraitType type = mkTraitType(WellKnownNames.fortressLibrary(), "Just", fortressASTType);
         assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
     public void testTypeTranslatorTraitTypeNothingFortressASTType() {
-        TraitType type = mkTraitType("FortressLibrary", "Nothing", fortressASTType);
+        TraitType type = mkTraitType(WellKnownNames.fortressLibrary(), "Nothing", fortressASTType);
         assertEquals(FortressTypeToJavaType.analyze(type), "Option<"+fortressASTTypeResult+">");
     }
 
@@ -96,13 +97,13 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     public void testTypeTranslatorTraitTypeMaybeListFortressASTType() {
         TraitType listType = mkTraitType("List", "List", fortressASTType);
-        TraitType listListType = mkTraitType("FortressLibrary", "Maybe", listType);
+        TraitType listListType = mkTraitType(WellKnownNames.fortressLibrary(), "Maybe", listType);
         assertEquals(FortressTypeToJavaType.analyze(listListType), "Option<List<"+fortressASTTypeResult+">>");
     }
 
     public void testTypeTranslatorTraitTypeMaybeListStringType() {
         TraitType listType = mkTraitType("List", "List", stringType);
-        TraitType listListType = mkTraitType("FortressLibrary", "Maybe", listType);
+        TraitType listListType = mkTraitType(WellKnownNames.fortressLibrary(), "Maybe", listType);
         assertEquals(FortressTypeToJavaType.analyze(listListType), "Option<List<"+stringTypeResult+">>");
     }
 

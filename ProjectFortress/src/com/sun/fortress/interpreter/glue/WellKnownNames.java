@@ -35,19 +35,14 @@ public class WellKnownNames {
         return "__builtinFactory"+rank;
     }
 
-    public final static String fortressLibrary = "FortressLibrary";
-    public final static String fortressBuiltin = "FortressBuiltin";
-    public final static String anyTypeLibrary = "AnyType";
-    public final static String executableApi = "Executable";
+    private static String _fortressLibrary = "FortressLibrary";
+    private static String _fortressBuiltin = "FortressBuiltin";
+    private static String _anyTypeLibrary = "AnyType";
+    private static final String _executableApi = "Executable";
+    private static final String _simpleExecutableApi = "SimpleExecutable";
 
-    public static final String[] defaultLibrary =
-        { anyTypeLibrary,
-          fortressLibrary,
-          fortressBuiltin,
-          //executableApi
-        //  "NatReflect",
-        //  "NativeArray"
-        };
+    private static String[] _defaultLibrary =
+        { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
 
     public final static String varargsFactoryName = "__immutableFactory1";
     public final static String arrayElementTypeName = "T";
@@ -79,6 +74,26 @@ public class WellKnownNames {
     public final static String callerViolationException = "CallerViolation";
     public final static String calleeViolationException = "CalleeViolation";
     public final static String labelException = "LabelException";
+
+    public static String fortressLibrary() { return _fortressLibrary; }
+    public static String fortressBuiltin() { return _fortressBuiltin; }
+    public static String anyTypeLibrary() { return _anyTypeLibrary; }
+    public static String[] defaultLibrary() { return _defaultLibrary; }
+
+    public static boolean exportsMain(String apiName) {
+        return (apiName.equals(_executableApi) || apiName.equals(_simpleExecutableApi));
+    }
+
+    /**
+     * Re-points fortressLibrary etc. to special compiler (rather than interpreter) versions
+     * of the code.  Hopefully temporary hack as we work on importing java objects cleanly.
+     */
+    public static void useCompilerLibraries() {
+        _fortressLibrary = "CompilerLibrary";
+        _fortressBuiltin = "CompilerBuiltin";
+        _defaultLibrary =
+            new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
+    }
 
     public final static String obfuscatedSingletonConstructorName(String fname, HasAt x) {
         // TODO Auto-generated method stub

@@ -244,7 +244,7 @@ public class TopLevelEnvGen {
 
         // XXX: SUPER DUPER HACKY
         // Rewrite the AST to include these builtin imports!
-        for(String builtinLib : WellKnownNames.defaultLibrary) {
+        for(String builtinLib : WellKnownNames.defaultLibrary()) {
             importedApiNames.add(builtinLib);
         }
 

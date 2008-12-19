@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Path;
 
@@ -54,7 +55,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
     	fssFiles[0] = "TestCompiledEnvironments";
     	fssFiles[1] = "TestCompiledImports"; 
     	fssFiles[2] = "TestCompiledNestedImports";
-    	fssFiles[3] = "FortressLibrary";
+    	fssFiles[3] = WellKnownNames.fortressLibrary();
     	
     	for(String fssFile : fssFiles) {
         	compileTestProgram(fssFile + ".fss");	

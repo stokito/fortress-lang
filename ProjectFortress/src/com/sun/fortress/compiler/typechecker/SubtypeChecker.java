@@ -101,7 +101,7 @@ public abstract class SubtypeChecker {
             try {
                 if (dims.size() == 1) {
                     ExtentRange first = dims.get(0);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Array1");
+                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array1");
                     StaticArg base;
                     if (first.getBase().isSome())
                          base = first.getBase().unwrap();
@@ -114,7 +114,7 @@ public abstract class SubtypeChecker {
                 } else if (dims.size() == 2) {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Array2");
+                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array2");
                     StaticArg base1;
                     StaticArg base2;
                     if (first.getBase().isSome())
@@ -136,7 +136,7 @@ public abstract class SubtypeChecker {
                     ExtentRange first  = dims.get(0);
                     ExtentRange second = dims.get(1);
                     ExtentRange third  = dims.get(2);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Array3");
+                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Array3");
                     StaticArg base1;
                     StaticArg base2;
                     StaticArg base3;
@@ -179,7 +179,7 @@ public abstract class SubtypeChecker {
                 if (first.getBase().isNone() && second.getBase().isNone() &&
                     first.getSize().isSome() && second.getSize().isSome()) {
                     Span span = NodeUtil.getSpan(tt);
-                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, "Matrix");
+                    Id name = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), "Matrix");
                     return NodeFactory.makeTraitType(span, false, name,
                                                      NodeFactory.makeTypeArg(tt.getElemType()),
                                                      first.getSize().unwrap(),

@@ -31,6 +31,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.TRUE;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.FALSE;
@@ -381,10 +382,10 @@ public class TypeAnalyzerJUTest extends TestCase {
     static {
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 
-        ApiIndex builtin = api("AnyType", absTrait("Any"));
+        ApiIndex builtin = api(WellKnownNames.anyTypeLibrary(), absTrait("Any"));
         apis.put(builtin.ast().getName(), builtin);
 
-        ApiIndex library = api("FortressBuiltin", absTrait("Object"));
+        ApiIndex library = api(WellKnownNames.fortressBuiltin(), absTrait("Object"));
         apis.put(library.ast().getName(), library);
 
         GLOBAL_ENV = new GlobalEnvironment.FromMap(apis);

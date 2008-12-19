@@ -357,10 +357,9 @@ public class NodeUtil {
     }
 
     private static List<APIName> removeExecutableApi(List<APIName> all){
-        APIName executable = NodeFactory.makeAPIName("Executable");
         List<APIName> fixed = new ArrayList<APIName>();
         for (APIName name : all){
-            if (! name.equals(executable)){
+            if (! WellKnownNames.exportsMain(name.getText())) {
                 fixed.add(name);
             }
         }
@@ -523,8 +522,8 @@ public class NodeUtil {
         Option<APIName> odn = n.getApiName();
         if (odn.isSome()) {
             APIName _odn = odn.unwrap();
-            if (_odn.getText().equals("FortressBuiltin")
-                || _odn.getText().equals("FortressLibrary")) {
+            if (_odn.getText().equals(WellKnownNames.fortressBuiltin())
+                || _odn.getText().equals(WellKnownNames.fortressLibrary())) {
                 return last;
             } else {
                 return nameString(odn.unwrap()) + "." + last;

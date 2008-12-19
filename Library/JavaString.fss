@@ -26,18 +26,18 @@ export JavaString
 private language="java"
 private package="com.sun.fortress.interpreter.glue.prim"
 
-  lineSeparator: String = LineSeparator()
-  
-  private natLineSeparator(): String = builtinPrimitive(
+lineSeparator: String = LineSeparator()
+
+private natLineSeparator(): String = builtinPrimitive(
             "com.sun.fortress.interpreter.glue.prim.Writer$LineSeparator")
 
-   private LineSeparator(): String =do 
-     JavaString; (* This initializes the constructor for JavaString
-                             before its type is used (in the next line). *)
-     natLineSeparator()
-   end
-   
-  object JavaString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
+private LineSeparator(): String =do
+    JavaString; (* This initializes the constructor for JavaString
+                   before its type is used (in the next line). *)
+    natLineSeparator()
+  end
+
+object JavaString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
     getter size() : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
     getter asExprString() : String =
@@ -46,31 +46,31 @@ private package="com.sun.fortress.interpreter.glue.prim"
     getter asStriing(): String = self
     getter asDebugString(): String = asDebugStringIndented(0)
     getter depth() = 0
-    
+
     (* With the help of trait DelegatedIndex, this defines our generate method *)
-    getter generator() : Generator⟦Char⟧ = 
+    getter generator() : Generator⟦Char⟧ =
         self.indices.map⟦Char⟧(fn (i:ZZ32):Char ⇒ self.get(i))
 
     getter isBalanced() = true
     getter isAlmostBalanced() = true
-    getter isExtremelyUnbalanced() = false 
-     
+    getter isExtremelyUnbalanced() = false
+
     opr |self| : ZZ32 =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Size")
-        
+
     uncheckedSubstring(r1: Range⟦ZZ32⟧) : String = do
-    (* We could build a subString node here, but not until everything is working, 
-        because that will introduce 
+    (* We could build a subString node here, but not until everything is working,
+        because that will introduce
        SubString objects into code that may still expect JavaStrings.
        As written, this method always answers a JavaString.
        In any case, the JavaString object supports substring without copying*)
-        assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty, 
+        assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty,
                     "Empty substring of non-empty string")
         if r1.isEmpty then ""
         else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
         end
     end
-        
+
     opr =(self, other: JavaString): Boolean =
         builtinPrimitive("com.sun.fortress.interpreter.glue.prim.JavaString$Eq")
     opr <(self, other: JavaString): Boolean = self.cmp(other) < 0
@@ -103,16 +103,16 @@ private package="com.sun.fortress.interpreter.glue.prim"
         i = javaIndexOf(c)
         if i = -1 then Nothing⟦ZZ32⟧ else Just⟦ZZ32⟧(i) end
       end
-      
+
     verify() = do
         assert(self.depth, 0, self)
     end
-    
+
     asDebugStringIndented(indent: ZZ32): String =
         spaces(indent) || "J" |self| "/" self.depth ":" self
-         
+
     opr ∈(c:Char, self): Boolean = self.javaIndexOf(c) ≠ -1
-    
+
     rangeContains(r: Range⟦ZZ32⟧, c: Char) = self.javaIndexOf(c) ∈ self.bounds[r]
 
     (** The operator %||% with at least one String argument converts to string and
@@ -121,7 +121,7 @@ private package="com.sun.fortress.interpreter.glue.prim"
         if b.isEmpty then self
         elif self.size + b.size > maxLeafSize then
              (* Since both self and b have depth 0, balancing can't be necessary *)
-            CatString(self, b)     
+            CatString(self, b)
         else
             javaConcat(self, b)
         end
@@ -130,11 +130,11 @@ private package="com.sun.fortress.interpreter.glue.prim"
     opr ||(self, b:String):String = do
         if self.isEmpty then b
         elif b.isEmpty then self
-        elif self.size + b.size > maxLeafSize then 
+        elif self.size + b.size > maxLeafSize then
             concatAndBalanceIfNecessary(self, b)
-        else 
+        else
             javaConcat(self, b.asJavaString)
-        end 
+        end
     end
 
     opr ||(self, b:Char): String =
@@ -143,12 +143,12 @@ private package="com.sun.fortress.interpreter.glue.prim"
         else
             javaConcat(self, b)
         end
-        
+
     splitWithOffsets() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
     split() = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
 
     writeOn(stream: WriteStream): () = stream.write(self)
- 
-  end JavaString
-  
+
+end JavaString
+
 end
