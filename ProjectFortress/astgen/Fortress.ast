@@ -1467,7 +1467,7 @@ interface Node() extends HasAt;
                          * not created during parsing but during evaluation
                          * e.g.) name for "object extends List cons(x) = Cons(x, self) end"
                          */
-                        ConstructorFnName(ObjectConstructor def);
+                        ConstructorFnName(ObjectConstructor constructor);
             /**
              * array comprehension clause
              * ArrayComprehensionClause ::= ArrayComprehensionLeft | GeneratorClauseList
