@@ -659,8 +659,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<APIName> exports_result = recurOnListOfAPIName(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
-        decls_result.add( new _RewriteObjectExprDecl(NodeUtil.getSpan(com), objectExprs) );
-        decls_result.add( new _RewriteFunctionalMethodDecl(NodeUtil.getSpan(com), Useful.list(functionals)) );
+        decls_result.add( NodeFactory.make_RewriteObjectExprDecl(NodeUtil.getSpan(com), objectExprs) );
+        decls_result.add( NodeFactory.make_RewriteFunctionalMethodDecl(NodeUtil.getSpan(com), Useful.list(functionals)) );
 
         AbstractNode nn = NodeFactory.makeComponent(NodeUtil.getSpan(com),
                                                     name_result, imports_result,
@@ -918,7 +918,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             for (LValue lv : lhs) {
                 Id newName = NodeFactory.makeId(at, "$" + element_index);
                 Option<Type> type = lv.getIdType();
-                newdecls.add(new VarDecl(at, Useful.list(lv),
+                newdecls.add(NodeFactory.makeVarDecl(at, Useful.list(lv),
                                          Option.<Expr>some(ExprFactory.makeFieldRef(at, init, newName))));
                 element_index++;
             }
@@ -1114,7 +1114,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
                                                                    WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
-        args.add(new TypeArg(sp,NodeFactory.makeVarType(sp,
+        args.add(NodeFactory.makeTypeArg(sp,NodeFactory.makeVarType(sp,
                                                         NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
                                                         Environment.TOP_LEVEL)));
 
@@ -1659,7 +1659,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Span sp = NodeUtil.getSpan(e);
             GeneratorClause cond =
                 ExprFactory.makeGeneratorClause(sp, Useful.<Id>list(), e);
-            If _if = ExprFactory.makeIf(sp, new IfClause(sp,cond,b),
+            If _if = ExprFactory.makeIf(sp, NodeFactory.makeIfClause(sp,cond,b),
                                         ExprFactory.makeThrow(sp,"CallerViolation"));
             b = ExprFactory.makeBlock(sp, _if);
         }
@@ -1679,12 +1679,12 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                                    e.getPost());
             If _inner_if =
                 ExprFactory.makeIf(sp,
-                                   new IfClause(sp, cond, inner_block),
+                                   NodeFactory.makeIfClause(sp, cond, inner_block),
                                    ExprFactory.makeThrow(sp, WellKnownNames.calleeViolationException));
 
             cond = ExprFactory.makeGeneratorClause(sp,
                                                    Useful.<Id>list(), (Expr) ExprFactory.makeVarRef(sp,t1));
-            If _if = ExprFactory.makeIf(sp, new IfClause(sp, cond,
+            If _if = ExprFactory.makeIf(sp, NodeFactory.makeIfClause(sp, cond,
                                                          ExprFactory.makeBlock(sp,_inner_if)),
                                         ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,WellKnownNames.outcome)));
             LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,WellKnownNames.outcome), b, _if);
@@ -1709,7 +1709,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             GeneratorClause gen_chain = ExprFactory.makeGeneratorClause(sp,
                                                                         Useful.<Id>list(), chain);
             If _post =
-                ExprFactory.makeIf(sp, new IfClause(sp,gen_chain,
+                ExprFactory.makeIf(sp, NodeFactory.makeIfClause(sp,gen_chain,
                                                     ExprFactory.makeBlock(sp,
                                                                           ExprFactory.makeVarRef(sp,
                                                                                                  WellKnownNames.outcome))),

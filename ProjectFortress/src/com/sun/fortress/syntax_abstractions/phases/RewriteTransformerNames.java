@@ -97,12 +97,14 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         return result;
     }
 
-    @Override public Node forPreTransformerDefOnly(PreTransformerDef that, Transformer transformer) {
+    @Override public Node forPreTransformerDefOnly(PreTransformerDef that,
+                                                   Transformer transformer) {
         try {
             Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
             List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
-            return new NamedTransformerDef(NodeFactory.makeSpan("RewriteTransformerNames.forPreTransformerDefOnly"), name, params, transformer );
+            return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan("RewriteTransformerNames.forPreTransformerDefOnly")),
+                                           name, params, transformer );
         } catch (OptionUnwrapException e){
             throw new MacroError("Somehow got to a pretransformer node but api/grammar/parameters wasn't set", e);
         }

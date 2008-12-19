@@ -45,7 +45,7 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
     private TraitType mkTraitType(String api, String id, BaseType typeArg) {
         Id name = NodeFactory.makeId(api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
-        args.add(new TypeArg(span, typeArg));
+        args.add(NodeFactory.makeTypeArg(span, typeArg));
         return NodeFactory.makeTraitType(span, name, args);
     }
 

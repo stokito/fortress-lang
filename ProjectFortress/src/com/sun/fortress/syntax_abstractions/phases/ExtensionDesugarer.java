@@ -46,6 +46,7 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SuperSyntaxDef;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.tools.FortressAstToConcrete;
@@ -144,7 +145,8 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         // Recombine into GrammarDecl
         GrammarDecl result =
-            new GrammarDecl(NodeUtil.getSpan(grammar), grammar.getName(), grammar.getExtendsClause(),
+            new GrammarDecl(NodeFactory.makeSpanInfo(NodeUtil.getSpan(grammar)),
+                            grammar.getName(), grammar.getExtendsClause(),
                            newMembers, grammar.getTransformers(), grammar.isNativeDef());
         Debug.debug(Debug.Type.SYNTAX, 3,
                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
@@ -254,11 +256,11 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         if (theSpan == null) theSpan = NodeUtil.getSpan(name); // FIXME: maybe pick a better span
         for (GrammarIndex eg : extendingGrammars) {
             if (availableGrammarNames.contains(eg.getName())) {
-                resultDecls.add(new SuperSyntaxDef(theSpan, Option.some("private"),
+                resultDecls.add(new SuperSyntaxDef(NodeFactory.makeSpanInfo(theSpan), Option.some("private"),
                                                    name, eg.getName()));
             }
         }
-        return new NonterminalExtensionDef(theSpan, name, resultDecls);
+        return new NonterminalExtensionDef(NodeFactory.makeSpanInfo(theSpan), name, resultDecls);
     }
 
     private static boolean hasPublicParts(NonterminalExtendIndex ni) {

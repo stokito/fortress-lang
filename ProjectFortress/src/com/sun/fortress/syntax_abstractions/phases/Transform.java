@@ -117,8 +117,9 @@ public class Transform extends TemplateUpdateVisitor {
         Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
         Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() + " in hygiene environment = " + var_result);
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                         exprType_result);
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
+                                                 exprType_result);
         return forVarRefOnly(that, info, var_result, that.getStaticArgs());
     }
 
@@ -154,7 +155,7 @@ public class Transform extends TemplateUpdateVisitor {
             }
         });
         Expr init_result = (Expr) recur(that.getInit());
-        return new GeneratorClause(NodeFactory.makeSpan(newIds, init_result), newIds, init_result);
+        return NodeFactory.makeGeneratorClause(NodeFactory.makeSpan(newIds, init_result), newIds, init_result);
     }
 
     public Node forIfClause(IfClause that) {
@@ -180,8 +181,9 @@ public class Transform extends TemplateUpdateVisitor {
             });
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                             exprType_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
             return forForOnly(that, info, gens_result, body_result);
         } else {
             return super.forFor(that);
@@ -195,7 +197,8 @@ public class Transform extends TemplateUpdateVisitor {
             GeneratorClause test_result = handleGeneratorClause(that.getTestExpr());
             Do body_result = (Do) recur(that.getBody());
             setSyntaxEnvironment(save);
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
                                                      exprType_result);
             return forWhileOnly(that, info, test_result, body_result);
         } else {
@@ -225,8 +228,9 @@ public class Transform extends TemplateUpdateVisitor {
                 target_result = Option.some(syntaxEnvironment.lookup(target_result.unwrap()));
             }
             Option<Expr> returnExpr_result = recurOnOptionOfExpr(that.getReturnExpr());
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                             exprType_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
             return forExitOnly(that, info, target_result, returnExpr_result);
         } else {
             return super.forExit(that);
@@ -291,8 +295,9 @@ public class Transform extends TemplateUpdateVisitor {
                                                         where_result, throwsClause_result,
                                                         Option.<Contract>none(), params_result,
                                                         returnType_result);
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                             exprType_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
             Node ret = forFnExprOnly(that, info, header, body_result);
             setSyntaxEnvironment(save);
             return ret;
@@ -398,8 +403,9 @@ public class Transform extends TemplateUpdateVisitor {
                         });
                 }
             });
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                             exprType_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
             Node ret = forLetFnOnly(that, info, body_result, fns_result);
             setSyntaxEnvironment(save);
             return ret;
@@ -443,8 +449,9 @@ public class Transform extends TemplateUpdateVisitor {
                 }
             });
             */
-            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
-                                             exprType_result);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
             Node ret = forLocalVarDeclOnly(that, info, body_result, lhs_result, rhs_result);
             setSyntaxEnvironment(save);
             return ret;
@@ -532,14 +539,16 @@ public class Transform extends TemplateUpdateVisitor {
 
                 /* the type of the transformer doesn't matter */
 		Node newNode =
-		    new _SyntaxTransformationExpr(new Span(), curried.getSyntaxTransformer(),
+		    new _SyntaxTransformationExpr(NodeFactory.makeExprInfo(new Span()),
+                                                  curried.getSyntaxTransformer(),
 						  vars, new LinkedList<String>());
                 return new Level(binding.getLevel(), newNode.accept( this ) );
             }
         }
     }
 
-    @Override public Node forTemplateGapOnly(TemplateGap that, Id gapId_result,
+    @Override public Node forTemplateGapOnly(TemplateGap that,
+                                             Id gapId_result,
 					     List<Id> templateParams_result) {
         /* another annoying cast */
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );

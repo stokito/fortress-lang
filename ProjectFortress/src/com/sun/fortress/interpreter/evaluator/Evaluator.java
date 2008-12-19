@@ -139,6 +139,7 @@ import com.sun.fortress.nodes._RewriteFnRef;
 import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes._RewriteObjectExprRef;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -1215,7 +1216,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private MathItem dummyExpr() {
         Span span = new Span();
         Expr dummyE = ExprFactory.makeVoidLiteralExpr(span);
-        return new NonParenthesisDelimitedMI(span, dummyE);
+        return NodeFactory.makeNonParenthesisDelimitedMI(span, dummyE);
     }
 
     private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs,
