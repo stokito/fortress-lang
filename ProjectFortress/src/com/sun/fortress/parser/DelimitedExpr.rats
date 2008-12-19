@@ -85,7 +85,7 @@ Expr DelimitedExpr =
    / for w a1:GeneratorClauseList w a2:DoFront w end
      { yyValue = ExprFactory.makeFor(createSpan(yyStart,yyCount), a1, a2); }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
-     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        Option<Block> elseC = Option.wrap(a4);
@@ -93,7 +93,7 @@ Expr DelimitedExpr =
      }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
      (w end)? &(w closeparen)
-     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
@@ -101,7 +101,7 @@ Expr DelimitedExpr =
      }
    / openparen w if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
        (w end)? w closeparen
-     { IfClause ic = new IfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
@@ -219,7 +219,7 @@ Expr TupleExpr =
 
 /* KeywordExpr ::= BindId w = w Expr */
 private KeywordExpr KeywordExpr = a1:BindId w equals w a2:Expr
-     { yyValue = new KeywordExpr(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeKeywordExpr(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Parenthesized ::= ( w Expr w ) */
 Expr Parenthesized =
@@ -232,7 +232,7 @@ List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
 
 /* Elif ::= elif w GeneratorClause w then w BlockElems */
 private IfClause Elif = elif w a1:GeneratorClause w then w a2:BlockElems
-     { yyValue = new IfClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeIfClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Else ::= else w BlockElems */
 Block Else = else w yyValue:BlockElems;
@@ -269,7 +269,7 @@ private List<TypecaseClause> TypecaseClauses =
 /* TypecaseClause ::= TypecaseTypes w => w BlockElems */
 TypecaseClause TypecaseClause =
      a1:TypecaseTypes w match w a2:BlockElems
-     { yyValue = new TypecaseClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeTypecaseClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TypecaseTypes ::=
      ( w TypeList w )
@@ -281,7 +281,7 @@ List<Type> TypecaseTypes =
 
 /* Catch ::= catch w BindId w CatchClauses */
 Catch Catch = catch w a1:BindId w a2:CatchClauses
-     { yyValue = new Catch(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeCatch(createSpan(yyStart,yyCount), a1, a2); };
 
 /* CatchClauses ::= CatchClause (br CatchClause)* */
 private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
@@ -289,7 +289,7 @@ private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
 
 /* CatchClause ::= TraitType w => w BlockElems */
 private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
-     { yyValue = new CatchClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeCatchClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* MapExpr ::= { StaticArgs? (w EntryList)? w } */
 Expr MapExpr =

@@ -181,7 +181,7 @@ Type Domain =
 
 /* KeywordType ::= BindId w = w Type */
 private KeywordType KeywordType = a1:BindId w equals w a2:Type
-     { yyValue = new KeywordType(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeKeywordType(createSpan(yyStart,yyCount), a1, a2); };
 
 /* TupleType ::= ( w Type w , w TypeList w ) */
 TupleType TupleType =
@@ -249,7 +249,7 @@ constant inline Action<Type> ArrayTypeSize =
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
 private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
      { List<ExtentRange> es = FortressUtil.mkList(a1, a2s.list());
-       yyValue = new Indices(createSpan(yyStart,yyCount), es);
+       yyValue = NodeFactory.makeIndices(createSpan(yyStart,yyCount), es);
      };
 
 /* ExtentRange ::=
@@ -261,7 +261,7 @@ ExtentRange ExtentRange =
      a1:(StaticArg w)? pound a2:(w StaticArg)?
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "#");
-       yyValue = new ExtentRange(span,
+       yyValue = NodeFactory.makeExtentRange(span,
                                  Option.wrap(a1),
                                  Option.wrap(a2),
                                  Option.wrap(op));
@@ -269,13 +269,13 @@ ExtentRange ExtentRange =
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "#");
-       yyValue = new ExtentRange(span,
+       yyValue = NodeFactory.makeExtentRange(span,
                                  Option.wrap(a1),
                                  Option.wrap(a2),
                                  Option.wrap(op));
      }
    / a1:StaticArg
-     { yyValue = new ExtentRange(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeExtentRange(createSpan(yyStart,yyCount),
                                  Option.<StaticArg>none(),
                                  Option.some(a1),
                                  Option.<Op>none());

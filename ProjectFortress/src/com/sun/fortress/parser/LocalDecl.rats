@@ -226,6 +226,6 @@ private void UnpastingDim =
 
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */
 CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems
-     { yyValue = new CaseClause(createSpan(yyStart,yyCount), a1, a2,
+     { yyValue = NodeFactory.makeCaseClause(createSpan(yyStart,yyCount), a1, a2,
                                 Option.<FunctionalRef>none());
      };

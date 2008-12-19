@@ -1216,7 +1216,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     private MathItem dummyExpr() {
         Span span = new Span();
         Expr dummyE = ExprFactory.makeVoidLiteralExpr(span);
-        return NodeFactory.makeNonParenthesisDelimitedMI(span, dummyE);
+        return ExprFactory.makeNonParenthesisDelimitedMI(span, dummyE);
     }
 
     private List<Pair<MathItem,FValue>> stepTwo(List<Pair<MathItem,FValue>> vs,

@@ -54,7 +54,7 @@ public CompilationUnit File =
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = new Api(span, name, a1, a2);
+       yyValue = NodeFactory.makeApi(span, name, a1, a2);
      }
    / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
@@ -68,8 +68,8 @@ public CompilationUnit File =
      { Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = new Api(span, name, Collections.<Import>emptyList(),
-                         Collections.<Decl>emptyList());
+       yyValue = NodeFactory.makeApi(span, name, Collections.<Import>emptyList(),
+                                     Collections.<Decl>emptyList());
      };
 
 /* CompilationUnit ::=
@@ -111,7 +111,7 @@ private Api Api =
      { if (a2 == null) a2 = Collections.<Import>emptyList();
        List<Decl> a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
-       yyValue = new Api(span, a1, a2, a3);
+       yyValue = NodeFactory.makeApi(span, a1, a2, a3);
      };
 
 /* Imports ::= Import (br Import)* */
@@ -133,7 +133,7 @@ private List<Import> Import =
      { Option<String> fl;
        if ( a1 == null ) fl = Option.<String>none();
        else              fl = Option.<String>some(a1);
-       Import imp = new ImportApi(createSpan(yyStart, yyCount), fl, a2);
+       Import imp = NodeFactory.makeImportApi(createSpan(yyStart, yyCount), fl, a2);
        yyValue = FortressUtil.mkList(imp);
      }
    / import w ImportedNames;
@@ -209,7 +209,7 @@ private List<Import> ImportedNames =
        if ( a1 == null ) fl = Option.<String>none();
        else              fl = Option.<String>some(a1);
        if (a3 == null) a3 = Collections.<IdOrOpOrAnonymousName>emptyList();
-       yyValue = FortressUtil.mkList((Import)new ImportStar(
+       yyValue = FortressUtil.mkList((Import)NodeFactory.makeImportStar(
                                              createSpan(yyStart,yyCount),fl,a2,a3));
      }
    / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
@@ -218,10 +218,10 @@ private List<Import> ImportedNames =
        if ( a1 == null ) fl = Option.<String>none();
        else              fl = Option.<String>some(a1);
        Span span = createSpan(yyStart,yyCount);
-       List<Import> imports = FortressUtil.mkList((Import)new ImportNames(span,fl,
+       List<Import> imports = FortressUtil.mkList((Import)NodeFactory.makeImportNames(span,fl,
                                                                          a2,a3));
        if (a4 != null)
-           imports.add((Import)new ImportStar(span, fl,a2,
+           imports.add((Import)NodeFactory.makeImportStar(span, fl,a2,
                                Collections.<IdOrOpOrAnonymousName>emptyList()));
        yyValue = imports;
      }
@@ -241,8 +241,8 @@ private List<Import> ImportedNames =
        AliasedSimpleName an;
        if (a4 == null) an = NodeFactory.makeAliasedSimpleName(id);
        else            an = NodeFactory.makeAliasedSimpleName(id, a4);
-       Import imp = new ImportNames(createSpan(yyStart,yyCount), fl, api,
-                                    FortressUtil.mkList(an));
+       Import imp = NodeFactory.makeImportNames(createSpan(yyStart,yyCount), fl, api,
+                                                FortressUtil.mkList(an));
        yyValue = FortressUtil.mkList(imp);
      }
    / <ErrorProduction>

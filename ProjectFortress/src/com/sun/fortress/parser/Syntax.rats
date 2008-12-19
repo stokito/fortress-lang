@@ -53,7 +53,7 @@ option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX
 public GrammarDecl GrammarDef =
      native w grammar w a1:Id a3s:(br NonterminalDecl)* w end
      { List<Id> extendedGrammars = Collections.<Id>emptyList();
-       yyValue = new GrammarDecl(createSpan(yyStart,yyCount), a1, extendedGrammars,
+       yyValue = new GrammarDecl(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1, extendedGrammars,
                                  a3s.list(),
                                  new LinkedList<TransformerDecl>(),
                                  /*native*/ true); }
@@ -61,7 +61,7 @@ public GrammarDecl GrammarDef =
      { List<Id> ids = new ArrayList<Id>();
        if ( a2 == null) ids = Collections.<Id>emptyList();
        else { ids.addAll(a2); }
-       yyValue = new GrammarDecl(createSpan(yyStart,yyCount), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
+       yyValue = new GrammarDecl(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1, ids, a3s.list(), new LinkedList<TransformerDecl>(), false); };
 
 /* GrammarExtends ::= extends w QualifiedNames */
 List<Id> GrammarExtends = extends w QualifiedNames ;
@@ -82,13 +82,13 @@ private GrammarMemberDecl NonterminalDef =
       name:Id w void:bar w void:colonequals w a4:SyntaxExtensionDef a4s:(w SyntaxExtensionDefOr)*
       { List<SyntaxDecl> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalExtensionDef(createSpan(yyStart,yyCount), name, syntaxDefs); }
+        yyValue = new NonterminalExtensionDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs); }
     /  header:NonterminalHeader w void:colon astType:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Id name = header.getName();
         Option<BaseType> astType1 = Option.wrap(astType);
         List<SyntaxDecl> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), name, syntaxDefs, header, astType1); }
+        yyValue = new NonterminalDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs, header, astType1); }
     /  yyValue:NonterminalDecl;
 
 /* Only nonterminal decls are allowed within native grammars */
@@ -97,7 +97,7 @@ private GrammarMemberDecl NonterminalDecl =
       { Id name = header.getName();
         Option<BaseType> astType1 = Option.wrap(astType);
         List<SyntaxDecl> syntaxDefs = Collections.<SyntaxDecl>emptyList();
-        yyValue = new NonterminalDef(createSpan(yyStart,yyCount), name, syntaxDefs, header, astType1); };
+        yyValue = new NonterminalDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs, header, astType1); };
 
 private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
@@ -111,7 +111,7 @@ private NonterminalHeader NonterminalHeader =
               where = Option.<WhereClause>none();
           else
               where = Option.some(whereClauses);
-          yyValue = new NonterminalHeader(createSpan(yyStart, yyCount), mod, name,
+          yyValue = new NonterminalHeader(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), mod, name,
                                           params, staticParams, type1, where);
         };
 
@@ -129,7 +129,7 @@ private List<NonterminalParameter> DeclList =
 
 private NonterminalParameter Decl =
         a1:Id colon a2:TraitType
-        { yyValue = new NonterminalParameter(createSpan(yyStart,yyCount),
+        { yyValue = new NonterminalParameter(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
                                              a1,a2); };
 
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
@@ -157,17 +157,17 @@ String SuperChoiceModifier =
 
 TransformerDecl PreTransformerDecl =
      transformer:PreTransformer
-     { yyValue = new PreTransformerDef(createSpan(yyStart,yyCount), transformer); };
+     { yyValue = new PreTransformerDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), transformer); };
 
 Transformer PreTransformer =
      case w pvar:Id w of w clauses:CaseTransformerClauses w end
-     { yyValue = new CaseTransformer(createSpan(yyStart,yyCount), pvar, clauses); }
+     { yyValue = new CaseTransformer(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), pvar, clauses); }
    / nt:(Id w)? leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
      { Id nt1 = nt;
        if (nt1 == null) {
           nt1 = NodeFactory.makeId(createSpan(yyStart,yyCount), "Expr");
        }
-       yyValue = new UnparsedTransformer(createSpan(yyStart,yyCount), a1, nt1); };
+       yyValue = new UnparsedTransformer(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1, nt1); };
 
 List<CaseTransformerClause> CaseTransformerClauses =
      a1:CaseTransformerClause a2s:(br CaseTransformerClause)*
@@ -175,9 +175,9 @@ List<CaseTransformerClause> CaseTransformerClauses =
 
 CaseTransformerClause CaseTransformerClause =
      c:Id w openparen w gaps:BindIdList w closeparen w void:separator w transformer:PreTransformer
-     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, gaps, transformer); }
+     { yyValue = new CaseTransformerClause(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), c, gaps, transformer); }
      / c:Id w void:separator w transformer:PreTransformer
-     { yyValue = new CaseTransformerClause(createSpan(yyStart,yyCount), c, new LinkedList<Id>(), transformer); };
+     { yyValue = new CaseTransformerClause(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), c, new LinkedList<Id>(), transformer); };
 
 String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
@@ -202,48 +202,55 @@ List<SyntaxSymbol> Symbs = a1:SpaceOrBreakline+ a2:SyntaxSymbol
 
 SyntaxSymbol SpaceOrBreakline =
       a1:sr
-      { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+      { yyValue = new WhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1); }
     /  yyValue:Breakline;
 
 SyntaxSymbol SyntaxSymbol =
       Not w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new NotPredicateSymbol(NodeUtil.getSpan(s1), tmp));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                           new NotPredicateSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s1)), tmp));
         }
         else {
-           yyValue = new NotPredicateSymbol(createSpan(yyStart,yyCount), s1);
+           yyValue = new NotPredicateSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s1);
         }}
     / And w s1:SymbolMod
       {  if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new AndPredicateSymbol(NodeUtil.getSpan(s1), tmp));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                           new AndPredicateSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s1)), tmp));
         }
         else {
-           yyValue = new AndPredicateSymbol(createSpan(yyStart,yyCount), s1);
+           yyValue = new AndPredicateSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s1);
         }}
     / yyValue:SymbolMod;
 
 SyntaxSymbol SymbolMod =
     s:Single questionmark
       { if ( s instanceof NoWhitespaceSymbol ){
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new OptionalSymbol(NodeUtil.getSpan(s), ((NoWhitespaceSymbol)s).getSymbol()));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                           new OptionalSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s)), ((NoWhitespaceSymbol)s).getSymbol()));
         } else {
-	  yyValue = new OptionalSymbol(createSpan(yyStart,yyCount), s);
+	  yyValue = new OptionalSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s);
 	}
       }
     / s:Single star
       { if ( s instanceof NoWhitespaceSymbol ){
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatSymbol(NodeUtil.getSpan(s), ((NoWhitespaceSymbol)s).getSymbol()));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                           new RepeatSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s)),
+                                                            ((NoWhitespaceSymbol)s).getSymbol()));
         } else {
-	  yyValue = new RepeatSymbol(createSpan(yyStart,yyCount), s);
+	  yyValue = new RepeatSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s);
 	}
       }
     / s:Single plus
       { if ( s instanceof NoWhitespaceSymbol ){
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new RepeatOneOrMoreSymbol(NodeUtil.getSpan(s), ((NoWhitespaceSymbol)s).getSymbol()));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                           new RepeatOneOrMoreSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s)),
+                                                                     ((NoWhitespaceSymbol)s).getSymbol()));
         } else {
-	  yyValue = new RepeatOneOrMoreSymbol(createSpan(yyStart,yyCount), s);
+	  yyValue = new RepeatOneOrMoreSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s);
 	}
       }
     / yyValue:Single;
@@ -252,9 +259,11 @@ SyntaxSymbol Single =
     yyValue:GroupSymbol
     / s:BaseSymbol
     { if ( s instanceof NoWhitespaceSymbol ){
-        yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(((NoWhitespaceSymbol) s).getSymbol())) );
+        yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
+                                         new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)),
+                                                         FortressUtil.mkList(((NoWhitespaceSymbol) s).getSymbol())) );
       } else {
-        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), FortressUtil.mkList(s)); }
+            yyValue = new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), FortressUtil.mkList(s)); }
       }
     ;
 
@@ -263,9 +272,10 @@ SyntaxSymbol BaseSymbol =
       { if (s1 instanceof NoWhitespaceSymbol) {
           SyntaxSymbol tmp = ((NoWhitespaceSymbol) s1).getSymbol();
 
-          yyValue = new NoWhitespaceSymbol(createSpan(yyStart, yyCount), new PrefixedSymbol(NodeUtil.getSpan(s1), a1, tmp));
+          yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)),
+                                           new PrefixedSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(s1)), a1, tmp));
         } else {
-          yyValue = new PrefixedSymbol(createSpan(yyStart,yyCount), a1, s1);
+          yyValue = new PrefixedSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1, s1);
         }}
     / yyValue:Symbol
     ;
@@ -273,40 +283,40 @@ SyntaxSymbol BaseSymbol =
 SyntaxSymbol GroupSymbol =
       "{" w syms:SyntaxSymbolsX w "}"
       {
-        yyValue = new GroupSymbol(createSpan(yyStart, yyCount), syms);
+          yyValue = new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), syms);
       };
 
 SyntaxSymbol Breakline = a1:breakline
-      { yyValue = new BreaklineSymbol(createSpan(yyStart,yyCount), a1); };
+      { yyValue = new BreaklineSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1); };
 
 SyntaxSymbol Symbol =
       a1:Item hash
-      { yyValue = new NoWhitespaceSymbol(createSpan(yyStart,yyCount), a1); }
+      { yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1); }
      / yyValue:Item;
 
 SyntaxSymbol Item =
       !(w separator) s:ItemText
-      { yyValue = new ItemSymbol(createSpan(yyStart,yyCount), s); }
+      { yyValue = new ItemSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), s); }
     /  openSquareBraket a1:CharacterClass* closeSquareBraket
-      { yyValue = new CharacterClassSymbol(createSpan(yyStart,yyCount), a1.list()); }
+      { yyValue = new CharacterClassSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), a1.list()); }
     /  anyChar
-      { yyValue = new AnyCharacterSymbol(createSpan(yyStart,yyCount)); }
+      { yyValue = new AnyCharacterSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); }
     /  Tab
-      { yyValue = new TabSymbol(createSpan(yyStart,yyCount)); }
+      { yyValue = new TabSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); }
     /  Formfeed
-      { yyValue = new FormfeedSymbol(createSpan(yyStart,yyCount)); }
+      { yyValue = new FormfeedSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); }
     /  Return
-      { yyValue = new CarriageReturnSymbol(createSpan(yyStart,yyCount)); }
+      { yyValue = new CarriageReturnSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); }
     /  Newline
-      { yyValue = new NewlineSymbol(createSpan(yyStart,yyCount)); }
+      { yyValue = new NewlineSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); }
     /  Space
-      { yyValue = new WhitespaceSymbol(createSpan(yyStart,yyCount), " "); }
+      { yyValue = new WhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), " "); }
     /  Backspace
-      { yyValue = new BackspaceSymbol(createSpan(yyStart,yyCount)); };
+      { yyValue = new BackspaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount))); };
 
 CharacterSymbol CharacterClass =
-       c1:Char colon c2:Char { yyValue = new CharacterInterval(createSpan(yyStart,yyCount), c1, c2); }
-    / c1:Char { yyValue = new CharSymbol(createSpan(yyStart,yyCount), c1); };
+       c1:Char colon c2:Char { yyValue = new CharacterInterval(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), c1, c2); }
+    / c1:Char { yyValue = new CharSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), c1); };
 
 String Char =
     Tab

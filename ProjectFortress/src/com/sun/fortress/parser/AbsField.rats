@@ -45,14 +45,14 @@ VarDecl ApiFldDecl =
      a1:ApiFldMods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        FortressUtil.validId(a2);
-       yyValue = new VarDecl(createSpan(yyStart,yyCount), a2, Option.<Expr>none());
+       yyValue = NodeFactory.makeVarDecl(createSpan(yyStart,yyCount), a2, Option.<Expr>none());
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
        FortressUtil.validId(lvs);
-       yyValue = new VarDecl(createSpan(yyStart,yyCount), lvs, Option.<Expr>none());
+       yyValue = NodeFactory.makeVarDecl(createSpan(yyStart,yyCount), lvs, Option.<Expr>none());
      }
    / a1:ApiFldMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
      { Span span = createSpan(yyStart,yyCount);
@@ -63,5 +63,5 @@ VarDecl ApiFldDecl =
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
        FortressUtil.validId(lvs);
-       yyValue = new VarDecl(span, lvs, Option.<Expr>none());
+       yyValue = NodeFactory.makeVarDecl(span, lvs, Option.<Expr>none());
      };

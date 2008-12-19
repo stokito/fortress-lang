@@ -119,7 +119,7 @@ TypeAlias TypeAlias =
            log(span, a1 + " is not a valid type name.");
            id = NodeFactory.bogusId(span);
        }
-       yyValue = new TypeAlias(span, id, a2, a3);
+       yyValue = NodeFactory.makeTypeAlias(span, id, a2, a3);
      };
 
 /* TestDecl ::= test w Id w [ w GeneratorClauseList w ] w = w NoNewlineExpr */
@@ -134,7 +134,7 @@ TestDecl TestDecl =
            log(span, a1 + " is not a valid test name.");
            id = NodeFactory.bogusId(span);
        }
-       yyValue = new TestDecl(span, id, a2, a3);
+       yyValue = NodeFactory.makeTestDecl(span, id, a2, a3);
      };
 
 /* PropertyDecl ::=
@@ -156,5 +156,5 @@ PropertyDecl PropertyDecl =
            }
        }
        if (a2 == null) a2 = FortressUtil.emptyParams();
-       yyValue = new PropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
+       yyValue = NodeFactory.makePropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
      };

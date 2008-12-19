@@ -54,29 +54,29 @@ transient List<WhereConstraint> WhereConstraintList =
  */
 transient WhereConstraint WhereConstraint =
      a1:Id w a2:Extends
-     { yyValue = new WhereExtends(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = NodeFactory.makeWhereExtends(createSpan(yyStart,yyCount), a1, a2); }
    / <ErrorProduction> a1:OpName w a2:Extends
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid type parameter name.");
        Id id = NodeFactory.bogusId(span);
-       yyValue = new WhereExtends(span, id, a2);
+       yyValue = NodeFactory.makeWhereExtends(span, id, a2);
      }
    / a1:TypeAlias
-     { yyValue = new WhereTypeAlias(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeWhereTypeAlias(createSpan(yyStart,yyCount), a1); }
    / a1:Type w coerces w a2:Type
-     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
                                   true, false);
      }
    / a1:Type w widens w a2:Type
-     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
                                   false, true);
      }
    / UnitConstraint
    / a1:QualifiedName w equals w a2:QualifiedName
-     { yyValue = new WhereEquals(createSpan(yyStart,yyCount), a1, a2); }
+     { yyValue = NodeFactory.makeWhereEquals(createSpan(yyStart,yyCount), a1, a2); }
    / IntConstraint
    / a1:BoolConstraint
-     { yyValue = new BoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeBoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
 
 /* UnitConstraint ::=
      dimensionless w = w Id
@@ -84,20 +84,20 @@ transient WhereConstraint WhereConstraint =
  */
 transient UnitConstraint UnitConstraint =
      "dimensionless" w equals w a1:Id
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeUnitConstraint(createSpan(yyStart,yyCount), a1); }
    / a1:Id w equals w "dimensionless"
-     { yyValue = new UnitConstraint(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeUnitConstraint(createSpan(yyStart,yyCount), a1); }
    / <ErrorProduction1> "dimensionless" w equals w a1:OpName
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid unit name.");
        Id id = NodeFactory.bogusId(span);
-       yyValue = new UnitConstraint(span, id);
+       yyValue = NodeFactory.makeUnitConstraint(span, id);
      }
    / <ErrorProduction2> a1:OpName w equals w "dimensionless"
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid unit name.");
        Id id = NodeFactory.bogusId(span);
-       yyValue = new UnitConstraint(span, id);
+       yyValue = NodeFactory.makeUnitConstraint(span, id);
      };
 
 /* IntConstraint ::=
@@ -110,23 +110,23 @@ transient UnitConstraint UnitConstraint =
 transient private IntConstraint IntConstraint =
      a1:IntExpr w lessthanequal w a2:IntExpr
      { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "<=");
-       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
      }
    / a1:IntExpr w lessthan w a2:IntExpr
      { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "<");
-       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
      }
    / a1:IntExpr w greaterthanequal w a2:IntExpr
      { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), ">=");
-       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
      }
    / a1:IntExpr w greaterthan w a2:IntExpr
      { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), ">");
-       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
      }
    / a1:IntExpr w equals w a2:IntExpr
      { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "=");
-       yyValue = new IntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
      };
 
 /* IntVal ::=
@@ -135,7 +135,7 @@ transient private IntConstraint IntConstraint =
  */
 transient IntExpr IntVal =
      a1:IntLiteralExpr
-     { yyValue = new IntBase(createSpan(yyStart,yyCount), false, a1); }
+     { yyValue = NodeFactory.makeIntBase(createSpan(yyStart,yyCount), false, a1); }
    / a1:QualifiedName
      { yyValue = NodeFactory.makeIntRef(createSpan(yyStart,yyCount), a1); };
 
@@ -224,7 +224,7 @@ transient private BoolConstraint BoolConstraintFront =
      NOT w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op not = NodeFactory.makeOpPrefix(span, "NOT");
-       yyValue = new BoolUnaryOp(span, false, a1, not);
+       yyValue = NodeFactory.makeBoolUnaryOp(span, false, a1, not);
      }
    / a1:BoolConstraintHead w OR w a2:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
@@ -306,9 +306,9 @@ private constant inline Action<BoolConstraint> EqualsBoolConstraint =
  */
 transient private BoolExpr BoolVal =
      a1:"true"
-     { yyValue = new BoolBase(createSpan(yyStart,yyCount), false, true); }
+     { yyValue = NodeFactory.makeBoolBase(createSpan(yyStart,yyCount), false, true); }
    / a1:"false"
-     { yyValue = new BoolBase(createSpan(yyStart,yyCount), false, false); }
+     { yyValue = NodeFactory.makeBoolBase(createSpan(yyStart,yyCount), false, false); }
    / a1:QualifiedName
      { yyValue = NodeFactory.makeBoolRef(createSpan(yyStart,yyCount), a1); };
 
@@ -328,7 +328,7 @@ transient private BoolExpr BoolExprFront =
    / NOT w a1:BoolExpr
      { Span span = createSpan(yyStart,yyCount);
        Op not = NodeFactory.makeOpPrefix(span, "NOT");
-       yyValue = new BoolUnaryOp(span, false, a1, not);
+       yyValue = NodeFactory.makeBoolUnaryOp(span, false, a1, not);
      };
 
 private constant transient Action<BoolExpr> BoolExprTail =
@@ -395,10 +395,10 @@ transient UnitExpr UnitExpr =
 transient private UnitExpr UnitExprFront =
      a1:"dimensionless"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new UnitRef(span, false, NodeFactory.makeId(span, a1));
+       yyValue = NodeFactory.makeUnitRef(span, false, NodeFactory.makeId(span, a1));
      }
    / a1:QualifiedName
-     { yyValue = new UnitRef(createSpan(yyStart,yyCount), false, a1); }
+     { yyValue = NodeFactory.makeUnitRef(createSpan(yyStart,yyCount), false, a1); }
    / openparen w a1:UnitExpr w closeparen
      { yyValue = NodeFactory.makeInParentheses(a1); };
 
@@ -413,7 +413,7 @@ private constant inline Action<UnitExpr> ProductUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op product = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), " ");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
+               return NodeFactory.makeUnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, product);
            }};
      };
@@ -423,7 +423,7 @@ private constant inline Action<UnitExpr> QuotientUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op quotient = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "/");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
+               return NodeFactory.makeUnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, quotient);
            }};
      };
@@ -433,7 +433,7 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
      { yyValue = new Action<UnitExpr>() {
            public UnitExpr run(UnitExpr base) {
                Op exponent = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "^");
-               return new UnitBinaryOp(createSpan(yyStart,yyCount), false,
+               return NodeFactory.makeUnitBinaryOp(createSpan(yyStart,yyCount), false,
                                        (UnitExpr)base, a1, exponent);
            }};
      };
@@ -505,7 +505,7 @@ transient Contract Contract =
        Option<List<EnsuresClause>> ensures = Option.wrap(a2);
        Option<List<Expr>> invariant = Option.wrap(a3);
        if (a1 == null && a2 == null && a3 == null) yyValue = null;
-       else yyValue = new Contract(createSpan(yyStart,yyCount), requires,
+       else yyValue = NodeFactory.makeContract(createSpan(yyStart,yyCount), requires,
                                    ensures, invariant);
      };
 
@@ -530,7 +530,7 @@ transient private List<EnsuresClause> EnsuresClauseList =
 /* EnsuresClause ::= Expr (w provided w Expr)? */
 transient private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
      { Option<Expr> ensures = Option.wrap(a2);
-       yyValue = new EnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
+       yyValue = NodeFactory.makeEnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
      };
 
 /* Invariant::= invariant w { (w ExprList)? w } */
@@ -558,29 +558,29 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
  */
 StaticArg StaticArg =
      a1:Op
-     { yyValue = new OpArg(createSpan(yyStart,yyCount), ExprFactory.makeOpRef(a1)); }
+     { yyValue = NodeFactory.makeOpArg(createSpan(yyStart,yyCount), ExprFactory.makeOpRef(a1)); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /
                       w OR / w AND / w IMPLIES / w equals) /
        "Unity" / "dimensionless" / "true" / "false")
      a1:IntExpr
-     { yyValue = new IntArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeIntArg(createSpan(yyStart,yyCount), a1); }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow) /
        "Unity" / "dimensionless")
      a1:BoolExpr
-     { yyValue = new BoolArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeBoolArg(createSpan(yyStart,yyCount), a1); }
    / a1:"true"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolArg(span, new BoolBase(span, false, true));
+       yyValue = NodeFactory.makeBoolArg(span, NodeFactory.makeBoolBase(span, false, true));
      }
    / a1:"false"
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new BoolArg(span, new BoolBase(span, false, false));
+       yyValue = NodeFactory.makeBoolArg(span, NodeFactory.makeBoolBase(span, false, false));
      }
    / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
      a1:Type
-     { yyValue = new TypeArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeTypeArg(createSpan(yyStart,yyCount), a1); }
    / a1:UnitExpr
-     { yyValue = new UnitArg(createSpan(yyStart,yyCount), a1); }
+     { yyValue = NodeFactory.makeUnitArg(createSpan(yyStart,yyCount), a1); }
    ;
