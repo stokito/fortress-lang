@@ -700,7 +700,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 											Type ivt = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(method_name));
 											ConstraintFormula constraint=TypeChecker.this.subtypeChecker.subtype(ivt, NodeFactory.makeIntersectionType(bounds));
 											all_results.add(new TypeCheckerResult(that, Option.<Type>none(), constraint));
-											return new TypeArg(NodeFactory.makeSpan(ivt), ivt);
+											return NodeFactory.makeTypeArg(NodeFactory.makeSpan(ivt), ivt);
 										}
 										else{
 											return NI.nyi();
@@ -921,7 +921,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			result_type = Option.some(app_result.unwrap().first());
 		}
 		else {
-			String err = "Applicable overloading of function " + that.getFunction() + 
+			String err = "Applicable overloading of function " + that.getFunction() +
                             " could not be found for argument type " + argument_result.type(); // error message needs work
 			result = new TypeCheckerResult(that, TypeError.make(err, that));
 			result_type = Option.none();
@@ -1544,7 +1544,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			@Override public TypeCheckerResult forOpRef(OpRef that) {
                             if ( isPostInference(that) ) {
                                 Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
-                                return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()), 
+                                return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()),
                                                                       args_type, that, that.getOriginalName());
                             }
 
@@ -1555,7 +1555,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(arg_type, rhs_type), downwardConstraint);
 
                             if( app_result.isNone() ) {
-                                String err = "No overloading of " + that.getOriginalName() + " can be found that applies to types " + 
+                                String err = "No overloading of " + that.getOriginalName() + " can be found that applies to types " +
                                     arg_type + " and " + rhs_type + ".";
                                 return new TypeCheckerResult(that, TypeError.make(err, that));
                             }
@@ -1658,7 +1658,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					CaseClause that) {
 				TypeCheckerResult match_result = that.getMatchClause().accept(TypeChecker.this);
 				TypeCheckerResult body_result = that.getBody().accept(TypeChecker.this);
-				CaseClause new_node = new CaseClause(NodeUtil.getSpan(that), (Expr)match_result.ast(), (Block)body_result.ast(),
+				CaseClause new_node = NodeFactory.makeCaseClause(NodeUtil.getSpan(that), (Expr)match_result.ast(), (Block)body_result.ast(),
                                                                      that.getOp());
 				return Triple.<CaseClause,TypeCheckerResult,TypeCheckerResult>make(new_node, match_result, body_result);
 			}
@@ -1834,7 +1834,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			return Pair.<Type,TypeCheckerResult>make(block_type, TypeCheckerResult.compose(clause, subtypeChecker, e_r, match_result, block_result));
 		}
 		else {
-			CaseClause new_node = new CaseClause(NodeUtil.getSpan(clause),
+			CaseClause new_node = NodeFactory.makeCaseClause(NodeUtil.getSpan(clause),
                                                              (Expr)match_result.ast(),
                                                              (Block)block_result.ast(),
                                                              Option.<FunctionalRef>some(chosen_op));
@@ -1881,7 +1881,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 					TypesUtil.applicationType(subtypeChecker, arrow_type, new ArgList(param_type, match_type), downwardConstraint);
 
 				if( app_result_2.isSome() ) {
-					CaseClause new_node = new CaseClause(NodeUtil.getSpan(clause),
+					CaseClause new_node = NodeFactory.makeCaseClause(NodeUtil.getSpan(clause),
                                                                              (Expr)match_result.ast(),
                                                                              (Block)block_result.ast(),
                                                                              Option.<FunctionalRef>some((FunctionalRef)app_result_1.ast()));
@@ -1908,7 +1908,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			Option<Pair<Type, ConstraintFormula>> app_result_1 =
 				TypesUtil.applicationType(subtypeChecker, op_result.type().unwrap(), new ArgList(param_type, match_type), downwardConstraint);
 			if( app_result_1.isSome() ) {
-				CaseClause new_node = new CaseClause(NodeUtil.getSpan(clause),
+				CaseClause new_node = NodeFactory.makeCaseClause(NodeUtil.getSpan(clause),
                                                                      (Expr)match_result.ast(),
                                                                      (Block)block_result.ast(),
                                                                      Option.<FunctionalRef>some((FunctionalRef)op_result.ast()));
@@ -1945,7 +1945,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// resulting type is the join of those types
 		Type result_type = subtypeChecker.join(clause_types);
 
-		Catch new_node = new Catch(NodeUtil.getSpan(that),
+		Catch new_node = NodeFactory.makeCatch(NodeUtil.getSpan(that),
 				that.getName(),
 				(List<CatchClause>)TypeCheckerResult.astFromResults(clause_results));
 
@@ -1972,7 +1972,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		// result has body type
 		Option<Type> result_type = body_result.type();
 
-		CatchClause new_node = new CatchClause(NodeUtil.getSpan(that),
+		CatchClause new_node = NodeFactory.makeCatchClause(NodeUtil.getSpan(that),
 				(BaseType)match_result.ast(),
 				(Block)body_result.ast());
 
@@ -2073,7 +2073,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		}
 
-		Contract new_node = new Contract(NodeUtil.getSpan(that),
+		Contract new_node = NodeFactory.makeContract(NodeUtil.getSpan(that),
 				(Option<List<Expr>>)TypeCheckerResult.astFromResults(requires_result),
 				(Option<List<EnsuresClause>>)TypeCheckerResult.astFromResults(ensures_result),
 				(Option<List<Expr>>)TypeCheckerResult.astFromResults(invariants_result));
@@ -2651,7 +2651,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			TypeCheckerResult init_result, boolean mustBeCondition) {
 
 		if( that.getBind().isEmpty()) {
-			GeneratorClause new_node = new GeneratorClause(NodeUtil.getSpan(that),
+			GeneratorClause new_node = NodeFactory.makeGeneratorClause(NodeUtil.getSpan(that),
 					that.getBind(),
 					(Expr)init_result.ast());
 
@@ -2720,7 +2720,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			TypeCheckerResult subtype=this.checkSubtype(lhstype, generator_type, that.getInit(),tup_err_msg);
 			TypeCheckerResult suptype=this.checkSubtype(generator_type, lhstype, that.getInit(),tup_err_msg);
 			this_result = TypeCheckerResult.compose(that, subtypeChecker, suptype, subtype, generator_pair.first());
-			new_node = new GeneratorClause(NodeUtil.getSpan(that),
+			new_node = NodeFactory.makeGeneratorClause(NodeUtil.getSpan(that),
 					that.getBind(),
 					(Expr)init_result.ast());
 		}
@@ -2789,7 +2789,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		//return forIfClauseOnly(that, test_result, body_result);
 
 		Option<Type> result_type = body_result.type();
-		IfClause new_node = new IfClause(NodeUtil.getSpan(that),
+		IfClause new_node = NodeFactory.makeIfClause(NodeUtil.getSpan(that),
 				(GeneratorClause)test_result.ast(),
 				(Block)body_result.ast());
 
@@ -2868,7 +2868,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntArgOnly(IntArg that,
-			TypeCheckerResult val_result) {
+                                               TypeCheckerResult val_result) {
 		return new TypeCheckerResult(that);
 	}
 
@@ -3056,9 +3056,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
                             public MathItem value(Expr arg0) {
                                 if( NodeUtil.isParenthesized(arg0) || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
-                                    return new ParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
+                                    return NodeFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
                                 else
-                                    return new NonParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
+                                    return NodeFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
                             }}));
                 MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
                                                                NodeUtil.isParenthesized(that),
@@ -3255,7 +3255,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						item_iter.remove(); // remove fn from item list
 						// replace both with fn appication
 						_RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front, ((ExprMI)arg).getExpr());
-						item_iter.add(new NonParenthesisDelimitedMI(NodeUtil.getSpan(fn),fn));
+						item_iter.add(NodeFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(fn),fn));
 						// static error if the argument is immediately followed by a non-expression element.
 						if( item_iter.hasNext() ) {
 							Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
@@ -3310,7 +3310,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						// in our new MathPrimary, place this expression where it is
 						item_iter.previous();
 						item_iter.remove(); // remove the previous expression in the list.
-						MathItem new_item = new ParenthesisDelimitedMI(NodeUtil.getSpan(new_expr),new_expr);
+						MathItem new_item = NodeFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(new_expr),new_expr);
 						item_iter.add(new_item); // replace both item with new item
 						MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
                                                                                                       NodeUtil.isParenthesized(that),
@@ -3446,7 +3446,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntBaseOnly(IntBase that,
-			TypeCheckerResult val_result) {
+                                                TypeCheckerResult val_result) {
 		return new TypeCheckerResult(that);
 	}
 
@@ -4443,7 +4443,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 		}
 
-		VarDecl new_node = new VarDecl(NodeUtil.getSpan(that), that.getLhs(), Option.<Expr>some((Expr)initResult.ast()));
+		VarDecl new_node = NodeFactory.makeVarDecl(NodeUtil.getSpan(that), that.getLhs(), Option.<Expr>some((Expr)initResult.ast()));
 		return TypeCheckerResult.compose(new_node, subtypeChecker, subtype_result, initResult);
 	}
 

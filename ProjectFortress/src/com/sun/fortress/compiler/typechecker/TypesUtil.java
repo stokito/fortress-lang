@@ -170,7 +170,7 @@ public class TypesUtil {
                                     public StaticArg value(StaticParam arg0) {
                                         // This is only legal if StaticParam is a TypeParam!!!
                                         Type t = NodeFactory.make_InferenceVarType(NodeUtil.getSpan(arg0));
-                                        return new TypeArg(NodeFactory.makeSpan(t), t);
+                                        return NodeFactory.makeTypeArg(NodeFactory.makeSpan(t), t);
                                     }}));
                         }
                         else if( num_static_params != num_static_args ) {

@@ -273,7 +273,7 @@ public abstract class SubtypeChecker {
                     /** Handle arguments to opr parameters */
                     @Override public OpArg forOpArg(OpArg n) {
                         if (opSubs.containsKey(n.getName())) {
-                            return new OpArg(NodeUtil.getSpan(n),ExprFactory.makeOpRef(opSubs.get(n.getName())));
+                            return NodeFactory.makeOpArg(NodeUtil.getSpan(n),ExprFactory.makeOpRef(opSubs.get(n.getName())));
                         }
                         else { return n; }
                     }

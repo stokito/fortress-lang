@@ -226,13 +226,14 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     }
 
     private ExtentRange makeExtentRange(IntArg arg) {
-        return new ExtentRange(NodeUtil.getSpan(arg), Option.<StaticArg>none(),
-                               Option.<StaticArg>some(arg),
-                               Option.<Op>none());
+        return NodeFactory.makeExtentRange(NodeUtil.getSpan(arg),
+                                           Option.<StaticArg>none(),
+                                           Option.<StaticArg>some(arg),
+                                           Option.<Op>none());
     }
 
     private Option<Indices> makeIndices(List<ExtentRange> ext) {
-        return Option.some(new Indices(new Span(), ext));
+        return Option.some(NodeFactory.makeIndices(new Span(), ext));
     }
 
     public void testAbbreviatedSubtyping() {
@@ -328,7 +329,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(NodeUtil.getName(t.ast()), t);
         }
-        Api ast = new Api(span, NodeFactory.makeAPIName(name),
+        Api ast = NodeFactory.makeApi(span, NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,

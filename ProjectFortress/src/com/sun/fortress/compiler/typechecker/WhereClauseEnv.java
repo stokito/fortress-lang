@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class WhereClauseEnv extends StaticParamEnv {
         for (WhereBinding entry : whereClause.getBindings()) {
             if (entry.getKind() instanceof KindType &&
                 name.equals(entry.getName())) {
-                return Option.<StaticParam>wrap(new StaticParam(NodeUtil.getSpan(entry),
+                return Option.<StaticParam>wrap(NodeFactory.makeStaticParam(NodeUtil.getSpan(entry),
                                                                 entry.getName(),
                                                                 entry.getSupers(),
                                                                 Option.<Type>none(), false,
