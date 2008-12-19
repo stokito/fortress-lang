@@ -163,14 +163,14 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
     static class ParamToArg extends NodeAbstractVisitor<StaticArg> {
 
         private TypeArg idNameToTypeArg(Id idn) {
-            return new TypeArg(NodeUtil.getSpan(idn),
+            return NodeFactory.makeTypeArg(NodeUtil.getSpan(idn),
                                NodeFactory.makeVarType(NodeUtil.getSpan(idn), idn));
         }
 
         @Override
         public StaticArg forStaticParam(StaticParam that) {
             if ( NodeUtil.isOpParam(that) )
-        	return new OpArg(NodeUtil.getSpan(that), ExprFactory.makeOpRef((Op)that.getName()));
+        	return NodeFactory.makeOpArg(NodeUtil.getSpan(that), ExprFactory.makeOpRef((Op)that.getName()));
             else
                 return idNameToTypeArg((Id)that.getName());
         }

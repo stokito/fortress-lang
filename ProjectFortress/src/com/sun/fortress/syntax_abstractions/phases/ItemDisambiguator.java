@@ -111,7 +111,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex),
                                       that.getNonterminal());
         if (oname.isSome()) {
-            return new UnparsedTransformer(NodeFactory.makeSpan(that, oname.unwrap()), that.getTransformer(), oname.unwrap());
+            return new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that, oname.unwrap())),
+                                           that.getTransformer(), oname.unwrap());
         } else {
             throw new MacroError(that, "Cannot find non-terminal " + that.getNonterminal());
         }
@@ -145,15 +146,15 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     }
 
     private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
-        return new NonterminalSymbol(NodeUtil.getSpan(that), name);
+        return new NonterminalSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), name);
     }
 
     private KeywordSymbol makeKeywordSymbol(ItemSymbol that) {
-        return new KeywordSymbol(NodeUtil.getSpan(that), that.getItem());
+        return new KeywordSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), that.getItem());
     }
 
     private TokenSymbol makeTokenSymbol(ItemSymbol that) {
-        return new TokenSymbol(NodeUtil.getSpan(that), that.getItem());
+        return new TokenSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), that.getItem());
     }
 
     private static Id makeId(Span span, String item) {

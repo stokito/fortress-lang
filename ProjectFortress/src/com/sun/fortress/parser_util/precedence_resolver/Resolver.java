@@ -612,12 +612,12 @@ public class Resolver {
   {
       FunctionalRef _first = ExprFactory.makeOpRef(first);
     if (links.isEmpty()) {
-        return PureList.<Link>make(new Link(new Span(NodeUtil.getSpan(_first), NodeUtil.getSpan(last)),_first,last));
+        return PureList.<Link>make(NodeFactory.makeLink(new Span(NodeUtil.getSpan(_first), NodeUtil.getSpan(last)),_first,last));
     }
     else { // !links.isEmpty()
       Cons<ExprOpPair> _links = (Cons<ExprOpPair>)links;
       ExprOpPair link = _links.getFirst();
-      Link l = new Link(new Span(NodeUtil.getSpan(_first),NodeUtil.getSpan(link.getA())),_first, link.getA());
+      Link l = NodeFactory.makeLink(new Span(NodeUtil.getSpan(_first),NodeUtil.getSpan(link.getA())),_first, link.getA());
       Op op = NodeFactory.makeOpInfix(link.getB());
       return (buildLinks(op, _links.getRest(), last)).cons(l);
     }

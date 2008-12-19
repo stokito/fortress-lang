@@ -50,7 +50,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
         if (s.startsWith(ESCAPECHAR)) {
             int inx = 1;
             while(inx<s.length()-1) {
-                ls.add(new CharSymbol(NodeFactory.makeSpan("impossible", ls), ""+s.charAt(inx)));
+                ls.add(new CharSymbol(NodeFactory.makeSpanInfo(NodeFactory.makeSpan("impossible", ls)), ""+s.charAt(inx)));
                 inx++;
             }
             s = ""+s.charAt(s.length()-1);
@@ -65,7 +65,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
             end = ""+s.charAt(inx);
             inx++;
             while(inx<s.length()) {
-                ls.add(new CharSymbol(span, ""+s.charAt(inx)));
+                ls.add(new CharSymbol(NodeFactory.makeSpanInfo(span), ""+s.charAt(inx)));
                 inx++;
             }
             return end;
@@ -75,7 +75,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
 
     @Override
     public Node forAnyCharacterSymbol(AnyCharacterSymbol that) {
-        return new AnyCharacterSymbol(NodeUtil.getSpan(that));
+        return new AnyCharacterSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)));
     }
 
     @Override
@@ -90,7 +90,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                     String begin = removeLeadingEscape(that.getBeginSymbol(), head);
                     List<CharacterSymbol> tail = new LinkedList<CharacterSymbol>();
                     String end = removeTrailingEscape(NodeUtil.getSpan(that), that.getEndSymbol(), tail);
-                    head.add(new CharacterInterval(NodeUtil.getSpan(that), begin, end));
+                    head.add(new CharacterInterval(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), begin, end));
                     head.addAll(tail);
                     return head;
                 }
@@ -99,35 +99,35 @@ public class EscapeRewriter extends NodeUpdateVisitor {
                 public List<CharacterSymbol> forCharSymbol(CharSymbol that) {
                     List<CharacterSymbol> head = new LinkedList<CharacterSymbol>();
                     String s = removeLeadingEscape(that.getString(), head);
-                    head.add(new CharSymbol(NodeUtil.getSpan(that), s));
+                    head.add(new CharSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), s));
                     return head;
                 }
 
             });
             ls.addAll(ncs);
         }
-        return new CharacterClassSymbol(NodeUtil.getSpan(that), ls);
+        return new CharacterClassSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), ls);
     }
 
     @Override
     public Node forKeywordSymbol(KeywordSymbol that) {
         String s = removeEscape(that.getToken());
-        return new KeywordSymbol(NodeUtil.getSpan(that), s);
+        return new KeywordSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), s);
     }
 
     @Override
     public Node forTokenSymbol(TokenSymbol that) {
         String s = removeEscape(that.getToken());
-        return new TokenSymbol(NodeUtil.getSpan(that), s);
+        return new TokenSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), s);
     }
 
     @Override
-    public Node forPrefixedSymbolOnly(PrefixedSymbol that,
-                                      Id result_id,
-                                      SyntaxSymbol result_symbol) {
+        public Node forPrefixedSymbolOnly(PrefixedSymbol that,
+                                          Id result_id,
+                                          SyntaxSymbol result_symbol) {
         String s = removeEscape(result_id.getText());
         // TODO is span correct below?
-        return new PrefixedSymbol(NodeUtil.getSpan(that), NodeFactory.makeId(NodeUtil.getSpan(result_id), s), result_symbol);
+        return new PrefixedSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), NodeFactory.makeId(NodeUtil.getSpan(result_id), s), result_symbol);
     }
 
     private String removeEscape(String s) {

@@ -71,7 +71,7 @@ public class TemplateParser {
                                                       that.getTransformer(),
                                                       that.getNonterminal(),
                                                       parser);
-                                    return new NodeTransformer(NodeFactory.makeSpan(templateNode), templateNode);
+                                    return new NodeTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(templateNode)), templateNode);
                                 }
                             });
                     } else {
@@ -100,7 +100,7 @@ public class TemplateParser {
                                 TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);
                                 Transformer transformer =
                                     (Transformer) that.getTransformer().accept(tvs);
-                                return new NamedTransformerDef(NodeFactory.makeSpan(that), that.getName(),
+                                return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)), that.getName(),
                                                                that.getParameters(),
                                                                transformer);
                             }

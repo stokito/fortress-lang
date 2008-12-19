@@ -526,6 +526,17 @@ public class NodeFactory {
         return new Param(span, name, mods, type, expr, varargsType);
     }
 
+    /** temporary hack!!! **/
+    public static Span makeExprInfo(Span span) {
+        return span;
+    }
+    /** temporary hack!!! **/
+    public static ExprInfo makeExprInfo(Span span,
+                                        boolean parenthesized,
+                                        Option<Type> ty) {
+        return makeExprInfo(parenthesized, ty);
+    }
+
     public static ExprInfo makeExprInfo() {
         return makeExprInfo(false);
     }
