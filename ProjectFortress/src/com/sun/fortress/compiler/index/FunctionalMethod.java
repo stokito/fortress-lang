@@ -42,9 +42,8 @@ import edu.rice.cs.plt.tuple.Option;
  * (methods have distinct receivers).
  */
 public class FunctionalMethod extends Function {
-
-    private final FnDecl _ast;
-    private final Id _declaringTrait;
+    protected final FnDecl _ast;
+    protected final Id _declaringTrait;
 
     public FunctionalMethod(FnDecl ast, Id declaringTrait) {
         _ast = ast;

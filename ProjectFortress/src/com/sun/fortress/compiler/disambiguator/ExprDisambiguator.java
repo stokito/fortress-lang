@@ -1177,7 +1177,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         else {
             String op_name = IterUtil.first(that.getOp().getNames()).stringName();
-            error("Operator " + op_name + " cannot be disambiguated.", that.getOp());
+            error("Operator " + op_name + " is not defined.", that.getOp());
             op_result = (FunctionalRef)recur(that.getOp());
         }
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));

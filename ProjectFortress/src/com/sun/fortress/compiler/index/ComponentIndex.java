@@ -39,12 +39,13 @@ public class ComponentIndex extends CompilationUnitIndex {
                           Map<Id, Variable> variables,
                           Set<VarDecl> initializers,
                           Relation<IdOrOpOrAnonymousName, Function> functions,
+                          Set<ParametricOperator> parametricOperators,
                           Map<Id, TypeConsIndex> typeConses,
                           Map<Id, Dimension> dimensions,
                           Map<Id, Unit> units,
                           long modifiedDate) {
-        super(ast, variables, functions, typeConses,
-              dimensions, units, modifiedDate);
+        super(ast, variables, functions, parametricOperators, 
+              typeConses, dimensions, units, modifiedDate);
         _initializers = initializers;
     }
 

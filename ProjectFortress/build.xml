@@ -489,7 +489,6 @@ maintain proper indentation.
 
   <target name="compileAll" depends="compile"
           description="Compile all Fortress code.">
-    <property name="scala.not.cleaned" value="false"/>
     <scalac
         srcdir="${src}"
         destdir="${build}"

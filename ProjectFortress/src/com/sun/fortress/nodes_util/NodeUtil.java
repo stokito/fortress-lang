@@ -747,12 +747,17 @@ public class NodeUtil {
         };
 
 
+    /* Boolean functions for FnDecls. */
     public static boolean isGetter(FnDecl decl) {
         return getMods(decl).isGetter();
     }
 
     public static boolean isSetter(FnDecl decl) {
         return getMods(decl).isSetter();
+    }
+
+    public static boolean isOp(FnDecl decl) {
+        return getName(decl) instanceof Op;
     }
 
     /* for APIName ******************************************************/

@@ -34,6 +34,7 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Dimension;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ParametricOperator;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
@@ -64,6 +65,7 @@ import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.FilteredRelation;
+import edu.rice.cs.plt.collect.FilteredSet;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
@@ -640,6 +642,11 @@ public class TopLevelEnv extends NameEnv {
         return new ApiIndex((Api)index.ast(),
                             removeHelper(index.variables(), exceptions_),
                             new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
+                            // Parametric operators are parameterized by their names; they can't be filtered
+                            // in any straightforward way.
+                            // TODO: Do we need to attach lists of filtered operators to suppress
+                            // matching of certain parametric operators? EricAllen 12/18/2008
+                            index.parametricOperators(),
                             removeHelper(index.typeConses(), exceptions_),
                             removeHelper(index.dimensions(), exceptions_),
                             removeHelper(index.units(), exceptions_),
@@ -668,13 +675,18 @@ public class TopLevelEnv extends NameEnv {
         };
 
         return new ApiIndex((Api)index.ast(),
-                keepHelper(index.variables(), allowed_),
-                new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
-                keepHelper(index.typeConses(), allowed_),
-                keepHelper(index.dimensions(), allowed_),
-                keepHelper(index.units(), allowed_),
-                index.grammars(),
-                index.modifiedDate());
+                            keepHelper(index.variables(), allowed_),
+                            new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
+                            // Parametric operators are parameterized by their names; they can't be filtered
+                            // in any straightforward way.
+                            // TODO: Do we need to attach lists of filtered operators to suppress
+                            // matching of certain parametric operators? EricAllen 12/18/2008
+                            index.parametricOperators(),
+                            keepHelper(index.typeConses(), allowed_),
+                            keepHelper(index.dimensions(), allowed_),
+                            keepHelper(index.units(), allowed_),
+                            index.grammars(),
+                            index.modifiedDate());
     }
 
     /**

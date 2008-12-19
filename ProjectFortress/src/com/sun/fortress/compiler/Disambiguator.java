@@ -285,14 +285,14 @@ public class Disambiguator {
         IndexBuilder.ComponentResult new_comp_ir =
         	IndexBuilder.buildComponents(new_comps, System.currentTimeMillis());
         
-        // Finall, disambiguate the expressions
+        // Finally, disambiguate the expressions
         for( Component comp : new_comps ) {
         	ComponentIndex index = new_comp_ir.components().get(comp.getName());
         	if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
         	
-        	// Filter evn based on what this component imports
+        	// Filter env based on what this component imports
 //       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
 //       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
         	NameEnv env = new TopLevelEnv(globalEnv, index, errors);

@@ -156,7 +156,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
                 // A type declared in the AST.  Has 0 type arguments.        
                 public String forTreeNode(ClassName t) {
-                    return t.name();
+                    return "com.sun.fortress.nodes." + t.name();
                 }
 
                 // A primitive type
@@ -189,12 +189,12 @@ public class ScalaAstGenerator extends CodeGenerator {
 
                 // A list, set, or other subtype of java.lang.Iterable.
                 public String forSequenceClass(SequenceClassName t) {
-                    return sub("List[@type]", "@type", t.elementType().accept(this));
+                    return sub("_root_.java.util.List[@type]", "@type", t.elementType().accept(this));
                 }
 
                 // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument. 
                 public String forOptionClass(OptionClassName t) {
-                    return sub("Option[@type]", "@type", t.elementType().accept(this));
+                    return sub("edu.rice.cs.plt.tuple.Option[@type]", "@type", t.elementType().accept(this));
                 }
 
                 // A tuple (see definition in TupleName documentation). 
@@ -208,8 +208,12 @@ public class ScalaAstGenerator extends CodeGenerator {
 
                     // Handle types for which ASTGen provides no hooks,
                     // but that we still want to treat specially.
-                    if (t.className().equals("java.util.Map")) { name.append("Map"); }
-                    else { name.append(t.className()); }
+                    if (t.className().equals("Map")) { name.append("_root_.java.util.Map"); }
+                    else if (t.className().equals("BigInteger")) { name.append("_root_.java.math." + t.className()); }
+                    else if (t.className().equals("Object")) { name.append("_root_.java.lang." + t.className()); }
+                    else if (t.className().equals("Span")) { name.append("com.sun.fortress.nodes_util." + t.className()); }
+                    else if (t.className().equals("Modifiers")) { name.append("com.sun.fortress.nodes_util." + t.className()); }
+                    else { name.append("com.sun.fortress.nodes." + t.className()); }
 
                     // Handle type arguments.
                     // Note: This will not work with nested generic types. 
@@ -223,7 +227,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                         } else {
                             name.append(", ");
                         }
-                        name.append(arg.name());
+                        if (arg.name().equals("String")) { name.append(arg.name()); }
+                        else { name.append("com.sun.fortress.nodes." + arg.name()); }
                     }
                     if (! first) { name.append("]"); }
 
@@ -349,6 +354,27 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
     /**
+     * Given a String (denoting a receiver name) and a NodeType, return a string denoting calls
+     * to the getters of that type, separated by commas and enclosed in parentheses.
+     */
+    private String getterCalls(String receiverName, NodeType box) {
+        if (mkList(box.allFields(ast)).isEmpty()) {
+            return "()";
+        } else {
+            StringBuffer buffer = new StringBuffer("(");
+            boolean first = true;
+            for ( Field field : box.allFields(ast)) {
+                if (first) { first = false; }
+                else { buffer.append( ", " ); }
+
+                buffer.append(sub("@receiver.@getter()", "@receiver", receiverName, "@getter", field.getGetterName()));
+            }
+            buffer.append(")");
+            return buffer.toString();
+        }
+    }
+
+    /**
      * Given a String denoting a wrapper function and a NodeType, return a String consisting 
      * of a sequence of calls to the wrapper function, passing each field of the given type to 
      * the wrapper function in turn. Calls are separated by commas and enclosed in 
@@ -445,67 +471,29 @@ public class ScalaAstGenerator extends CodeGenerator {
      * Given a PrintWriter, write out all Scala declarations for Fortress.ast.
      */
     private void generateBody(PrintWriter writer) {
-        // Generate type definitions.
-        for (NodeInterface box : sort(getInterfaces())) {
-            writer.println(sub("trait @name @extends {@fields}",
-                               "@name", box.name(), 
-                               "@extends", extendsClause(box), 
-                               "@fields", fields(box)));
-        }
+
+         // Generate extractor objects
+         for (NodeInterface box : sort(getInterfaces())) {
+            writer.println(sub("object @name {", "@name", box.name()));
+            writer.println(sub("   def unapply(node:com.sun.fortress.nodes.@name) = ", "@name", box.name()));
+            writer.println(sub("      Some(@getterCalls)", "@getterCalls", getterCalls("node", box)));
+            writer.println(sub("}"));
+         }
+
         for (NodeClass c : sort(ast.classes())) {
             if (ignoreClass(c.name())) { continue; }
 
-            if (c.isAbstract()) {
-                writer.println(sub("abstract class @name @fields @extends", 
-                                   "@name", c.name(), 
-                                   "@fields", fields(c), 
-                                   "@extends", extendsClause(c)));
-            } else {
-                writer.println(sub("case class @name @fields @extends", 
-                                   "@name", c.name(), 
-                                   "@fields", fields(c), 
-                                   "@extends", extendsClause(c)));
+            writer.println(sub("object @name {", "@name", c.name()));
+            writer.println(sub("   def unapply(node:com.sun.fortress.nodes.@name) = ", "@name", c.name()));
+            writer.println(sub("      Some(@getterCalls)", "@getterCalls", getterCalls("node", c)));
+
+            // For concrete classes, generate a simulated constructor with an apply method. 
+            if (! c.isAbstract()) { 
+                writer.println(sub("   def apply@fields = ", "@fields", fields(c)));
+                writer.println(sub("      new com.sun.fortress.nodes.@name@fieldsNoTypes", "@name", c.name(), "@fieldsNoTypes", fieldsNoTypes(c)));
             }
+            writer.println(sub("}"));
         }
-
-        // Generate translator.
-        writer.println();
-        writer.println("object Translator {");
-        writer.println("   def toJavaAst(node:Any):Any = {");
-        writer.println("       node match {");
-        for (NodeClass c : sort(ast.classes())) {
-            if (ignoreClass(c.name())) { continue; }
-            if ( c.isAbstract() ){ continue; } 
-
-            writer.println(sub( "         case @name@fieldsNoTypes =>", 
-                                "@name", c.name(), 
-                                "@fieldsNoTypes", fieldsNoTypes(c)));
-            writer.println(sub("             new com.sun.fortress.nodes.@name@wrappedFieldCalls",
-                               "@name", c.name(), 
-                               "@wrappedFieldCalls", wrappedFieldCalls("toJavaAst", c)));
-        }
-        writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
-        writer.println("         case _ => node");
-        writer.println("      }");
-        writer.println("   }");
-        writer.println();
-        writer.println("   def toScalaAst(node:Any):Any = {");
-        writer.println("       node match {");
-        for (NodeClass c : sort(ast.classes())) {
-            if (ignoreClass(c.name())) { continue; }
-            if ( c.isAbstract() ){ continue; } 
-            String caseName = "a" + c.name();
-
-            writer.println(sub( "         case @caseName:com.sun.fortress.nodes.@name =>", "@caseName", caseName, "@name", c.name()));
-            writer.println(sub("             @name@wrappedFieldCalls",
-                               "@name", c.name(), 
-                               "@wrappedFieldCalls", wrappedFieldCalls(caseName, "toScalaAst", c)));
-        }
-        writer.println("         case xs:List[_] => Lists.toJavaList(xs)");
-        writer.println("         case _ => node");
-        writer.println("      }");
-        writer.println("   }");
-        writer.println("}");
 
         // Generate walker.
         writer.println();

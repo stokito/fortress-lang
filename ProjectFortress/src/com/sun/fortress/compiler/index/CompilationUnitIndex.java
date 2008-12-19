@@ -38,6 +38,7 @@ public abstract class CompilationUnitIndex {
     private final CompilationUnit _ast;
     private final Map<Id, Variable> _variables;
     private final Relation<IdOrOpOrAnonymousName, Function> _functions;
+    private final Set<ParametricOperator> _parametricOperators;
     private final Map<Id, TypeConsIndex> _typeConses;
     private final Map<Id, Dimension> _dimensions;
     private final Map<Id, Unit> _units;
@@ -46,6 +47,7 @@ public abstract class CompilationUnitIndex {
     public CompilationUnitIndex(CompilationUnit ast,
                                 Map<Id, Variable> variables,
                                 Relation<IdOrOpOrAnonymousName, Function> functions,
+                                Set<ParametricOperator> parametricOperators,
                                 Map<Id, TypeConsIndex> typeConses,
                                 Map<Id, Dimension> dimensions,
                                 Map<Id, Unit> units,
@@ -53,6 +55,7 @@ public abstract class CompilationUnitIndex {
         _ast = ast;
         _variables = CollectUtil.immutable(variables);
         _functions = CollectUtil.immutable(functions);
+        _parametricOperators = CollectUtil.immutable(parametricOperators);
         _typeConses = CollectUtil.immutable(
                           CollectUtil.union(typeConses, 
                                   CollectUtil.union(dimensions, units)));
@@ -80,6 +83,8 @@ public abstract class CompilationUnitIndex {
     public Map<Id, Variable> variables() { return _variables; }
 
     public Relation<IdOrOpOrAnonymousName, Function> functions() { return _functions; }
+    
+    public Set<ParametricOperator> parametricOperators() { return _parametricOperators; }
 
     public Map<Id, TypeConsIndex> typeConses() { return _typeConses; }
     
