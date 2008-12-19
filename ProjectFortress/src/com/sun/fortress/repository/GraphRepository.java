@@ -74,9 +74,6 @@ import edu.rice.cs.plt.tuple.OptionUnwrapException;
  */
 public class GraphRepository extends StubRepository implements FortressRepository {
 
-    /* files that are dependancies of everything */
-    private static final String[] roots = defaultLibrary;
-
     /* stores the nodes and their relationships */
     private Graph<GraphNode> graph;
     /* current source path */
@@ -94,11 +91,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         addRoots();
     }
 
+    private static String[] roots() {
+        /* files that are dependancies of everything */
+        return defaultLibrary();
+    }
+
     /* by default all the root APIs should be added to the graph
      * and set as dependancies for everything else.
      */
     private void addRoots() throws FileNotFoundException {
-        for ( String root : roots ){
+        for ( String root : roots() ){
             APIName name = NodeFactory.makeAPIName(root);
             ApiGraphNode api = new ApiGraphNode(name, getApiFileDate(name));
             try{
@@ -110,7 +112,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             graph.addNode( api );
         }
 
-        for ( String root : roots ) {
+        for ( String root : roots() ) {
             ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(root)));
             try{
                 for ( APIName api : dependencies(node) ){
@@ -193,7 +195,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 graph.addEdge(node, addApiGraph(api));
             }
             /* and depend on all the root APIs */
-            for ( String root : roots ){
+            for ( String root : roots() ){
                 graph.addEdge(node, addApiGraph(NodeFactory.makeAPIName(root)));
             }
         }
@@ -230,7 +232,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 nodeDependsOnApi(node, api);
             }
             /* and depend on all the root APIs */
-            for ( String root : roots ){
+            for ( String root : roots() ){
                 nodeDependsOnApi(node, NodeFactory.makeAPIName(root));
             }
         }
@@ -295,11 +297,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         slashed = slashed + "." + suffix;
         File fdot;
 
-        Debug.debug( Debug.Type.REPOSITORY, 3, "Finding file ", name );
+        Debug.debug( Debug.Type.REPOSITORY, 3, "Finding file ", name);
         try {
             fdot = path.findFile(slashed);
         } catch (FileNotFoundException ex2) {
-            throw new FileNotFoundException(NodeUtil.getSpan(name) + ": Could not find API " + dotted + " on path.");
+            throw new FileNotFoundException(NodeUtil.getSpan(name) + ": Could not find API " + dotted + " in file named " + slashed + " on path " + path);
         }
         return fdot;
     }
@@ -537,7 +539,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             ComponentGraphNode comp = (ComponentGraphNode) node;
             if ( nodes.contains( comp ) ){
                 /* force root components to come in front of other things */
-                if ( Arrays.asList(roots).contains(comp.getName().toString()) ){
+                if ( Arrays.asList(roots()).contains(comp.getName().toString()) ){
                     rest.add( 0, comp );
                 } else {
                     rest.add( comp );
@@ -701,7 +703,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private void addRootComponents() throws FileNotFoundException, IOException{
         boolean added = false;
-        for ( String root : roots ){
+        for ( String root : roots() ){
             APIName name = NodeFactory.makeAPIName(root);
             if (null == graph.find(ApiGraphNode.key(name))) {
                 addApiGraph(name);

@@ -29,6 +29,7 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
@@ -153,7 +154,7 @@ public class ComponentWrapper extends CUWrapper {
     private boolean exportsMain(Component transformed2) {
         List<APIName> exports = transformed2.getExports();
         for (APIName a : exports) {
-            if (a.getText().equals("Executable"))
+            if (WellKnownNames.exportsMain(a.getText()))
                 return true;
         }
         return false;

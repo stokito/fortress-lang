@@ -98,10 +98,6 @@ public class Driver {
 
     private static boolean _libraryTest = false;
 
-    static String libraryName = fortressLibrary;
-    static String nativesName = fortressBuiltin;
-    static String builtinsName = "AnyType";
-
     private Driver() {};
 
     static public void runTests() {
@@ -143,7 +139,7 @@ public class Driver {
          * This looks like gratuitous and useless error checking that
          * interferes with the "test" flag.
          *
-        for(String defaultLib : WellKnownNames.defaultLibrary) {
+        for(String defaultLib : WellKnownNames.defaultLibrary()) {
             APIName libAPI = NodeFactory.makeAPIName(defaultLib);
             if (p.getName().equals(libAPI)) {
                 error("Fortress built-in library " + defaultLib + " does not export executable.");
@@ -184,19 +180,19 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(builtinsName, builtinsName, fr), linker, WellKnownNames.defaultLibrary);
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(anyTypeLibrary(), anyTypeLibrary(), fr), linker, WellKnownNames.defaultLibrary());
         builtins.getEnvironment().installPrimitives();
-        linker.put(builtinsName, builtins);
+        linker.put(anyTypeLibrary(), builtins);
 
         APIWrapper lib = null;
 
-        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(libraryName));
-        lib = libraryComponentWrapper.getExportedCW(libraryName);
+        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(fortressLibrary()));
+        lib = libraryComponentWrapper.getExportedCW(fortressLibrary());
 
         ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
-                                 NodeFactory.makeAPIName(nativesName));
-        APIWrapper natives = nativescomp.getExportedCW(nativesName);
+                                 NodeFactory.makeAPIName(fortressBuiltin()));
+        APIWrapper natives = nativescomp.getExportedCW(fortressBuiltin());
 
         /*
          * This performs closure over APIs and components, ensuring that all are
@@ -473,8 +469,8 @@ public class Driver {
             Api newapi = readTreeOrSourceApi(apiname, apiname, fr);
             ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
 
-            APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary);
-            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary);
+            APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary());
+            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary());
             newwrapper.touchExports(true);
             linker.put(apiname, newwrapper);
             pile.push(newwrapper);
@@ -498,10 +494,10 @@ public class Driver {
             for (APIName ex_apiname : comp.getExports()) {
                 String ex_name = NodeUtil.nameString(ex_apiname);
                 Api newapi = readTreeOrSourceApi(ex_name, ex_name, fr);
-                exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary) );
+                exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary()) );
             }
 
-            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary);
+            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary());
             fr.forgetComponent(name);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);

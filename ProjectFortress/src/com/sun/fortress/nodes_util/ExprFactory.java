@@ -1265,7 +1265,7 @@ public class ExprFactory {
     }
 
     public static Throw makeThrow(Span sp, String st) {
-        Id id = NodeFactory.makeId(sp, WellKnownNames.fortressLibrary, st);
+        Id id = NodeFactory.makeId(sp, WellKnownNames.fortressLibrary(), st);
         return makeThrow(sp, makeVarRef(sp, id));
     }
 

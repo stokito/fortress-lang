@@ -27,6 +27,7 @@ import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.FortressRepository;
@@ -40,9 +41,9 @@ public class TopLevelEnvBenchmark {
      */
     public static void main(String[] args) {
         try {
-            Environment compiled = SimpleClassLoader.loadEnvironment("FortressLibrary", false);
+            Environment compiled = SimpleClassLoader.loadEnvironment(WellKnownNames.fortressLibrary(), false);
             FortressRepository defaultRepository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
-            ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName("FortressLibrary"));
+            ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName(WellKnownNames.fortressLibrary()));
             Environment betterEnv = new BetterEnvLevelZero(library.ast());
             BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, ComponentWrapper>());
             be.visit(library.ast());

@@ -48,28 +48,28 @@ public final class Types {
 
     private static Span span = NodeFactory.makeSpan("If you see this, it is a bug.");
 
-    public static final Id ANY_NAME = makeId("AnyType", "Any");
-    public static final Id ARRAY_NAME = makeId(fortressLibrary,"Array");
+    public static final Id ANY_NAME = makeId(anyTypeLibrary(), "Any");
+    public static final Id ARRAY_NAME = makeId(fortressLibrary(),"Array");
     // TODO: Replace ImmutableArray with ImmutableHeapSequence when
     //       ImmutableHeapSequence is put into the libraries.
-    public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary, "ImmutableArray");
+    public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary(), "ImmutableArray");
 
     public static final AnyType ANY = NodeFactory.makeAnyType(span);
     public static final BottomType BOTTOM = NodeFactory.makeBottomType(span);
-    public static final TraitType OBJECT = makeTraitType(fortressBuiltin, "Object");
+    public static final TraitType OBJECT = makeTraitType(fortressBuiltin(), "Object");
 
     public static final Type BOTTOM_DOMAIN = BOTTOM;
 
     public static final TupleType VOID = NodeFactory.makeVoidType(span);
-    public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin, "FloatLiteral");
-    public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin, "IntLiteral");
-    public static final TraitType ZZ32 = makeTraitType(fortressLibrary, "ZZ32");
-    public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin, "Boolean");
-    public static final TraitType CHAR = makeTraitType(fortressBuiltin, "Char");
-    public static final TraitType STRING = makeTraitType(fortressLibrary, "String");
-    public static final TraitType REGION = makeTraitType(fortressLibrary, "Region");
-    public static final TraitType EXCEPTION = makeTraitType(fortressLibrary, "Exception");
-    public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary, "CheckedException");
+    public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin(), "FloatLiteral");
+    public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin(), "IntLiteral");
+    public static final TraitType ZZ32 = makeTraitType(fortressLibrary(), "ZZ32");
+    public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin(), "Boolean");
+    public static final TraitType CHAR = makeTraitType(fortressBuiltin(), "Char");
+    public static final TraitType STRING = makeTraitType(fortressLibrary(), "String");
+    public static final TraitType REGION = makeTraitType(fortressLibrary(), "Region");
+    public static final TraitType EXCEPTION = makeTraitType(fortressLibrary(), "Exception");
+    public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary(), "CheckedException");
 
 
     public static final LabelType LABEL = NodeFactory.makeLabelType(span);
@@ -79,13 +79,13 @@ public final class Types {
     }
 
     public static TraitType makeThreadType(Type typeArg) {
-        return makeTraitType(makeId(fortressBuiltin, "Thread"),
+        return makeTraitType(makeId(fortressBuiltin(), "Thread"),
                              makeTypeArg(typeArg));
     }
 
     public static Id getArrayKName(int k){
      String name = "Array"+k;
-     return makeId(fortressLibrary,name);
+     return makeId(fortressLibrary(),name);
     }
 
     public static TraitType makeArrayType(Type elem, Type indexed){
@@ -100,7 +100,7 @@ public final class Types {
      * Create a type {@code FortressLibrary.Generator[\typeArg\]}.
      */
     public static TraitType makeGeneratorType(Type typeArg) {
-        return makeTraitType(makeId(fortressLibrary, "Generator"),
+        return makeTraitType(makeId(fortressLibrary(), "Generator"),
                              makeTypeArg(typeArg));
     }
 
@@ -108,7 +108,7 @@ public final class Types {
      * Create a type {@code FortressLibrary.Condition[\typeArg\]}.
      */
     public static TraitType makeConditionType(Type typeArg) {
-        return makeTraitType(makeId(fortressLibrary, "Condition"),
+        return makeTraitType(makeId(fortressLibrary(), "Condition"),
                              makeTypeArg(typeArg));
     }
 

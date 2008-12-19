@@ -242,22 +242,22 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         TypeArg zzA = NodeFactory.makeTypeArg("ZZ32");
         IntArg zero = NodeFactory.makeIntArgVal("0");
         IntArg three = NodeFactory.makeIntArg("three");
-        Id arrName1 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(1));
+        Id arrName1 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), WellKnownNames.arrayTrait(1));
         TraitType arr1 = NodeFactory.makeTraitType(span, false,
                                                    arrName1, zzA,
                                                    zero, three);
-        Id arrName2 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(2));
+        Id arrName2 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), WellKnownNames.arrayTrait(2));
         TraitType arr2 = NodeFactory.makeTraitType(span, false,
                                                    arrName2, zzA,
                                                    zero, three,
                                                    zero, three);
-        Id arrName3 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.arrayTrait(3));
+        Id arrName3 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), WellKnownNames.arrayTrait(3));
         TraitType arr3 = NodeFactory.makeTraitType(span, false,
                                                    arrName3, zzA,
                                                    zero, three,
                                                    zero, three,
                                                    zero, three);
-        Id matName = NodeFactory.makeId(span, WellKnownNames.fortressLibrary, WellKnownNames.matrix);
+        Id matName = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), WellKnownNames.matrix);
         TraitType mat  = NodeFactory.makeTraitType(span, false,
                                                    matName, zzA,
                                                    three, three);
@@ -300,13 +300,13 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
 
         ApiIndex builtin =
-            api("AnyType",
+            api(WellKnownNames.anyTypeLibrary(),
                 absTrait("Any"),
                 absTrait("Tuple", "AnyType.Any"));
         apis.put(builtin.ast().getName(), builtin);
 
         ApiIndex library =
-            api(WellKnownNames.fortressLibrary,
+            api(WellKnownNames.fortressLibrary(),
                 absTrait(WellKnownNames.objectTypeName, "AnyType.Any"),
                 absTrait(WellKnownNames.arrayMaker(1), "AnyType.Any"),
                 absTrait(WellKnownNames.arrayMaker(2), "AnyType.Any"),

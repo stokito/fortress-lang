@@ -1111,11 +1111,11 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Node rewrittenExpr =  visit(body);
 
-        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin,
+        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin(),
                                                                    WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(NodeFactory.makeTypeArg(sp,NodeFactory.makeVarType(sp,
-                                                        NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary, WellKnownNames.anyTypeName),
+                                                        NodeFactory.makeId(sp,WellKnownNames.anyTypeLibrary(), WellKnownNames.anyTypeName),
                                                         Environment.TOP_LEVEL)));
 
        _RewriteFnRef fn = ExprFactory.make_RewriteFnRef(NodeUtil.getSpan(s), false, Option.<Type>none(),
@@ -1689,7 +1689,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                         ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,WellKnownNames.outcome)));
             LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,WellKnownNames.outcome), b, _if);
             Option<Expr> _pre = e.getPre();
-            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary, "true")),
+            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), "true")),
                                                                      ExprFactory.makeBlock(sp, r));
             b = ExprFactory.makeBlock(sp, provided_lvd);
         }
@@ -1704,7 +1704,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
             Id t2 = gensymId("t2");
 
             Expr chain = (Expr) ExprFactory.makeChainExpr(sp, (Expr) ExprFactory.makeVarRef(sp,t1),
-                                                          NodeFactory.makeOpInfix(sp, WellKnownNames.fortressLibrary, "="), // new Op("="),
+                                                          NodeFactory.makeOpInfix(sp, WellKnownNames.fortressLibrary(), "="), // new Op("="),
                                                           (Expr) ExprFactory.makeVarRef(sp, t2));
             GeneratorClause gen_chain = ExprFactory.makeGeneratorClause(sp,
                                                                         Useful.<Id>list(), chain);

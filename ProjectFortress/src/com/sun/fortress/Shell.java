@@ -52,6 +52,7 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Files;
@@ -112,13 +113,13 @@ public final class Shell {
     /* Helper method to print usage message.*/
     private static void printUsageMessage() {
         System.err.println("Usage:");
-        System.err.println(" parse [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" disambiguate [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" desugar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" grammar [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" typecheck [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" parse [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" disambiguate [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" desugar [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" grammar [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" [run] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" [run]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
         System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
@@ -241,6 +242,8 @@ public final class Shell {
             String what = tokens[0];
             List<String> args = Arrays.asList(tokens).subList(1, tokens.length);
             if (what.equals("compile")) {
+                WellKnownNames.useCompilerLibraries();
+                setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 compile(args, Option.<String>none(), what);
             } else if (what.equals("run")) {
@@ -623,6 +626,9 @@ public final class Shell {
                 out = Option.<String>some(rest.get(0));
                 rest = rest.subList( 1, rest.size() );
             }
+            else if (s.equals("-compiler-lib")) {
+                WellKnownNames.useCompilerLibraries();
+            }
             else
                 invalidFlag(s, phase);
             compile(rest, out, phase);
@@ -754,6 +760,9 @@ public final class Shell {
         if (s.startsWith("-")) {
             if (s.equals("-debug")){
             	rest = Debug.parseOptions(rest);
+            }
+            else if (s.equals("-compiler-lib")) {
+                WellKnownNames.useCompilerLibraries();
             }
             else
                 invalidFlag(s, "run");

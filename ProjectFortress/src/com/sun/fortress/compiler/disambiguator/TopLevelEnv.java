@@ -73,10 +73,10 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 public class TopLevelEnv extends NameEnv {
-    private static final Set<String> WELL_KNOWN_APIS = 
-        Useful.set(WellKnownNames.fortressLibrary, 
-                   WellKnownNames.fortressBuiltin, 
-                   WellKnownNames.anyTypeName);
+    private static final Set<String> WELL_KNOWN_APIS =
+        Useful.set(WellKnownNames.fortressLibrary(),
+                   WellKnownNames.fortressBuiltin(),
+                   WellKnownNames.anyTypeLibrary());
 
     private final GlobalEnvironment _originalGlobalEnv; // environment as it is created by the compiler
     private final GlobalEnvironment _filteredGlobalEnv; // environment that only includes "imported" names
@@ -352,7 +352,7 @@ public class TopLevelEnv extends NameEnv {
 
             if( api.typeConses().containsKey(name) ) {
                 if( result_.isSome() )
-                    return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " + 
+                    return NI.nyi("Disambiguator cannot yet handle the same Component providing the implementation for multiple APIs: " +
                                   name);
 
                 result_ = Option.some(NodeFactory.makeId(api_name, name, NodeUtil.getSpan(name)));
@@ -696,7 +696,7 @@ public class TopLevelEnv extends NameEnv {
                 Boolean implib = true;
                 for( AliasedAPIName api : that.getApis() ) {
                     APIName name = api.getApiName();
-                    if(name.getText().equals(WellKnownNames.fortressLibrary))
+                    if(name.getText().equals(WellKnownNames.fortressLibrary()))
                         implib=false;
                     if( !exceptions.containsKey(name) )
                         exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>());
@@ -720,7 +720,7 @@ public class TopLevelEnv extends NameEnv {
                     allowed.get(name).addAll(names);
                 else
                     allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
-                return !name.getText().equals(WellKnownNames.fortressLibrary);
+                return !name.getText().equals(WellKnownNames.fortressLibrary());
             }
 
             @Override
@@ -730,7 +730,7 @@ public class TopLevelEnv extends NameEnv {
                     exceptions.get(name).addAll(that.getExceptNames());
                 else
                     exceptions.put(name, new HashSet<IdOrOpOrAnonymousName>(that.getExceptNames()));
-                return !name.getText().equals(WellKnownNames.fortressLibrary);
+                return !name.getText().equals(WellKnownNames.fortressLibrary());
             }
         };
 
@@ -760,15 +760,15 @@ public class TopLevelEnv extends NameEnv {
                 Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
                 result.put(name, keep(index, allowed_));
             }
-            else if( name.getText().equals(WellKnownNames.fortressBuiltin) ) {
+            else if( name.getText().equals(WellKnownNames.fortressBuiltin()) ) {
                 // Fortress builtin is always implicitly imported
                 result.put(name, index);
             }
-            else if( name.getText().equals(WellKnownNames.anyTypeLibrary) ) {
+            else if( name.getText().equals(WellKnownNames.anyTypeLibrary()) ) {
                 // For now AnyType needs to be implicitly imported
                 result.put(name, index);
             }
-            else if( name.getText().equals(WellKnownNames.fortressLibrary) && import_library ) {
+            else if( name.getText().equals(WellKnownNames.fortressLibrary()) && import_library ) {
                 // FortressLibrary is only imported implicitly if nothing from it is imported explicitly
                 result.put(name, index);
             }
