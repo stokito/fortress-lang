@@ -402,7 +402,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(NodeUtil.getName(t.ast()), t);
         }
-        Api ast = new Api(span,NodeFactory.makeAPIName(name),
+        Api ast = NodeFactory.makeApi(span,NodeFactory.makeAPIName(name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,
@@ -594,7 +594,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                     if (eq >= 0) {
                         Id k = NodeFactory.makeId(elt.substring(0, eq).trim());
                         Type t = parseType(elt.substring(eq+1));
-                        keys.add(new KeywordType(span, k, t));
+                        keys.add(NodeFactory.makeKeywordType(span, k, t));
                     }
                     else { args.add(parseType(elt)); }
                 }
@@ -630,7 +630,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             }
             ts.add((BaseType) t);
         }
-        return new Effect(span, Option.some(ts), io);
+        return NodeFactory.makeEffect(span, Option.some(ts), io);
     }
 
     private static List<Type> parseTypeList(String s, String leftDelim, String rightDelim) {

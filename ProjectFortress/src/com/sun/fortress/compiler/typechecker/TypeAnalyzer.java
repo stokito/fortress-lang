@@ -337,7 +337,7 @@ public class TypeAnalyzer {
                     public Type value(Iterable<Type> ts) {
                         List<KeywordType> ks = new ArrayList<KeywordType>(domainKeys.size());
                         for (Pair<Id, Type> p : zip(domainKeys.keySet(), skipFirst(ts))) {
-                            ks.add(new KeywordType(NodeFactory.makeSetSpan(p.first(), p.second()), p.first(), p.second()));
+                            ks.add(NodeFactory.makeKeywordType(NodeFactory.makeSetSpan(p.first(), p.second()), p.first(), p.second()));
                         }
                         return makeDomain(first(ts), ks);
                     }
@@ -365,7 +365,8 @@ public class TypeAnalyzer {
                         return e;
                     }
                     else {
-                        return new Effect(NodeFactory.makeSetSpan(e, reduced), Option.some(reduced), e.isIoEffect());
+                        return NodeFactory.makeEffect(NodeFactory.makeSetSpan(e, reduced),
+                                                      Option.some(reduced), e.isIoEffect());
                     }
                 }
             }

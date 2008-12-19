@@ -38,6 +38,8 @@ import com.sun.fortress.parser_util.FortressUtil;
 public class NodeFactory {
     public static int lexicalDepth = -2147483648;
 
+    public static Span typeSpan = makeSpan("Type checker generated.");
+
     /**
      * For use only when there is no hope of
      * attaching a true span.
@@ -145,6 +147,8 @@ public class NodeFactory {
         return makeSpan(ifEmpty, l);
     }
 
+    public static Span makeSpanInfo(Span span) { return span; }
+
     public static Component makeComponent(Span span, APIName name,
                                           List<Import> imports,
                                           List<Decl> decls,
@@ -158,6 +162,12 @@ public class NodeFactory {
                                           boolean isNative,
                                           List<APIName> exports) {
         return new Component(span, name, imports, decls, isNative, exports);
+    }
+
+    public static Api makeApi(Span span, APIName name,
+                              List<Import> imports,
+                              List<Decl> decls) {
+        return new Api(makeSpanInfo(span), name, imports, decls);
     }
 
     public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name) {
@@ -820,9 +830,20 @@ public class NodeFactory {
         return new MatrixType(span, info, elem, dim);
     }
 
+    public static ExtentRange makeExtentRange(Span span,
+                                              Option<StaticArg> first,
+                                              Option<StaticArg> second,
+                                              Option<Op> op) {
+        return new ExtentRange(makeSpanInfo(span), first, second, op);
+    }
+
+    public static Indices makeIndices(Span span, List<ExtentRange> extents) {
+        return new Indices(makeSpanInfo(span), extents);
+    }
+
     public static ArrayType makeArrayType(Span span, Type element,
                                           Option<Indices> ind) {
-        Indices indices = ind.unwrap(new Indices(span, Collections.<ExtentRange>emptyList()));
+        Indices indices = ind.unwrap(makeIndices(span, Collections.<ExtentRange>emptyList()));
         return makeArrayType(span, false, element, indices);
     }
 
@@ -887,10 +908,9 @@ public class NodeFactory {
         return makeEffect(span, Option.<List<BaseType>>none(), ioEffect);
     }
 
-
     public static Effect makeEffect(Span span, Option<List<BaseType>> throwsC,
                                     boolean ioEffect) {
-        return new Effect(span, throwsC, ioEffect);
+        return new Effect(makeSpanInfo(span), throwsC, ioEffect);
     }
 
     public static TraitTypeWhere makeTraitTypeWhere(BaseType in_type) {
@@ -912,7 +932,18 @@ public class NodeFactory {
     }
 
     public static ConstructorFnName makeConstructorFnName(ObjectConstructor def) {
-        return new ConstructorFnName(NodeUtil.getSpan(def), Option.<APIName>none(), def);
+        return makeConstructorFnName(NodeUtil.getSpan(def), Option.<APIName>none(), def);
+    }
+
+    public static ConstructorFnName makeConstructorFnName(Span span,
+                                                          Option<APIName> api,
+                                                          ObjectConstructor def) {
+        return new ConstructorFnName(makeSpanInfo(span), api, def);
+    }
+
+    public static AnonymousFnName makeAnonymousFnName(Span span,
+                                                      Option<APIName> api) {
+        return new AnonymousFnName(makeSpanInfo(span), api);
     }
 
     public static Id makeId(Span span, String name) {
@@ -1125,6 +1156,23 @@ public class NodeFactory {
         return new IntRef(span, parenthesized, name, depth);
     }
 
+    public static UnitBinaryOp makeUnitBinaryOp(Span span, boolean parenthesized,
+                                                UnitExpr left, UnitExpr right, Op op) {
+        return new UnitBinaryOp(makeSpanInfo(span), parenthesized, left, right, op);
+    }
+
+    public static Contract makeContract(Span span,
+                                        Option<List<Expr>> requiresClause,
+                                        Option<List<EnsuresClause>> ensuresClause,
+                                        Option<List<Expr>> invariantsClause) {
+        return new Contract(makeSpanInfo(span), requiresClause, ensuresClause, invariantsClause);
+    }
+
+    public static EnsuresClause makeEnsuresClause(Span span, Expr post,
+                                                  Option<Expr> pre) {
+        return new EnsuresClause(makeSpanInfo(span), post, pre);
+    }
+
     public static TraitTypeHeader makeTraitTypeHeader(TraitTypeHeader header,
                                                       List<TraitTypeWhere> extendsC) {
         return makeTraitTypeHeader(header.getMods(), header.getName(),
@@ -1203,27 +1251,66 @@ public class NodeFactory {
     }
 
     public static KeywordType makeKeywordType(KeywordType t, Type s) {
-        return new KeywordType(NodeUtil.getSpan(t), t.getName(), s);
+        return makeKeywordType(NodeUtil.getSpan(t), t.getName(), s);
+    }
+
+    public static KeywordType makeKeywordType(Id name, Type type) {
+        return makeKeywordType(new Span(), name, type);
+    }
+
+    public static KeywordType makeKeywordType(Span span, Id name, Type type) {
+        return new KeywordType(makeSpanInfo(span), name, type);
+    }
+
+    public static TypeArg makeTypeArg(Span span, Type t) {
+        return new TypeArg(makeSpanInfo(span), t);
     }
 
     public static TypeArg makeTypeArg(TypeArg t, Type s) {
-        return new TypeArg(NodeUtil.getSpan(t), s);
+        return makeTypeArg(NodeUtil.getSpan(t), s);
+    }
+
+    public static TypeArg makeTypeArg(Type ty) {
+        return makeTypeArg(NodeUtil.getSpan(ty), ty);
+    }
+
+    public static TypeArg makeTypeArg(Span span, String string) {
+        return makeTypeArg(span, makeVarType(span, makeId(span, string)));
+    }
+
+    public static TypeArg makeTypeArg(String string) {
+        Span span = new Span();
+        return makeTypeArg(span,
+                           makeVarType(span, makeId(span, string)));
     }
 
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
-        return new DimArg(NodeUtil.getSpan(t), s);
+        return makeDimArg(NodeUtil.getSpan(t), s);
     }
 
     public static DimArg makeDimArg(DimExpr s) {
-        return new DimArg(NodeUtil.getSpan(s), s);
+        return makeDimArg(NodeUtil.getSpan(s), s);
+    }
+
+    public static DimArg makeDimArg(Span span, DimExpr d) {
+        return new DimArg(makeSpanInfo(span), d);
     }
 
     public static UnitArg makeUnitArg(UnitExpr s) {
-        return new UnitArg(NodeUtil.getSpan(s), s);
+        return makeUnitArg(NodeUtil.getSpan(s), s);
+    }
+
+    public static UnitArg makeUnitArg(Span span, UnitExpr u) {
+        return new UnitArg(makeSpanInfo(span), u);
     }
 
     public static UnitRef makeUnitRef(Span span, String name) {
-        return new UnitRef(span, false, makeId(name));
+        return makeUnitRef(span, false, makeId(name));
+    }
+
+    public static UnitRef makeUnitRef(Span span, boolean parenthesized,
+                                      Id name) {
+        return new UnitRef(makeSpanInfo(span), parenthesized, name);
     }
 
     public static Type makeDomain(Span span, List<Type> elements,
@@ -1239,10 +1326,6 @@ public class NodeFactory {
                 return makeTupleType(span, elements);
         } else
             return makeTupleType(span, false, elements, varargs, keywords);
-    }
-
-    public static KeywordType makeKeywordType(Id name, Type type) {
-        return new KeywordType(new Span(), name, type);
     }
 
     private static List<Id> stringToIds(String path) {
@@ -1290,9 +1373,14 @@ public class NodeFactory {
     };
 
     public static Op makeEnclosing(Span in_span, String in_open, String in_close) {
-        return new Op(in_span, Option.<APIName>none(),
+        return makeOp(in_span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(in_open + " " + in_close),
                       enclosing, true);
+    }
+
+    public static Op makeOp(Span span, Option<APIName> api,
+                            String text, Fixity fixity, boolean b) {
+        return new Op(makeSpanInfo(span), api, text, fixity, b);
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
@@ -1306,58 +1394,58 @@ public class NodeFactory {
     private static Fixity unknownFix = new UnknownFixity();
 
     public static Op makeOp(String name) {
-        return new Op(new Span(),  Option.<APIName>none(),
+        return makeOp(new Span(),  Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
     public static Op makeOp(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
     public static Op makeOp(Span span, String name, Fixity fixity) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), fixity, false);
     }
 
     public static Op makeOp(Op op, String name) {
-        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
+        return makeOp(NodeUtil.getSpan(op), Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name),
                       op.getFixity(), op.isEnclosing());
     }
 
     public static Op makeOpInfix(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), infix, false);
     }
 
     public static Op makeOpInfix(Span span, String apiName, String name) {
-        Op op =  new Op(span, Option.some(NodeFactory.makeAPIName(apiName)),
+        Op op =  makeOp(span, Option.some(NodeFactory.makeAPIName(apiName)),
                         PrecedenceMap.ONLY.canon(name), infix, false);
         return op;
 
     }
 
     public static Op makeOpInfix(Op op) {
-        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), infix, op.isEnclosing());
+        return makeOp(NodeUtil.getSpan(op), op.getApiName(), op.getText(), infix, op.isEnclosing());
     }
 
     public static Op makeOpPrefix(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), prefix, false);
     }
 
     public static Op makeOpPrefix(Op op) {
-        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), prefix, op.isEnclosing());
+        return makeOp(NodeUtil.getSpan(op), op.getApiName(), op.getText(), prefix, op.isEnclosing());
     }
 
     public static Op makeOpPostfix(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), postfix, false);
     }
 
     public static Op makeOpPostfix(Op op) {
-        return new Op(NodeUtil.getSpan(op), op.getApiName(), op.getText(), postfix, op.isEnclosing());
+        return makeOp(NodeUtil.getSpan(op), op.getApiName(), op.getText(), postfix, op.isEnclosing());
     }
 
     /**
@@ -1365,32 +1453,32 @@ public class NodeFactory {
      * type of op, so that the same subtype of Op is created.
      */
     public static Op makeOp(final APIName api, Op op) {
-        return new Op(NodeUtil.getSpan(op), Option.some(api),
+        return makeOp(NodeUtil.getSpan(op), Option.some(api),
                       op.getText(), op.getFixity(), op.isEnclosing() );
     }
 
     public static Op makeOpNofix(Op op) {
-        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
+        return makeOp(NodeUtil.getSpan(op), Option.<APIName>none(),
                       op.getText(), nofix, op.isEnclosing());
     }
 
     public static Op makeOpMultifix(Op op) {
-        return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
+        return makeOp(NodeUtil.getSpan(op), Option.<APIName>none(),
                       op.getText(), multifix, op.isEnclosing());
     }
 
     public static Op makeOpEnclosing(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), enclosing, false);
     }
 
     public static Op makeOpBig(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), big, false);
     }
 
     public static Op makeOpUnknown(Span span, String name) {
-        return new Op(span, Option.<APIName>none(),
+        return makeOp(span, Option.<APIName>none(),
                       PrecedenceMap.ONLY.canon(name), unknownFix, false);
     }
 
@@ -1402,13 +1490,26 @@ public class NodeFactory {
             left  = "BIG " + left;
             return makeEnclosing(NodeUtil.getSpan(op), left, right);
         } else
-            return new Op(NodeUtil.getSpan(op), Option.<APIName>none(),
+            return makeOp(NodeUtil.getSpan(op), Option.<APIName>none(),
                           PrecedenceMap.ONLY.canon("BIG " + op.getText()), big, op.isEnclosing() );
+    }
+
+    public static StaticParam makeStaticParam(Span span,
+                                              IdOrOp name, List<BaseType> tys,
+                                              Option<Type> ty, boolean b,
+                                              StaticParamKind k) {
+        return new StaticParam(makeSpanInfo(span), name, tys, ty, b, k);
+    }
+
+    public static StaticParam makeTypeParam(Span span,
+                                            Id id, List<BaseType> tys,
+                                            Option<Type> ty, boolean b) {
+        return makeStaticParam(span, id, tys, ty, b, new KindType());
     }
 
     public static StaticParam makeTypeParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindType());
@@ -1418,13 +1519,13 @@ public class NodeFactory {
         Span s = new Span();
         List<BaseType> supers = new ArrayList<BaseType>(1);
         supers.add(makeVarType(sup));
-        return new StaticParam(s, makeId(s, name), supers,
+        return makeStaticParam(s, makeId(s, name), supers,
                                Option.<Type>none(), false,
                                new KindType());
     }
 
     public static StaticParam makeOpParam(String name) {
-        return new StaticParam(new Span(), makeOp(name),
+        return makeStaticParam(new Span(), makeOp(name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindOp());
@@ -1432,7 +1533,7 @@ public class NodeFactory {
 
     public static StaticParam makeBoolParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindBool());
@@ -1440,7 +1541,7 @@ public class NodeFactory {
 
     public static StaticParam makeDimParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindDim());
@@ -1448,7 +1549,7 @@ public class NodeFactory {
 
     public static StaticParam makeUnitParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindUnit());
@@ -1456,7 +1557,7 @@ public class NodeFactory {
 
     public static StaticParam makeIntParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindInt());
@@ -1464,7 +1565,7 @@ public class NodeFactory {
 
     public static StaticParam makeNatParam(String name) {
         Span s = new Span();
-        return new StaticParam(s, makeId(s, name),
+        return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindNat());
@@ -1476,23 +1577,12 @@ public class NodeFactory {
                              Collections.<KeywordType>emptyList());
     }
 
-    public static TypeArg makeTypeArg(Type ty) {
-        return new TypeArg(NodeUtil.getSpan(ty), ty);
-    }
-
-    public static TypeArg makeTypeArg(Span span, String string) {
-        return new TypeArg(span, makeVarType(span, makeId(span, string)));
-    }
-
-    public static TypeArg makeTypeArg(String string) {
-        Span span = new Span();
-        return new TypeArg(span,
-                makeVarType(span, makeId(span, string)));
-    }
-
-
     public static BoolArg makeBoolArg(String string) {
-        return new BoolArg(new Span(), makeBoolRef(string));
+        return makeBoolArg(typeSpan, makeBoolRef(string));
+    }
+
+    public static BoolArg makeBoolArg(Span span, BoolExpr b) {
+        return new BoolArg(makeSpanInfo(span), b);
     }
 
     public static IntExpr makeIntVal(String i) {
@@ -1503,46 +1593,55 @@ public class NodeFactory {
     }
 
     public static IntArg makeIntArg(String string) {
-        return new IntArg(new Span(), makeIntRef(string));
+        return makeIntArg(new Span(), makeIntRef(string));
     }
 
     public static IntArg makeIntArgVal(String i) {
-        return new IntArg(new Span(), makeIntVal(i));
+        return makeIntArg(new Span(), makeIntVal(i));
+    }
+
+    public static IntArg makeIntArg(Span span, IntExpr i) {
+        return new IntArg(makeSpanInfo(span), i);
     }
 
     public static OpArg makeOpArg(String string) {
-        return new OpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
+        return makeOpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
+    }
+
+    public static OpArg makeOpArg(Span span, FunctionalRef op) {
+        return new OpArg(makeSpanInfo(span), op);
+    }
+
+    public static VarDecl makeVarDecl(Span span, List<LValue> lvals,
+                                      Option<Expr> expr) {
+        FortressUtil.validId(lvals);
+        return new VarDecl(makeSpanInfo(span), lvals, expr);
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals) {
         FortressUtil.validId(lvals);
-        return new VarDecl(span, lvals, Option.<Expr>none());
+        return makeVarDecl(span, lvals, Option.<Expr>none());
     }
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Expr init) {
         FortressUtil.validId(lvals);
-        return new VarDecl(span, lvals, Option.<Expr>some(init));
-    }
-
-    public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Option<Expr> init) {
-        FortressUtil.validId(lvals);
-        return new VarDecl(span, lvals, init);
+        return makeVarDecl(span, lvals, Option.<Expr>some(init));
     }
 
     public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
         FortressUtil.validId(name);
-        LValue bind = new LValue(span, name, Modifiers.None,
+        LValue bind = new LValue(makeSpanInfo(span), name, Modifiers.None,
                                  Option.<Type>none(), true);
-        return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
+        return makeVarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
         Id id = makeId(span, name);
         FortressUtil.validId(id);
-        LValue bind = new LValue(span, id,
+        LValue bind = new LValue(makeSpanInfo(span), id,
                                  Modifiers.None,
                                  Option.<Type>none(), false);
-        return new VarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
+        return makeVarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
     public static BoolExpr makeInParentheses(BoolExpr be) {
@@ -1615,7 +1714,7 @@ public class NodeFactory {
     public static UnitExpr makeInParentheses(UnitExpr be) {
         return be.accept(new NodeAbstractVisitor<UnitExpr>() {
             public UnitExpr forUnitRef(UnitRef b) {
-                return new UnitRef(NodeUtil.getSpan(b), true, b.getName());
+                return makeUnitRef(NodeUtil.getSpan(b), true, b.getName());
             }
             public UnitExpr forUnitBinaryOp(UnitBinaryOp i) {
                 return new UnitBinaryOp(NodeUtil.getSpan(i), true, i.getLeft(),
@@ -1715,7 +1814,151 @@ public class NodeFactory {
     }
 
     public static Import makeImportStar(String apiName) {
-        return NodeFactory.makeImportStar(NodeFactory.makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
+        return makeImportStar(makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
+    }
+
+    public static WhereExtends makeWhereExtends(Span span, Id name, List<BaseType> supers) {
+        return new WhereExtends(makeSpanInfo(span), name, supers);
+    }
+
+    public static WhereTypeAlias makeWhereTypeAlias(Span span, TypeAlias alias) {
+        return new WhereTypeAlias(makeSpanInfo(span), alias);
+    }
+
+    public static WhereCoerces makeWhereCoerces(Span span, Type left, Type right,
+                                                boolean coerces, boolean widens) {
+        return new WhereCoerces(makeSpanInfo(span), left, right, coerces, widens);
+    }
+
+    public static WhereEquals makeWhereEquals(Span span, Id left, Id right) {
+        return new WhereEquals(makeSpanInfo(span), left, right);
+    }
+
+    public static BoolConstraintExpr makeBoolConstraintExpr(Span span, BoolConstraint c) {
+        return new BoolConstraintExpr(makeSpanInfo(span), c);
+    }
+
+    public static UnitConstraint makeUnitConstraint(Span span, Id id) {
+        return new UnitConstraint(makeSpanInfo(span), id);
+    }
+
+    public static IntConstraint makeIntConstraint(Span span, IntExpr left, IntExpr right, Op op) {
+        return new IntConstraint(makeSpanInfo(span), left, right, op);
+    }
+
+    public static TypeAlias makeTypeAlias(Span span, Id name,
+                                          List<StaticParam> sparams, Type def) {
+        return new TypeAlias(makeSpanInfo(span), name, sparams, def);
+    }
+
+    public static TestDecl makeTestDecl(Span span, Id name, List<GeneratorClause> gens, Expr expr) {
+        return new TestDecl(makeSpanInfo(span), name, gens, expr);
+    }
+
+    public static PropertyDecl makePropertyDecl(Span span, Option<Id> name, List<Param> params, Expr expr) {
+        return new PropertyDecl(makeSpanInfo(span), name, params, expr);
+    }
+
+    public static WhereClause makeWhereClause(Span span, List<WhereBinding> bindings,
+                                              List<WhereConstraint> constraints) {
+        return new WhereClause(makeSpanInfo(span), bindings, constraints);
+    }
+
+    public static WhereBinding makeWhereBinding(Span span, Id name,
+                                                List<BaseType> supers,
+                                                StaticParamKind kind) {
+        return new WhereBinding(makeSpanInfo(span), name, supers, kind);
+    }
+
+    public static IfClause makeIfClause(Span span,
+                                        GeneratorClause testClause, Block body) {
+        return new IfClause(makeSpanInfo(span), testClause, body);
+    }
+
+    public static CaseClause makeCaseClause(Span span,
+                                            Expr matchClause,
+                                            Block body,
+                                            Option<FunctionalRef> op) {
+        return new CaseClause(makeSpanInfo(span), matchClause, body, op);
+    }
+
+    public static CatchClause makeCatchClause(Span span,
+                                              BaseType matchType,
+                                              Block body) {
+        return new CatchClause(makeSpanInfo(span), matchType, body);
+    }
+
+    public static NonParenthesisDelimitedMI makeNonParenthesisDelimitedMI(Span span,
+                                                                          Expr expr) {
+        return new NonParenthesisDelimitedMI(makeSpanInfo(span), expr);
+    }
+
+    public static ParenthesisDelimitedMI makeParenthesisDelimitedMI(Span span,
+                                                                    Expr expr) {
+        return new ParenthesisDelimitedMI(makeSpanInfo(span), expr);
+    }
+
+    public static ExponentiationMI makeExponentiationMI(Span span,
+                                                        FunctionalRef op,
+                                                        Option<Expr> expr) {
+        return new ExponentiationMI(makeSpanInfo(span), op, expr);
+    }
+
+    public static SubscriptingMI makeSubscriptingMI(Span span,
+                                                    Op op, List<Expr> exprs,
+                                                    List<StaticArg> sargs) {
+        return new SubscriptingMI(makeSpanInfo(span), op, exprs, sargs);
+    }
+
+
+    public static GeneratorClause makeGeneratorClause(Span span,
+                                                      List<Id> bind,
+                                                      Expr init) {
+        return new GeneratorClause(makeSpanInfo(span), bind, init);
+    }
+
+    public static Catch makeCatch(Span span, Id name,
+                                  List<CatchClause> clauses) {
+        return new Catch(makeSpanInfo(span), name, clauses);
+    }
+
+    public static ArrayComprehensionClause makeArrayComprehensionClause(Span span,
+                                                                        List<Expr> bind,
+                                                                        Expr init,
+                                                                        List<GeneratorClause> gens) {
+        return new ArrayComprehensionClause(makeSpanInfo(span), bind, init, gens);
+    }
+
+    public static KeywordExpr makeKeywordExpr(Span span,
+                                              Id name, Expr init) {
+        return new KeywordExpr(makeSpanInfo(span), name, init);
+    }
+
+    public static TypecaseClause makeTypecaseClause(Span span,
+                                                    List<Type> matchType,
+                                                    Block body) {
+        return new TypecaseClause(makeSpanInfo(span), matchType, body);
+    }
+
+    public static Link makeLink(Span span,
+                                FunctionalRef op, Expr expr) {
+        return new Link(makeSpanInfo(span), op, expr);
+    }
+
+    public static _RewriteFnOverloadDecl make_RewriteFnOverloadDecl(Span span,
+                                                                    IdOrOp overloading,
+                                                                    List<IdOrOp> overloadings) {
+        return new _RewriteFnOverloadDecl(makeSpanInfo(span), overloading, overloadings);
+    }
+
+    public static _RewriteObjectExprDecl make_RewriteObjectExprDecl(Span span,
+                                                                    List<_RewriteObjectExpr> es) {
+        return new _RewriteObjectExprDecl(makeSpanInfo(span), es);
+    }
+
+    public static _RewriteFunctionalMethodDecl make_RewriteFunctionalMethodDecl(Span span,
+                                                                                List<String> names) {
+        return new _RewriteFunctionalMethodDecl(makeSpanInfo(span), names);
     }
 
 }

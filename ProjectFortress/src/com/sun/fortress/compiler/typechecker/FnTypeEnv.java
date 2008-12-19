@@ -106,10 +106,10 @@ class FnTypeEnv extends TypeEnv {
 					// Ugh..
 					TypeArg type_arg = (TypeArg)arg0;
 					VarType v = (VarType)type_arg.getTypeArg();
-					StaticParam p = new StaticParam(NodeFactory.makeSpan(v), v.getName(),
-                                                                        Collections.<BaseType>emptyList(),
-                                                                        Option.<Type>none(), false,
-                                                                        new KindType());
+					StaticParam p = NodeFactory.makeTypeParam(NodeFactory.makeSpan(v),
+                                                                                    v.getName(),
+                                                                                    Collections.<BaseType>emptyList(),
+                                                                                    Option.<Type>none(), false);
 					StaticArg a = NodeFactory.makeTypeArg(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(p)));
 					return Pair.make(p, a);
 				}});
