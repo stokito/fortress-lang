@@ -289,7 +289,7 @@ public final class Types {
     public static Type makeDomain(Type argsType, Map<Id, Type> keywords) {
         List<KeywordType> keywordList = new ArrayList<KeywordType>(keywords.size());
         for (Map.Entry<Id, Type> entry : keywords.entrySet()) {
-            keywordList.add(new KeywordType(NodeFactory.makeSpan(entry.getKey(), entry.getValue()), entry.getKey(), entry.getValue()));
+            keywordList.add(NodeFactory.makeKeywordType(NodeFactory.makeSpan(entry.getKey(), entry.getValue()), entry.getKey(), entry.getValue()));
         }
         return makeDomain(argsType, keywordList);
     }
