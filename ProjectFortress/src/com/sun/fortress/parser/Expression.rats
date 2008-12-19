@@ -561,15 +561,15 @@ MathItem MathItem =
      Subscripting
    / Exponentiation
    / a1:ParenthesisDelimited
-     { yyValue = new ParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+     { yyValue = ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:LiteralExpr
-     { yyValue = new NonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+     { yyValue = ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:VarOrFnRef
-     { yyValue = new NonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+     { yyValue = ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
    / a1:self
      { Span span = createSpan(yyStart,yyCount);
        Expr expr = ExprFactory.makeVarRef(span, a1);
-       yyValue = new NonParenthesisDelimitedMI(span, expr);
+       yyValue = ExprFactory.makeNonParenthesisDelimitedMI(span, expr);
      };
 
 /* Subscripting ::=
@@ -591,7 +591,7 @@ SubscriptingMI Subscripting =
            Op op = NodeFactory.makeEnclosing(span, a1, a4);
            if (a2 == null) a2 = Collections.<StaticArg>emptyList();
            if (a3 == null) a3 = Collections.<Expr>emptyList();
-           yyValue = new SubscriptingMI(span, op, a3, a2);
+           yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
        } else return syntaxError(span,
                                  "Mismatched subscripting operator: " + a1 +
                                  " and " + a4);
@@ -606,7 +606,7 @@ SubscriptingMI Subscripting =
        Op op = NodeFactory.makeEnclosing(span, a1.getText(),a4.getText());
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
        if (a3 == null) a3 = Collections.<Expr>emptyList();
-       yyValue = new SubscriptingMI(span, op, a3, a2);
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
      };
 
 /* Exponentiation ::=
@@ -621,11 +621,11 @@ ExponentiationMI Exponentiation =
      }
    / a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
-       yyValue = new ExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
+       yyValue = ExprFactory.makeExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
                                       Option.some(a2));
      }
    / a1:ExponentOp
-     { yyValue = new ExponentiationMI(NodeUtil.getSpan(a1), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
+     { yyValue = ExprFactory.makeExponentiationMI(NodeUtil.getSpan(a1), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
 
 /* Exponent ::=
      ParenthesisDelimited
@@ -727,6 +727,6 @@ GeneratorClause GeneratorBinding =
 GeneratorClause GeneratorClause =
      GeneratorBinding
    / a1:Expr
-     { yyValue = new GeneratorClause(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeGeneratorClause(createSpan(yyStart,yyCount),
                                Collections.<Id>emptyList(), a1);
      };

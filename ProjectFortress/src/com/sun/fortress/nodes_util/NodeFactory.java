@@ -170,6 +170,23 @@ public class NodeFactory {
         return new Api(makeSpanInfo(span), name, imports, decls);
     }
 
+    public static ImportApi makeImportApi(Span span, Option<String> foreign,
+                                          List<AliasedAPIName> names) {
+        return new ImportApi(makeSpanInfo(span), foreign, names);
+    }
+
+    public static ImportStar makeImportStar(Span span, Option<String> foreign,
+                                            APIName api,
+                                            List<IdOrOpOrAnonymousName> names) {
+        return new ImportStar(makeSpanInfo(span), foreign, api, names);
+    }
+
+    public static ImportNames makeImportNames(Span span, Option<String> foreign,
+                                              APIName api,
+                                              List<AliasedSimpleName> names) {
+        return new ImportNames(makeSpanInfo(span), foreign, api, names);
+    }
+
     public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name) {
         return new AliasedSimpleName(NodeUtil.getSpan(name), name,
                                      Option.<IdOrOpOrAnonymousName>none());
@@ -1588,6 +1605,12 @@ public class NodeFactory {
                              Collections.<KeywordType>emptyList());
     }
 
+    public static BoolBase makeBoolBase(Span span,
+                                        boolean parenthesized,
+                                        boolean val) {
+        return new BoolBase(makeSpanInfo(span), parenthesized, val);
+    }
+
     public static BoolArg makeBoolArg(String string) {
         return makeBoolArg(typeSpan, makeBoolRef(string));
     }
@@ -1596,9 +1619,23 @@ public class NodeFactory {
         return new BoolArg(makeSpanInfo(span), b);
     }
 
+    public static BoolUnaryOp makeBoolUnaryOp(Span span, BoolExpr b, Op op) {
+        return makeBoolUnaryOp(span, b.isParenthesized(), b, op);
+    }
+
+    public static BoolUnaryOp makeBoolUnaryOp(Span span, boolean parenthesized,
+                                              BoolExpr b, Op op) {
+        return new BoolUnaryOp(makeSpanInfo(span), parenthesized, b, op);
+    }
+
+    public static IntBase makeIntBase(Span span, boolean parenthesized,
+                                      IntLiteralExpr val) {
+        return new IntBase(makeSpanInfo(span), parenthesized, val);
+    }
+
     public static IntExpr makeIntVal(String i) {
         Span span = new Span();
-        return new IntBase(span, false,
+        return makeIntBase(span, false,
                            ExprFactory.makeIntLiteralExpr(span,
                                                           new BigInteger(i)));
     }
@@ -1658,7 +1695,7 @@ public class NodeFactory {
     public static BoolExpr makeInParentheses(BoolExpr be) {
         return be.accept(new NodeAbstractVisitor<BoolExpr>() {
             public BoolExpr forBoolBase(BoolBase b) {
-                return new BoolBase(NodeUtil.getSpan(b), true, b.isBoolVal());
+                return makeBoolBase(NodeUtil.getSpan(b), true, b.isBoolVal());
             }
             public BoolExpr forBoolRef(BoolRef b) {
                 return makeBoolRef(NodeUtil.getSpan(b), true, b.getName(), b.getLexicalDepth());
@@ -1898,29 +1935,6 @@ public class NodeFactory {
                                               Block body) {
         return new CatchClause(makeSpanInfo(span), matchType, body);
     }
-
-    public static NonParenthesisDelimitedMI makeNonParenthesisDelimitedMI(Span span,
-                                                                          Expr expr) {
-        return new NonParenthesisDelimitedMI(makeSpanInfo(span), expr);
-    }
-
-    public static ParenthesisDelimitedMI makeParenthesisDelimitedMI(Span span,
-                                                                    Expr expr) {
-        return new ParenthesisDelimitedMI(makeSpanInfo(span), expr);
-    }
-
-    public static ExponentiationMI makeExponentiationMI(Span span,
-                                                        FunctionalRef op,
-                                                        Option<Expr> expr) {
-        return new ExponentiationMI(makeSpanInfo(span), op, expr);
-    }
-
-    public static SubscriptingMI makeSubscriptingMI(Span span,
-                                                    Op op, List<Expr> exprs,
-                                                    List<StaticArg> sargs) {
-        return new SubscriptingMI(makeSpanInfo(span), op, exprs, sargs);
-    }
-
 
     public static GeneratorClause makeGeneratorClause(Span span,
                                                       List<Id> bind,

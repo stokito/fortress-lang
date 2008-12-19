@@ -100,14 +100,14 @@ transient WhereClause Where =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
      a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
      { if (a2 == null)
-         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                    a1, Collections.<WhereConstraint>emptyList());
        else
-         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                    a1, a2);
      }
    / where w opencurly w a1:WhereConstraintList w closecurly
-     { yyValue = new WhereClause(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                  Collections.<WhereBinding>emptyList(), a1);
      };
 
@@ -126,7 +126,7 @@ transient List<WhereBinding> WhereBindingList =
 transient WhereBinding WhereBinding =
      nat w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
                                   a1, supers, new KindNat());
      }
    / <ErrorProduction1> nat w a1:OpName
@@ -140,7 +140,7 @@ transient WhereBinding WhereBinding =
      }
    / int w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
                                   a1, supers, new KindInt());
      }
    / <ErrorProduction2> int w a1:OpName
@@ -154,7 +154,7 @@ transient WhereBinding WhereBinding =
      }
    / bool w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
                                   a1, supers, new KindBool());
      }
    / <ErrorProduction3> bool w a1:OpName
@@ -168,7 +168,7 @@ transient WhereBinding WhereBinding =
      }
    / unit w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = new WhereBinding(createSpan(yyStart,yyCount),
+       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
                                   a1, supers, new KindUnit());
      }
    / <ErrorProduction4> unit w a1:OpName
@@ -191,7 +191,7 @@ transient WhereBinding WhereBinding =
      }
    / a1:Id a2:(w a2:Extends)?
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = new WhereBinding(createSpan(yyStart,yyCount), a1, a2, new KindType());
+       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount), a1, a2, new KindType());
      }
    / <ErrorProduction6> opendoublesquare
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
@@ -352,7 +352,7 @@ private List<StaticParam> StaticParamList =
 */
 private StaticParam StaticParam =
      nat w a1:Id
-     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false,
                                  new KindNat());
@@ -368,7 +368,7 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / int w a1:Id
-     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false,
                                  new KindInt());
@@ -384,7 +384,7 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / bool w a1:Id
-     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false,
                                  new KindBool());
@@ -400,7 +400,7 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / dim w a1:Id
-     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false,
                                  new KindDim());
@@ -418,7 +418,7 @@ private StaticParam StaticParam =
    / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { Option<Type> derived = Option.wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
-       yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+       yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  derived, absorbs,
                                  new KindUnit());
@@ -434,7 +434,7 @@ private StaticParam StaticParam =
                              "letters is an operator name.");
      }
    / opr w a1:Op
-     { yyValue = new StaticParam(createSpan(yyStart,yyCount), a1,
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false,
                                  new KindOp()); }
@@ -453,7 +453,7 @@ private StaticParam StaticParam =
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = new StaticParam(createSpan(yyStart,yyCount), a1, a2,
+       yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1, a2,
                                  Option.<Type>none(), absorbs,
                                  new KindType());
      }

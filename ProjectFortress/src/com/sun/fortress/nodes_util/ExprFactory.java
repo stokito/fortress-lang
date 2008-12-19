@@ -1883,4 +1883,27 @@ public class ExprFactory {
 	public static Expr make_RewriteObjectRef(boolean parenthesized, Id in_obj) {
 		return make_RewriteObjectRef(parenthesized, in_obj, Collections.<StaticArg>emptyList());
 	}
+
+    public static NonParenthesisDelimitedMI makeNonParenthesisDelimitedMI(Span span,
+                                                                          Expr expr) {
+        return new NonParenthesisDelimitedMI(NodeFactory.makeSpanInfo(span), expr);
+    }
+
+    public static ParenthesisDelimitedMI makeParenthesisDelimitedMI(Span span,
+                                                                    Expr expr) {
+        return new ParenthesisDelimitedMI(NodeFactory.makeSpanInfo(span), expr);
+    }
+
+    public static ExponentiationMI makeExponentiationMI(Span span,
+                                                        FunctionalRef op,
+                                                        Option<Expr> expr) {
+        return new ExponentiationMI(NodeFactory.makeSpanInfo(span), op, expr);
+    }
+
+    public static SubscriptingMI makeSubscriptingMI(Span span,
+                                                    Op op, List<Expr> exprs,
+                                                    List<StaticArg> sargs) {
+        return new SubscriptingMI(NodeFactory.makeSpanInfo(span), op, exprs, sargs);
+    }
+
 }

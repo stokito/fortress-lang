@@ -3056,9 +3056,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 List<MathItem> items = CollectUtil.makeList(IterUtil.map(rest, new Lambda<Expr,MathItem>(){
                             public MathItem value(Expr arg0) {
                                 if( NodeUtil.isParenthesized(arg0) || arg0 instanceof TupleExpr || arg0 instanceof VoidLiteralExpr)
-                                    return NodeFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
+                                    return ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
                                 else
-                                    return NodeFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
+                                    return ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(arg0),arg0);
                             }}));
                 MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
                                                                NodeUtil.isParenthesized(that),
@@ -3255,7 +3255,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						item_iter.remove(); // remove fn from item list
 						// replace both with fn appication
 						_RewriteFnApp fn = ExprFactory.make_RewriteFnApp(front, ((ExprMI)arg).getExpr());
-						item_iter.add(NodeFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(fn),fn));
+						item_iter.add(ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(fn),fn));
 						// static error if the argument is immediately followed by a non-expression element.
 						if( item_iter.hasNext() ) {
 							Option<TypeCheckerResult> is_expr_error = expectExprMI(item_iter.next());
@@ -3310,7 +3310,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 						// in our new MathPrimary, place this expression where it is
 						item_iter.previous();
 						item_iter.remove(); // remove the previous expression in the list.
-						MathItem new_item = NodeFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(new_expr),new_expr);
+						MathItem new_item = ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(new_expr),new_expr);
 						item_iter.add(new_item); // replace both item with new item
 						MathPrimary new_primary = ExprFactory.makeMathPrimary(NodeUtil.getSpan(that),
                                                                                                       NodeUtil.isParenthesized(that),

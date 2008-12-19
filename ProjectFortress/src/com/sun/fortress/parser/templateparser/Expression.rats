@@ -41,17 +41,17 @@ Symbol, Spacing);
 
 
 Expr ExprFront +=
-     ExprGap 
+     ExprGap
    / LooseJuxtGap
    / FnExprGap
    / <Fn> ... ;
 
 Action<Expr> ExprTail += EllipsesExpr / <As> ...;
 
-constant inline Action<Expr> EllipsesExpr = 
-	w DoubleStar 
-	{ yyValue = new Action<Expr>() { 
-		public Expr run(Expr base) { 
-			return new _EllipsesExpr(createSpan(yyStart,yyCount), base); 
-		}}; 
-	}; 
+constant inline Action<Expr> EllipsesExpr =
+	w DoubleStar
+	{ yyValue = new Action<Expr>() {
+		public Expr run(Expr base) {
+                    return new _EllipsesExpr(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), base);
+		}};
+	};

@@ -171,7 +171,7 @@ private FnHeaderClause CoercionClauses =
        Option<Contract> contractClause;
        if (a2 == null && a3 == null) contractClause = Option.<Contract>none();
        else contractClause = Option.<Contract>some(
-                                    new Contract(createSpan(yyStart,yyCount),
+                                    NodeFactory.makeContract(createSpan(yyStart,yyCount),
                                                  Option.<List<Expr>>none(),
                                                  Option.wrap(a2),
                                                  Option.wrap(a3)));
@@ -187,14 +187,14 @@ private WhereClause CoercionWhere =
      where w opendoublesquare w a1:WhereBindingList w closedoublesquare
      a2:(w void:opencurly w CoercionWhereConstraintList w void:closecurly)?
      { if (a2 == null)
-         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                    a1, Collections.<WhereConstraint>emptyList());
        else
-         yyValue = new WhereClause(createSpan(yyStart,yyCount),
+         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                    a1, a2);
      }
    / where w opencurly w a1:CoercionWhereConstraintList w closecurly
-     { yyValue = new WhereClause(createSpan(yyStart,yyCount),
+     { yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
                                  Collections.<WhereBinding>emptyList(), a1);
      };
 
@@ -212,6 +212,6 @@ private List<WhereConstraint> CoercionWhereConstraintList =
 private WhereConstraint CoercionWhereConstraint =
      WhereConstraint
    / a1:Type w widens w or w coerces w a2:Type
-     { yyValue = new WhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
                                   true, true);
      };
