@@ -44,6 +44,7 @@ import com.sun.fortress.compiler.index.NonterminalExtendIndex;
 import com.sun.fortress.compiler.index.NonterminalIndex;
 import com.sun.fortress.compiler.index.ObjectTraitIndex;
 import com.sun.fortress.compiler.index.ParamVariable;
+import com.sun.fortress.compiler.index.ParametricOperator;
 import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.SingletonVariable;
 import com.sun.fortress.compiler.index.TraitIndex;
@@ -141,6 +142,8 @@ public class IndexBuilder {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
+        final Set<ParametricOperator> parametricOperators = 
+            new HashSet<ParametricOperator>();
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
         final Map<Id, Dimension> dimensions =
@@ -150,10 +153,10 @@ public class IndexBuilder {
             new HashMap<String, GrammarIndex>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
-                buildTrait(d, typeConses, functions);
+                buildTrait(d, typeConses, functions, parametricOperators);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, variables);
+                buildObject(d, typeConses, functions, parametricOperators, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables);
@@ -183,7 +186,8 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ApiIndex api = new ApiIndex(ast, variables, functions, typeConses, dimensions, units, grammars, modifiedDate);
+        ApiIndex api = new ApiIndex(ast, variables, functions, parametricOperators, 
+                                    typeConses, dimensions, units, grammars, modifiedDate);
         return api;
     }
 
@@ -203,7 +207,12 @@ public class IndexBuilder {
                                                      NodeUtil.getDecls(obj));
 
     	Map<Id,TypeConsIndex> index_holder = new HashMap<Id,TypeConsIndex>();
-    	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(), new HashMap<Id,Variable>());
+
+        // TODO: Fix this so that the global function map and parametricOperator set are
+        // threaded through to here. 
+    	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
+                            new HashSet<ParametricOperator>(),
+                            new HashMap<Id,Variable>());
     	return (ObjectTraitIndex)index_holder.get(fake_object_name);
     }
 
@@ -220,6 +229,8 @@ public class IndexBuilder {
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
+        final Set<ParametricOperator> parametricOperators =
+            new HashSet<ParametricOperator>();
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
         final Map<Id, Dimension> dimensions =
@@ -228,10 +239,10 @@ public class IndexBuilder {
             new HashMap<Id, Unit>();
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forTraitDecl(TraitDecl d) {
-                buildTrait(d, typeConses, functions);
+                buildTrait(d, typeConses, functions, parametricOperators);
             }
             @Override public void forObjectDecl(ObjectDecl d) {
-                buildObject(d, typeConses, functions, variables);
+                buildObject(d, typeConses, functions, parametricOperators, variables);
             }
             @Override public void forVarDecl(VarDecl d) {
                 buildVariables(d, variables); initializers.add(d);
@@ -258,8 +269,9 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ComponentIndex comp = new ComponentIndex(ast, variables, initializers,
-                functions, typeConses, dimensions, units, modifiedDate);
+        ComponentIndex comp = new ComponentIndex(ast, variables, initializers, functions, 
+                                                 parametricOperators, typeConses, dimensions, 
+                                                 units, modifiedDate);
         return comp;
     }
 
@@ -268,9 +280,11 @@ public class IndexBuilder {
      * Create a ProperTraitIndex and put it in the given map; add functional methods
      * to the given relation.
      */
-    private void buildTrait(TraitDecl ast,
-            Map<Id, TypeConsIndex> typeConses,
-            final Relation<IdOrOpOrAnonymousName, Function> functions) {
+    private void buildTrait(final TraitDecl ast,
+                            final Map<Id, TypeConsIndex> typeConses,
+                            final Relation<IdOrOpOrAnonymousName, Function> functions,
+                            final Set<ParametricOperator> parametricOperators) 
+    {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Method> getters = new HashMap<Id, Method>();
         final Map<Id, Method> setters = new HashMap<Id, Method>();
@@ -279,13 +293,15 @@ public class IndexBuilder {
             new IndexedRelation<IdOrOpOrAnonymousName, Method>(false);
         final Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods =
             new IndexedRelation<IdOrOpOrAnonymousName, FunctionalMethod>(false);
+
         NodeAbstractVisitor_void handleDecl = new NodeAbstractVisitor_void() {
             @Override public void forVarDecl(VarDecl d) {
                 buildTraitFields(d, name, getters, setters);
             }
             @Override public void forFnDecl(FnDecl d) {
-                buildMethod(d, name, getters, setters, coercions, dottedMethods,
-                            functionalMethods, functions);
+                buildMethod(d, name, NodeUtil.getStaticParams(ast), 
+                            getters, setters, coercions, dottedMethods,
+                            functionalMethods, functions, parametricOperators);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
@@ -304,10 +320,12 @@ public class IndexBuilder {
      * to the given relation; create a constructor function or singleton variable and
      * put it in the appropriate map.
      */
-    private void buildObject(ObjectDecl ast,
-            Map<Id, TypeConsIndex> typeConses,
-            final Relation<IdOrOpOrAnonymousName, Function> functions,
-            Map<Id, Variable> variables) {
+    private void buildObject(final ObjectDecl ast,
+                             final Map<Id, TypeConsIndex> typeConses,
+                             final Relation<IdOrOpOrAnonymousName, Function> functions,
+                             final Set<ParametricOperator> parametricOperators,
+                             final Map<Id, Variable> variables) 
+    {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
         final Set<VarDecl> initializers = new HashSet<VarDecl>();
@@ -339,10 +357,10 @@ public class IndexBuilder {
                 }
             }
             Constructor c = new Constructor(name,
-                    NodeUtil.getStaticParams(ast),
-                    ast.getParams(),
-                    NodeUtil.getThrowsClause(ast),
-                    NodeUtil.getWhereClause(ast));
+                                            NodeUtil.getStaticParams(ast),
+                                            ast.getParams(),
+                                            NodeUtil.getThrowsClause(ast),
+                                            NodeUtil.getWhereClause(ast));
             constructor = Option.some(c);
             functions.add(name, c);
         }
@@ -358,8 +376,9 @@ public class IndexBuilder {
                     initializers.add(d);
             }
             @Override public void forFnDecl(FnDecl d) {
-                buildMethod(d, name, getters, setters, coercions, dottedMethods,
-                        functionalMethods, functions);
+                buildMethod(d, name, NodeUtil.getStaticParams(ast),
+                            getters, setters, coercions, dottedMethods,
+                            functionalMethods, functions, parametricOperators);
             }
             @Override public void forPropertyDecl(PropertyDecl d) {
                 NI.nyi();
@@ -369,8 +388,8 @@ public class IndexBuilder {
             decl.accept(handleDecl);
         }
         TraitIndex trait = new ObjectTraitIndex(ast, constructor, fields, initializers,
-                getters, setters, coercions,
-                dottedMethods, functionalMethods);
+                                                getters, setters, coercions,
+                                                dottedMethods, functionalMethods);
         typeConses.put(name, trait);
     }
 
@@ -462,16 +481,20 @@ public class IndexBuilder {
     /**
      * Determine whether the given declaration is a getter, setter, coercion, dotted
      * method, or functional method, and add it to the appropriate map; also store
-     * functional methods with top-level functions.
+     * functional methods with top-level functions. Note that parametric operators
+     * are also propagated to top-level, with their parametric names. These names
+     * must be substituted with particular instantiations during lookup. 
      */
     private void buildMethod(FnDecl ast,
-            Id declaringTrait,
-            Map<Id, Method> getters,
-            Map<Id, Method> setters,
-            Set<Function> coercions,
-            Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
-            Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
-            Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions) {
+                             Id declaringTrait,
+                             List<StaticParam> enclosingParams,
+                             Map<Id, Method> getters,
+                             Map<Id, Method> setters,
+                             Set<Function> coercions,
+                             Relation<IdOrOpOrAnonymousName, Method> dottedMethods,
+                             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods,
+                             Relation<IdOrOpOrAnonymousName, Function> topLevelFunctions,
+                             Set<ParametricOperator> parametricOperators) {
         Modifiers mods = NodeUtil.getMods(ast);
         // TODO: check for correct modifiers?
         IdOrOpOrAnonymousName name = NodeUtil.getName(ast);
@@ -502,18 +525,49 @@ public class IndexBuilder {
                 // TODO: make sure param is valid (for ex., self doesn't have a type)
                 if (p.getName().equals(SELF_NAME)) {
                     if (functional) {
-                        error("'self' appears twice in a method declaration", ast);
+                        error("Parameter 'self' appears twice in a method declaration.", ast);
                         return;
                     }
                     functional = true;
                 }
             }
-            if (functional) {
+            
+            boolean operator = NodeUtil.isOp(ast);
+            
+            // Determine whether:
+            //   (1) this declaration has a self parameter 
+            //   (2) this declaration is for an operator
+            // Place the declaration in the appropriate bins according to the answer.
+            if (functional && ! operator) {
                 FunctionalMethod m = new FunctionalMethod(ast, declaringTrait);
+
                 functionalMethods.add(name, m);
                 topLevelFunctions.add(name, m);
+            } else if (functional && operator) {
+                boolean parametric = false;
+                
+                for (StaticParam p : enclosingParams) {
+                    if (NodeUtil.getName(ast).equals(NodeUtil.getName(p))) { 
+                        parametric = true;
+                    }
+                }
+                if (parametric) {
+                    ParametricOperator po = new ParametricOperator(ast, declaringTrait);
+                    parametricOperators.add(po);
+                } else {
+                    FunctionalMethod m = new FunctionalMethod(ast, declaringTrait);
+
+                    functionalMethods.add(name, m);
+                    topLevelFunctions.add(name, m);
+                }
+            } else if ((! functional) && operator) {
+                // In this case, we must have a subscripting operator method declaration
+                // or a subscripted assignment operator method declaration. See F 1.0 beta Section 34.
+                // TODO: Check that we are handling this case correctly!
+                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); 
+            } else { // ! functional && ! operator
+                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); 
             }
-            else { dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); }
         }
     }
 
