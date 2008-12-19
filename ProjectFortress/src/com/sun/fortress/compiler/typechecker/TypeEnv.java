@@ -242,7 +242,7 @@ public abstract class TypeEnv {
 			public IdOrOpOrAnonymousName forConstructorFnName(ConstructorFnName that) {
 				return new ConstructorFnName(NodeUtil.getSpan(that),
                                                              Option.<APIName>none(),
-                                                             that.getDef());
+                                                             that.getConstructor());
 			}
     	});
     }

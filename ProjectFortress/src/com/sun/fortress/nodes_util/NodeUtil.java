@@ -550,7 +550,7 @@ public class NodeUtil {
     }
     public static String nameString(ConstructorFnName n) {
         // TODO Auto-generated method stub
-        return stringName(n.getDef());
+        return stringName(n.getConstructor());
     }
 
     /*
