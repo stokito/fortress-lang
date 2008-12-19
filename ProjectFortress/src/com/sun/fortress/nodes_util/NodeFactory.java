@@ -568,6 +568,18 @@ public class NodeFactory {
         return new ExprInfo(parenthesized, ty);
     }
 
+    /** temporary hack!!! **/
+    public static Span makeTypeInfo(Span span) {
+        return span;
+    }
+    /** temporary hack!!! **/
+    public static TypeInfo makeTypeInfo(Span span,
+                                        boolean parenthesized,
+                                        List<StaticParam> sparams,
+                                        Option<WhereClause> where) {
+        return makeTypeInfo(parenthesized, sparams, where);
+    }
+
     public static TypeInfo makeTypeInfo() {
         return makeTypeInfo(false);
     }

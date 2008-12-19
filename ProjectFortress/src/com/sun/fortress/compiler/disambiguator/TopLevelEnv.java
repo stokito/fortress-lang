@@ -225,7 +225,7 @@ public class TopLevelEnv extends NameEnv {
     			}
     			@Override
     			public Op forOp(Op that) {
-                            return new Op(NodeUtil.getSpan(that),Option.some(api),that.getText(),that.getFixity(), that.isEnclosing());
+                            return NodeFactory.makeOp(NodeUtil.getSpan(that),Option.some(api),that.getText(),that.getFixity(), that.isEnclosing());
     			}});
     	return result;
     }
@@ -595,7 +595,7 @@ public class TopLevelEnv extends NameEnv {
     private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
         // Insert 'this' api as an implicit import. This kind of strange, but the grammars
         // need them at a minimum.
-        Import this_api_import = new ImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"),
+        Import this_api_import = NodeFactory.makeImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"),
                                                 Option.<String>none(),
                                                 api.getName(), Collections.<IdOrOpOrAnonymousName>emptyList());
         return filterApis(Collections.unmodifiableMap(apis),

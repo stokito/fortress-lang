@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.ArrayList;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -80,7 +81,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
     }
 
     public Option<Node> forComponent(Component that) {
-        Node result = new Api(NodeUtil.getSpan(that),
+        Node result = NodeFactory.makeApi(NodeUtil.getSpan(that),
                               that.getName(),
                               that.getImports(),
                               declsToDecls(that.getDecls()));
@@ -144,7 +145,7 @@ public final class ApiMaker extends NodeDepthFirstVisitor<Option<Node>> {
                 } else
                     lhs.add( lvb );
             }
-            return Option.<Node>some(new VarDecl(NodeUtil.getSpan(that), lhs, Option.<Expr>none()));
+            return Option.<Node>some(NodeFactory.makeVarDecl(NodeUtil.getSpan(that), lhs, Option.<Expr>none()));
         } else return Option.<Node>none();
     }
 

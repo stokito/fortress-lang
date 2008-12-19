@@ -139,7 +139,7 @@ public final class OprUtil {
 
     /** Return a new operator with the fixity prepended to the text. */
     public static Op decorateOperator(Op o) {
-        return new Op(NodeUtil.getSpan(o), Option.<APIName>none(),
+        return NodeFactory.makeOp(NodeUtil.getSpan(o), Option.<APIName>none(),
                       fixityDecorator(o.getFixity(), o.getText()),
                       o.getFixity(), o.isEnclosing());
     }
@@ -150,7 +150,7 @@ public final class OprUtil {
         if (i < 0) {
             return o;
         }
-        return new Op(NodeUtil.getSpan(o), Option.<APIName>none(),
+        return NodeFactory.makeOp(NodeUtil.getSpan(o), Option.<APIName>none(),
                       o.getText().substring(i+1),
                       o.getFixity(), o.isEnclosing());
     }

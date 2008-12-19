@@ -338,7 +338,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         //NameEnv newEnv = new LocalVarEnv(_env, definedNames);
         ExprDisambiguator v = extendWithVars(definedNames, uninitializedNames);
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that), type_result);
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that), type_result);
         return forLocalVarDeclOnly(that, info, bodyResult, lhsResult, rhsResult);
     }
 
@@ -531,7 +532,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(extendsClause,
                                                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  typeResult);
         return forObjectExprOnly(that, info, header);
     }
@@ -810,7 +812,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                              v.recurOnListOfParam(NodeUtil.getParams(that)),
                              v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
 
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forFnExprOnly(that, info, header,
                              (Expr) that.getBody().accept(v));
@@ -842,7 +845,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Pair<List<GeneratorClause>, Set<Id>> pair = bindInListGenClauses(this, that.getGens());
         ExprDisambiguator extended_d = this.extendWithVars(pair.second());
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forAccumulatorOnly(that, info,
                                   recurOnListOfStaticArg(that.getStaticArgs()),
@@ -874,7 +878,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator e_d = this.extendWithVars(Useful.set(gen.getBind()));
 
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forWhileOnly(that, info,
                             (GeneratorClause)that.getTestExpr().accept(this),
@@ -896,7 +901,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             e_d = this.extendWithVarsNoCheck(bound_ids);
 
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forTypecaseOnly(that, info,
                                that.getBindIds(),
@@ -937,7 +943,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 
         ExprDisambiguator new_disambiguator = this.extendWithVars(pair.second());
 
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forForOnly(that, info,
                           pair.first(),
@@ -951,7 +958,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         List<FnDecl> fnsResult = v.recurOnListOfFnDecl(that.getFns());
         List<Expr> bodyResult = v.recurOnListOfExpr(that.getBody());
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forLetFnOnly(that, info, bodyResult, fnsResult);
     }
@@ -1174,7 +1182,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         }
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forOpExprOnly(that, info, op_result, args_result);
     }
@@ -1186,7 +1195,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator v =  new ExprDisambiguator(newEnv, _uninitializedNames, _errors,
                                                      Option.wrap(that.getName()));
         Option<Type> type_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(that),
+        ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                 NodeUtil.isParenthesized(that),
                                                  type_result);
         return forLabelOnly(that, info, (Id) that.getName().accept(v),
                             (Block) that.getBody().accept(v));

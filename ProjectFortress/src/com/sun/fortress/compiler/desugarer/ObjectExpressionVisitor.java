@@ -169,7 +169,8 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forComponentOnly(Component that, APIName name_result,
+    public Node forComponentOnly(Component that,
+                                 APIName name_result,
                                  List<Import> imports_result,
                                  List<Decl> decls_result,
                                  List<APIName> exports_result) {
@@ -834,16 +835,16 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         if( NodeUtil.isBoolParam(sParam) ) {
             BoolRef boolRef = NodeFactory.makeBoolRef(span, (Id)sParam.getName());
-            return new BoolArg(span, boolRef);
+            return NodeFactory.makeBoolArg(span, boolRef);
         } else if( NodeUtil.isIntParam(sParam) ) {
             IntRef intRef = NodeFactory.makeIntRef(span, (Id)sParam.getName());
-            return new IntArg(span, intRef);
+            return NodeFactory.makeIntArg(span, intRef);
         } else if( NodeUtil.isNatParam(sParam) ) {
             IntRef intRef = NodeFactory.makeIntRef(span, (Id)sParam.getName());
-            return new IntArg(span, intRef);
+            return NodeFactory.makeIntArg(span, intRef);
         } else if( NodeUtil.isTypeParam(sParam) ) {
             VarType varType = NodeFactory.makeVarType(span, (Id)sParam.getName());
-            return new TypeArg(span, varType);
+            return NodeFactory.makeTypeArg(span, varType);
         } else {
             throw new DesugarerError(
                 "Unexpected type of Static Param found: " + sParam);

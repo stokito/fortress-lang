@@ -112,7 +112,7 @@ public class VarRefContainer {
         // set the field to be immutable
         lhs.add( NodeFactory.makeLValue(NodeUtil.getSpan(origDeclNode), containerVarId(),
                                         containerType()) );
-        VarDecl field = new VarDecl( NodeUtil.getSpan(origDeclNode),
+        VarDecl field = NodeFactory.makeVarDecl( NodeUtil.getSpan(origDeclNode),
                                      lhs, Option.<Expr>some(makeCallToContainerObj()) );
 
         return field;

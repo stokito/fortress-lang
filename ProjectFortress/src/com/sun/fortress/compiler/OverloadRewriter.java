@@ -79,7 +79,7 @@ public class OverloadRewriter {
         for (Map.Entry<String, List<IdOrOp>> overload : overloadedFunctions.entrySet()) {
             List<IdOrOp> overloadings = new ArrayList<IdOrOp>(overload.getValue());
             Id overloadingId = NodeFactory.makeId(overload.getKey());
-            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingId, overloadings);
+            _RewriteFnOverloadDecl newDecl = NodeFactory.make_RewriteFnOverloadDecl(span, overloadingId, overloadings);
             decls.add(newDecl);
         }
 
@@ -88,7 +88,7 @@ public class OverloadRewriter {
         for (Map.Entry<String, List<IdOrOp>> overload : overloadedOperators.entrySet()) {
             List<IdOrOp> overloadings = new ArrayList<IdOrOp>(overload.getValue());
             Op overloadingOp = NodeFactory.makeOp(NodeFactory.makeSpan("impossible", overload.getValue()), overload.getKey());
-            _RewriteFnOverloadDecl newDecl = new _RewriteFnOverloadDecl(span, overloadingOp, overloadings);
+            _RewriteFnOverloadDecl newDecl = NodeFactory.make_RewriteFnOverloadDecl(span, overloadingOp, overloadings);
             decls.add(newDecl);
         }
         return comp;

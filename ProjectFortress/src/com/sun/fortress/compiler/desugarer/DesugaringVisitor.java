@@ -221,7 +221,8 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 VarRef obj = (VarRef)rewrite.getObj();
                 obj = ExprFactory.makeVarRef(obj, NodeUtil.getExprType(obj),
                                              mangleName(obj.getVarId()));
-                ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.isParenthesized(rewrite),
+                ExprInfo info = NodeFactory.makeExprInfo(span,
+                                                         NodeUtil.isParenthesized(rewrite),
                                                          field.getIdType());
                 body = (Expr)forFieldRefOnly(rewrite, info,
                                              obj, rewrite.getField());
