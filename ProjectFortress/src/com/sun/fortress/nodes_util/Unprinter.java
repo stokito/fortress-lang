@@ -31,6 +31,11 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.nodes.ASTNodeInfo;
+import com.sun.fortress.nodes.SpanInfo;
+import com.sun.fortress.nodes.ExprInfo;
+import com.sun.fortress.nodes.TypeInfo;
+import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.DataNode;
 import com.sun.fortress.nodes.Node;
@@ -334,6 +339,8 @@ public class Unprinter extends NodeReflection {
                     f.set(node, Modifiers.decode(l.name()));
                 } else if (StaticParamKind.class.isAssignableFrom(f.getType())) {
                     f.set(node, readStaticParamKind());
+                } else if (ASTNodeInfo.class.isAssignableFrom(f.getType())) {
+                    f.set(node, readASTNodeInfo(NodeUtil.getSpan((ASTNode)node)));
                 } else if (AbstractNode.class.isAssignableFrom(f.getType())
                            || Lhs.class.isAssignableFrom(f.getType())
                            || DataNode.class.isAssignableFrom(f.getType())) {
@@ -593,6 +600,25 @@ public class Unprinter extends NodeReflection {
 
             // TODO Why don't levels write their spans out?
         return new Level(level, obj.unwrap() );
+    }
+
+    public ASTNodeInfo readASTNodeInfo(Span span) throws IOException {
+        expectPrefix("(");
+        String s = l.name();
+        ASTNodeInfo info;
+        if ( "SpanInfo".equals(s) ) {
+            expectPrefix(")");
+            info = NodeFactory.makeSpanInfo(span);
+        } else if ( "ExprInfo".equals(s) ) {
+            Node read = readNode(s);
+            info = NodeFactory.makeExprInfo((ExprInfo)read, span);
+        } else if ( "TypeInfo".equals(s) ) {
+            Node read = readNode(s);
+            info = NodeFactory.makeTypeInfo((TypeInfo)read, span);
+        } else {
+            info = bug(s + " is not a valid subclass of ASTNodeInfo.");
+        }
+        return info;
     }
 
     public Fixity readFixity() throws IOException {

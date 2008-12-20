@@ -28,19 +28,25 @@ import edu.rice.cs.astgen.TabPrintWriter;
 import edu.rice.cs.astgen.Types.*;
 
 /**
- * Produce a single argument constructor which takes a Span, and instantiates
+ * Produce a single argument constructor which takes a SpanInfo, and instantiates
  * each field to null, leaving clients to manually instantiate each field correctly.
  */
 public class SingleSpanConstructorGenerator extends CodeGenerator {
 
     private NodeType abstractNode;
+    private NodeType exprNode;
+    private NodeType typeNode;
 
     public SingleSpanConstructorGenerator(ASTModel ast) {
         super(ast);
-        if ( ast.typeForName("AbstractNode").isNone() )
-            throw new RuntimeException("Fortress.ast does not define AbstractNode!");
-        else
+        if ( ast.typeForName("AbstractNode").isSome() &&
+             ast.typeForName("Expr").isSome() &&
+             ast.typeForName("Type").isSome() ) {
             abstractNode = ast.typeForName("AbstractNode").unwrap();
+            exprNode     = ast.typeForName("Expr").unwrap();
+            typeNode     = ast.typeForName("Type").unwrap();
+        } else
+            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr!");
     }
 
   public Iterable<Class<? extends CodeGenerator>> dependencies() { return IterUtil.empty(); }
@@ -51,7 +57,7 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
     // boolean hasSingleSpanConstructor = true;
     // boolean allDefaults = true;
     int nonDefault = 0;
-    // Guaranteed to iterate at least once, all fields have Span.
+    // Guaranteed to iterate at least once, all fields have SpanInfo.
     for (Field f : c.allFields(ast)) {
         //hasSingleSpanConstructor = false;
         //allDefaults &= f.defaultValue().isSome();
@@ -69,9 +75,14 @@ public class SingleSpanConstructorGenerator extends CodeGenerator {
       writer.startLine(" * responsible for never accessing other fields than the gapId and ");
       writer.startLine(" * templateParams.");
       writer.startLine(" */");
-      writer.startLine("protected " + c.name() + "(Span span) {");
+      String infoType = "ASTNodeInfo";
+      if ( ast.isDescendent(exprNode, c) )
+          infoType = "ExprInfo";
+      else if ( ast.isDescendent(typeNode, c) )
+          infoType = "TypeInfo";
+      writer.startLine("protected " + c.name() + "(" + infoType + " info) {");
       writer.indent();
-      writer.startLine("super(span);");
+      writer.startLine("super(info);");
       for (Field f : c.declaredFields(ast)) {
           String init;
           if (f.type() instanceof PrimitiveName) {

@@ -69,6 +69,7 @@ import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SuperSyntaxDef;
@@ -153,7 +154,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 Option.<Contract>none(),
                 v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
-        return forTraitDeclOnly(that, header,
+        return forTraitDeclOnly(that, that.getInfo(), header,
                 v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
                 v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
@@ -173,7 +174,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
                 v.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
-        return forObjectDeclOnly(that, header,
+        return forObjectDeclOnly(that, that.getInfo(), header,
                 v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
     }
 
@@ -193,7 +194,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 v.recurOnListOfParam(NodeUtil.getParams(that)),
                 v.recurOnOptionOfType(NodeUtil.getReturnType(that)));
 
-        return forFnDeclOnly(that, header,
+        return forFnDeclOnly(that, that.getInfo(), header,
                 that.getUnambiguousName(),
                 v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
                 that.getImplementsUnambiguousName());
@@ -470,14 +471,16 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     }
 
     @Override public Node forSuperSyntaxDefOnly(SuperSyntaxDef that,
+                                                ASTNodeInfo info,
                                                 Id nonterminal_result, Id grammar_result) {
         Id disambiguatedGrammar = handleGrammarName(grammar_result);
-        return new SuperSyntaxDef(NodeUtil.getSpan(that),
+        return new SuperSyntaxDef(info,
                                   that.getModifier(), nonterminal_result, disambiguatedGrammar);
     }
 
     @Override
-    public Node forGrammarDeclOnly(GrammarDecl that, Id name_result,
+    public Node forGrammarDeclOnly(GrammarDecl that,
+                                   ASTNodeInfo info, Id name_result,
             List<Id> extends_result,
             List<GrammarMemberDecl> members_result,
             List<TransformerDecl> transformers) {
@@ -486,7 +489,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
         Id name = handleGrammarName(name_result);
 
-        GrammarDecl disambiguatedGrammar = new GrammarDecl(NodeUtil.getSpan(that),
+        GrammarDecl disambiguatedGrammar = new GrammarDecl(info,
                                                            name, p.first(), members_result, transformers, that.isNativeDef());
 
         List<StaticError> newErrs = new ArrayList<StaticError>();
@@ -558,6 +561,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
         Option<Type> t = v.recurOnOptionOfType(that.getParamType());
 //        System.err.println("t: "+t);
         return forNonterminalHeaderOnly(that,
+                                        that.getInfo(),
             (Id) that.getName().accept(v),
             v.recurOnListOfNonterminalParameter(that.getParams()),
             v.recurOnListOfStaticParam(that.getStaticParams()),
@@ -570,6 +574,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
      */
     @Override
 	public Node forTypeArgOnly(final TypeArg arg,
+                                   ASTNodeInfo info,
                                    final Type t) {
         if(arg.getTypeArg() instanceof VarType){
             Id _name = ((VarType)arg.getTypeArg()).getName();

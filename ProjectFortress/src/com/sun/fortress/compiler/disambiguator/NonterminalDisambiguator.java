@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.NonterminalDef;
 import com.sun.fortress.nodes.NonterminalExtensionDef;
 import com.sun.fortress.nodes.NonterminalHeader;
 import com.sun.fortress.nodes.NonterminalParameter;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.SyntaxDecl;
 import com.sun.fortress.nodes.SyntaxDef;
@@ -83,6 +84,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
 
     @Override
     public Node forNonterminalDefOnly(NonterminalDef that,
+                                      ASTNodeInfo info,
                                       Id _name_result,
                                       List<SyntaxDecl> syntaxDefs_result,
                                       NonterminalHeader header_result,
@@ -90,27 +92,32 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
         if (astType_result.isNone()) {
             throw new RuntimeException("Type inference is not supported yet!");
         }
-        return super.forNonterminalDefOnly(that, header_result.getName(), syntaxDefs_result,
+        return super.forNonterminalDefOnly(that, that.getInfo(),
+                                           header_result.getName(), syntaxDefs_result,
                                            header_result, astType_result);
     }
 
     @Override
     public Node forNonterminalExtensionDefOnly(NonterminalExtensionDef that,
+                                               ASTNodeInfo info,
                                                Id name_result,
                                                List<SyntaxDecl> syntaxDefs_result) {
         Id name = disambiguateNonterminalName(name_result);
-        return super.forNonterminalExtensionDefOnly(that, name, syntaxDefs_result);
+        return super.forNonterminalExtensionDefOnly(that, that.getInfo(),
+                                                    name, syntaxDefs_result);
     }
 
     @Override
     public Node forNonterminalHeaderOnly(NonterminalHeader that,
+                                         ASTNodeInfo info,
                                          Id name_result,
                                          List<NonterminalParameter> params_result,
                                          List<StaticParam> staticParams_result,
                                          Option<Type> type_result,
                                          Option<WhereClause> whereClause_result) {
         Id name = disambiguateNonterminalName(name_result);
-        return super.forNonterminalHeaderOnly(that, name, params_result,
+        return super.forNonterminalHeaderOnly(that, that.getInfo(),
+                                              name, params_result,
                                               staticParams_result, type_result, whereClause_result);
     }
 

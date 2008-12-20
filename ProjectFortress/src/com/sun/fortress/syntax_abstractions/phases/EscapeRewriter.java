@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.SyntaxSymbol;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -122,7 +123,7 @@ public class EscapeRewriter extends NodeUpdateVisitor {
     }
 
     @Override
-        public Node forPrefixedSymbolOnly(PrefixedSymbol that,
+        public Node forPrefixedSymbolOnly(PrefixedSymbol that, ASTNodeInfo info,
                                           Id result_id,
                                           SyntaxSymbol result_symbol) {
         String s = removeEscape(result_id.getText());

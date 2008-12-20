@@ -124,7 +124,7 @@ public class ComposingSyntaxDefTranslator {
             NamedTransformerDef def = (NamedTransformerDef) transformation;
             String parameters = collectParameters(def, code, indents);
             String name = def.getName();
-            code.add(String.format("yyValue = new _SyntaxTransformation%s(createSpan(yyStart,yyCount), \"%s\", %s, %s);",
+            code.add(String.format("yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), \"%s\", %s, %s);",
                                    type, name, BOUND_VARIABLES, parameters));
             indents.add(3);
         } else {

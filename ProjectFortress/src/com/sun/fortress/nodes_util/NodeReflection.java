@@ -18,8 +18,12 @@
 package com.sun.fortress.nodes_util;
 
 import com.sun.fortress.nodes.ASTNode;
+import com.sun.fortress.nodes.ASTNodeInfo;
+import com.sun.fortress.nodes.SpanInfo;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.InfoNode;
 import com.sun.fortress.nodes.TemplateGap;
 import com.sun.fortress.nodes._Ellipses;
@@ -59,12 +63,12 @@ abstract public class NodeReflection {
     // HashMap<String, Field[]>();
     private HashMap<String, Field[]> shortClassNameToFieldArray = new HashMap<String, Field[]>();
 
-    private Field spanField;
+    private Field infoField;
 
     protected NodeReflection() {
         try {
-            spanField = AbstractNode.class.getDeclaredField("_span");
-            spanField.setAccessible(true);
+            infoField = AbstractNode.class.getDeclaredField("_info");
+            infoField.setAccessible(true);
         } catch (SecurityException e) {
             bug(e.getMessage());
         } catch (NoSuchFieldException e) {
@@ -105,18 +109,20 @@ abstract public class NodeReflection {
      * @throws InstantiationException
      * @throws IllegalArgumentException
      */
-    protected Node makeNodeFromSpan(String s, Class c, Span span) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    protected Node makeNodeFromSpan(String s, Class c, Span span)
+        throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
         // try {
         Constructor con = s != null ? constructorZeroFor(s) : constructorZeroFor(c);
         if (con != null) {
-            if ( con.newInstance(args0) instanceof ASTNode ) {
-                ASTNode node = (ASTNode) con.newInstance(args0);
-                spanField.set(node, span);
-                return node;
-            } else {
-                Node node = (Node) con.newInstance(args0);
-                return node;
+            Node node = (Node)con.newInstance(args0);
+            if ( node instanceof Expr ) {
+                infoField.set((Expr)node, NodeFactory.makeExprInfo(span));
+            } else if ( node instanceof Type ) {
+                infoField.set((Type)node, NodeFactory.makeTypeInfo(span));
+            } else if ( node instanceof ASTNode ) {
+                infoField.set((ASTNode)node, NodeFactory.makeSpanInfo(span));
             }
+            return node;
         }
         con = s != null ? constructorFor(s) : constructorFor(c);
         Object[] args = new Object[1];
@@ -224,7 +230,9 @@ abstract public class NodeReflection {
         boolean isTemplate = isTemplateGap(icl);
         boolean isEllipses = isEllipses(icl);
         if (!isTemplate && !isEllipses) {
-            while (icl != AbstractNode.class && icl != Object.class &&
+            while (icl != ASTNodeInfo.class &&
+                   icl != Object.class &&
+                   icl != SpanInfo.class &&
                    icl != InfoNode.class) {
                 fields = icl.getDeclaredFields();
                 handleFields(fields, fal);
@@ -259,11 +267,13 @@ abstract public class NodeReflection {
 
     private static void handleFields(Field[] fields, ArrayList<Field> fal) {
         for (int i = 0; i < fields.length; i++) {
-            if ((fields[i].getModifiers() &
-                    (java.lang.reflect.Modifier.STATIC |
-                            java.lang.reflect.Modifier.TRANSIENT)) == 0) {
+            Field f = fields[i];
+            if ((f.getModifiers() &
+                 (java.lang.reflect.Modifier.STATIC |
+                  java.lang.reflect.Modifier.TRANSIENT)) == 0
+                && ! f.getName().equals("_hashCode")
+                && ! f.getName().equals("_hasHashCode") ) {
                 // && (fields[i].getModifiers() & java.lang.reflect.Modifier.PRIVATE) == 0
-                Field f = fields[i];
                 f.setAccessible(true);
                 fal.add(f);
             }

@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -45,7 +46,8 @@ import edu.rice.cs.plt.tuple.Option;
 public class InferenceVarInserter extends NodeUpdateVisitor {
 
 	@Override
-	public Node forLValueOnly(LValue that, Id name_result,
+            public Node forLValueOnly(LValue that, ASTNodeInfo info,
+                                  Id name_result,
                                   Option<Type> type_result) {
 		if( type_result.isNone() ) {
 			Option<Type> new_type = Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that.getName())));
@@ -71,13 +73,14 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
         Id unambiguousName_result = (Id) recur(that.getUnambiguousName());
         Option<Expr> body_result = recurOnOptionOfExpr(that.getBody());
         Option<Id> implementsUnambiguousName_result = recurOnOptionOfId(that.getImplementsUnambiguousName());
-        return  forFnDeclOnly(that, name_result, staticParams_result, params_result,
+        return  forFnDeclOnly(that, that.getInfo(), name_result, staticParams_result, params_result,
                               returnType_result, throwsClause_result,
                               where_result, contract_result, unambiguousName_result,
                               body_result, implementsUnambiguousName_result);
     }
 
     public Node forFnDeclOnly(FnDecl that,
+                              ASTNodeInfo info,
                               IdOrOpOrAnonymousName name_result,
                               List<StaticParam> staticParams_result, List<Param> params_result,
                               Option<Type> returnType_result,
@@ -99,12 +102,12 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
                                                     where_result, throwsClause_result,
                                                     contract_result,
                                                     params_result, new_ret_type);
-        return super.forFnDeclOnly(that, header, unambiguousName_result,
+        return super.forFnDeclOnly(that, info, header, unambiguousName_result,
                                    body_result, implementsUnambiguousName_result);
     }
 
 	@Override
-	public Node forParamOnly(Param that, Id name_result,
+            public Node forParamOnly(Param that, ASTNodeInfo info, Id name_result,
                                  Option<Type> type_result,
                                  Option<Expr> defaultExpr_result,
                                  Option<Type> varargsType_result) {
@@ -115,7 +118,7 @@ public class InferenceVarInserter extends NodeUpdateVisitor {
 					Option.<Type>some(NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that))) :
 						type_result;
 
-		return super.forParamOnly(that, name_result, new_type,
+		return super.forParamOnly(that, info, name_result, new_type,
                                           defaultExpr_result, varargsType_result);
             } else
                 return that;

@@ -36,9 +36,11 @@ import edu.rice.cs.plt.tuple.Option;
 public class EllipsesNode extends NodeClass {
 
     private String nodeField = "repeatedNode";
+    private String infoType;
 
-    public EllipsesNode( NodeClass parent, ASTModel ast ){
+    public EllipsesNode( NodeClass parent, ASTModel ast, String in_infoType ){
         super( "_Ellipses" + parent.name(), false, fields(ast), Types.parse(parent.name(), ast), Collections.singletonList(Types.parse("_Ellipses",ast)) );
+        infoType = in_infoType;
     }
 
     /**
@@ -49,7 +51,7 @@ public class EllipsesNode extends NodeClass {
     public Iterable<Field> declaredFields(ASTModel ast) {
         return fields(ast);
     }
-        
+
     private static List<Field> fields( ASTModel ast ){
         return new ArrayList<Field>();
     }
@@ -96,7 +98,7 @@ public class EllipsesNode extends NodeClass {
         writer.println("");
         writeSerialize(writer);
         writer.println("");
-        writeOutputHelp(writer, this.name());      
+        writeOutputHelp(writer, this.name());
 
         //   for (CodeGenerator g : gens) { g.generateClassMembers(writer, this); }
 
@@ -134,7 +136,7 @@ public class EllipsesNode extends NodeClass {
             writer.indent();
             writer.startLine("visitor.for"+name+"(this);");
             writer.unindent();
-            writer.startLine("}");            
+            writer.startLine("}");
         }
 
         writer.startLine("public Node accept(TemplateUpdateVisitor visitor) {");
@@ -147,7 +149,6 @@ public class EllipsesNode extends NodeClass {
     private void writeFields(TabPrintWriter writer) {
         writer.startLine(String.format("private final AbstractNode _%s;", nodeField));
         /*
-        // writer.startLine("private final Span _span;");
         writer.startLine(String.format("private final String _%s;", fieldTransformer));
         writer.startLine("private final java.util.Map<String,Object> _variables;");
         writer.startLine("private final java.util.List<String> _syntaxParameters;");
@@ -155,28 +156,18 @@ public class EllipsesNode extends NodeClass {
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
-        writer.startLine(String.format("public %s(Span span, AbstractNode %s){", className, nodeField));
+        writer.startLine(String.format("public %s(" + infoType + " info, AbstractNode %s){", className, nodeField));
         writer.indent();
-        writer.startLine("super(span);");
+        writer.startLine("super(info);");
         writer.startLine(String.format("this._%s = %s;", nodeField, nodeField));
         writer.unindent();
         writer.startLine("}");
-        /*
-        writer.startLine(String.format("public %s(Span span, String %s, java.util.Map<String,Object> variables, java.util.List<String> syntaxParameters ) {", className, fieldTransformer));
-        writer.indent();
-        writer.startLine("super(span);");
-        writer.startLine(String.format("this._%s = %s;", fieldTransformer, fieldTransformer));
-        writer.startLine("this._variables = variables;");
-        writer.startLine("this._syntaxParameters = syntaxParameters;");
-        writer.unindent();
-        writer.startLine("}");
-        */
     }
 
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
         writer.startLine("public " + className+"() {");
         writer.indent();
-        writer.startLine("super(new Span());");
+        writer.startLine("super(NodeFactory.make" + infoType + "());");
         writer.startLine(String.format("this._%s = null;", nodeField));
         /*
         writer.startLine(String.format("this._%s = null;", fieldTransformer));
@@ -202,7 +193,7 @@ public class EllipsesNode extends NodeClass {
         writer.unindent();
         writer.startLine("}");
         writer.unindent();
-        writer.startLine("}");        
+        writer.startLine("}");
     }
 
     private void writeToString(TabPrintWriter writer) {
@@ -248,16 +239,16 @@ public class EllipsesNode extends NodeClass {
         writer.startLine("writer.print(\""+name+":\");");
         writer.startLine("writer.indent();");
 
-        writer.startLine("Span temp_span = getSpan();");
+        writer.startLine(infoType + " temp_info = getInfo();");
         writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"span = \");");
+        writer.startLine("writer.print(\"info = \");");
         writer.startLine("if (lossless) {");
         writer.indent();
-        writer.startLine("writer.printSerialized(temp_span);");
+        writer.startLine("writer.printSerialized(temp_info);");
         writer.startLine("writer.print(\" \");");
-        writer.startLine("writer.printEscaped(temp_span);");
+        writer.startLine("writer.printEscaped(temp_info);");
         writer.unindent();
-        writer.startLine("} else { writer.print(temp_span); }");
+        writer.startLine("} else { writer.print(temp_info); }");
         writer.startLine("writer.unindent();");
         writer.unindent();
         writer.startLine("}");

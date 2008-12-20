@@ -2030,6 +2030,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forComponentOnly(Component that,
+                                                  TypeCheckerResult info,
                                                   TypeCheckerResult name_result,
                                                   List<TypeCheckerResult> imports_result,
                                                   List<TypeCheckerResult> decls_result,
@@ -2052,6 +2053,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forContractOnly(Contract that,
+                                                 TypeCheckerResult info,
 			Option<List<TypeCheckerResult>> requires_result,
 			Option<List<TypeCheckerResult>> ensures_result,
 			Option<List<TypeCheckerResult>> invariants_result) {
@@ -2868,6 +2870,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntArgOnly(IntArg that,
+                                               TypeCheckerResult info,
                                                TypeCheckerResult val_result) {
 		return new TypeCheckerResult(that);
 	}
@@ -3446,6 +3449,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forIntBaseOnly(IntBase that,
+                                                TypeCheckerResult info,
                                                 TypeCheckerResult val_result) {
 		return new TypeCheckerResult(that);
 	}

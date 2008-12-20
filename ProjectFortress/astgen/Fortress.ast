@@ -76,7 +76,7 @@ interface Node() extends HasAt;
     /**
      * top-level node interface
      */
-    interface ASTNode(ignoreForEquals Span span);
+    interface ASTNode(ASTNodeInfo info);
         /**
          * with static parameters
          * implemented by trait, object, and function declarations and
@@ -93,7 +93,7 @@ interface Node() extends HasAt;
         /**
          * top-level node abstract class
          */
-        root abstract AbstractNode() extends UIDObject;
+        root abstract AbstractNode(ASTNodeInfo info) extends UIDObject;
             /**
              * compilation unit declaration
              * CompilationUnit ::= Component | Api
@@ -1853,7 +1853,11 @@ interface Node() extends HasAt;
                 /**
                  * common header for AST nodes
                  */
-                abstract ASTNodeInfo();
+                abstract ASTNodeInfo(ignoreForEquals Span span);
+                    /**
+                     * common header for node with Span
+                     */
+                    SpanInfo();
                     /**
                      * common header for parenthesized node
                      */

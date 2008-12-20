@@ -675,7 +675,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 				extendsClause,
 				v.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
-        return forTraitDeclOnly(that, header,
+        return forTraitDeclOnly(that, that.getInfo(), header,
 				v.recurOnListOfBaseType(NodeUtil.getExcludesClause(that)),
 				v.recurOnOptionOfListOfBaseType(NodeUtil.getComprisesClause(that)));
     }
@@ -726,7 +726,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                  extendsClause,
                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
-        return forObjectDeclOnly(that, header,
+        return forObjectDeclOnly(that, that.getInfo(), header,
                                  v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)));
     }
 
@@ -756,7 +756,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // for shadowing in forObjectDecl. Also, if this FnDecl is a getter, we allow it
         // to share its name with a field, so blindly checking for shadowing at this point
         // doesn't work.
-        return forFnDeclOnly(that, header,
+        return forFnDeclOnly(that, that.getInfo(), header,
                              that.getUnambiguousName(),
                              v.recurOnOptionOfExpr(NodeUtil.getBody(that)),
                              that.getImplementsUnambiguousName());
@@ -823,6 +823,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	public Node forCatch(Catch that) {
         ExprDisambiguator v = this.extendWithVars(Collections.singleton(that.getName()));
         return forCatchOnly(that,
+                            that.getInfo(),
                             (Id)that.getName().accept(v),
                             v.recurOnListOfCatchClause(that.getClauses()));
     }
@@ -834,6 +835,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 	public Node forContract(Contract that) {
         ExprDisambiguator v = extendWithOutcome(NodeUtil.getSpan(that));
         return forContractOnly(that,
+                               that.getInfo(),
                                v.recurOnOptionOfListOfExpr(that.getRequiresClause()),
                                v.recurOnOptionOfListOfEnsuresClause(that.getEnsuresClause()),
                                v.recurOnOptionOfListOfExpr(that.getInvariantsClause()));
@@ -865,6 +867,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         ExprDisambiguator e_d = this.extendWithVars(Useful.set(gen.getBind()));
 
         return forIfClauseOnly(that,
+                               that.getInfo(),
                                (GeneratorClause)that.getTestClause().accept(this),
                                (Block)that.getBody().accept(e_d));
     }

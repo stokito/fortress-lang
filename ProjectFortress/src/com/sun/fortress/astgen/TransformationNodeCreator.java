@@ -57,14 +57,26 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
     public void run() {
         List<Pair<NodeType, NodeType>> all = new LinkedList<Pair<NodeType, NodeType>>();
         NodeType abstractNode;
-        if ( ast.typeForName("AbstractNode").isNone() )
-            throw new RuntimeException("Fortress.ast does not define AbstractNode!");
-        else
+        NodeType exprNode;
+        NodeType typeNode;
+        if ( ast.typeForName("AbstractNode").isSome() &&
+             ast.typeForName("Expr").isSome() &&
+             ast.typeForName("Type").isSome() ) {
             abstractNode = ast.typeForName("AbstractNode").unwrap();
+            exprNode     = ast.typeForName("Expr").unwrap();
+            typeNode     = ast.typeForName("Type").unwrap();
+        } else
+            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
         for ( NodeType n : ast.classes() ){
             if ( n.getClass() == NodeClass.class &&
                  ast.isDescendent(abstractNode, n) ){
-                NodeType child = new TransformationNode((NodeClass) n,ast);
+
+                String infoType;
+                if ( ast.isDescendent(exprNode, n) ) infoType = "ExprInfo";
+                else if ( ast.isDescendent(typeNode, n) ) infoType = "TypeInfo";
+                else infoType = "ASTNodeInfo";
+
+                NodeType child = new TransformationNode((NodeClass) n,ast,infoType);
                 all.add( new Pair<NodeType,NodeType>( child, n ) );
             }
         }

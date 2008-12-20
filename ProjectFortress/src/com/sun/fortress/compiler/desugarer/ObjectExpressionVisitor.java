@@ -170,12 +170,13 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
     @Override
     public Node forComponentOnly(Component that,
+                                 ASTNodeInfo info,
                                  APIName name_result,
                                  List<Import> imports_result,
                                  List<Decl> decls_result,
                                  List<APIName> exports_result) {
         decls_result.addAll(newObjectDecls);
-        return super.forComponentOnly(that, name_result,
+        return super.forComponentOnly(that, info, name_result,
                         imports_result, decls_result, exports_result);
     }
 
