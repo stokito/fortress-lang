@@ -50,7 +50,7 @@ public class BaseTypeCollector extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forTypeArgOnly(TypeArg that, String type_result) {
+        public String forTypeArgOnly(TypeArg that, String info, String type_result) {
         return type_result;
     }
 

@@ -355,6 +355,7 @@ public class TypeAnalyzer {
             }
 
             @Override public Effect forEffectOnly(Effect e,
+                                                  ASTNodeInfo info_result,
                                                   Option<List<BaseType>> normalThrows) {
                 if (normalThrows.isNone()) { return e; }
                 else {

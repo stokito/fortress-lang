@@ -29,6 +29,7 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.ObjectDecl;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.Modifiers;
@@ -93,7 +94,8 @@ public class SelfParamDisambiguator extends NodeUpdateVisitor {
         NodeUpdateVisitor replacer = new NodeUpdateVisitor() {
             int traitNestingDepth = 0;
             @Override
-            public Node forParamOnly(Param that, Id name_result,
+                public Node forParamOnly(Param that, ASTNodeInfo info,
+                                         Id name_result,
                                                  Option<Type> type_result,
                                                  Option<Expr> defaultExpr_result,
                                                  Option<Type> varargsType_result) {

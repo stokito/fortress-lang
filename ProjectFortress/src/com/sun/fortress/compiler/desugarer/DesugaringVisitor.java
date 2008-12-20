@@ -535,7 +535,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
         }
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(that.getHeader(), gettersAndDecls, contract_result);
-        return forObjectDeclOnly(that, header, params_result);
+        return forObjectDeclOnly(that, that.getInfo(), header, params_result);
     }
 
     @Override
@@ -556,7 +556,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
 
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeaderWithDecls(that.getHeader(), gettersAndDecls);
 
-        return forTraitDeclOnly(that, header, NodeUtil.getExcludesClause(that),
+        return forTraitDeclOnly(that, that.getInfo(), header, NodeUtil.getExcludesClause(that),
                                 NodeUtil.getComprisesClause(that));
     }
 

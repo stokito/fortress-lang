@@ -164,7 +164,7 @@ public class Transform extends TemplateUpdateVisitor {
             GeneratorClause test_result = handleGeneratorClause(that.getTestClause());
             Block body_result = (Block) recur(that.getBody());
             setSyntaxEnvironment(save);
-            return forIfClauseOnly(that, test_result, body_result);
+            return forIfClauseOnly(that, that.getInfo(), test_result, body_result);
         } else {
             return super.forIfClause(that);
         }
@@ -214,7 +214,7 @@ public class Transform extends TemplateUpdateVisitor {
             extendSyntaxEnvironment(name_result, newId);
             List<CatchClause> clauses_result = recurOnListOfCatchClause(that.getClauses());
             setSyntaxEnvironment(save);
-            return forCatchOnly(that, newId, clauses_result);
+            return forCatchOnly(that, that.getInfo(), newId, clauses_result);
         } else {
             return super.forCatch(that);
         }
@@ -547,7 +547,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-    @Override public Node forTemplateGapOnly(TemplateGap that,
+    @Override public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
                                              Id gapId_result,
 					     List<Id> templateParams_result) {
         /* another annoying cast */

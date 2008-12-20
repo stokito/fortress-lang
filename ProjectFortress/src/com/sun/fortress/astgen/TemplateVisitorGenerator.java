@@ -36,15 +36,24 @@ import edu.rice.cs.plt.tuple.Pair;
 
 public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 
+    private NodeType exprNode;
+    private NodeType typeNode;
+
     public TemplateVisitorGenerator(ASTModel ast) {
         super(ast);
+        if ( ast.typeForName("Expr").isSome() &&
+             ast.typeForName("Type").isSome() ) {
+            exprNode = ast.typeForName("Expr").unwrap();
+            typeNode = ast.typeForName("Type").unwrap();
+        } else
+            throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
     }
 
     @Override
     protected void generateVisitor(NodeType root) {
         // only defined for the "Node" class
         if (!root.name().equals("Node")) { return; }
-        
+
         String visitorName = "TemplateUpdateVisitor";
         TabPrintWriter writer = options.createJavaSourceInOutDir(visitorName);
 
@@ -63,7 +72,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.startLine(" * There is no automatic delegation to more general cases, because each concrete");
         writer.startLine(" * case has a default implementation.");
         writer.startLine(" */");
-        writer.startLine("@SuppressWarnings(value={\"unused\"})");        
+        writer.startLine("@SuppressWarnings(value={\"unused\"})");
         writer.startLine("public abstract class " + visitorName);
 
         if (options.usePLT) {
@@ -77,7 +86,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.indent();
         writer.println();
 
-        
+
         writer.startLine("/* Methods to handle a node after recursion. */");
         for (NodeType t : ast.descendents(root)) {
           if (!t.isAbstract()) {
@@ -93,7 +102,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 //          if (t instanceof NodeClass) {
 //              outputTemplateForCaseOnly(t, writer, root);
 //          }
-        } 
+        }
         writer.println();
 
         writer.startLine("/** Methods to recur on each child. */");
@@ -106,14 +115,14 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
 //              outputTemplateVisitMethod(t, writer, root);
 //          }
         }
-        
+
         NodeType templateGapInterface = null;
         for (NodeInterface ni: ast.interfaces()) {
             if (ni.name().equals("TemplateGap")) {
                 templateGapInterface = ni;
             }
         }
-        outputForTemplateGapOnly(templateGapInterface, writer, root);        
+        outputForTemplateGapOnly(templateGapInterface, writer, root);
 
         writer.println();
         outputRecurMethod(writer, root, root.name());
@@ -122,10 +131,10 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         outputTransformationDefaultCase(writer, root);
         writer.println();
         outputEllipsesDefaultCase(writer, root);
-        
+
         // Output helpers
         for (TypeName t : helpers()) { writer.println(); generateHelper(t, writer, root); }
-        
+
         writer.unindent();
         writer.startLine("}");
         writer.println();
@@ -175,7 +184,7 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         for (TypeName typeName: t.interfaces()) {
             if (typeName.name().equals("TemplateGap")) {
                 isTemplateGap = true;
-            }                
+            }
         }
 
         if (isTemplateGap) {
@@ -211,28 +220,6 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.println();
     }
 
-    protected void outputTemplateVisitMethod(NodeType t, TabPrintWriter writer, NodeType root) {
-        outputTemplateForCaseHeader(t, writer, root.name());
-        writer.indent();
-
-        List<String> recurVals = new LinkedList<String>();
-        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
-            Option<String> recur = recurExpression(f.type(), "that." + f.getGetterName() + "()", root, true);
-            if (recur.isSome()) {
-                String recurName = f.name() + "_result";
-                writer.startLine(f.type().name() + " " + recurName + " = " + recur.unwrap() + ";");
-                recurVals.add(recurName);
-            }
-        }   
-        writer.startLine("return forTemplateGap"+t.name()+"Only(that");
-        for (String recurVal : recurVals) { writer.print(", " + recurVal); }
-        writer.print(");");
-
-        writer.unindent();
-        writer.startLine("}");
-        writer.println();
-    }
-
     protected void outputTemplateForCaseHeader(NodeType t, TabPrintWriter writer, String retType) {
         outputTemplateForCaseHeader(t.name(), writer, retType, "", IterUtil.<String>empty());
     }
@@ -256,65 +243,19 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         return options.visitorMethodPrefix + "TemplateGap" + upperCaseFirst(name);
     }
 
-    protected void outputTemplateForCaseOnly(NodeType t, TabPrintWriter writer, NodeType root) {
-        // only called for concrete cases; must not delegate
-        List<String> params = new LinkedList<String>(); // "type name" strings
-        List<String> getters = new LinkedList<String>(); // expressions
-        List<String> paramRefs = new LinkedList<String>(); // variable names or null
-        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
-            getters.add("that." + f.getGetterName() + "()");
-            if (canRecurOn(f.type(), root)) {
-                String paramName = f.name() + "_result";
-                params.add(f.type().name() + " " + paramName);
-                paramRefs.add(paramName);
-            }
-            else { paramRefs.add(null); }
-        }
-        outputTemplateForCaseHeader(t.name(), writer, root.name(), "Only", params);
-        writer.indent();
-        writer.startLine("Node template = forTemplateGapOnly(that");
-        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
-            if (canRecurOn(f.type(), root)) {
-                writer.print(", " + f.name()+"_result");
-            }
-        }
-        writer.print(");");
-
-        writer.startLine("if (!template.equals(that)) return template;");
-
-        if (params.isEmpty()) { writer.startLine("return that;"); }
-        else {
-            writer.startLine("if (");
-            boolean first = true;
-            for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
-                if (getterAndRef.second() != null) {
-                    if (first) { first = false; }
-                    else { writer.print(" && "); }
-                    writer.print(getterAndRef.first() + " == " + getterAndRef.second());
-                }
-            }
-            writer.print(") return that;");
-
-            writer.startLine("else return new TemplateGap" + t.name() + "(");
-            first = true;
-            for (Pair<String, String> getterAndRef : IterUtil.zip(getters, paramRefs)) {
-                if (first) { first = false; }
-                else { writer.print(", "); }
-                if (getterAndRef.second() == null) { writer.print(getterAndRef.first()); }
-                else { writer.print(getterAndRef.second()); }
-            }
-            writer.print(");");
-        }
-        writer.unindent();
-        writer.startLine("}");
-    }
-
     protected void outputForTemplateGapOnly(NodeType t, TabPrintWriter writer, NodeType root) {
         // only called for concrete cases; must not delegate
         List<String> params = new LinkedList<String>(); // "type name" strings
         List<String> getters = new LinkedList<String>(); // expressions
         List<String> paramRefs = new LinkedList<String>(); // variable names or null
-        for (Field f : TemplateGapNodeCreator.TEMPLATEGAPFIELDS) {
+        List<Field> fields;
+        if ( ast.isDescendent(exprNode, root) )
+            fields = TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
+        else if ( ast.isDescendent(typeNode, root) )
+            fields = TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
+        else
+            fields = TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
+        for (Field f : fields) {
             getters.add("that." + f.getGetterName() + "()");
             if (canRecurOn(f.type(), root)) {
                 String paramName = f.name() + "_result";

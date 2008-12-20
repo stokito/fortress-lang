@@ -32,9 +32,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class TemplateGapClass extends NodeClass {
     //    private TypeName _superClass;
+    private String infoType;
 
-    public TemplateGapClass(String name, List<Field> fields, TypeName superClass, List<TypeName> interfaces) {
+    public TemplateGapClass(String name, List<Field> fields, TypeName superClass,
+                            List<TypeName> interfaces, String in_infoType) {
         super(name, false, fields, superClass, interfaces);
+        infoType = in_infoType;
         //        _superClass = superClass;
     }
 
@@ -58,7 +61,12 @@ public class TemplateGapClass extends NodeClass {
             return result;
         }
         // may include fields in a parent interface
-        return TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
+        if ( infoType.equals("ExprInfo") )
+            return TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
+        else if ( infoType.equals("TypeInfo") )
+            return TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
+        else
+            return TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
     }
 
     public void output(ASTModel ast, Iterable<CodeGenerator> gens) {
@@ -103,7 +111,7 @@ public class TemplateGapClass extends NodeClass {
         writer.println("");
         writeSerialize(writer);
         writer.println("");
-        writeOutputHelp(writer, this.name());      
+        writeOutputHelp(writer, this.name());
 
         //   for (CodeGenerator g : gens) { g.generateClassMembers(writer, this); }
 
@@ -116,7 +124,6 @@ public class TemplateGapClass extends NodeClass {
 
 
     private void writeGetters(TabPrintWriter writer, String name) {
-        //        writer.startLine("final public Span getSpan() { return _span; }");
         writer.startLine("final public Id getGapId() { return _id; }");
         writer.startLine("final public List<Id> getTemplateParams() { return _templateParams; }");
         writer.println();
@@ -136,7 +143,7 @@ public class TemplateGapClass extends NodeClass {
             writer.indent();
             writer.startLine("visitor.for"+name+"(this);");
             writer.unindent();
-            writer.startLine("}");            
+            writer.startLine("}");
         }
 
         /* this should probably be 'return visitor.for...' */
@@ -148,15 +155,14 @@ public class TemplateGapClass extends NodeClass {
     }
 
     private void writeFields(TabPrintWriter writer) {
-        // writer.startLine("private final Span _span;");
         writer.startLine("private final Id _id;");
         writer.startLine("private final List<Id> _templateParams;");
     }
 
     private void writeConstructor(TabPrintWriter writer, String className) {
-        writer.startLine("public " + className+"(Span span, Id id, List<Id> templateParams) {");
+        writer.startLine("public " + className+"(" + infoType + " info, Id id, List<Id> templateParams) {");
         writer.indent();
-        writer.startLine("super(span);");
+        writer.startLine("super(info);");
         writer.startLine("this._id = id;");
         writer.startLine("this._templateParams = templateParams;");
         writer.unindent();
@@ -166,7 +172,7 @@ public class TemplateGapClass extends NodeClass {
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
         writer.startLine("public " + className+"() {");
         writer.indent();
-        writer.startLine("super(new Span());");
+        writer.startLine("super(NodeFactory.make" + infoType + "());");
         writer.startLine("this._id = null;");
         writer.startLine("this._templateParams = null;");
         writer.unindent();
@@ -195,7 +201,7 @@ public class TemplateGapClass extends NodeClass {
         writer.unindent();
         writer.startLine("}");
         writer.unindent();
-        writer.startLine("}");        
+        writer.startLine("}");
     }
 
     private void writeToString(TabPrintWriter writer) {
@@ -244,16 +250,16 @@ public class TemplateGapClass extends NodeClass {
         writer.startLine("writer.print(\""+name+":\");");
         writer.startLine("writer.indent();");
 
-        writer.startLine("Span temp_span = getSpan();");
+        writer.startLine(infoType + " temp_info = getInfo();");
         writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"span = \");");
+        writer.startLine("writer.print(\"info = \");");
         writer.startLine("if (lossless) {");
         writer.indent();
-        writer.startLine("writer.printSerialized(temp_span);");
+        writer.startLine("writer.printSerialized(temp_info);");
         writer.startLine("writer.print(\" \");");
-        writer.startLine("writer.printEscaped(temp_span);");
+        writer.startLine("writer.printEscaped(temp_info);");
         writer.unindent();
-        writer.startLine("} else { writer.print(temp_span); }");
+        writer.startLine("} else { writer.print(temp_info); }");
 
         writer.startLine("Id temp_id = getGapId();");
         writer.startLine("writer.startLine();");
@@ -291,7 +297,12 @@ public class TemplateGapClass extends NodeClass {
 
     @Override
     public Iterable<Field> allFields(ASTModel ast) {
-        return TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
+        if ( infoType.equals("ExprInfo") )
+            return TemplateGapNodeCreator.TEMPLATEGAPEXPRFIELDS;
+        else if ( infoType.equals("TypeInfo") )
+            return TemplateGapNodeCreator.TEMPLATEGAPTYPEFIELDS;
+        else
+            return TemplateGapNodeCreator.TEMPLATEGAPFIELDS;
     }
 
     public String getKindName(ASTModel ast) {

@@ -30,6 +30,7 @@ import com.sun.fortress.nodes.NonterminalParameter;
 import com.sun.fortress.nodes.Transformer;
 import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.PreTransformerDef;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
 import com.sun.fortress.useful.Debug;
@@ -97,7 +98,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
         return result;
     }
 
-    @Override public Node forPreTransformerDefOnly(PreTransformerDef that,
+    @Override public Node forPreTransformerDefOnly(PreTransformerDef that, ASTNodeInfo info,
                                                    Transformer transformer) {
         try {
             Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());

@@ -24,6 +24,7 @@ import java.util.Map;
 import com.sun.fortress.nodes_util.NodeFactory;
 
 import com.sun.fortress.nodes.ASTNode;
+import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.CaseTransformer;
 import com.sun.fortress.nodes.CaseTransformerClause;
@@ -74,6 +75,7 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
     }
 
     @Override public Node forUnparsedTransformerOnly(UnparsedTransformer that,
+                                                     ASTNodeInfo info,
                                                      Id id_result) {
         return new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)),
                                        rewriteVars(that.getTransformer(), that), id_result);

@@ -40,14 +40,18 @@ public class NodeUtil {
 
     /* Getters for ASTNode */
 
+    public static ASTNodeInfo getInfo(ASTNode n) {
+        return n.getInfo();
+    }
+
     public static Span getSpan(ASTNode n) {
-        return n.getSpan();
+        return n.getInfo().getSpan();
     }
 
     /* Getters for Expr */
 
     public static Span getSpan(Expr e) {
-        return e.getSpan();
+        return e.getInfo().getSpan();
     }
 
     public static boolean isParenthesized(Expr e) {
@@ -61,7 +65,7 @@ public class NodeUtil {
     /* Getters for Type */
 
     public static Span getSpan(Type t) {
-        return t.getSpan();
+        return t.getInfo().getSpan();
     }
 
     public static boolean isParenthesized(Type t) {

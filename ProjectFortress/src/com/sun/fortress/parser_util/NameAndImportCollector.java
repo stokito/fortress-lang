@@ -32,6 +32,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.SpanInfo;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes._RewriteObjectExpr;
@@ -43,7 +44,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 
 
 	@Override
-            public List<Import> forComponentOnly(Component that,
+            public List<Import> forComponentOnly(Component that, List<Import> info,
                                                  List<Import> name_result, List<List<Import>> imports_result,
                                                  List<List<Import>> decls_result,
                                                  List<List<Import>> exports_result) {
@@ -51,7 +52,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 		this.namesAndImports.setComponentName(that.getName());
 		this.namesAndImports.setImports(collapseList(imports_result));
 
-		return super.forComponentOnly(that, name_result, imports_result,
+		return super.forComponentOnly(that, info, name_result, imports_result,
                                               decls_result, exports_result);
 	}
 
@@ -73,7 +74,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 	}
 
 	@Override
-	public List<Import> forImportApiOnly(ImportApi that,
+	public List<Import> forImportApiOnly(ImportApi that, List<Import> info,
 			List<List<Import>> apis_result) {
 		List<Import> ls = collapseList(apis_result);
 		ls.add(that);
@@ -82,7 +83,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 
 
 	@Override
-	public List<Import> forImportedNamesOnly(ImportedNames that,
+	public List<Import> forImportedNamesOnly(ImportedNames that, List<Import> info,
 			List<Import> api_result) {
 		List<Import> ls = api_result;
 		ls.add(that);
@@ -90,7 +91,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 	}
 
 	@Override
-	public List<Import> forImportNamesOnly(ImportNames that,
+	public List<Import> forImportNamesOnly(ImportNames that, List<Import> info,
 			List<Import> api_result,
 			List<List<Import>> aliasedNames_result) {
 		List<Import> ls = collapseList(aliasedNames_result);
@@ -99,7 +100,7 @@ public class NameAndImportCollector extends NodeDepthFirstVisitor<List<Import>> 
 	}
 
 	@Override
-	public List<Import> forImportStarOnly(ImportStar that,
+	public List<Import> forImportStarOnly(ImportStar that, List<Import> info,
 			List<Import> api_result,
 			List<List<Import>> except_result) {
 		List<Import> ls = collapseList(except_result);
