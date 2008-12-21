@@ -28,6 +28,9 @@ test t2(): () = ()
 
 run(args:String...):() = do
     println("Please run in test mode!!")
+    tv1 = testVar
+    tv2 = testVar
+    ()
   end
 
 

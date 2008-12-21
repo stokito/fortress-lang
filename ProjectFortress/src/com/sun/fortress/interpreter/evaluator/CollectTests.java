@@ -35,7 +35,7 @@ import com.sun.fortress.nodes_util.*;
  * For now we only add test functions.
  */
 
-public class BuildTestEnvironments extends NodeDepthFirstVisitor<Boolean> {
+public class CollectTests extends NodeDepthFirstVisitor<Boolean> {
 
     private static List<String> tests;
 
@@ -49,7 +49,7 @@ public class BuildTestEnvironments extends NodeDepthFirstVisitor<Boolean> {
 
     public static List<String> getTests() { return tests; }
 
-    public BuildTestEnvironments() {
+    public CollectTests() {
         tests = new ArrayList<String>();
     }
 

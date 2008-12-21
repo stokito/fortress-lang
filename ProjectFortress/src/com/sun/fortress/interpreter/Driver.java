@@ -43,7 +43,7 @@ import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;
-import com.sun.fortress.interpreter.evaluator.BuildTestEnvironments;
+import com.sun.fortress.interpreter.evaluator.CollectTests;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
 import com.sun.fortress.interpreter.evaluator.Init;
@@ -561,9 +561,9 @@ public class Driver {
     public static void runTests(FortressRepository fr, ComponentIndex p, boolean verbose)
         throws Throwable {
 
-        BuildTestEnvironments bte = new BuildTestEnvironments ();
+        CollectTests bte = new CollectTests ();
         bte.visit(p.ast());
-        List<String> tests = BuildTestEnvironments.getTests();
+        List<String> tests = CollectTests.getTests();
 
         if (group == null)
             group = new FortressTaskRunnerGroup(getNumThreads());
