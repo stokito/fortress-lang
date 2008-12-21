@@ -41,9 +41,18 @@ import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AliasedAPIName;
+import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.ApiGraphNode;
@@ -56,8 +65,10 @@ import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.useful.Debug.Type;
 
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 
 /* A graph-based repository. This repository determines the dependency structure
@@ -97,7 +108,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* by default all the root APIs should be added to the graph
-     * and set as dependancies for everything else.
+     * and set as dependencies for everything else.
      */
     private void addRoots() throws FileNotFoundException {
         for ( String root : roots() ){
@@ -136,7 +147,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* getApi and getComponent add an API/component to the graph, find all the
-     * dependancies( via addApiGraph/addComponentGraph ) and recompile everything.
+     * dependencies( via addApiGraph/addComponentGraph ) and recompile everything.
      */
     @Override
 	public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
@@ -317,25 +328,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     /* what if the file has been edited to include import statements that the cached
-     * version doesn't have? thats ok because the cached version won't be loaded unless it
+     * version doesn't have? that's ok because the cached version won't be loaded unless it
      * is newer than the file on disk.
      */
     private List<APIName> dependencies(ApiGraphNode node) throws FileNotFoundException, StaticError {
-        if ( node.getApi().isSome() ){
-            return NodeUtil.collectApiImports((Api)node.getApi().unwrap().ast());
-        } else {
-            File fdot = findFile(node.getName(), ProjectProperties.API_SOURCE_SUFFIX);
-            return NodeUtil.getImportedApis(node.getName(), fdot);
-        }
+        CompilationUnit cu = node.getApi().isSome() ?
+                node.getApi().unwrap().ast() :
+                    readCUFor(node, ProjectProperties.API_SOURCE_SUFFIX);
+                
+        return collectApiImports((Api)cu);
+
     }
 
     private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
-        if ( node.getComponent().isSome() ){
-            return NodeUtil.collectComponentImports((Component)node.getComponent().unwrap().ast());
-        } else {
-            File fdot = findFile(node.getName(), ProjectProperties.COMP_SOURCE_SUFFIX);
-            return NodeUtil.getImportedApis(node.getName(), fdot);
-        }
+        CompilationUnit cu = node.getComponent().isSome() ?
+                node.getComponent().unwrap().ast() :
+                    readCUFor(node, ProjectProperties.COMP_SOURCE_SUFFIX);
+                
+        return collectComponentImports((Component)cu);       
     }
 
     private boolean inApiList( APIName name, List<ApiGraphNode> nodes ){
@@ -454,7 +464,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 }
             }
 
-
             youngestSourceDependedOn.put(node, youngest);
 
             return youngest;
@@ -510,16 +519,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
         /* force components that import things to depend on the component
          * that implements that import. This is for syntax abstraction
-         * update 6/19/2008: this would prevent seperate compilation, so
+         * update 6/19/2008: this would prevent separate compilation, so
          * don't set things up this way.
          */
         /*
         for ( GraphNode node : componentGraph.nodes() ){
             ComponentGraphNode comp = (ComponentGraphNode) node;
-            for ( GraphNode dependancy : graph.dependancies(comp) ){
-                if ( dependancy instanceof ApiGraphNode ){
-                    ComponentGraphNode next = (ComponentGraphNode) componentGraph.find( new ComponentGraphNode( ((ApiGraphNode) dependancy).getName() ) );
-                    // ComponentGraphNode next = new ComponentGraphNode( ((ApiGraphNode) dependancy).getName() );
+            for ( GraphNode dependency : graph.dependencies(comp) ){
+                if ( dependency instanceof ApiGraphNode ){
+                    ComponentGraphNode next = (ComponentGraphNode) componentGraph.find( new ComponentGraphNode( ((ApiGraphNode) dependency).getName() ) );
+                    // ComponentGraphNode next = new ComponentGraphNode( ((ApiGraphNode) dependency).getName() );
                     if ( ! next.equals( comp ) ){
                         componentGraph.addEdge( comp, next );
                     }
@@ -708,6 +717,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             if (null == graph.find(ApiGraphNode.key(name))) {
                 addApiGraph(name);
             }
+            // If the API is from import-native, treat it differently than this.
             if (link && null == graph.find(ComponentGraphNode.key(name))) {
                 addComponentGraph(name);
             }
@@ -740,4 +750,97 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         cache.clear();
     }
 
+     private List<APIName> collectExplicitImports(CompilationUnit comp) {
+        List<APIName> all = new ArrayList<APIName>();
+        for (Import i : comp.getImports()){
+            Option<String> opt_fl = i.getForeignLanguage();
+            boolean isNative = opt_fl.isSome();
+            if (isNative && (i instanceof ImportNames)) {
+                String fl = opt_fl.unwrap();
+                // Conditional overlap with later clause.
+                // Handle import of foreign names here.
+                // Ought to handle this case by case.
+                ImportNames ins = (ImportNames) i;
+                if("java".equalsIgnoreCase(fl)) {
+                    APIName pkg_name = ins.getApiName();
+                    List<AliasedSimpleName> names = ins.getAliasedNames();
+                    for (AliasedSimpleName name : names) {
+                        Option<IdOrOpOrAnonymousName> opt_alias = name.getAlias();
+                        if (opt_alias.isSome()) {
+                            throw StaticError.make(
+                            "Import aliasing not yet implemented for foreign imports ", i);
+                        }
+                        
+                        IdOrOpOrAnonymousName imported = name.getName();
+                        Option<APIName> dotted_prefix = imported.getApiName();
+                        String suffix = ((IdOrOp) imported).getText();
+                        /* 
+                         * Okay, so this means that the "api" being imported 
+                         * is pkg_name, and the class is specified either as
+                         * the first part of the prefix (which looks like an
+                         * APIName) or the suffix.
+                         * 
+                         * Possible cases:
+                         * 
+                         * Aclass.AnInnerClass (Map.Entry)
+                         * Aclass.AStaticFunction
+                         * Aclass.AField
+                         * Aclass.AnInner*.{AStaticFunction,AField}
+                         */
+                    }
+                    continue;
+                } else if ("fortress".equalsIgnoreCase(fl)) {
+                    // do nothing, fall into normal case
+                } else {
+                    throw StaticError.make("Foreign language "+ fl + " not yet handled ", i);
+                }  
+            } 
+            
+            if (i instanceof ImportedNames) {
+                ImportedNames names = (ImportedNames) i;
+                all.add( names.getApiName() );
+            } else { // i instanceof ImportApi
+                ImportApi apis = (ImportApi) i;
+                for (AliasedAPIName a : apis.getApis()) {
+                    all.add(a.getApiName());
+                }
+            }
+        }
+        return all;
+    }
+
+     private  List<APIName> collectComponentImports(Component comp) {
+         List<APIName> all =  collectExplicitImports(comp);
+     
+         for (APIName api : comp.getExports()) {
+             all.add(api);
+         }
+         return removeExecutableApi(all);
+     }
+
+    private  List<APIName> collectApiImports(Api api) {
+        List<APIName> all =  collectExplicitImports(api);
+        
+        return removeExecutableApi(all);
+    }
+   
+     private CompilationUnit readCUFor(GraphNode node, String sourceSuffix) throws FileNotFoundException {
+         APIName name = node.getName();
+         File fdot = findFile(name, sourceSuffix);
+         return Parser.preparseFileConvertExn(name, fdot);
+     }
+
+    public static List<APIName> removeExecutableApi(List<APIName> all){
+        APIName executable = NodeFactory.makeAPIName(NodeFactory.shellSpan,"Executable");
+        List<APIName> fixed = new ArrayList<APIName>();
+        for (APIName name : all){
+            if (! name.equals(executable)){
+                fixed.add(name);
+            }
+        }
+        return fixed;
+    }
+
+    
+    
 }
