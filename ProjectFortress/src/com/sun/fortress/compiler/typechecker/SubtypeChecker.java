@@ -96,7 +96,7 @@ public abstract class SubtypeChecker {
             ArrayType tt = (ArrayType)t;
             Span span = NodeUtil.getSpan(tt);
             TypeArg elem = NodeFactory.makeTypeArg(tt.getElemType());
-            IntArg zero = NodeFactory.makeIntArgVal("0");
+            IntArg zero = NodeFactory.makeIntArgVal(NodeUtil.getSpan(t),"0");
             List<ExtentRange> dims = tt.getIndices().getExtents();
             try {
                 if (dims.size() == 1) {

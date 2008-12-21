@@ -154,7 +154,9 @@ public class NodeFactory {
         return makeSpan(ifEmpty, l);
     }
 
-    public static ASTNodeInfo makeASTNodeInfo() { return new SpanInfo(new Span()); }
+    public static ASTNodeInfo makeASTNodeInfo(Span span) {
+        return new SpanInfo(span);
+    }
 
     public static SpanInfo makeSpanInfo(Span span) { return new SpanInfo(span); }
 
@@ -445,8 +447,8 @@ public class NodeFactory {
         return makeLValue(NodeUtil.getSpan(type), makeId(name), mods, Option.some(type), false);
     }
 
-    public static LValue makeLValue(String name, String type) {
-        return makeLValue(name, makeVarType(type));
+    public static LValue makeLValue(Span span, String name, String type) {
+        return makeLValue(makeId(span, name), makeVarType(span, type));
     }
 
     public static LValue makeLValue(LValue lvb, Modifiers mods,
@@ -571,10 +573,6 @@ public class NodeFactory {
         return makeExprInfo(span, org.isParenthesized(), org.getExprType());
     }
 
-    public static ExprInfo makeExprInfo() {
-        return makeExprInfo(new Span());
-    }
-
     public static ExprInfo makeExprInfo(Span span) {
         return makeExprInfo(span, false);
     }
@@ -592,10 +590,6 @@ public class NodeFactory {
     public static TypeInfo makeTypeInfo(TypeInfo org, Span span) {
         return makeTypeInfo(span, org.isParenthesized(), org.getStaticParams(),
                             org.getWhereClause());
-    }
-
-    public static TypeInfo makeTypeInfo() {
-        return makeTypeInfo(new Span());
     }
 
     public static TypeInfo makeTypeInfo(Span span) {
@@ -636,10 +630,6 @@ public class NodeFactory {
 
     public static TupleType makeTupleType(TupleType t, List<Type> tys) {
         return makeTupleType(NodeUtil.getSpan(t), tys);
-    }
-
-    public static TupleType makeTupleType(List<Type> elements) {
-        return makeTupleType(new Span(), elements);
     }
 
     public static TupleType makeTupleType(Span span, List<Type> elements) {
@@ -689,12 +679,6 @@ public class NodeFactory {
         return makeTraitType(span, false, makeId(span, nameFirst, nameRest));
     }
 
-    /** Signature separates the first element in order to guarantee a non-empty arg list. */
-    public static TraitType makeTraitType(String name,
-                                          List<StaticArg> sargs) {
-        return makeTraitType(new Span(), false, makeId(name), sargs);
-    }
-
     public static TraitType makeTraitType(Span span, String name,
                                           List<StaticArg> sargs) {
         return makeTraitType(span, false, makeId(name), sargs);
@@ -741,10 +725,6 @@ public class NodeFactory {
 
     public static VarType makeVarType(Span span, String string) {
         return makeVarType(span, makeId(string));
-    }
-
-    public static VarType makeVarType(String string) {
-        return makeVarType(new Span(), makeId(string));
     }
 
     public static VarType makeVarType(Span span, Id id) {
@@ -1195,8 +1175,8 @@ public class NodeFactory {
         return makeAPIName(span, CollectUtil.makeList(ids));
     }
 
-    public static BoolRef makeBoolRef(String string) {
-        return makeBoolRef(new Span(), false, makeId(string), lexicalDepth);
+    public static BoolRef makeBoolRef(Span span, String string) {
+        return makeBoolRef(span, false, makeId(string), lexicalDepth);
     }
 
     public static BoolRef makeBoolRef(BoolRef old, int depth) {
@@ -1235,8 +1215,8 @@ public class NodeFactory {
         return new IntBinaryOp(info, parenthesized, left, right, op);
     }
 
-    public static IntRef makeIntRef(String string) {
-        return makeIntRef(new Span(), makeId(string));
+    public static IntRef makeIntRef(Span span, String string) {
+        return makeIntRef(span, makeId(string));
     }
 
     public static IntRef makeIntRef(IntRef old, int depth) {
@@ -1333,13 +1313,8 @@ public class NodeFactory {
 
     /***************************************************************************/
 
-
-    public static Id makeTemporaryId() {
-        return makeId("$$bogus_name$$");
-    }
-
-    public static Op makeTemporaryOp() {
-        return makeOp("$$bogus_name$$");
+    public static Id makeTemporaryId(Span span) {
+        return makeId(span, "$$bogus_name$$");
     }
 
     public static Id makeIdFromLast(Id id) {
@@ -1351,7 +1326,7 @@ public class NodeFactory {
     }
 
     public static KeywordType makeKeywordType(Id name, Type type) {
-        return makeKeywordType(new Span(), name, type);
+        return makeKeywordType(FortressUtil.spanTwo(name,type), name, type);
     }
 
     public static KeywordType makeKeywordType(Span span, Id name, Type type) {
@@ -1372,12 +1347,6 @@ public class NodeFactory {
 
     public static TypeArg makeTypeArg(Span span, String string) {
         return makeTypeArg(span, makeVarType(span, makeId(span, string)));
-    }
-
-    public static TypeArg makeTypeArg(String string) {
-        Span span = new Span();
-        return makeTypeArg(span,
-                           makeVarType(span, makeId(span, string)));
     }
 
     public static DimArg makeDimArg(DimArg t, DimExpr s) {
@@ -1473,11 +1442,6 @@ public class NodeFactory {
     private static Fixity enclosing = new EnclosingFixity();
     private static Fixity big = new BigFixity();
     private static Fixity unknownFix = new UnknownFixity();
-
-    public static Op makeOp(String name) {
-        return makeOp(new Span(),  Option.<APIName>none(),
-                      PrecedenceMap.ONLY.canon(name), unknownFix, false);
-    }
 
     public static Op makeOp(Span span, String name) {
         return makeOp(span, Option.<APIName>none(),
@@ -1595,54 +1559,22 @@ public class NodeFactory {
                                new KindType());
     }
 
-    public static StaticParam makeTypeParam(String name) {
-        Span s = new Span();
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindType());
-    }
-
     public static StaticParam makeTypeParam(Span s, String name, String sup) {
         List<BaseType> supers = new ArrayList<BaseType>(1);
-        supers.add(makeVarType(sup));
-        return makeStaticParam(s, makeId(s, name), supers,
-                               Option.<Type>none(), false,
-                               new KindType());
-    }
-
-    public static StaticParam makeTypeParam(String name, String sup) {
-        Span s = new Span();
-        List<BaseType> supers = new ArrayList<BaseType>(1);
-        supers.add(makeVarType(sup));
+        supers.add(makeVarType(s, sup));
         return makeStaticParam(s, makeId(s, name), supers,
                                Option.<Type>none(), false,
                                new KindType());
     }
 
     public static StaticParam makeOpParam(Span s, String name) {
-        return makeStaticParam(s, makeOp(name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindOp());
-    }
-
-    public static StaticParam makeOpParam(String name) {
-        return makeStaticParam(new Span(), makeOp(name),
+        return makeStaticParam(s, makeOp(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindOp());
     }
 
     public static StaticParam makeBoolParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindBool());
-    }
-
-    public static StaticParam makeBoolParam(String name) {
-        Span s = new Span();
         return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
@@ -1656,23 +1588,7 @@ public class NodeFactory {
                                new KindDim());
     }
 
-    public static StaticParam makeDimParam(String name) {
-        Span s = new Span();
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindDim());
-    }
-
     public static StaticParam makeUnitParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindUnit());
-    }
-
-    public static StaticParam makeUnitParam(String name) {
-        Span s = new Span();
         return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
@@ -1686,23 +1602,7 @@ public class NodeFactory {
                                new KindInt());
     }
 
-    public static StaticParam makeIntParam(String name) {
-        Span s = new Span();
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindInt());
-    }
-
     public static StaticParam makeNatParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
-                               Collections.<BaseType>emptyList(),
-                               Option.<Type>none(), false,
-                               new KindNat());
-    }
-
-    public static StaticParam makeNatParam(String name) {
-        Span s = new Span();
         return makeStaticParam(s, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
@@ -1722,11 +1622,7 @@ public class NodeFactory {
     }
 
     public static BoolArg makeBoolArg(Span span, String string) {
-        return makeBoolArg(span, makeBoolRef(string));
-    }
-
-    public static BoolArg makeBoolArg(String string) {
-        return makeBoolArg(new Span(), makeBoolRef(string));
+        return makeBoolArg(span, makeBoolRef(span, string));
     }
 
     public static BoolArg makeBoolArg(Span span, BoolExpr b) {
@@ -1747,27 +1643,18 @@ public class NodeFactory {
         return new IntBase(makeSpanInfo(span), parenthesized, val);
     }
 
-    public static IntExpr makeIntVal(String i) {
-        Span span = new Span();
+    public static IntExpr makeIntVal(Span span, String i) {
         return makeIntBase(span, false,
                            ExprFactory.makeIntLiteralExpr(span,
                                                           new BigInteger(i)));
     }
 
     public static IntArg makeIntArg(Span span, String string) {
-        return makeIntArg(span, makeIntRef(string));
-    }
-
-    public static IntArg makeIntArg(String string) {
-        return makeIntArg(new Span(), makeIntRef(string));
+        return makeIntArg(span, makeIntRef(span, string));
     }
 
     public static IntArg makeIntArgVal(Span span, String i) {
-        return makeIntArg(span, makeIntVal(i));
-    }
-
-    public static IntArg makeIntArgVal(String i) {
-        return makeIntArg(new Span(), makeIntVal(i));
+        return makeIntArg(span, makeIntVal(span, i));
     }
 
     public static IntArg makeIntArg(Span span, IntExpr i) {
@@ -1775,11 +1662,7 @@ public class NodeFactory {
     }
 
     public static OpArg makeOpArg(Span span, String string) {
-        return makeOpArg(span, ExprFactory.makeOpRef(makeOp(string)));
-    }
-
-    public static OpArg makeOpArg(String string) {
-        return makeOpArg(new Span(), ExprFactory.makeOpRef(makeOp(string)));
+        return makeOpArg(span, ExprFactory.makeOpRef(makeOp(span, string)));
     }
 
     public static OpArg makeOpArg(Span span, FunctionalRef op) {

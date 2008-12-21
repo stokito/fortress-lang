@@ -505,15 +505,15 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     @Override
     public Node forObjectExpr(ObjectExpr that) {
         DesugaringVisitor newVisitor = extend(NodeUtil.getDecls(that));
+        Span span = NodeUtil.getSpan(that);
         List<Decl> decls_result = mangleDecls(newVisitor.recurOnListOfDecl(NodeUtil.getDecls(that)));
 
         LinkedList<Decl> gettersAndDecls = makeGetterSetters(false,
-                                                             NodeFactory.makeTemporaryId(),
+                                                             NodeFactory.makeTemporaryId(span),
                                                              NodeUtil.getDecls(that));
         for (int i = decls_result.size() - 1; i >= 0; i--) {
             gettersAndDecls.addFirst(decls_result.get(i));
         }
-        Span span = NodeUtil.getSpan(that);
         TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
                                                                  NodeUtil.getExtendsClause(that),
                                                                  gettersAndDecls);

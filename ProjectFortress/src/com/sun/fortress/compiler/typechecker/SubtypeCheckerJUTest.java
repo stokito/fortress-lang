@@ -416,8 +416,8 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
         ComponentIndex c = component("SubtypeCheckerTestComponent", traits);
         SubtypeChecker sc = SubtypeChecker.make(new TraitTable(c, GLOBAL_ENV));
         List<StaticParam> sparams = new ArrayList<StaticParam>();
-        sparams.add(NodeFactory.makeTypeParam("ALPHA", "Number"));
-        sparams.add(NodeFactory.makeTypeParam("BETA",  "A"));
+        sparams.add(NodeFactory.makeTypeParam(span, "ALPHA", "Number"));
+        sparams.add(NodeFactory.makeTypeParam(span, "BETA",  "A"));
         return sc.extend(sparams, Option.<WhereClause>none());
     }
 

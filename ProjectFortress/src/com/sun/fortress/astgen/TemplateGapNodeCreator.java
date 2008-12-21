@@ -40,7 +40,7 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     public static List<Field> TEMPLATEGAPFIELDS; {
         TEMPLATEGAPFIELDS = new LinkedList<Field>();
         TypeName infoType = Types.parse("ASTNodeInfo", ast);
-        TEMPLATEGAPFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeASTNodeInfo()"), false, true, true));
+        TEMPLATEGAPFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true));
         TEMPLATEGAPFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
         TEMPLATEGAPFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
     }
@@ -48,7 +48,7 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     public static List<Field> TEMPLATEGAPEXPRFIELDS; {
         TEMPLATEGAPEXPRFIELDS = new LinkedList<Field>();
         TypeName infoType = Types.parse("ExprInfo", ast);
-        TEMPLATEGAPEXPRFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeExprInfo()"), false, true, true));
+        TEMPLATEGAPEXPRFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true));
         TEMPLATEGAPEXPRFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
         TEMPLATEGAPEXPRFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
     }
@@ -56,7 +56,7 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
     public static List<Field> TEMPLATEGAPTYPEFIELDS; {
         TEMPLATEGAPTYPEFIELDS = new LinkedList<Field>();
         TypeName infoType = Types.parse("TypeInfo", ast);
-        TEMPLATEGAPTYPEFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeTypeInfo()"), false, true, true));
+        TEMPLATEGAPTYPEFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true));
         TEMPLATEGAPTYPEFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
         TEMPLATEGAPTYPEFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
     }

@@ -151,7 +151,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		});
 	}
 
-	private static Type typeFromLValues(List<LValue> bindings) {
+	private static Type typeFromLValues(Span span, List<LValue> bindings) {
 		List<Type> results = new ArrayList<Type>();
 
 		for (LValue binding: bindings) {
@@ -160,7 +160,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			} else
 				bug(binding, "Missing type.");
 		}
-		return NodeFactory.makeTupleType(results);
+		return NodeFactory.makeTupleType(span, results);
 	}
 
 	private final CompilationUnitIndex compilationUnit;
@@ -269,7 +269,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return NI.nyi();
 			}
 
-			domain_type = NodeFactory.makeTupleType(param_types);
+			domain_type = NodeFactory.makeTupleType(NodeUtil.getSpan(arg_type),param_types);
 		}
 		else {
 			//is void
@@ -1069,8 +1069,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		TraitIndex index = (TraitIndex)ind.unwrap();
 		if(staticArgs.isEmpty()){
 			TypeArg elem = NodeFactory.makeTypeArg(element_result.type().unwrap());
-			IntArg lower = NodeFactory.makeIntArgVal(""+0);
-			IntArg size = NodeFactory.makeIntArgVal(""+1);
+			IntArg lower = NodeFactory.makeIntArgVal(NodeUtil.getSpan(that),""+0);
+			IntArg size = NodeFactory.makeIntArgVal(NodeUtil.getSpan(that),""+1);
 			Type t=Types.makeArrayKType(1, Useful.list(elem, lower, size));
 			Node new_node=ExprFactory.makeArrayElement(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                                                    Option.some(t),
@@ -1149,6 +1149,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 	@Override
 	public TypeCheckerResult forArrayElements(ArrayElements that){
+            Span span = NodeUtil.getSpan(that);
 		List<TypeCheckerResult> subarrays = this.recurOnListOfArrayExpr(that.getElements());
 		Lambda<TypeCheckerResult,Option<Pair<Type,List<BigInteger>>>> get = new Lambda<TypeCheckerResult,Option<Pair<Type,List<BigInteger>>>>(){
 			public Option<Pair<Type, List<BigInteger>>> value(TypeCheckerResult arg0) {
@@ -1212,14 +1213,15 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			// then we just use what we determine to be true
 			List<StaticArg> inferred_args = new ArrayList<StaticArg>(1+dim*2);
 			inferred_args.add(NodeFactory.makeTypeArg(array_type));
-			IntArg lower_bound = NodeFactory.makeIntArgVal("0");
-			IntArg size = NodeFactory.makeIntArgVal(((Integer)subarrays.size()).toString());
+			IntArg lower_bound = NodeFactory.makeIntArgVal(span,"0");
+			IntArg size = NodeFactory.makeIntArgVal(span,
+                                                                ((Integer)subarrays.size()).toString());
 			inferred_args.add(lower_bound);
 			inferred_args.add(size);
 			for(int i=0;i<dim-1;i++) {
 				BigInteger s = first.get(i);
-				lower_bound = NodeFactory.makeIntArgVal("0");
-				size = NodeFactory.makeIntArgVal(s.toString());
+				lower_bound = NodeFactory.makeIntArgVal(span,"0");
+				size = NodeFactory.makeIntArgVal(span,s.toString());
 				inferred_args.add(lower_bound);
 				inferred_args.add(size);
 			}
@@ -1543,7 +1545,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         }
 			@Override public TypeCheckerResult forOpRef(OpRef that) {
                             if ( isPostInference(that) ) {
-                                Type args_type = NodeFactory.makeTupleType(Useful.list(arg_type, rhs_type));
+                                Type args_type = NodeFactory.makeTupleType(NodeUtil.getSpan(that),
+                                                                           Useful.list(arg_type, rhs_type));
                                 return findStaticallyMostApplicableFn(TypeChecker.destructOpOverLoading(that.getOverloadings().unwrap()),
                                                                       args_type, that, that.getOriginalName());
                             }
@@ -1596,7 +1599,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			}
 			@Override
 			public Pair<List<Type>, TypeCheckerResult> forType(Type that) {
-				Type tuple_type = NodeFactory.makeTupleType(inference_var_types);
+				Type tuple_type = NodeFactory.makeTupleType(NodeUtil.getSpan(that),
+                                                                            inference_var_types);
 				TypeCheckerResult sub_1 = checkSubtype(tuple_type, that, e);
 				TypeCheckerResult sub_2 = checkSubtype(that, tuple_type, e);
 				TypeCheckerResult tcr = TypeCheckerResult.compose(e, subtypeChecker, sub_1, sub_2, e_result);
@@ -1870,7 +1874,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 		if( isPostInference(op) ) {
 			// Our operator is an overloading, so we should find the statically most applicable one and rewrite
-			Type arg_type = NodeFactory.makeTupleType(Useful.list(param_type, match_type));
+			Type arg_type = NodeFactory.makeTupleType(NodeUtil.getSpan(clause),
+                                                                  Useful.list(param_type, match_type));
 			TypeCheckerResult app_result_1 =
                             findStaticallyMostApplicableFn(destructOpOverLoading(op.getOverloadings().unwrap()),
                                                            arg_type, op, op.getOriginalName());
@@ -2409,7 +2414,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                            Collections.<KeywordType>emptyList());
 		}
 		else{
-			domain = NodeFactory.makeTupleType(dlist);
+			domain = NodeFactory.makeTupleType(NodeUtil.getSpan(that), dlist);
 		}
 
 		if( returnType_result.isSome() )
@@ -4190,7 +4195,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			types.add(r.type().unwrap());
 		}
 
-		TupleType tuple_type = NodeFactory.makeTupleType(types);
+		TupleType tuple_type = NodeFactory.makeTupleType(NodeUtil.getSpan(that),types);
 
 		TupleExpr new_node = ExprFactory.makeTupleExpr(NodeUtil.getSpan(that),
                                                                NodeUtil.isParenthesized(that),
@@ -4316,7 +4321,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				original_type = bind_types.get(0);
 			}
 			else {
-				original_type = NodeFactory.makeTupleType(bind_types);
+				original_type = NodeFactory.makeTupleType(NodeUtil.getSpan(that),bind_types);
 			}
 			clauses_result = recurOnListOfTypecaseClauseWithBindings(that.getClauses(), bindings, original_type);
 		}
@@ -4362,7 +4367,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 		if(to_bind.size()==1){
 			Type meet;
 			if(clause.getMatchType().size()>1){
-				meet=this.subtypeChecker.meet(NodeFactory.makeTupleType(clause.getMatchType()),original_type);
+				meet=this.subtypeChecker.meet(NodeFactory.makeTupleType(NodeUtil.getSpan(clause),
+                                                                                        clause.getMatchType()),original_type);
 			}
 			else{
 				meet=this.subtypeChecker.meet(clause.getMatchType().get(0),original_type);
@@ -4431,7 +4437,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 				return bug("All inferrred types should at least be inference variables by typechecking: " + that);
 			}
 		} else { // lhs.size() >= 2
-			Type varType = typeFromLValues(lhs);
+			Type varType = typeFromLValues(NodeUtil.getSpan(that),lhs);
 			if (initResult.type().isNone()) {
 				// The right hand side could not be typed, which must have resulted in a
 				// signaled error. No need to signal another error.

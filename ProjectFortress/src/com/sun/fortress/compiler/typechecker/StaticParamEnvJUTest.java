@@ -25,16 +25,16 @@ import edu.rice.cs.plt.tuple.Option;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 
 public class StaticParamEnvJUTest extends TestCase {
-    private final StaticParam FOO = makeTypeParam("Foo");
-    private final StaticParam BAZ = makeTypeParam("Baz");
-    private final StaticParam BAR = makeTypeParam("Bar");
+    private final StaticParam FOO = makeTypeParam(testSpan, "Foo");
+    private final StaticParam BAZ = makeTypeParam(testSpan, "Baz");
+    private final StaticParam BAR = makeTypeParam(testSpan, "Bar");
 
-    private final StaticParam P = makeBoolParam("p");
-    private final StaticParam N = makeNatParam("n");
-    private final StaticParam Z = makeIntParam("z");
-    private final StaticParam M_ = makeUnitParam("m_");
-    private final StaticParam LENGTH = makeDimParam("Length");
-    private final StaticParam AND = makeOpParam("AND");
+    private final StaticParam P = makeBoolParam(testSpan, "p");
+    private final StaticParam N = makeNatParam(testSpan, "n");
+    private final StaticParam Z = makeIntParam(testSpan, "z");
+    private final StaticParam M_ = makeUnitParam(testSpan, "m_");
+    private final StaticParam LENGTH = makeDimParam(testSpan, "Length");
+    private final StaticParam AND = makeOpParam(testSpan, "AND");
 
     private final StaticParamEnv NIL = StaticParamEnv.make();
 
@@ -45,23 +45,23 @@ public class StaticParamEnvJUTest extends TestCase {
 
     public void testEmptyStaticParamEnv() {
 
-        assertEquals(Option.none(), NIL.binding("blah"));
+        assertEquals(Option.none(), NIL.binding(testSpan, "blah"));
     }
 
     public void testBinding() {
-        assertEquals(FOO, extended.binding("Foo").unwrap());
-        assertEquals(BAZ, extended.binding("Baz").unwrap());
-        assertEquals(BAR, extended.binding("Bar").unwrap());
+        assertEquals(FOO, extended.binding(testSpan, "Foo").unwrap());
+        assertEquals(BAZ, extended.binding(testSpan, "Baz").unwrap());
+        assertEquals(BAR, extended.binding(testSpan, "Bar").unwrap());
 
-        assertEquals(Option.none(), extended.binding("goo"));
+        assertEquals(Option.none(), extended.binding(testSpan, "goo"));
     }
 
     public void testBindingExtended() {
-        assertEquals(P, moreExtended.binding("p").unwrap());
-        assertEquals(N, moreExtended.binding("n").unwrap());
-        assertEquals(Z, moreExtended.binding("z").unwrap());
-        assertEquals(M_, moreExtended.binding("m_").unwrap());
-        assertEquals(LENGTH, moreExtended.binding("Length").unwrap());
-        assertEquals(AND, moreExtended.opBinding("AND").unwrap());
+        assertEquals(P, moreExtended.binding(testSpan, "p").unwrap());
+        assertEquals(N, moreExtended.binding(testSpan, "n").unwrap());
+        assertEquals(Z, moreExtended.binding(testSpan, "z").unwrap());
+        assertEquals(M_, moreExtended.binding(testSpan, "m_").unwrap());
+        assertEquals(LENGTH, moreExtended.binding(testSpan, "Length").unwrap());
+        assertEquals(AND, moreExtended.opBinding(testSpan, "AND").unwrap());
     }
 }
