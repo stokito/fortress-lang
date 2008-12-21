@@ -46,13 +46,13 @@ public final class Types {
 
     private Types() {}
 
-    private static Span span = NodeFactory.makeSpan("If you see this, it is a bug.");
+    private static Span span = NodeFactory.internalSpan;
 
-    public static final Id ANY_NAME = makeId(anyTypeLibrary(), "Any");
-    public static final Id ARRAY_NAME = makeId(fortressLibrary(),"Array");
+    public static final Id ANY_NAME = makeId(span, anyTypeLibrary(), "Any");
+    public static final Id ARRAY_NAME = makeId(span, fortressLibrary(),"Array");
     // TODO: Replace ImmutableArray with ImmutableHeapSequence when
     //       ImmutableHeapSequence is put into the libraries.
-    public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(fortressLibrary(), "ImmutableArray");
+    public static final Id IMMUTABLE_HEAP_SEQ_NAME = makeId(span, fortressLibrary(), "ImmutableArray");
 
     public static final AnyType ANY = NodeFactory.makeAnyType(span);
     public static final BottomType BOTTOM = NodeFactory.makeBottomType(span);
@@ -85,7 +85,7 @@ public final class Types {
 
     public static Id getArrayKName(int k){
      String name = "Array"+k;
-     return makeId(fortressLibrary(),name);
+     return makeId(span, fortressLibrary(),name);
     }
 
     public static TraitType makeArrayType(Type elem, Type indexed){

@@ -326,14 +326,14 @@ public abstract class TypeEnv {
      * Convenience method that takes a String and returns the type of the
      * corresponding Id in this type environment.
      */
-    public final Option<Type> type(String var) { return type(makeId(var)); }
+    public final Option<Type> type(String var) { return type(makeId(NodeFactory.internalSpan,var)); }
 
     /**
      * Convenience method that takes a String and returns the modifiers for the
      * corresponding Id in this type environment.
      */
     public final Option<Modifiers> mods(String var) {
-        return mods(makeId(var));
+        return mods(makeId(NodeFactory.internalSpan,var));
     }
 
     /**
@@ -341,7 +341,7 @@ public abstract class TypeEnv {
      * corresponding Id in this type environment is mutable or not.
      */
     public final Option<Boolean> mutable(String var) {
-        return mutable(makeId(var));
+        return mutable(makeId(NodeFactory.internalSpan,var));
     }
 
     public abstract List<BindingLookup> contents();

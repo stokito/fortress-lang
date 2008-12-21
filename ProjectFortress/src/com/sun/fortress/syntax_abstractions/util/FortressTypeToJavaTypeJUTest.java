@@ -38,13 +38,13 @@ public class FortressTypeToJavaTypeJUTest extends TestCase {
 
     private Span span = NodeFactory.makeSpan("bogus");
 
-    private VarType stringType = NodeFactory.makeVarType(span, NodeFactory.makeId(WellKnownNames.fortressBuiltin(), "String"));
+    private VarType stringType = NodeFactory.makeVarType(span, NodeFactory.makeId(span, WellKnownNames.fortressBuiltin(), "String"));
     private String stringTypeResult = "String";
-    private VarType fortressASTType = NodeFactory.makeVarType(span, NodeFactory.makeId("FortressAst", "Decl"));
+    private VarType fortressASTType = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "FortressAst", "Decl"));
     private String fortressASTTypeResult = "Decl";
 
     private TraitType mkTraitType(String api, String id, BaseType typeArg) {
-        Id name = NodeFactory.makeId(api, id);
+        Id name = NodeFactory.makeId(span, api, id);
         List<StaticArg> args = new LinkedList<StaticArg>();
         args.add(NodeFactory.makeTypeArg(span, typeArg));
         return NodeFactory.makeTraitType(span, name, args);

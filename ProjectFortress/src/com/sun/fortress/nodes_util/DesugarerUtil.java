@@ -28,66 +28,68 @@ import com.sun.fortress.useful.Useful;
 
 public class DesugarerUtil {
 
+    private final static Span span = NodeFactory.internalSpan;
+
     // Distinct from Types.ANY_NAME because qualified names aren't yet supported
     public final static Id INTERNAL_ANY_NAME =
-        NodeFactory.makeId("Any");
+        NodeFactory.makeId(span, "Any");
 
     public final static Id LOOP_NAME =
-        NodeFactory.makeId(WellKnownNames.loop);
+        NodeFactory.makeId(span, WellKnownNames.loop);
 
     public final static VarRef GENERATE_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.generate);
+        ExprFactory.makeVarRef(span, WellKnownNames.generate);
 
     public final static VarRef MAP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.map);
+        ExprFactory.makeVarRef(span, WellKnownNames.map);
 
     public final static VarRef SINGLETON_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.singleton);
+        ExprFactory.makeVarRef(span, WellKnownNames.singleton);
 
     public final static VarRef NEST_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.nest);
+        ExprFactory.makeVarRef(span, WellKnownNames.nest);
 
     public final static VarRef COND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.cond);
+        ExprFactory.makeVarRef(span, WellKnownNames.cond);
 
     public final static VarRef WHILECOND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.whileCond);
+        ExprFactory.makeVarRef(span, WellKnownNames.whileCond);
 
     public final static VarRef BIGOP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.bigOperator);
+        ExprFactory.makeVarRef(span, WellKnownNames.bigOperator);
 
     public final static VarRef BIGOP2_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.bigOperator2);
+        ExprFactory.makeVarRef(span, WellKnownNames.bigOperator2);
 
     public final static VarRef FILTER_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.filter);
+        ExprFactory.makeVarRef(span, WellKnownNames.filter);
 
     public final static VarRef Q_GENERATE_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.generate);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.generate);
 
     public final static VarRef Q_MAP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.map);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.map);
 
     public final static VarRef Q_SINGLETON_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.singleton);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.singleton);
 
     public final static VarRef Q_NEST_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.nest);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.nest);
 
     public final static VarRef Q_COND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.cond);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.cond);
 
     public final static VarRef Q_WHILECOND_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.whileCond);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.whileCond);
 
     public final static VarRef Q_BIGOP_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.bigOperator);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.bigOperator);
 
     public final static VarRef Q_BIGOP2_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.bigOperator2);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.bigOperator2);
 
     public final static VarRef Q_FILTER_NAME =
-        ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), WellKnownNames.filter);
+        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.filter);
 
     /**
      * Used to generate temporary names when rewriting (for example)
@@ -104,7 +106,7 @@ public class DesugarerUtil {
     }
 
     public static Id gensymId(String prefix) {
-        return NodeFactory.makeId(gensym(prefix));
+        return NodeFactory.makeId(NodeFactory.internalSpan, gensym(prefix));
     }
 
     /**

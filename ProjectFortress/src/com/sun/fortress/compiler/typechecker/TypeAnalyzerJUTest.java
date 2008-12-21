@@ -595,7 +595,7 @@ public class TypeAnalyzerJUTest extends TestCase {
                 else {
                     int eq = findAtTop(elt, "=");
                     if (eq >= 0) {
-                        Id k = NodeFactory.makeId(elt.substring(0, eq).trim());
+                        Id k = NodeFactory.makeId(span,elt.substring(0, eq).trim());
                         Type t = parseType(elt.substring(eq+1));
                         keys.add(NodeFactory.makeKeywordType(span, k, t));
                     }

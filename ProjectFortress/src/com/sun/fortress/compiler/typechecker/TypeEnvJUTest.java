@@ -52,9 +52,9 @@ public class TypeEnvJUTest extends TestCase {
                                                      Modifiers.Settable)));
 
     public void testEmptyTypeEnv() {
-        assertEquals(none(), TypeEnv.make().type(makeId("x")));
-        assertEquals(none(), TypeEnv.make().mods(makeId("x")));
-        assertEquals(none(), TypeEnv.make().mutable(makeId("x")));
+        assertEquals(none(), TypeEnv.make().type(makeId(span,"x")));
+        assertEquals(none(), TypeEnv.make().mods(makeId(span,"x")));
+        assertEquals(none(), TypeEnv.make().mutable(makeId(span,"x")));
     }
 
     public void testLookupType() {

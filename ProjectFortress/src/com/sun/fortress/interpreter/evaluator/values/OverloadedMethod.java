@@ -37,13 +37,13 @@ public class OverloadedMethod extends OverloadedFunction implements Method {
 
 
     public OverloadedMethod(String fnName, Environment within) {
-        super(NodeFactory.makeId(fnName), within);
+        super(NodeFactory.makeId(NodeFactory.interpreterSpan, fnName), within);
         // TODO Auto-generated constructor stub
     }
 
     public OverloadedMethod(String fnName, Set<? extends Simple_fcn> ssf,
             Environment within) {
-        super(NodeFactory.makeId(fnName), ssf, within);
+        super(NodeFactory.makeId(NodeFactory.interpreterSpan, fnName), ssf, within);
         // TODO Auto-generated constructor stub
     }
 

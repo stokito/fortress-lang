@@ -38,6 +38,7 @@ import com.sun.fortress.parser_util.FortressUtil;
 public class NodeFactory {
     public static int lexicalDepth = -2147483648;
 
+    public static Span internalSpan = makeSpan("Compiler internal generated.");
     public static Span parserSpan = makeSpan("Parser generated.");
     public static Span macroSpan = makeSpan("Syntactic abstraction generated.");
     public static Span typeSpan = makeSpan("Type checker generated.");
@@ -439,12 +440,14 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(String name, Type type) {
-        return makeLValue(NodeUtil.getSpan(type), makeId(name),
+        Span span = NodeUtil.getSpan(type);
+        return makeLValue(span, makeId(span, name),
                           Modifiers.None, Option.some(type), false);
     }
 
     public static LValue makeLValue(String name, Type type, Modifiers mods) {
-        return makeLValue(NodeUtil.getSpan(type), makeId(name), mods, Option.some(type), false);
+        Span span = NodeUtil.getSpan(type);
+        return makeLValue(span, makeId(span, name), mods, Option.some(type), false);
     }
 
     public static LValue makeLValue(Span span, String name, String type) {
@@ -681,7 +684,7 @@ public class NodeFactory {
 
     public static TraitType makeTraitType(Span span, String name,
                                           List<StaticArg> sargs) {
-        return makeTraitType(span, false, makeId(name), sargs);
+        return makeTraitType(span, false, makeId(span, name), sargs);
     }
 
     public static TraitType makeTraitType(Span span, boolean isParenthesized,
@@ -724,7 +727,7 @@ public class NodeFactory {
     }
 
     public static VarType makeVarType(Span span, String string) {
-        return makeVarType(span, makeId(string));
+        return makeVarType(span, makeId(span, string));
     }
 
     public static VarType makeVarType(Span span, Id id) {
@@ -778,7 +781,7 @@ public class NodeFactory {
     }
 
     public static DimRef makeDimRef(Span span, String name) {
-        return makeDimRef(span, false, makeId(name));
+        return makeDimRef(span, false, makeId(span, name));
     }
 
     public static DimRef makeDimRef(Span span, Id name) {
@@ -1084,15 +1087,12 @@ public class NodeFactory {
         return makeId(IterUtil.skipLast(ids), IterUtil.last(ids));
     }
 
-    public static Id makeId(Span span, String nameFirst, String... nameRest) {
+    public static Id makeId(final Span span, String nameFirst, String... nameRest) {
+        final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {
+            public Id value(String arg) { return makeId(span,arg); }
+        };
         Iterable<Id> ids = IterUtil.map(IterUtil.asIterable(nameRest), STRING_TO_ID);
         return makeId(span, makeId(span, nameFirst), ids);
-    }
-
-    public static Id makeId(String nameFirst, String... nameRest) {
-        Iterable<Id> ids = IterUtil.compose(makeId(nameFirst),
-                IterUtil.map(IterUtil.asIterable(nameRest), STRING_TO_ID));
-        return makeId(ids);
     }
 
     public static Id makeId(APIName api, Id name) {
@@ -1110,10 +1110,6 @@ public class NodeFactory {
 
     public static Id makeId(Span span, APIName api, String name) {
         return makeId(span, Option.some(api), name);
-    }
-
-    public static Id makeId(String string) {
-        return makeId(new Span(), string);
     }
 
     public static APIName makeAPINameSkipLast(Id first, Id rest) {
@@ -1157,8 +1153,20 @@ public class NodeFactory {
         return new APIName(info, apis, text);
     }
 
+    private static List<Id> stringToIds(Span span, String path) {
+        List<Id> ids = new ArrayList<Id>();
+
+        StringTokenizer st = new StringTokenizer(path, ".");
+        while (st.hasMoreTokens()) {
+            String e = st.nextToken();
+            ids.add(makeId(span, e));
+        }
+        ids = Useful.immutableTrimmedList(ids);
+        return ids;
+    }
+
     public static APIName makeAPIName(Span span, String s) {
-        return makeAPIName(span, stringToIds(s));
+        return makeAPIName(span, stringToIds(span, s));
     }
 
     public static APIName makeAPIName(Id id, Iterable<Id> ids) {
@@ -1176,7 +1184,7 @@ public class NodeFactory {
     }
 
     public static BoolRef makeBoolRef(Span span, String string) {
-        return makeBoolRef(span, false, makeId(string), lexicalDepth);
+        return makeBoolRef(span, false, makeId(span, string), lexicalDepth);
     }
 
     public static BoolRef makeBoolRef(BoolRef old, int depth) {
@@ -1216,7 +1224,7 @@ public class NodeFactory {
     }
 
     public static IntRef makeIntRef(Span span, String string) {
-        return makeIntRef(span, makeId(string));
+        return makeIntRef(span, makeId(span, string));
     }
 
     public static IntRef makeIntRef(IntRef old, int depth) {
@@ -1271,9 +1279,10 @@ public class NodeFactory {
                                    header.getExtendsClause(), decls);
     }
 
-    public static TraitTypeHeader makeTraitTypeHeader(List<TraitTypeWhere> extendsC,
+    public static TraitTypeHeader makeTraitTypeHeader(Span span,
+                                                      List<TraitTypeWhere> extendsC,
                                                       List<Decl> decls) {
-        return makeTraitTypeHeader(makeId("_"), extendsC, decls);
+        return makeTraitTypeHeader(makeId(span,"_"), extendsC, decls);
     }
 
     public static TraitTypeHeader makeTraitTypeHeader(IdOrOpOrAnonymousName name,
@@ -1370,7 +1379,7 @@ public class NodeFactory {
     }
 
     public static UnitRef makeUnitRef(Span span, String name) {
-        return makeUnitRef(span, false, makeId(name));
+        return makeUnitRef(span, false, makeId(span, name));
     }
 
     public static UnitRef makeUnitRef(Span span, boolean parenthesized,
@@ -1393,18 +1402,6 @@ public class NodeFactory {
             return makeTupleType(span, false, elements, varargs, keywords);
     }
 
-    private static List<Id> stringToIds(String path) {
-        List<Id> ids = new ArrayList<Id>();
-
-        StringTokenizer st = new StringTokenizer(path, ".");
-        while (st.hasMoreTokens()) {
-            String e = st.nextToken();
-            ids.add(makeId(e));
-        }
-        ids = Useful.immutableTrimmedList(ids);
-        return ids;
-    }
-
     public static APIName makeAPINameFromPath(Span span, String path, String delimiter) {
         List<Id> ids = new ArrayList<Id>();
         String file = new File(path).getName();
@@ -1417,10 +1414,6 @@ public class NodeFactory {
         ids = Useful.immutableTrimmedList(ids);
         return makeAPIName(span, ids);
     }
-
-    public static final Lambda<String, Id> STRING_TO_ID = new Lambda<String, Id>() {
-        public Id value(String arg) { return makeId(arg); }
-    };
 
     public static Op makeEnclosing(Span in_span, String in_open, String in_close) {
         return makeOp(in_span, Option.<APIName>none(),

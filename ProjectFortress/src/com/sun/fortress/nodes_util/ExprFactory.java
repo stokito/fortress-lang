@@ -466,12 +466,8 @@ public class ExprFactory {
         return makeVarRef(span, NodeFactory.makeId(span, apiIds, name));
     }
 
-    public static VarRef makeVarRef(String s) {
-        return makeVarRef(NodeFactory.makeId(s));
-    }
-
-    public static VarRef makeVarRef(String api_s, String local_s) {
-        return makeVarRef(NodeFactory.makeId(api_s, local_s));
+    public static VarRef makeVarRef(Span span, String api_s, String local_s) {
+        return makeVarRef(span, NodeFactory.makeId(span, api_s, local_s));
     }
 
     public static VarRef makeVarRef(Id id) {

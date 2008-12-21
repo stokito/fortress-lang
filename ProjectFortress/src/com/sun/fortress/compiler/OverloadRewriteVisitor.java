@@ -55,7 +55,7 @@ public class OverloadRewriteVisitor extends NodeUpdateVisitor {
             if (!overloadedFunctions.containsKey(overloadingName)) {
                 overloadedFunctions.put(overloadingName, fns);
             }
-            IdOrOp overloadingId = NodeFactory.makeId(overloadingName);
+            IdOrOp overloadingId = NodeFactory.makeId(NodeUtil.getSpan(that), overloadingName);
             fns = Collections.unmodifiableList(Collections.singletonList(overloadingId));
         }
         return super.forFnRefOnly(that, info, staticArgs , originalName, fns,

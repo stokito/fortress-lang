@@ -1111,7 +1111,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
         Node rewrittenExpr =  visit(body);
 
-        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(WellKnownNames.fortressBuiltin(),
+        Expr in_fn = ExprFactory.makeVarRef(sp, NodeFactory.makeId(sp,
+                                                                   WellKnownNames.fortressBuiltin(),
                                                                    WellKnownNames.thread));
         List<StaticArg> args = new ArrayList<StaticArg>();
         args.add(NodeFactory.makeTypeArg(sp,NodeFactory.makeVarType(sp,
@@ -1689,7 +1690,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                                         ExprFactory.makeBlock(sp,ExprFactory.makeVarRef(sp,WellKnownNames.outcome)));
             LocalVarDecl r = ExprFactory.makeLocalVarDecl(sp, NodeFactory.makeId(sp,WellKnownNames.outcome), b, _if);
             Option<Expr> _pre = e.getPre();
-            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(WellKnownNames.fortressLibrary(), "true")),
+            LocalVarDecl provided_lvd = ExprFactory.makeLocalVarDecl(sp, t1, _pre.unwrap(ExprFactory.makeVarRef(sp,WellKnownNames.fortressLibrary(), "true")),
                                                                      ExprFactory.makeBlock(sp, r));
             b = ExprFactory.makeBlock(sp, provided_lvd);
         }

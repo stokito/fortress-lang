@@ -41,7 +41,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
 
     protected static NTEnv theNTEnv;
     static {
-        Id expr = NodeFactory.makeId("Expr");
+        Id expr = NodeFactory.makeId(span, "Expr");
         Map<Id,BaseType> typemap = new HashMap<Id,BaseType>();
         typemap.put(expr, NodeFactory.makeVarType(span, expr));
         NTEnv ntEnv = EnvFactory.makeTestingNTEnv(typemap);
@@ -65,7 +65,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
 
     public void testRewriteVars2() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
-        vars.put(NodeFactory.makeId("foo"), NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr")));
+        vars.put(NodeFactory.makeId(span, "foo"), NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr")));
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         String r = tvr.rewriteVars("foo");
         assertTrue(r.startsWith(TemplateVarRewriter.GAPSYNTAXPREFIX) &&
@@ -75,9 +75,9 @@ public class TemplateVarRewriterJUTest extends TestCase {
     public void testRewriteVars3() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         VarType expr = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
-        vars.put(NodeFactory.makeId("bar"), expr);
-        vars.put(NodeFactory.makeId("Baz"), expr);
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
+        vars.put(NodeFactory.makeId(span, "bar"), expr);
+        vars.put(NodeFactory.makeId(span, "Baz"), expr);
         FreshName.reset();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         String r = tvr.rewriteVars("a print ( foo Baz ) bar");
@@ -94,10 +94,10 @@ public class TemplateVarRewriterJUTest extends TestCase {
     /*
     public void testRewriteVars4() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
-        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId("Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
-        vars.put(NodeFactory.makeId("bar"), expr);
-        vars.put(NodeFactory.makeId("Baz"), expr);
+        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId(span, "Expr"));
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
+        vars.put(NodeFactory.makeId(span, "bar"), expr);
+        vars.put(NodeFactory.makeId(span, "Baz"), expr);
         FreshName.reset();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         String r = tvr.rewriteVars("a print ( foo Baz(bar) )");
@@ -112,10 +112,10 @@ public class TemplateVarRewriterJUTest extends TestCase {
     public void testRewriteVars5() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
-        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId("Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
-        vars.put(NodeFactory.makeId("bar"), expr);
-        vars.put(NodeFactory.makeId("Baz"), expr);
+        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId(span, "Expr"));
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
+        vars.put(NodeFactory.makeId(span, "bar"), expr);
+        vars.put(NodeFactory.makeId(span, "Baz"), expr);
         FreshName.reset();
         String r = tvr.rewriteVars("a print foo Baz(bar)");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
@@ -129,11 +129,11 @@ public class TemplateVarRewriterJUTest extends TestCase {
     public void testRewriteVars6() {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
-        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId("Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
-        vars.put(NodeFactory.makeId("bar"), expr);
-        vars.put(NodeFactory.makeId("Baz"), expr);
-        vars.put(NodeFactory.makeId("Boz"), expr);
+        VarType expr = NodeFactory.makeVarType(NodeFactory.makeId(span, "Expr"));
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
+        vars.put(NodeFactory.makeId(span, "bar"), expr);
+        vars.put(NodeFactory.makeId(span, "Baz"), expr);
+        vars.put(NodeFactory.makeId(span, "Boz"), expr);
         FreshName.reset();
         String r = tvr.rewriteVars("a print foo Baz(bar, Boz) bar");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
@@ -150,7 +150,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         VarType expr = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
         String r = tvr.rewriteVars("foo fooo foo");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
         String v2 = TemplateVarRewriter.getGapString("foo", "Expr");
@@ -164,8 +164,8 @@ public class TemplateVarRewriterJUTest extends TestCase {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         VarType expr = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr"));
-        vars.put(NodeFactory.makeId("foo"), expr);
-        vars.put(NodeFactory.makeId("bar"), expr);
+        vars.put(NodeFactory.makeId(span, "foo"), expr);
+        vars.put(NodeFactory.makeId(span, "bar"), expr);
         String r = tvr.rewriteVars("foo(bar");
         assertFalse(r.equals(""));
     }
@@ -174,7 +174,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         VarType expr = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr"));
-        vars.put(NodeFactory.makeId("e"), expr);
+        vars.put(NodeFactory.makeId(span, "e"), expr);
         String r = tvr.rewriteVars("(e \" world\"");
         String v1 = TemplateVarRewriter.getGapString("e", "Expr");
 //        System.err.println(r);
@@ -186,7 +186,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         Map<Id, BaseType> vars = new HashMap<Id, BaseType>();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         VarType expr = NodeFactory.makeVarType(span, NodeFactory.makeId(span, "Expr"));
-        vars.put(NodeFactory.makeId("e"), expr);
+        vars.put(NodeFactory.makeId(span, "e"), expr);
         String r = tvr.rewriteVars("\"e\"");
 //        System.err.println(r);
 //        System.err.println("\"e\"");
