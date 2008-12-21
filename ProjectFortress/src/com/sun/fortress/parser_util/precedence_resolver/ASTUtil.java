@@ -46,6 +46,8 @@ import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.PureList;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 // From Fortress/interpreter/ast/ast_utils.ml
 public class ASTUtil {
 
@@ -135,12 +137,16 @@ public class ASTUtil {
                     return e.getExpr();
                 }
             });
-        return ExprFactory.makeLooseJuxt(spanAll(exprs), _exprs.toJavaList());
+        if ( exprs.isEmpty() )
+            return bug("Cannot make a loose juxtaposition from an empty list of expression.");
+        else
+            return ExprFactory.makeLooseJuxt(spanAll(exprs), _exprs.toJavaList());
     }
 
     static Span spanAll(PureList<RealExpr> exprs) {
         int size = exprs.size();
-        if (size == 0) return new Span();
+        if (size == 0)
+            return bug("Cannot create a span from an empty list of nodes.");
         else { // size != 0
             Object[] _exprs = exprs.toArray();
             return new Span(NodeUtil.getSpan(((RealExpr)Array.get(_exprs,0)).getExpr()).getBegin(),

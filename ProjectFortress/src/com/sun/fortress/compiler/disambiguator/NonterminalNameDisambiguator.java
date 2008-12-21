@@ -71,9 +71,10 @@ public class NonterminalNameDisambiguator {
 		List<Id> ids = new LinkedList<Id>();
 		Iterator<Id> it = name.getIds().iterator();
 		boolean foundApi = false;
+                Span span = NodeFactory.macroSpan;
 		while (it.hasNext() && !foundApi) {
 			ids.add(it.next());
-			boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(ids));
+			boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span,ids));
 			if (realApi) {
 				foundApi = true;
 			}
@@ -85,7 +86,7 @@ public class NonterminalNameDisambiguator {
 		Collection<Id> aids = new LinkedList<Id>();
 		aids.addAll(ids);
 		aids.add(grammarName);
-		return Option.some(NodeFactory.makeAPIName(aids));
+		return Option.some(NodeFactory.makeAPIName(span,aids));
 	}
 
 	/**

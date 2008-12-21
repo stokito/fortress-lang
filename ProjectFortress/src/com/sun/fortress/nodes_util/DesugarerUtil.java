@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.useful.Useful;
 
@@ -135,7 +136,7 @@ public class DesugarerUtil {
             /* Single generator as body, with no generator clauses. */
             body = ExprFactory.makeTightJuxt(span,
                                              GENERATE_NAME,
-                                             ExprFactory.makeTupleExpr(body,redVar,unitVar));
+                                             ExprFactory.makeTupleExpr(span,body,redVar,unitVar));
         } else {
             List<GeneratorClause> squozenGens =
                 new ArrayList<GeneratorClause>(gens.size());
@@ -218,9 +219,10 @@ public class DesugarerUtil {
         // FILTER SQUEEZE.  Want to generate a new clause of the form
         // binds <- __filter(init,fn)
         Expr init = prevGen.getInit();
+        Span span = NodeUtil.getSpan(gen);
         Expr filtered =
-            ExprFactory.makeTightJuxt(NodeUtil.getSpan(gen), FILTER_NAME,
-                                      ExprFactory.makeTupleExpr(init,fn));
+            ExprFactory.makeTightJuxt(span, FILTER_NAME,
+                                      ExprFactory.makeTupleExpr(span,init,fn));
         GeneratorClause res =
             ExprFactory.makeGeneratorClause(NodeUtil.getSpan(prevGen), binds, filtered);
         return res;
@@ -269,7 +271,8 @@ public class DesugarerUtil {
      */
     private static Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
-        Expr params = ExprFactory.makeTupleExpr(g.getInit(), reduction, loopBody);
+        Span span = FortressUtil.spanTwo(reduction, loopBody);
+        Expr params = ExprFactory.makeTupleExpr(span, g.getInit(), reduction, loopBody);
         return ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), GENERATE_NAME, params);
     }
 }

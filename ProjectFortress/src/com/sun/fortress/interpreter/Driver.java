@@ -186,12 +186,15 @@ public class Driver {
 
         APIWrapper lib = null;
 
-        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile, NodeFactory.makeAPIName(fortressLibrary()));
+        libraryComponentWrapper = ensureApiImplemented(fr, linker, pile,
+                                                       NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
+                                                                               fortressLibrary()));
         lib = libraryComponentWrapper.getExportedCW(fortressLibrary());
 
         ComponentWrapper nativescomp =
             ensureApiImplemented(fr, linker, pile,
-                                 NodeFactory.makeAPIName(fortressBuiltin()));
+                                 NodeFactory.makeAPIName(NodeFactory.interpreterSpan,
+                                                         fortressBuiltin()));
         APIWrapper natives = nativescomp.getExportedCW(fortressBuiltin());
 
         /*
@@ -614,7 +617,7 @@ public class Driver {
     private static ComponentIndex readTreeOrSourceComponent(String key, String basename, FortressRepository p) throws IOException {
 
         String name  = key;
-        APIName apiname = NodeFactory.makeAPIName(name);
+        APIName apiname = NodeFactory.makeAPIName(NodeFactory.interpreterSpan, name);
 
         ComponentIndex ci = p.getComponent(apiname);
         return ci;
@@ -624,7 +627,7 @@ public class Driver {
 
     private static Api readTreeOrSourceApi(String key, String basename, FortressRepository p) throws IOException {
         String name  = key;
-        APIName apiname = NodeFactory.makeAPIName(name);
+        APIName apiname = NodeFactory.makeAPIName(NodeFactory.interpreterSpan, name);
         ApiIndex ci = p.getApi(apiname);
         CompilationUnit c = ci.ast();
         return (Api) c;

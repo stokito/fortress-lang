@@ -591,9 +591,10 @@ public final class Shell {
     private static APIName cuName( String fileName ){
         if ( fileName.endsWith( ProjectProperties.COMP_SOURCE_SUFFIX ) ||
              fileName.endsWith( ProjectProperties.API_SOURCE_SUFFIX ) ){
-            return NodeFactory.makeAPIName(fileName.substring( 0, fileName.lastIndexOf(".") ));
+            return NodeFactory.makeAPIName(NodeFactory.shellSpan,
+                                           fileName.substring( 0, fileName.lastIndexOf(".") ));
         }
-        return NodeFactory.makeAPIName(fileName);
+        return NodeFactory.makeAPIName(NodeFactory.shellSpan,fileName);
     }
 
     public static boolean checkCompilationUnitName(String filename,
@@ -669,7 +670,8 @@ public final class Shell {
 
     private static APIName trueApiName( String path ) throws UserError, IOException {
         try {
-            return NodeUtil.apiName( NodeFactory.makeAPIName(path), new File(path).getCanonicalFile() );
+            return NodeUtil.apiName( NodeFactory.makeAPIName(NodeFactory.shellSpan,path),
+                                     new File(path).getCanonicalFile() );
         } catch (FileNotFoundException ex) {
             throw new UserError("Can't find file " + path);
         }

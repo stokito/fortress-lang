@@ -556,18 +556,13 @@ public class NodeUtil {
         return stringName(n.getConstructor());
     }
 
-    /*
-    public static String nameString(IdOrOpOrAnonymousName n) {
-        final String last = n.accept(nameGetter);
-        Option<APIName> odn = n.getApiName();
-        return odn.isSome() ? nameString(odn.unwrap()) + "." + last : last;
-    }
-    */
+    private static final Fn<Name, String> NameToStringFn = new Fn<Name, String>() {
+        public String apply(Name n) { return nameString(n); }
+    };
 
     public static String namesString(Iterable<? extends Name> names) {
         return IterUtil.toString(IterUtil.map(names, NameToStringFn), "", ", ", "");
     }
-
 
     /* getName *************************************************************/
     public static String getName(StaticParam param) {
@@ -733,24 +728,6 @@ public class NodeUtil {
         return (T)bug("AST." + s + " NYI");
     }
 
-    /* function ************************************************************/
-    public static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
-            public String apply(Id x) {
-                return stringName(x);
-            }
-        };
-
-    public static final Fn<Name, String> NameToStringFn = new Fn<Name, String>() {
-        public String apply(Name n) { return nameString(n); }
-    };
-
-    public static final Fn<String, Id> StringToIdFn = new Fn<String, Id>() {
-            public Id apply(String x) {
-                return NodeFactory.makeId(new Span(), x);
-            }
-        };
-
-
     /* Boolean functions for FnDecls. */
     public static boolean isGetter(FnDecl decl) {
         return getMods(decl).isGetter();
@@ -765,6 +742,12 @@ public class NodeUtil {
     }
 
     /* for APIName ******************************************************/
+    private static final Fn<Id, String> IdToStringFn = new Fn<Id, String>() {
+        public String apply(Id x) {
+            return stringName(x);
+        }
+    };
+
     public static List<String> toStrings(APIName n) {
         return Useful.applyToAll(n.getIds(), IdToStringFn);
     }

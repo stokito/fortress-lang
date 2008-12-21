@@ -403,7 +403,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(NodeUtil.getName(t.ast()), t);
         }
-        Api ast = NodeFactory.makeApi(span,NodeFactory.makeAPIName(name),
+        Api ast = NodeFactory.makeApi(span,NodeFactory.makeAPIName(span,name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,
@@ -429,7 +429,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(NodeUtil.getName(t.ast()), t);
         }
-        Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(name),
+        Component ast = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(span,name),
                                                   Collections.<Import>emptyList(),
                                                   traitDecls,
                                                   Collections.<APIName>emptyList());

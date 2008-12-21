@@ -74,7 +74,7 @@ public abstract class TypeNameEnv {
     public List<APIName> implicitlyImportedApis() {
         List<APIName> result = new ArrayList<APIName>();
         for(String defaultLib : WellKnownNames.defaultLibrary()) {
-            result.add(NodeFactory.makeAPIName(defaultLib));
+            result.add(NodeFactory.makeAPIName(NodeFactory.typeSpan,defaultLib));
         }
         return result;
     }
