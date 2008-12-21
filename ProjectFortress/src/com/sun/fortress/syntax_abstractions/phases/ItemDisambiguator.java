@@ -162,7 +162,7 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         if (lastIndexOf != -1) {
             APIName apiName = NodeFactory.makeAPIName(span,
                                                       item.substring(0, lastIndexOf));
-            return NodeFactory.makeId(span, apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
+            return NodeFactory.makeId(span, apiName, NodeFactory.makeId(span, item.substring(lastIndexOf+1)));
         }
         else {
             return NodeFactory.makeId(span, item);

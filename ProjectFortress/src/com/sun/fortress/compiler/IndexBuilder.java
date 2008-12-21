@@ -142,7 +142,7 @@ public class IndexBuilder {
         final Map<Id, Variable> variables = new HashMap<Id, Variable>();
         final Relation<IdOrOpOrAnonymousName, Function> functions =
             new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
-        final Set<ParametricOperator> parametricOperators = 
+        final Set<ParametricOperator> parametricOperators =
             new HashSet<ParametricOperator>();
         final Map<Id, TypeConsIndex> typeConses =
             new HashMap<Id, TypeConsIndex>();
@@ -186,7 +186,7 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ApiIndex api = new ApiIndex(ast, variables, functions, parametricOperators, 
+        ApiIndex api = new ApiIndex(ast, variables, functions, parametricOperators,
                                     typeConses, dimensions, units, grammars, modifiedDate);
         return api;
     }
@@ -209,7 +209,7 @@ public class IndexBuilder {
     	Map<Id,TypeConsIndex> index_holder = new HashMap<Id,TypeConsIndex>();
 
         // TODO: Fix this so that the global function map and parametricOperator set are
-        // threaded through to here. 
+        // threaded through to here.
     	builder.buildObject(decl, index_holder, new IndexedRelation<IdOrOpOrAnonymousName,Function>(),
                             new HashSet<ParametricOperator>(),
                             new HashMap<Id,Variable>());
@@ -269,8 +269,8 @@ public class IndexBuilder {
         for (Decl decl : ast.getDecls()) {
             decl.accept(handleDecl);
         }
-        ComponentIndex comp = new ComponentIndex(ast, variables, initializers, functions, 
-                                                 parametricOperators, typeConses, dimensions, 
+        ComponentIndex comp = new ComponentIndex(ast, variables, initializers, functions,
+                                                 parametricOperators, typeConses, dimensions,
                                                  units, modifiedDate);
         return comp;
     }
@@ -283,7 +283,7 @@ public class IndexBuilder {
     private void buildTrait(final TraitDecl ast,
                             final Map<Id, TypeConsIndex> typeConses,
                             final Relation<IdOrOpOrAnonymousName, Function> functions,
-                            final Set<ParametricOperator> parametricOperators) 
+                            final Set<ParametricOperator> parametricOperators)
     {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Method> getters = new HashMap<Id, Method>();
@@ -299,7 +299,7 @@ public class IndexBuilder {
                 buildTraitFields(d, name, getters, setters);
             }
             @Override public void forFnDecl(FnDecl d) {
-                buildMethod(d, name, NodeUtil.getStaticParams(ast), 
+                buildMethod(d, name, NodeUtil.getStaticParams(ast),
                             getters, setters, coercions, dottedMethods,
                             functionalMethods, functions, parametricOperators);
             }
@@ -324,7 +324,7 @@ public class IndexBuilder {
                              final Map<Id, TypeConsIndex> typeConses,
                              final Relation<IdOrOpOrAnonymousName, Function> functions,
                              final Set<ParametricOperator> parametricOperators,
-                             final Map<Id, Variable> variables) 
+                             final Map<Id, Variable> variables)
     {
         final Id name = NodeUtil.getName(ast);
         final Map<Id, Variable> fields = new HashMap<Id, Variable>();
@@ -483,7 +483,7 @@ public class IndexBuilder {
      * method, or functional method, and add it to the appropriate map; also store
      * functional methods with top-level functions. Note that parametric operators
      * are also propagated to top-level, with their parametric names. These names
-     * must be substituted with particular instantiations during lookup. 
+     * must be substituted with particular instantiations during lookup.
      */
     private void buildMethod(FnDecl ast,
                              Id declaringTrait,
@@ -531,11 +531,11 @@ public class IndexBuilder {
                     functional = true;
                 }
             }
-            
+
             boolean operator = NodeUtil.isOp(ast);
-            
+
             // Determine whether:
-            //   (1) this declaration has a self parameter 
+            //   (1) this declaration has a self parameter
             //   (2) this declaration is for an operator
             // Place the declaration in the appropriate bins according to the answer.
             if (functional && ! operator) {
@@ -545,9 +545,9 @@ public class IndexBuilder {
                 topLevelFunctions.add(name, m);
             } else if (functional && operator) {
                 boolean parametric = false;
-                
+
                 for (StaticParam p : enclosingParams) {
-                    if (NodeUtil.getName(ast).equals(NodeUtil.getName(p))) { 
+                    if (NodeUtil.getName(ast).equals(NodeUtil.getName(p))) {
                         parametric = true;
                     }
                 }
@@ -564,9 +564,9 @@ public class IndexBuilder {
                 // In this case, we must have a subscripting operator method declaration
                 // or a subscripted assignment operator method declaration. See F 1.0 beta Section 34.
                 // TODO: Check that we are handling this case correctly!
-                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); 
+                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait));
             } else { // ! functional && ! operator
-                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait)); 
+                dottedMethods.add(name, new DeclaredMethod(ast, declaringTrait));
             }
         }
     }
@@ -609,7 +609,7 @@ public class IndexBuilder {
     }
 
 
-    public static final Id COERCION_NAME = NodeFactory.makeId("coercion");
-    public static final Id SELF_NAME = NodeFactory.makeId("self");
+    public static final Id COERCION_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "coercion");
+    public static final Id SELF_NAME = NodeFactory.makeId(NodeFactory.internalSpan, "self");
 
 }

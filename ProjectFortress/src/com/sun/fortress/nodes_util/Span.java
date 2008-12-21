@@ -44,11 +44,6 @@ public class Span implements Serializable {
         return false;
     }
 
-    public Span() {
-        begin = new SourceLocRats();
-        end = new SourceLocRats();
-    }
-
     public Span(SourceLoc b, SourceLoc e) {
         begin = b;
         end = e;
@@ -56,16 +51,16 @@ public class Span implements Serializable {
 
     private static boolean beginsEarlierThan(Span a, Span b) {
     	return (a.getBegin().getLine() < b.getBegin().getLine() ||
-    			 (a.getBegin().getLine() == b.getBegin().getLine() && 
+    			 (a.getBegin().getLine() == b.getBegin().getLine() &&
     			  a.getBegin().column() < b.getBegin().column()));
     }
-    
+
     private static boolean endsLaterThan(Span a, Span b) {
     	return (a.getEnd().getLine() > b.getEnd().getLine() ||
     			(a.getEnd().getLine() == b.getEnd().getLine() &&
-    			 a.getEnd().column() > b.getEnd().column())); 
+    			 a.getEnd().column() > b.getEnd().column()));
     }
-    
+
     /** Span which includes both the given spans.  Assumption: they're
      * from the same file.  If this is not true, the results will be
      * unpredictable. */
@@ -140,7 +135,7 @@ public class Span implements Serializable {
                 // Need to add escapes to the file name
                 String endFileName;
                 if (printer) endFileName = Unprinter.enQuote(end.getFileName());
-                else endFileName = end.getFileName();                
+                else endFileName = end.getFileName();
                 w.append(endFileName);
                 if (printer) w.append("\"");
                 w.append(":");

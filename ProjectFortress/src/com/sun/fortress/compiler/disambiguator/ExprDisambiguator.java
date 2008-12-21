@@ -530,7 +530,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             extendWithFns(inheritedGettersAndSetters, vars).
             extendWithFns(gettersAndSetters, vars);
 
-        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(extendsClause,
+        TraitTypeHeader header = NodeFactory.makeTraitTypeHeader(NodeUtil.getSpan(that), extendsClause,
                                                                  v.recurOnListOfDecl(NodeUtil.getDecls(that)));
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
                                                  NodeUtil.isParenthesized(that),

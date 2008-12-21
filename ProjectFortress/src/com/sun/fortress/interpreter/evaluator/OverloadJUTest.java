@@ -69,7 +69,7 @@ public class OverloadJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
     private SingleFcn overloadDispatch(List<FType> dynamic_types, List<List<FType>> clauses) {
         OverloadedFunction fcn = new OverloadedFunction(
-              NodeFactory.makeId("dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
+              NodeFactory.makeId(NodeFactory.testSpan, "dummyOverloadName"), BetterEnv.primitive("Test overload dispatch"));
         for(List<FType> cl: clauses) {
             fcn.addOverload(simple_overload(cl, fcn));
         }

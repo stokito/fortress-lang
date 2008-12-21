@@ -34,7 +34,7 @@ public class GenericNativeConstructor extends GenericConstructor {
 
     public GenericNativeConstructor(Environment env,
             ObjectConstructor odefOrDecl, String name) {
-        super(env, odefOrDecl, NodeFactory.makeId(name));
+        super(env, odefOrDecl, NodeFactory.makeId(NodeFactory.interpreterSpan, name));
         this.name = name;
     }
 

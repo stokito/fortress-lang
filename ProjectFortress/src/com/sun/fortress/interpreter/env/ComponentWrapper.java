@@ -38,6 +38,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes._RewriteObjectExpr;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.CacheBasedRepository;
@@ -171,6 +172,7 @@ public class ComponentWrapper extends CUWrapper {
             for (_RewriteObjectExpr oe : NodeUtil.getObjectExprs( comp )) {
                 String name = oe.getGenSymName();
                 List<StaticParam> params = NodeUtil.getStaticParams(oe);
+                Span span = NodeUtil.getSpan(oe);
                 if (params.isEmpty()) {
                     // Regular constructor
                     FTypeObject fto = new FTypeObject(name, env, oe, NodeUtil.getParams(oe),
@@ -179,7 +181,7 @@ public class ComponentWrapper extends CUWrapper {
                     BuildEnvironments.finishObjectTrait(NodeUtil.getTypes(NodeUtil.getExtendsClause(oe)),
                                                         null, null, fto, env, oe);
                     Constructor con = new Constructor(env, fto, oe,
-                                                      NodeFactory.makeId(name),
+                                                      NodeFactory.makeId(span, name),
                                                       NodeUtil.getDecls(oe),
                                                       Option.<List<Param>>none());
 
@@ -189,7 +191,7 @@ public class ComponentWrapper extends CUWrapper {
                     // Generic constructor
                     FTypeGeneric fto = new FTypeGeneric(env, oe, NodeUtil.getDecls(oe), oe);
                     env.putType(name, fto);
-                    GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeId(name));
+                    GenericConstructor con = new GenericConstructor(env, oe, NodeFactory.makeId(span, name));
                     env.putValue(name, con);
                 }
             }
