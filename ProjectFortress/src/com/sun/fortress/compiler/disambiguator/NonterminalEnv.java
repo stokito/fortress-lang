@@ -219,13 +219,14 @@ public class NonterminalEnv {
     }
 
     private APIName getApi(APIName name) {
+        Span span = NodeUtil.getSpan(name);
         if (name.getIds().size() <= 1) {
-            return NodeFactory.makeAPIName(new LinkedList<Id>());
+            return NodeFactory.makeAPIName(span,new LinkedList<Id>());
         }
         List<Id> ids = new LinkedList<Id>();
         ids.addAll(name.getIds());
         ids.remove(ids.size()-1);
-        return NodeFactory.makeAPIName(ids);
+        return NodeFactory.makeAPIName(span,ids);
     }
 
 }

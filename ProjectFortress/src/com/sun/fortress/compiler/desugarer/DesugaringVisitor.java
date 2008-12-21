@@ -441,7 +441,7 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                 secondLhs.add(0, NodeFactory.makeLValue(id));
             }
             Id id = NodeFactory.makeId(span, "tuple_"+size);
-            Expr third = ExprFactory.makeTupleExpr(assigns);
+            Expr third = ExprFactory.makeTupleExpr(span, assigns);
             LocalVarDecl second = ExprFactory.makeLocalVarDecl(span, secondLhs,
                                                                ExprFactory.makeVarRef(span, id),
                                                                third);

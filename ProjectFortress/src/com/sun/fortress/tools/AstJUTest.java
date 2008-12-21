@@ -55,11 +55,12 @@ public class AstJUTest extends TestCase {
     }
 
     private Node parse(String buffer) throws IOException {
-        return Parser.parseString(NodeFactory.makeAPIName(file), buffer);
+        return Parser.parseString(NodeFactory.makeAPIName(NodeFactory.testSpan, file), buffer);
     }
 
     private Node parse(File file) throws FileNotFoundException, IOException {
-        return Parser.parseFile(NodeFactory.makeAPIName(file.getName()), file);
+        return Parser.parseFile(NodeFactory.makeAPIName(NodeFactory.testSpan,
+                                                        file.getName()), file);
     }
 
     private String unparse(Node node){

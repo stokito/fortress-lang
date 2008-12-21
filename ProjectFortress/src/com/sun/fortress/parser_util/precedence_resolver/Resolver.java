@@ -128,7 +128,12 @@ public class Resolver {
                 public Op apply(ExprOpPair pair) { return pair.getB(); }
             });
 
-            throw new ReadError(FortressUtil.spanAll(ops.toArray(), ops.size()),
+            Span span;
+            if ( ops.size() == 0 )
+                span = NodeFactory.parserSpan;
+            else
+                span = FortressUtil.spanAll(ops.toArray(), ops.size());
+            throw new ReadError(span,
                                 "Incompatible chaining operators.");
         }
     }
@@ -384,7 +389,11 @@ public class Resolver {
     {
       TightInfix first =
         (TightInfix)((Cons<PrefixOpExpr>)opExprs).getFirst();
-      Span span = ASTUtil.spanAll(revExprs.reverse());
+      Span span;
+      if ( revExprs.reverse().isEmpty() )
+          span = NodeFactory.parserSpan;
+      else
+          span = ASTUtil.spanAll(revExprs.reverse());
       throw new ReadError(span,
                           "Precedence mismatch: juxtaposition and " +
                           first.getOp().toString() + ".");
@@ -567,8 +576,12 @@ public class Resolver {
       PureList<Expr> exprs = ((NonChain)frame).getExprs();
       PureList<Expr> args = exprs.cons(last).reverse();
 
-      return ASTUtil.multifix(FortressUtil.spanAll(exprs.toArray(),exprs.size()),
-                              op, args.toJavaList());
+      Span span;
+      if ( exprs.size() == 0 )
+          span = NodeFactory.parserSpan;
+      else
+          span = FortressUtil.spanAll(exprs.toArray(),exprs.size());
+      return ASTUtil.multifix(span, op, args.toJavaList());
     }
     else { // frame instanceof TightChain || frame instanceof LooseChain
       PureList<ExprOpPair> links = ((Chain)frame).getLinks();

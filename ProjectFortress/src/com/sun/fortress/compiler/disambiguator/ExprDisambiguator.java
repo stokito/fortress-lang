@@ -1035,7 +1035,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 name = IterUtil.last(ids);
                 Iterable<Id> prefix = IterUtil.skipLast(ids);
                 if (IterUtil.isEmpty(prefix)) { api = Option.none(); }
-                else { api = Option.some(NodeFactory.makeAPIName(prefix)); }
+                else { api = Option.some(NodeFactory.makeAPIName(NodeUtil.getSpan(that),prefix)); }
             }
         }
 

@@ -640,7 +640,8 @@ public final class FortressUtil {
 //     | [] -> None
 //     | node :: rest -> join node.node_span (span_all rest)
     public static Span spanAll(Object[] nodes, int size) {
-        if (size == 0) return new Span();
+        if (size == 0)
+            return bug("Cannot make a span from an empty list of nodes.");
         else { // size != 0
             return new Span(NodeUtil.getSpan((ASTNode)Array.get(nodes,0)).getBegin(),
                             NodeUtil.getSpan((ASTNode)Array.get(nodes,size-1)).getEnd());
@@ -648,7 +649,8 @@ public final class FortressUtil {
     }
 
     public static Span spanAll(Iterable<? extends ASTNode> nodes) {
-        if (IterUtil.isEmpty(nodes)) { return new Span(); }
+        if (IterUtil.isEmpty(nodes))
+            return bug("Cannot make a span from an empty list of nodes.");
         else {
             return new Span(NodeUtil.getSpan(IterUtil.first(nodes)).getBegin(),
                             NodeUtil.getSpan(IterUtil.last(nodes)).getEnd());
@@ -681,7 +683,11 @@ public final class FortressUtil {
     }
 
     public static Block doBlock(List<Expr> exprs) {
-        Span span = spanAll(exprs.toArray(new AbstractNode[0]), exprs.size());
+        Span span;
+        if ( exprs.size() == 0 )
+            span = NodeFactory.parserSpan;
+        else
+            span = spanAll(exprs.toArray(new AbstractNode[0]), exprs.size());
         List<Expr> es = new ArrayList<Expr>();
         Collections.reverse(exprs);
         for (Expr e : exprs) {
@@ -729,8 +735,13 @@ public final class FortressUtil {
         else {
             exprs = exprs.reverse();
             List<Expr> javaList = Useful.immutableTrimmedList(exprs);
-            return ExprFactory.makeTightJuxt(spanAll(javaList.toArray(new AbstractNode[0]),
-                                                     javaList.size()), javaList);
+            Span span;
+            if ( javaList.size() == 0 )
+                span = NodeFactory.parserSpan;
+            else
+                span = spanAll(javaList.toArray(new AbstractNode[0]),
+                               javaList.size());
+            return ExprFactory.makeTightJuxt(span, javaList);
         }
     }
 }

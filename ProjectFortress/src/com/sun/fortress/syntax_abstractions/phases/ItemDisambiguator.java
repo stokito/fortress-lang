@@ -160,7 +160,8 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
     private static Id makeId(Span span, String item) {
         int lastIndexOf = item.lastIndexOf('.');
         if (lastIndexOf != -1) {
-            APIName apiName = NodeFactory.makeAPIName(item.substring(0, lastIndexOf));
+            APIName apiName = NodeFactory.makeAPIName(span,
+                                                      item.substring(0, lastIndexOf));
             return NodeFactory.makeId(span, apiName, NodeFactory.makeId(item.substring(lastIndexOf+1)));
         }
         else {

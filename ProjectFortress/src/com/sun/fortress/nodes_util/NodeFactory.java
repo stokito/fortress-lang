@@ -41,7 +41,9 @@ public class NodeFactory {
     public static Span parserSpan = makeSpan("Parser generated.");
     public static Span macroSpan = makeSpan("Syntactic abstraction generated.");
     public static Span typeSpan = makeSpan("Type checker generated.");
+    public static Span desugarerSpan = makeSpan("Desugarer generated.");
     public static Span interpreterSpan = makeSpan("Interpreter generated.");
+    public static Span shellSpan = makeSpan("Shell generated.");
     public static Span unprinterSpan = makeSpan("Unprinter generated.");
     public static Span testSpan = makeSpan("Test generated.");
 
@@ -684,7 +686,7 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(Span span, String nameFirst, String... nameRest) {
-        return makeTraitType(span, false, makeId(nameFirst, nameRest));
+        return makeTraitType(span, false, makeId(span, nameFirst, nameRest));
     }
 
     /** Signature separates the first element in order to guarantee a non-empty arg list. */
@@ -833,7 +835,12 @@ public class NodeFactory {
     }
 
     public static UnionType makeUnionType(Set<? extends Type> types){
-        return makeUnionType(FortressUtil.spanAll(types), false,
+        Span span;
+        if ( types.isEmpty() )
+            span = typeSpan;
+        else
+            span = FortressUtil.spanAll(types);
+        return makeUnionType(span, false,
                              CollectUtil.makeList(types));
     }
 
@@ -922,8 +929,12 @@ public class NodeFactory {
     }
 
     public static IntersectionType makeIntersectionType(Set<? extends Type> types) {
-        return makeIntersectionType(FortressUtil.spanAll(types), false,
-                                    CollectUtil.makeList(types));
+        Span span;
+        if ( types.isEmpty() )
+            span = typeSpan;
+        else
+            span = FortressUtil.spanAll(types);
+        return makeIntersectionType(span, false, CollectUtil.makeList(types));
     }
 
     public static IntersectionType makeIntersectionType(Span span,
@@ -947,8 +958,12 @@ public class NodeFactory {
     }
 
     public static Effect makeEffect(List<BaseType> throwsClause) {
-        return makeEffect(FortressUtil.spanAll(throwsClause),
-                          Option.some(throwsClause), false);
+        Span span;
+        if ( throwsClause.isEmpty() )
+            span = typeSpan;
+        else
+            span = FortressUtil.spanAll(throwsClause);
+        return makeEffect(span, Option.some(throwsClause), false);
     }
 
     public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
@@ -957,13 +972,21 @@ public class NodeFactory {
     }
 
     public static Effect makeEffect(Option<List<BaseType>> throwsClause) {
-        Span span = FortressUtil.spanAll(throwsClause.unwrap(Collections.<BaseType>emptyList()));
+        Span span;
+        if ( throwsClause.isNone() )
+            span = typeSpan;
+        else {
+            if ( throwsClause.unwrap().isEmpty() )
+                span = typeSpan;
+            else
+                span = FortressUtil.spanAll(throwsClause.unwrap());
+        }
         return makeEffect(span, throwsClause, false);
     }
 
     public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
         Span span = FortressUtil.spanAll(defaultLoc,
-                throwsClause.unwrap(Collections.<BaseType>emptyList()));
+                                         throwsClause.unwrap(Collections.<BaseType>emptyList()));
         return makeEffect(span, throwsClause, false);
     }
 
@@ -1035,15 +1058,14 @@ public class NodeFactory {
     }
 
     public static Id makeId(Iterable<Id> apiIds, Id id) {
-        Span span;
+        Span span = FortressUtil.spanTwo(FortressUtil.spanAll(apiIds),
+                                         NodeUtil.getSpan(id));
         Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) {
-            span = NodeUtil.getSpan(id);
             api = Option.none();
         }
         else {
-            APIName n = makeAPIName(apiIds);
-            span = FortressUtil.spanTwo(n, id);
+            APIName n = makeAPIName(span,apiIds);
             api = Option.some(n);
         }
         return makeId(span, api, id.getText());
@@ -1059,7 +1081,7 @@ public class NodeFactory {
     public static Id makeId(Span span, Iterable<Id> apiIds, Id id) {
         Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) { api = Option.none(); }
-        else { api = Option.some(makeAPIName(apiIds)); }
+        else { api = Option.some(makeAPIName(span,apiIds)); }
         return makeId(span, api, id.getText());
     }
 
@@ -1080,6 +1102,11 @@ public class NodeFactory {
     /** Assumes {@code ids} is nonempty. */
     public static Id makeId(Iterable<Id> ids) {
         return makeId(IterUtil.skipLast(ids), IterUtil.last(ids));
+    }
+
+    public static Id makeId(Span span, String nameFirst, String... nameRest) {
+        Iterable<Id> ids = IterUtil.map(IterUtil.asIterable(nameRest), STRING_TO_ID);
+        return makeId(span, makeId(span, nameFirst), ids);
     }
 
     public static Id makeId(String nameFirst, String... nameRest) {
@@ -1137,10 +1164,6 @@ public class NodeFactory {
         return makeAPIName(span, apis, Useful.<Id>dottedList(apis).intern());
     }
 
-    public static APIName makeAPIName(Span span, String s) {
-        return makeAPIName(span, Useful.list(makeId(span, s)));
-    }
-
     public static APIName makeAPIName(Span span, Id s) {
         return makeAPIName(span, Useful.list(s));
     }
@@ -1154,16 +1177,18 @@ public class NodeFactory {
         return new APIName(info, apis, text);
     }
 
-    public static APIName makeAPIName(String s) {
-        return makeAPIName(stringToIds(s));
-    }
-
-    public static APIName makeAPIName(Iterable<Id> ids) {
-        return makeAPIName(FortressUtil.spanAll(ids), CollectUtil.makeList(ids));
+    public static APIName makeAPIName(Span span, String s) {
+        return makeAPIName(span, stringToIds(s));
     }
 
     public static APIName makeAPIName(Id id, Iterable<Id> ids) {
-        return makeAPIName(CollectUtil.makeList(IterUtil.compose(id, ids)));
+        Span span;
+        if ( IterUtil.isEmpty(ids) )
+            span = NodeUtil.getSpan(id);
+        else
+            span = FortressUtil.spanTwo(NodeUtil.getSpan(id),
+                                        FortressUtil.spanAll(ids));
+        return makeAPIName(span, CollectUtil.makeList(IterUtil.compose(id, ids)));
     }
 
     public static APIName makeAPIName(Span span, Iterable<Id> ids) {
@@ -1476,7 +1501,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpInfix(Span span, String apiName, String name) {
-        Op op =  makeOp(span, Option.some(NodeFactory.makeAPIName(apiName)),
+        Op op =  makeOp(span, Option.some(NodeFactory.makeAPIName(span,apiName)),
                         PrecedenceMap.ONLY.canon(name), infix, false);
         return op;
 
@@ -1963,10 +1988,6 @@ public class NodeFactory {
     public static TraitType makeGenericSingletonType(Id name, List<StaticParam> params) {
         return makeTraitType(NodeUtil.getSpan(name), false, name,
                              Collections.<StaticArg>emptyList(), params);
-    }
-
-    public static Import makeImportStar(String apiName) {
-        return makeImportStar(makeAPIName(apiName), new LinkedList<IdOrOpOrAnonymousName>());
     }
 
     public static WhereExtends makeWhereExtends(Span span, Id name, List<BaseType> supers) {

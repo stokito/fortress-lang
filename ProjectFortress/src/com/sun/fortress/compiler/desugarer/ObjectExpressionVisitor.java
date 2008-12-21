@@ -457,7 +457,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
 
         List<Expr> exprs = makeArgsForCallToLiftedObj(objExpr,
                                                       freeNames, enclosingSelf);
-        Expr arg = ExprFactory.makeTupleExpr(exprs);
+        Expr arg = ExprFactory.makeTupleExpr(span, exprs);
         return ExprFactory.make_RewriteFnApp(fnRef, arg);
     }
 

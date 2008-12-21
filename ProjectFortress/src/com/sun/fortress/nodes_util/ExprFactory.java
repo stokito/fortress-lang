@@ -840,18 +840,14 @@ public class ExprFactory {
         return new Typecase(info, bindIds, bindExpr, clauses, elseClause);
     }
 
-    public static TupleExpr makeTupleExpr(List<Expr> exprs) {
-        return makeTupleExpr(FortressUtil.spanAll(exprs), exprs);
-    }
-
     public static TupleExpr makeTupleExpr(Span span, List<Expr> exprs) {
         return makeTupleExpr(span, false, Option.<Type>none(), exprs,
                              Option.<Expr>none(),
                              Collections.<KeywordExpr>emptyList(), false);
     }
 
-    public static TupleExpr makeTupleExpr(Expr... exprs) {
-        return makeTupleExpr(Arrays.asList(exprs));
+    public static TupleExpr makeTupleExpr(Span span, Expr... exprs) {
+        return makeTupleExpr(span, Arrays.asList(exprs));
     }
 
     public static TupleExpr makeTupleExpr(Span span,

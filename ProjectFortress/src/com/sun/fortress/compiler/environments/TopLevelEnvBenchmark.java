@@ -43,7 +43,8 @@ public class TopLevelEnvBenchmark {
         try {
             Environment compiled = SimpleClassLoader.loadEnvironment(WellKnownNames.fortressLibrary(), false);
             FortressRepository defaultRepository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
-            ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName(WellKnownNames.fortressLibrary()));
+            ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName(NodeFactory.testSpan,
+                                                                                WellKnownNames.fortressLibrary()));
             Environment betterEnv = new BetterEnvLevelZero(library.ast());
             BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, ComponentWrapper>());
             be.visit(library.ast());

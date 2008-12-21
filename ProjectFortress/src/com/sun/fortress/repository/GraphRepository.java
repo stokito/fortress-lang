@@ -101,7 +101,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
      */
     private void addRoots() throws FileNotFoundException {
         for ( String root : roots() ){
-            APIName name = NodeFactory.makeAPIName(root);
+            APIName name = NodeFactory.makeAPIName(NodeFactory.shellSpan,root);
             ApiGraphNode api = new ApiGraphNode(name, getApiFileDate(name));
             try{
                 long cache_date = cache.getModifiedDateForApi(api.getName());
@@ -113,7 +113,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
 
         for ( String root : roots() ) {
-            ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(root)));
+            ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(NodeFactory.makeAPIName(NodeFactory.shellSpan,root)));
             try{
                 for ( APIName api : dependencies(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
@@ -196,7 +196,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             /* and depend on all the root APIs */
             for ( String root : roots() ){
-                graph.addEdge(node, addApiGraph(NodeFactory.makeAPIName(root)));
+                graph.addEdge(node, addApiGraph(NodeFactory.makeAPIName(NodeFactory.shellSpan,root)));
             }
         }
 
@@ -233,7 +233,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             }
             /* and depend on all the root APIs */
             for ( String root : roots() ){
-                nodeDependsOnApi(node, NodeFactory.makeAPIName(root));
+                nodeDependsOnApi(node, NodeFactory.makeAPIName(NodeFactory.shellSpan,root));
             }
         }
 
@@ -704,7 +704,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private void addRootComponents() throws FileNotFoundException, IOException{
         boolean added = false;
         for ( String root : roots() ){
-            APIName name = NodeFactory.makeAPIName(root);
+            APIName name = NodeFactory.makeAPIName(NodeFactory.shellSpan,root);
             if (null == graph.find(ApiGraphNode.key(name))) {
                 addApiGraph(name);
             }

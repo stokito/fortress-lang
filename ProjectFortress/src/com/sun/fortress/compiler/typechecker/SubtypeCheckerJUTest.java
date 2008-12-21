@@ -328,7 +328,7 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
             traitDecls.add((Decl) t.ast());
             traitMap.put(NodeUtil.getName(t.ast()), t);
         }
-        Api ast = NodeFactory.makeApi(span, NodeFactory.makeAPIName(name),
+        Api ast = NodeFactory.makeApi(span, NodeFactory.makeAPIName(NodeFactory.testSpan,name),
                           Collections.<Import>emptyList(),
                           traitDecls);
         return new ApiIndex(ast,
