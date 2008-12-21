@@ -298,12 +298,12 @@ public class TypeResolver {
                                           PureList<TypeInfixFrame> stack)
         throws ReadError {
         if (opTypes.isEmpty()) {
-            throw new ReadError(new Span(),
+            throw new ReadError(NodeFactory.parserSpan,
                                 "Empty juxtaposition/operation expression.");
         } else { // !opTypes.isEmpty()
             InfixOpExpr first = ((Cons<InfixOpExpr>)opTypes).getFirst();
             if (!(first instanceof RealType)) {
-                throw new ReadError(new Span(),
+                throw new ReadError(NodeFactory.parserSpan,
                                     "A type or dimension is expected.");
             }
             Type type = ((RealType)first).getType();
@@ -370,7 +370,7 @@ public class TypeResolver {
                                                    PureList<Type> revTypes)
         throws ReadError {
         if (revTypes.size() < 2) {
-            throw new ReadError(new Span(),
+            throw new ReadError(NodeFactory.parserSpan,
                                 "Misuse of type/dimension juxtaposition.");
         }
         Object[] prefix = revTypes.toArray(2);

@@ -539,7 +539,7 @@ public class Transform extends TemplateUpdateVisitor {
 
                 /* the type of the transformer doesn't matter */
 		Node newNode =
-		    new _SyntaxTransformationExpr(NodeFactory.makeExprInfo(new Span()),
+		    new _SyntaxTransformationExpr(NodeFactory.makeExprInfo(NodeFactory.macroSpan),
                                                   curried.getSyntaxTransformer(),
 						  vars, new LinkedList<String>());
                 return new Level(binding.getLevel(), newNode.accept( this ) );
@@ -571,7 +571,8 @@ public class Transform extends TemplateUpdateVisitor {
             for ( String var : vars ){
                 newvars.put( var, that.getVariables().get( var ) );
             }
-            return new _SyntaxTransformationExpr( new Span(), syntax.getSyntaxTransformer(), newvars ).accept( this );
+            return new _SyntaxTransformationExpr( NodeFactory.macroSpan,
+            syntax.getSyntaxTransformer(), newvars ).accept( this );
         } else {
             return node;
         }

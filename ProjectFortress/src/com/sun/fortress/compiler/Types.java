@@ -56,20 +56,20 @@ public final class Types {
 
     public static final AnyType ANY = NodeFactory.makeAnyType(span);
     public static final BottomType BOTTOM = NodeFactory.makeBottomType(span);
-    public static final TraitType OBJECT = makeTraitType(fortressBuiltin(), "Object");
+    public static final TraitType OBJECT = makeTraitType(span, fortressBuiltin(), "Object");
 
     public static final Type BOTTOM_DOMAIN = BOTTOM;
 
     public static final TupleType VOID = NodeFactory.makeVoidType(span);
-    public static final TraitType FLOAT_LITERAL = makeTraitType(fortressBuiltin(), "FloatLiteral");
-    public static final TraitType INT_LITERAL = makeTraitType(fortressBuiltin(), "IntLiteral");
-    public static final TraitType ZZ32 = makeTraitType(fortressLibrary(), "ZZ32");
-    public static final TraitType BOOLEAN = makeTraitType(fortressBuiltin(), "Boolean");
-    public static final TraitType CHAR = makeTraitType(fortressBuiltin(), "Char");
-    public static final TraitType STRING = makeTraitType(fortressLibrary(), "String");
-    public static final TraitType REGION = makeTraitType(fortressLibrary(), "Region");
-    public static final TraitType EXCEPTION = makeTraitType(fortressLibrary(), "Exception");
-    public static final TraitType CHECKED_EXCEPTION = makeTraitType(fortressLibrary(), "CheckedException");
+    public static final TraitType FLOAT_LITERAL = makeTraitType(span, fortressBuiltin(), "FloatLiteral");
+    public static final TraitType INT_LITERAL = makeTraitType(span, fortressBuiltin(), "IntLiteral");
+    public static final TraitType ZZ32 = makeTraitType(span, fortressLibrary(), "ZZ32");
+    public static final TraitType BOOLEAN = makeTraitType(span, fortressBuiltin(), "Boolean");
+    public static final TraitType CHAR = makeTraitType(span, fortressBuiltin(), "Char");
+    public static final TraitType STRING = makeTraitType(span, fortressLibrary(), "String");
+    public static final TraitType REGION = makeTraitType(span, fortressLibrary(), "Region");
+    public static final TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
+    public static final TraitType CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
 
 
     public static final LabelType LABEL = NodeFactory.makeLabelType(span);
@@ -79,7 +79,7 @@ public final class Types {
     }
 
     public static TraitType makeThreadType(Type typeArg) {
-        return makeTraitType(makeId(fortressBuiltin(), "Thread"),
+        return makeTraitType(makeId(span, fortressBuiltin(), "Thread"),
                              makeTypeArg(typeArg));
     }
 
@@ -100,7 +100,7 @@ public final class Types {
      * Create a type {@code FortressLibrary.Generator[\typeArg\]}.
      */
     public static TraitType makeGeneratorType(Type typeArg) {
-        return makeTraitType(makeId(fortressLibrary(), "Generator"),
+        return makeTraitType(makeId(span, fortressLibrary(), "Generator"),
                              makeTypeArg(typeArg));
     }
 
@@ -108,7 +108,7 @@ public final class Types {
      * Create a type {@code FortressLibrary.Condition[\typeArg\]}.
      */
     public static TraitType makeConditionType(Type typeArg) {
-        return makeTraitType(makeId(fortressLibrary(), "Condition"),
+        return makeTraitType(makeId(span, fortressLibrary(), "Condition"),
                              makeTypeArg(typeArg));
     }
 
@@ -327,8 +327,8 @@ public final class Types {
      * TotalOperatorOrder[\A,<,<=,>=,>,Op]
      */
  public static Type makeTotalOperatorOrder(Type A, Op op) {
-//  NodeFactory.makeTraitType(makeId("TotalOperater"), sargs)
-//  NodeFactory.makeOpArg("whoa");
+//  NodeFactory.makeTraitType(makeId(span, "TotalOperater"), sargs)
+//  NodeFactory.makeOpArg(span, "whoa");
 
   return NI.nyi();
  }

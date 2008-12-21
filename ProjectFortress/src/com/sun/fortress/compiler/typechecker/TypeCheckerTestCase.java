@@ -75,10 +75,10 @@ public abstract class TypeCheckerTestCase extends TestCase {
                 s = s.substring(commaIndex+1);
             }
             types.add(parseType(s));
-            return NodeFactory.makeTupleType(types);
+            return NodeFactory.makeTupleType(span, types);
         }
         else {
-            return NodeFactory.makeVarType(s);
+            return NodeFactory.makeVarType(span, s);
         }
     }
 
@@ -137,13 +137,13 @@ public abstract class TypeCheckerTestCase extends TestCase {
         param = param.trim();
         if (param.indexOf(" ") >= 0) {
             String[] tokens = param.split(" +");
-            if (tokens[0].equals("nat")) return NodeFactory.makeNatParam(tokens[1]);
-            else if (tokens[0].equals("int")) return NodeFactory.makeIntParam(tokens[1]);
-            else if (tokens[0].equals("bool")) return NodeFactory.makeBoolParam(tokens[1]);
-            else if (tokens[0].equals("opr")) return NodeFactory.makeOpParam(tokens[1]);
-            else if (tokens[0].equals("dim")) return NodeFactory.makeDimParam(tokens[1]);
-            else if (tokens[0].equals("unit")) return NodeFactory.makeUnitParam(tokens[1]);
+            if (tokens[0].equals("nat")) return NodeFactory.makeNatParam(span, tokens[1]);
+            else if (tokens[0].equals("int")) return NodeFactory.makeIntParam(span, tokens[1]);
+            else if (tokens[0].equals("bool")) return NodeFactory.makeBoolParam(span, tokens[1]);
+            else if (tokens[0].equals("opr")) return NodeFactory.makeOpParam(span, tokens[1]);
+            else if (tokens[0].equals("dim")) return NodeFactory.makeDimParam(span, tokens[1]);
+            else if (tokens[0].equals("unit")) return NodeFactory.makeUnitParam(span, tokens[1]);
         }
-        return NodeFactory.makeTypeParam(param);
+        return NodeFactory.makeTypeParam(span, param);
     }
 }

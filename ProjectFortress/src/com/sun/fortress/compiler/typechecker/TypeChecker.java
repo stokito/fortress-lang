@@ -3037,7 +3037,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     _RewriteFnApp fnApp = ExprFactory.make_RewriteFnApp(front, arg);
 
                     // Simulate a TypeCheckerResult for the front, giving it a fresh arrow type.
-                    Type freshArrow = NodeFactory.makeArrowType(new Span(),
+                    Type freshArrow = NodeFactory.makeArrowType(NodeUtil.getSpan(that),
                                                                 NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that)),
                                                                 NodeFactory.make_InferenceVarType(NodeUtil.getSpan(that)));
                     TypeCheckerResult front_result = new TypeCheckerResult(front, freshArrow);

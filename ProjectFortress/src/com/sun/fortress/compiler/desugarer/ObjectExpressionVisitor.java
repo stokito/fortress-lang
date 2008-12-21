@@ -214,7 +214,7 @@ public class ObjectExpressionVisitor extends NodeUpdateVisitor {
                 // Use an empty span; the correct span will be filled in
                 // later at the use site
                 boxedRefMap.put( keyPair,
-                                 container.containerFieldRef(new Span()) );
+                                 container.containerFieldRef(NodeUtil.getSpan(that)) );
             }
 
             // The rewriter also inserts newly declared container VarDecls

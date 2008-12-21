@@ -577,7 +577,7 @@ public class TypeAnalyzerJUTest extends TestCase {
             return NodeFactory.makeVarType(s);
         }
 
-        return NodeFactory.makeTraitType(s);
+        return NodeFactory.makeTraitType(span, s);
     }
 
     private static Type parseDomain(String s) {
