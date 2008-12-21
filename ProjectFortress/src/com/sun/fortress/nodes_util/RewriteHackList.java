@@ -34,12 +34,12 @@ public class RewriteHackList extends AbstractNode {
     transient private List<? extends AbstractNode> nodes;
 
     public RewriteHackList() {
-        super(NodeFactory.makeExprInfo());
+        super(NodeFactory.makeExprInfo(NodeFactory.interpreterSpan));
         nodes = java.util.Collections.<AbstractNode>emptyList();
     }
 
     public RewriteHackList(List<? extends AbstractNode> n) {
-        super(NodeFactory.makeExprInfo());
+        super(NodeFactory.makeExprInfo(NodeFactory.interpreterSpan));
         nodes = n;
     }
 

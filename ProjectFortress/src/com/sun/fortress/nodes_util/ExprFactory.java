@@ -39,8 +39,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ExprFactory {
 
-    private static FunctionalRef multiJuxt = makeMultiJuxt();
-    private static FunctionalRef infixJuxt = makeInfixJuxt();
     public static int lexicalDepth = -2147483648;
 
     public static AmbiguousMultifixOpExpr makeAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that,
@@ -115,7 +113,7 @@ public class ExprFactory {
     public static MathPrimary makeMathPrimary(Span span, Expr front,
                                               List<MathItem> rest) {
         return makeMathPrimary(span, false, Option.<Type>none(),
-                               multiJuxt, infixJuxt, front, rest);
+                               makeMultiJuxt(span), makeInfixJuxt(span), front, rest);
     }
 
     public static MathPrimary makeMathPrimary(Span span, boolean parenthesized,
@@ -269,7 +267,7 @@ public class ExprFactory {
                                 List<Expr> exprs, boolean isFnApp,
                                 boolean tight) {
         return makeJuxt(span, isParenthesized,
-                        Option.<Type>none(), multiJuxt, infixJuxt,
+                        Option.<Type>none(), makeMultiJuxt(span), makeInfixJuxt(span),
                         exprs, isFnApp, tight);
     }
 
@@ -1101,7 +1099,7 @@ public class ExprFactory {
                                         List<CaseClause> clauses,
                                         Option<Block> elseClause) {
         return makeCaseExpr(span, false, Option.<Type>none(), param, compare,
-                            ExprFactory.makeInfixEq(), ExprFactory.makeInfixIn(),
+                            makeInfixEq(span), makeInfixIn(span),
                             clauses, elseClause);
     }
 
@@ -1512,20 +1510,20 @@ public class ExprFactory {
         return new GeneratorClause(NodeFactory.makeSpanInfo(span), Collections.<Id>emptyList(), cond);
     }
 
-    public static FunctionalRef makeMultiJuxt() {
-        return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp("juxtaposition")));
+    public static FunctionalRef makeMultiJuxt(Span span) {
+        return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp(span,"juxtaposition")));
     }
 
-    public static FunctionalRef makeInfixJuxt() {
-        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("juxtaposition")));
+    public static FunctionalRef makeInfixJuxt(Span span) {
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span,"juxtaposition")));
     }
 
-    public static FunctionalRef makeInfixEq(){
-     return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("=")));
+    public static FunctionalRef makeInfixEq(Span span){
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "=")));
     }
 
-    public static FunctionalRef makeInfixIn(){
-     return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp("IN")));
+    public static FunctionalRef makeInfixIn(Span span){
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "IN")));
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {

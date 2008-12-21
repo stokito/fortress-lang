@@ -172,7 +172,7 @@ public class TransformationNode extends NodeClass {
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
         writer.startLine("public " + className+"() {");
         writer.indent();
-        writer.startLine("super(NodeFactory.make" + infoType + "());");
+        writer.startLine("super(NodeFactory.make" + infoType + "(NodeFactory.macroSpan));");
         writer.startLine(String.format("this._%s = null;", fieldTransformer));
         writer.startLine("this._variables = null;");
         writer.startLine("this._syntaxParameters = null;");

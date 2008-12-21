@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.typechecker;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.util.Arrays;
@@ -35,12 +36,12 @@ public abstract class StaticParamEnv {
 
     public abstract Option<StaticParam> binding(IdOrOpOrAnonymousName name);
 
-    public Option<StaticParam> binding(String name) {
-        return binding(NodeFactory.makeId(name));
+    public Option<StaticParam> binding(Span span, String name) {
+        return binding(NodeFactory.makeId(span, name));
     }
 
-    public Option<StaticParam> opBinding(String name) {
-        return binding(NodeFactory.makeOp(name));
+    public Option<StaticParam> opBinding(Span span, String name) {
+        return binding(NodeFactory.makeOp(span, name));
     }
 
     public StaticParamEnv extend(StaticParam... params) {

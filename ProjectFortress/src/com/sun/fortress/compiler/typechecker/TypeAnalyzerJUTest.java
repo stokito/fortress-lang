@@ -574,7 +574,7 @@ public class TypeAnalyzerJUTest extends TestCase {
         }
 
         if (s.length() == 1 && s.charAt(0) >= 'P' && s.charAt(0) <= 'Z') {
-            return NodeFactory.makeVarType(s);
+            return NodeFactory.makeVarType(span, s);
         }
 
         return NodeFactory.makeTraitType(span, s);

@@ -172,7 +172,7 @@ public class TemplateGapClass extends NodeClass {
     private void writeEmptyConstructor(TabPrintWriter writer, String className) {
         writer.startLine("public " + className+"() {");
         writer.indent();
-        writer.startLine("super(NodeFactory.make" + infoType + "());");
+        writer.startLine("super(NodeFactory.make" + infoType + "(NodeFactory.macroSpan));");
         writer.startLine("this._id = null;");
         writer.startLine("this._templateParams = null;");
         writer.unindent();

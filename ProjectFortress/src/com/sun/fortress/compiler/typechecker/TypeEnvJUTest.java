@@ -32,9 +32,9 @@ import static edu.rice.cs.plt.tuple.Option.*;
 public class TypeEnvJUTest extends TestCase {
     private static Span span = NodeFactory.makeSpan("TypeEnvJUTest bogus");
 
-    private final Type FOO = makeVarType("Foo");
-    private final Type BAZ = makeVarType("Baz");
-    private final Type BAR = makeVarType("Bar");
+    private final Type FOO = makeVarType(span, "Foo");
+    private final Type BAZ = makeVarType(span, "Baz");
+    private final Type BAR = makeVarType(span, "Bar");
 
     private final TypeEnv extended = TypeEnv.make(makeLValue("x", FOO),
                                                   makeLValue("y", BAZ),
