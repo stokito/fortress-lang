@@ -18,6 +18,7 @@
 package com.sun.fortress.parser_util.precedence_resolver;
 
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 public class TypeConvertFailure extends Exception {
     Span span;
@@ -27,7 +28,7 @@ public class TypeConvertFailure extends Exception {
    }
    public TypeConvertFailure(String message) {
       super(message);
-      span = new Span();
+      span = NodeFactory.parserSpan;
    }
     public Span getSpan() { return span; }
 }

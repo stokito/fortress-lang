@@ -25,7 +25,7 @@ import com.sun.fortress.useful.TestCaseWrapper;
  */
 public class NodeFactoryJUTest extends TestCaseWrapper {
     public void testMakeAPIName() {
-        APIName result = NodeFactory.makeAPINameFromPath(new Span(), "foobar.fss", "\\.");
+        APIName result = NodeFactory.makeAPINameFromPath(NodeFactory.testSpan, "foobar.fss", "\\.");
         assertEquals("foobar", result.toString());
     }
 }

@@ -33,9 +33,13 @@ import junit.framework.TestSuite;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
 
 public class TypeInferenceJUTest extends TestCase {
+    private static Span span = NodeFactory.makeSpan("TypeInferenceJUTest bogus");
+
     public static void main(String... args) {
         junit.textui.TestRunner.run(TypeAnalyzerJUTest.class);
     }
@@ -45,10 +49,10 @@ public class TypeInferenceJUTest extends TestCase {
     	try {
     	/*
     	TypeAnalyzer t = makeAnalyzer(trait("Int"));
-    	_InferenceVarType i1=NodeFactory.make_InferenceVarType(new Span());
-    	_InferenceVarType i2=NodeFactory.make_InferenceVarType(new Span());
-    	_InferenceVarType i3=NodeFactory.make_InferenceVarType(new Span());
-    	_InferenceVarType i4=NodeFactory.make_InferenceVarType(new Span());
+    	_InferenceVarType i1=NodeFactory.make_InferenceVarType(span);
+    	_InferenceVarType i2=NodeFactory.make_InferenceVarType(span);
+    	_InferenceVarType i3=NodeFactory.make_InferenceVarType(span);
+    	_InferenceVarType i4=NodeFactory.make_InferenceVarType(span);
     	ConstraintFormula t1 = upperBound(i1,i2,t.new SubtypeHistory()).and(
     			lowerBound(i1,type("Int"),t.new SubtypeHistory()),t.new SubtypeHistory()).and(
     					upperBound(i2,type("Int"),t.new SubtypeHistory()), t.new SubtypeHistory()).and(
@@ -118,11 +122,11 @@ public class TypeInferenceJUTest extends TestCase {
                 }
 
             });
-            
+
             // Need this check, at a minimum, for .svn directories on windows, which are
             // not considered 'hidden.'
             if( infiles.length == 0 ) return;
-            
+
             String fq_input_fname = testDirectory.getAbsolutePath() + SEP + infiles[0];
             String fq_output_fname = testDirectory.getAbsolutePath() + SEP + OUT_FILE_NAME;
             String fq_exp_fname = testDirectory.getAbsolutePath() + SEP + EXPECTED_FILE_NAME;

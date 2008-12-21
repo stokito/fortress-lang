@@ -1214,7 +1214,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return (mi instanceof ParenthesisDelimitedMI);
     }
     private MathItem dummyExpr() {
-        Span span = new Span();
+        Span span = NodeFactory.interpreterSpan;
         Expr dummyE = ExprFactory.makeVoidLiteralExpr(span);
         return ExprFactory.makeNonParenthesisDelimitedMI(span, dummyE);
     }

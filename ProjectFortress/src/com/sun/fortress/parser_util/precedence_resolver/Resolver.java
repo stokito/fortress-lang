@@ -493,7 +493,7 @@ public class Resolver {
     }
     // Errors
     if (opExprs.isEmpty()) {
-      throw new ReadError(new Span(),
+      throw new ReadError(NodeFactory.parserSpan,
                           "Empty juxtaposition/operation expression.");
     }
     else { // !opExprs.isEmpty()

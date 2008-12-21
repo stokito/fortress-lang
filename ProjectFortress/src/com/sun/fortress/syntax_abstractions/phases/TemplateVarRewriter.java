@@ -223,8 +223,8 @@ class TemplateVarRewriter extends NodeUpdateVisitor {
 
     // for testing
     String rewriteVars(String t) {
-        Node src = new UnparsedTransformer(NodeFactory.makeSpanInfo(new Span()),
-                                           t, NodeFactory.makeId(new Span(), "Expr"));
+        Node src = new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.macroSpan),
+                                           t, NodeFactory.makeId(NodeFactory.macroSpan, "Expr"));
         return rewriteVars(t, src);
     }
 

@@ -38,34 +38,34 @@ import static com.sun.fortress.compiler.typechecker.TypeCheckerTestCase.*;
 public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     static Span span = NodeFactory.makeSpan("SubtypeCheckerJUTest");
 
-    Type alpha = NodeFactory.makeVarType("ALPHA");
-    Type beta  = NodeFactory.makeVarType("BETA");
+    Type alpha = NodeFactory.makeVarType(span, "ALPHA");
+    Type beta  = NodeFactory.makeVarType(span, "BETA");
 
     // trait E[\T extends Number, bool b, int i, nat n, opr ODOT\] extends B end
     ProperTraitIndex traitE =
         makeTrait("E",
-                  makeSparams(NodeFactory.makeTypeParam("T", "Number"),
-                              NodeFactory.makeBoolParam("b"),
-                              NodeFactory.makeIntParam("i"),
-                              NodeFactory.makeNatParam("n"),
-                              NodeFactory.makeOpParam("ODOT")),
+                  makeSparams(NodeFactory.makeTypeParam(span, "T", "Number"),
+                              NodeFactory.makeBoolParam(span, "b"),
+                              NodeFactory.makeIntParam(span, "i"),
+                              NodeFactory.makeNatParam(span, "n"),
+                              NodeFactory.makeOpParam(span, "ODOT")),
                   "D");
 
     TraitType instE =
-        NodeFactory.makeTraitType("E",
-                                  makeSargs(NodeFactory.makeTypeArg("ZZ32"),
-                                            NodeFactory.makeBoolArg("trueV"),
-                                            NodeFactory.makeIntArg("two"),
-                                            NodeFactory.makeIntArg("three"),
-                                            NodeFactory.makeOpArg("+")));
+        NodeFactory.makeTraitType(span, "E",
+                                  makeSargs(NodeFactory.makeTypeArg(span, "ZZ32"),
+                                            NodeFactory.makeBoolArg(span, "trueV"),
+                                            NodeFactory.makeIntArg(span, "two"),
+                                            NodeFactory.makeIntArg(span, "three"),
+                                            NodeFactory.makeOpArg(span, "+")));
 
     TraitType instEp =
-        NodeFactory.makeTraitType("E",
-                                  makeSargs(NodeFactory.makeTypeArg("ZZ32"),
-                                            NodeFactory.makeBoolArg("falseV"),
-                                            NodeFactory.makeIntArg("two"),
-                                            NodeFactory.makeIntArg("two"),
-                                            NodeFactory.makeOpArg("+")));
+        NodeFactory.makeTraitType(span, "E",
+                                  makeSargs(NodeFactory.makeTypeArg(span, "ZZ32"),
+                                            NodeFactory.makeBoolArg(span, "falseV"),
+                                            NodeFactory.makeIntArg(span, "two"),
+                                            NodeFactory.makeIntArg(span, "two"),
+                                            NodeFactory.makeOpArg(span, "+")));
 
     SubtypeChecker checker = makeAnalyzer(trait("Number"),
                                           trait("ZZ32", "Number"),
@@ -233,15 +233,14 @@ public class SubtypeCheckerJUTest extends TypeCheckerTestCase {
     }
 
     private Option<Indices> makeIndices(List<ExtentRange> ext) {
-        return Option.some(NodeFactory.makeIndices(new Span(), ext));
+        return Option.some(NodeFactory.makeIndices(span, ext));
     }
 
     public void testAbbreviatedSubtyping() {
-        Span span = new Span();
         Type zz = parseType("ZZ32");
-        TypeArg zzA = NodeFactory.makeTypeArg("ZZ32");
-        IntArg zero = NodeFactory.makeIntArgVal("0");
-        IntArg three = NodeFactory.makeIntArg("three");
+        TypeArg zzA = NodeFactory.makeTypeArg(span, "ZZ32");
+        IntArg zero = NodeFactory.makeIntArgVal(span, "0");
+        IntArg three = NodeFactory.makeIntArg(span, "three");
         Id arrName1 = NodeFactory.makeId(span, WellKnownNames.fortressLibrary(), WellKnownNames.arrayTrait(1));
         TraitType arr1 = NodeFactory.makeTraitType(span, false,
                                                    arrName1, zzA,

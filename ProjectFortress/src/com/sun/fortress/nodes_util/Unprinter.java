@@ -110,7 +110,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 // In the above example, "&#064;" = "@".  A line starting with "@" has special meaning to javadoc.
 public class Unprinter extends NodeReflection {
 
-    public Span lastSpan = new Span(); // Default value is all empty and zero.
+    public Span lastSpan = NodeFactory.unprinterSpan; // Default value is all empty and zero.
 
     Lex l;
 
