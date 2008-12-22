@@ -18,9 +18,12 @@
 ################################################################################
 
 cd `dirname $0`
-out=printing/test_output.txt
-cmp=printing/test_oracle.txt
-rm -f $out
-../../bin/fortress run printing/ConcurrentPrinting.fss > $out
-cmp $out $cmp
-rm -f $out
+out=helloCompiled-output.txt
+chk=helloCompiled-expected.txt
+rm -f $out $chk
+# ../../bin/fortress typecheck -compiler-lib ../helloCompiled.fss || exit 1
+# ../../bin/fortress compile -compiler-lib ../helloCompiled.fss || exit 2
+../../bin/fortress run -compiler-lib ../helloCompiled.fss > $out || exit 3
+echo "Hello, World!" > $chk
+cmp $out $chk || exit 4
+rm -f $out $chk
