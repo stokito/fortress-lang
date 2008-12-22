@@ -169,6 +169,8 @@ public class Driver {
          */
         comp.touchExports(false);
         // linker.put("Executable", comp);
+        // Don't ever use the string "Executable" directly!
+        // Instead look in WellKnownNames.fss
         //pile.push(comp);
 
 
