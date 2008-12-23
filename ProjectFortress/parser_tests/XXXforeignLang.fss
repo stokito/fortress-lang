@@ -15,10 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component foreignLang
-import Map.{...}
-import Fortress Set.{...}
-import "Fortress" List.{ List }
+component XXXforeignLang
+import java java.util.Set.{...}
+import java java.util.{List}
+import java java.util.{Map.Entry}
 export Executable
 
 run(args:String...) = do
