@@ -56,6 +56,11 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
+    public void forImportStar(ImportStar that) {
+        if ( that.getForeignLanguage().isSome() )
+            log(that, "Foreign language imports are not allowed to have {...}.");
+    }
+
     public void forComponent(Component that) {
         inComponent = true;
         super.forComponent( that );
