@@ -1105,7 +1105,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                          that.getLexicalDepth(),
                                          (Op)IterUtil.first(that.getNames()),
                                          that.getNames(),
-                                         that.getOverloadings(),
+                                         that.getOverloadings(), 
                                          that.getOverloadingType());
         }
         else {

@@ -93,7 +93,7 @@ import edu.rice.cs.plt.tuple.Option;
 public abstract class TypeEnv {
 
     /**
-     * Construct a new TypeEnv for a given ApiIndex.
+     * Construct a new TypeEnv for a given CompilationUnitIndex.
      */
     public static TypeEnv make(CompilationUnitIndex cu) {
         TypeEnv typeEnv = TypeEnv.make();

@@ -73,6 +73,7 @@ import edu.rice.cs.plt.lambda.Predicate;
 import edu.rice.cs.plt.lambda.Predicate2;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
+import edu.rice.cs.plt.tuple.Triple;
 
 public class TopLevelEnv extends NameEnv {
     private static final Set<String> WELL_KNOWN_APIS =
@@ -92,6 +93,7 @@ public class TopLevelEnv extends NameEnv {
     private final Map<Id, Set<Id>> _onDemandVariableNames;
     private final Map<Id, Set<Id>> _onDemandFunctionIdNames;
     private final Map<Op, Set<Op>> _onDemandFunctionOps;
+    private final Set<Pair<ApiIndex, ParametricOperator>> _onDemandParametricOps;
     private final Map<String, Set<Id>> _onDemandGrammarNames;
 
     public TopLevelEnv(GlobalEnvironment globalEnv, CompilationUnitIndex current, List<StaticError> errors) {
@@ -118,10 +120,11 @@ public class TopLevelEnv extends NameEnv {
         _onDemandImportedApis = Collections.unmodifiableMap(initializeOnDemandImportedApis(filtered_global_env, current));
         _onDemandTypeConsNames = Collections.unmodifiableMap(initializeOnDemandTypeConsNames(_onDemandImportedApis));
         _onDemandVariableNames = Collections.unmodifiableMap(initializeOnDemandVariableNames(_onDemandImportedApis));
-        Pair<Map<Id, Set<Id>>, Map<Op, Set<Op>>> functions_and_ops =
+        Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>> functions_and_ops =
             initializeOnDemandFunctionNames(_onDemandImportedApis);
         _onDemandFunctionIdNames = functions_and_ops.first();
         _onDemandFunctionOps = functions_and_ops.second();
+        _onDemandParametricOps = functions_and_ops.third();
         _onDemandGrammarNames = Collections.unmodifiableMap(initializeOnDemandGrammarNames(_onDemandImportedApis));
     }
 
@@ -232,9 +235,12 @@ public class TopLevelEnv extends NameEnv {
     	return result;
     }
 
-    private static Pair<Map<Id, Set<Id>>, Map<Op, Set<Op>>> initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) {
+    private static Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>> 
+        initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) 
+    {
         Map<Id, Set<Id>> fun_result = new HashMap<Id, Set<Id>>();
         Map<Op, Set<Op>> ops_result =  new HashMap<Op, Set<Op>>();
+        Set<Pair<ApiIndex, ParametricOperator>> paramOpsResult = new HashSet<Pair<ApiIndex, ParametricOperator>>();
 
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
@@ -267,8 +273,19 @@ public class TopLevelEnv extends NameEnv {
                     }
                 }
             }
+            // Accumulate parametrically named operators from imported APIs. 
+            ApiIndex api = apiEntry.getValue();
+            paramOpsResult = CollectUtil.union(paramOpsResult, qualifyParametricOps(api));
         }
-        return Pair.make(fun_result, ops_result);
+        return Triple.make(fun_result, ops_result, paramOpsResult);
+    }
+
+    private static Set<Pair<ApiIndex, ParametricOperator>> qualifyParametricOps(ApiIndex api) {
+        Set<Pair<ApiIndex, ParametricOperator>> result = new HashSet<Pair<ApiIndex, ParametricOperator>>();
+        for (ParametricOperator op : api.parametricOperators()) {
+            result.add(Pair.make(api, op));
+        }
+        return result;
     }
 
     private static Map<String, Set<Id>> initializeOnDemandGrammarNames(Map<APIName, ApiIndex> imported_apis) {
@@ -416,6 +433,10 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
+    public Set<ParametricOperator> explicitParametricOperators(IdOrOp name) {
+        return _current.parametricOperators();
+    }
+
     @Override
     public Set<Id> explicitGrammarNames(String name) {
         // TODO: imports
@@ -470,6 +491,10 @@ public class TopLevelEnv extends NameEnv {
         } else {
             return new HashSet<Op>();
         }
+    }
+
+    public Set<Pair<ApiIndex, ParametricOperator>> onDemandParametricOps() {
+        return _onDemandParametricOps; 
     }
 
     public Set<Id> onDemandGrammarNames(String name) {
