@@ -148,20 +148,11 @@ public class ParserJUTest extends TestCaseWrapper {
 
             private Parser.Result parseFile(File f) {
                 try {
-                    return new Parser.Result(Parser.parseFile(null, f),
+                    return new Parser.Result(Parser.parseFileConvertExn(f),
                                              f.lastModified());
                 }
                 catch (StaticError se) {
                     return new Parser.Result(se);
-                }
-                catch (FileNotFoundException e) {
-                    return new Parser.Result(StaticError.make("Cannot find file " + f.getName(),
-                                                              f.toString()));
-                }
-                catch (IOException e) {
-                    String desc = "Unable to read file";
-                    if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
-                    return new Parser.Result(StaticError.make(desc, f.toString()));
                 }
             }
         }

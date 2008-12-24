@@ -52,8 +52,9 @@ CompilationUnit Program =
        if (!Shell.checkCompilationUnitName(filename,
                                            cuname))
            yyValue = syntaxError(NodeUtil.getSpan(yyValue.getName()),
-                                 "Component/API names must match their enclosing file names, from name="
-                                 + filename+", from contents="+cuname);
+                                 "    Component/API names must match their enclosing file names." +
+                                 "\n    File name: " + filename +
+                                 "\n    Component name: " + cuname);
      }
    / <ErrorProduction1>
      Exports w semicolon? w Imports w semicolon?

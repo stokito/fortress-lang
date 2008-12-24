@@ -60,7 +60,7 @@ public class PreParser {
      * (For an api, returns an empty collection.)
      */
     public static List<GrammarIndex> parse(APIName api_name, File f, GlobalEnvironment env) {
-        CompilationUnit cu = Parser.preparseFileConvertExn(api_name, f);
+        CompilationUnit cu = Parser.preparseFileConvertExn(f);
         if (cu instanceof Component) {
             Component c = (Component) cu;
 //             ImportedApiCollector collector = new ImportedApiCollector(env);

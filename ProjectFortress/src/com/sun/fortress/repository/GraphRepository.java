@@ -595,7 +595,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         try{
             APIName api_name = node.getName();
             File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
-            CompilationUnit api = Parser.parseFile(api_name, fdot);
+            CompilationUnit api = Parser.parseFileConvertExn(fdot);
             if (api instanceof Api) {
                 return (Api) api;
             } else {
@@ -829,7 +829,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private CompilationUnit readCUFor(GraphNode node, String sourceSuffix) throws FileNotFoundException {
         APIName name = node.getName();
         File fdot = findFile(name, sourceSuffix);
-        return Parser.preparseFileConvertExn(name, fdot);
+        return Parser.preparseFileConvertExn(fdot);
     }
 
     private static List<APIName> removeExecutableApi(List<APIName> all){

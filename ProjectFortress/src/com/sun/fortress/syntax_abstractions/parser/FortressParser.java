@@ -48,15 +48,15 @@ import com.sun.fortress.useful.Debug;
 public class FortressParser {
 
     /** Parses a single file. */
-    public static Result parse(APIName api_name, 
-                               File f, 
-                               GlobalEnvironment env, 
+    public static Result parse(APIName api_name,
+                               File f,
+                               GlobalEnvironment env,
                                boolean verbose) {
         try {
             if (Shell.getPreparse() ) {
                 return parseInner(api_name, f, env, verbose);
             } else {
-                return new Result(Parser.parseFileConvertExn(api_name, f),
+                return new Result(Parser.parseFileConvertExn(f),
                                   f.lastModified());
             }
         } catch (StaticError se) {
@@ -81,7 +81,7 @@ public class FortressParser {
             System.err.println("Parsing file: "+f.getName());
         }
         if (grammars.isEmpty()) {
-            return new Result(Parser.parseFileConvertExn(api_name, f), 
+            return new Result(Parser.parseFileConvertExn(f),
                               f.lastModified());
         } else {
             return parseWithGrammars(api_name, f, env, verbose, grammars);
@@ -101,7 +101,7 @@ public class FortressParser {
 
         Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
 
-        BufferedReader in = null; 
+        BufferedReader in = null;
         try {
             in = Useful.utf8BufferedFileReader(f);
             ParserBase p =
