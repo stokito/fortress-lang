@@ -107,32 +107,22 @@ public class Parser {
      * Converts checked exceptions like IOException and FileNotFoundException
      * to StaticError with appropriate error message.
      */
-    public static CompilationUnit parseFileConvertExn(APIName api_name, File file) {
+    public static CompilationUnit parseFileConvertExn(File file) {
         try {
-            return parseFile(api_name, file);
+            BufferedReader in = Useful.utf8BufferedFileReader(file);
+            String filename = file.getCanonicalPath();
+            try {
+                Fortress parser = new Fortress(in, filename);
+                xtc.parser.Result parseResult = parser.pFile(0);
+                return checkResultCU(parseResult, parser, filename);
+            } finally {
+                Files.rm( filename + ".parserError.log" );
+                in.close();
+            }
         } catch (FileNotFoundException fnfe) {
             throw convertExn(fnfe, file);
         } catch (IOException ioe) {
             throw convertExn(ioe, file);
-        }
-    }
-
-    /**
-     * Parses a file as a compilation unit. Validates the parse by calling
-     * checkResultCU (see description of exceptions there).
-     */
-    public static CompilationUnit parseFile(APIName api_name, File file)
-        throws FileNotFoundException, IOException {
-        // Also throws StaticError, ParserError
-        BufferedReader in = Useful.utf8BufferedFileReader(file);
-        String filename = file.getCanonicalPath();
-        try {
-            Fortress parser = new Fortress(in, filename);
-            xtc.parser.Result parseResult = parser.pFile(0);
-            return checkResultCU(parseResult, parser, filename);
-        } finally {
-            Files.rm( filename + ".parserError.log" );
-            in.close();
         }
     }
 
@@ -236,79 +226,27 @@ public class Parser {
      * Converts checked exceptions like IOException and FileNotFoundException
      * to StaticError with appropriate error message.
      */
-    public static CompilationUnit preparseFileConvertExn(APIName api_name, File file) {
+    public static CompilationUnit preparseFileConvertExn(File file) {
         try {
-            return preparseFile(api_name, file);
+            BufferedReader in = Useful.utf8BufferedFileReader(file);
+            String filename = file.getCanonicalPath();
+            try {
+                PreFortress parser = new PreFortress(in, filename);
+                xtc.parser.Result parseResult = parser.pFile(0);
+                try {
+                    return checkResultCU(parseResult, parser, filename);
+                } catch (StaticError se) {
+                    return parseFileConvertExn(new File(filename));
+                }
+            } finally {
+                Files.rm( filename + ".parserError.log" );
+                in.close();
+            }
         } catch (FileNotFoundException fnfe) {
             throw convertExn(fnfe, file);
         } catch (IOException ioe) {
             throw convertExn(ioe, file);
         }
-    }
-
-    /**
-     * Preparses a file as a compilation unit. Validates the parse by calling
-     * checkResultCU (see description of exceptions there).
-     */
-    public static CompilationUnit preparseFile(APIName api_name, File file)
-        throws FileNotFoundException, IOException {
-        // Also throws StaticError, ParserError
-        BufferedReader in = Useful.utf8BufferedFileReader(file);
-        try {
-            return preparseFile(api_name, in, file.getCanonicalPath());
-        } finally {
-            in.close();
-        }
-    }
-
-    /**
-     * Preparses a file as a compilation unit. Validates the parse by calling
-     * checkResultCU (see description of exceptions there).
-     */
-    public static CompilationUnit preparseFile(APIName api_name, Reader in, String filename)
-        throws IOException {
-        // Also throws StaticError, ParserError
-        PreFortress parser = makePreparser(api_name, in, filename);
-        xtc.parser.Result parseResult = parser.pFile(0);
-        try {
-            return checkPreparseResultCU(parseResult, parser, filename);
-        } catch (StaticError se) {
-            return parseFile(api_name, new File(filename));
-        }
-    }
-
-    private static CompilationUnit checkPreparseResultCU(xtc.parser.Result preparseResult,
-                                                         ParserBase preparser,
-                                                         String filename) {
-        if (preparseResult.hasValue()) {
-            Object cu = ((SemanticValue) preparseResult).value;
-            if (cu instanceof Api) {
-                if (filename.endsWith(ProjectProperties.API_SOURCE_SUFFIX)) {
-                    return (Api)cu;
-                } else {
-                    throw StaticError.make("Syntax error", (Api)cu);
-                }
-            } else if (cu instanceof Component) {
-                if (filename.endsWith(ProjectProperties.COMP_SOURCE_SUFFIX)) {
-                    return (Component)cu;
-                } else {
-                    throw StaticError.make("Syntax error", (Component)cu);
-                }
-            } else {
-                throw new RuntimeException("Unexpected parse result: " + cu);
-            }
-        } else {
-            throw new ParserError((ParseError) preparseResult, preparser);
-        }
-    }
-
-    private static PreFortress makePreparser(Reader in, String filename) {
-        return new PreFortress(in, filename);
-    }
-
-    private static PreFortress makePreparser(APIName api_name, Reader in, String filename) {
-        PreFortress p = makePreparser(in, filename);
-        return p;
     }
 
     private static StaticError convertExn(IOException ioe, File f) {

@@ -72,7 +72,7 @@ public class ASTIO {
         throws IOException {
         BufferedReader in = Useful.utf8BufferedFileReader(reportedFileName);
         try {
-            CompilationUnit cu = Parser.parseFile(api_name, new File(reportedFileName));
+            CompilationUnit cu = Parser.parseFileConvertExn(new File(reportedFileName));
             return Option.<CompilationUnit>some(cu);
         } catch (ParserError pe) {
             System.err.println("  " + pe.toString());

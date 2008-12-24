@@ -59,8 +59,7 @@ public class AstJUTest extends TestCase {
     }
 
     private Node parse(File file) throws FileNotFoundException, IOException {
-        return Parser.parseFile(NodeFactory.makeAPIName(NodeFactory.testSpan,
-                                                        file.getName()), file);
+        return Parser.parseFileConvertExn(file);
     }
 
     private String unparse(Node node){

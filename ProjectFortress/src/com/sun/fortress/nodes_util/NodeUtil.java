@@ -289,7 +289,7 @@ public class NodeUtil {
 
     /* get the declared name of a component or api */
     public static APIName apiName(APIName name, File f) throws StaticError {
-        CompilationUnit cu = Parser.preparseFileConvertExn(name, f);
+        CompilationUnit cu = Parser.preparseFileConvertExn(f);
         return cu.getName();
     }
 

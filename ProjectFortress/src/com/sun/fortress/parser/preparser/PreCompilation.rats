@@ -32,8 +32,18 @@ import Spacing;
    | (w Imports w ;?)? w AbsDecls w ;? w EndOfFile
    | w Imports w ;? (w AbsDecls w ;?)? w EndOfFile
  */
-public CompilationUnit File =
-     w yyValue:CompilationUnit
+public CompilationUnit File = initParser yyValue:Program closeParser ;
+void initParser  = w { initParser(); };
+void closeParser = w EndOfFile
+     { try {
+           writer.close();
+       } catch (IOException error) {
+           error("Closing a log file for the parser failed!");
+       }
+     };
+
+CompilationUnit Program =
+     yyValue:CompilationUnit
      { Span span = createSpan(yyStart,yyCount);
        String filename = span.getBegin().getFileName();
        String cuname = yyValue.getName().toString();
@@ -44,17 +54,10 @@ public CompilationUnit File =
                                  "\n    File name: " + filename +
                                  "\n    Component name: " + cuname);
      }
-   / w Exports w semicolon? w Imports w semicolon? w (_)* // Error production
+   / <ErrorProduction1>
+       Exports w semicolon? w Imports w (_)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
-     }
-   / w a1:Imports w semicolon? w (_)*
-     { if (a1 == null) a1 = Collections.<Import>emptyList();
-       List<Decl> a2 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = NodeFactory.makeApi(span, name, a1, a2);
      }
    / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w (_)*
      { if (a1 == null) a1 = Collections.<Import>emptyList();
@@ -63,6 +66,14 @@ public CompilationUnit File =
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = NodeFactory.makeComponent(span, name, a1, a3, a2);
+     }
+   / a1:Imports w semicolon? w (_)*
+     { if (a1 == null) a1 = Collections.<Import>emptyList();
+       List<Decl> a2 = Collections.<Decl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       yyValue = NodeFactory.makeApi(span, name, a1, a2);
      }
    / _
      { Span span = createSpan(yyStart,yyCount);
@@ -82,7 +93,7 @@ private CompilationUnit CompilationUnit =
 
 /* Component ::=
      (native w)? component w APIName (w Imports w ;?)? w Exports w ;?
-     (w Decls w ;?)? w end
+     (w Decls w ;?)? w end ((s component)? s APIName)?
  */
 private Component Component =
      <ErrorProduction1>
@@ -101,9 +112,12 @@ private Component Component =
            yyValue = NodeFactory.makeComponent(span, a2, a3, a5, true, a4);
      };
 
-/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end */
+/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+           ((s api)? s APIName)?
+ */
 private Api Api =
-     native w api w APIName (w Imports w semicolon?)? w (_)* // Error production
+     <ErrorProduction1>
+     native w api w APIName w (_)*
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "The native modifier is only for components not for APIs.");
      }
@@ -364,7 +378,7 @@ private List<APIName> Exports = a1:Export a2s:(br Export)*
      };
 
 /* Export ::= export w APINames */
-private List<APIName> Export = export w APINames;
+private List<APIName> Export = export w APINames ;
 
 /* APINames ::=
      APIName

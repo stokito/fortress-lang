@@ -349,7 +349,7 @@ public final class Shell {
             throw new UserError( "api command needs a Fortress component file ; filename " +
                     file + " must end with .fss" );
         }
-        Component c = (Component) Parser.parseFile(cuName(file), new File(file));
+        Component c = (Component) Parser.parseFileConvertExn(new File(file));
         String logFile = file + ".api.log";
         Option<Node> result = c.accept( new ApiMaker(logFile) );
         File log = new File( logFile );
@@ -487,7 +487,7 @@ public final class Shell {
 
     private static void parse( String file, Option<String> out) throws UserError, IOException {
         try{
-            CompilationUnit unit = Parser.parseFile(cuName(file), new File(file));
+            CompilationUnit unit = Parser.parseFileConvertExn(new File(file));
             System.out.println( "Ok" );
             if ( out.isSome() ){
                 try{
