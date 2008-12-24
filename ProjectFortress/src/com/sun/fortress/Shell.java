@@ -88,7 +88,7 @@ public final class Shell {
         return _repository;
     }
 
-    private static void setPhase( PhaseOrder phase ){
+    public static void setPhase( PhaseOrder phase ){
         finalPhase = phase;
     }
 
@@ -611,7 +611,7 @@ public final class Shell {
      * Compile a file.
      * If you want a dump then give -out somefile.
      */
-    private static void compile(List<String> args, Option<String> out, String phase)
+    public static void compile(List<String> args, Option<String> out, String phase)
         throws UserError, InterruptedException, IOException, RepositoryError {
         if (args.size() == 0) {
             throw new UserError("compile command needs a file to compile");
@@ -668,7 +668,7 @@ public final class Shell {
         }
     }
 
-    private static APIName trueApiName( String path ) throws UserError, IOException {
+    public static APIName trueApiName( String path ) throws UserError, IOException {
         try {
             return NodeUtil.apiName( NodeFactory.makeAPIName(NodeFactory.shellSpan,path),
                                      new File(path).getCanonicalFile() );
@@ -836,7 +836,7 @@ public final class Shell {
      * what remains from the source path is the directory that contains
      * the file( including sub-directories )
      */
-    private static Path sourcePath( String file, APIName name ) throws IOException {
+    public static Path sourcePath( String file, APIName name ) throws IOException {
         Debug.debug( Debug.Type.REPOSITORY, 2, "True api name is " + name );
         String fullPath = new File(file).getCanonicalPath();
         Debug.debug( Debug.Type.REPOSITORY, 2, "Path is " + fullPath );
