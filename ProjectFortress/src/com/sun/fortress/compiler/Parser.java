@@ -233,11 +233,7 @@ public class Parser {
             try {
                 PreFortress parser = new PreFortress(in, filename);
                 xtc.parser.Result parseResult = parser.pFile(0);
-                try {
-                    return checkResultCU(parseResult, parser, filename);
-                } catch (StaticError se) {
-                    return parseFileConvertExn(new File(filename));
-                }
+                return checkResultCU(parseResult, parser, filename);
             } finally {
                 Files.rm( filename + ".parserError.log" );
                 in.close();
