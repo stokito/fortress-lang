@@ -178,4 +178,55 @@ public class UsefulJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         assertEquals(houseSea, Useful.union(nullSet, houseSea));
         assertEquals(houseSea, Useful.union(houseSea, nullSet));
     }
+    
+    public void testCountMatch() {
+        assertEquals(3, Useful.countMatches("aaa", "a"));
+        assertEquals(0, Useful.countMatches("", "a"));
+        assertEquals(0, Useful.countMatches("aaa", "b"));
+        assertEquals(3, Useful.countMatches("ababa", "a"));
+     }
+    public void testReplaceCount() {
+        assertEquals("aaa", Useful.replace("aaa", "a", "b", 0));
+        assertEquals("aaa", Useful.replace("aaa", "c", "b", 3));
+        assertEquals("ba", Useful.replace("aaa", "aa", "b", 3));
+        assertEquals("bb", Useful.replace("aaaa", "aa", "b", 3));
+        assertEquals("baa", Useful.replace("aaa", "a", "b", 1));
+        assertEquals("bba", Useful.replace("aaa", "a", "b", 2));
+        assertEquals("bbb", Useful.replace("aaa", "a", "b", 3));
+        assertEquals("bbb", Useful.replace("aaa", "a", "b", 4));
+        assertEquals("cba", Useful.replace("caa", "a", "b", 1));
+    }
+    public void testHashBijection() {
+        HashBijection<String, Integer> map = new HashBijection<String, Integer>();
+        Integer one = 1;
+        Integer two = 2;
+        Integer three = 3;
+        Integer threeA = 3;
+        
+        map.put("one", one);
+        map.put("two", two);
+        map.put("three", three);
+        
+        assertEquals(true, map.validate());
+        
+        map.put("one", one);
+        map.put("two", two);
+        map.put("three", threeA);
+        assertEquals(true, map.validate());
+        assertEquals(true, map.get("three") == threeA);
+        
+        map.put("too", two);
+        assertEquals(true, map.validate());
+
+        map.put("too", two);
+        assertEquals(true, map.validate());
+   
+        map.put("too", three);
+        assertEquals(true, map.validate());
+
+        map.remove("too");
+        assertEquals(true, map.validate());
+
+        
+    }
 }

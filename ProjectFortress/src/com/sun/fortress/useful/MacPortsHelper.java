@@ -44,8 +44,10 @@ public class MacPortsHelper {
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.err
-                    .println("MacPortsHelper takes a directory expected to contain files named <portname>.");
+            .println("java ... MacPortsHelper <portdepsdir> [<outdated>]");
             System.err
+            .println("MacPortsHelper takes a directory expected to contain files named <portname>.");
+    System.err
                     .println("Each file contains the output of 'port deps <portname>");
             System.err
                     .println("Such a directory could be produced by executing the (bash) commands: ");

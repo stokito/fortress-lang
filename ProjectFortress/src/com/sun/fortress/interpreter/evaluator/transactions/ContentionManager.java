@@ -63,5 +63,6 @@ public interface ContentionManager {
    */
 
   void waitToRestart();
+  
+}
 
-};

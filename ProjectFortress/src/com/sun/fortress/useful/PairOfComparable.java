@@ -14,39 +14,21 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
-
 package com.sun.fortress.useful;
-public class Pair<T, U> {
-        private T a;
-        private U b;
 
-        public Pair(T a, U b) {
-            this.a = a;
-            this.b = b;
-        }
-        
-        public static <T,U> Pair<T,U> make(T a, U b) {
-            return new Pair<T,U>(a,b);
-        }
+public class PairOfComparable<T extends Comparable, U extends Comparable>
+        extends Pair<T, U> implements Comparable<Pair<T, U>> {
 
-        final public T getA() {
-            return a;
-        }
+    public PairOfComparable(T a, U b) {
+        super(a, b);
+        // TODO Auto-generated constructor stub
+    }
 
-        final public U getB() {
-            return b;
-        }
+    public int compareTo(Pair<T, U> o) {
+        int c = getA().compareTo(o.getA());
+        if (c != 0)
+            return c;
+        return getB().compareTo(o.getB());
+    }
 
-        final public boolean equals(Object o) {
-            if (o instanceof Pair) {
-                Pair p = (Pair) o;
-                return p.a.equals(a) && p.b.equals(b);
-            }
-            return false;
-        }
-
-        final public int hashCode() {
-            return (MagicNumbers.Z + a.hashCode()) * (MagicNumbers.Y + b.hashCode());
-        }
-
-     }
+}
