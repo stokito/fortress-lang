@@ -22,12 +22,17 @@ import static com.sun.fortress.interpreter.glue.WellKnownNames.defaultLibrary;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.AnalyzeResult;
@@ -47,6 +52,8 @@ import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
@@ -54,16 +61,23 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.ImportedNames;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitObjectDecl;
+import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.repository.graph.ComponentGraphNode;
 import com.sun.fortress.repository.graph.Graph;
 import com.sun.fortress.repository.graph.GraphNode;
 import com.sun.fortress.repository.graph.GraphVisitor;
 import com.sun.fortress.syntax_abstractions.parser.FortressParser;
+import com.sun.fortress.useful.Bijection;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
+import com.sun.fortress.useful.HashBijection;
+import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Debug.Type;
@@ -96,6 +110,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
+    
+    ForeignJava foreignJava = new ForeignJava();       
+    
     public GraphRepository(Path p, CacheBasedRepository cache) throws FileNotFoundException {
         this.path = p;
         this.cache = cache;
@@ -104,7 +121,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private static String[] roots() {
-        /* files that are dependancies of everything */
+        /* files that are dependencies of everything */
         return defaultLibrary();
     }
 
@@ -764,32 +781,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 // Ought to handle this case by case.
                 ImportNames ins = (ImportNames) i;
                 if("java".equalsIgnoreCase(fl)) {
-                    APIName pkg_name = ins.getApiName();
-                    List<AliasedSimpleName> names = ins.getAliasedNames();
-                    for (AliasedSimpleName name : names) {
-                        Option<IdOrOpOrAnonymousName> opt_alias = name.getAlias();
-                        if (opt_alias.isSome()) {
-                            throw StaticError.make(
-                            "Import aliasing not yet implemented for foreign imports ", i);
-                        }
-
-                        IdOrOpOrAnonymousName imported = name.getName();
-                        Option<APIName> dotted_prefix = imported.getApiName();
-                        String suffix = ((IdOrOp) imported).getText();
-                        /*
-                         * Okay, so this means that the "api" being imported
-                         * is pkg_name, and the class is specified either as
-                         * the first part of the prefix (which looks like an
-                         * APIName) or the suffix.
-                         *
-                         * Possible cases:
-                         *
-                         * Aclass.AnInnerClass (Map.Entry)
-                         * Aclass.AStaticFunction
-                         * Aclass.AField
-                         * Aclass.AnInner*.{AStaticFunction,AField}
-                         */
-                    }
+                    foreignJava.processJavaImport(i, ins);
                     continue;
                 } else if ("fortress".equalsIgnoreCase(fl)) {
                     // do nothing, fall into normal case

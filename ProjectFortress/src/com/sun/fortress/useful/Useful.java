@@ -735,6 +735,21 @@ public class Useful {
         return c3.compare(a, b);
     }
 
+    public static int countMatches(String input, String to_match) {
+        int j = 0;
+        int l = to_match.length();
+        if (l == 0)
+            return input.length() == 0 ? 1 : 0;
+       
+        int i = input.indexOf(to_match);
+
+        while (i != -1) {
+            j++;
+            i = input.indexOf(to_match, i+l);
+        }
+        return j;
+    }
+    
     public static String extractAfterMatch(String input, String to_match)
             throws NotFound {
         int i = input.indexOf(to_match);
@@ -777,6 +792,37 @@ public class Useful {
         int start = 0;
         int at = original.indexOf(search);
         while (at != -1) {
+            sb.append(original.substring(start, at)); // copy up to 'search'
+            sb.append(replace); // insert 'replacement'
+            start = at + searchLength; // skip 'search' in original
+            at = original.indexOf(search, start);
+        }
+        if (start == 0)
+            return original;
+        sb.append(original.substring(start));
+        return sb.toString();
+    }
+
+    /**
+     * Replaces first count occurrences of search in original with replace.
+     * @param original
+     * @param search
+     * @param replace
+     * @param count
+     * @return
+     */
+    public static String replace(String original, String search, String replace, int count) {
+        int searchLength = search.length();
+        // One way of dealing with the empty string
+        if (searchLength == 0)
+            throw new IllegalArgumentException("Cannot replace empty string");
+        // arbitrary guess at the new size. Assume zero or one replacements
+        // ignore the pathological search == "" case.
+        StringBuffer sb = new StringBuffer(original.length()
+                + Math.max(0, replace.length() - search.length()));
+        int start = 0;
+        int at = original.indexOf(search);
+        while (at != -1 && --count >= 0) {
             sb.append(original.substring(start, at)); // copy up to 'search'
             sb.append(replace); // insert 'replacement'
             start = at + searchLength; // skip 'search' in original

@@ -55,4 +55,4 @@ public class IterableOnceTranslatingList<From, To> implements IterableOnce<To> {
         throw new UnsupportedOperationException();
     }
 
-};
+}

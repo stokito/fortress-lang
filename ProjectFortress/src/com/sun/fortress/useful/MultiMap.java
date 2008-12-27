@@ -62,6 +62,20 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         }
         return s;
     }
+    
+    /**
+     * Ensures that k is in the map, perhaps mapping to an empty set.
+     * @param k
+     * @return
+     */
+    public Set<V> putKey(K k) {
+        Set<V> s = get(k);
+        if (s == null) {
+            s = new HashSet<V>();
+            put(k,s);
+        } 
+        return s;
+    }
     public Set<V> putItems(K k, Set<V> vs) {
         Set<V> s = get(k);
         if (s == null) {
@@ -80,6 +94,13 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
                 remove(k);
                 s = null;
             }
+        }
+        return s;
+    }
+    public Set<V> removeItemAllowEmpty(K k, V v) {
+        Set<V> s = get(k);
+        if (s != null) {
+            s.remove(v);
         }
         return s;
     }
