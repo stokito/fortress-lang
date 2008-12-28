@@ -73,11 +73,11 @@ public enum PhaseOrder {
     }
 
     public Phase makePhase(FortressRepository repository,
-            GlobalEnvironment env, Iterable<Api> apis,
-            Iterable<Component> components, long lastModified)
-            throws StaticError {
+                           GlobalEnvironment env, Iterable<Api> apis,
+                           Iterable<Component> components, long lastModified)
+        throws StaticError {
         Phase empty = new EmptyPhase(repository, env, apis, components,
-                lastModified);
+                                     lastModified);
         switch (this) {
         case EMPTY:
             return empty;
@@ -108,7 +108,7 @@ public enum PhaseOrder {
             return new CodeGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
         default:
             return InterpreterBug.bug("Unknown static analysis phase: "
-                    + phaseName);
+                                      + phaseName);
         }
     }
 

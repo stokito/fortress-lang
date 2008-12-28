@@ -64,22 +64,6 @@ public class ASTIO {
         }
     }
 
-    /**
-     * Convenience method for calling parseToJavaAst with a default BufferedReader.
-     */
-    public static Option<CompilationUnit> parseToJavaAst(APIName api_name,
-                                                         String reportedFileName)
-        throws IOException {
-        BufferedReader in = Useful.utf8BufferedFileReader(reportedFileName);
-        try {
-            CompilationUnit cu = Parser.parseFileConvertExn(new File(reportedFileName));
-            return Option.<CompilationUnit>some(cu);
-        } catch (ParserError pe) {
-            System.err.println("  " + pe.toString());
-            return Option.<CompilationUnit>none();
-        } finally { in.close(); }
-    }
-
    /**
      * @param reportedFileName
      * @param br
