@@ -110,9 +110,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-    
-    ForeignJava foreignJava = new ForeignJava();       
-    
+
+    ForeignJava foreignJava = new ForeignJava();
+
     public GraphRepository(Path p, CacheBasedRepository cache) throws FileNotFoundException {
         this.path = p;
         this.cache = cache;
@@ -344,7 +344,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         try {
             fdot = path.findFile(slashed);
         } catch (FileNotFoundException ex2) {
-            throw new FileNotFoundException(NodeUtil.getSpan(name) + ": Could not find API " + dotted + " in file named " + slashed + " on path " + path);
+            throw new FileNotFoundException(NodeUtil.getSpan(name) +
+                                            "\n    Could not find API " + dotted +
+                                            " in file named " + slashed +
+                                            " on path\n    " + path);
         }
         return fdot;
     }

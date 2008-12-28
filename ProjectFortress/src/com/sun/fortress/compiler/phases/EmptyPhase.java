@@ -56,12 +56,12 @@ public class EmptyPhase extends Phase {
     public AnalyzeResult execute() throws StaticError {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Empty");
         IndexBuilder.ApiResult apiIndex = IndexBuilder.buildApis(apis,
-                lastModified);
+                                                                 lastModified);
         IndexBuilder.ComponentResult componentIndex = IndexBuilder
-                .buildComponents(components, lastModified);
+            .buildComponents(components, lastModified);
         return new AnalyzeResult(apiIndex.apis(), componentIndex.components(),
-                IterUtil.<StaticError> empty(), Option
-                        .<TypeCheckerOutput> none());
+                                 IterUtil.<StaticError> empty(), Option
+                                 .<TypeCheckerOutput> none());
     }
 
 }

@@ -172,12 +172,25 @@ public class NodeFactory {
         return makeComponent(span, name, imports, decls, false, exports);
     }
 
+    public static Component makeComponent(Span span, APIName name) {
+        return makeComponent(span, name,
+                             Collections.<Import>emptyList(),
+                             Collections.<Decl>emptyList(),
+                             false, Collections.<APIName>emptyList());
+    }
+
     public static Component makeComponent(Span span, APIName name,
                                           List<Import> imports,
                                           List<Decl> decls,
                                           boolean isNative,
                                           List<APIName> exports) {
         return new Component(makeSpanInfo(span), name, imports, decls, isNative, exports);
+    }
+
+    public static Api makeApi(Span span, APIName name) {
+        return makeApi(span, name,
+                       Collections.<Import>emptyList(),
+                       Collections.<Decl>emptyList());
     }
 
     public static Api makeApi(Span span, APIName name,
@@ -1134,6 +1147,10 @@ public class NodeFactory {
         ids.add(makeId(NodeUtil.getSpan(rest), rest.getText()));
         ids = Useful.immutableTrimmedList(ids);
         return makeAPIName(FortressUtil.spanTwo(first, rest), ids);
+    }
+
+    public static APIName makeAPIName(Span span) {
+        return makeAPIName(span, span.getBegin().getFileName());
     }
 
     public static APIName makeAPIName(Span span, List<Id> apis) {

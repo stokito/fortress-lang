@@ -38,28 +38,28 @@ public class PreDisambiguationDesugarPhase extends Phase {
 
 	@Override
 	public AnalyzeResult execute() throws StaticError {
-        Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Pre-Disambiguation Desugar");
-        AnalyzeResult previous = parentPhase.getResult();
+            Debug.debug(Debug.Type.FORTRESS, 1, "Start phase Pre-Disambiguation Desugar");
+            AnalyzeResult previous = parentPhase.getResult();
 
-        GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
-                .union(repository.apis(), previous.apis()));
+            GlobalEnvironment apiEnv = new GlobalEnvironment.FromMap(CollectUtil
+                                                                     .union(repository.apis(), previous.apis()));
 
-        PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(),
-                apiEnv);
+            PreDisambiguationDesugarer.ApiResult apiDSR = PreDisambiguationDesugarer.desugarApis(previous.apis(),
+                                                                                                 apiEnv);
 
-        if (!apiDSR.isSuccessful()) {
-            throw new MultipleStaticError(apiDSR.errors());
-        }
+            if (!apiDSR.isSuccessful()) {
+                throw new MultipleStaticError(apiDSR.errors());
+            }
 
-        PreDisambiguationDesugarer.ComponentResult componentDSR = PreDisambiguationDesugarer.desugarComponents(
+            PreDisambiguationDesugarer.ComponentResult componentDSR = PreDisambiguationDesugarer.desugarComponents(
                 previous.components(), apiEnv);
 
-        if (!componentDSR.isSuccessful()) {
-            throw new MultipleStaticError(componentDSR.errors());
-        }
+            if (!componentDSR.isSuccessful()) {
+                throw new MultipleStaticError(componentDSR.errors());
+            }
 
-        return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
-                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
+            return new AnalyzeResult(apiDSR.apis(), componentDSR.components(),
+                                     IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
 	}
 
 }
