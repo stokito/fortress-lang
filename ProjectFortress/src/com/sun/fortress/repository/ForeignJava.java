@@ -212,7 +212,7 @@ public class ForeignJava {
         } /* for name : names */
         System.err.println("javaImplementedAPIs="+javaImplementedAPIs);
         System.err.println("itemsFromClasses="+itemsFromClasses);
-        System.err.println("");
+        System.err.println("    z   ");
     }
 
     /**
@@ -302,5 +302,13 @@ public class ForeignJava {
     private boolean isStatic(int modifiers) {
         return 0 != (modifiers & java.lang.reflect.Modifier.STATIC);
     }
+
+    public boolean definesApi(APIName name) {
+        return javaImplementedAPIs.containsKey(name);
+    }
+    
+    
+    
+    
 
 }
