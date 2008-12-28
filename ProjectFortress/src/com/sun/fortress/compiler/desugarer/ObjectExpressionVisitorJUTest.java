@@ -93,10 +93,8 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             System.out.println("Evaluating " + file + "...");
             FValue original = Shell.eval(file);
             // Delete the cached file from evaluating the original file!!!
-            ASTIO.deleteJavaAst(CacheBasedRepository.cachedCompFileName(
-                    ProjectProperties.ANALYZED_CACHE_DIR, NodeUtil.apiName(
-                                                                           NodeFactory.makeAPIName(NodeFactory.testSpan,file), new File(file)
-                                    .getCanonicalFile())));
+            ASTIO.deleteJavaAst(CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR,
+                                                                        NodeUtil.apiName(file)));
             String name = file.substring(0, file.lastIndexOf("."));
             String tfs = name + ".tfs";
 
