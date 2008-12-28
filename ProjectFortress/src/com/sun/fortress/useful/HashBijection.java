@@ -38,6 +38,10 @@ public class HashBijection<T, U> implements Bijection<T, U> {
         reverse = (HashMap<U, T>) r.clone();
     }
     
+    public String toString() {
+        return forward.toString();
+    }
+    
     public Bijection<U, T> inverse() {
         return new HashBijection<U,T>(reverse, forward);
     }

@@ -1815,8 +1815,8 @@ interface Node() extends HasAt;
          * A syntax transformation
          */
         interface _SyntaxTransformation(String syntaxTransformer,
-                                        java.util.Map<String,Level> variables,
-                                        java.util.List<String> syntaxParameters);
+                                        Map<String,Level> variables,
+                                        List<String> syntaxParameters);
         /**
          * Repeated expression inside a syntax transformation template
          */

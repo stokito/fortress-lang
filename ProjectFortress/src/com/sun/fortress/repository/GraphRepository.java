@@ -171,7 +171,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     @Override
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
        Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
-       ApiGraphNode node = addApiGraph(name);
+       
+        ApiGraphNode node = addApiGraph(name);
         refreshGraph();
         try{
             return node.getApi().unwrap();
@@ -201,6 +202,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add API graph ", name );
         ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(name));
         if ( node == null ){
+            
+            if (foreignJava.definesApi(name)) {
+                // TODO not smart about age of native API yet
+                // Make the native API be very old, so nothing is out of date;
+                needUpdate = true;
+                node = new ApiGraphNode(name, Long.MIN_VALUE);
+                graph.addNode( node );
+                return node;
+            }
+            
             /* a new node was added, a recompile is needed */
             needUpdate = true;
             node = new ApiGraphNode(name, getApiFileDate(name));
@@ -274,7 +285,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throws FileNotFoundException, IOException {
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add edge ", api );
         graph.addEdge(node, addApiGraph(api));
-        if ( link ){
+        boolean b = foreignJava.definesApi(api);
+        // System.err.println("b="+b);
+        if ( link && ! b){
             Debug.debug( Debug.Type.REPOSITORY, 1, "Component ", node.getName(), " depends on API ", api );
             // Add element, but no API
             addComponentGraph(api);
@@ -771,6 +784,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private List<APIName> collectExplicitImports(CompilationUnit comp) {
         List<APIName> all = new ArrayList<APIName>();
+        
         for (Import i : comp.getImports()){
             Option<String> opt_fl = i.getForeignLanguage();
             boolean isNative = opt_fl.isSome();
@@ -781,7 +795,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 // Ought to handle this case by case.
                 ImportNames ins = (ImportNames) i;
                 if("java".equalsIgnoreCase(fl)) {
+                    /*
+                     *  Don't create the API yet; its contents depend on all
+                     *  the imports.
+                     */
                     foreignJava.processJavaImport(i, ins);
+                    
+                    // depend on the API name; 
+                    // "compilation"/"reading" will get the API
+                    all.add( ins.getApiName() );
                     continue;
                 } else if ("fortress".equalsIgnoreCase(fl)) {
                     // do nothing, fall into normal case
