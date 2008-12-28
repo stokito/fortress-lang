@@ -26,6 +26,7 @@ import com.sun.fortress.Shell
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.repository.ProjectProperties
 import com.sun.fortress.useful.TestCaseWrapper
+import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.interpreter.glue.WellKnownNames
 
 import edu.rice.cs.plt.tuple.Option
@@ -33,12 +34,12 @@ import edu.rice.cs.plt.tuple.Option
 
 class CompilerJUTest() extends TestCaseWrapper {
 
-  val STATIC_TESTS_DIR = 
+  val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests/"
-  
-  def compile(s:String) = { 
+
+  def compile(s:String) = {
     val s_ = STATIC_TESTS_DIR + s
-    val name = Shell.trueApiName(s_)
+    val name = NodeUtil.apiName(s_)
     val path = Shell.sourcePath(s_, name)
 
     WellKnownNames.useCompilerLibraries()
@@ -48,15 +49,15 @@ class CompilerJUTest() extends TestCaseWrapper {
   }
 
   def testXXXCompiled0() = {
-    val expected = 
-      "\n" + STATIC_TESTS_DIR + "XXXCompiled0.fss:17:11-15\n" + 
-      "    Component/API names must match their enclosing file names.\n" + 
-      "    File name: " + STATIC_TESTS_DIR + "XXXCompiled0.fss\n" + 
-      "    Component name: Hello"
+    val expected =
+      "\n" + STATIC_TESTS_DIR + "XXXCompiled0.fss:17:11-15\n" +
+      "    Component/API names must match their enclosing file names.\n" +
+      "    File name: " + STATIC_TESTS_DIR + "XXXCompiled0.fss\n" +
+      "    Component/API name: Hello"
     try {
       compile("XXXCompiled0.fss").iterator()
       assert(false, "Compilation should have signaled an error")
-    } 
+    }
     catch {
       case e:ProgramError =>
         assert (e.getMessage().equals(expected),

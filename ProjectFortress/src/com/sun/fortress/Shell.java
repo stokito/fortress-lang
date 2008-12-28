@@ -405,7 +405,7 @@ public final class Shell {
         setPhase( PhaseOrder.CODEGEN );
         if ( ! isComponent(file) )
             throw new UserError(file + " is not a component file.");
-        APIName name = trueApiName( file );
+        APIName name = NodeUtil.apiName( file );
         Path path = sourcePath( file, name );
         GraphRepository bcr = specificRepository( path, defaultRepository );
         ComponentIndex c =  bcr.getLinkedComponent(name);
@@ -635,7 +635,7 @@ public final class Shell {
             compile(rest, out, phase);
         } else {
             try {
-                APIName name = trueApiName( s );
+                APIName name = NodeUtil.apiName( s );
                 Path path = sourcePath( s, name );
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
@@ -668,30 +668,19 @@ public final class Shell {
         }
     }
 
-    public static APIName trueApiName( String path ) throws UserError, IOException {
-        try {
-            return NodeUtil.apiName( NodeFactory.makeAPIName(NodeFactory.shellSpan,path),
-                                     new File(path).getCanonicalFile() );
-        } catch (FileNotFoundException ex) {
-            throw new UserError("Can't find file " + path);
-        }
-    }
-
     /**
      * Compile a file.
      */
-    public static Iterable<? extends StaticError> compile(
-            Path path,
-            String file)
-            throws UserError {
+    public static Iterable<? extends StaticError> compile(Path path,
+                                                          String file)
+        throws UserError {
         return compile(path, file, Option.<String>none());
     }
 
-    private static Iterable<? extends StaticError> compile(
-            Path path,
-            String file,
-            Option<String> out)
-            throws UserError {
+    private static Iterable<? extends StaticError> compile(Path path,
+                                                           String file,
+                                                           Option<String> out)
+        throws UserError {
         GraphRepository bcr = null;
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
         APIName name = null;
@@ -878,7 +867,7 @@ public final class Shell {
                     try {
                         if ( ! isComponent(file) )
                             throw new UserError(file + " is not a component file.");
-                        APIName name = trueApiName( file );
+                        APIName name = NodeUtil.apiName( file );
                         Path path = sourcePath( file, name );
                         GraphRepository bcr = specificRepository( path, defaultRepository );
                         ComponentIndex cu =  bcr.getLinkedComponent(name);

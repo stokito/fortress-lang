@@ -17,7 +17,9 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.sun.fortress.useful.*;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.shell.UserError;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
@@ -288,9 +291,47 @@ public class NodeUtil {
     }
 
     /* get the declared name of a component or api */
-    public static APIName apiName(APIName name, File f) throws StaticError {
-        CompilationUnit cu = Parser.preparseFileConvertExn(f);
-        return cu.getName();
+    public static APIName apiName( String path ) throws UserError, IOException {
+        try {
+            File file = new File(path).getCanonicalFile();
+            String filename = new File(path).getName();
+            filename = filename.substring(0, filename.length()-4);
+            BufferedReader br = Useful.utf8BufferedFileReader(file);
+            boolean withCopyright = false;
+            int lineno = 0;
+            String line = br.readLine(); lineno++;
+            // skip the copyright notice
+            if ( line.equals("(*******************************************************************************") )
+                withCopyright = true;
+            if ( withCopyright ) {
+                while ( ! line.equals(" ******************************************************************************)") ) {
+                    line = br.readLine(); lineno++;
+                }
+                line = br.readLine(); lineno++;
+            }
+            // skip blank lines
+            while ( line.equals("") ) {
+                line = br.readLine(); lineno++;
+            }
+            br.close();
+            String[] split = line.split(" ");
+            String name;
+            if ( split[0].equals("component") || split[0].equals("api") ) {
+                Span span = NodeFactory.makeSpan(path, lineno, split[0].length()+2,
+                                                 split[0].length()+split[1].length()+1);
+                name = split[1];
+                if ( ! name.equals(filename) )
+                    syntaxError(span,
+                                "    Component/API names must match their enclosing file names." +
+                                "\n    File name: " + path +
+                                "\n    Component/API name: " + name);
+            }
+           else
+               name = filename;
+            return NodeFactory.makeAPIName(NodeFactory.parserSpan, name);
+        } catch (FileNotFoundException ex) {
+            throw new UserError("Can't find file " + path);
+        }
     }
 
     public static Iterable<Id> getIds(final Id qName) {

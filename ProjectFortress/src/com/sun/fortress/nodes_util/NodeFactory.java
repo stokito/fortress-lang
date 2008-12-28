@@ -77,6 +77,12 @@ public class NodeFactory {
         return new Span(start.getBegin(), finish.getEnd());
     }
 
+    public static Span makeSpan(String file, int line, int startC, int endC) {
+        SourceLoc start = new SourceLocRats(file, line, startC, 0);
+        SourceLoc end = new SourceLocRats(file, line, endC, 0);
+        return new Span(start, end);
+    }
+
     /**
      *
      * @param start
@@ -119,6 +125,7 @@ public class NodeFactory {
          int s = l.size();
         return s==0 ? makeSpan(ifEmpty) : makeSpan(l.get(0), l.get(s-1));
     }
+
     /**
      * In some situations, a begin-to-end span is not really right, and something
      * more like a set of spans ought to be used.  Even though this is not yet
