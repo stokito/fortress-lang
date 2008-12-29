@@ -90,21 +90,37 @@ class CompilerJUTest() extends TestCaseWrapper {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled2.fss:20:28-39\n" +
       "    Variable printlnSimple is not defined."
-    Shell.assertStaticError(compile("XXXCompiled2.fss"), expected)
+    Shell.assertStaticErrors(compile("XXXCompiled2.fss"), expected)
   }
 
   def testXXXCompiled3() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled3.fss:20:3-50\n" +
       "    Unmatched delimiter \"component\"."
-    Shell.assertStaticError(compile("XXXCompiled3.fss"), expected)
+    Shell.assertStaticErrors(compile("XXXCompiled3.fss"), expected)
   }
 
   def testXXXCompiled4() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled4.fss:24:1-2\n" +
       "    Unmatched delimiter \"end\"."
-    Shell.assertStaticError(compile("XXXCompiled4.fss"), expected)
+    Shell.assertStaticErrors(compile("XXXCompiled4.fss"), expected)
+  }
+
+  def testXXXCompiled5() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled5.fss:20:23\n" +
+      "    Unmatched delimiter (."
+    Shell.assertStaticErrors(compile("XXXCompiled5.fss"), expected)
+  }
+
+  def testXXXCompiled6() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled6.fss:20:23\n" +
+      "    Unmatched delimiter (.\n" +
+      STATIC_TESTS_DIR + "/XXXCompiled6.fss:24:1-2\n" +
+      "    Unmatched delimiter \"end\"."
+    Shell.assertStaticErrors(compile("XXXCompiled6.fss"), expected)
   }
 
 }
