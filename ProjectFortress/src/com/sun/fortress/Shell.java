@@ -737,6 +737,19 @@ public final class Shell {
         return IterUtil.empty();
     }
 
+    public static void assertStaticError(Iterable<? extends StaticError> errors,
+                                         String expected) throws UserError {
+        int num_errors = IterUtil.sizeOf(errors);
+        if ( num_errors != 1 )
+            throw new UserError("Compilation should have signaled a single static error.");
+        else {
+            String message = IterUtil.first(errors).getMessage();
+            if ( ! message.equals(expected) )
+                throw new UserError("Bad error message: " + message + "\n" +
+                                    "Should be:" + expected);
+        }
+    }
+
     /**
      * Run a file.
      */
@@ -922,7 +935,6 @@ public final class Shell {
     	AnalyzeResult result = finalPhase.makePhase(repository,env,apis,components,lastModified).run();
     	return result;
     }
-
 
     /**
      * The fields of this class serve as temporary switches used for testing.
