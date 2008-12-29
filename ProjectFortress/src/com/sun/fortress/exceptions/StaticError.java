@@ -66,4 +66,17 @@ public abstract class StaticError extends RuntimeException implements HasAt {
         };
     }
 
+    public static StaticError make(final String description) {
+        return new StaticError() {
+            /**
+             * Make Eclipse happy
+             */
+            private static final long serialVersionUID = -7329719676960380409L;
+
+            public String description() { return description; }
+            public String at() { return ""; }
+            public String toString() { return description(); }
+        };
+    }
+
 }

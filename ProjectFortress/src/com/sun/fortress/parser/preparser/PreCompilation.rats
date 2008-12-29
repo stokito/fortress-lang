@@ -49,17 +49,19 @@ CompilationUnit Program =
        String cuname = yyValue.getName().toString();
        if (!Shell.checkCompilationUnitName(filename,
                                            cuname))
-           yyValue = syntaxError(NodeUtil.getSpan(yyValue.getName()),
-                                 "    Component/API names must match their enclosing file names." +
-                                 "\n    File name: " + filename +
-                                 "\n    Component/API name: " + cuname);
+           log(NodeUtil.getSpan(yyValue.getName()),
+               "    Component/API names must match their enclosing file names." +
+               "\n    File name: " + filename +
+               "\n    Component/API name: " + cuname);
      }
    / <ErrorProduction1>
-       Exports w semicolon? w Imports w (_)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Import statements should come before export statements.");
+     Exports (w semicolon)? w Imports (w semicolon)? (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Import statements should come before export statements.");
+       yyValue = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(span));
      }
-   / a1:(w yyValue:Imports w semicolon?)? w a2:Exports w (_)*
+   / a1:(yyValue:Imports (w semicolon)? w)? a2:Exports (w semicolon)?
+     w DeclsRestWithoutEnd
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        List<Decl> a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -67,20 +69,20 @@ CompilationUnit Program =
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = NodeFactory.makeComponent(span, name, a1, a3, a2);
      }
-   / a1:Imports w semicolon? w (_)*
+   / a1:Imports (w semicolon)? w AbsDeclsRest (w semicolon)?
+     { List<Decl> a2 = Collections.<Decl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       yyValue = NodeFactory.makeApi(span, name, a1, a2);
+     }
+   / a1:(yyValue:Imports (w semicolon)? w)? AbsDeclsRest (w semicolon)?
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = NodeFactory.makeApi(span, name, a1, a2);
-     }
-   / _
-     { Span span = createSpan(yyStart,yyCount);
-       String file = span.begin.getFileName();
-       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = NodeFactory.makeApi(span, name, Collections.<Import>emptyList(),
-                                     Collections.<Decl>emptyList());
      };
 
 /* CompilationUnit ::=
@@ -97,19 +99,54 @@ private CompilationUnit CompilationUnit =
  */
 private Component Component =
      <ErrorProduction1>
-     (native w)? component w APIName w Exports w semicolon?
-     w Imports w (_)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Import statements should come before export statements.");
+     (native w)? component w a1:APIName w Exports (w semicolon)?
+     w Imports (w semicolon)? (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Import statements should come before export statements.");
+       yyValue = NodeFactory.makeComponent(span, a1);
      }
-   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w a4:Exports w (_)*
-     { if (a3 == null) a3 = Collections.<Import>emptyList();
+   / <ErrorProduction2>
+     (native w)? component w a1:APIName (w Imports (w semicolon)?)? w end
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Components should have at least one export statement.");
+       yyValue = NodeFactory.makeComponent(span, a1);
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
+     a4:Exports (w semicolon)? w end a6:((s component)? s yyValue:APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2))) {
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a6 + " at the end.");
+           yyValue = NodeFactory.makeComponent(span, a2);
+       }
+       if (a3 == null) a3 = Collections.<Import>emptyList();
        List<Decl> a5 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
        if (a1 == null)
            yyValue = NodeFactory.makeComponent(span, a2, a3, a5, a4);
        else
            yyValue = NodeFactory.makeComponent(span, a2, a3, a5, true, a4);
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
+     a4:Exports (w semicolon)? w a5:DeclsRest
+     { Span span = createSpan(yyStart,yyCount);
+       if (a3 == null) a3 = Collections.<Import>emptyList();
+       List<Decl> decls = Collections.<Decl>emptyList();
+       if ( a5.isSome() && a5.equals(NodeUtil.nameString(a2)) ) {
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a5.unwrap() + " at the end.");
+           yyValue = NodeFactory.makeComponent(span, a2);
+       }
+       if (a1 == null)
+           yyValue = NodeFactory.makeComponent(span, a2, a3, decls, a4);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, a3, decls, true, a4);
+     }
+   / <ErrorProduction3>
+     (native w)? component w a1:APIName (w Imports (w semicolon)?)?
+     w DeclsRest
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Components should have at least one export statement.");
+       yyValue = NodeFactory.makeComponent(span, a1);
      };
 
 /* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
@@ -117,14 +154,15 @@ private Component Component =
  */
 private Api Api =
      <ErrorProduction1>
-     native w api w APIName w (_)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "The native modifier is only for components not for APIs.");
+     native w api w a1:APIName (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The native modifier is only for components not for APIs.");
+       yyValue = NodeFactory.makeApi(span, a1);
      }
-   / api w a1:APIName a2:(w yyValue:Imports w semicolon?)? w (_)*
-     { if (a2 == null) a2 = Collections.<Import>emptyList();
+   / api w a1:APIName a2:(w yyValue:Imports (w semicolon)?)? w (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<Import>emptyList();
        List<Decl> a3 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
        yyValue = NodeFactory.makeApi(span, a1, a2, a3);
      };
 
@@ -273,8 +311,9 @@ private List<Import> ImportedNames =
      }
    / <ErrorProduction>
      (ForeignLang w)? Id (w as w Id)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Syntax Error: Try 'import api APIName'");
+     { log(createSpan(yyStart,yyCount),
+           "Syntax Error: Try 'import api APIName'");
+       yyValue = Collections.<Import>emptyList();
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
@@ -391,3 +430,250 @@ List<APIName> APINames =
 /* APINameList ::= APIName (w , w APIName)* */
 private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* Declarations within component/end.
+   Do not handle the following declarations yet:
+     trait/object/var/dimension/unit/test/property/type alias
+ */
+/* Decls ::= Decl (br Decl)* */
+transient private Option<String> DeclsRest =
+     Mods? (trait/object) (_)*
+     { yyValue = Option.<String>none(); }
+   / (dim / unit / SI_unit / type / test / property) (_)*
+     { yyValue = Option.<String>none(); }
+   / FnDeclHeader w NoNewlineExpr (w semicolon)? w end a2:((s component)? s APIName)? &( w EndOfFile )
+     { if (a2 == null)
+           yyValue = Option.<String>none();
+       else
+           yyValue = Option.<String>some(NodeUtil.stringName(a2));
+     }
+   / FnDeclHeader w NoNewlineExpr (w semicolon)? &( w EndOfFile )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Unmatched delimiter \"component\".");
+       yyValue = Option.<String>none();
+     }
+   / FnDeclHeader w NoNewlineExpr br a2:DeclsRest
+     { yyValue = a2; }
+   / FnDeclHeader (_)+
+     { yyValue = Option.<String>none(); }
+   / end w Extra
+     { yyValue = Option.<String>none(); }
+   / (_)+
+     { yyValue = Option.<String>none(); };
+
+/* Unmatched leftover inputs */
+transient private void Extra =
+     end (_)*
+     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"end\"."); }
+   / a1:(_)+
+     { String input = "";
+       for ( char c : a1.list() ) {
+           input += c;
+       }
+       log(createSpan(yyStart,yyCount), "Unmatched input \"" + input + "\".");
+     };
+
+/* Declarations without component/end.
+   Do not handle the following declarations yet:
+     trait/object/var/dimension/unit/test/property/type alias
+ */
+/* Decls ::= Decl (br Decl)* */
+transient private Option<String> DeclsRestWithoutEnd =
+     Mods? (trait/object) (_)*
+     { yyValue = Option.<String>none(); }
+   / (dim / unit / SI_unit / type / test / property) (_)*
+     { yyValue = Option.<String>none(); }
+   / FnDeclHeader w NoNewlineExpr (w semicolon)? &( w EndOfFile )
+     { yyValue = Option.<String>none(); }
+   / FnDeclHeader w NoNewlineExpr br a2:DeclsRestWithoutEnd
+     { yyValue = a2; }
+   / FnDeclHeader (_)+
+     { yyValue = Option.<String>none(); }
+   / end w Extra
+     { yyValue = Option.<String>none(); }
+   / (_)+
+     { yyValue = Option.<String>none(); };
+
+transient private void FnDeclHeader =
+     Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w equals w ;
+
+/* AbsDecls ::= AbsDecl (br AbsDecl)* */
+transient Option<String> AbsDeclsRest = AbsDecl (br AbsDecl)*
+     { yyValue = Option.<String>none(); };
+
+/* Declarations in APIs.
+   Do not handle any declarations yet.
+ */
+/* AbsDecl ::=
+     AbsTraitDecl
+   | AbsObjectDecl
+   | AbsVarDecl
+   | AbsFnDecl
+   | DimUnitDecl
+   | TypeAlias
+   | TestDecl
+   | PropertyDecl
+   | GrammarDef
+ */
+transient List<Decl> AbsDecl =
+     Mods? (trait/object) (_)*
+     { yyValue = Collections.<Decl>emptyList(); }
+   / (dim / unit / SI_unit / type / test / property / grammar) (_)*
+     { yyValue = Collections.<Decl>emptyList(); }
+   / (_)*
+     { yyValue = Collections.<Decl>emptyList(); };
+
+/* Each modifier cannot appear more than once. */
+/* Mods ::= (Mod w)+ */
+transient void Mods = (Mod w)+ ;
+
+/* Mod ::=
+   atomic | hidden | io | override | private | settable | test | value | var | wrapped
+ */
+transient void Mod =
+     atomic / hidden / io / override / private
+   / settable / test / value / var / wrapped
+   ;
+
+/* ValParam ::= BindId | ( (w Params)? w ) */
+transient void ValParam =
+     BindId
+   / openparen w closeparen
+   / openparen w Params w closeparen
+   / openparen
+     { log(createSpan(yyStart,yyCount),
+           "Mismatched delimiter for (.");
+     }
+   / closeparen
+     { log(createSpan(yyStart,yyCount),
+           "Mismatched delimiter for ).");
+     }
+   ;
+
+/* Params ::=
+     (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (Param w , w)*  Varargs
+   |  Param (w , w Param)*
+ */
+transient void Params =
+     (Param w comma w)* (Varargs w comma w)? Keyword (w comma w Keyword)*
+   / (Param w comma w)* Varargs
+   / Param (w comma w Param)* ;
+
+/* Param ::= BindId (w IsType)? */
+transient void Param = BindId (w IsType)? ;
+
+/* Varargs ::= BindId w : w Type w ... */
+transient void Varargs = BindId w colon w Type w ellipses ;
+
+//transient void Keyword = Param w equals w NoNewlineExpr ;
+transient void Keyword = Param w equals w DefaultExpr ;
+transient void DefaultExpr = ([0-9]+ / Id) (w Op w DefaultExpr)* ;
+
+/* StaticParams ::= [\ w StaticParamList w \] */
+transient void StaticParams =
+     a1:opendoublesquare (w StaticParamList)? w a2:closedoublesquare
+     { if (! PrecedenceMap.ONLY.matchedBrackets(a1,a2) )
+             log(createSpan(yyStart,yyCount),
+                 "Unmatched delimiter " + a1 + " and " + a2 + ".");
+     }
+   / opendoublesquare
+     { log(createSpan(yyStart,yyCount),
+           "Unmatched delimiter [\\.");
+     }
+   ;
+
+/* StaticParamList ::= StaticParam (w , w StaticParam)* */
+transient void StaticParamList = StaticParam (w comma w StaticParam)* ;
+
+/* Do not handle unit parameters and type parameters fully yet. */
+/* StaticParam ::=
+     nat w Id
+   | int w Id
+   | bool w Id
+   | dim w Id
+   | unit w Id (w : w NoNewlineType)? (w absorbs w unit)?
+   | opr w Op
+   | Id (w Extends)? (w absorbs w unit)?
+*/
+transient void StaticParam =
+     (nat / int / bool / dim / unit) w Id
+   / opr w Op
+   / Id w extends w Type
+   / Id
+   ;
+
+/* Do not handle types fully yet. */
+transient void Type = TypeFront TypeTail* ;
+
+transient void TypeFront =
+     openparen closeparen
+   / openparen w Type (w comma w Type)* w closeparen
+   / openparen (w Type)? (w comma w Type)* w
+     { log(createSpan(yyStart,yyCount),
+           "Unmatched delimiter (.");
+     }
+   / closeparen
+     { log(createSpan(yyStart,yyCount),
+           "Unmatched delimiter ).");
+     }
+   / Id a1:opendoublesquare w StaticArg (w comma w StaticArg)* w a2:closedoublesquare
+     { if (! PrecedenceMap.ONLY.matchedBrackets(a1,a2) )
+             log(createSpan(yyStart,yyCount),
+                 "Unmatched delimiter ).");
+     }
+   / Id
+   ;
+
+/* Do not handle static arguments fully yet. */
+transient void StaticArg =
+     Type
+   / [0-9]+
+   ;
+transient void TypeTail =
+     w rightarrow w Type
+   / opensquare w ExtentRange w closesquare
+   / caret openparen w ExtentBase (w cross w ExtentBase)* w closeparen
+   ;
+transient void ExtentRange = ExtentBase (w comma w ExtentBase)* ;
+
+transient void ExtentBase = [0-9]+ (w (pound/colon) w [0-9]+)? / Id ;
+
+transient void IsType = colon w Type ;
+transient void NoNewlineIsType = IsType ;
+
+/* Do not handle expressions fully yet. */
+transient void NoNewlineExpr = NoNewlineExprFront NoNewlineExprTail* ;
+
+transient void NoNewlineExprTail =
+     s Op s Id
+   / s StringLiteralExpr
+   / s NoNewlineExpr
+   / s as Id
+   / s openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
+   ;
+
+transient void NoNewlineExprFront =
+     do BlockElems w end
+   / label w Id BlockElems w end w Id
+   / exit (w Id)? (w with w NoNewlineExpr)?
+   / do BlockElems
+     { log(createSpan(yyStart,yyCount),
+           "Mismatched delimiter for 'do'.");
+     }
+   / do w end
+   / openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
+   / Id
+   ;
+
+transient void BlockElems =
+     BlockElem br BlockElems
+   / BlockElem w semicolon
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+   / BlockElem
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+   ;
+
+private Expr BlockElem =
+     NoNewlineExpr
+   ;

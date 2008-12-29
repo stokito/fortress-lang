@@ -63,7 +63,7 @@ class CompilerJUTest() extends TestCaseWrapper {
       case e:ProgramError =>
         assert (e.getMessage().equals(expected),
                 "Bad error message: " + e.getMessage() + "\n" +
-                "Should be:" + expected)
+                "Should be: " + expected)
     }
   }
 
@@ -81,7 +81,7 @@ class CompilerJUTest() extends TestCaseWrapper {
       case e:WrappedException => {
         assert (e.getMessage().equals(expected),
                 "Bad error message: " + e.getMessage() + "\n" +
-                "Should be:" + expected)
+                "Should be: " + expected)
       }
     }
   }
@@ -91,6 +91,20 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/XXXCompiled2.fss:20:28-39\n" +
       "    Variable printlnSimple is not defined."
     Shell.assertStaticError(compile("XXXCompiled2.fss"), expected)
+  }
+
+  def testXXXCompiled3() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled3.fss:20:3-50\n" +
+      "    Unmatched delimiter \"component\"."
+    Shell.assertStaticError(compile("XXXCompiled3.fss"), expected)
+  }
+
+  def testXXXCompiled4() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled4.fss:24:1-2\n" +
+      "    Unmatched delimiter \"end\"."
+    Shell.assertStaticError(compile("XXXCompiled4.fss"), expected)
   }
 
 }

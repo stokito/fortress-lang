@@ -77,7 +77,7 @@ body {
 
     void initParser() {
         try {
-            writer = Useful.filenameToBufferedWriter( column(0).file + ".parserError.log" );
+            writer = Useful.filenameToBufferedWriter( column(0).file + ".preparserError.log" );
         } catch (IOException error) {
             error("Creating a log file for the parser failed!");
         }
@@ -85,7 +85,7 @@ body {
 
     private void log(Span span, String message) {
         try {
-            writer.write( span + " : " + message + "\n" );
+            writer.write( span + "\n    " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the parser failed!");
         }
