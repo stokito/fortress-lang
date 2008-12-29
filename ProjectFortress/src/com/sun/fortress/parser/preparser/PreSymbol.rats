@@ -205,14 +205,14 @@ transient String slash = "/":singleOp / "\u002f":singleOp;
 transient String rightarrow = "->" / "\u2192";
 
 transient void closeangle = "|>" / "\u27e9";
-transient void closedoublesquare = "\\]" / "\u27e7";
+transient String closedoublesquare = "\\]" / "\u27e7";
 transient void closeparen = ")";
 transient void cross = "BY" / "\u2a2f";
 transient void mapsto = "|->" / "\u21a6";
 transient void match = "=>" / "\u21d2";
 transient void minus = "-":singleOp / "\u2212":singleOp;
 transient void openangle = "<|":leftEncloser / "\u27e8":leftEncloser;
-transient void opendoublesquare = "[\\" / "\u27e6";
+transient String opendoublesquare = "[\\" / "\u27e6";
 transient void openparen = !(leftEncloser) "(";
 transient void plus = "+":singleOp / "\u002b":singleOp;
 transient void pound = "#":singleOp / "\u0023":singleOp;

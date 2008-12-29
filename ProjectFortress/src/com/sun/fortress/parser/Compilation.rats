@@ -57,13 +57,13 @@ CompilationUnit Program =
                                  "\n    Component/API name: " + cuname);
      }
    / <ErrorProduction1>
-     Exports w semicolon? w Imports w semicolon?
-     (w Decls w semicolon?)?
+     Exports (w semicolon)? w Imports (w semicolon)?
+     (w Decls (w semicolon)?)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
-   / a1:(yyValue:Imports w semicolon? w)? a2:Exports w semicolon?
-     a3:(w yyValue:Decls w semicolon?)?
+   / a1:(yyValue:Imports (w semicolon)? w)? a2:Exports (w semicolon)?
+     a3:(w yyValue:Decls (w semicolon)?)?
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
@@ -71,14 +71,14 @@ CompilationUnit Program =
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = NodeFactory.makeComponent(span, name, a1, a3, a2);
      }
-   / a1:Imports w semicolon? a2:(w yyValue:AbsDecls w semicolon?)?
+   / a1:Imports (w semicolon)? a2:(w yyValue:AbsDecls (w semicolon)?)?
      { if (a2 == null) a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
        yyValue = NodeFactory.makeApi(span, name, a1, a2);
      }
-   / a1:(yyValue:Imports w semicolon? w)? a2:AbsDecls w semicolon?
+   / a1:(yyValue:Imports (w semicolon)? w)? a2:AbsDecls (w semicolon)?
      { if (a1 == null) a1 = Collections.<Import>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
@@ -100,19 +100,19 @@ private CompilationUnit CompilationUnit =
  */
 private Component Component =
      <ErrorProduction1>
-     (native w)? component w APIName w Exports w semicolon?
-     w Imports w semicolon? (w Decls w semicolon?)? w end
+     (native w)? component w APIName w Exports (w semicolon)?
+     w Imports (w semicolon)? (w Decls (w semicolon)?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Import statements should come before export statements.");
      }
    / <ErrorProduction2>
-     (native w)? component w APIName (w Imports w semicolon?)?
-     (w Decls w semicolon?)? w end
+     (native w)? component w APIName (w Imports (w semicolon)?)?
+     (w Decls (w semicolon)?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "Components should have at least one export statement.");
      }
-   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports w semicolon?)? w
-     a4:Exports w semicolon? a5:(w yyValue:Decls w semicolon?)? w end
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
+     a4:Exports (w semicolon)? a5:(w yyValue:Decls (w semicolon)?)? w end
      a6:((s component)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
        if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
@@ -131,13 +131,13 @@ private Component Component =
  */
 private Api Api =
      <ErrorProduction1>
-     native w api w APIName (w Imports w semicolon?)?
-     (w AbsDecls w semicolon?)? w end
+     native w api w APIName (w Imports (w semicolon)?)?
+     (w AbsDecls (w semicolon)?)? w end
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
                              "The native modifier is only for components not for APIs.");
      }
-   / api w a1:APIName a2:(w yyValue:Imports w semicolon?)?
-     a3:(w yyValue:AbsDecls w semicolon?)? w end
+   / api w a1:APIName a2:(w yyValue:Imports (w semicolon)?)?
+     a3:(w yyValue:AbsDecls (w semicolon)?)? w end
      a4:((s api)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !NodeUtil.nameString(a4).equals(NodeUtil.nameString(a1)))

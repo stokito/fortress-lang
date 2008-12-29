@@ -29,38 +29,38 @@ public class ParserError extends StaticError {
     private static final long serialVersionUID = 2055048497086874145L;
 
     private final ParseError _parseError;
-	private final String _location;
+    private final String _location;
 
-	public ParserError(ParseError parseError, ParserBase parser) {
-		_parseError = parseError;
-		if (_parseError.index == -1) {
-		    _location = "Unspecified location";
-		} else {
-		    _location = parser.location(_parseError.index).toString();
-		}
-	}
+    public ParserError(ParseError parseError, ParserBase parser) {
+        _parseError = parseError;
+        if (_parseError.index == -1) {
+            _location = "Unspecified location";
+        } else {
+            _location = parser.location(_parseError.index).toString();
+        }
+    }
 
-	public String typeDescription() { return "Parse Error"; }
+    public String typeDescription() { return "Parse Error"; }
 
-	@Override
-	public String description() {
-		String result = _parseError.msg;
-		int size = result.length();
-		if (size > 8 && result.substring(size-8,size).equals("expected"))
-			result = "Syntax Error";
-		else {
-                    if ( ! result.equals("") )
-                        result = "Syntax Error: " + result;
-                    else
-                        result = "Syntax Error";
-                }
-		// TODO: I don't know for sure whether this is allowed to be null
-		if (result == null || result.equals("")) { result = "Unspecified cause"; }
-		return result;
-	}
+    @Override
+    public String description() {
+        String result = _parseError.msg;
+        int size = result.length();
+        if (size > 8 && result.substring(size-8,size).equals("expected"))
+            result = "Syntax Error";
+        else {
+            if ( ! result.equals("") )
+                result = "Syntax Error: " + result;
+            else
+                result = "Syntax Error";
+        }
+        // TODO: I don't know for sure whether this is allowed to be null
+        if (result == null || result.equals("")) { result = "Unspecified cause"; }
+        return result;
+    }
 
-	@Override
+    @Override
 	public String at() {
-		return _location;
-	}
+        return _location;
+    }
 }

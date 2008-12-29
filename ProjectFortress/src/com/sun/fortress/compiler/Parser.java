@@ -109,6 +109,7 @@ public class Parser {
      */
     public static CompilationUnit parseFileConvertExn(File file) {
         try {
+            preparseFileConvertExn(file);
             BufferedReader in = Useful.utf8BufferedFileReader(file);
             String filename = file.getCanonicalPath();
             try {
@@ -150,35 +151,64 @@ public class Parser {
     public static CompilationUnit checkResultCU(xtc.parser.Result parseResult,
                                                 ParserBase parser,
                                                 String filename) throws IOException {
-        String parserLogFile = filename + ".parserError.log";
+        String parserLogFile;
+        boolean isParse = false;
+        if ( parser instanceof Fortress ) {
+            parserLogFile = filename + ".parserError.log";
+            isParse = true;
+        } else if ( parser instanceof PreFortress ) {
+            parserLogFile = filename + ".preparserError.log";
+        } else {
+            parserLogFile = filename + ".macroError.log";
+        }
         File parserLog = new File( parserLogFile );
 
         if (parseResult.hasValue()) {
             CompilationUnit cu = (CompilationUnit)((SemanticValue) parseResult).value;
-            String syntaxLogFile = filename + ".syntaxError.log";
-            cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
-            File syntaxLog = new File( syntaxLogFile );
-
-            if ( parserLog.length() + syntaxLog.length() != 0 ) {
-                System.err.println("Syntax error(s):");
-                BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
-                String line = reader.readLine();
-                while ( line != null ) {
-                    System.err.println( line );
+            if ( isParse ) {
+                String syntaxLogFile = filename + ".syntaxError.log";
+                cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
+                File syntaxLog = new File( syntaxLogFile );
+                if ( parserLog.length() + syntaxLog.length() != 0 ) {
+                    String messages = "";
+                    BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
+                    String line = reader.readLine();
+                    while ( line != null ) {
+                        messages += (line + "\n");
+                        line = reader.readLine();
+                    }
+                    reader = Useful.filenameToBufferedReader( syntaxLogFile );
                     line = reader.readLine();
+                    while ( line != null ) {
+                        messages += (line + "\n");
+                        line = reader.readLine();
+                    }
+                    Files.rm( parserLogFile );
+                    Files.rm( syntaxLogFile );
+                    if ( messages.endsWith("\n") )
+                        messages = messages.substring(0, messages.length()-1);
+                    throw StaticError.make(messages);
+                } else {
+                    Files.rm( parserLogFile );
+                    Files.rm( syntaxLogFile );
                 }
-                reader = Useful.filenameToBufferedReader( syntaxLogFile );
-                line = reader.readLine();
-                while ( line != null ) {
-                    System.err.println( line );
-                    line = reader.readLine();
+            }
+            else {
+                if ( parserLog.length() != 0 ) {
+                    String messages = "";
+                    BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
+                    String line = reader.readLine();
+                    while ( line != null ) {
+                        messages += (line + "\n");
+                        line = reader.readLine();
+                    }
+                    Files.rm( parserLogFile );
+                    if ( messages.endsWith("\n") )
+                        messages = messages.substring(0, messages.length()-1);
+                    throw StaticError.make(messages);
+                } else {
+                    Files.rm( parserLogFile );
                 }
-                Files.rm( parserLogFile );
-                Files.rm( syntaxLogFile );
-                throw new ParserError(new xtc.parser.ParseError("", 0), parser);
-            } else {
-                Files.rm( parserLogFile );
-                Files.rm( syntaxLogFile );
             }
 
             if (cu instanceof Api) {
@@ -235,7 +265,7 @@ public class Parser {
                 xtc.parser.Result parseResult = parser.pFile(0);
                 return checkResultCU(parseResult, parser, filename);
             } finally {
-                Files.rm( filename + ".parserError.log" );
+                Files.rm( filename + ".preparserError.log" );
                 in.close();
             }
         } catch (FileNotFoundException fnfe) {

@@ -746,7 +746,7 @@ public final class Shell {
             String message = IterUtil.first(errors).getMessage();
             if ( ! message.equals(expected) )
                 throw new UserError("Bad error message: " + message + "\n" +
-                                    "Should be:" + expected);
+                                    "Should be: " + expected);
         }
     }
 
