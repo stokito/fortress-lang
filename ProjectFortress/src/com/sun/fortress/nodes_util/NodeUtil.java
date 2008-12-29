@@ -290,6 +290,30 @@ public class NodeUtil {
         return new ArrayList<String>();
     }
 
+    private static boolean beginComment( String token ) {
+        return (token.length() >= 2 &&
+                token.substring(0,2).equals("(*"));
+    }
+
+    private static boolean endComment( String token ) {
+        return (token.length() >= 2 &&
+                token.substring(token.length()-2,token.length()).equals("*)"));
+    }
+
+    private static boolean lineComment( String token ) {
+        return (token.length() == 3 &&
+                token.equals("(*)"));
+    }
+
+    private static boolean blankOrComment( String line ) {
+        if ( line.equals("") )
+            return true;
+        else {
+            String[] split = line.split(" ");
+            return beginComment(split[0]);
+        }
+    }
+
     /* get the declared name of a component or api */
     public static APIName apiName( String path ) throws UserError, IOException {
         try {
@@ -297,27 +321,38 @@ public class NodeUtil {
             String filename = new File(path).getName();
             filename = filename.substring(0, filename.length()-4);
             BufferedReader br = Useful.utf8BufferedFileReader(file);
-            boolean withCopyright = false;
-            int lineno = 0;
-            String line = br.readLine(); lineno++;
-            // skip the copyright notice
-            if ( line.equals("(*******************************************************************************") )
-                withCopyright = true;
-            if ( withCopyright ) {
-                while ( ! line.equals(" ******************************************************************************)") ) {
-                    line = br.readLine(); lineno++;
+            // skip comments and blank lines
+            int lineNo = 0;
+            int commentDepth = 0;
+            String line = br.readLine(); lineNo++;
+            while ( blankOrComment(line) || commentDepth != 0 ) {
+                if ( line.equals("") ) {
+                    line = br.readLine(); lineNo++;
+                } else {
+                    String[] split = line.split(" ");
+                    for ( String token : split ) {
+                        if ( lineComment(token) ) {
+                            line = "";
+                            break;
+                        } else if ( beginComment(token) ) {
+                            commentDepth++; line = "";
+                        } else if ( endComment(token) ) {
+                            commentDepth--; line = "";
+                        } else if ( commentDepth == 0 ) {
+                            line += token;
+                            line += " ";
+                        }
+                    }
+                    if ( commentDepth == 0 && ! line.equals("") ) break;
+                    else line = br.readLine(); lineNo++;
                 }
-                line = br.readLine(); lineno++;
-            }
-            // skip blank lines
-            while ( line.equals("") ) {
-                line = br.readLine(); lineno++;
             }
             br.close();
+            // line is the first non-comment/non-blank line
             String[] split = line.split(" ");
             String name;
             if ( split[0].equals("component") || split[0].equals("api") ) {
-                Span span = NodeFactory.makeSpan(path, lineno, split[0].length()+2,
+                Span span = NodeFactory.makeSpan(path, lineNo, split[0].length()+2,
                                                  split[0].length()+split[1].length()+1);
                 name = split[1];
                 if ( ! name.equals(filename) )
