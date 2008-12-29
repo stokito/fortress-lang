@@ -737,17 +737,16 @@ public final class Shell {
         return IterUtil.empty();
     }
 
-    public static void assertStaticError(Iterable<? extends StaticError> errors,
+    public static void assertStaticErrors(Iterable<? extends StaticError> errors,
                                          String expected) throws UserError {
-        int num_errors = IterUtil.sizeOf(errors);
-        if ( num_errors != 1 )
-            throw new UserError("Compilation should have signaled a single static error.");
-        else {
-            String message = IterUtil.first(errors).getMessage();
-            if ( ! message.equals(expected) )
-                throw new UserError("Bad error message: " + message + "\n" +
-                                    "Should be: " + expected);
+        String message = "";
+        for ( StaticError error : errors ) {
+            message += error.getMessage() + "\n";
         }
+        message = message.substring(0,message.length()-1);
+        if ( ! message.equals(expected) )
+            throw new UserError("Bad error message: " + message + "\n" +
+                                "Should be: " + expected);
     }
 
     /**

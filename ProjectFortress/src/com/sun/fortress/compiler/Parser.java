@@ -22,6 +22,8 @@ import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.ArrayList;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.io.IOUtil;
@@ -42,6 +44,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.repository.ProjectProperties;
 
 
@@ -142,6 +145,10 @@ public class Parser {
         }
     }
 
+    private static boolean beginError(String line) {
+        return (! line.startsWith(" "));
+    }
+
     /**
      * Checks that a xtc.parser.Result is contains a CompilationUnit,
      * and checks the filename for the appropriate suffix.
@@ -170,24 +177,35 @@ public class Parser {
                 cu.accept( new SyntaxChecker( Useful.filenameToBufferedWriter( syntaxLogFile ) ) );
                 File syntaxLog = new File( syntaxLogFile );
                 if ( parserLog.length() + syntaxLog.length() != 0 ) {
-                    String messages = "";
                     BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
                     String line = reader.readLine();
+                    ArrayList<StaticError> errors = new ArrayList<StaticError>();
+                    String message = "";
                     while ( line != null ) {
-                        messages += (line + "\n");
+                        if ( beginError(line) && !message.equals("") ) {
+                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            message = line + "\n";
+                        } else
+                            message += line + "\n";
                         line = reader.readLine();
                     }
+                    if ( !message.equals("") )
+                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
                     reader = Useful.filenameToBufferedReader( syntaxLogFile );
                     line = reader.readLine();
                     while ( line != null ) {
-                        messages += (line + "\n");
+                        if ( beginError(line) && !message.equals("") ) {
+                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            message = line + "\n";
+                        } else
+                            message += line + "\n";
                         line = reader.readLine();
                     }
+                    if ( !message.equals("") )
+                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
                     Files.rm( parserLogFile );
                     Files.rm( syntaxLogFile );
-                    if ( messages.endsWith("\n") )
-                        messages = messages.substring(0, messages.length()-1);
-                    throw StaticError.make(messages);
+                    throw new MultipleStaticError(errors);
                 } else {
                     Files.rm( parserLogFile );
                     Files.rm( syntaxLogFile );
@@ -195,17 +213,22 @@ public class Parser {
             }
             else {
                 if ( parserLog.length() != 0 ) {
-                    String messages = "";
                     BufferedReader reader = Useful.filenameToBufferedReader( parserLogFile );
                     String line = reader.readLine();
+                    ArrayList<StaticError> errors = new ArrayList<StaticError>();
+                    String message = "";
                     while ( line != null ) {
-                        messages += (line + "\n");
+                        if ( beginError(line) && !message.equals("") ) {
+                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            message = line + "\n";
+                        } else
+                            message += line + "\n";
                         line = reader.readLine();
                     }
+                    if ( !message.equals("") )
+                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
                     Files.rm( parserLogFile );
-                    if ( messages.endsWith("\n") )
-                        messages = messages.substring(0, messages.length()-1);
-                    throw StaticError.make(messages);
+                    throw new MultipleStaticError(errors);
                 } else {
                     Files.rm( parserLogFile );
                 }
