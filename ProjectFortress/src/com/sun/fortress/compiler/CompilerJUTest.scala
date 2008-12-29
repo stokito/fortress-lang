@@ -22,6 +22,7 @@ import junit.framework.TestSuite
 
 import com.sun.fortress.compiler.phases.PhaseOrder
 import com.sun.fortress.exceptions.ProgramError
+import com.sun.fortress.exceptions.WrappedException
 import com.sun.fortress.Shell
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.repository.ProjectProperties
@@ -35,10 +36,10 @@ import edu.rice.cs.plt.tuple.Option
 class CompilerJUTest() extends TestCaseWrapper {
 
   val STATIC_TESTS_DIR =
-    ProjectProperties.BASEDIR + "compiler_tests/"
+    ProjectProperties.BASEDIR + "compiler_tests"
 
   def compile(s:String) = {
-    val s_ = STATIC_TESTS_DIR + s
+    val s_ = STATIC_TESTS_DIR + "/" + s
     val name = NodeUtil.apiName(s_)
     val path = Shell.sourcePath(s_, name)
 
@@ -50,9 +51,9 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testXXXCompiled0() = {
     val expected =
-      "\n" + STATIC_TESTS_DIR + "XXXCompiled0.fss:17:11-15\n" +
+      "\n" + STATIC_TESTS_DIR + "/XXXCompiled0.fss:17:11-15\n" +
       "    Component/API names must match their enclosing file names.\n" +
-      "    File name: " + STATIC_TESTS_DIR + "XXXCompiled0.fss\n" +
+      "    File name: " + STATIC_TESTS_DIR + "/XXXCompiled0.fss\n" +
       "    Component/API name: Hello"
     try {
       compile("XXXCompiled0.fss").iterator()
@@ -65,4 +66,31 @@ class CompilerJUTest() extends TestCaseWrapper {
                 "Should be:" + expected)
     }
   }
+
+  def testXXXCompiled1() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled1.fss:18:8-16\n" +
+      "    Could not find API Runnable in file named Runnable.fsi on path\n    " +
+      STATIC_TESTS_DIR + ":" + ProjectProperties.SOURCE_PATH
+
+    try {
+      compile("XXXCompiled1.fss").iterator()
+      assert(false, "Compilation should have signaled an error")
+    }
+    catch {
+      case e:WrappedException => {
+        assert (e.getMessage().equals(expected),
+                "Bad error message: " + e.getMessage() + "\n" +
+                "Should be:" + expected)
+      }
+    }
+  }
+
+  def testXXXCompiled2() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled2.fss:20:28-39\n" +
+      "    Variable printlnSimple is not defined."
+    Shell.assertStaticError(compile("XXXCompiled2.fss"), expected)
+  }
+
 }
