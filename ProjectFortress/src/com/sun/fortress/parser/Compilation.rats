@@ -238,9 +238,9 @@ private List<Import> ImportedNames =
        yyValue = FortressUtil.mkList(imp);
      }
    / <ErrorProduction>
-     (ForeignLang w)? Id (w as w Id)?
+     Id (w as w Id)?
      { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Syntax Error: Try 'import api APIName'");
+                             "Syntax Error: Try \"import api APIName\"");
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
