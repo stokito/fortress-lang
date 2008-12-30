@@ -1,3 +1,37 @@
+(******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+(******************************************************************************
+
+  Prefix trees, aka Tries: implementing Maps; purely functional
+
+  PrefixMap[\E,F,V\] is the type of maps, indexed by F, and valued in V. Here F is a zero-indexed data type storing elements of type E, supporting an operator addLeft.
+
+  At present F must be a subtype of List[\E\] (where List is defined as in List.fss).
+
+  Future improvements:
+
+   - When the standard collection trait hierarchy is done, we can make this code work more pleasantly and in more generality:
+       - we want F to be any type modelling List[\E\]
+       - we could demand that PrefixMap[\E,F,V\] model Map[\F,V\].
+       - we could vary the indexing data structure for each node. For some prefix trees, it would be best to implement their children as an array. If we are indexing by lists of booleans, we would want an ad-hoc indexing structure whose lookup algorithm is an "if".
+
+ ******************************************************************************)
+
 api PrefixMap
 import List.{...}
 import Map.{...}
