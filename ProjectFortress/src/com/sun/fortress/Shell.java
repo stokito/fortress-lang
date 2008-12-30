@@ -737,8 +737,16 @@ public final class Shell {
         return IterUtil.empty();
     }
 
+    private static class StaticErrorComparator implements Comparator<StaticError> {
+        public int compare(StaticError left, StaticError right) {
+            return left.getMessage().compareTo(right.getMessage());
+        }
+    }
+    private final static StaticErrorComparator staticErrorComparator = new StaticErrorComparator();
+
     public static void assertStaticErrors(Iterable<? extends StaticError> errors,
                                          String expected) throws UserError {
+        errors = IterUtil.sort(errors, staticErrorComparator);
         String message = "";
         for ( StaticError error : errors ) {
             message += error.getMessage() + "\n";
