@@ -659,12 +659,17 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         List<APIName> exports_result = recurOnListOfAPIName(com.getExports());
         List<Decl> decls_result = recurOnListOfDecl(com.getDecls());
 
-        decls_result.add( NodeFactory.make_RewriteObjectExprDecl(NodeUtil.getSpan(com), objectExprs) );
-        decls_result.add( NodeFactory.make_RewriteFunctionalMethodDecl(NodeUtil.getSpan(com), Useful.list(functionals)) );
+        /* decls_result could be an immutable list, so we must create
+         * a new one and modify that
+         */
+        List<Decl> new_decls_result = new ArrayList<Decl>(decls_result);
+
+        new_decls_result.add( NodeFactory.make_RewriteObjectExprDecl(NodeUtil.getSpan(com), objectExprs) );
+        new_decls_result.add( NodeFactory.make_RewriteFunctionalMethodDecl(NodeUtil.getSpan(com), Useful.list(functionals)) );
 
         AbstractNode nn = NodeFactory.makeComponent(NodeUtil.getSpan(com),
                                                     name_result, imports_result,
-                                                    decls_result,
+                                                    new_decls_result,
                                                     com.is_native(), exports_result);
 
         if (debug && ! suppressDebugDump)
