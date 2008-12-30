@@ -958,8 +958,8 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         List<FValue> evaled = evalExprListParallel(Useful.list(fn, arg));
 
-        FValue fn_ = IterUtil.first(evaled);
-        FValue arg_ = IterUtil.last(evaled);
+        FValue fn_ = evaled.get(0);
+        FValue arg_ = evaled.get(1);
 
         return Fcn.functionInvocation(arg_, fn_, that);
     }

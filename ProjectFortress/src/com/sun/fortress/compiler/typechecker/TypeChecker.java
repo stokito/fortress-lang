@@ -3134,7 +3134,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 List<TypeCheckerResult> new_juxt_results = CollectUtil.makeList(IterUtil.pairFirsts(checked_chunks));
 
                 if( checked_chunks.size() == 1 ) {
-                    Expr expr = IterUtil.first(new_juxt_exprs);
+                    Expr expr = new_juxt_exprs.get(0);
                     TypeCheckerResult expr_result = expr.accept(this); // Is it bad to re-typecheck all args?
                     return TypeCheckerResult.compose(expr_result.ast(), expr_result.type(), subtypeChecker, expr_result,
                                                      TypeCheckerResult.compose(expr_result.ast(), subtypeChecker, new_juxt_results));
@@ -3736,7 +3736,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if (app_result.isNone()) {
             // Guaranteed at least one operator because all the overloaded operators
             // are created by disambiguation, not by the user.
-            IdOrOp opName = IterUtil.first(that.getOp().getNames());
+            IdOrOp opName = that.getOp().getNames().get(0);
             return TypeCheckerResult.compose(that, subtypeChecker,
                     op_result,
                     TypeCheckerResult.compose(that, subtypeChecker, args_result),
@@ -4740,11 +4740,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         if( gens.isEmpty() )
             return Pair.make(Collections.<TypeCheckerResult>emptyList(), Collections.<LValue>emptyList());
         else if( gens.size() == 1 ) {
-            Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
+            Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(gens.get(0), false);
             return Pair.make(Collections.singletonList(pair.first()), pair.second());
         }
         else {
-            Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(IterUtil.first(gens), false);
+            Pair<TypeCheckerResult,List<LValue>> pair = forGeneratorClauseGetBindings(gens.get(0), false);
             TypeChecker new_checker = this.extend(pair.second());
             // recur
             Pair<List<TypeCheckerResult>, List<LValue>> recur_result =

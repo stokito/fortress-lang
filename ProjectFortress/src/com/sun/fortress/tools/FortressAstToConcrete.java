@@ -20,6 +20,7 @@ package com.sun.fortress.tools;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
 import com.sun.fortress.nodes.*;
@@ -1228,10 +1229,11 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             return bug(that, "An if expression should have at least " +
                        "one then branch.");
         } else {
-            s.append( IterUtil.first(clauses_result) );
-            for (String ifclause : IterUtil.skipFirst(clauses_result) ) {
+            Iterator<String> iter = clauses_result.iterator();
+            s.append( iter.next() );
+            while( iter.hasNext() ) {
                 s.append( "elif " );
-                s.append( ifclause );
+                s.append( iter.next() );
             }
         }
         if ( elseClause_result.isSome() ) {
@@ -1751,9 +1753,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             if ( exprs_result.isEmpty() )
                 return bug(that, "A tight juxtaposition expression should have " +
                            "at least two subexpressions.");
-            s.append(IterUtil.first(exprs_result));
-            for ( String expr : IterUtil.skipFirst(exprs_result) ){
-                s.append( inParentheses(expr) );
+            Iterator<String> iter = exprs_result.iterator();
+            s.append(iter.next());
+            while ( iter.hasNext() ) {
+                s.append( inParentheses( iter.next() ));
             }
             if ( NodeUtil.isParenthesized(that) )
                 return "(" + s.toString() + ")";
