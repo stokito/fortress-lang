@@ -183,26 +183,26 @@ public class Parser {
                     String message = "";
                     while ( line != null ) {
                         if ( beginError(line) && !message.equals("") ) {
-                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
                             message = line + "\n";
                         } else
                             message += line + "\n";
                         line = reader.readLine();
                     }
                     if ( !message.equals("") )
-                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
                     reader = Useful.filenameToBufferedReader( syntaxLogFile );
                     line = reader.readLine();
                     while ( line != null ) {
                         if ( beginError(line) && !message.equals("") ) {
-                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
                             message = line + "\n";
                         } else
                             message += line + "\n";
                         line = reader.readLine();
                     }
                     if ( !message.equals("") )
-                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
                     Files.rm( parserLogFile );
                     Files.rm( syntaxLogFile );
                     throw new MultipleStaticError(errors);
@@ -219,14 +219,14 @@ public class Parser {
                     String message = "";
                     while ( line != null ) {
                         if ( beginError(line) && !message.equals("") ) {
-                            errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                            errors.add(StaticError.make(message.substring(0,message.length()-1)));
                             message = line + "\n";
                         } else
                             message += line + "\n";
                         line = reader.readLine();
                     }
                     if ( !message.equals("") )
-                        errors.add(0, StaticError.make(message.substring(0,message.length()-1)));
+                        errors.add(StaticError.make(message.substring(0,message.length()-1)));
                     Files.rm( parserLogFile );
                     throw new MultipleStaticError(errors);
                 } else {
