@@ -60,7 +60,7 @@ public class Transform extends TemplateUpdateVisitor {
     /* rename is true if a macro has been invoked. When it is true
      * variables must be renamed hygienically.
      */
-    private boolean rename = false;
+    private final boolean rename;
     // private EllipsesEnvironment env;
 
     private Transform( Map<String,Transformer> transformers, Map<String,Level> variables, SyntaxEnvironment syntaxEnvironment, boolean rename ){
@@ -113,6 +113,7 @@ public class Transform extends TemplateUpdateVisitor {
         this.syntaxEnvironment = e;
     }
 
+    @Override
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
@@ -158,6 +159,7 @@ public class Transform extends TemplateUpdateVisitor {
         return NodeFactory.makeGeneratorClause(NodeFactory.makeSpan(newIds, init_result), newIds, init_result);
     }
 
+    @Override
     public Node forIfClause(IfClause that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -170,6 +172,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forFor(For that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -190,6 +193,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forWhile(While that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -206,6 +210,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forCatch(Catch that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -220,6 +225,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forExit(Exit that) {
         if ( rename ){
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
@@ -237,6 +243,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forLabel(Label that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -253,6 +260,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forTypecase(Typecase that) {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
@@ -279,6 +287,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forFnExpr(FnExpr that) {
         if ( rename ){
             final Transform transformer = this;
@@ -329,7 +338,9 @@ public class Transform extends TemplateUpdateVisitor {
         public Param apply(Param value){
             final Transform transformer = Transform.this;
             return (Param) value.accept( new TemplateUpdateVisitor(){
+                @Override
                 public Node forParamOnly(Param that,
+                                         ASTNodeInfo info_result,
                                          Id name_result,
                                          Option<Type> type_result,
                                          Option<Expr> defaultExpr_result,
@@ -362,6 +373,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     };
 
+    @Override
     public Node forLetFn(LetFn that) {
         if ( rename ){
             final Transform transformer = this;
@@ -370,35 +382,21 @@ public class Transform extends TemplateUpdateVisitor {
             List<Expr> body_result = recurOnListOfExpr(that.getBody());
             List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
                 public FnDecl apply(FnDecl fn){
-                    return (FnDecl) fn.accept( new TemplateUpdateVisitor(){
-                            public Node forFnDeclOnly(FnDecl that, IdOrOpOrAnonymousName name_result, List<StaticParam> staticParams_result, List<Param> params_result, Option<Type> returnType_result, Option<List<BaseType>> throwsClause_result, Option<WhereClause> where_result, Option<Contract> contract_result, Option<Expr> body_result) {
-                                List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
-                                if ( name_result instanceof Id) {
-                                    Id old = (Id) ((Id)name_result).accept(transformer);
-                                    Id generatedId = generateId(old);
-                                    extendSyntaxEnvironment(old, generatedId);
-                                    return NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
-                                                                  NodeUtil.getMods(that),
-                                                                  generatedId,
-                                                                  staticParams_result,
-                                                                  new_params_result,
-                                                                  returnType_result,
-                                                                  throwsClause_result,
-                                                                  where_result,
-                                                                  contract_result,
-                                                                  body_result);
-                                } else {
-                                    return NodeFactory.makeFnDecl(NodeUtil.getSpan(that),
-                                                                  NodeUtil.getMods(that),
-                                                                  name_result,
-                                                                  staticParams_result,
-                                                                  new_params_result,
-                                                                  returnType_result,
-                                                                  throwsClause_result,
-                                                                  where_result,
-                                                                  contract_result,
-                                                                  body_result);
+                    return (FnDecl) fn.accept(new TemplateUpdateVisitor(){
+                        @Override
+                        public Node forFnDeclOnly(FnDecl that, ASTNodeInfo info_result, FnHeader header_result, Id name_result, Option<Expr> body_result, Option<Id> implementsUnambiguousName_result) {
+
+                            FnHeader new_fnHeader = (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
+                                @Override public Node forFnHeaderOnly(FnHeader that, List<StaticParam> staticParams_result, IdOrOpOrAnonymousName name_result, Option<WhereClause> whereClause_result, Option<List<BaseType>> throwsClause_result, Option<Contract> contract_result, List<Param> params_result, Option<Type> returnType_result) {
+                                    List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
+                                    return forFnHeaderOnly(that, staticParams_result, name_result, whereClause_result, throwsClause_result, contract_result, new_params_result, returnType_result);
                                 }
+                            });
+
+                            Id old = (Id) ((Id)name_result).accept(transformer);
+                            Id generatedId = generateId(old);
+                            extendSyntaxEnvironment(old, generatedId);
+                            return forFnDeclOnly(that, info_result, new_fnHeader, generatedId, body_result, implementsUnambiguousName_result);
                             }
                         });
                 }
@@ -414,6 +412,7 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    @Override
     public Node forLocalVarDecl(LocalVarDecl that) {
         if ( rename ){
             final Transform transformer = this;
@@ -423,14 +422,15 @@ public class Transform extends TemplateUpdateVisitor {
             List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
                 public LValue apply(LValue value){
                     return (LValue) value.accept( new TemplateUpdateVisitor(){
-                        public Node forLValueOnly(LValue that, Id name_result,
+                        @Override
+                        public Node forLValueOnly(LValue that, ASTNodeInfo info,
+                                                  Id name_result,
                                                   Option<Type> type_result) {
                             Id old = (Id) name_result.accept(transformer);
                             Id generatedId = generateId(old);
                             Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return NodeFactory.makeLValue(NodeUtil.getSpan(that), generatedId, that.getMods(),
-                                                          type_result, that.isMutable());
+                            return NodeFactory.makeLValue(NodeUtil.getSpan(that), generatedId, that.getMods(), type_result, that.isMutable());
                         }
                     });
                 }
