@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -1523,8 +1524,10 @@ public class ExprFactory {
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {
-        Expr expr = makeVarRef(IterUtil.first(ids));
-        for (Id id : IterUtil.skipFirst(ids)) {
+        Iterator<Id> iter = ids.iterator();
+        Expr expr = makeVarRef(iter.next());
+        while (iter.hasNext()) {
+            Id id = iter.next();
             expr = makeFieldRef(expr, id);
         }
         return expr;
