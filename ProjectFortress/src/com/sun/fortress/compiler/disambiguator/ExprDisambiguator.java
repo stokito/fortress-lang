@@ -1103,7 +1103,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             return ExprFactory.makeOpRef(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                          NodeUtil.getExprType(that), that.getStaticArgs(),
                                          that.getLexicalDepth(),
-                                         (Op)IterUtil.first(that.getNames()),
+                                         (Op)that.getNames().get(0),
                                          that.getNames(),
                                          that.getOverloadings(), 
                                          that.getOverloadingType());
@@ -1118,7 +1118,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         // as variables. FnRefs can be parsed if, for example, explicit static arguments are
         // provided. These function references must still be disambiguated.
 
-        IdOrOp fn_name = IterUtil.first(that.getNames());
+        IdOrOp fn_name = that.getNames().get(0);
         Set<IdOrOp> fns = _env.explicitFunctionNames(fn_name);
 
         if( fns.isEmpty() ) {
@@ -1148,7 +1148,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
      * if they want to report an error.
      */
     private Option<FunctionalRef> opRefHelper(FunctionalRef that) {
-        Op op_name = (Op)IterUtil.first(that.getNames());
+        Op op_name = (Op)that.getNames().get(0);
         Set<? extends IdOrOp> ops = _env.explicitFunctionNames(op_name);
         if (ops.isEmpty()) {
             ops = _env.onDemandFunctionNames(op_name);
@@ -1179,7 +1179,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
             op_result = (FunctionalRef)_op_result.unwrap();
         }
         else {
-            String op_name = IterUtil.first(that.getOp().getNames()).stringName();
+            String op_name = that.getOp().getNames().get(0).stringName();
             error("Operator " + op_name + " is not defined.", that.getOp());
             op_result = (FunctionalRef)recur(that.getOp());
         }
