@@ -272,6 +272,7 @@ private String EscapeSequence =
      }
    / '\\' a1:[\u201c] { yyValue = "\u201c"; }
    / '\\' a1:[\u201d] { yyValue = "\u201d"; };
+/* '*/
 
 /* ImportedNames ::=
      (ForeignLang w)? APIName . w { w ... w } (w except w SimpleNames)?
@@ -476,6 +477,13 @@ transient private Option<String> DeclsRest =
        log(span, "Unmatched delimiter \"component\".");
        yyValue = Option.<String>none();
      }
+   / FnDeclHeader (w semicolon)?
+     (w (end / trait / object / dim / unit / SI_unit / type / test / property))?
+     &( w EndOfFile )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Missing function body.");
+       yyValue = Option.<String>none();
+     }
    / FnDeclHeader w NoNewlineExpr br a2:DeclsRest
      { yyValue = a2; }
    / FnDeclHeader (_)+
@@ -513,7 +521,7 @@ transient private Option<String> DeclsRestWithoutEnd =
      { yyValue = a2; }
    / FnDeclHeader (_)+
      { yyValue = Option.<String>none(); }
-   / end w Extra
+   / Extra
      { yyValue = Option.<String>none(); }
    / (_)+
      { yyValue = Option.<String>none(); };

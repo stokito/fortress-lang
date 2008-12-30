@@ -171,4 +171,18 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.assertStaticErrors(compile("XXXCompiled12.fss"), expected)
   }
 
+  def testXXXCompiled14() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled14.fss:20:3-22:2\n" +
+      "    Missing function body."
+    Shell.assertStaticErrors(compile("XXXCompiled14.fss"), expected)
+  }
+
+  def testXXXCompiled20() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled20.fss:21:1-2\n" +
+      "    Unmatched delimiter \"end\"."
+    Shell.assertStaticErrors(compile("XXXCompiled20.fss"), expected)
+  }
+
 }
