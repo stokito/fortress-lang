@@ -15,8 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-
-
 (******************************************************************************
 
   Prefix trees, aka Tries: implementing Maps; purely functional
@@ -25,7 +23,7 @@
 
   At present F must be a subtype of List[\E\] (where List is defined as in List.fss).
 
-  Future improvements: 
+  Future improvements:
 
    - When the standard collection trait hierarchy is done, we can make this code work more pleasantly and in more generality:
        - we want F to be any type modelling List[\E\]
@@ -33,10 +31,6 @@
        - we could vary the indexing data structure for each node. For some prefix trees, it would be best to implement their children as an array. If we are indexing by lists of booleans, we would want an ad-hoc indexing structure whose lookup algorithm is an "if".
 
  ******************************************************************************)
-
-
-
-
 
 component PrefixMap
 import List.{...}
@@ -109,7 +103,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
         if x <- member(k) then x else v end
     end
 
- 
+
     (** minimum and maximum refer to the key **)
 
     minimum():Maybe[\(F,V)\] = if isEmpty() then Nothing[\(F,V)\] else Just[\(F,V)\](getMinimum()) end
@@ -357,7 +351,7 @@ trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
 
             prefixMap(c, arg1.children().combine(ourDoBoth, ourDoThis, ourDoThat, ourMapThis, ourMapThat, arg2.children()))
         end
-        
+
         prefixCombine(emptyList[\E\](), self, that)
     end
 
