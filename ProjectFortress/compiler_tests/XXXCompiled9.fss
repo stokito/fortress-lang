@@ -17,6 +17,6 @@
 component XXXCompiled9
 export Executable
 
-  run[⟧(args:String...):() = println "Hello, world!"
+  run[ \](args:String...):() = println "Hello, world!"
 
 end
