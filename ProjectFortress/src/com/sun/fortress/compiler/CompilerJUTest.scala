@@ -110,17 +110,31 @@ class CompilerJUTest() extends TestCaseWrapper {
   def testXXXCompiled5() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled5.fss:20:23\n" +
-      "    Unmatched delimiter (."
+      "    Unmatched delimiter \"(\"."
     Shell.assertStaticErrors(compile("XXXCompiled5.fss"), expected)
   }
 
   def testXXXCompiled6() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled6.fss:20:23\n" +
-      "    Unmatched delimiter (.\n" +
+      "    Unmatched delimiter \"(\".\n" +
       STATIC_TESTS_DIR + "/XXXCompiled6.fss:24:1-2\n" +
       "    Unmatched delimiter \"end\"."
     Shell.assertStaticErrors(compile("XXXCompiled6.fss"), expected)
+  }
+
+  def testXXXCompiled7() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled7.fss:20:25\n" +
+      "    Unmatched delimiter \")\"."
+    Shell.assertStaticErrors(compile("XXXCompiled7.fss"), expected)
+  }
+
+  def testXXXCompiled8() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled8.fss:20:6\n" +
+      "    Unmatched delimiter \"[\\\"."
+    Shell.assertStaticErrors(compile("XXXCompiled8.fss"), expected)
   }
 
 }
