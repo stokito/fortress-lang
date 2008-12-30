@@ -222,13 +222,17 @@ StringLiteralExpr StringLiteralExpr =
      };
 private String StringLiteralContent =
      EscapeSequence
+   / a1:[\n\f\r]+
+     { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
+       yyValue = String.valueOf(a1);
+     }
    / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); };
 
 private void InvalidStringLiteralContent =
      void:["\u201c\u201d]
    / a1:[\\]
      { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
-   / a1:[\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
+   / a1:[\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
      { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
    / c:_ &{ Character.getType(c) == Character.CONTROL }
      { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + c); };
@@ -601,6 +605,13 @@ transient void StaticParams =
              log(createSpan(yyStart,yyCount),
                  "Unmatched delimiter \"" + a1 + "\" and \"" + a2 + "\".");
      }
+   / a1:(a:LeftEncloser {yyValue=a.getText();} / opendoublesquare / opensquare)
+     (w StaticParamList)? w
+     a2:(a:RightEncloser {yyValue=a.getText();} / closedoublesquare / closesquare)
+     { if (! PrecedenceMap.ONLY.matchedBrackets((String)a1,(String)a2) )
+           log(createSpan(yyStart,yyCount),
+               "Unmatched delimiter \"" + a1 + "\" and \"" + a2 + "\".");
+     }
    / opendoublesquare
      { log(createSpan(yyStart,yyCount),
            "Unmatched delimiter \"[\\\".");
@@ -667,7 +678,16 @@ transient void IsType = colon w Type ;
 transient void NoNewlineIsType = IsType ;
 
 /* Do not handle expressions fully yet. */
-transient void NoNewlineExpr = NoNewlineExprFront NoNewlineExprTail* ;
+transient void NoNewlineExpr =
+     do w BlockElems w end
+   / label w Id BlockElems w end w Id
+   / exit (w Id)? (w with w NoNewlineExpr)?
+   / do w BlockElems
+     { log(createSpan(yyStart,yyCount),
+           "Unmatched delimiter \"do\".");
+     }
+   / do w end
+   / NoNewlineExprFront NoNewlineExprTail* ;
 
 transient void NoNewlineExprTail =
      s Op s Id
@@ -678,24 +698,16 @@ transient void NoNewlineExprTail =
    ;
 
 transient void NoNewlineExprFront =
-     do BlockElems w end
-   / label w Id BlockElems w end w Id
-   / exit (w Id)? (w with w NoNewlineExpr)?
-   / do BlockElems
-     { log(createSpan(yyStart,yyCount),
-           "Unmatched delimiter \"do\".");
-     }
-   / do w end
-   / openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
+     openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
    / Id
    ;
 
 transient void BlockElems =
      BlockElem br BlockElems
    / BlockElem w semicolon
-     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen / w EndOfFile)
    / BlockElem
-     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen / w EndOfFile)
    ;
 
 private Expr BlockElem =
