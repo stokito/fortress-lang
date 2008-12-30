@@ -335,7 +335,7 @@ private List<Import> ImportedNames =
        yyValue = FortressUtil.mkList(imp);
      }
    / <ErrorProduction>
-     (ForeignLang w)? Id (w as w Id)?
+     Id (w as w Id)?
      { log(createSpan(yyStart,yyCount),
            "Syntax Error: Try \"import api APIName\"");
        yyValue = Collections.<Import>emptyList();
@@ -477,9 +477,7 @@ transient private Option<String> DeclsRest =
        log(span, "Unmatched delimiter \"component\".");
        yyValue = Option.<String>none();
      }
-   / FnDeclHeader (w semicolon)?
-     (w (end / trait / object / dim / unit / SI_unit / type / test / property))?
-     &( w EndOfFile )
+   / FnDeclHeader (w semicolon)? (w (end / DeclKeywords))? &( w EndOfFile )
      { Span span = createSpan(yyStart,yyCount);
        log(span, "Missing function body.");
        yyValue = Option.<String>none();
@@ -741,3 +739,6 @@ transient void BlockElems =
 private Expr BlockElem =
      NoNewlineExpr
    ;
+
+private void DeclKeywords =
+     trait / object / dim / unit / SI_unit / type / test / property ;
