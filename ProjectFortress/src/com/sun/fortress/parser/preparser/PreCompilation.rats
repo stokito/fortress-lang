@@ -156,7 +156,7 @@ private Api Api =
      <ErrorProduction1>
      native w api w a1:APIName (_)*
      { Span span = createSpan(yyStart,yyCount);
-       log(span, "The native modifier is only for components not for APIs.");
+       log(span, "The \"native\" modifier is only for components not for APIs.");
        yyValue = NodeFactory.makeApi(span, a1);
      }
    / api w a1:APIName a2:(w yyValue:Imports (w semicolon)?)? w (_)*
@@ -312,7 +312,7 @@ private List<Import> ImportedNames =
    / <ErrorProduction>
      (ForeignLang w)? Id (w as w Id)?
      { log(createSpan(yyStart,yyCount),
-           "Syntax Error: Try 'import api APIName'");
+           "Syntax Error: Try \"import api APIName\"");
        yyValue = Collections.<Import>emptyList();
      };
 
@@ -495,7 +495,39 @@ transient private Option<String> DeclsRestWithoutEnd =
      { yyValue = Option.<String>none(); };
 
 transient private void FnDeclHeader =
-     Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w equals w ;
+     Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w equals w
+   / Mods? Id (w StaticParams)? w a1:ExtraOpenparen w ValParam (w NoNewlineIsType)? w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \"(\".");
+     }
+   / Mods? Id (w StaticParams)? w a1:ExtraCloseparen w ValParam (w NoNewlineIsType)? w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \")\".");
+     }
+   / Mods? Id (w StaticParams)? w ValParam w a1:ExtraOpenparen (w NoNewlineIsType)? w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \"(\".");
+     }
+   / Mods? Id (w StaticParams)? w ValParam w a1:ExtraCloseparen (w NoNewlineIsType)? w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \")\".");
+     }
+   / Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w a1:ExtraOpenparen w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \"(\".");
+     }
+   / Mods? Id (w StaticParams)? w ValParam (w NoNewlineIsType)? w a1:ExtraCloseparen w equals w
+     { log(NodeUtil.getSpan(a1),
+           "Unmatched delimiter \")\".");
+     };
+
+transient private Expr ExtraOpenparen =
+     openparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); } ;
+
+transient private Expr ExtraCloseparen =
+     closeparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); } ;
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 transient Option<String> AbsDeclsRest = AbsDecl (br AbsDecl)*
@@ -540,14 +572,6 @@ transient void ValParam =
      BindId
    / openparen w closeparen
    / openparen w Params w closeparen
-   / openparen
-     { log(createSpan(yyStart,yyCount),
-           "Mismatched delimiter for (.");
-     }
-   / closeparen
-     { log(createSpan(yyStart,yyCount),
-           "Mismatched delimiter for ).");
-     }
    ;
 
 /* Params ::=
@@ -575,11 +599,11 @@ transient void StaticParams =
      a1:opendoublesquare (w StaticParamList)? w a2:closedoublesquare
      { if (! PrecedenceMap.ONLY.matchedBrackets(a1,a2) )
              log(createSpan(yyStart,yyCount),
-                 "Unmatched delimiter " + a1 + " and " + a2 + ".");
+                 "Unmatched delimiter \"" + a1 + "\" and \"" + a2 + "\".");
      }
    / opendoublesquare
      { log(createSpan(yyStart,yyCount),
-           "Unmatched delimiter [\\.");
+           "Unmatched delimiter \"[\\\".");
      }
    ;
 
@@ -607,20 +631,20 @@ transient void StaticParam =
 transient void Type = TypeFront TypeTail* ;
 
 transient void TypeFront =
-     openparen closeparen
+     openparen w closeparen
    / openparen w Type (w comma w Type)* w closeparen
    / openparen (w Type)? (w comma w Type)* w
      { log(createSpan(yyStart,yyCount),
-           "Unmatched delimiter (.");
+           "Unmatched delimiter \"(\".");
      }
    / closeparen
      { log(createSpan(yyStart,yyCount),
-           "Unmatched delimiter ).");
+           "Unmatched delimiter \")\".");
      }
    / Id a1:opendoublesquare w StaticArg (w comma w StaticArg)* w a2:closedoublesquare
      { if (! PrecedenceMap.ONLY.matchedBrackets(a1,a2) )
              log(createSpan(yyStart,yyCount),
-                 "Unmatched delimiter ).");
+                 "Unmatched delimiter \")\".");
      }
    / Id
    ;
@@ -659,7 +683,7 @@ transient void NoNewlineExprFront =
    / exit (w Id)? (w with w NoNewlineExpr)?
    / do BlockElems
      { log(createSpan(yyStart,yyCount),
-           "Mismatched delimiter for 'do'.");
+           "Unmatched delimiter \"do\".");
      }
    / do w end
    / openparen (s NoNewlineExpr (w comma w NoNewlineExpr)*)? s closeparen
