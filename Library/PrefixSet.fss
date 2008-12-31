@@ -15,8 +15,6 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-
-
 (******************************************************************************
 
   Prefix trees, aka Tries: implementing Sets; purely functional
@@ -25,7 +23,7 @@
 
   At present F must be a subtype of List[\E\] (where List is defined as in List.fss).
 
-  Future improvements: 
+  Future improvements:
 
    - When the standard collection trait hierarchy is done, we can make this code work more pleasantly and in more generality:
        - we want F to be any type modelling List[\E\]
@@ -36,18 +34,10 @@
 
   *****************************************************************************)
 
-
-
-
-
-
-
 component PrefixSet
 import List.{...}
 import Map.{...}
 export PrefixSet
-
-
 
 (***
    An ancillary method: joining strings by separating them with the given string
@@ -302,7 +292,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
             s2
         elif NOT rightm.holds() then
             self
-        else 
+        else
             (leftmaxkey,leftmaxval,left) = leftm.get()
             (rightminkey,rightminval,right) = rightm.get()
 
