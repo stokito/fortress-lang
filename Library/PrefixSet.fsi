@@ -1,3 +1,39 @@
+(******************************************************************************
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+(******************************************************************************
+
+  Prefix trees, aka Tries: implementing Sets; purely functional
+
+  PrefixSet[\E,F\] is the type of sets where F is a zero-indexed data type storing elements of type E, supporting an operator addLeft. Indexing gives lexicographic ordering.
+
+  At present F must be a subtype of List[\E\] (where List is defined as in List.fss).
+
+  Future improvements:
+
+   - When the standard collection trait hierarchy is done, we can make this code work more pleasantly and in more generality:
+       - we want F to be any type modelling List[\E\]
+       - we could demand that PrefixSet[\E,F\] model Set[\F\].
+       - we could vary the indexing data structure for each node. For some prefix trees, it would be best to implement their children as an array. If we are indexing by lists of booleans, we would want an ad-hoc indexing structure whose lookup algorithm is an "if".
+
+   - It would be nice to implement efficient indexing for PrefixSet. This is apparently impossible, if we are to base it on the existing Map.fss. We would need a variant of Map.fss, which disambiguates references to the number of nodes of a binary tree (which is an internal notion) and the number of elements stored (which is an external notion). Each node of a map, since it represents a whole prefix tree, can contribute many indices, not just one.
+
+  *****************************************************************************)
+
 api PrefixSet
 import List.{...}
 import Map.{...}
