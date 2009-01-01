@@ -598,7 +598,6 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         return "(* _RewriteFunctionalMethodDecl() *)";
     }
 
-    /****************************************/
     @Override public String forFnDecl(FnDecl that) {
         FnHeader header = that.getHeader();
         String name_result = recur(header.getName());
@@ -644,7 +643,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 if ( opThat.isEnclosing() ) {
                     String left  = oper.split(" ")[0];
                     String right = oper.substring(left.length()+1);
-                    right = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
+                    if ( left.equals("BIG") ) {
+                        left = "BIG " + right.split(" ")[0];
+                        right = right.substring(left.length()+1);
+                    }
                     String params = vparams.equals("()") ? "" : vparams;
                     params = params.startsWith("(") ? params.substring(1, params.length()-1) : params;
                     return "opr " + left + sparams + " " + params + " " + right;
