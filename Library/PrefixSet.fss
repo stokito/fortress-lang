@@ -41,9 +41,10 @@ export PrefixSet
 
 (***
    An ancillary method: joining strings by separating them with the given string
+   Is this of more general use?
  ***)
 object StringJoinReduction(s:String) extends MonoidReduction[\String\]
-    getter asString():String = "StringJoinReduction(" s ")"
+    getter toString():String = "StringJoinReduction(" s ")"
     empty():String = ""
     join(a:String, b:String): String = do
         if   a.isEmpty() then
@@ -427,8 +428,15 @@ prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g:Generator[
 
 opr {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] fs:F... /}: PrefixSet[\E,F\] = prefixSet[\E,F\](fs)
 
+(* (** Annoyingly, I can't get this work. It looks just like the code in Set.fss, but doesn't work the same. **)
 
+opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]/} : Comprehension[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\F,PrefixSet[\E,F\]\](fn cc => prefixSet(cc.toImmutableArray()))
 
+opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] g:Generator[\F\]/}:PrefixSet[\E,F\] =
+    __bigOperatorSugar[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\](BIG {/[\E,F\]/}(), g)
+
+ *)
 
 
 (* Standard union & intersection code *)
@@ -439,15 +447,15 @@ object Union[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] extends C
     join(a:PrefixSet[\E,F\], b:PrefixSet[\E,F\]): PrefixSet[\E,F\] = a UNION b
 end
 
-(*** Clashes with Map
 
-opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
+(* We would like this to be called simply "BIG UNION", but that clashes with Map.fss *)
+
+opr BIG PS_UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
     BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](Union[\E,F\])
 
-opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]) =
-    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG UNION[\PrefixSet[\E,F\]\](), g)
+opr BIG PS_UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]):PrefixSet[\E,F\] =
+    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG PS_UNION[\PrefixSet[\E,F\]\](), g)
 
-***)
 
 
 
@@ -457,15 +465,15 @@ object Intersection[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] ex
     join(a:PrefixSet[\E,F\], b:PrefixSet[\E,F\]): PrefixSet[\E,F\] = a INTERSECTION b
 end
 
-(*** Clashes with Map
 
-opr BIG INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
+(* We would like this to be called simply "BIG INTERSECTION", but that clashes with Map.fss *)
+
+opr BIG PS_INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
     BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](Intersection[\E,F\])
 
-opr BIG INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]) =
-    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG INTERSECTION[\PrefixSet[\E,F\]\](), g)
+opr BIG PS_INTERSECTION[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]):PrefixSet[\E,F\] =
+    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG PS_INTERSECTION[\PrefixSet[\E,F\]\](), g)
 
-***)
 
 
 
@@ -476,15 +484,14 @@ object SymmetricDifference[\E extends StandardTotalOrder[\E\], F extends List[\E
 end
 
 
-(*** Clashes with Map
+(* We would like this to be called simply "BIG SYMDIFF", but that clashes with Map.fss *)
 
-opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
+opr BIG PS_SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](): BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\] =
     BigReduction[\PrefixSet[\E,F\],PrefixSet[\E,F\]\](SymmetricDifference[\E,F\])
 
-opr BIG SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]) =
-    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG SYMDIFF[\PrefixSet[\E,F\]\](), g)
+opr BIG PS_SYMDIFF[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g: Generator[\PrefixSet[\E,F\]\]):PrefixSet[\E,F\] =
+    __bigOperatorSugar[\PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\],PrefixSet[\E,F\]\](BIG PS_SYMDIFF[\PrefixSet[\E,F\]\](), g)
 
-***)
 
 
 
