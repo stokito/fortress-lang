@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,9 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
@@ -41,6 +46,7 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -58,6 +64,12 @@ public class ForeignJava {
      * Java class, not its wrapper.)
      */
     MultiMap<APIName, Class> javaImplementedAPIs = new MultiMap<APIName, Class>();
+    
+    /**
+     * Given an API Name, what are the decls in it?
+     * This includes both trait (class) decls and function (static method) decls.
+     */
+    MultiMap<APIName, Decl> apiToStaticDecls = new MultiMap<APIName, Decl>();
 
     /**
      * Given a Java class, what items from it were requested?
@@ -69,7 +81,7 @@ public class ForeignJava {
     MultiMap<Class, String> itemsFromClasses = new MultiMap<Class, String>();
     
     Bijection<Method, FnDecl> methodToDecl = new HashBijection<Method, FnDecl>();
-    Bijection<Class, TraitObjectDecl> classToDecl = new HashBijection<Class, TraitObjectDecl>();
+    Bijection<Class, TraitObjectDecl> classToTraitDecl = new HashBijection<Class, TraitObjectDecl>();
 
     /* Special cases
      * 
@@ -206,13 +218,11 @@ public class ForeignJava {
              * item imported_item -- entire class if "".
              */
             // TODO
-            javaImplementedAPIs.putItem(pkg_name, imported_class);
-            recurOnClass(imported_class, imported_item);
+            recurOnClass(pkg_name, imported_class, imported_item);
             
         } /* for name : names */
         System.err.println("javaImplementedAPIs="+javaImplementedAPIs);
         System.err.println("itemsFromClasses="+itemsFromClasses);
-        System.err.println("    z   ");
     }
 
     /**
@@ -225,37 +235,58 @@ public class ForeignJava {
         if (t != null)
             return t;
         
-        TraitObjectDecl tod = classToDecl.get(imported_class);
         Package p = imported_class.getPackage();
         APIName api_name = packageToAPIName(p);
-        
         Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
+        
+        /*
+         *  Has there (not) been any reference to this class previously?
+         *  If no reference, then record that it is needed (opaquely) and
+         *  create a trivial declaration for it, and enter the declaration
+         *  into the appropriate places.
+         */
         if (!itemsFromClasses.containsKey(imported_class)) {
             itemsFromClasses.putKey(imported_class);
             // Construct a minimal trait declaration for this class.
-            List<StaticParam> sparams = Collections.emptyList();
-            List<TraitTypeWhere> extendsC = Collections.emptyList();
-            tod = NodeFactory.makeTraitDecl(span, name, sparams, extendsC);
-            // Need to fake up an API for this class, too.
-            classToDecl.put(imported_class, tod);
-            javaImplementedAPIs.putItem(api_name, imported_class);
+            classToTraitType(imported_class, api_name, name, Collections.<Decl>emptyList());
         };
         
         name = NodeFactory.makeId(api_name, name);
+        // Note: a TraitType is a reference to a trait.
         return NodeFactory.makeTraitType(span, false, name);
     }
+
+    private void classToTraitType(Class imported_class, APIName api_name,
+            Id name, List<Decl> decls) {
+        List<StaticParam> sparams = Collections.emptyList();
+        List<TraitTypeWhere> extendsC = Collections.emptyList();
+        Modifiers mods = Modifiers.None;
+        Option<WhereClause> whereC = Option.none();
+        List<BaseType> excludesC = Collections.emptyList();
+        Option<List<BaseType>> comprisesC = Option.none();
+        TraitObjectDecl tod = NodeFactory.makeTraitDecl (span, mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
+        // Need to fake up an API for this class, too.
+        classToTraitDecl.put(imported_class, tod);
+        apiToStaticDecls.putItem(api_name, tod);
+        javaImplementedAPIs.putItem(api_name, imported_class);
+    }
     
-    private void recurOnClass(Class imported_class, String imported_item) {
+    private void recurOnClass(APIName pkg_name, Class imported_class, String imported_item) {
         Set<String> old = itemsFromClasses.get(imported_class);
-        if (old != null && old.contains(imported_item)) {
+        
+        /*
+         * Import of a class, non-opaquely.
+         * Keep track of which items, specifically, are imported.
+         * Note that the empty string is a valid item, it means "the class itself".
+         */
+        if (old != null && old.size() > 0) { 
+            itemsFromClasses.putItem(imported_class, imported_item);
             return;
         }
-        /* We're here because imported_item had not been seen before in this
-         * class's set of items.
-         * 
-         * For now, just ignore the imported_item, and pull in all the class
-         * members that we can see.  Recursion includes the parent class and
-         * interfaces, too.
+        
+        /*
+         * Class not seen before (except perhaps as an opaque import)
+         * Recursively visit all of its parts.
          */
         itemsFromClasses.putItem(imported_class, imported_item);
 
@@ -264,17 +295,30 @@ public class ForeignJava {
         Class[] interfaces = imported_class.getInterfaces();
         Class super_class = imported_class.getSuperclass();
         
+        ArrayList<Decl> trait_decls = new ArrayList<Decl>();
+        
         for (Method m : methods) {
             if (isPublic(m.getModifiers())) {
-                recurOnMethod(m);
+                if (isStatic(m.getModifiers())) {
+                 // static goes to api-indexed set
+                    FnDecl decl = recurOnMethod(imported_class, m, true);
+                    apiToStaticDecls.putItem(pkg_name, decl);
+                } else {
+                    // non static goes to declaration pile for class
+                    FnDecl decl = recurOnMethod(imported_class, m, false);
+                    trait_decls.add(decl);
+                }
             }
         }
         
+        Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
+        classToTraitType(imported_class, pkg_name, name, trait_decls);
+        
     }
 
-    private void recurOnMethod(Method m) {
+    private FnDecl recurOnMethod(Class cl, Method m, boolean is_static) {
         if (methodToDecl.containsKey(m))
-            return;
+            return methodToDecl.get(m);
         
         Class rt = m.getReturnType();
         Class[] pts = m.getParameterTypes();
@@ -289,10 +333,13 @@ public class ForeignJava {
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
-        Id id = NodeFactory.makeId(span, m.getName());
+        Id id = is_static ?
+                NodeFactory.makeId(span, cl.getSimpleName()+"."+ m.getName()) :
+            NodeFactory.makeId(span, m.getName());
         FnDecl fndecl = NodeFactory.makeFnDecl(span, Modifiers.None,
                 id, params,Option.some(return_type), Option.<Expr>none());
         methodToDecl.put(m, fndecl);
+        return fndecl;
     }
 
     private boolean isPublic(int modifiers) {
@@ -306,9 +353,21 @@ public class ForeignJava {
     public boolean definesApi(APIName name) {
         return javaImplementedAPIs.containsKey(name);
     }
-    
-    
-    
-    
+
+    public ApiIndex fakeApi(APIName name) {
+        Set<Class> classes = javaImplementedAPIs.get(name);
+        // need imports, too.
+        List<Import> imports = new ArrayList<Import>();
+        List<Decl> decls = new ArrayList<Decl>();
+        for (Decl d : apiToStaticDecls.get(name)) {
+            decls.add(d);
+        }
+        Api a =  NodeFactory.makeApi( span,  name,
+                    imports,
+                    decls);
+        
+        return IndexBuilder.builder.buildApiIndex(a, Long.MIN_VALUE+2);
+        
+    }
 
 }

@@ -43,6 +43,7 @@ build/
 tmp/
 test-tmp/
 default_repository/caches/
+.manager
 .fortress_cache/
 .fortress_cache_checked/
 .interpreter_cache
