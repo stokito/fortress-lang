@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -644,20 +644,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* find all parsed APIs */
     public Map<APIName, ApiIndex> parsedApis(){
-        List<GraphNode> all = graph.filter(new Fn<GraphNode, Boolean>(){
-                @Override
-                public Boolean apply(GraphNode g){
-                    if ( g instanceof ApiGraphNode ){
-                        ApiGraphNode a = (ApiGraphNode) g;
-                        return a.getApi().isSome();
-                    }
-                    return false;
-                }
-            });
+        
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        for ( GraphNode g : all ){
-            ApiGraphNode node = (ApiGraphNode) g;
-            apis.put( node.getName(), node.getApi().unwrap() );
+        
+        for ( GraphNode g :  graph.nodes()){
+            if (g instanceof ApiGraphNode) {
+                ApiGraphNode node = (ApiGraphNode) g;
+                if (node.getApi().isSome()) {
+                    apis.put( node.getName(), node.getApi().unwrap() );
+                } else if (foreignJava.definesApi(node.getName())) {
+                    apis.put(node.getName(), foreignJava.fakeApi(node.getName()));
+                }
+            }
         }
         return apis;
     }
