@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.BaseType;
@@ -40,6 +41,7 @@ import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
@@ -64,6 +66,7 @@ public class ForeignJava {
      * Java class, not its wrapper.)
      */
     MultiMap<APIName, Class> javaImplementedAPIs = new MultiMap<APIName, Class>();
+    MultiMap<APIName, APIName> generatedImports = new MultiMap<APIName, APIName>();
     
     /**
      * Given an API Name, what are the decls in it?
@@ -228,7 +231,7 @@ public class ForeignJava {
     /**
      * @param imported_class
      */
-    private Type recurOnOpaqueClass(Class imported_class) {
+    private Type recurOnOpaqueClass(APIName importing_package, Class imported_class) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
         Type  t = specialCases.get(imported_class);
@@ -237,6 +240,13 @@ public class ForeignJava {
         
         Package p = imported_class.getPackage();
         APIName api_name = packageToAPIName(p);
+        
+        /* Though the class may have been previously referenced, the import
+         * may still need to be recorded.  Re-recording an existing import
+         * is harmless.
+         */
+        generatedImports.putItem(importing_package, api_name);
+        
         Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
         
         /*
@@ -301,11 +311,11 @@ public class ForeignJava {
             if (isPublic(m.getModifiers())) {
                 if (isStatic(m.getModifiers())) {
                  // static goes to api-indexed set
-                    FnDecl decl = recurOnMethod(imported_class, m, true);
+                    FnDecl decl = recurOnMethod(pkg_name, imported_class, m, true);
                     apiToStaticDecls.putItem(pkg_name, decl);
                 } else {
                     // non static goes to declaration pile for class
-                    FnDecl decl = recurOnMethod(imported_class, m, false);
+                    FnDecl decl = recurOnMethod(pkg_name, imported_class, m, false);
                     trait_decls.add(decl);
                 }
             }
@@ -316,19 +326,19 @@ public class ForeignJava {
         
     }
 
-    private FnDecl recurOnMethod(Class cl, Method m, boolean is_static) {
+    private FnDecl recurOnMethod(APIName importing_package, Class cl, Method m, boolean is_static) {
         if (methodToDecl.containsKey(m))
             return methodToDecl.get(m);
         
         Class rt = m.getReturnType();
         Class[] pts = m.getParameterTypes();
         // To construct a FnDecl, need to get names for all the other types
-        Type return_type = recurOnOpaqueClass(rt);
+        Type return_type = recurOnOpaqueClass(importing_package, rt);
         
         List<Param> params = new ArrayList<Param>(pts.length);
         int i = 0;
         for (Class pt : pts) {
-            Type type = recurOnOpaqueClass(pt);
+            Type type = recurOnOpaqueClass(importing_package, pt);
             Id id = NodeFactory.makeId(span, "p"+(i++));
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
@@ -356,8 +366,26 @@ public class ForeignJava {
 
     public ApiIndex fakeApi(APIName name) {
         Set<Class> classes = javaImplementedAPIs.get(name);
-        // need imports, too.
+        // Need to generate wrappers for all these classes,
+        //  if they do not already exist.
+
         List<Import> imports = new ArrayList<Import>();
+        for (APIName a : generatedImports.get(name)) {
+            AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
+            /*
+             * Hoping to lie, slightly, to static analysis.
+             * This is technically speaking a "foreign" import,
+             * but the import is already known to the ForeignJava
+             * data structures, and this allows use of fully qualified
+             * (hence unambiguous) references to classes from other packages
+             * in the generated API.
+             * 
+             * So, one lie -- no foreign annotation.
+             */
+            ImportApi iapi = NodeFactory.makeImportApi(span, Option.<String>none(), Useful.list(aan));
+            imports.add(iapi);
+        }
+        
         List<Decl> decls = new ArrayList<Decl>();
         for (Decl d : apiToStaticDecls.get(name)) {
             decls.add(d);
