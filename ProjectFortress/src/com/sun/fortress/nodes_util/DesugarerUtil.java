@@ -147,8 +147,6 @@ public class DesugarerUtil {
                 GeneratorClause gen = gens.get(j);
                 GeneratorClause squeeze = filterSqueezeOpportunity(prevGen,gen);
                 if (squeeze!=null) {
-                    // System.out.println(gen+": Filter squeeze opportunity\n"+
-                    //                    squeeze.toStringVerbose());
                     prevGen = squeeze;
                 } else {
                     squozenGens.add(prevGen);
@@ -157,11 +155,27 @@ public class DesugarerUtil {
             }
             squozenGens.add(prevGen);
             gens = squozenGens;
-            i = gens.size();
-            if (nestedGeneratorOpportunity(gens,body)) {
-                System.out.println(span+" and\n"+NodeUtil.getSpan(body)+
-                                   ": Generator of generator opportunity?");
+            
+            TupleExpr innerAcc = null;
+            /**
+             * If the accumulation is like [ BIG OT [ f x | x <- xs] | xs <- gg]
+             * nestedGeneratorOpportunity returns tuple (BIG OT, f)
+             *
+             * by Kento
+             */ 
+            innerAcc=nestedGeneratorOpportunity(gens,body);
+            /**
+             * If nestedGeneratorOpportunity returns the tuple (BIG OT, f),
+             * this function returns tuple ((BIG OT, f), gg)
+             * (should be refactored)
+             *
+             * by Kento
+             */ 
+            if(gens.size()==1 && innerAcc != null) {
+                return ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), innerAcc, gens.get(0).getInit());
             }
+
+            i = gens.size();
             // Wrap the body in parentheses (as a singleton tuple) so that it can be considered
             // as the argument in a function application (denoted by the true argument).
             body = ExprFactory.makeTightJuxt(NodeUtil.getSpan(body), false,
@@ -240,31 +254,136 @@ public class DesugarerUtil {
      * where the middle two are accomplished by a single call to
      * __generate2 with a pair of reductions.
      */
-    private static boolean nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
+    /**
+     * If the given clauses and body are of the form,
+     * this function returns tuple (OP2, fn x => body).
+     * Otherwise it returns null.
+     * Also, if they are like BIG OP2 (BIG <||> [x <- xs, gs2]), 
+     * this function ignores the BIG <||> and returns (OP2, fn x => body).
+     * This is because we want the following nested reduction to be desugared 
+     *  BIG OP1<| BIG OP2<| body | x <- xs |> | xs <- gg |> .
+     *
+     * by Kento
+     */ 
+    private static TupleExpr nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
         // Make sure there are outer generators.
         int gs = gens.size();
-        if (gs==0) return false;
-        // Make sure body is an Accumulator expression.
-        if (!(body instanceof Accumulator)) return false;
-        Accumulator bodyAccum = (Accumulator)body;
+        if (gs==0) return null;
+        Op theOpr = null;
+        Accumulator bodyAccum = null;
+        List<StaticArg> staticArgs = null;
+        /***
+         * Check the form of the body.
+         * We will accept the following.
+         *   BIG OP2 (BIG <||> [ gs2 ])
+         *   BIG OP2 [ gs2 ]
+         */
+        // body is of BIG OP2 (BIG <||> [x <- xs, gs2]) or BIG OP2 xs ?
+        if ((body instanceof OpExpr)) {
+            OpExpr bodyOpExp = (OpExpr)body;
+            
+            FunctionalRef ref = bodyOpExp.getOp();
+
+            IdOrOp name = ref.getNames().get(0);
+            // make sure the operator is actually an operator
+            if ( ! (name instanceof Op) ) return null;
+            theOpr = (Op)name;
+            List<Expr> bodyOpExprArgs = bodyOpExp.getArgs();
+            if(bodyOpExprArgs.size() != 1) return null;
+            String str = theOpr.toString();
+            String someBigOperatorName = "BIG";
+            String theListEnclosingOperatorName = "BIG <| BIG |>";
+            // make sure the body is of application of some big operator
+            if (!(str.length() >= someBigOperatorName.length()
+                  && str.substring(0, someBigOperatorName.length()).equals(someBigOperatorName))) return null;
+            staticArgs = ref.getStaticArgs();
+            if ((bodyOpExprArgs.get(0) instanceof Accumulator)) {
+                /***
+                 * This case is of BIG OP2 (BIG <||> [ gs2 ])
+                 * The inner accumulator is bound to bodyAccum.
+                 * The BIG OP2 is bound to theOpr above.
+                 */
+                bodyAccum = (Accumulator)bodyOpExprArgs.get(0);
+                // make sure the inner accumulator is (BIG <||> [ gs2 ])
+                if(!bodyAccum.getAccOp().toString().equals(theListEnclosingOperatorName)) return null;;
+            } else if (bodyOpExprArgs.get(0) instanceof VarRef){
+                /***
+                 * This case is a direct application of a big operator.
+                 * That is, the case  BIG OP1[gs1, xs <- gOfg] BIG OP2 xs.
+                 * It returns tuple (BIG OP2, fn x => x) immediately.
+                 */
+                VarRef vr = (VarRef)bodyOpExprArgs.get(0);
+                GeneratorClause outerGen = gens.get(gs-1);
+                List<Id> outerVars = outerGen.getBind();
+                if (outerVars.size()!=1) return null;
+                Id outerVar = outerVars.get(0);
+                if(!vr.getVarId().equals(outerVar)) return null;
+                Id x = gensymId("x");
+
+                Expr innerBody = ExprFactory.makeFnExpr(NodeUtil.getSpan(body),
+                                                       Useful.<Param>list(NodeFactory.makeParam(x)),
+                                                       ExprFactory.makeVarRef(x));
+                return ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), ExprFactory.makeOpExpr(NodeUtil.getSpan(body),theOpr,staticArgs), innerBody);
+                
+            } else {
+                return null;
+            }
+        } else if (body instanceof Accumulator){
+            /***
+             * The body is an Accumulator,
+             * that is BIG OP2 [ gs2 ]
+             * The inner accumulator is bound to bodyAccum.
+             * The BIG OP2 is bound to theOpr.
+             */
+            bodyAccum = (Accumulator)body;
+            theOpr = bodyAccum.getAccOp();
+            staticArgs = bodyAccum.getStaticArgs();
+        } else {
+            return null;
+        }
+    
         // Make sure innermost generator of outer accumulator yields a single variable.
         GeneratorClause outerGen = gens.get(gs-1);
         List<Id> outerVars = outerGen.getBind();
-        if (outerVars.size()!=1) return false;
+        
+        if (outerVars.size()!=1) return null;
         Id outerVar = outerVars.get(0);
         // Find outermost generator of inner accumulator (might be body)
         List<GeneratorClause> bodyGens = bodyAccum.getGens();
         Expr bodyOuterInit;
-        if (bodyGens.size()==0) {
-            bodyOuterInit = bodyAccum.getBody();
-        } else {
+        /***
+         * Currently, the inner accumulator is limited to [x <- xs] body
+         */
+        if (bodyGens.size()==0) {  // This cannot occur now
+            return null;
+        } else if (bodyGens.size()==1) {
             GeneratorClause bodyOuterGen = bodyGens.get(0);
             bodyOuterInit = bodyOuterGen.getInit();
+        } else {
+            return null;   // Complex case is not accepted yet.
         }
         // Make sure innermost generator is a single variable matching outerVar
-        if (!(bodyOuterInit instanceof VarRef)) return false;
+        if (!(bodyOuterInit instanceof VarRef)) return null;
         Id innerVar = ((VarRef)bodyOuterInit).getVarId();
-        return (outerVar.equals(innerVar));
+        if (!outerVar.equals(innerVar)) return null;
+
+        /**
+         * Building a function (fn (x1, ..., xn) => body)
+         *  for [ (x1, ..., xn) <- xs] body .
+         */
+        Expr innerBody = bodyAccum.getBody();
+        List<Param> ps = new ArrayList<Param>();
+        List<Id> ids = bodyGens.get(0).getBind();
+        for(int i = 0; i < ids.size(); i++) {
+            ps.add(NodeFactory.makeParam(ids.get(i)));
+        }
+        innerBody = ExprFactory.makeFnExpr(NodeUtil.getSpan(innerBody),
+                                           ps,
+                                           innerBody);
+        /**
+         * Return tuple (OP2, fn x => body)
+         */
+        return ExprFactory.makeTupleExpr(NodeUtil.getSpan(bodyAccum), ExprFactory.makeOpExpr(NodeUtil.getSpan(theOpr),theOpr,staticArgs), innerBody);
     }
 
     /**
