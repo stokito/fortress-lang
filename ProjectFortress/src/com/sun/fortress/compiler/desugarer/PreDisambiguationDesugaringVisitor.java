@@ -107,7 +107,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
+    public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
         // If there is a colon at all, the operator is no longer ambiguous:
         // It must be infix.
         IdOrOp name = that.getInfix_op().getNames().get(0);
@@ -131,8 +131,54 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forOpExpr(OpExpr that) {
+    public Node forOpExpr(OpExpr that) {
         FunctionalRef op_result = (FunctionalRef) recur(that.getOp());
+
+        /***
+         * For  BIG OP <| BIG OT <| f y | y <- ys |> | ys <- gg |>
+         * Is this case, BIG <||> is being removed.
+         * The nested reduction is replaced with
+         *   __bigOperator2(BIG OP, BIG OT, gg)
+         *
+         * by Kento 
+         */
+        String str = op_result.toString();
+        String theListEnclosingOperatorName = "BIG <| BIG |>";
+        String someBigOperatorName = "BIG";
+        //make sure the body is of application of some big operator
+        if ((str.length() >= someBigOperatorName.length()
+             && str.substring(0, someBigOperatorName.length()).equals(someBigOperatorName))) {
+            // make sure that BIG OP (Accumulator (BIG <||>, gs))
+            if(that.getArgs().size()==1 && that.getArgs().get(0) instanceof Accumulator && ((Accumulator)that.getArgs().get(0)).getAccOp().toString().equals(theListEnclosingOperatorName)) {
+
+                Accumulator acc = (Accumulator)that.getArgs().get(0);
+                Expr body = visitGenerators(NodeUtil.getSpan(acc), acc.getGens(), acc.getBody());
+                /***
+                 * If the accumulation is a nested reduction like <| BIG OT <| f y | y <- ys |> | ys <- gg |> ,
+                 * visitGenerators returns a tuple of ((BIG OT, f), gg)
+                 *  (this should be refactored, though)
+                 * In this case, the nested reduction is replaced with __bigOperator2
+                 */
+                if(body instanceof TupleExpr) {
+                    // a tuple of the inner Accumulator (op, body) and the gg 
+                    TupleExpr tuple = (TupleExpr)body;
+                    TupleExpr innerAccumTuple = (TupleExpr)tuple.getExprs().get(0);
+                    Expr opexpI = (Expr)innerAccumTuple.getExprs().get(0);
+                    Expr innerBody = (Expr)innerAccumTuple.getExprs().get(1);
+                    FunctionalRef ref = (FunctionalRef) op_result;
+                    IdOrOp name = ref.getNames().get(0);
+                    // make sure the operator is actually an operator
+                    if ( ! (name instanceof Op) ) return null;
+                    Expr opexpO = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),(Op)name,ref.getStaticArgs());                   
+                    Expr gg = tuple.getExprs().get(1);
+                    Expr res = ExprFactory.makeTightJuxt(NodeUtil.getSpan(that), false,
+                                                         Useful.list(BIGOP2_NAME,
+                                                                     ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), opexpO,opexpI,gg, innerBody)));
+                    return (Expr)recur(res);
+                }
+            }
+        }
+
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
 
         OpExpr new_op;
@@ -190,7 +236,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-	public Node forAccumulator(Accumulator that) {
+    public Node forAccumulator(Accumulator that) {
         return visitAccumulator(NodeUtil.getSpan(that), that.getGens(),
                                 that.getAccOp(), that.getBody(),
                                 that.getStaticArgs());
@@ -199,11 +245,43 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                                   Op op, Expr body,
                                   List<StaticArg> staticArgs) {
-        body = visitGenerators(span, gens, body);
-        Expr opexp = ExprFactory.makeOpExpr(span, op, staticArgs);
-        Expr res = ExprFactory.makeTightJuxt(span,
-                                             BIGOP_NAME,
-                                             ExprFactory.makeTupleExpr(span,opexp,body));
+        body = visitGenerators(span, gens, body); 
+        /***
+         * If the accumulation is a nested reduction like BIG OP [ys <- gg] BIG OT <| f y | y <- ys |> ,
+         * visitGenerators returns a tuple of ((BIG OT, f), gg)
+         *  (this should be refactored, though)
+         */
+        Expr res = null;
+        if (body instanceof FnExpr) {
+            Expr opexp = ExprFactory.makeOpExpr(span,op,staticArgs);
+            res = ExprFactory.makeTightJuxt(span,
+                                            BIGOP_NAME,
+                                            ExprFactory.makeTupleExpr(span,opexp,body));
+        } else if (body instanceof TupleExpr){
+            /***
+             * For  BIG OP [ys <- gg] BIG OT <| f y | y <- ys |>
+             * The nested reduction is replaced with
+             *   __bigOperator2(BIG OP, BIG OT, gg)
+             *
+             * This is similar to forOpExpr(OpExpr that) .
+             *
+             * by Kento 
+             */
+            // a tuple of the inner Accumulator (op, body) and the gg 
+            TupleExpr tuple = (TupleExpr)body;
+            TupleExpr innerAccumTuple = (TupleExpr)tuple.getExprs().get(0);
+            Expr opexpI = (Expr)innerAccumTuple.getExprs().get(0);
+            Expr innerBody = (Expr)innerAccumTuple.getExprs().get(1);
+            Expr opexpO = ExprFactory.makeOpExpr(span,op,staticArgs);
+            Expr gg = tuple.getExprs().get(1);
+
+            res = ExprFactory.makeTightJuxt(span,
+                                            BIGOP2_NAME,
+                                            ExprFactory.makeTupleExpr(span,opexpO,opexpI,gg, innerBody));
+        }
         return (Expr)recur(res);
     }
+
+
+    
 }
