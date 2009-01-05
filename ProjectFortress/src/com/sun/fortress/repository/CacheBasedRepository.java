@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,11 +32,13 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.exceptions.shell.ShellException;
 import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -44,10 +46,11 @@ import edu.rice.cs.plt.tuple.Option;
 public class CacheBasedRepository extends StubRepository implements FortressRepository {
 
 
-    protected final Map<APIName, ApiIndex> apis =
-        new HashMap<APIName, ApiIndex>();
-    protected final Map<APIName, ComponentIndex> components =
-        new HashMap<APIName, ComponentIndex>();
+    protected final BATree<APIName, ApiIndex> apis =
+        new BATree<APIName, ApiIndex>(NodeComparator.apiNameComparer);
+    
+    protected final BATree<APIName, ComponentIndex> components =
+        new BATree<APIName, ComponentIndex>(NodeComparator.apiNameComparer);
 
     protected final String pwd;
 

@@ -142,6 +142,14 @@ public class NodeComparator {
         return staticParamListComparer.compare(left, right);
     }
 
+    public static final Comparator<APIName> apiNameComparer = new Comparator<APIName>() {
+
+        public int compare(APIName o1, APIName o2) {
+            return NodeComparator.compare(o1, o2);
+        }
+        
+    };
+    
     /* compare methods ***************************************************/
     public static int compare(APIName left, APIName right) {
         return ListComparer.stringListComparer.compare(NodeUtil.toStrings(left),
