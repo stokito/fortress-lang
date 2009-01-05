@@ -157,7 +157,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     @Override
     public Map<APIName, ApiIndex> apis() {
-        return cache.apis();
+        return foreignJava.augmentApiMap(cache.apis.copy());
     }
 
     @Override
