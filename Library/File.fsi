@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api File
-import JavaString.JavaString
+import FlatString.FlatString
 import FileSupport.{...}
 
 FileReadStream(filename: String): FileReadStream
@@ -102,15 +102,15 @@ end
 
 (** A %FileWriteStream% represents a writable stream backed by a file
     named %fileName%. **)
-    
+
 FileWriteStream(fileName:String):  FileWriteStream
-    
-object FileWriteStream(fileName:JavaString) extends { FileStream }
+
+object FileWriteStream(fileName:FlatString) extends { FileStream }
     getter fileName(): String
 
-    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms for writing
+    (** %write(FlatString)% and %write(Char)% are the primitive mechanisms for writing
         characters to the end of a %FileWriteStream%. **)
-    write(x:JavaString):()
+    write(x:FlatString):()
     write(c:Char):()
     (** %write(Any)% converts its argument to a String using %toString%
         and appends the result to the stream. **)

@@ -1,6 +1,6 @@
-component JavaStringIsGenerator
+component FlatStringIsGenerator
 (*
-import JavaString.{...}
+import FlatString.{...}
 *)
 export Executable
 
@@ -21,8 +21,8 @@ export Executable
 
 (*
     typecase chs="Hell" of
-        JavaString => println "Hell is a JavaString"
-        else => println "Hell is NOT a JavaString"
+        FlatString => println "Hell is a FlatString"
+        else => println "Hell is NOT a FlatString"
     end
 *)
 
