@@ -45,6 +45,7 @@ import com.sun.fortress.nodes.ImportApi;
 import com.sun.fortress.nodes.ImportNames;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
@@ -62,10 +63,14 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ForeignJava {
 
-    /** given an API Name, what Java class does it import?  (Name of existing
+    /** given an API Name, what Java classes does it import?  (Name of existing
      * Java class, not its wrapper.)
      */
     MultiMap<APIName, Class> javaImplementedAPIs = new MultiMap<APIName, Class>();
+    
+    /**
+     * Given a foreign API Name, what other (foreign) APIs does it import?
+     */
     MultiMap<APIName, APIName> generatedImports = new MultiMap<APIName, APIName>();
     
     /**
@@ -83,8 +88,18 @@ public class ForeignJava {
      */
     MultiMap<Class, String> itemsFromClasses = new MultiMap<Class, String>();
     
+    Map<APIName, ApiIndex> cachedFakeApis = new HashMap<APIName, ApiIndex>();
+    
+    /**
+     * Stores the FnDecl for a particular method -- also acts as an is-visited
+     * marker.
+     */
     Bijection<Method, FnDecl> methodToDecl = new HashBijection<Method, FnDecl>();
-    Bijection<Class, TraitObjectDecl> classToTraitDecl = new HashBijection<Class, TraitObjectDecl>();
+    
+    /**
+     * Stores the TraitDecl for a trait.
+     */
+    Bijection<Class, TraitDecl> classToTraitDecl = new HashBijection<Class, TraitDecl>();
 
     /* Special cases
      * 
@@ -274,11 +289,16 @@ public class ForeignJava {
         Option<WhereClause> whereC = Option.none();
         List<BaseType> excludesC = Collections.emptyList();
         Option<List<BaseType>> comprisesC = Option.none();
-        TraitObjectDecl tod = NodeFactory.makeTraitDecl (span, mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
+        TraitDecl td = NodeFactory.makeTraitDecl (span, mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
         // Need to fake up an API for this class, too.
-        classToTraitDecl.put(imported_class, tod);
-        apiToStaticDecls.putItem(api_name, tod);
+        classToTraitDecl.put(imported_class, td);
+        apiToStaticDecls.putItem(api_name, td);
         javaImplementedAPIs.putItem(api_name, imported_class);
+        
+        /* Invalidate any old entry.
+         * Let's hope this does not cause problems down the line.
+         */
+        cachedFakeApis.remove(api_name);
     }
     
     private void recurOnClass(APIName pkg_name, Class imported_class, String imported_item) {
@@ -365,37 +385,50 @@ public class ForeignJava {
     }
 
     public ApiIndex fakeApi(APIName name) {
-        Set<Class> classes = javaImplementedAPIs.get(name);
-        // Need to generate wrappers for all these classes,
-        //  if they do not already exist.
+        ApiIndex result = cachedFakeApis.get(name);
+        if (result == null) {
 
-        List<Import> imports = new ArrayList<Import>();
-        for (APIName a : generatedImports.get(name)) {
-            AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
-            /*
-             * Hoping to lie, slightly, to static analysis.
-             * This is technically speaking a "foreign" import,
-             * but the import is already known to the ForeignJava
-             * data structures, and this allows use of fully qualified
-             * (hence unambiguous) references to classes from other packages
-             * in the generated API.
-             * 
-             * So, one lie -- no foreign annotation.
-             */
-            ImportApi iapi = NodeFactory.makeImportApi(span, Option.<String>none(), Useful.list(aan));
-            imports.add(iapi);
+            Set<Class> classes = javaImplementedAPIs.get(name);
+            // Need to generate wrappers for all these classes,
+            // if they do not already exist.
+
+            List<Import> imports = new ArrayList<Import>();
+            Set<APIName> gi = generatedImports.get(name);
+            if (gi != null)
+            for (APIName a : gi) {
+                AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
+                /*
+                 * Hoping to lie, slightly, to static analysis. This is
+                 * technically speaking a "foreign" import, but the import is
+                 * already known to the ForeignJava data structures, and this
+                 * allows use of fully qualified (hence unambiguous) references
+                 * to classes from other packages in the generated API.
+                 * 
+                 * So, one lie -- no foreign annotation.
+                 */
+                ImportApi iapi = NodeFactory.makeImportApi(span, Option
+                        .<String> none(), Useful.list(aan));
+                imports.add(iapi);
+            }
+
+            List<Decl> decls = new ArrayList<Decl>();
+            for (Decl d : apiToStaticDecls.get(name)) {
+                decls.add(d);
+            }
+            Api a = NodeFactory.makeApi(span, name, imports, decls);
+
+            result = IndexBuilder.builder.buildApiIndex(a, Long.MIN_VALUE + 2);
+            cachedFakeApis.put(name, result);
         }
+        return result;
         
-        List<Decl> decls = new ArrayList<Decl>();
-        for (Decl d : apiToStaticDecls.get(name)) {
-            decls.add(d);
+    }
+    
+    public Map<APIName, ApiIndex> augmentApiMap(Map<APIName, ApiIndex> map) {
+        for (APIName a : javaImplementedAPIs.keySet()) {
+            map.put(a, fakeApi(a));
         }
-        Api a =  NodeFactory.makeApi( span,  name,
-                    imports,
-                    decls);
-        
-        return IndexBuilder.builder.buildApiIndex(a, Long.MIN_VALUE+2);
-        
+        return map;
     }
 
 }
