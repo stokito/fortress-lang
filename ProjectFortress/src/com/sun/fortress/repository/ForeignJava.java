@@ -63,8 +63,8 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ForeignJava {
 
-    /** given an API Name, what Java classes does it import?  (Name of existing
-     * Java class, not its wrapper.)
+    /** given an API Name, what Java classes does it import?  (Existing
+     * Java class, not its compiled Fortress wrapper class.)
      */
     MultiMap<APIName, Class> javaImplementedAPIs = new MultiMap<APIName, Class>();
     
@@ -262,6 +262,11 @@ public class ForeignJava {
          */
         generatedImports.putItem(importing_package, api_name);
         
+        /*
+         * Ensure that the API and class appear.
+         */
+        javaImplementedAPIs.putItem(api_name,imported_class);
+        
         Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
         
         /*
@@ -395,22 +400,12 @@ public class ForeignJava {
             List<Import> imports = new ArrayList<Import>();
             Set<APIName> gi = generatedImports.get(name);
             if (gi != null)
-            for (APIName a : gi) {
-                AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
-                /*
-                 * Hoping to lie, slightly, to static analysis. This is
-                 * technically speaking a "foreign" import, but the import is
-                 * already known to the ForeignJava data structures, and this
-                 * allows use of fully qualified (hence unambiguous) references
-                 * to classes from other packages in the generated API.
-                 * 
-                 * So, one lie -- no foreign annotation.
-                 */
-                ImportApi iapi = NodeFactory.makeImportApi(span, Option
-                        .<String> none(), Useful.list(aan));
-                imports.add(iapi);
-            }
-
+                for (APIName a : gi) {
+                    importAnApi(imports, a);
+                }
+            // Implicitly import.
+            importAnApi(imports, NodeFactory.makeAPIName(span, "FortressLibrary"));
+            
             List<Decl> decls = new ArrayList<Decl>();
             for (Decl d : apiToStaticDecls.get(name)) {
                 decls.add(d);
@@ -421,7 +416,24 @@ public class ForeignJava {
             cachedFakeApis.put(name, result);
         }
         return result;
-        
+
+    }
+
+    private void importAnApi(List<Import> imports, APIName a) {
+        AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
+        /*
+         * Hoping to lie, slightly, to static analysis. This is
+         * technically speaking a "foreign" import, but the import
+         * is already known to the ForeignJava data structures, and
+         * this allows use of fully qualified (hence unambiguous)
+         * references to classes from other packages in the
+         * generated API.
+         * 
+         * So, one lie -- no foreign annotation.
+         */
+        ImportApi iapi = NodeFactory.makeImportApi(span, Option
+                .<String> none(), Useful.list(aan));
+        imports.add(iapi);
     }
     
     public Map<APIName, ApiIndex> augmentApiMap(Map<APIName, ApiIndex> map) {
