@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api Stream
-import JavaString.JavaString
+import FlatString.FlatString
 
 (***********************************************************
  * Types to support  input and output
@@ -37,9 +37,9 @@ end
 
 trait WriteStream extends { Closeable }
 
-    (** %write(JavaString)% and %write(Char)% are the primitive mechanisms
+    (** %write(FlatString)% and %write(Char)% are the primitive mechanisms
         for writing characters to the end of a %WriteStream%.
-        write(JavaString) need not be part of this api, since it is covered by
+        write(FlatString) need not be part of this api, since it is covered by
         write(String) **)
 
     write(c:Char):()

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -38,7 +38,7 @@ builtinPrimitive[\T\](javaClass:String):T
 trait Object extends Any
 end Object
 
-object JavaString
-end JavaString
+object FlatString
+end FlatString
 
 end

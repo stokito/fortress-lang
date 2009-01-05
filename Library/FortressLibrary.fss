@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,7 +18,7 @@
 component FortressLibrary
 import NativeArray.{...}
 import NatReflect.{...}
-import JavaString.{...}
+import FlatString.{...}
 import RangeInternals.{...}
 import List.{AnyList}
 import TypeProxy.{...}
@@ -3632,7 +3632,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], Delega
        CatString trees.  Sub-traits should override it with equivalent but more efficient code. *)
     getter generator() : Generator[\Char\] =
         self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
-    getter asJavaString(): String
+    getter asFlatString(): String
 
     opr |self| : ZZ32 = self.size
 
@@ -3811,7 +3811,7 @@ strToInt(s: String, radix: ZZ32): ZZ32 = do
 (** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
 strToInt(s: String): ZZ32 = strToInt(s,10)
 
-match(regex:JavaString,some:JavaString):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
+match(regex:FlatString,some:FlatString):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
 
 (** postfix %//% appends a single line separator.  The postfix version
     performs implicit conversion to String, which is why it's a

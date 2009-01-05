@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,7 +18,7 @@
 api FortressLibrary
 
 import Stream.WriteStream
-import JavaString.JavaString
+import FlatString.FlatString
 import String.StringStats
 
 (************************************************************
@@ -2120,7 +2120,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     getter size() : ZZ32
     getter indices() : CompactFullRange[\ZZ32\]
     getter depth() : ZZ32
-    getter asJavaString(): String
+    getter asFlatString(): String
     getter isBalanced(): Boolean
 
 
@@ -2223,7 +2223,7 @@ fromRawBits(a:ZZ64):RR64
 
 random(a:Number):RR64
 
-match(regex:JavaString,some:JavaString):Boolean
+match(regex:FlatString,some:FlatString):Boolean
 
 (** %char% converts an integer unicode code point into the
     corresponding 16-bit %Char%.  Note that we don't presently deal

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -15,17 +15,17 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api JavaString
+api FlatString
 
-  lineSeparator: String 
-  
-  object JavaString extends { String }
-    opr ||(self, b:JavaString): String
+  lineSeparator: String
+
+  object FlatString extends { String }
+    opr ||(self, b:FlatString): String
     opr ||(self, b:String):String
-    opr ||(self, b:Char): String         
-    opr ||(a:JavaString, self): String  
-    javaConcat(self, b:JavaString):String
-    javaConcat(self, b:Char):String
+    opr ||(self, b:Char): String
+    opr ||(a:FlatString, self): String
+    flatConcat(self, b:FlatString):String
+    flatConcat(self, b:Char):String
   end
-    
+
 end
