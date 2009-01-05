@@ -459,7 +459,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             return new Fn<GraphNode,Boolean>(){
                 @Override
                 public Boolean apply(GraphNode g){
-                    return g instanceof ApiGraphNode && staleOrDependsOnStale.get(g);
+                    return g instanceof ApiGraphNode && (staleOrDependsOnStale.get(g) ||
+                            // TODO need to fix the whole date-stamp thing for APIs.
+                            foreignJava.definesApi(((ApiGraphNode)g).getName())
+                            );
                 }
             };
         }
@@ -627,12 +630,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private Api parseApi( ApiGraphNode node ){
         try{
             APIName api_name = node.getName();
-            File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
-            CompilationUnit api = Parser.parseFileConvertExn(fdot);
-            if (api instanceof Api) {
-                return (Api) api;
+            if (foreignJava.definesApi(api_name)) {
+                return (Api) foreignJava.fakeApi(api_name).ast();
             } else {
-                throw StaticError.make("Unexpected parse of API " + api_name, "");
+                File fdot = findFile(api_name, ProjectProperties.API_SOURCE_SUFFIX);
+                CompilationUnit api = Parser.parseFileConvertExn(fdot);
+                if (api instanceof Api) {
+                    return (Api) api;
+                } else {
+                    throw StaticError.make("Unexpected parse of API " + api_name, "");
+                }
             }
         } catch ( FileNotFoundException e ){
             throw new WrappedException(e);
