@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -13,7 +13,7 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+******************************************************************************/
 
 package com.sun.fortress.tests.unit_tests;
 
@@ -23,16 +23,16 @@ import com.sun.fortress.useful.TestCaseWrapper;
 
 public class TransactionJUTest extends TestCaseWrapper {
     public TransactionJUTest(String testName) {
- super(testName);
+        super(testName);
     }
     public TransactionJUTest() {
- super("TransactionTest");
+        super("TransactionTest");
     }
 
     public void testReadSet() {
- int numThreads = Runtime.getRuntime().availableProcessors();
- FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(numThreads);
- TestTask task = new TestTask();
- group.invoke(task);
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        FortressTaskRunnerGroup group = new FortressTaskRunnerGroup(numThreads);
+        TestTask task = new TestTask();
+        group.invoke(task);
     }
 }
