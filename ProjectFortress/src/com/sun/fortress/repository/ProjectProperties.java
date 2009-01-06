@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -247,7 +247,8 @@ public class ProjectProperties {
     public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${CACHES}/presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/syntax_cache");
-    public static final String BYTECODE_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/bytecode_cache");    
+    public static final String BYTECODE_CACHE_DIR = get("fortress.bytecode.cache", "${CACHES}/bytecode_cache");    
+    public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache", "${CACHES}/nativewrapper_cache");    
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
 
@@ -258,6 +259,7 @@ public class ProjectProperties {
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);
         ensureDirectoryExists(BYTECODE_CACHE_DIR);
+        ensureDirectoryExists(NATIVE_WRAPPER_CACHE_DIR);
     }
 
 
