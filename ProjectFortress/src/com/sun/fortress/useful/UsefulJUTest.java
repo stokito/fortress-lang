@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -226,7 +226,24 @@ public class UsefulJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
 
         map.remove("too");
         assertEquals(true, map.validate());
-
-        
     }
+    
+    public void testMOMOS() {
+        MapOfMapOfSet<String, String, String> reln = new MapOfMapOfSet<String, String, String>();
+        
+        reln.putItem("eats", "cow", "grass");
+        reln.putItem("eats", "cow", "corn");
+        reln.putItem("eats", "rat", "cheese");
+        reln.putItem("chases", "dog", "cat");
+        reln.putItem("chases", "cat", "rat");
+        
+        IMultiMap<String, String> eats = reln.get("eats");
+        IMultiMap<String, String> chases = reln.get("chases");
+        
+        assertEquals(eats.get("cow"), Useful.set("grass", "corn"));
+        assertEquals(eats.get("rat"), Useful.set("cheese"));
+        assertEquals(chases.get("dog"), Useful.set("cat"));             
+        assertEquals(chases.get("cat"), Useful.set("rat"));             
+    }
+    
 }

@@ -35,6 +35,7 @@ import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.FnDecl;
@@ -55,7 +56,10 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.Bijection;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.HashBijection;
+import com.sun.fortress.useful.IMultiMap;
+import com.sun.fortress.useful.MapOfMapOfSet;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.Useful;
 
@@ -71,7 +75,7 @@ public class ForeignJava {
     /**
      * Given a foreign API Name, what other (foreign) APIs does it import?
      */
-    MultiMap<APIName, APIName> generatedImports = new MultiMap<APIName, APIName>();
+    MapOfMapOfSet<APIName, APIName, Id> generatedImports = new MapOfMapOfSet<APIName, APIName, Id>();
     
     /**
      * Given an API Name, what are the decls in it?
@@ -125,7 +129,7 @@ public class ForeignJava {
         NodeFactory.makeAPIName(span, "FortressLibrary");
     
     static void s(Class cl, APIName api, String str) {
-        specialCases.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str)));
+        specialCases.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
     }
     
     static {
@@ -139,7 +143,8 @@ public class ForeignJava {
         s(Float.TYPE, fortLib, "RR32");
         s(Double.class, fortLib, "RR64");
         s(Double.TYPE, fortLib, "RR64");
-        s(String.class, fortLib, "String");
+        s(Object.class, fortLib, "Any");
+        s(String.class, fortLib, "FlatString");
         s(BigInteger.class, fortLib, "ZZ");
         specialCases.put(Void.TYPE, NodeFactory.makeVoidType(span));
     }
@@ -255,19 +260,19 @@ public class ForeignJava {
         
         Package p = imported_class.getPackage();
         APIName api_name = packageToAPIName(p);
-        
+        Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
+
         /* Though the class may have been previously referenced, the import
          * may still need to be recorded.  Re-recording an existing import
          * is harmless.
          */
-        generatedImports.putItem(importing_package, api_name);
+        generatedImports.putItem(importing_package, api_name, name);
         
         /*
          * Ensure that the API and class appear.
          */
         javaImplementedAPIs.putItem(api_name,imported_class);
         
-        Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
         
         /*
          *  Has there (not) been any reference to this class previously?
@@ -281,7 +286,8 @@ public class ForeignJava {
             classToTraitType(imported_class, api_name, name, Collections.<Decl>emptyList());
         };
         
-        name = NodeFactory.makeId(api_name, name);
+        // LOSE THE DOTTED REFERENCE, at least for now.
+        // name = NodeFactory.makeId(api_name, name);
         // Note: a TraitType is a reference to a trait.
         return NodeFactory.makeTraitType(span, false, name);
     }
@@ -364,14 +370,17 @@ public class ForeignJava {
         int i = 0;
         for (Class pt : pts) {
             Type type = recurOnOpaqueClass(importing_package, pt);
-            Id id = NodeFactory.makeId(span, "p"+(i++));
+            Span param_span = NodeFactory.makeSpan(m.toString() + " p#" + i);
+            Id id = NodeFactory.makeId(param_span, "p"+(i++));
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
+        
+        Span fn_span = NodeFactory.makeSpan(m.toString());
         Id id = is_static ?
-                NodeFactory.makeId(span, cl.getSimpleName()+"."+ m.getName()) :
-            NodeFactory.makeId(span, m.getName());
-        FnDecl fndecl = NodeFactory.makeFnDecl(span, Modifiers.None,
+                NodeFactory.makeId(fn_span, cl.getSimpleName()+"."+ m.getName()) :
+            NodeFactory.makeId(fn_span, m.getName());
+        FnDecl fndecl = NodeFactory.makeFnDecl(fn_span, Modifiers.None,
                 id, params,Option.some(return_type), Option.<Expr>none());
         methodToDecl.put(m, fndecl);
         return fndecl;
@@ -398,13 +407,11 @@ public class ForeignJava {
             // if they do not already exist.
 
             List<Import> imports = new ArrayList<Import>();
-            Set<APIName> gi = generatedImports.get(name);
+            IMultiMap<APIName, Id> gi = generatedImports.get(name);
             if (gi != null)
-                for (APIName a : gi) {
-                    importAnApi(imports, a);
+                for (APIName a : gi.keySet()) {
+                    importAnApi(imports, a, gi.get(a));
                 }
-            // Implicitly import.
-            importAnApi(imports, NodeFactory.makeAPIName(span, "FortressLibrary"));
             
             List<Decl> decls = new ArrayList<Decl>();
             for (Decl d : apiToStaticDecls.get(name)) {
@@ -419,28 +426,36 @@ public class ForeignJava {
 
     }
 
-    private void importAnApi(List<Import> imports, APIName a) {
-        AliasedAPIName aan = NodeFactory.makeAliasedAPIName(a);
-        /*
-         * Hoping to lie, slightly, to static analysis. This is
-         * technically speaking a "foreign" import, but the import
-         * is already known to the ForeignJava data structures, and
-         * this allows use of fully qualified (hence unambiguous)
-         * references to classes from other packages in the
-         * generated API.
-         * 
-         * So, one lie -- no foreign annotation.
-         */
-        ImportApi iapi = NodeFactory.makeImportApi(span, Option
-                .<String> none(), Useful.list(aan));
-        imports.add(iapi);
+    private void importAnApi(List<Import> imports, APIName a, Set<Id> items) {
+        
+        List<AliasedSimpleName> lasn = new ArrayList<AliasedSimpleName>();
+        lasn = Useful.applyToAllAppending(items, new F<Id, AliasedSimpleName>() {
+            @Override
+            public AliasedSimpleName apply(Id x) {
+                return NodeFactory.makeAliasedSimpleName(x);
+            } }, lasn);
+        
+        ImportNames imp_names = NodeFactory.makeImportNames(span, Option.some("java"), a, lasn);
+       
+        imports.add(imp_names);
     }
     
     public Map<APIName, ApiIndex> augmentApiMap(Map<APIName, ApiIndex> map) {
         for (APIName a : javaImplementedAPIs.keySet()) {
             map.put(a, fakeApi(a));
         }
+        
+        dumpGenerated();
+        
         return map;
+    }
+    
+    public void dumpGenerated() {
+        for (APIName a : javaImplementedAPIs.keySet()) {
+            System.out.println(a);
+            CompilationUnit cu = fakeApi(a).ast();
+            System.out.println(cu.toStringVerbose());
+        }
     }
 
 }
