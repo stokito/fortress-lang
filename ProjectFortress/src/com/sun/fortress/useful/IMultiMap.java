@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,15 +28,18 @@ public interface IMultiMap<K, V> extends Map<K, Set<V>> {
 
     public Set<V> putItem(K k, V v);
 
-    public Set<V> putItems(K k, Set<V> vs);
+    public Set<V> putItems(K k, Collection<V> vs);
 
     public Set<V> removeItem(K k, V v);
+    
+    public Set<V> putKey(K k);
 
     public final static IMultiMap EMPTY_MULTIMAP = new IMultiMap() {
         private <T> T error() { throw new IllegalStateException("Empty IMultiMap is immutable."); }
         public void addInverse(Map m) { error(); }
+        public Set putKey(Object k) { return error(); }
         public Set putItem(Object k, Object v) { return error(); }
-        public Set putItems(Object k, Set vs) { return error(); }
+        public Set putItems(Object k, Collection vs) { return error(); }
         public Set removeItem(Object k, Object v) { return error(); }
         public void clear() { error(); }
         public boolean containsKey(Object arg0) { return false; }

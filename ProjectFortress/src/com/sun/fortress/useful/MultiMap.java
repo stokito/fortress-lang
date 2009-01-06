@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,6 +17,7 @@
 
 package com.sun.fortress.useful;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K,V>
         } 
         return s;
     }
-    public Set<V> putItems(K k, Set<V> vs) {
+    public Set<V> putItems(K k, Collection<V> vs) {
         Set<V> s = get(k);
         if (s == null) {
             s = new HashSet<V>(vs);

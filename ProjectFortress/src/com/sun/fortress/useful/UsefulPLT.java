@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -108,8 +108,9 @@ public class UsefulPLT {
                 public Collection<Set<V>> values() { return singleton.values(); }
                 public void addInverse(Map<V, K> m) { error(); }
                 public Set<V> putItem(K k, V v) { return error(); }
-                public Set<V> putItems(K k, Set<V> vs) { return error(); }
+                public Set<V> putItems(K k, Collection<V> vs) { return error(); }
                 public Set<V> removeItem(K k, V v) { return error(); }
+                public Set<V> putKey(K k) {return error();}
                 };
         }
         
