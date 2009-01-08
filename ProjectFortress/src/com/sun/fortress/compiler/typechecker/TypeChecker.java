@@ -86,6 +86,8 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
 
+import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
+
 /**
  * The fortress typechecker.<br>
  *
@@ -922,7 +924,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         }
         else {
             String err = "Applicable overloading of function " + that.getFunction() +
-                            " could not be found for argument type " + argument_result.type(); // error message needs work
+                " could not be found for argument type " + normalize(argument_result.type().unwrap()); // error message needs work
             result = new TypeCheckerResult(that, TypeError.make(err, that));
             result_type = Option.none();
         }
@@ -2345,11 +2347,11 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 //                             System.err.println("args:" + ((TraitType)returnType.unwrap()).getArgs());
 //                         }
 //                         System.err.println("equal? " + bodyType.equals(returnType.unwrap()));
-            result = newChecker.checkSubtype(bodyType,
-                                                         returnType.unwrap(),
-                                                         that,
-                                                         errorMsg("Function body has type ", bodyType, ", but ",
-                                                                  "declared return type is ", returnType.unwrap()));
+            result = newChecker.checkSubtype(normalize(bodyType),
+                                             normalize(returnType.unwrap()),
+                                             that,
+                                             errorMsg("Function body has type ", normalize(bodyType), ", but ",
+                                                      "declared return type is ", normalize(returnType.unwrap())));
         }
 
         FnDecl new_node = NodeFactory.makeFnDecl(NodeUtil.getSpan(that),

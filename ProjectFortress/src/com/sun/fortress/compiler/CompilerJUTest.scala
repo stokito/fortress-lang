@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -170,6 +170,14 @@ class CompilerJUTest() extends TestCaseWrapper {
       "    Unmatched delimiter \"\\\"\"."
     Shell.assertStaticErrors(compile("XXXCompiled12.fss"), expected)
   }
+
+  def testXXXCompiled13() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled13.fss:20:3-35\n" +
+      "    Function body has type FlatString->(), but declared return type is ()" 
+    Shell.assertStaticErrors(compile("XXXCompiled13.fss"), expected)
+  }
+
 
   def testXXXCompiled14() = {
     val expected =

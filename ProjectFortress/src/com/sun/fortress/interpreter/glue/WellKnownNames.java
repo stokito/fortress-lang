@@ -35,6 +35,8 @@ public class WellKnownNames {
         return "__builtinFactory"+rank;
     }
 
+    private static String _compilerLibrary = "CompilerLibrary";
+    private static String _compilerBuiltin = "CompilerBuiltin";
     private static String _fortressLibrary = "FortressLibrary";
     private static String _fortressBuiltin = "FortressBuiltin";
     private static String _anyTypeLibrary = "AnyType";
@@ -75,6 +77,8 @@ public class WellKnownNames {
     public final static String calleeViolationException = "CalleeViolation";
     public final static String labelException = "LabelException";
 
+    public static String compilerLibrary() { return _compilerLibrary; }
+    public static String compilerBuiltin() { return _compilerBuiltin; }
     public static String fortressLibrary() { return _fortressLibrary; }
     public static String fortressBuiltin() { return _fortressBuiltin; }
     public static String anyTypeLibrary() { return _anyTypeLibrary; }

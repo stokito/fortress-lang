@@ -76,9 +76,9 @@ maintain proper indentation.
 
   <!-- Scala jar files -->
   <property name="scala-compiler.jar"
-            value="${basedir}/third_party/scala/scala-compiler-2.7.1.jar"/>
+            value="${basedir}/third_party/scala/scala-compiler-2.7.3.jar"/>
   <property name="scala-library.jar"
-            value="${basedir}/third_party/scala/scala-library-2.7.1.jar"/>
+            value="${basedir}/third_party/scala/scala-library-2.7.3.jar"/>
 
   <!-- ASTGen -->
   <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
@@ -487,8 +487,24 @@ maintain proper indentation.
     </javac>
   </target>
 
-  <target name="compileAll" depends="compile"
+  <target name="compileAll" depends="clean, compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code.">
+    <javac
+        srcdir="${src}"
+        destdir="${build}"
+        source="1.5"
+        debug="true"
+        includeantruntime="false"
+        fork="true"
+        memorymaximumsize="${junitMem}">
+      <!-- Uncomment the following line to print unchecked warnings
+           (here and in the 'compileCommon' target. -->
+      <!-- <compilerarg value="-Xlint:unchecked"/> -->
+      <classpath refid="compile.classpath"/>
+      <include name="**/*.java"/>
+      <exclude name="${usefulPackage}/*.java"/>
+      <exclude name="${unicodePackage}/*.java"/>
+    </javac>
     <scalac
         srcdir="${src}"
         destdir="${build}"
