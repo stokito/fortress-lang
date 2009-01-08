@@ -63,8 +63,8 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     delete(x: F): PrefixSet[\E, F\]
     opr =(self, s2: PrefixSet[\E, F\]): Boolean
     opr [ i: ZZ32 ]: F
-    indexOf(self, x: F): Maybe[\ZZ32\]
-    indexOfMember(self, x: F): ZZ32
+    indexOf(x: F): Maybe[\ZZ32\]
+    indexOfMember(x: F): ZZ32
     splitIndex(x: ZZ32): (PrefixSet[\E, F\], PrefixSet[\E, F\])
     prefixivgen[\R\](prefix: F, i0: ZZ32, r: Reduction[\R\], body: (ZZ32, F) -> R): R
     ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32, F) -> R): R
