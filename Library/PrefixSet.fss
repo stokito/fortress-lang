@@ -166,7 +166,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         end
     end
 
-    indexOf(self,x:F):Maybe[\ZZ32\] = do
+    indexOf(x:F):Maybe[\ZZ32\] = do
         if (x IN self) then
             Just[\ZZ32\](self.indexOfMember(x))
         else
@@ -174,7 +174,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
         end
     end
 
-    indexOfMember(self,x:F):ZZ32 = do
+    indexOfMember(x:F):ZZ32 = do
         if (h,t) <- x.extractLeft() then
             label Search
                 var c:ZZ32 = (if isMember() then 1 else 0 end)
