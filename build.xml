@@ -7,9 +7,9 @@
 
   <!-- Scala jar files -->
   <property name="scala-compiler.jar" 
-            value="${basedir}/third_party/scala/scala-compiler-2.7.1.jar"/>
+            value="${basedir}/third_party/scala/scala-compiler-2.7.2.jar"/>
   <property name="scala-library.jar" 
-            value="${basedir}/third_party/scala/scala-library-2.7.1.jar"/>
+            value="${basedir}/third_party/scala/scala-library-2.7.2.jar"/>
 
   <!-- 
        Paths

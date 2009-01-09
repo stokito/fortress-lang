@@ -190,10 +190,10 @@ public class TypesUtil {
                         return this.arrowTypeHelper(that, NodeUtil.getStaticParams(that));
                     }
                 });
-            ConstraintFormula temp =  pair.second().and(existingConstraint, checker.new SubtypeHistory());
+            ConstraintFormula temp =  pair.second().and(existingConstraint, new SubtypeHistory(checker));
             if(temp.isSatisfiable() ) {
                 matching_types.add(pair.first().unwrap());
-                result_constraint = result_constraint.and(pair.second(), checker.new SubtypeHistory());
+                result_constraint = result_constraint.and(pair.second(), new SubtypeHistory(checker));
             }
         }
 
@@ -417,7 +417,7 @@ public class TypesUtil {
     					}
     					else {
     						conjuncts.add(t.unwrap().first());
-    						accumulated_constraint.and(t.unwrap().second(),subtype_checker.new SubtypeHistory());
+    						accumulated_constraint.and(t.unwrap().second(), new SubtypeHistory(subtype_checker));
     					}
     				}
     				return Option.some(Pair.make((Type) NodeFactory.makeIntersectionType(NodeUtil.getSpan(that),

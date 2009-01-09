@@ -76,9 +76,9 @@ maintain proper indentation.
 
   <!-- Scala jar files -->
   <property name="scala-compiler.jar"
-            value="${basedir}/third_party/scala/scala-compiler-2.7.3.jar"/>
+            value="${basedir}/third_party/scala/scala-compiler-2.7.2.jar"/>
   <property name="scala-library.jar"
-            value="${basedir}/third_party/scala/scala-library-2.7.3.jar"/>
+            value="${basedir}/third_party/scala/scala-library-2.7.2.jar"/>
 
   <!-- ASTGen -->
   <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
@@ -136,7 +136,7 @@ maintain proper indentation.
   <property environment="env"/>
   <condition property="correct.environment">
     <and>
-      <equals arg1="${ant.java.version}" arg2="1.5"/>
+      <equals arg1="${ant.java.version}" arg2="1.6"/>
       <equals arg1="${env.ANT_CALLED_FROM_SCRIPT}" arg2='yes'/>
     </and>
   </condition>
@@ -213,6 +213,7 @@ maintain proper indentation.
     <echo message="Ant called from script? ${env.ANT_CALLED_FROM_SCRIPT}"/>
     <echo message="ANT_ARGS: ${env.ANT_ARGS}"/>
     <echo message="ANT_OPTS: ${env.ANT_OPTS}"/>
+    <echo message="Scala version: ${scalac.version}" />
     <echo message="Java Runtime Environment
                    version: ${java.version}"/>
     <echo message="Java Runtime Environment
@@ -472,7 +473,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -487,12 +488,21 @@ maintain proper indentation.
     </javac>
   </target>
 
-  <target name="compileAll" depends="clean, compileCommon, makeAST, parser, operatorsGen"
+  <target name="compileAll" depends="compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code.">
+    <scalac
+        srcdir="${src}"
+        destdir="${build}"
+        classpathref="compile.classpath">
+      <include name="**/*.java"/>
+      <include name="**/*.scala"/>
+      <exclude name="${usefulPackage}/*.java"/>
+      <exclude name="${unicodePackage}/*.java"/>
+    </scalac>
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -505,13 +515,6 @@ maintain proper indentation.
       <exclude name="${usefulPackage}/*.java"/>
       <exclude name="${unicodePackage}/*.java"/>
     </javac>
-    <scalac
-        srcdir="${src}"
-        destdir="${build}"
-        classpathref="compile.classpath"
-        addparams="">
-      <include name="**/*.scala"/>
-    </scalac>
   </target>
 
   <target name="check.blas" depends="init">

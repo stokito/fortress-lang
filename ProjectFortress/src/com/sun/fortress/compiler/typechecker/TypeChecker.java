@@ -56,7 +56,7 @@ import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 import com.sun.fortress.exceptions.InterpreterBug;
@@ -574,7 +574,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     public TypeChecker extendWithConstraints(Iterable<ConstraintFormula> constraints) {
         constraints = IterUtil.compose(downwardConstraint, constraints);
         ConstraintFormula new_constraint = ConstraintFormula.bigAnd(constraints,
-                subtypeChecker.new SubtypeHistory());
+                new SubtypeHistory(subtypeChecker));
         return new TypeChecker(table,
                 typeEnv,
                 compilationUnit,
@@ -666,7 +666,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         final List<TypeCheckerResult> all_results= new ArrayList<TypeCheckerResult>();
         List<Method> candidates=new ArrayList<Method>();
         List<TraitType> new_supers=new ArrayList<TraitType>();
-        SubtypeHistory history = subtypeChecker.new SubtypeHistory();
+        SubtypeHistory history = new SubtypeHistory(subtypeChecker);
 
         for(TraitType type: supers) {
             TraitIndex trait_index = expectTraitIndex(type);
@@ -898,7 +898,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             //debugging
             ConstraintFormula temp = ConstraintFormula.TRUE;
             for(ConstraintFormula i: arg_constraint){
-                temp.and(i, this.subtypeChecker.new SubtypeHistory());
+                temp.and(i, new SubtypeHistory(subtypeChecker));
             }
             Boolean blah = temp.isSatisfiable();
             //end debugging
@@ -2541,7 +2541,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                                              Option.<Type>none());
                     fn_overloadings.add(ExprFactory.make_RewriteFnRefOverloading(NodeUtil.getSpan(that), fn_ref, new_type));
                     arrow_types.add(new_type);
-                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
+                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(), new SubtypeHistory(subtypeChecker));
                 }
             }
 
@@ -2567,7 +2567,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(), this.subtypeChecker);
                 if( instantiated_type.isSome() ){
                     arrow_types.add(instantiated_type.unwrap().first());
-                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(),this.subtypeChecker.new SubtypeHistory());
+                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), new SubtypeHistory(subtypeChecker));
                 }
             }
             if (arrow_types.isEmpty()) {
@@ -3833,7 +3833,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     if( new_type_and_args_.isNone() ) continue;
 
                     Type new_type = new_type_and_args_.unwrap().first().first();
-                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(),this.subtypeChecker.new SubtypeHistory());
+                    accumulated_constraints=accumulated_constraints.and(new_type_and_args_.unwrap().first().second(), new SubtypeHistory(subtypeChecker));
                     List<StaticArg> new_args = new_type_and_args_.unwrap().second();
 
                     FunctionalRef new_op_ref = ExprFactory.makeOpRef(NodeUtil.getSpan(that),
@@ -3873,7 +3873,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(),this.subtypeChecker);
                 if( instantiated_type.isSome()){
                     arrow_types.add(instantiated_type.unwrap().first());
-                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), this.subtypeChecker.new SubtypeHistory());
+                    accumulated_constraints=accumulated_constraints.and(instantiated_type.unwrap().second(), new SubtypeHistory(subtypeChecker));
                 }
             }
 

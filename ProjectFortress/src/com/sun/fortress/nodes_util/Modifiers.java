@@ -17,7 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
-import static java.lang.Math.*;
+import java.lang.Math;
 
 /**
  * Modifiers represents a set of modifiers applied to some Fortress
@@ -403,13 +403,13 @@ public final class Modifiers {
         return m;
     }
 
-    static final double factor = pow(2.0,(double)NEXT_AVAIL_MODIFIER);
+    static final double factor = Math.pow(2.0,(double)NEXT_AVAIL_MODIFIER);
 
     /**
      * Generates a random but valid set of modifiers for testing.
      */
     public static Modifiers randomForTest() {
-        int i = (int)(factor * random());
+        int i = (int)(factor * Math.random());
         return new Modifiers(i);
     }
 

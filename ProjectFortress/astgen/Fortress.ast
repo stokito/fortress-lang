@@ -54,7 +54,9 @@ customGenerator com.sun.fortress.astgen.SingleSpanConstructorGenerator;
 customGenerator com.sun.fortress.astgen.FortressAstGenerator;
 
 package com.sun.fortress.nodes;
+import java.lang.String;
 import java.math.BigInteger;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
