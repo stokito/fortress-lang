@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+//import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;

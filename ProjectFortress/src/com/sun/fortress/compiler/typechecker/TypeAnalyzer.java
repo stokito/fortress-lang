@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
+  Copyright 2009 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
 
@@ -84,7 +84,7 @@ public class TypeAnalyzer {
         _table = table;
         _typeEnv = typeEnv;
         _cache = new ChildSubtypeCache(parentCache);
-        _emptyHistory = new SubtypeHistory();
+        _emptyHistory = new SubtypeHistory(this);
     }
 
     /** Verify that fundamental types are present in the current environment. */
@@ -408,7 +408,7 @@ public class TypeAnalyzer {
      * Implementation of join parameterized by a history.  Arguments must be
      * normalized; the result will be normalized.
      */
-    private Type jn(Iterable<? extends Type> ts, SubtypeHistory h) {
+    Type jn(Iterable<? extends Type> ts, SubtypeHistory h) {
         // collpase nested unions and eliminate redundant elements
         Iterable<Type> disjuncts = collapse(map(ts, DISJUNCTS));
         return makeUnion(this.<Type>reduceDisjuncts(disjuncts, h));
@@ -418,7 +418,7 @@ public class TypeAnalyzer {
      * Implementation of meet parameterized by a history.  Arguments must be
      * normalized; the result will be normalized.
      */
-    private Type mt(Iterable<? extends Type> ts, final SubtypeHistory h) {
+    Type mt(Iterable<? extends Type> ts, final SubtypeHistory h) {
         // push unions out:
         Iterable<Iterable<Type>> sumOfProducts = cross(map(ts, DISJUNCTS));
         // given a union-less intersection, collapse and eliminate redundant elements:
@@ -437,7 +437,7 @@ public class TypeAnalyzer {
      * Implementation of subtyping parameterized by a history.  Arguments must
      * be normalized.
      */
-    private ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
+    ConstraintFormula sub(final Type s, final Type t, SubtypeHistory history) {
         debug.logStart(new String[]{"s", "t"}, s, t);
         ConstraintFormula result;
         Option<ConstraintFormula> cached = _cache.get(s, t, history);
@@ -1126,64 +1126,7 @@ public class TypeAnalyzer {
     }
 
 
-    /** An immutable record of all subtyping invocations in the call stack. */
-    // Package private -- accessed by ConstraintFormula
-    class SubtypeHistory {
 
-        private final Relation<Type, Type> _entries;
-        private final int _expansions;
-
-        public SubtypeHistory() {
-            _entries = CollectUtil.emptyRelation();
-            _expansions = 0;
-        }
-
-        private SubtypeHistory(Relation<Type, Type> entries, int expansions) {
-            _entries = entries;
-            _expansions = expansions;
-        }
-
-        public int size() { return _entries.size(); }
-
-        public int expansions() { return _expansions; }
-
-        public boolean contains(Type s, Type t) {
-            InferenceVarTranslator trans = new InferenceVarTranslator();
-            return _entries.contains(trans.canonicalizeVars(s), trans.canonicalizeVars(t));
-        }
-
-        public SubtypeHistory extend(Type s, Type t) {
-            InferenceVarTranslator trans = new InferenceVarTranslator();
-            Relation<Type, Type> newEntries =
-                CollectUtil.union(_entries, trans.canonicalizeVars(s), trans.canonicalizeVars(t));
-            newEntries = CollectUtil.conditionalSnapshot(newEntries, 8);
-            return new SubtypeHistory(newEntries, _expansions);
-        }
-
-        public SubtypeHistory expand() {
-          return new SubtypeHistory(_entries, _expansions + 1);
-        }
-
-        public Type normalize(Type t) {
-            return TypeAnalyzer.this.normalize(t);
-        }
-
-        public ConstraintFormula subtypeNormal(Type s, Type t) {
-            return TypeAnalyzer.this.sub(s, t, this);
-        }
-
-        public Type meetNormal(Type... ts) {
-            return TypeAnalyzer.this.mt(IterUtil.asIterable(ts), this);
-        }
-
-        public Type joinNormal(Type... ts) {
-            return TypeAnalyzer.this.jn(IterUtil.asIterable(ts), this);
-        }
-
-        public String toString() {
-          return IterUtil.multilineToString(_entries) + "\n" + _expansions + " expansions";
-        }
-    }
 
 
     /**
@@ -1242,3 +1185,4 @@ public class TypeAnalyzer {
     }
 
 }
+

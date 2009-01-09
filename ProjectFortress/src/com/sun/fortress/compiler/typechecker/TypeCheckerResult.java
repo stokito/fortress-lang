@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
-import com.sun.fortress.compiler.typechecker.TypeAnalyzer.SubtypeHistory;
+import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
@@ -58,7 +58,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
     private static Pair<ConstraintFormula, Option<StaticError>>
     collectConstraints(Iterable<? extends TypeCheckerResult> results,
             TypeAnalyzer checker, Node ast) {
-        SubtypeHistory empty_history = checker.new SubtypeHistory();
+        SubtypeHistory empty_history = new SubtypeHistory(checker);
 
         Iterable<ConstraintFormula> constraints =
             IterUtil.map(results, new Lambda<TypeCheckerResult, ConstraintFormula>(){

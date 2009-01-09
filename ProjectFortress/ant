@@ -59,4 +59,5 @@ n=$?
 if [ $n -ne 0 ]; then
         exit $n
 fi
+export ANT_OPTS="-Xmx256m"
 "$ant_exec" -noclasspath -lib third_party/junit "$@"

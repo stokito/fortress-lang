@@ -250,7 +250,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
                 Option<ConstraintFormula> result = param.accept(outer);
                 if(result.isSome()){
-                    valid = valid.and(result.unwrap(),subtype_checker.new SubtypeHistory());
+                    valid = valid.and(result.unwrap(),new SubtypeHistory(subtype_checker));
                 }
                 else{
                     return Option.none();
