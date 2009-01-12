@@ -38,7 +38,7 @@ api PrefixSet
 import List.{...}
 import Map.{...}
 object StringJoinReduction(s: String) extends MonoidReduction[\String\]
-    getter toString(): String
+    getter asString(): String
 
     empty(): String
     join(a: String, b: String): String
