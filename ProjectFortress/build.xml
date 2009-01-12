@@ -173,6 +173,7 @@ maintain proper indentation.
     <path refid="scala.classpath"/>
     <pathelement location="${build}"/>
     <pathelement location="${asm}/asm-3.1.jar"/>
+    <pathelement location="${asm}/asm-tree-3.1.jar"/>
     <pathelement location="${xtc}/xtc.jar"/>
     <pathelement location ="${unsigned}/unsigned.jar"/>
     <pathelement location="${jsr166y}/jsr166y.jar"/>
