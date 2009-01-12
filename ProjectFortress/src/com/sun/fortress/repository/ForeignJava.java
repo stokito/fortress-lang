@@ -17,6 +17,7 @@
 
 package com.sun.fortress.repository;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -26,6 +27,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -49,7 +56,6 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -66,11 +72,37 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ForeignJava {
+    
+    static class Packoid implements Comparable<Packoid> {
+        String s;
+        Packoid(String s) {
+            this.s = s;
+        }
+        Packoid(org.objectweb.asm.Type cl) {
+            
+        }
+        public int hashCode() {
+            return s.hashCode();
+        }
+        public boolean equals(Object o) {
+            if (o instanceof Packoid) {
+                return ((Packoid)o).s.equals(s);
+            }
+            return false;
+        }
+        public int compareTo(Packoid o) {
+            if (o instanceof Packoid) {
+                return ((Packoid)o).s.compareTo(s);
+            }
+            return getClass().getName().compareTo(o.getClass().getName());
+        }
+        
+    }
 
-    /** given an API Name, what Java classes does it import?  (Existing
+   /** given an API Name, what Java classes does it import?  (Existing
      * Java class, not its compiled Fortress wrapper class.)
      */
-    MultiMap<APIName, Class> javaImplementedAPIs = new MultiMap<APIName, Class>();
+    MultiMap<APIName, org.objectweb.asm.Type> javaImplementedAPIs = new MultiMap<APIName, org.objectweb.asm.Type>();
     
     /**
      * Given a foreign API Name, what other (foreign) APIs does it import?
@@ -90,7 +122,7 @@ public class ForeignJava {
      * 2) Empty string; the entire class.
      * 3) Nothing at all; an opaque import.
      */
-    MultiMap<Class, String> itemsFromClasses = new MultiMap<Class, String>();
+    MultiMap<org.objectweb.asm.Type, String> itemsFromClasses = new MultiMap<org.objectweb.asm.Type, String>();
     
     Map<APIName, ApiIndex> cachedFakeApis = new HashMap<APIName, ApiIndex>();
     
@@ -98,12 +130,12 @@ public class ForeignJava {
      * Stores the FnDecl for a particular method -- also acts as an is-visited
      * marker.
      */
-    Bijection<Method, FnDecl> methodToDecl = new HashBijection<Method, FnDecl>();
+    Bijection<String, FnDecl> methodToDecl = new HashBijection<String, FnDecl>();
     
     /**
      * Stores the TraitDecl for a trait.
      */
-    Bijection<Class, TraitDecl> classToTraitDecl = new HashBijection<Class, TraitDecl>();
+    Bijection<Type, TraitDecl> classToTraitDecl = new HashBijection<Type, TraitDecl>();
 
     /* Special cases
      * 
@@ -122,35 +154,87 @@ public class ForeignJava {
      * String
      */
     
+    static ClassNode findClass(String s) throws IOException {
+        ClassReader cr = new ClassReader(s);
+        ClassNode cn = new ClassNode();
+        cr.accept(cn, ClassReader.SKIP_DEBUG|ClassReader.SKIP_FRAMES|ClassReader.SKIP_CODE);
+        return cn; 
+    }
+    
+    
+    
     static Span span = NodeFactory.internalSpan;
 
-    static Map<Class, Type> specialCases = new HashMap<Class, Type>();
+    static Map<Type, com.sun.fortress.nodes.Type> specialCases = new HashMap<Type, com.sun.fortress.nodes.Type>();
     static APIName fortLib =
         NodeFactory.makeAPIName(span, "FortressLibrary");
     
-    static void s(Class cl, APIName api, String str) {
+    static void s(Type cl, APIName api, String str) {
         specialCases.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
+    }
+    
+    /* Minor hackery here -- because we know these types are already loaded
+     * and not eligible for ASM-wrapping, we just go ahead and refer to the
+     * loaded class.
+     */
+    static void s(Class cl, APIName api, String str) {
+        s(Type.getType(cl), api, str);
     }
     
     static {
         s(Boolean.class, fortLib, "Boolean");
-        s(Boolean.TYPE, fortLib, "Boolean");
+        s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
         s(Integer.class, fortLib, "ZZ32");
-        s(Integer.TYPE, fortLib, "ZZ32");
+        s(Type.INT_TYPE, fortLib, "ZZ32");
         s(Long.class, fortLib, "ZZ64");
-        s(Long.TYPE, fortLib, "ZZ64");
+        s(Type.LONG_TYPE, fortLib, "ZZ64");
         s(Float.class, fortLib, "RR32");
-        s(Float.TYPE, fortLib, "RR32");
+        s(Type.FLOAT_TYPE, fortLib, "RR32");
         s(Double.class, fortLib, "RR64");
-        s(Double.TYPE, fortLib, "RR64");
+        s(Type.DOUBLE_TYPE, fortLib, "RR64");
         s(Object.class, fortLib, "Any");
-        s(String.class, fortLib, "FlatString");
+        s(String.class, fortLib, "String");
         s(BigInteger.class, fortLib, "ZZ");
-        specialCases.put(Void.TYPE, NodeFactory.makeVoidType(span));
+        specialCases.put(Type.VOID_TYPE, NodeFactory.makeVoidType(span));
     }
     
-    APIName packageToAPIName(Package p) {
-        return NodeFactory.makeAPIName(span, p.getName());
+    static org.objectweb.asm.Type type(ClassNode cl) {
+        return org.objectweb.asm.Type.getObjectType(cl.name);
+    }
+    
+    static org.objectweb.asm.Type returnType(MethodNode meth) {
+        return org.objectweb.asm.Type.getReturnType(meth.desc);
+   }
+   
+    static org.objectweb.asm.Type[] argumentTypes(MethodNode meth) {
+        return org.objectweb.asm.Type.getArgumentTypes(meth.desc);
+   }
+   
+    static String getName(MethodNode m) {
+        return m.name;
+    }
+
+    static String getSimpleName(String internal_name) {
+        int last_slash = internal_name.lastIndexOf("/");
+        String simple_name = internal_name.substring(last_slash+1);
+        return simple_name;
+    }
+    static String getSimpleName(ClassNode cl) {
+        return getSimpleName(cl.name);
+    }
+    
+    static String getPackageName(String internal_name) {
+        int last_slash = internal_name.lastIndexOf("/");
+        String package_name = internal_name.substring(0, last_slash);
+        package_name = Useful.replace(package_name, "/", ".");
+        return package_name;
+    }
+    static String getPackageName(ClassNode cl) {
+        return getPackageName(cl.name);
+    }
+    
+    static APIName packageToAPIName(Packoid p) {
+        return NodeFactory.makeAPIName(span, p.s);
     }
 
     void processJavaImport(Import i, ImportNames ins) {
@@ -208,15 +292,15 @@ public class ForeignJava {
             /* Try replacing fewer and fewer dots with $; prefer the
              * "classiest" answer.
              */
-            Class imported_class = null;
+            ClassNode imported_class = null;
             while (last_dot > 0) {
                 String candidate_class = suffix.substring(0,last_dot);
                 candidate_class = pkg_name_string + "." + Useful.replace(candidate_class, ".", "$");
                     try {
-                        imported_class = Class.forName(candidate_class);
+                        imported_class = findClass(candidate_class);
                         break;
                         // exit with imported_class and last_dot
-                    } catch (ClassNotFoundException e) {
+                    } catch (IOException e) {
                         // failed to get this one
                     }
                 last_dot = suffix.lastIndexOf('.', last_dot);
@@ -249,18 +333,22 @@ public class ForeignJava {
     }
 
     /**
-     * @param imported_class
+     * @param imported_type
      */
-    private Type recurOnOpaqueClass(APIName importing_package, Class imported_class) {
+    private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package, org.objectweb.asm.Type imported_type) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
-        Type  t = specialCases.get(imported_class);
+        com.sun.fortress.nodes.Type  t = specialCases.get(imported_type);
         if (t != null)
             return t;
         
-        Package p = imported_class.getPackage();
+        String internal_name = imported_type.getInternalName();
+        String package_name = getPackageName(internal_name);
+        String simple_name = getSimpleName(internal_name);
+        
+        Packoid p = new Packoid(package_name);
         APIName api_name = packageToAPIName(p);
-        Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
+        Id name = NodeFactory.makeId(span, simple_name);
 
         /* Though the class may have been previously referenced, the import
          * may still need to be recorded.  Re-recording an existing import
@@ -271,7 +359,7 @@ public class ForeignJava {
         /*
          * Ensure that the API and class appear.
          */
-        javaImplementedAPIs.putItem(api_name,imported_class);
+        javaImplementedAPIs.putItem(api_name,imported_type);
         
         
         /*
@@ -280,10 +368,10 @@ public class ForeignJava {
          *  create a trivial declaration for it, and enter the declaration
          *  into the appropriate places.
          */
-        if (!itemsFromClasses.containsKey(imported_class)) {
-            itemsFromClasses.putKey(imported_class);
+        if (!itemsFromClasses.containsKey(imported_type)) {
+            itemsFromClasses.putKey(imported_type);
             // Construct a minimal trait declaration for this class.
-            classToTraitType(imported_class, api_name, name, Collections.<Decl>emptyList());
+            classToTraitType(imported_type, api_name, name, Collections.<Decl>emptyList());
         };
         
         // LOSE THE DOTTED REFERENCE, at least for now.
@@ -292,7 +380,7 @@ public class ForeignJava {
         return NodeFactory.makeTraitType(span, false, name);
     }
 
-    private void classToTraitType(Class imported_class, APIName api_name,
+    private void classToTraitType(Type imported_class, APIName api_name,
             Id name, List<Decl> decls) {
         List<StaticParam> sparams = Collections.emptyList();
         List<TraitTypeWhere> extendsC = Collections.emptyList();
@@ -312,8 +400,9 @@ public class ForeignJava {
         cachedFakeApis.remove(api_name);
     }
     
-    private void recurOnClass(APIName pkg_name, Class imported_class, String imported_item) {
-        Set<String> old = itemsFromClasses.get(imported_class);
+    private void recurOnClass(APIName pkg_name, ClassNode imported_class, String imported_item) {
+        org.objectweb.asm.Type t = type(imported_class);
+        Set<String> old = itemsFromClasses.get(t);
         
         /*
          * Import of a class, non-opaquely.
@@ -321,7 +410,7 @@ public class ForeignJava {
          * Note that the empty string is a valid item, it means "the class itself".
          */
         if (old != null && old.size() > 0) { 
-            itemsFromClasses.putItem(imported_class, imported_item);
+            itemsFromClasses.putItem(t, imported_item);
             return;
         }
         
@@ -329,18 +418,19 @@ public class ForeignJava {
          * Class not seen before (except perhaps as an opaque import)
          * Recursively visit all of its parts.
          */
-        itemsFromClasses.putItem(imported_class, imported_item);
+        itemsFromClasses.putItem(t, imported_item);
 
-        Method[] methods = imported_class.getDeclaredMethods();
-        Field[] fields = imported_class.getDeclaredFields();
-        Class[] interfaces = imported_class.getInterfaces();
-        Class super_class = imported_class.getSuperclass();
+        List<MethodNode> methods = imported_class.methods;
+//        Field[] fields = imported_class.getDeclaredFields();
+//        Class[] interfaces = imported_class.getInterfaces();
+//        Class super_class = imported_class.getSuperclass();
         
         ArrayList<Decl> trait_decls = new ArrayList<Decl>();
         
-        for (Method m : methods) {
-            if (isPublic(m.getModifiers())) {
-                if (isStatic(m.getModifiers())) {
+        for (MethodNode m : methods) {
+            int access = m.access;
+            if (isPublic(access)) {
+                if (isStatic(access)) {
                  // static goes to api-indexed set
                     FnDecl decl = recurOnMethod(pkg_name, imported_class, m, true);
                     apiToStaticDecls.putItem(pkg_name, decl);
@@ -352,24 +442,24 @@ public class ForeignJava {
             }
         }
         
-        Id name = NodeFactory.makeId(span, imported_class.getSimpleName());
-        classToTraitType(imported_class, pkg_name, name, trait_decls);
+        Id name = NodeFactory.makeId(span, getSimpleName(imported_class));
+        classToTraitType(t, pkg_name, name, trait_decls);
         
     }
 
-    private FnDecl recurOnMethod(APIName importing_package, Class cl, Method m, boolean is_static) {
-        if (methodToDecl.containsKey(m))
-            return methodToDecl.get(m);
+    private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
+        if (methodToDecl.containsKey(m.desc))
+            return methodToDecl.get(m.desc);
         
-        Class rt = m.getReturnType();
-        Class[] pts = m.getParameterTypes();
+        Type rt = returnType(m);
+        Type[] pts = argumentTypes(m);
         // To construct a FnDecl, need to get names for all the other types
-        Type return_type = recurOnOpaqueClass(importing_package, rt);
+        com.sun.fortress.nodes.Type return_type = recurOnOpaqueClass(importing_package, rt);
         
         List<Param> params = new ArrayList<Param>(pts.length);
         int i = 0;
-        for (Class pt : pts) {
-            Type type = recurOnOpaqueClass(importing_package, pt);
+        for (Type pt : pts) {
+            com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt);
             Span param_span = NodeFactory.makeSpan(m.toString() + " p#" + i);
             Id id = NodeFactory.makeId(param_span, "p"+(i++));
             Param p = NodeFactory.makeParam(id, type);
@@ -378,20 +468,20 @@ public class ForeignJava {
         
         Span fn_span = NodeFactory.makeSpan(m.toString());
         Id id = is_static ?
-                NodeFactory.makeId(fn_span, cl.getSimpleName()+"."+ m.getName()) :
-            NodeFactory.makeId(fn_span, m.getName());
+                NodeFactory.makeId(fn_span, getSimpleName(cl)+"."+ getName(m)) :
+            NodeFactory.makeId(fn_span, getName(m));
         FnDecl fndecl = NodeFactory.makeFnDecl(fn_span, Modifiers.None,
                 id, params,Option.some(return_type), Option.<Expr>none());
-        methodToDecl.put(m, fndecl);
+        methodToDecl.put(m.desc, fndecl);
         return fndecl;
     }
 
     private boolean isPublic(int modifiers) {
-        return 0 != (modifiers & java.lang.reflect.Modifier.PUBLIC);
+        return 0 != (modifiers & Opcodes.ACC_PUBLIC);
     }
     
     private boolean isStatic(int modifiers) {
-        return 0 != (modifiers & java.lang.reflect.Modifier.STATIC);
+        return 0 != (modifiers & Opcodes.ACC_STATIC);
     }
 
     public boolean definesApi(APIName name) {
@@ -402,7 +492,7 @@ public class ForeignJava {
         ApiIndex result = cachedFakeApis.get(name);
         if (result == null) {
 
-            Set<Class> classes = javaImplementedAPIs.get(name);
+            Set<Type> classes = javaImplementedAPIs.get(name);
             // Need to generate wrappers for all these classes,
             // if they do not already exist.
 
@@ -445,7 +535,7 @@ public class ForeignJava {
             map.put(a, fakeApi(a));
         }
         
-        dumpGenerated();
+        // dumpGenerated();
         
         return map;
     }
