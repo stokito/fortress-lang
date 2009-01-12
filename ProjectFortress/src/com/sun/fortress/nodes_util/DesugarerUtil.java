@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -155,14 +155,14 @@ public class DesugarerUtil {
             }
             squozenGens.add(prevGen);
             gens = squozenGens;
-            
+
             TupleExpr innerAcc = null;
             /**
              * If the accumulation is like [ BIG OT [ f x | x <- xs] | xs <- gg]
              * nestedGeneratorOpportunity returns tuple (BIG OT, f)
              *
              * by Kento
-             */ 
+             */
             innerAcc=nestedGeneratorOpportunity(gens,body);
             /**
              * If nestedGeneratorOpportunity returns the tuple (BIG OT, f),
@@ -170,7 +170,7 @@ public class DesugarerUtil {
              * (should be refactored)
              *
              * by Kento
-             */ 
+             */
             if(gens.size()==1 && innerAcc != null) {
                 return ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), innerAcc, gens.get(0).getInit());
             }
@@ -258,13 +258,13 @@ public class DesugarerUtil {
      * If the given clauses and body are of the form,
      * this function returns tuple (OP2, fn x => body).
      * Otherwise it returns null.
-     * Also, if they are like BIG OP2 (BIG <||> [x <- xs, gs2]), 
+     * Also, if they are like BIG OP2 (BIG <||> [x <- xs, gs2]),
      * this function ignores the BIG <||> and returns (OP2, fn x => body).
-     * This is because we want the following nested reduction to be desugared 
+     * This is because we want the following nested reduction to be desugared
      *  BIG OP1<| BIG OP2<| body | x <- xs |> | xs <- gg |> .
      *
      * by Kento
-     */ 
+     */
     private static TupleExpr nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
         // Make sure there are outer generators.
         int gs = gens.size();
@@ -281,7 +281,7 @@ public class DesugarerUtil {
         // body is of BIG OP2 (BIG <||> [x <- xs, gs2]) or BIG OP2 xs ?
         if ((body instanceof OpExpr)) {
             OpExpr bodyOpExp = (OpExpr)body;
-            
+
             FunctionalRef ref = bodyOpExp.getOp();
 
             IdOrOp name = ref.getNames().get(0);
@@ -324,7 +324,7 @@ public class DesugarerUtil {
                                                        Useful.<Param>list(NodeFactory.makeParam(x)),
                                                        ExprFactory.makeVarRef(x));
                 return ExprFactory.makeTupleExpr(NodeUtil.getSpan(body), ExprFactory.makeOpExpr(NodeUtil.getSpan(body),theOpr,staticArgs), innerBody);
-                
+
             } else {
                 return null;
             }
@@ -341,11 +341,11 @@ public class DesugarerUtil {
         } else {
             return null;
         }
-    
+
         // Make sure innermost generator of outer accumulator yields a single variable.
         GeneratorClause outerGen = gens.get(gs-1);
         List<Id> outerVars = outerGen.getBind();
-        
+
         if (outerVars.size()!=1) return null;
         Id outerVar = outerVars.get(0);
         // Find outermost generator of inner accumulator (might be body)

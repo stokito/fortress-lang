@@ -1,18 +1,18 @@
 /*******************************************************************************
- Copyright 2008 Sun Microsystems, Inc.,
- 4150 Network Circle, Santa Clara, California 95054, U.S.A.
- All rights reserved.
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
- U.S. Government Rights - Commercial software.
- Government users are subject to the Sun Microsystems, Inc. standard
- license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
- Use is subject to license terms.
+    Use is subject to license terms.
 
- This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
- Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
- trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.desugarer;
@@ -140,7 +140,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
          * The nested reduction is replaced with
          *   __bigOperator2(BIG OP, BIG OT, gg)
          *
-         * by Kento 
+         * by Kento
          */
         String str = op_result.toString();
         String theListEnclosingOperatorName = "BIG <| BIG |>";
@@ -160,7 +160,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                  * In this case, the nested reduction is replaced with __bigOperator2
                  */
                 if(body instanceof TupleExpr) {
-                    // a tuple of the inner Accumulator (op, body) and the gg 
+                    // a tuple of the inner Accumulator (op, body) and the gg
                     TupleExpr tuple = (TupleExpr)body;
                     TupleExpr innerAccumTuple = (TupleExpr)tuple.getExprs().get(0);
                     Expr opexpI = (Expr)innerAccumTuple.getExprs().get(0);
@@ -169,7 +169,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                     IdOrOp name = ref.getNames().get(0);
                     // make sure the operator is actually an operator
                     if ( ! (name instanceof Op) ) return null;
-                    Expr opexpO = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),(Op)name,ref.getStaticArgs());                   
+                    Expr opexpO = ExprFactory.makeOpExpr(NodeUtil.getSpan(that),(Op)name,ref.getStaticArgs());
                     Expr gg = tuple.getExprs().get(1);
                     Expr res = ExprFactory.makeTightJuxt(NodeUtil.getSpan(that), false,
                                                          Useful.list(BIGOP2_NAME,
@@ -245,7 +245,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     private Expr visitAccumulator(Span span, List<GeneratorClause> gens,
                                   Op op, Expr body,
                                   List<StaticArg> staticArgs) {
-        body = visitGenerators(span, gens, body); 
+        body = visitGenerators(span, gens, body);
         /***
          * If the accumulation is a nested reduction like BIG OP [ys <- gg] BIG OT <| f y | y <- ys |> ,
          * visitGenerators returns a tuple of ((BIG OT, f), gg)
@@ -265,9 +265,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
              *
              * This is similar to forOpExpr(OpExpr that) .
              *
-             * by Kento 
+             * by Kento
              */
-            // a tuple of the inner Accumulator (op, body) and the gg 
+            // a tuple of the inner Accumulator (op, body) and the gg
             TupleExpr tuple = (TupleExpr)body;
             TupleExpr innerAccumTuple = (TupleExpr)tuple.getExprs().get(0);
             Expr opexpI = (Expr)innerAccumTuple.getExprs().get(0);
@@ -283,5 +283,5 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
     }
 
 
-    
+
 }
