@@ -32,9 +32,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
-
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.TRUE;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.FALSE;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 import static com.sun.fortress.compiler.Types.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
@@ -142,7 +140,7 @@ public class TypeAnalyzerJUTest extends TestCase {
 
     public void testUnionAndIntersection() {
     	TypeAnalyzer t=makeAnalyzer(trait("A"));
-     	assertEquals(FALSE, sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
+     	assertEquals(falseFormula(), sub(t,"(Bottom, Bottom)|A","(Any,Any)&A"));
     }
 
     public void testBasicTraitSubtyping() {
@@ -153,25 +151,25 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("C", "B"),
                                       trait("D", "B"));
 
-        assertEquals(TRUE, sub(t, "A", "A"));
-        assertEquals(FALSE, sub(t, "A", "B"));
-        assertEquals(FALSE, sub(t, "A", "C"));
-        assertEquals(FALSE, sub(t, "A", "D"));
+        assertEquals(trueFormula(), sub(t, "A", "A"));
+        assertEquals(falseFormula(), sub(t, "A", "B"));
+        assertEquals(falseFormula(), sub(t, "A", "C"));
+        assertEquals(falseFormula(), sub(t, "A", "D"));
 
-        assertEquals(TRUE, sub(t, "B", "A"));
-        assertEquals(TRUE, sub(t, "B", "B"));
-        assertEquals(FALSE, sub(t, "B", "C"));
-        assertEquals(FALSE, sub(t, "B", "D"));
+        assertEquals(trueFormula(), sub(t, "B", "A"));
+        assertEquals(trueFormula(), sub(t, "B", "B"));
+        assertEquals(falseFormula(), sub(t, "B", "C"));
+        assertEquals(falseFormula(), sub(t, "B", "D"));
 
-        assertEquals(TRUE, sub(t, "C", "A"));
-        assertEquals(TRUE, sub(t, "C", "B"));
-        assertEquals(TRUE, sub(t, "C", "C"));
-        assertEquals(FALSE, sub(t, "C", "D"));
+        assertEquals(trueFormula(), sub(t, "C", "A"));
+        assertEquals(trueFormula(), sub(t, "C", "B"));
+        assertEquals(trueFormula(), sub(t, "C", "C"));
+        assertEquals(falseFormula(), sub(t, "C", "D"));
 
-        assertEquals(TRUE, sub(t, "D", "A"));
-        assertEquals(TRUE, sub(t, "D", "B"));
-        assertEquals(FALSE, sub(t, "D", "C"));
-        assertEquals(TRUE, sub(t, "D", "D"));
+        assertEquals(trueFormula(), sub(t, "D", "A"));
+        assertEquals(trueFormula(), sub(t, "D", "B"));
+        assertEquals(falseFormula(), sub(t, "D", "C"));
+        assertEquals(trueFormula(), sub(t, "D", "D"));
 
         } finally { debug.logEnd(); }
     }
@@ -184,18 +182,18 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("C", "B"),
                                       trait("D", "B"));
 
-        assertEquals(TRUE, sub(t, "A->A", "A->A"));
-        assertEquals(TRUE, sub(t, "A->B", "A->A"));
-        assertEquals(TRUE, sub(t, "A->C", "A->A"));
-        assertEquals(TRUE, sub(t, "A->D", "A->A"));
+        assertEquals(trueFormula(), sub(t, "A->A", "A->A"));
+        assertEquals(trueFormula(), sub(t, "A->B", "A->A"));
+        assertEquals(trueFormula(), sub(t, "A->C", "A->A"));
+        assertEquals(trueFormula(), sub(t, "A->D", "A->A"));
 
-        assertEquals(TRUE, sub(t, "A->C", "C->C"));
-        assertEquals(TRUE, sub(t, "B->C", "C->C"));
-        assertEquals(TRUE, sub(t, "C->C", "C->C"));
-        assertEquals(FALSE, sub(t, "D->C", "C->C"));
+        assertEquals(trueFormula(), sub(t, "A->C", "C->C"));
+        assertEquals(trueFormula(), sub(t, "B->C", "C->C"));
+        assertEquals(trueFormula(), sub(t, "C->C", "C->C"));
+        assertEquals(falseFormula(), sub(t, "D->C", "C->C"));
 
-        assertEquals(FALSE, sub(t, "C->A", "A->C"));
-        assertEquals(TRUE, sub(t, "A->C", "C->A"));
+        assertEquals(falseFormula(), sub(t, "C->A", "A->C"));
+        assertEquals(trueFormula(), sub(t, "A->C", "C->A"));
 
         } finally { debug.logEnd(); }
     }
@@ -209,37 +207,37 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("D", "A"),
                                       trait("E", "D"));
 
-        assertEquals(FALSE, sub(t, "A", "B|D"));
-        assertEquals(TRUE, sub(t, "B", "B|D"));
-        assertEquals(TRUE, sub(t, "C", "B|D"));
-        assertEquals(TRUE, sub(t, "D", "B|D"));
-        assertEquals(TRUE, sub(t, "E", "B|D"));
+        assertEquals(falseFormula(), sub(t, "A", "B|D"));
+        assertEquals(trueFormula(), sub(t, "B", "B|D"));
+        assertEquals(trueFormula(), sub(t, "C", "B|D"));
+        assertEquals(trueFormula(), sub(t, "D", "B|D"));
+        assertEquals(trueFormula(), sub(t, "E", "B|D"));
 
-        assertEquals(FALSE, sub(t, "A", "C|E"));
-        assertEquals(FALSE, sub(t, "B", "C|E"));
-        assertEquals(TRUE, sub(t, "C", "C|E"));
-        assertEquals(FALSE, sub(t, "D", "C|E"));
-        assertEquals(TRUE, sub(t, "E", "C|E"));
+        assertEquals(falseFormula(), sub(t, "A", "C|E"));
+        assertEquals(falseFormula(), sub(t, "B", "C|E"));
+        assertEquals(trueFormula(), sub(t, "C", "C|E"));
+        assertEquals(falseFormula(), sub(t, "D", "C|E"));
+        assertEquals(trueFormula(), sub(t, "E", "C|E"));
 
-        assertEquals(TRUE, sub(t, "B|D", "A"));
-        assertEquals(FALSE, sub(t, "B|D", "B"));
-        assertEquals(FALSE, sub(t, "B|D", "C"));
-        assertEquals(FALSE, sub(t, "B|D", "D"));
-        assertEquals(FALSE, sub(t, "B|D", "E"));
-        assertEquals(TRUE, sub(t, "B|D", "B|D"));
-        assertEquals(TRUE, sub(t, "B|D", "D|B"));
-        assertEquals(FALSE, sub(t, "B|D", "C|E"));
-        assertEquals(FALSE, sub(t, "B|D", "E|C"));
+        assertEquals(trueFormula(), sub(t, "B|D", "A"));
+        assertEquals(falseFormula(), sub(t, "B|D", "B"));
+        assertEquals(falseFormula(), sub(t, "B|D", "C"));
+        assertEquals(falseFormula(), sub(t, "B|D", "D"));
+        assertEquals(falseFormula(), sub(t, "B|D", "E"));
+        assertEquals(trueFormula(), sub(t, "B|D", "B|D"));
+        assertEquals(trueFormula(), sub(t, "B|D", "D|B"));
+        assertEquals(falseFormula(), sub(t, "B|D", "C|E"));
+        assertEquals(falseFormula(), sub(t, "B|D", "E|C"));
 
-        assertEquals(TRUE, sub(t, "C|E", "A"));
-        assertEquals(FALSE, sub(t, "C|E", "B"));
-        assertEquals(FALSE, sub(t, "C|E", "C"));
-        assertEquals(FALSE, sub(t, "C|E", "D"));
-        assertEquals(FALSE, sub(t, "C|E", "E"));
-        assertEquals(TRUE, sub(t, "C|E", "B|D"));
-        assertEquals(TRUE, sub(t, "C|E", "D|B"));
-        assertEquals(TRUE, sub(t, "C|E", "C|E"));
-        assertEquals(TRUE, sub(t, "C|E", "E|C"));
+        assertEquals(trueFormula(), sub(t, "C|E", "A"));
+        assertEquals(falseFormula(), sub(t, "C|E", "B"));
+        assertEquals(falseFormula(), sub(t, "C|E", "C"));
+        assertEquals(falseFormula(), sub(t, "C|E", "D"));
+        assertEquals(falseFormula(), sub(t, "C|E", "E"));
+        assertEquals(trueFormula(), sub(t, "C|E", "B|D"));
+        assertEquals(trueFormula(), sub(t, "C|E", "D|B"));
+        assertEquals(trueFormula(), sub(t, "C|E", "C|E"));
+        assertEquals(trueFormula(), sub(t, "C|E", "E|C"));
 
         } finally { debug.logEnd(); }
     }
@@ -253,38 +251,38 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("D", "A"),
                                       trait("E", "D"));
 
-        assertEquals(TRUE, sub(t, "B&D", "A"));
-        assertEquals(TRUE, sub(t, "B&D", "B"));
-        assertEquals(FALSE, sub(t, "B&D", "C"));
-        assertEquals(TRUE, sub(t, "B&D", "D"));
-        assertEquals(FALSE, sub(t, "B&D", "E"));
+        assertEquals(trueFormula(), sub(t, "B&D", "A"));
+        assertEquals(trueFormula(), sub(t, "B&D", "B"));
+        assertEquals(falseFormula(), sub(t, "B&D", "C"));
+        assertEquals(trueFormula(), sub(t, "B&D", "D"));
+        assertEquals(falseFormula(), sub(t, "B&D", "E"));
 
-        assertEquals(FALSE, sub(t,"A", "A&B"));
-        assertEquals(TRUE, sub(t, "C&E", "A"));
-        assertEquals(TRUE, sub(t, "C&E", "B"));
-        assertEquals(TRUE, sub(t, "C&E", "C"));
-        assertEquals(TRUE, sub(t, "C&E", "D"));
-        assertEquals(TRUE, sub(t, "C&E", "E"));
+        assertEquals(falseFormula(), sub(t,"A", "A&B"));
+        assertEquals(trueFormula(), sub(t, "C&E", "A"));
+        assertEquals(trueFormula(), sub(t, "C&E", "B"));
+        assertEquals(trueFormula(), sub(t, "C&E", "C"));
+        assertEquals(trueFormula(), sub(t, "C&E", "D"));
+        assertEquals(trueFormula(), sub(t, "C&E", "E"));
 
-        assertEquals(FALSE, sub(t, "A", "B&D"));
-        assertEquals(FALSE, sub(t, "B", "B&D"));
-        assertEquals(FALSE, sub(t, "C", "B&D"));
-        assertEquals(FALSE, sub(t, "D", "B&D"));
-        assertEquals(FALSE, sub(t, "E", "B&D"));
-        assertEquals(TRUE, sub(t, "B&D", "B&D"));
-        assertEquals(TRUE, sub(t, "D&B", "B&D"));
-        assertEquals(TRUE, sub(t, "C&E", "B&D"));
-        assertEquals(TRUE, sub(t, "E&C", "B&D"));
+        assertEquals(falseFormula(), sub(t, "A", "B&D"));
+        assertEquals(falseFormula(), sub(t, "B", "B&D"));
+        assertEquals(falseFormula(), sub(t, "C", "B&D"));
+        assertEquals(falseFormula(), sub(t, "D", "B&D"));
+        assertEquals(falseFormula(), sub(t, "E", "B&D"));
+        assertEquals(trueFormula(), sub(t, "B&D", "B&D"));
+        assertEquals(trueFormula(), sub(t, "D&B", "B&D"));
+        assertEquals(trueFormula(), sub(t, "C&E", "B&D"));
+        assertEquals(trueFormula(), sub(t, "E&C", "B&D"));
 
-        assertEquals(FALSE, sub(t, "A", "C&E"));
-        assertEquals(FALSE, sub(t, "B", "C&E"));
-        assertEquals(FALSE, sub(t, "C", "C&E"));
-        assertEquals(FALSE, sub(t, "D", "C&E"));
-        assertEquals(FALSE, sub(t, "E", "C&E"));
-        assertEquals(FALSE, sub(t, "B&D", "C&E"));
-        assertEquals(FALSE, sub(t, "D&B", "C&E"));
-        assertEquals(TRUE, sub(t, "C&E", "C&E"));
-        assertEquals(TRUE, sub(t, "E&C", "C&E"));
+        assertEquals(falseFormula(), sub(t, "A", "C&E"));
+        assertEquals(falseFormula(), sub(t, "B", "C&E"));
+        assertEquals(falseFormula(), sub(t, "C", "C&E"));
+        assertEquals(falseFormula(), sub(t, "D", "C&E"));
+        assertEquals(falseFormula(), sub(t, "E", "C&E"));
+        assertEquals(falseFormula(), sub(t, "B&D", "C&E"));
+        assertEquals(falseFormula(), sub(t, "D&B", "C&E"));
+        assertEquals(trueFormula(), sub(t, "C&E", "C&E"));
+        assertEquals(trueFormula(), sub(t, "E&C", "C&E"));
 
         } finally { debug.logEnd(); }
     }
@@ -298,12 +296,12 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("D", "A"),
                                       trait("E", "D"));
 
-        assertEquals(FALSE, sub(t, "A", VOID));
-        assertEquals(TRUE, sub(t, VOID, VOID));
-        assertEquals(FALSE, sub(t, VOID, "A"));
-        assertEquals(TRUE, sub(t, VOID, ANY));
-        assertEquals(TRUE, sub(t, BOTTOM, VOID));
-        assertEquals(FALSE, sub(t, ANY, VOID));
+        assertEquals(falseFormula(), sub(t, "A", VOID));
+        assertEquals(trueFormula(), sub(t, VOID, VOID));
+        assertEquals(falseFormula(), sub(t, VOID, "A"));
+        assertEquals(trueFormula(), sub(t, VOID, ANY));
+        assertEquals(trueFormula(), sub(t, BOTTOM, VOID));
+        assertEquals(falseFormula(), sub(t, ANY, VOID));
 
         } finally { debug.logEnd(); }
     }
@@ -317,11 +315,11 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("D", "A"),
                                       trait("E", "D"));
 
-        assertEquals(TRUE, sub(t, "(A, B)", "(A, B)"));
-        assertEquals(FALSE, sub(t, "(A, B)", "(B, A)"));
-        assertEquals(FALSE, sub(t, "(A, B)", "(A, B, Any)"));
-        assertEquals(TRUE, sub(t, "(B, D)", "(A, A)"));
-        assertEquals(FALSE, sub(t, "(A, A)", "(A, B)"));
+        assertEquals(trueFormula(), sub(t, "(A, B)", "(A, B)"));
+        assertEquals(falseFormula(), sub(t, "(A, B)", "(B, A)"));
+        assertEquals(falseFormula(), sub(t, "(A, B)", "(A, B, Any)"));
+        assertEquals(trueFormula(), sub(t, "(B, D)", "(A, A)"));
+        assertEquals(falseFormula(), sub(t, "(A, A)", "(A, B)"));
 
         } finally { debug.logEnd(); }
     }
@@ -335,44 +333,44 @@ public class TypeAnalyzerJUTest extends TestCase {
                                       trait("D", "A"),
                                       trait("E", "D"));
 
-        assertEquals(TRUE, sub(t, "()", "(A...)"));
-        assertEquals(TRUE, sub(t, "A", "(A...)"));
-        assertEquals(TRUE, sub(t, "(A, A)", "(A...)"));
-        assertEquals(TRUE, sub(t, "(A, A, A)", "(A...)"));
-        assertEquals(TRUE, sub(t, "(B, C, E)", "(A...)"));
-        assertEquals(FALSE, sub(t, "Any", "(A...)"));
-        assertEquals(TRUE, sub(t, "Bottom", "(A...)"));
-        assertEquals(TRUE, sub(t, "(A, A...)", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "()", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "A", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A)", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A, A)", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "(B, C, E)", "(A...)"));
+        assertEquals(falseFormula(), sub(t, "Any", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "Bottom", "(A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A...)", "(A...)"));
 
-        assertEquals(FALSE, sub(t, "()", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "A", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "(A, A)", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "(A, A, A)", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "(B, C, E)", "(A, A...)"));
-        assertEquals(FALSE, sub(t, "Any", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "Bottom", "(A, A...)"));
-        assertEquals(TRUE, sub(t, "(A, A...)", "(A, A...)"));
+        assertEquals(falseFormula(), sub(t, "()", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "A", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A)", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A, A)", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(B, C, E)", "(A, A...)"));
+        assertEquals(falseFormula(), sub(t, "Any", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "Bottom", "(A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A...)", "(A, A...)"));
 
-        assertEquals(FALSE, sub(t, "()", "(A, A, A...)"));
-        assertEquals(FALSE, sub(t, "A", "(A, A, A...)"));
-        assertEquals(TRUE, sub(t, "(A, A)", "(A, A, A...)"));
-        assertEquals(TRUE, sub(t, "(A, A, A)", "(A, A, A...)"));
-        assertEquals(TRUE, sub(t, "(B, C, E)", "(A, A, A...)"));
-        assertEquals(FALSE, sub(t, "Any", "(A, A, A...)"));
-        assertEquals(TRUE, sub(t, "Bottom", "(A, A, A...)"));
-        assertEquals(FALSE, sub(t, "(A, A...)", "(A, A, A...)"));
+        assertEquals(falseFormula(), sub(t, "()", "(A, A, A...)"));
+        assertEquals(falseFormula(), sub(t, "A", "(A, A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A)", "(A, A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A, A)", "(A, A, A...)"));
+        assertEquals(trueFormula(), sub(t, "(B, C, E)", "(A, A, A...)"));
+        assertEquals(falseFormula(), sub(t, "Any", "(A, A, A...)"));
+        assertEquals(trueFormula(), sub(t, "Bottom", "(A, A, A...)"));
+        assertEquals(falseFormula(), sub(t, "(A, A...)", "(A, A, A...)"));
 
-        assertEquals(TRUE, sub(t, "()", "(Any...)"));
-        assertEquals(TRUE, sub(t, "A", "(Any...)"));
-        assertEquals(TRUE, sub(t, "(A, A)", "(Any...)"));
-        assertEquals(TRUE, sub(t, "(A, A, A)", "(Any...)"));
-        assertEquals(TRUE, sub(t, "(B, C, E)", "(Any...)"));
-        assertEquals(TRUE, sub(t, "Any", "(Any...)"));
-        assertEquals(TRUE, sub(t, "Bottom", "(Any...)"));
-        assertEquals(TRUE, sub(t, "(A, A...)", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "()", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "A", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A)", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A, A)", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "(B, C, E)", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "Any", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "Bottom", "(Any...)"));
+        assertEquals(trueFormula(), sub(t, "(A, A...)", "(Any...)"));
 
-        assertEquals(TRUE, sub(t, "(B...)", "(A...)"));
-        assertEquals(FALSE, sub(t, "(A...)", "(B...)"));
+        assertEquals(trueFormula(), sub(t, "(B...)", "(A...)"));
+        assertEquals(falseFormula(), sub(t, "(A...)", "(B...)"));
 
         } finally { debug.logEnd(); }
     }

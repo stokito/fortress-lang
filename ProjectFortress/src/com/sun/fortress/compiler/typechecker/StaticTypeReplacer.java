@@ -64,6 +64,7 @@ import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 /**
  * This class will replace all occurrences of a static parameter in a given
@@ -167,7 +168,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
             return Option.none();
         }
         else {
-            ConstraintFormula valid= ConstraintFormula.TRUE;
+            ConstraintFormula valid= trueFormula();
 
             Iterable<Pair<StaticParam,StaticArg>> zip = IterUtil.zip(static_params, static_args);
             for(Pair<StaticParam,StaticArg> temp : zip){
@@ -189,7 +190,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindOp(KindOp that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forOpArg(OpArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
@@ -197,7 +198,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindBool(KindBool k) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forBoolArg(BoolArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forBoolArg(BoolArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
@@ -205,7 +206,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindDim(KindDim that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forDimArg(DimArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forDimArg(DimArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
@@ -213,7 +214,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindInt(KindInt that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
@@ -221,7 +222,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindNat(KindNat that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forIntArg(IntArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }
@@ -240,7 +241,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                                 public Option<ConstraintFormula> forKindUnit(KindUnit that) {
                                     NodeDepthFirstVisitor<Option<ConstraintFormula>> inner = new NodeDepthFirstVisitor<Option<ConstraintFormula>>() {
                                         @Override public Option<ConstraintFormula> defaultCase(Node that) {return Option.none();}
-                                        @Override public Option<ConstraintFormula> forUnitArg(UnitArg that) {return Option.some(ConstraintFormula.TRUE);}
+                                        @Override public Option<ConstraintFormula> forUnitArg(UnitArg that) {return Option.some(trueFormula());}
                                     };
                                     return arg.accept(inner);
                                 }

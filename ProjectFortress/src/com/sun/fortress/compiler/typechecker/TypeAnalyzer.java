@@ -446,20 +446,20 @@ public class TypeAnalyzer {
            debug.log("found in cache");
            }
         else if (history.expansions() > MAX_SUBTYPE_EXPANSIONS) {
-            result = FALSE;
+            result = falseFormula();
             debug.log("reached max subtype expansions");
         }
         else if (history.size() > MAX_SUBTYPE_DEPTH) {
-            result = FALSE;
+            result = falseFormula();
             debug.logEnd("reached max subtype depth");
         }
         else if (history.contains(s, t)) {
-            result = FALSE;
+            result = falseFormula();
             debug.log("cyclic invocation");
         }
-        else if (s instanceof BottomType) { result = TRUE; }
-        else if (t instanceof AnyType) { result = TRUE; }
-        else if (s.equals(t)) { result = TRUE; }
+        else if (s instanceof BottomType) { result = trueFormula(); }
+        else if (t instanceof AnyType) { result = trueFormula(); }
+        else if (s.equals(t)) { result = trueFormula(); }
         else if (s instanceof _InferenceVarType) {
             if (t instanceof _InferenceVarType) {
                 ConstraintFormula f1 = upperBound((_InferenceVarType) s, t, history);
@@ -561,24 +561,24 @@ public class TypeAnalyzer {
             });
             if (result == null) {
                 result = s.accept(new NodeAbstractVisitor<ConstraintFormula>() {
-                    @Override public ConstraintFormula forType(Type s) { return FALSE; }
+                    @Override public ConstraintFormula forType(Type s) { return falseFormula(); }
                     @Override public ConstraintFormula forTraitType(TraitType s) {
                         if (t instanceof TraitType) {
                             return traitSubTrait(s, (TraitType) t, h);
                         }
-                        else { return FALSE; }
+                        else { return falseFormula(); }
                     }
                     @Override public ConstraintFormula forTupleType(TupleType s) {
                         if (t instanceof TupleType) {
                             return tupleSubTuple(s, (TupleType) t, h);
                         }
-                        else { return FALSE; }
+                        else { return falseFormula(); }
                     }
                     @Override public ConstraintFormula forArrowType(ArrowType s) {
                         if (t instanceof ArrowType) {
                             return arrowSubArrow(s, (ArrowType) t, h);
                         }
-                        else { return FALSE; }
+                        else { return falseFormula(); }
                     }
 
                     @Override public ConstraintFormula forVarType(VarType s) {
@@ -608,9 +608,9 @@ public class TypeAnalyzer {
      */
 
     private ConstraintFormula traitSubTrait(TraitType s, TraitType t, SubtypeHistory h) {
-    	ConstraintFormula result = FALSE;
+    	ConstraintFormula result = falseFormula();
     	if (s.getName().equals(t.getName())) {
-    		ConstraintFormula f = TRUE;
+    		ConstraintFormula f = trueFormula();
     		for (Pair<StaticArg, StaticArg> p : zip(s.getArgs(), t.getArgs())) {
     			f = f.and(equiv(p.first(), p.second(), h), h);
     			if (f.isFalse()) { break; }
@@ -628,7 +628,7 @@ public class TypeAnalyzer {
     				s.getArgs(),
     				hidden);
     		for (TraitTypeWhere sup : index.extendsTypes()) {
-    			ConstraintFormula f = TRUE;
+    			ConstraintFormula f = trueFormula();
     			for (Pair<Type, Type> c : index.typeConstraints()) {
     				// TODO: optimize substitution/normalization?
     				SubtypeHistory newH = h;
@@ -671,14 +671,14 @@ public class TypeAnalyzer {
 
     private ConstraintFormula tupleSubTuple(TupleType s, TupleType t, SubtypeHistory h) {
         if (s.getElements().size() == t.getElements().size()) {
-            ConstraintFormula f = TRUE;
+            ConstraintFormula f = trueFormula();
             for (Pair<Type, Type> p : zip(s.getElements(), t.getElements())) {
                 f = f.and(sub(p.first(), p.second(), h), h);
                 if (f.isFalse()) { break; }
             }
             return f;
         }
-        else { return FALSE; }
+        else { return falseFormula(); }
     }
 
     private ConstraintFormula traitSubVararg(TraitType s, TupleType t, SubtypeHistory h) {
@@ -711,7 +711,7 @@ public class TypeAnalyzer {
             return bug("We are being asked about some type that is not in scope: " + s + " @ " + NodeUtil.getSpan(s));
 
         StaticParam that = param.unwrap();
-        ConstraintFormula result = FALSE;
+        ConstraintFormula result = falseFormula();
         if ( NodeUtil.isTypeParam( that ) ) {
             for( BaseType ty : that.getExtendsClause() ) {
                 result = result.or(sub(ty, t, h), h);
@@ -723,12 +723,12 @@ public class TypeAnalyzer {
 
     private ConstraintFormula subVar(Type s, VarType t, SubtypeHistory h) {
         // Without upper bounds on a type, must always be false.
-        return FALSE;
+        return falseFormula();
     }
 
     private ConstraintFormula varSubVar(VarType s, VarType t, SubtypeHistory h) {
         if( s.equals(t) ) {
-            return TRUE;
+            return trueFormula();
         }
         else {
             Option<StaticParam> t_param_ = _typeEnv.staticParam(t.getName());
@@ -742,7 +742,7 @@ public class TypeAnalyzer {
                 StaticParam t_p = t_param_.unwrap();
                 StaticParam s_p = s_param_.unwrap();
 
-                ConstraintFormula result = FALSE;
+                ConstraintFormula result = falseFormula();
 
                 for( BaseType t_ty : t_p.getExtendsClause() ) {
                     for( BaseType s_ty : s_p.getExtendsClause()) {
@@ -754,7 +754,7 @@ public class TypeAnalyzer {
             }
             else {
                 // TODO Implement for other types of parameters
-                return FALSE;
+                return falseFormula();
             }
         }
     }
@@ -794,7 +794,7 @@ public class TypeAnalyzer {
 	 * </pre>
      */
     private ConstraintFormula subIntersection(Type s, IntersectionType t, SubtypeHistory h) {
-        ConstraintFormula f = TRUE;
+        ConstraintFormula f = trueFormula();
         for (Type elt : t.getElements()) {
             f = f.and(sub(s, elt, h), h);
             if (f.isFalse()) { break; }
@@ -812,7 +812,7 @@ public class TypeAnalyzer {
      * </pre>
 	 */
     private ConstraintFormula intersectionSub(IntersectionType s, Type t, SubtypeHistory h) {
-        ConstraintFormula result = FALSE;
+        ConstraintFormula result = falseFormula();
         for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
             ConstraintFormula f = sElt.second();
             f = f.and(sub(sElt.first(), t, h), h);
@@ -833,7 +833,7 @@ public class TypeAnalyzer {
      * </pre>
      */
     private ConstraintFormula subUnion(Type s, UnionType t, SubtypeHistory h) {
-        ConstraintFormula result = FALSE;
+        ConstraintFormula result = falseFormula();
         for (Type elt : t.getElements()) {
             result = result.or(sub(s, elt, h), h);
             if (result.isTrue()) { break; }
@@ -850,7 +850,7 @@ public class TypeAnalyzer {
      * </pre>
 	 */
     private ConstraintFormula unionSub(UnionType s, Type t, SubtypeHistory h) {
-        ConstraintFormula f = TRUE;
+        ConstraintFormula f = trueFormula();
         for (Type elt : s.getElements()) {
             f = f.and(sub(elt, t, h), h);
             if (f.isFalse()) { break; }
@@ -868,9 +868,9 @@ public class TypeAnalyzer {
      */
     private ConstraintFormula intersectionSubIntersection(IntersectionType s, IntersectionType t,
                                                           SubtypeHistory h) {
-        ConstraintFormula result = TRUE;
+        ConstraintFormula result = trueFormula();
         for (Type tElt : t.getElements()) {
-            ConstraintFormula r = FALSE;
+            ConstraintFormula r = falseFormula();
             for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
                 ConstraintFormula f = sElt.second();
                 f = f.and(sub(sElt.first(), tElt, h), h);
@@ -894,7 +894,7 @@ public class TypeAnalyzer {
      */
     private ConstraintFormula intersectionSubUnion(IntersectionType s, UnionType t,
                                                    SubtypeHistory h) {
-        ConstraintFormula result = FALSE;
+        ConstraintFormula result = falseFormula();
         for (Pair<Type, ConstraintFormula> sElt : expandIntersection(s, h)) {
             for (Pair<Type, ConstraintFormula> tElt : expandUnion(t, h)) {
                 ConstraintFormula f = sElt.second().and(tElt.second(), h);
@@ -918,7 +918,7 @@ public class TypeAnalyzer {
      */
     private ConstraintFormula unionSubIntersection(UnionType s, IntersectionType t,
                                                    SubtypeHistory h) {
-        ConstraintFormula result = TRUE;
+        ConstraintFormula result = trueFormula();
         for (Type sElt : s.getElements()) {
             for (Type tElt : t.getElements()) {
                 result = result.and(sub(sElt, tElt, h), h);
@@ -938,9 +938,9 @@ public class TypeAnalyzer {
      * </pre>
      */
     private ConstraintFormula unionSubUnion(UnionType s, UnionType t, SubtypeHistory h) {
-    	ConstraintFormula result = TRUE;
+    	ConstraintFormula result = trueFormula();
         for (Type sElt : s.getElements()) {
-            ConstraintFormula r = FALSE;
+            ConstraintFormula r = falseFormula();
             for (Pair<Type, ConstraintFormula> tElt : expandUnion(t, h)) {
                 ConstraintFormula f = tElt.second();
                 f = f.and(sub(sElt, tElt.first(), h), h);
@@ -961,7 +961,7 @@ public class TypeAnalyzer {
     private Iterable<Pair<Type, ConstraintFormula>> expandUnion(UnionType t,
                                                                 SubtypeHistory h) {
         // TODO: implement non-trivial cases
-        return cross(t.getElements(), singleton(TRUE));
+        return cross(t.getElements(), singleton(trueFormula()));
     }
 
     /**
@@ -972,7 +972,7 @@ public class TypeAnalyzer {
     private Iterable<Pair<Type, ConstraintFormula>> expandIntersection(IntersectionType t,
                                                                        SubtypeHistory h) {
         // TODO: implement non-trivial cases
-        return cross(t.getElements(), singleton(TRUE));
+        return cross(t.getElements(), singleton(trueFormula()));
     }
 
     /**
@@ -1056,42 +1056,42 @@ public class TypeAnalyzer {
                 if (a2 instanceof TypeArg) {
                     return equiv(a1.getTypeArg(), ((TypeArg) a2).getTypeArg(), history);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
             @Override public ConstraintFormula forIntArg(IntArg a1) {
                 if (a2 instanceof IntArg) {
                     boolean result = a1.getIntVal().equals(((IntArg) a2).getIntVal());
                     return fromBoolean(result);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
             @Override public ConstraintFormula forBoolArg(BoolArg a1) {
                 if (a2 instanceof BoolArg) {
                     boolean result = a1.getBoolArg().equals(((BoolArg) a2).getBoolArg());
                     return fromBoolean(result);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
             @Override public ConstraintFormula forOpArg(OpArg a1) {
                 if (a2 instanceof OpArg) {
                     boolean result = a1.getName().equals(((OpArg) a2).getName());
                     return fromBoolean(result);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
             @Override public ConstraintFormula forDimArg(DimArg a1) {
                 if (a2 instanceof DimArg) {
                     boolean result = a1.getDimArg().equals(((DimArg) a2).getDimArg());
                     return fromBoolean(result);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
             @Override public ConstraintFormula forUnitArg(UnitArg a1) {
                 if (a2 instanceof UnitArg) {
                     boolean result = a1.getUnitArg().equals(((UnitArg) a2).getUnitArg());
                     return fromBoolean(result);
                 }
-                else { return FALSE; }
+                else { return falseFormula(); }
             }
         });
     }
@@ -1111,7 +1111,7 @@ public class TypeAnalyzer {
             }
             return f;
         }
-        else { return FALSE; }
+        else { return falseFormula(); }
     }
 
     /** Subtyping for Effects. */
@@ -1122,7 +1122,7 @@ public class TypeAnalyzer {
             Type tThrows = makeUnion(IterUtil.<Type>relax(s.getThrowsClause().unwrap(empty)));
             return sub(sThrows, tThrows, h);
         }
-        else { return FALSE; }
+        else { return falseFormula(); }
     }
 
 

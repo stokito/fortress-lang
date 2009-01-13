@@ -863,7 +863,7 @@ public abstract class ConstraintFormula {
 
     }
 
-    public static final ConstraintFormula FALSE = new ConstraintFormula() {
+    private static final ConstraintFormula FALSE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
         public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
         public boolean isFalse() { return true; }
@@ -874,7 +874,7 @@ public abstract class ConstraintFormula {
     };
 
 
-    public static final ConstraintFormula TRUE = new ConstraintFormula() {
+    private static final ConstraintFormula TRUE = new ConstraintFormula() {
         public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return f; }
         public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
         public boolean isFalse() { return false; }
@@ -941,6 +941,10 @@ public abstract class ConstraintFormula {
     	}
     	return result;
     }
+    
+    public static ConstraintFormula falseFormula(){return FALSE;}
+    
+    public static ConstraintFormula trueFormula(){return TRUE;}
 
     public static ConstraintFormula fromBoolean(boolean b) {
         return b ? TRUE : FALSE;

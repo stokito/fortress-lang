@@ -59,6 +59,8 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
+
 /**
  * Contains static utility methods for type checking.
  */
@@ -137,7 +139,7 @@ public class TypesUtil {
         // List of arrow types that statically match
         List<ArrowType> matching_types = new ArrayList<ArrowType>();
         // The constraint formed from all matching arrows
-        ConstraintFormula result_constraint = ConstraintFormula.TRUE;
+        ConstraintFormula result_constraint = trueFormula();
         for( Type arrow : conjuncts(fn_type) ) {
             // create instantiated arrow types using visitor
             Pair<Option<ArrowType>,ConstraintFormula> pair =
@@ -145,7 +147,7 @@ public class TypesUtil {
                     @Override
                     public Pair<Option<ArrowType>, ConstraintFormula> defaultCase(
                             Node that) {
-                        return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
+                        return Pair.make(Option.<ArrowType>none(), falseFormula());
                     }
 
                     // apply (inferring if necessary) static arguments and checking sub-typing
@@ -162,7 +164,7 @@ public class TypesUtil {
                             // how to infer it yet.
                             for( StaticParam p : static_params )
                                 if( !(NodeUtil.isTypeParam(p)) )
-                                    return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
+                                    return Pair.make(Option.<ArrowType>none(), falseFormula());
 
                             static_args_to_apply =
                                 CollectUtil.makeList(IterUtil.map(static_params,
@@ -175,7 +177,7 @@ public class TypesUtil {
                         }
                         else if( num_static_params != num_static_args ) {
                             // just not the right method
-                            return Pair.make(Option.<ArrowType>none(), ConstraintFormula.FALSE);
+                            return Pair.make(Option.<ArrowType>none(), falseFormula());
                         }
                         // now apply the static arguments,
                         that = (ArrowType)
@@ -397,7 +399,7 @@ public class TypesUtil {
      */
     public static Option<Pair<Type,ConstraintFormula>> applyStaticArgsIfPossible(Type type, final List<StaticArg> static_args, final TypeAnalyzer subtype_checker) {
     	if( static_args.size() == 0 ) {
-    		return Option.some(Pair.make(type, ConstraintFormula.TRUE));
+    		return Option.some(Pair.make(type, trueFormula()));
     	}
     	else {
     		return type.accept(new NodeDepthFirstVisitor<Option<Pair<Type,ConstraintFormula>>>() {
@@ -410,7 +412,7 @@ public class TypesUtil {
     			public Option<Pair<Type,ConstraintFormula>> forIntersectionType(IntersectionType that) {
     				List<Option<Pair<Type,ConstraintFormula>>> results = this.recurOnListOfType(that.getElements());
     				List<Type> conjuncts = new ArrayList<Type>(results.size());
-    				ConstraintFormula accumulated_constraint=ConstraintFormula.TRUE;
+    				ConstraintFormula accumulated_constraint=trueFormula();
     				for( Option<Pair<Type,ConstraintFormula>> t : results ) {
     					if( t.isNone() ) {
     						return Option.none();
