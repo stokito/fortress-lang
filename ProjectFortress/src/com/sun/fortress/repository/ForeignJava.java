@@ -247,8 +247,8 @@ public class ForeignJava {
         for (AliasedSimpleName name : names) {
             Option<IdOrOpOrAnonymousName> opt_alias = name.getAlias();
             if (opt_alias.isSome()) {
-                throw StaticError.make(
-                "Import aliasing not yet implemented for foreign imports ", i);
+//                throw StaticError.make(
+//                "Import aliasing not yet implemented for foreign imports ", i);
             }
 
             IdOrOpOrAnonymousName imported = name.getName();

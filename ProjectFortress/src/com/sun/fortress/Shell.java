@@ -692,11 +692,13 @@ public final class Shell {
             if ( isApi(file) ) {
                 Api a = (Api) bcr.getApi(name).ast();
                 if ( out.isSome() )
-                    ASTIO.writeJavaAst(defaultRepository.getApi(name).ast(), out.unwrap());
+                    ASTIO.writeJavaAst(a, // defaultRepository.getApi(name).ast(),
+                            out.unwrap());
             } else if (isComponent(file)) {
                 Component c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() ) {
-                    ASTIO.writeJavaAst(defaultRepository.getComponent(name).ast(), out.unwrap());
+                    ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
+                            out.unwrap());
                     ASTIO.deleteJavaAst( CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR, name) );
                     bcr.deleteComponent( name );
                 }
