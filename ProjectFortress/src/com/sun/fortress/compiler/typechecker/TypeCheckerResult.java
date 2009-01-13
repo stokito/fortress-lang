@@ -48,6 +48,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private final Node ast;
@@ -323,7 +324,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super(_errors);
 		ast = _ast;
 		type = Option.wrap(_type);
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -348,7 +349,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super(_errors);
 		ast = _ast;
 		type = Option.none();
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -356,7 +357,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super();
 		ast = _ast;
 		type = Option.none();
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -364,7 +365,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super();
 		ast = _ast;
 		type = Option.wrap(_type);
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -372,7 +373,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super();
 		ast = _ast;
 		type = _type;
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -380,7 +381,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super(_errors);
 		ast = _ast;
 		type = _type;
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -395,7 +396,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super(IterUtil.make(_error));
 		ast = _ast;
 		type = Option.none();
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 
@@ -403,7 +404,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
 		super(IterUtil.make(_error));
 		ast = _ast;
 		type = Option.wrap(_type);
-		nodeConstraints = ConstraintFormula.TRUE;
+		nodeConstraints = trueFormula();
 		nodeTypeEnvs = Collections.emptyMap();
 	}
 

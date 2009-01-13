@@ -87,6 +87,7 @@ import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
 
 import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 /**
  * The fortress typechecker.<br>
@@ -190,7 +191,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         this.subtypeChecker = TypeAnalyzer.make(table);
         this.labelExitTypes = new HashMap<Id, Option<Set<Type>>>();
         this.postInference = postInference;
-        this.downwardConstraint = ConstraintFormula.TRUE;
+        this.downwardConstraint = trueFormula();
     }
 
     private TypeChecker(TraitTable table,
@@ -896,7 +897,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                     TypeCheckerResult fn_result = recur(that.getFunction());
             Iterable<ConstraintFormula> arg_constraint = Collections.singletonList(arg_result.getNodeConstraints());
             //debugging
-            ConstraintFormula temp = ConstraintFormula.TRUE;
+            ConstraintFormula temp = trueFormula();
             for(ConstraintFormula i: arg_constraint){
                 temp.and(i, new SubtypeHistory(subtypeChecker));
             }
@@ -961,7 +962,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                                                           TypeCheckerResult obj_result,
                                                           List<TypeCheckerResult> staticArgs_result) {
             Type t;
-            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+            ConstraintFormula accumulated_constraints = trueFormula();
             if( obj_result.type().isNone() ) {
                 return TypeCheckerResult.compose(that, subtypeChecker, obj_result,
                                                  TypeCheckerResult.compose(that, subtypeChecker, staticArgs_result));
@@ -1207,7 +1208,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 
         Type return_type;
-        ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+        ConstraintFormula accumulated_constraints = trueFormula();
         if(that.getStaticArgs().isEmpty()){
             if(failed || !same_size){
                 return TypeCheckerResult.compose(that, subtypeChecker, all_results);
@@ -2489,7 +2490,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         Node new_node;
         Option<Type> type;
-        ConstraintFormula constraints=ConstraintFormula.TRUE;
+        ConstraintFormula constraints=trueFormula();
 
         // if no static args are provided, and we have several overloadings, we
         // will create a FnRef with the overloadings field set
@@ -2498,7 +2499,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             // create a _FnInstantitedOverloading
             List<FunctionalRef> fn_overloadings = new ArrayList<FunctionalRef>();
             List<Type> arrow_types = new ArrayList<Type>();
-            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+            ConstraintFormula accumulated_constraints = trueFormula();
             for( Type overloaded_type : overloaded_types ) {
                 for( Type overloading : TypesUtil.conjuncts(overloaded_type) ) {
                     // If type needs static args, create inference vars, and apply to the signature
@@ -2521,7 +2522,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             @Override
                             public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forType(Type that) {
                                 // any other sort of Type does not get rewritten, and has no args
-                                return some(Pair.make(Pair.make(that, ConstraintFormula.TRUE), Collections.<StaticArg>emptyList()));
+                                return some(Pair.make(Pair.make(that, trueFormula()), Collections.<StaticArg>emptyList()));
                             }
                         });
 
@@ -2562,7 +2563,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         else {
             // otherwise, we just operate according to the normal procedure, apply args or none were necessary
             List<Type> arrow_types = new ArrayList<Type>();
-            ConstraintFormula accumulated_constraints=ConstraintFormula.TRUE;
+            ConstraintFormula accumulated_constraints=trueFormula();
             for( Type ty : overloaded_types ) {
                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(), this.subtypeChecker);
                 if( instantiated_type.isSome() ){
@@ -3795,14 +3796,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
         Node new_node;
         Option<Type> type;
-        ConstraintFormula constraints=ConstraintFormula.TRUE;
+        ConstraintFormula constraints=trueFormula();
 
         // If no static args are given, but overloadings require them, we'll create an,
         // OpRef with the overloading field set.
         if( that.getStaticArgs().isEmpty() && TypesUtil.overloadingRequiresStaticArgs(overloaded_types) ) {
             List<FunctionalRef> overloadings = new ArrayList<FunctionalRef>();
             List<Type> arrow_types = new ArrayList<Type>();
-            ConstraintFormula accumulated_constraints = ConstraintFormula.TRUE;
+            ConstraintFormula accumulated_constraints = trueFormula();
             for( Type overloaded_type : overloaded_types ) {
                 for( Type overloading : TypesUtil.conjuncts(overloaded_type) ) {
                     // If type needs static args, create inference vars, and apply to the signature
@@ -3824,7 +3825,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                             @Override
                             public Option<Pair<Pair<Type,ConstraintFormula>, List<StaticArg>>> forType(Type that) {
                                 // any other sort of Type does not get rewritten, and has no args
-                                return some(Pair.make(Pair.make(that,ConstraintFormula.TRUE), Collections.<StaticArg>emptyList()));
+                                return some(Pair.make(Pair.make(that,trueFormula()), Collections.<StaticArg>emptyList()));
                             }
 
                         });
@@ -3868,7 +3869,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         else {
             // otherwise we just do the normal thing
             List<Type> arrow_types = new ArrayList<Type>();
-            ConstraintFormula accumulated_constraints=ConstraintFormula.TRUE;
+            ConstraintFormula accumulated_constraints=trueFormula();
             for( Type ty : overloaded_types ) {
                 Option<Pair<Type,ConstraintFormula>> instantiated_type = TypesUtil.applyStaticArgsIfPossible(ty, that.getStaticArgs(),this.subtypeChecker);
                 if( instantiated_type.isSome()){
