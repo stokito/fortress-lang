@@ -36,6 +36,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.nativeInterface.*;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
@@ -164,6 +165,8 @@ public class ForeignJava {
     
     
     static Span span = NodeFactory.internalSpan;
+
+    static MyClassLoader loader = new MyClassLoader();
 
     static Map<Type, com.sun.fortress.nodes.Type> specialCases = new HashMap<Type, com.sun.fortress.nodes.Type>();
     static APIName fortLib =
@@ -493,9 +496,13 @@ public class ForeignJava {
         if (result == null) {
 
             Set<Type> classes = javaImplementedAPIs.get(name);
+            
             // Need to generate wrappers for all these classes,
             // if they do not already exist.
-
+            for (Type t : classes) {
+                Class c = FortressTransformer.transform(loader, t.getClassName());
+            }
+                
             List<Import> imports = new ArrayList<Import>();
             IMultiMap<APIName, Id> gi = generatedImports.get(name);
             if (gi != null)

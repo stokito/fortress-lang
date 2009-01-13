@@ -23,7 +23,7 @@ import com.sun.fortress.repository.ProjectProperties;
 
 public class MyClassLoader extends ClassLoader {
     
-    String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR;
+    String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
 
     public MyClassLoader() {
         // TODO Auto-generated constructor stub
@@ -40,29 +40,30 @@ public class MyClassLoader extends ClassLoader {
     public static String mangle(String s ) {
         return s;
     }
-    
+
     @SuppressWarnings("unchecked")
-        public Class findClass(String name) {
-        String n = mangle(name);
-        
+    public Class findClass(String className) {
+        String fileName = repository + className.replace('.', '/');
         byte[] b;
         Class result = null;
         try {
-            FileInputStream in = new FileInputStream( repository + n + ".class");
+            FileInputStream in = new FileInputStream(fileName);
             int l = in.available();
             b = new byte[l];
             in.read(b);
-            result = defineClass(name, b, 0, l);
+            result = defineClass(className, b, 0, l);
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
         return result;
     }
     
-    public void writeClass(String name, byte[] bytes) {
-        String n = mangle(name);
+    public void writeClass(String className, byte[] bytes) {
+        String fileName = repository + className.replace('.', '/');
+        String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
         try {
-            FileOutputStream out = new FileOutputStream(repository + n + ".class");
+            ProjectProperties.ensureDirectoryExists(directoryName);
+            FileOutputStream out = new FileOutputStream(fileName);
             out.write(bytes);
         } catch (Throwable t) {
             throw new RuntimeException(t);

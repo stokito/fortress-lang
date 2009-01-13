@@ -20,21 +20,22 @@ package com.sun.fortress.compiler.nativeInterface;
 import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class FortressTransformer {
     @SuppressWarnings("unchecked")
 
     
-        public static Class transform(MyClassLoader loader, String fileName) {
+        public static Class transform(MyClassLoader loader, String className) {
         Class result = null;
         try {
-            ClassReader cr = new ClassReader(fileName);
+            ClassReader cr = new ClassReader(className);
             ClassWriter cw = new ClassWriter(1);
             FortressMethodAdapter fa = new FortressMethodAdapter(cw);
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
-            loader.writeClass(fileName, b2);
-            Class c = loader.findClass(fileName);
+            loader.writeClass(className, b2);
+            Class c = loader.findClass(className);
             result = c;
              
         } catch (Throwable e) {
