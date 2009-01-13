@@ -19,7 +19,7 @@ package com.sun.fortress.nativeHelpers;
 
 public class simplePrintln {
 	
-	public static void println(String s) {
+	public static void nativePrintln(String s) {
 		System.out.println(s);
 	}
 

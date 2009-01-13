@@ -39,7 +39,7 @@ public class WrapperGeneratorJUTest extends TestCaseWrapper {
         Class[] parameterTypes = new Class[1];
         try {
             parameterTypes[0] = Class.forName("com.sun.fortress.interpreter.evaluator.values.FString"); 
-            Method m = c.getMethod("println", parameterTypes);
+            Method m = c.getMethod("nativePrintln", parameterTypes);
             FString foo = FString.make("fa la la");
             m.invoke(null, foo);
         } catch (Throwable t) {

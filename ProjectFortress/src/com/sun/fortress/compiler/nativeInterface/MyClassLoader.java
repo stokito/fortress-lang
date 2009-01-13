@@ -43,7 +43,7 @@ public class MyClassLoader extends ClassLoader {
 
     @SuppressWarnings("unchecked")
     public Class findClass(String className) {
-        String fileName = repository + className.replace('.', '/');
+        String fileName = repository + className.replace('.', '/') + ".class";
         byte[] b;
         Class result = null;
         try {
@@ -59,7 +59,7 @@ public class MyClassLoader extends ClassLoader {
     }
     
     public void writeClass(String className, byte[] bytes) {
-        String fileName = repository + className.replace('.', '/');
+        String fileName = repository + className.replace('.', '/') + ".class";
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
         try {
             ProjectProperties.ensureDirectoryExists(directoryName);
