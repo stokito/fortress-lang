@@ -1,0 +1,19 @@
+These files are associated with measuring community activity.
+All this info is publicly available, though some of it is tedious
+to collect.  Please don't use the information here to game the system.
+
+SvnStats.tgz contains tar-gzipped per-commit line information (adds, deletes).
+This information is obtained, slowly, by running (and it is slow)
+  bin/svnlines START END
+in the top level directory.  START END are revision numbers;
+information will be obtained for START through END, inclusive.
+
+ExternalContributors.ods is a spreadsheet using that information to compute the
+"external lines committed" metric.  Rows to add are obtained by running
+
+  svn log | awk -f bin/svnmetric.awk > scratch.txt
+
+and copying and pasting the appropriate (new) lines from scratch.txt.
+External commiters need to be identified by hand, and added as columns
+to the appropriate part of the spread sheet.  Add in the middle, and the
+lines-if-external code to the right will be updated properly.
