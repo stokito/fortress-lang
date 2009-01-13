@@ -16,10 +16,11 @@
  ******************************************************************************)
 
 component Compiled22
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 export SimpleExecutable
 
 run() = do
- println("Hello, World!")
+ jPrintln("Hello, World!")
 end
 
 end
