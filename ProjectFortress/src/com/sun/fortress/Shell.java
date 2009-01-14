@@ -728,6 +728,15 @@ public final class Shell {
             return result;
         } catch (StaticError ex) {
              return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
+        } catch (FortressException e) {
+            System.err.println(e.getMessage());
+            e.printInterpreterStackTrace(System.err);
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println(turnOnDebugMessage);
+            }
+            System.exit(1);
         } finally {
             if (bcr != null && name != null)
              bcr.deleteComponent(name);
