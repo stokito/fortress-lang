@@ -376,6 +376,19 @@ constant Expr LeftAssociatedPrimary =
        yyValue = (Expr)apply(a4s, e2);
      };
 
+/* A primary expression is always left-associated if it contains any dot
+   (i.e., ".") not within parentheses or some pair of enclosing operators.
+   If such a primary expression begins with an identifier immediately
+   followed by a dot then the maximal prefix of identifiers separated by
+   dots (whitespace may follow but not precede the dots) is collected into
+   a "dotted id chain", which is subsequently partitioned into the longest
+   prefix, if any, that is a qualified name, and the remaining dots and
+   identifiers, which are interpreted as selectors.  If the last identifier
+   in the dotted id chain is part of a selector (i.e., the entire dotted id
+   chain is not a qualified name), and it is immediately followed by a left
+   parenthesis, then the last selector together with the subsequent parenthesis-
+   delimited term is a method selector.
+ */
 /* QualifiedName is not yet implemented in the interpreter. */
 /* DottedIdChain ::= Id(. w Id)+ */
 List<Id> DottedIdChain = a1:Id a2s:(dot w Id)+
