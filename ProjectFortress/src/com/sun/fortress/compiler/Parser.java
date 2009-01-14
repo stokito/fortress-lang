@@ -147,7 +147,8 @@ public class Parser {
         }
     }
 
-    private static List<GrammarIndex> getImportedGrammars(Component c, final GlobalEnvironment env) {
+    private static List<GrammarIndex> getImportedGrammars(Component c,
+                                                          final GlobalEnvironment env) {
         final List<GrammarIndex> grammars = new ArrayList<GrammarIndex>();
         c.accept(new TemplateNodeDepthFirstVisitor_void() {
                 @Override public void forImportApiOnly(ImportApi that) {
@@ -156,31 +157,32 @@ public class Parser {
                 }
 
                 @Override public void forImportStarOnly(ImportStar that) {
-                    if (env.definesApi(that.getApiName())) {
-                        APIName api = that.getApiName();
+                    APIName api = that.getApiName();
+                    if (env.definesApi(api)) {
                         for (GrammarIndex g: env.api(api).grammars().values()) {
                             if (!that.getExceptNames().contains(g.getName())) {
                                 grammars.add(g);
                             }
                         }
                     } else {
-                        StaticError.make("Undefined api: "+that.getApiName(), that);
+                        StaticError.make("Undefined API: "+api, that);
                     }
                 }
 
                 @Override public void forImportNamesOnly(ImportNames that) {
-                    if (env.definesApi(that.getApiName())) {
-                        ApiIndex api = env.api(that.getApiName());
+                    APIName api = that.getApiName();
+                    if (env.definesApi(api)) {
+                        ApiIndex apiIndex = env.api(api);
                         for (AliasedSimpleName aliasedName: that.getAliasedNames()) {
                             if (aliasedName.getName() instanceof Id) {
                                 Id importedName = (Id) aliasedName.getName();
-                                if (api.grammars().containsKey(importedName.getText())) {
-                                    grammars.add(api.grammars().get(importedName.getText()));
+                                if (apiIndex.grammars().containsKey(importedName.getText())) {
+                                    grammars.add(apiIndex.grammars().get(importedName.getText()));
                                 }
                             }
                         }
                     } else {
-                        StaticError.make("Undefined api: "+that.getApiName(), that);
+                        StaticError.make("Undefined API: "+api, that);
                     }
                 }
             });
@@ -196,7 +198,7 @@ public class Parser {
         // Compile the syntax abstractions and create a temporary parser
         Class<?> temporaryParserClass = ParserMaker.parserForComponent(grammars);
 
-        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Created a temporary parser." );
 
         BufferedReader in = null;
         try {
@@ -212,7 +214,11 @@ public class Parser {
             String desc =
                 "Error occurred while instantiating and executing a temporary parser: "
                 + temporaryParserClass.getCanonicalName();
-            e.printStackTrace();
+            if (Debug.isOnMax()) {
+                e.printStackTrace();
+            } else {
+                System.err.println(Shell.turnOnDebugMessage);
+            }
             if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
             return new Result(StaticError.make(desc, f.toString()));
         } finally {

@@ -30,26 +30,23 @@ import xtc.parser.Result;
 
 public class ParserMediator {
 
-	// private static ParserBase parser;
+    public ParserMediator() {}
 
-	public ParserMediator() {
-	}
-
-	/**
-	 * Instantiate a new instance of the given parserClass which must be a subtype of xtc.parser.ParserBase.
-	 * The instantiated parser object is stored in a field and returned;
-	 * If anything goes wrong an exception is thrown.
-	 * @param parserClass
-	 * @param reader
-	 * @param filename
-	 * @return The new instantiated parser object
-	 * @throws IllegalArgumentException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 * @throws SecurityException
-	 * @throws NoSuchMethodException
-	 */
+    /**
+     * Instantiate a new instance of the given parserClass which must be a subtype of xtc.parser.ParserBase.
+     * The instantiated parser object is stored in a field and returned;
+     * If anything goes wrong an exception is thrown.
+     * @param parserClass
+     * @param reader
+     * @param filename
+     * @return The new instantiated parser object
+     * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     */
 	public static ParserBase getParser(Class<?> parserClass,
                                            BufferedReader reader,
                                            String filename)

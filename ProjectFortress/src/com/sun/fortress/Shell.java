@@ -61,7 +61,7 @@ import com.sun.fortress.tools.FortressAstToConcrete;
 import com.sun.fortress.nodes_util.ApiMaker;
 
 public final class Shell {
-    private static String turnOnDebugMessage =
+    public static String turnOnDebugMessage =
         "Turn on \"-debug interpreter\" for Java-level stack trace.";
 
     static boolean test;

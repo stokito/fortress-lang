@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -16,13 +16,11 @@
  ******************************************************************************/
 
 /*
- * Class which builds a table of pieces of Rats! AST which corresponds the macro 
+ * Class which builds a table of pieces of Rats! AST which correspond to the macro
  * declarations given as input.
  * The Rats! ASTs are combined to Rats! modules which are written to files on the
  * file system.
- * 
  */
-
 package com.sun.fortress.syntax_abstractions;
 
 import java.util.List;
@@ -40,8 +38,8 @@ import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.useful.Debug;
 
-/* Contains a mapping from a nonterminal name to its production
- * Also contains a mapping from nonterminal name to its type
+/* Contains a mapping from a nonterminal name to its production.
+ * Also contains a mapping from nonterminal name to its type.
  */
 class PEG extends NTEnv {
 
@@ -65,8 +63,7 @@ class PEG extends NTEnv {
         return defs;
     }
 
-    /* remove nonterminals with empty definitions
-     */
+    /* remove nonterminals with empty definitions */
     public void removeEmptyNonterminals(){
         Set<Id> all = new HashSet<Id>(defEntries.keySet());
         for (Id nt : all){

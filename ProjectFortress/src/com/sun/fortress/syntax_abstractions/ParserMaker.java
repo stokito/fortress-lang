@@ -64,8 +64,7 @@ import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
-/* Creates a Rats! parser from a PEG.
- */
+/* Creates a Rats! parser from a PEG. */
 public class ParserMaker {
 
     private static final String FORTRESS =
@@ -294,7 +293,8 @@ public class ParserMaker {
      * add it to the peg
      */
     private static void addEntry(Module m, Mangler mangler, PEG peg, Id nt) {
-        Debug.debug(Debug.Type.SYNTAX, 2, "Create alternative for " + nt);
+        Debug.debug(Debug.Type.SYNTAX, 2,
+                    "Create productions for the nonterminal " + nt);
 
         String name = mangler.forDefinition(nt);
         String javaType = peg.getJavaType(nt);
@@ -303,15 +303,16 @@ public class ParserMaker {
             new ComposingSyntaxDefTranslator(mangler, nt, javaType, (NTEnv)peg);
         List<Sequence> sequences = translator.visitSyntaxDefs(unique(peg.getAll(nt)));
 
-        /* dont add an empty sequence */
+        /* don't add an empty sequence */
         List<Attribute> attributes = new LinkedList<Attribute>();
         OrderedChoice choice = new OrderedChoice(sequences);
-        Production p = new FullProduction(attributes, javaType, new NonTerminal(name), choice);
+        Production p = new FullProduction(attributes, javaType,
+                                          new NonTerminal(name), choice);
         m.productions.add(p);
     }
 
-    /* Filter redundant syntax defs. Rats! will complain if they are left in */
-    private static List<SyntaxDef> unique(List<SyntaxDef> defs){
+    /* Filter redundant syntax defs.  Rats! will complain if they are left in. */
+    private static List<SyntaxDef> unique(List<SyntaxDef> defs) {
         List<SyntaxDef> all = new LinkedList<SyntaxDef>();
         for (SyntaxDef def : defs){
             if (! all.contains(def)){
@@ -362,8 +363,7 @@ public class ParserMaker {
         }
     }
 
-    /* Rats! module containing all the user defined syntax stuff
-     */
+    /* Rats! module containing all the user defined syntax stuff */
     private static Module createUserModule() {
         // based on RatsUtil.makeExtendingRatsModule()
         Module m = new Module();
@@ -381,9 +381,9 @@ public class ParserMaker {
     private static Action createHeader() {
         List<String> imports = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
-        indents.add(3);
+        indents.add(4);
         imports.add("import java.util.Map;");
-        indents.add(3);
+        indents.add(4);
         imports.add("import java.util.HashMap;");
         Action a = new Action(imports, indents);
         return a;

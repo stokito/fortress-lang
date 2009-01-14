@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -42,8 +42,7 @@ import com.sun.fortress.syntax_abstractions.phases.ExtensionDesugarer;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/* Composes grammars together into a flat PEG.
- */
+/* Composes grammars together into a flat PEG. */
 class GrammarComposer {
 
     private Map<Id, GrammarIndex> grammarMap;
@@ -58,26 +57,24 @@ class GrammarComposer {
 
     /* entry point for grammars */
     public static PEG pegForGrammar(GrammarIndex grammar){
-        Debug.debug(Debug.Type.SYNTAX, 2, 
+        Debug.debug(Debug.Type.SYNTAX, 2,
                     "GrammarComposer: create parser for grammar " + grammar.getName());
-        List<GrammarIndex> imports = grammar.getExtended();
-        Debug.debug(Debug.Type.SYNTAX, 2, "Imports: " + imports);
         List<NonterminalDef> definitions = grammar.getDefinitionAsts();
         List<NonterminalExtensionDef> extensions = grammar.getExtensionAsts();
         GrammarComposer composer = new GrammarComposer(collectImports(grammar));
-        return composer.compose(imports, definitions, extensions);
+        return composer.compose(definitions, extensions);
     }
 
     /* entry point for components */
     public static PEG pegForComponent(List<GrammarIndex> imports) {
-        Debug.debug(Debug.Type.SYNTAX, 2, 
+        Debug.debug(Debug.Type.SYNTAX, 2,
                     "GrammarComposer: create parser for component");
         Debug.debug(Debug.Type.SYNTAX, 2, "Imports: " + imports);
         List<NonterminalDef> definitions = new LinkedList<NonterminalDef>();
         List<NonterminalExtensionDef> extensions =
             ExtensionDesugarer.createImplicitExtensions(imports);
         GrammarComposer composer = new GrammarComposer(collectImports(imports));
-        return composer.compose(imports, definitions, extensions);
+        return composer.compose(definitions, extensions);
     }
 
     /* get the complete list of imported grammars */
@@ -98,8 +95,7 @@ class GrammarComposer {
     /* create a peg and populate it with nonterminals according to the
      * grammar composition rules
      */
-    private PEG compose(List<GrammarIndex> imports,
-                        Collection<NonterminalDef> definitions,
+    private PEG compose(Collection<NonterminalDef> definitions,
                         Collection<NonterminalExtensionDef> extensions){
         PEG peg = new PEG();
         addGrammarDefsOnly(peg);
@@ -115,7 +111,7 @@ class GrammarComposer {
         for (GrammarIndex grammar : grammarMap.values()) {
             GrammarDecl grammarDef = grammar.ast();
             Debug.debug(Debug.Type.SYNTAX, 3,
-                        "Grammar " + grammarDef.getName() + 
+                        "Grammar " + grammarDef.getName() +
                         " native?: " + grammarDef.isNativeDef());
             if (grammarDef.isNativeDef()) {
                 // A native grammar can only contain nonterminal declarations
@@ -157,8 +153,7 @@ class GrammarComposer {
         }
     }
 
-    /* adds the choices for nonterminal extensions to the definition nonterminals
-     */
+    /* add choices for nonterminal extensions to the definition nonterminals */
     private void applyExtension(PEG peg, NonterminalExtensionDef ext) {
         Debug.debug(Debug.Type.SYNTAX, 2, "Apply extensions to " + ext.getName());
         List<SyntaxDef> exts = peg.getExts(ext.getName());
@@ -177,7 +172,7 @@ class GrammarComposer {
     private void resolveAndAdd(List<SyntaxDef> defs, SyntaxDecl decl, boolean includePrivate) {
         String modifier = decl.getModifier().unwrap("public");
         if (modifier.equals("private") && !includePrivate) return;
-        if (modifier.equals("without")) return; 
+        if (modifier.equals("without")) return;
         //   "without" only applies to SuperSyntaxDef, but no harm testing here
 
         if (decl instanceof SyntaxDef) {
@@ -194,10 +189,9 @@ class GrammarComposer {
         }
     }
 
-    /* lookup the choices of a nonterminal in a specific grammar
-     */
+    /* lookup the choices of a nonterminal in a specific grammar */
     private Collection<SyntaxDecl> findExtension(Id nonterminalName, Id grammarName) {
-        Debug.debug(Debug.Type.SYNTAX, 3, 
+        Debug.debug(Debug.Type.SYNTAX, 3,
                     "Searching for extension for nonterminal " + nonterminalName +
                     " and grammar " + grammarName);
         GrammarIndex grammar = grammarMap.get(grammarName);
