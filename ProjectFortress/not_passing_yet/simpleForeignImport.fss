@@ -16,11 +16,11 @@
  ******************************************************************************)
 
 component simpleForeignImport
-import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as something}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 export SimpleExecutable
 
 run(args:String...) = do
- something("Hello, World!")
+ jPrintln("Hello, World!")
 end
 
 end
