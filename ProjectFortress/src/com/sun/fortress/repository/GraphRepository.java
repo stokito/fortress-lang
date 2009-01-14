@@ -72,7 +72,7 @@ import com.sun.fortress.repository.graph.ComponentGraphNode;
 import com.sun.fortress.repository.graph.Graph;
 import com.sun.fortress.repository.graph.GraphNode;
 import com.sun.fortress.repository.graph.GraphVisitor;
-import com.sun.fortress.syntax_abstractions.parser.FortressParser;
+import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.useful.Bijection;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
@@ -171,7 +171,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     @Override
     public ApiIndex getApi(APIName name) throws FileNotFoundException, IOException, StaticError {
        Debug.debug( Debug.Type.REPOSITORY, 2, "Get API for ", name);
-       
+
         ApiGraphNode node = addApiGraph(name);
         refreshGraph();
         try{
@@ -202,7 +202,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug( Debug.Type.REPOSITORY, 2, "Add API graph ", name );
         ApiGraphNode node = (ApiGraphNode) graph.find(ApiGraphNode.key(name));
         if ( node == null ){
-            
+
             if (foreignJava.definesApi(name)) {
                 // TODO not smart about age of native API yet
                 // Make the native API be very old, so nothing is out of date;
@@ -211,7 +211,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 graph.addNode( node );
                 return node;
             }
-            
+
             /* a new node was added, a recompile is needed */
             needUpdate = true;
             node = new ApiGraphNode(name, getApiFileDate(name));
@@ -651,9 +651,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     /* find all parsed APIs */
     public Map<APIName, ApiIndex> parsedApis(){
-        
+
         Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
-        
+
         for ( GraphNode g :  graph.nodes()){
             if (g instanceof ApiGraphNode) {
                 ApiGraphNode node = (ApiGraphNode) g;
@@ -685,10 +685,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return result;
     }
 
-    /* parse a component and run it through syntax expansion, may
-     * invoke code( transformer expressions )
-     */
-    private Component syntaxExpand( ComponentGraphNode node ) throws FileNotFoundException, IOException {
+    /* parse a component and run it through syntax expansion */
+    private Component syntaxExpand( ComponentGraphNode node )
+        throws FileNotFoundException, IOException {
         Debug.debug( Debug.Type.REPOSITORY, 1, "Expand component ", node );
 
         APIName api_name = node.getName();
@@ -696,7 +695,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         GraphRepository g1 = new GraphRepository( this.path, this.cache );
         /* FIXME: hack to prevent infinite recursion */
         Shell.setCurrentInterpreterRepository( g1 );
-        Result result = FortressParser.parse(api_name, file, new GlobalEnvironment.FromRepository( g1 ), verbose());
+        Result result = Parser.macroParse(file, new GlobalEnvironment.FromRepository( g1 ), verbose());
         // Result result = FortressParser.parse(file, new GlobalEnvironment.FromRepository(this), verbose());
         /* FIXME: hack to prevent infinite recursion */
         Shell.setCurrentInterpreterRepository( this );
@@ -792,7 +791,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private List<APIName> collectExplicitImports(CompilationUnit comp) {
         List<APIName> all = new ArrayList<APIName>();
-        
+
         for (Import i : comp.getImports()){
             Option<String> opt_fl = i.getForeignLanguage();
             boolean isNative = opt_fl.isSome();
@@ -808,8 +807,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                      *  the imports.
                      */
                     foreignJava.processJavaImport(i, ins);
-                    
-                    // depend on the API name; 
+
+                    // depend on the API name;
                     // "compilation"/"reading" will get the API
                     all.add( ins.getApiName() );
                     continue;

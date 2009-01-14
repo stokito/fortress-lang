@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.io.IOUtil;
@@ -36,17 +38,37 @@ import com.sun.fortress.parser.Fortress; // Shadows Fortress in this package
 import com.sun.fortress.parser.preparser.PreFortress;
 import com.sun.fortress.parser_util.SyntaxChecker;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.useful.Files;
 import com.sun.fortress.useful.Useful;
-import com.sun.fortress.nodes.CompilationUnit;
-import com.sun.fortress.nodes.Api;
-import com.sun.fortress.nodes.Component;
+import com.sun.fortress.useful.Debug;
+import com.sun.fortress.nodes.AliasedSimpleName;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportApi;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.ImportedNames;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.TemplateNodeDepthFirstVisitor_void;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.syntax_abstractions.ParserMaker;
+import com.sun.fortress.syntax_abstractions.phases.Transform;
+import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
+import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  * Methods for parsing files using base Fortress syntax.
@@ -90,19 +112,124 @@ public class Parser {
         public long lastModified() { return _lastModified; }
     }
 
-    /**
-     * Convert to a filename that is canonical for each (logical) file, preventing
-     * reparsing the same file.
-     * FIXME: DEAD CODE
-     */
-    private static File canonicalRepresentation(File f) {
-        // treat the same absolute path as the same file; different absolute path but
-        // the same *canonical* path (a symlink, for example) is treated as two
-        // different files; if absolute file can't be determined, assume they are
-        // distinct.
-        return IOUtil.canonicalCase(IOUtil.attemptAbsoluteFile(f));
+    /** Parses a single file. */
+    public static Result macroParse(File f,
+                                    final GlobalEnvironment env,
+                                    boolean verbose) {
+        try {
+            if ( Shell.getPreparse() ) { // if not bypass the syntactic abstraction
+                CompilationUnit cu = Parser.preparseFileConvertExn(f); // preparse
+                List<GrammarIndex> grammars; // directly imported grammars
+                if (cu instanceof Component) {
+                    Component c = (Component) cu;
+                    List<GrammarIndex> result = getImportedGrammars(c, env);
+                    if (!result.isEmpty()) {
+                        Debug.debug(Debug.Type.SYNTAX, "Component: ",
+                                    c.getName(), " imports grammars...");
+                    }
+                    grammars = result;
+                } else { // empty for an API
+                    grammars = new LinkedList<GrammarIndex>();
+                }
+                if (verbose) System.err.println("Parsing file: "+f.getName());
+                if (grammars.isEmpty()) { // without new syntax
+                    return new Result(Parser.parseFileConvertExn(f),
+                                      f.lastModified());
+                } else { // with new syntax
+                    return parseWithGrammars(f, env, verbose, grammars);
+                }
+            } else { // if bypass the syntactic abstraction
+                return new Result(Parser.parseFileConvertExn(f),
+                                  f.lastModified());
+            }
+        } catch (StaticError se) {
+            return new Result(se);
+        }
     }
 
+    private static List<GrammarIndex> getImportedGrammars(Component c, final GlobalEnvironment env) {
+        final List<GrammarIndex> grammars = new ArrayList<GrammarIndex>();
+        c.accept(new TemplateNodeDepthFirstVisitor_void() {
+                @Override public void forImportApiOnly(ImportApi that) {
+                    bug(that, errorMsg("NYI 'Import api APIName'; ",
+                                       "try 'import APIName.{...}' instead."));
+                }
+
+                @Override public void forImportStarOnly(ImportStar that) {
+                    if (env.definesApi(that.getApiName())) {
+                        APIName api = that.getApiName();
+                        for (GrammarIndex g: env.api(api).grammars().values()) {
+                            if (!that.getExceptNames().contains(g.getName())) {
+                                grammars.add(g);
+                            }
+                        }
+                    } else {
+                        StaticError.make("Undefined api: "+that.getApiName(), that);
+                    }
+                }
+
+                @Override public void forImportNamesOnly(ImportNames that) {
+                    if (env.definesApi(that.getApiName())) {
+                        ApiIndex api = env.api(that.getApiName());
+                        for (AliasedSimpleName aliasedName: that.getAliasedNames()) {
+                            if (aliasedName.getName() instanceof Id) {
+                                Id importedName = (Id) aliasedName.getName();
+                                if (api.grammars().containsKey(importedName.getText())) {
+                                    grammars.add(api.grammars().get(importedName.getText()));
+                                }
+                            }
+                        }
+                    } else {
+                        StaticError.make("Undefined api: "+that.getApiName(), that);
+                    }
+                }
+            });
+        return grammars;
+    }
+
+    private static Result parseWithGrammars(File f,
+                                            GlobalEnvironment env,
+                                            boolean verbose,
+                                            List<GrammarIndex> grammars) {
+        EnvFactory.initializeGrammarIndexExtensions(env.apis().values(), grammars);
+
+        // Compile the syntax abstractions and create a temporary parser
+        Class<?> temporaryParserClass = ParserMaker.parserForComponent(grammars);
+
+        Debug.debug( Debug.Type.SYNTAX, 2, "Created temporary parser" );
+
+        BufferedReader in = null;
+        try {
+            in = Useful.utf8BufferedFileReader(f);
+            ParserBase p =
+                ParserMediator.getParser(temporaryParserClass, in, f.toString());
+            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
+            // dump(original, "original-" + f.getName());
+            CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
+            // dump(cu, "dump-" + f.getName());
+            return new Result(cu, f.lastModified());
+        } catch (Exception e) {
+            String desc =
+                "Error occurred while instantiating and executing a temporary parser: "
+                + temporaryParserClass.getCanonicalName();
+            e.printStackTrace();
+            if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
+            return new Result(StaticError.make(desc, f.toString()));
+        } finally {
+            if (in != null) try { in.close(); } catch (IOException ioe) {}
+        }
+    }
+
+    /* Utilities */
+    @SuppressWarnings("unused")
+	private static void dump( Node node, String name ){
+        try{
+            ASTIO.writeJavaAst( (CompilationUnit) node, name );
+            Debug.debug( Debug.Type.SYNTAX, 1, "Dumped node to " + name );
+        } catch ( IOException e ){
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Parses a file as a compilation unit. Validates the parse by calling
