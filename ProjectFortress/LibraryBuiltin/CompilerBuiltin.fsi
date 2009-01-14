@@ -38,7 +38,10 @@ builtinPrimitive[\T\](javaClass:String):T
 trait Object extends Any
 end Object
 
-object FlatString
+trait String
+end 
+
+object FlatString extends String
 end FlatString
 
 end

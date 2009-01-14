@@ -18,10 +18,4 @@
 component CompilerLibrary
 export CompilerLibrary
 
-print(s:FlatString): () = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Print")
-println(s:FlatString): () = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Println")
-
-trait String
-end
-
 end

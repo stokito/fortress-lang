@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled22
+component Compiled0
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 export SimpleExecutable
 

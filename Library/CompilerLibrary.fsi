@@ -17,10 +17,4 @@
 
 api CompilerLibrary
 
-print(s:FlatString): ()
-println(s:FlatString): ()
-
-trait String
-end
-
 end
