@@ -33,4 +33,8 @@ else
   JAVACMD="$JAVA_HOME/bin/java"
 fi
 
+if [ -z "$JAVA_FLAGS" ] ; then
+  JAVA_FLAGS=-Xmx256m
+fi
+
 "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
