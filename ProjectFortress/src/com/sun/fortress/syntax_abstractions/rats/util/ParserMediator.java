@@ -50,8 +50,7 @@ public class ParserMediator {
 	 * @throws SecurityException
 	 * @throws NoSuchMethodException
 	 */
-	public static ParserBase getParser(APIName api_name,
-                                           Class<?> parserClass,
+	public static ParserBase getParser(Class<?> parserClass,
                                            BufferedReader reader,
                                            String filename)
 		throws IllegalArgumentException, InstantiationException,

@@ -120,7 +120,7 @@ public class TemplateParser {
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
             ParserBase parser =
-                ParserMediator.getParser(apiName, parserClass, in, apiName.toString());
+                ParserMediator.getParser(parserClass, in, apiName.toString());
             xtc.parser.Result result =
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
             if (result.hasValue()){
