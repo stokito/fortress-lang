@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api Map
-import List.{AnyList}
+import CovariantCollection.{...}
 import Set.{Set}
 
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
@@ -106,7 +106,7 @@ mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]
 
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
 
-opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyList,AnyList\]
+opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\]
 
 opr BIG {|->[\Key,Val\] g:Generator[\(Key,Val)\]}: Map[\Key,Val\]
 

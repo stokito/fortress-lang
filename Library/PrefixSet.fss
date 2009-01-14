@@ -35,6 +35,7 @@
   *****************************************************************************)
 
 component PrefixSet
+import CovariantCollection.{...}
 import List.{...}
 import Map.{...}
 export PrefixSet
@@ -428,15 +429,13 @@ prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g:Generator[
 
 opr {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] fs:F... /}: PrefixSet[\E,F\] = prefixSet[\E,F\](fs)
 
-(* (** Annoyingly, I can't get this work. It looks just like the code in Set.fss, but doesn't work the same. **)
+(** Annoyingly, I can't get this work. It looks just like the code in Set.fss, but doesn't work the same. **)
 
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]/} : Comprehension[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\F,PrefixSet[\E,F\]\](fn cc => prefixSet(cc.toImmutableArray()))
 
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] g:Generator[\F\]/}:PrefixSet[\E,F\] =
     __bigOperatorSugar[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\](BIG {/[\E,F\]/}(), g)
-
- *)
 
 
 (* Standard union & intersection code *)
