@@ -58,7 +58,8 @@ Op EncloserPair =
 
 transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
 transient private void closingComprehension =
-     w closecurly
+     w rightEncloser
+   / w closecurly
    / w closeangle
    / br ArrayComprehensionClause
    / w closesquare
@@ -196,7 +197,7 @@ transient String one = "1";
 transient String colon = ":" (!op);
 transient String colonOp = ":":singleOp / "\u003a":singleOp;
 transient String closecurly = "}";
-transient String opencurly = "{":leftEncloser;
+transient String opencurly = !(leftEncloserMulti) "{":leftEncloser;
 transient String closesquare = "]";
 transient String opensquare = !(opendoublesquare) "[":leftEncloser;
 transient String ellipses = "...";
