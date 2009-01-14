@@ -145,7 +145,8 @@ private Component Component =
      (native w)? component w a1:APIName (w Imports (w semicolon)?)?
      w DeclsRest
      { Span span = createSpan(yyStart,yyCount);
-       log(span, "Components should have at least one export statement.");
+       if ( ! withError )
+           log(span, "Components should have at least one export statement.");
        yyValue = NodeFactory.makeComponent(span, a1);
      };
 
@@ -462,7 +463,17 @@ private List<APIName> APINameList = a1:APIName a2s:(w comma w APIName)*
  */
 /* Decls ::= Decl (br Decl)* */
 transient private Option<String> DeclsRest =
-     Mods? (trait/object) (_)*
+     component (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Nested component definitions are not allowed.");
+       yyValue = Option.<String>none();
+     }
+   / api (_)*
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Nested API definitions are not allowed.");
+       yyValue = Option.<String>none();
+     }
+   / Mods? (trait/object) (_)*
      { yyValue = Option.<String>none(); }
    / (dim / unit / SI_unit / type / test / property) (_)*
      { yyValue = Option.<String>none(); }

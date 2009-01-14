@@ -174,16 +174,22 @@ class CompilerJUTest() extends TestCaseWrapper {
   def testXXXCompiled13() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled13.fss:20:3-35\n" +
-      "    Function body has type FlatString->(), but declared return type is ()" 
+      "    Function body has type FlatString->(), but declared return type is ()"
     Shell.assertStaticErrors(compile("XXXCompiled13.fss"), expected)
   }
-
 
   def testXXXCompiled14() = {
     val expected =
       STATIC_TESTS_DIR + "/XXXCompiled14.fss:20:3-22:2\n" +
       "    Missing function body."
     Shell.assertStaticErrors(compile("XXXCompiled14.fss"), expected)
+  }
+
+  def testXXXCompiled18() = {
+    val expected =
+      STATIC_TESTS_DIR + "/XXXCompiled18.fss:18:1-24:2\n" +
+      "    Nested component definitions are not allowed."
+    Shell.assertStaticErrors(compile("XXXCompiled18.fss"), expected)
   }
 
   def testXXXCompiled20() = {

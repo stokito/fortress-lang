@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component XXXCompiled19
-import Executable
+import Executable.{...}
 export Executable
 
   run():() = println "Hello, World!"
