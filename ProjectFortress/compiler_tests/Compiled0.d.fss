@@ -14,9 +14,7 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-component XXXCompiled13
+component Compiled0.d
 export Executable
 
-  run(args:String...):() = run
-
-end
+  run(args:String...):() = println "Hello, world!"
