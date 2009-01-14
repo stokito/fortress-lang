@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 api PureList
-import List.{AnyList}
+import CovariantCollection.{...}
 
 (** Finger trees, based on Ralf Hinze and Ross Paterson's article,
     Journal of Funtional Programming 16:2 2006 \cite{fingerTree}.
@@ -89,7 +89,7 @@ end
 (** Vararg factory for lists; provides aggregate list constants: *)
 opr <|[\E\] xs: E... |>: List[\E\]
 (** List comprehensions: *)
-opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyList,AnyList\]
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\]
 opr BIG <|[\T\] g:Generator[\T\]|>: List[\T\]
 
 (** Convert generator into list (simpler type than comprehension above): *)
