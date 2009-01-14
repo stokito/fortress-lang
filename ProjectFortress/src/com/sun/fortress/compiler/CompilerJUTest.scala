@@ -49,14 +49,14 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.compile(path, name + ".fss")
   }
 
-  def testXXXCompiled0() = {
+  def testCompiled0a() = {
     val expected =
-      "\n" + STATIC_TESTS_DIR + "/XXXCompiled0.fss:17:11-15\n" +
+      "\n" + STATIC_TESTS_DIR + "/Compiled0.a.fss:17:11-15\n" +
       "    Component/API names must match their enclosing file names.\n" +
-      "    File name: " + STATIC_TESTS_DIR + "/XXXCompiled0.fss\n" +
+      "    File name: " + STATIC_TESTS_DIR + "/Compiled0.a.fss\n" +
       "    Component/API name: Hello"
     try {
-      compile("XXXCompiled0.fss").iterator()
+      compile("Compiled0.a.fss").iterator()
       assert(false, "Compilation should have signaled an error")
     }
     catch {
@@ -67,14 +67,14 @@ class CompilerJUTest() extends TestCaseWrapper {
     }
   }
 
-  def testXXXCompiled1() = {
+  def testCompiled0b() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled1.fss:18:8-16\n" +
+      STATIC_TESTS_DIR + "/Compiled0.b.fss:18:8-16\n" +
       "    Could not find API Runnable in file named Runnable.fsi on path\n    " +
       STATIC_TESTS_DIR + ":" + ProjectProperties.SOURCE_PATH
 
     try {
-      compile("XXXCompiled1.fss").iterator()
+      compile("Compiled0.b.fss").iterator()
       assert(false, "Compilation should have signaled an error")
     }
     catch {
@@ -86,117 +86,117 @@ class CompilerJUTest() extends TestCaseWrapper {
     }
   }
 
-  def testXXXCompiled2() = {
+  def testCompiled0c() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled2.fss:20:28-39\n" +
+      STATIC_TESTS_DIR + "/Compiled0.c.fss:20:28-39\n" +
       "    Variable printlnSimple is not defined."
-    Shell.assertStaticErrors(compile("XXXCompiled2.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.c.fss"), expected)
   }
 
-  def testXXXCompiled3() = {
+  def testCompiled0d() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled3.fss:20:3-50\n" +
+      STATIC_TESTS_DIR + "/Compiled0.d.fss:20:3-50\n" +
       "    Unmatched delimiter \"component\"."
-    Shell.assertStaticErrors(compile("XXXCompiled3.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.d.fss"), expected)
   }
 
-  def testXXXCompiled4() = {
+  def testCompiled0e() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled4.fss:24:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.e.fss:24:1-2\n" +
       "    Unmatched delimiter \"end\"."
-    Shell.assertStaticErrors(compile("XXXCompiled4.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.e.fss"), expected)
   }
 
-  def testXXXCompiled5() = {
+  def testCompiled0f() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled5.fss:20:23\n" +
+      STATIC_TESTS_DIR + "/Compiled0.f.fss:20:23\n" +
       "    Unmatched delimiter \"(\"."
-    Shell.assertStaticErrors(compile("XXXCompiled5.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.f.fss"), expected)
   }
 
-  def testXXXCompiled6() = {
+  def testCompiled0g() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled6.fss:20:23\n" +
+      STATIC_TESTS_DIR + "/Compiled0.g.fss:20:23\n" +
       "    Unmatched delimiter \"(\".\n" +
-      STATIC_TESTS_DIR + "/XXXCompiled6.fss:24:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.g.fss:24:1-2\n" +
       "    Unmatched delimiter \"end\"."
-    Shell.assertStaticErrors(compile("XXXCompiled6.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.g.fss"), expected)
   }
 
-  def testXXXCompiled7() = {
+  def testCompiled0h() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled7.fss:20:25\n" +
+      STATIC_TESTS_DIR + "/Compiled0.h.fss:20:25\n" +
       "    Unmatched delimiter \")\"."
-    Shell.assertStaticErrors(compile("XXXCompiled7.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.h.fss"), expected)
   }
 
-  def testXXXCompiled8() = {
+  def testCompiled0i() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled8.fss:20:6\n" +
+      STATIC_TESTS_DIR + "/Compiled0.i.fss:20:6\n" +
       "    Unmatched delimiter \"[\\\"."
-    Shell.assertStaticErrors(compile("XXXCompiled8.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.i.fss"), expected)
   }
 
-  def testXXXCompiled9() = {
+  def testCompiled0j() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled9.fss:20:6-7\n" +
+      STATIC_TESTS_DIR + "/Compiled0.j.fss:20:6-7\n" +
       "    Unmatched delimiter \"[\" and \"\\]\"."
-    Shell.assertStaticErrors(compile("XXXCompiled9.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.j.fss"), expected)
   }
 
-  def testXXXCompiled10() = {
+  def testCompiled0k() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled10.fss:20:37-50\n" +
+      STATIC_TESTS_DIR + "/Compiled0.k.fss:20:37-50\n" +
       "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("XXXCompiled10.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.k.fss"), expected)
   }
 
-  def testXXXCompiled11() = {
+  def testCompiled0l() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled11.fss:20:28-21:24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:24\n" +
       "    Unmatched delimiter \"do\".\n" +
-      STATIC_TESTS_DIR + "/XXXCompiled11.fss:20:3-21:24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:24\n" +
       "    Unmatched delimiter \"component\".\n" +
-      STATIC_TESTS_DIR + "/XXXCompiled11.fss:21:25\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:21:25\n" +
       "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("XXXCompiled11.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.l.fss"), expected)
   }
 
-  def testXXXCompiled12() = {
+  def testCompiled0m() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled12.fss:20:3-22:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.m.fss:20:3-22:2\n" +
       "    Unmatched delimiter \"component\".\n" +
-      STATIC_TESTS_DIR + "/XXXCompiled12.fss:21:13-25\n" +
+      STATIC_TESTS_DIR + "/Compiled0.m.fss:21:13-25\n" +
       "    Unmatched delimiter \"\\\"\"."
-    Shell.assertStaticErrors(compile("XXXCompiled12.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.m.fss"), expected)
   }
 
-  def testXXXCompiled13() = {
+  def testCompiled0n() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled13.fss:20:3-31\n" +
+      STATIC_TESTS_DIR + "/Compiled0.n.fss:20:3-31\n" +
       "    Function body has type (String...)->(), but declared return type is ()"
-    Shell.assertStaticErrors(compile("XXXCompiled13.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.n.fss"), expected)
   }
 
-  def testXXXCompiled14() = {
+  def testCompiled0o() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled14.fss:20:3-22:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.o.fss:20:3-22:2\n" +
       "    Missing function body."
-    Shell.assertStaticErrors(compile("XXXCompiled14.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.o.fss"), expected)
   }
 
-  def testXXXCompiled18() = {
+  def testCompiled0s() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled18.fss:18:1-24:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.s.fss:18:1-24:2\n" +
       "    Nested component definitions are not allowed."
-    Shell.assertStaticErrors(compile("XXXCompiled18.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.s.fss"), expected)
   }
 
-  def testXXXCompiled20() = {
+  def testCompiled0u() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled20.fss:21:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.u.fss:21:1-2\n" +
       "    Unmatched delimiter \"end\"."
-    Shell.assertStaticErrors(compile("XXXCompiled20.fss"), expected)
+    Shell.assertStaticErrors(compile("Compiled0.u.fss"), expected)
   }
 
 }
