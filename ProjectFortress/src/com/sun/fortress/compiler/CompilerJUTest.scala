@@ -173,8 +173,8 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testXXXCompiled13() = {
     val expected =
-      STATIC_TESTS_DIR + "/XXXCompiled13.fss:20:3-35\n" +
-      "    Function body has type FlatString->(), but declared return type is ()"
+      STATIC_TESTS_DIR + "/XXXCompiled13.fss:20:3-31\n" +
+      "    Function body has type (String...)->(), but declared return type is ()"
     Shell.assertStaticErrors(compile("XXXCompiled13.fss"), expected)
   }
 

@@ -17,6 +17,6 @@
 component XXXCompiled13
 export Executable
 
-  run(args:String...):() = println
+  run(args:String...):() = run
 
 end
