@@ -45,7 +45,7 @@ import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
-import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Useful;
@@ -120,7 +120,7 @@ public class TemplateParser {
             Debug.debug(Debug.Type.SYNTAX, 3,
                         "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
             ParserBase parser =
-                ParserMediator.getParser(parserClass, in, apiName.toString());
+                RatsUtil.getParser(parserClass, in, apiName.toString());
             xtc.parser.Result result =
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
             if (result.hasValue()){

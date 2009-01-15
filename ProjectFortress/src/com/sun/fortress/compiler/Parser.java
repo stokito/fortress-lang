@@ -65,7 +65,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.phases.Transform;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
-import com.sun.fortress.syntax_abstractions.rats.util.ParserMediator;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
@@ -204,8 +204,8 @@ public class Parser {
         try {
             in = Useful.utf8BufferedFileReader(f);
             ParserBase p =
-                ParserMediator.getParser(temporaryParserClass, in, f.toString());
-            CompilationUnit original = Parser.checkResultCU(ParserMediator.parse(p), p, f.getName());
+                RatsUtil.getParser(temporaryParserClass, in, f.toString());
+            CompilationUnit original = Parser.checkResultCU(RatsUtil.parse(p), p, f.getName());
             // dump(original, "original-" + f.getName());
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
             // dump(cu, "dump-" + f.getName());
