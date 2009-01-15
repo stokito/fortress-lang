@@ -35,7 +35,7 @@
   *****************************************************************************)
 
 component PrefixSet
-import CovariantCollection.{AnyCovColl}
+import CovariantCollection.{...}
 import List.{...}
 import Map.{...}
 export PrefixSet
