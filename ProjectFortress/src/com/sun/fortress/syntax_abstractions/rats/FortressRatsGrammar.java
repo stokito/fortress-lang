@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,81 +29,63 @@ import xtc.tree.Attribute;
 
 public class FortressRatsGrammar {
 
-	private static final String FORTRESS = "com.sun.fortress.parser.templateparser.TemplateParser";
+    private static final String TEMPLATEPARSER = "com.sun.fortress.parser.templateparser.";
+    private HashMap<String, Module> map;
 
-	private static class RatsFilenameFilter implements FilenameFilter {
-		public boolean accept(File dir, String name) {
-			return name.endsWith(".rats");
-		}		
-	}
-	
-	private HashMap<String, Module> map;
+    public FortressRatsGrammar() {
+        this.map = new HashMap<String, Module>();
+    }
 
-	public FortressRatsGrammar() {
-		this.map = new HashMap<String, Module>();
-	}
+    private static class RatsFilenameFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".rats");
+        }
+    }
 
-	/**
-	 * Initialize the Fortress Rats! grammar by loading and parsing the modules.
-	 * @param srcDir
-	 */
-	public void initialize(String srcDir) {
-		File f = new File(srcDir);
-		String[] ls = f.list(new RatsFilenameFilter());
-		for(String s: ls) {
-			String name = s.substring(0, s.length()-5);
-			String filename = srcDir+File.separatorChar+s;
-			if (new File(filename).isFile()) {
-				this.map.put("com.sun.fortress.parser.templateparser."+name, RatsUtil.getRatsModule(filename));
-			}
-		}
-	}
-
-	/**
-	 * Assumes that initialize has been called.
-	 * @param fortressName
-	 * @param freshFortressName
-	 */
-	public void setName(String name) {
-		Module m = this.map.get(FORTRESS);
-		List<Attribute> attrs = new LinkedList<Attribute>();
-		for (Attribute attribute: m.attributes) {
-			if (attribute.getName().equals("parser")) {
-				attrs.add(new Attribute("parser", "com.sun.fortress.parser.templateparser."+name));
-			}
-			else {
-				attrs.add(attribute);
-			}
-		}
-//		attrs.add(new Attribute("verbose"));
-		m.attributes = attrs;
-	}
-
-	public void replace(Collection<Module> modules) {
-		for (Module m: modules) {
-			this.map.put(m.name.name, m);
-		}
-	}
-
-	public void clone(String targetDir) {
-		for (Module m: this.map.values()) {
-			RatsUtil.writeRatsModule(m, targetDir);
-		}
-	}
-
-        /* hack to copy the base parser */
-        /*
-        public void hackClone(String targetDir){
-            String srcDir = RatsUtil.getBaseParserPath();
-            File f = new File(srcDir);
-            String[] ls = f.list(new RatsFilenameFilter());
-            for(String s: ls) {
-                String name = s.substring(0, s.length()-5);
-                String filename = srcDir+File.separatorChar+s;
-                if (new File(filename).isFile()) {
-                    RatsUtil.writeRatsModule( RatsUtil.getRatsModule( filename ), targetDir);
-                }
+    /**
+     * Initialize the Fortress Rats! grammar by loading and parsing the modules.
+     * @param srcDir
+     */
+    public void initialize(String srcDir) {
+        File f = new File(srcDir);
+        String[] ls = f.list(new RatsFilenameFilter());
+        for (String s: ls) {
+            String name = s.substring(0, s.length()-5);
+            String filename = srcDir+File.separatorChar+s;
+            if (new File(filename).isFile()) {
+                this.map.put(TEMPLATEPARSER+name,
+                             RatsUtil.getRatsModule(filename));
             }
         }
-        */
+    }
+
+    public void replace(Collection<Module> modules) {
+        for (Module m: modules) {
+            this.map.put(m.name.name, m);
+        }
+    }
+
+    /**
+     * Assumes that initialize has been called.
+     */
+    public void setName(String name) {
+        Module m = this.map.get(TEMPLATEPARSER+"TemplateParser");
+        List<Attribute> attrs = new LinkedList<Attribute>();
+        for (Attribute attribute: m.attributes) {
+            if (attribute.getName().equals("parser")) {
+                attrs.add(new Attribute("parser", TEMPLATEPARSER+name));
+            }
+            else {
+                attrs.add(attribute);
+            }
+        }
+        //attrs.add(new Attribute("verbose"));
+        m.attributes = attrs;
+    }
+
+    public void clone(String targetDir) {
+        for (Module m: this.map.values()) {
+            RatsUtil.writeRatsModule(m, targetDir);
+        }
+    }
 }

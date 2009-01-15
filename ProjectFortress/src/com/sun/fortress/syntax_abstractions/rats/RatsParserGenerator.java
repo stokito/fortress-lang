@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -18,9 +18,7 @@
 /*
  * Class given a set of Rats! modules it generates a new Fortress parser extended
  * with the modifications in the given modules.
- *
  */
-
 package com.sun.fortress.syntax_abstractions.rats;
 
 import java.io.File;
@@ -32,7 +30,7 @@ import java.util.Collection;
 import xtc.parser.Module;
 
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.useful.Debug;
 
 public class RatsParserGenerator {
@@ -40,17 +38,14 @@ public class RatsParserGenerator {
     public static Class<?> generateParser(Collection<Module> modules) {
         String grammarTempDir = RatsUtil.getTempDir();
         String destinationDir = grammarTempDir + RatsUtil.TEMPLATEPARSER;
-        String freshFortressName = FreshName.getFreshName("TemplateParser");
+        String freshFortressName = RatsUtil.getFreshName("TemplateParser");
 
         FortressRatsGrammar fortressGrammar = new FortressRatsGrammar();
         fortressGrammar.initialize(RatsUtil.getParserPath());
         fortressGrammar.initialize(RatsUtil.getTemplateParserPath());
         fortressGrammar.replace(modules);
         fortressGrammar.setName(freshFortressName);
-        // fortressGrammar.injectAlternative(new GapAlternative());
         fortressGrammar.clone(grammarTempDir);
-
-        // fortressGrammar.hackClone(grammarTempDir);
 
         String fortressRats = destinationDir + "TemplateParser" +".rats";
         String[] args = {"-no-exit",
@@ -81,9 +76,10 @@ public class RatsParserGenerator {
         xtc.parser.Rats.main(args);
 
         String fortressJava = RatsUtil.TEMPLATEPARSER + freshFortressName +".java";
-        int parserResult = JavaC.compile(grammarTempDir, grammarTempDir, grammarTempDir + fortressJava);
+        int parserResult = JavaC.compile(grammarTempDir, grammarTempDir,
+                                         grammarTempDir + fortressJava);
         if (parserResult != 0) {
-            throw new RuntimeException("A compiler error occured while compiling a temporary parser");
+            throw new RuntimeException("A compiler error occured while compiling a temporary parser.");
         }
 
         ParserLoader parserLoader = new ParserLoader(grammarTempDir);
@@ -94,8 +90,7 @@ public class RatsParserGenerator {
         }
     }
 
-    public static class ParserLoader extends ClassLoader {
-
+    private static class ParserLoader extends ClassLoader {
         private String basedir;
 
         public ParserLoader(String basedir) {
@@ -112,7 +107,6 @@ public class RatsParserGenerator {
         }
 
         private byte[] loadClassData(String classname) throws ClassNotFoundException {
-
             byte[] res = null;
             classname = classname.replace('.', File.separatorChar);
 

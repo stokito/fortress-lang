@@ -111,17 +111,26 @@ public abstract class RatsUtil {
             String name = getModulePath(module.name.name);
             File file = new File(tempDir+name+".rats");
             fo = new FileOutputStream(file);
-            PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(), true);
+            PrettyPrinter pp = new PrettyPrinter(new Printer(fo), new JavaAST(),
+                                                 true);
             pp.visit(module);
             pp.flush();
             fo.flush();
             fo.close();
-        } catch (FileNotFoundException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (IOException ee) {
-            // TODO Auto-generated catch block
-            ee.printStackTrace();
+        } catch (FileNotFoundException e) {
+            if (Debug.isOnMax()) {
+                System.err.println(e.getMessage());
+                e.printStackTrace();
+            } else {
+                System.err.println(Shell.turnOnDebugMessage);
+            }
+        } catch (IOException e) {
+            if (Debug.isOnMax()) {
+                System.err.println(e.getMessage());
+                e.printStackTrace();
+            } else {
+                System.err.println(Shell.turnOnDebugMessage);
+            }
         }
     }
 
@@ -129,7 +138,8 @@ public abstract class RatsUtil {
         File dir = new File(tempDir+TEMPLATEPARSER);
         if (!dir.isDirectory()) {
             if (!dir.mkdirs()) {
-                throw new RuntimeException("Could not create directories: "+dir.getAbsolutePath());
+                throw new RuntimeException("Could not create directories: "+
+                                           dir.getAbsolutePath());
             }
         }
     }
@@ -147,8 +157,7 @@ public abstract class RatsUtil {
     }
 
     public static String getTempDir() {
-        // return System.getProperty("java.io.tmpdir")+SEP;
-        try{
+        try {
             return IOUtil.createAndMarkTempDirectory("fortress","rats").getCanonicalPath() + SEP;
         } catch ( IOException e ){
             return System.getProperty("java.io.tmpdir")+SEP;
@@ -159,4 +168,14 @@ public abstract class RatsUtil {
         return ProjectProperties.FORTRESS_AUTOHOME+SEP+"ProjectFortress"+SEP+"src"+SEP;
     }
 
+    /* Fresh name stuff */
+    private static int freshid = 0;
+
+    public static String getFreshName(String s) {
+        return s+(++freshid);
+    }
+
+    public static void resetFreshName() {
+        freshid = 0;
+    }
 }

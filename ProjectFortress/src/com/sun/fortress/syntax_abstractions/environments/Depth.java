@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -41,7 +41,7 @@ public abstract class Depth {
 
     public static class BaseDepth extends Depth {
         public Depth getParent() {
-            throw new UnsupportedOperationException("cannot get parent of BaseDepth");
+            throw new UnsupportedOperationException("Cannot get parent of BaseDepth.");
         }
         public String getType(String baseType) {
             return baseType;
