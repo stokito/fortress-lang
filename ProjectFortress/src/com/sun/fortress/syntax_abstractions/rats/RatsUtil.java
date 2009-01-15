@@ -22,6 +22,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +38,7 @@ import xtc.parser.ModuleList;
 import xtc.parser.ModuleName;
 import xtc.parser.PParser;
 import xtc.parser.ParseError;
+import xtc.parser.ParserBase;
 import xtc.parser.PrettyPrinter;
 import xtc.parser.Result;
 import xtc.parser.SemanticValue;
@@ -42,7 +47,6 @@ import xtc.tree.Printer;
 import xtc.type.JavaAST;
 
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.syntax_abstractions.rats.util.ModuleInfo;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.Shell;
@@ -178,4 +182,81 @@ public abstract class RatsUtil {
     public static void resetFreshName() {
         freshid = 0;
     }
+
+    /* From ParserMediator.java */
+
+    /**
+     * Instantiate a new instance of the given parserClass
+     * which must be a subtype of xtc.parser.ParserBase.
+     * The instantiated parser object is stored in a field and returned;
+     * if anything goes wrong, an exception is thrown.
+     * @param parserClass
+     * @param reader
+     * @param filename
+     * @return The new instantiated parser object
+     * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     */
+    public static ParserBase getParser(Class<?> parserClass,
+                                       BufferedReader reader,
+                                       String filename)
+        throws IllegalArgumentException, InstantiationException,
+               IllegalAccessException, InvocationTargetException,
+               SecurityException, NoSuchMethodException {
+        Constructor<?> constructor =
+            parserClass.getConstructor(Reader.class, String.class);
+        return (ParserBase) constructor.newInstance(reader, filename);
+    }
+
+    /**
+     * Call the method pFile(0) on the current parser object
+     * created using instantiation.
+     * @return The xtc.parser.Result object returned by the call to pFile(0).
+     * @throws IllegalArgumentException
+     * @throws SecurityException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     */
+    public static Result parse( ParserBase parser )
+        throws IllegalArgumentException, SecurityException,
+               IllegalAccessException, InvocationTargetException,
+               NoSuchMethodException {
+        String methodName = "pFile";
+        Class[] types = new Class[] {int.class};
+        Object args = 0;
+        return (Result) invokeMethod(parser, methodName, types, args);
+    }
+
+    /**
+     * Look up the given method in the current parser object
+     * using reflection using the supplied argument types.
+     * The method is invoked with the supplied arguments.
+     * If no method exists with the given name and argument types,
+     * an exception is thrown.
+     * If the arguments are not consistent with the declared types,
+     * an exception is thrown.
+     * @param methodName
+     * @param types
+     * @param args
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
+     * @throws NoSuchMethodException
+     * @throws SecurityException
+     */
+    private static Object invokeMethod(ParserBase parser, String methodName,
+                                       Class[] types, Object args)
+        throws IllegalArgumentException, IllegalAccessException,
+               InvocationTargetException, SecurityException,
+               NoSuchMethodException {
+        Method method = parser.getClass().getMethod(methodName, types);
+        Object o = method.invoke(parser, args);
+        return o;
+    }
+
 }
