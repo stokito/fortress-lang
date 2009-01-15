@@ -35,10 +35,12 @@
   *****************************************************************************)
 
 component PrefixSet
-import CovariantCollection.{...}
+import CovariantCollection.{AnyCovColl}
 import List.{...}
 import Map.{...}
 export PrefixSet
+
+
 
 (***
    An ancillary method: joining strings by separating them with the given string
@@ -335,7 +337,7 @@ trait PrefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     end
 
 
-    opr SUBSETEQ(self, other:PrefixSet[\E,F\]): Boolean = (other.isMember() OR NOT isMember()) AND (BIG AND[(k,v) <- children()]    (k IN other.children()) AND (children()[k] SUBSETEQ (other.children())[k]))
+    opr SUBSETEQ(self, other:PrefixSet[\E,F\]): Boolean = (other.isMember() OR NOT isMember()) AND (BIG AND[(k,v) <- children()] (k IN other.children()) AND (children()[k] SUBSETEQ (other.children())[k]))
     opr SUBSET(self, other:PrefixSet[\E,F\]): Boolean = (NOT (self = other)) AND (self SUBSETEQ other)
 
     opr SUPSETEQ(self, other:PrefixSet[\E,F\]): Boolean = other SUBSETEQ self
@@ -429,13 +431,12 @@ prefixSet[\E extends StandardTotalOrder[\E\], F extends List[\E\]\](g:Generator[
 
 opr {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] fs:F... /}: PrefixSet[\E,F\] = prefixSet[\E,F\](fs)
 
-(** Annoyingly, I can't get this work. It looks just like the code in Set.fss, but doesn't work the same. **)
-
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]/} : Comprehension[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\F,PrefixSet[\E,F\]\](fn cc => prefixSet(cc.toImmutableArray()))
 
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] g:Generator[\F\]/}:PrefixSet[\E,F\] =
     __bigOperatorSugar[\F,PrefixSet[\E,F\],AnyCovColl,AnyCovColl\](BIG {/[\E,F\]/}(), g)
+
 
 
 (* Standard union & intersection code *)
