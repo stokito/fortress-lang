@@ -35,7 +35,7 @@
   *****************************************************************************)
 
 api PrefixSet
-import CovariantCollection.{...}
+import CovariantCollection.{AnyCovColl}
 import List.{...}
 import Map.{...}
 object StringJoinReduction(s: String) extends MonoidReduction[\String\]
@@ -114,6 +114,7 @@ opr {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] fs: F... /}: Pr
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]  /}: Comprehension[\F, PrefixSet[\E, F\], AnyCovColl, AnyCovColl\]
 
 opr BIG {/[\E extends StandardTotalOrder[\E\], F extends List[\E\]\] g: Generator[\F\] /}: PrefixSet[\E, F\]
+
 
 object Union[\E extends StandardTotalOrder[\E\], F extends List[\E\]\]
     extends CommutativeMonoidReduction[\PrefixSet[\E, F\]\]
