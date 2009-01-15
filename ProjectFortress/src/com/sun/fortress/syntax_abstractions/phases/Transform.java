@@ -17,7 +17,7 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -95,7 +95,7 @@ public class Transform extends TemplateUpdateVisitor {
 
     /* generate a new unique id. a.k.a gensym */
     private Id generateId(Id original){
-        return NodeFactory.makeId(original, FreshName.getFreshName(original.getText() + "-g"));
+        return NodeFactory.makeId(original, RatsUtil.getFreshName(original.getText() + "-g"));
     }
 
     /*

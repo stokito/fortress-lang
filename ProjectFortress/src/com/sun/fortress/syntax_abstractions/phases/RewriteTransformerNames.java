@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,7 +32,7 @@ import com.sun.fortress.nodes.NamedTransformerDef;
 import com.sun.fortress.nodes.PreTransformerDef;
 import com.sun.fortress.nodes.ASTNodeInfo;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -72,7 +72,7 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
      */
     private String transformationName( String name ){
         return api.unwrap() + "_" + grammar.unwrap() + "_" +
-            FreshName.getFreshName( name + "Transformer" );
+            RatsUtil.getFreshName( name + "Transformer" );
     }
 
     /*

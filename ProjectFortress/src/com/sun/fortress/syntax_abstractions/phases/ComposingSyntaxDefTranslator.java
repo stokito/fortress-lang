@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -71,7 +71,7 @@ import com.sun.fortress.syntax_abstractions.environments.Depth.OptionDepth;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
@@ -113,9 +113,9 @@ public class ComposingSyntaxDefTranslator {
         return new Sequence(elms);
     }
 
-    public static Element createAction(TransformerDecl transformation,
-                                       String type,
-                                       GapEnv gapEnv) {
+    private static Element createAction(TransformerDecl transformation,
+                                        String type,
+                                        GapEnv gapEnv) {
         List<String> code = new LinkedList<String>();
         List<Integer> indents = new LinkedList<Integer>();
 
@@ -126,7 +126,7 @@ public class ComposingSyntaxDefTranslator {
             String name = def.getName();
             code.add(String.format("yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), \"%s\", %s, %s);",
                                    type, name, BOUND_VARIABLES, parameters));
-            indents.add(3);
+            indents.add(4);
         } else {
             throw new MacroError("Don't know what to do with " + transformation +
                                  " " + transformation.getClass().getName());
@@ -137,15 +137,15 @@ public class ComposingSyntaxDefTranslator {
     private static String collectParameters( NamedTransformerDef def,
 					     List<String> code,
 					     List<Integer> indents ){
-        String variable = FreshName.getFreshName("parameterList");
+        String variable = RatsUtil.getFreshName("parameterList");
         code.add(String.format("java.util.List %s = new java.util.LinkedList<String>();",
 			       variable));
-        indents.add(3);
+        indents.add(4);
         for ( NonterminalParameter parameter : def.getParameters() ){
             code.add( String.format( "%s.add( \"%s\" );",
 				     variable,
 				     parameter.getName().getText() ) );
-            indents.add(3);
+            indents.add(4);
         }
         return variable;
     }
@@ -335,10 +335,9 @@ public class ComposingSyntaxDefTranslator {
     }
 
     /**
-     * Translate an atom with a modifier( +, ?, + ) to a rats! production.
+     * Translate an atom with a modifier( +, ?, + ) to a Rats! production.
      */
     private class ModifierTranslator extends NodeDepthFirstVisitor_void {
-
         SymbolTranslator inner;
         Modifier modifier;
 
@@ -348,8 +347,8 @@ public class ComposingSyntaxDefTranslator {
         }
 
         /**
-         * Just a plain element with a modifier attached. Return the same element wrapped with
-         * the modifier.
+         * Just a plain element with a modifier attached.
+         * Return the same element wrapped with the modifier.
          */
         @Override
         public void defaultCase(Node that) {
@@ -388,7 +387,7 @@ public class ComposingSyntaxDefTranslator {
             that.accept(new VariableCollector(varMap));
 
             List<Id> varIds = new ArrayList<Id>(varMap.keySet());
-            String freshName = FreshName.getFreshName("g");
+            String freshName = RatsUtil.getFreshName("g");
             List<Element> all = new ArrayList<Element>();
             for (SyntaxSymbol syms : that.getSymbols()) {
                 syms.accept(new SymbolTranslator(inner.gapEnv, all));
@@ -409,7 +408,7 @@ public class ComposingSyntaxDefTranslator {
 
             List<Integer> indents2 = new LinkedList<Integer>();
             List<String> code2 = new LinkedList<String>();
-            String packedName = FreshName.getFreshName("packed");
+            String packedName = RatsUtil.getFreshName("packed");
             indents2.add(1);
             code2.add(modifier.preUnpack(packedName, freshName));
             int varCount = varIds.size();
@@ -468,7 +467,7 @@ public class ComposingSyntaxDefTranslator {
 
         /**
          * If the group did not occur then the packedName variable
-         * will be null. Set the pattern variable to null if the
+         * will be null.  Set the pattern variable to null if the
          * packedName is null otherwise set it to the index'th object.
          */
         public String unpackDecl(String fullType, String varName, String packedName, int index) {
@@ -478,10 +477,10 @@ public class ComposingSyntaxDefTranslator {
         }
     }
 
-    public static void createVariableBinding(final List<String> code,
-                                             final List<Integer> indents,
-                                             final GapEnv gapEnv) {
-        indents.add(3);
+    private static void createVariableBinding(final List<String> code,
+                                              final List<Integer> indents,
+                                              final GapEnv gapEnv) {
+        indents.add(4);
         code.add("Map<String, Level> "+BOUND_VARIABLES+" = new HashMap<String, Level>();");
 
         final List<String> listCode = new LinkedList<String>();
@@ -509,10 +508,8 @@ public class ComposingSyntaxDefTranslator {
                 }
 
                 public String forListDepth(ListDepth d) {
-
                     return source;
-
-                    // throw new MacroError("not supported now");
+                    //throw new MacroError("not supported now");
                     /*
                     String fresh = FreshName.getFreshName("list");
                     String innerType = d.getParent().getType(astNode);
@@ -545,12 +542,12 @@ public class ComposingSyntaxDefTranslator {
                     */
                 }
                 @SuppressWarnings("unused")
-				private void addCodeLine(String line){
+                private void addCodeLine(String line){
                     listIndents.add(indent);
                     listCode.add(line);
                 }
             };
-            String resultVar = depth.accept(new DepthConvertVisitor(var, 3));
+            String resultVar = depth.accept(new DepthConvertVisitor(var, 4));
             int levelDepth = depth.accept( new Depth.Visitor<Integer>(){
                 public Integer forOptionDepth(OptionDepth d) {
                     return 1 + d.getParent().accept( this );
@@ -563,7 +560,7 @@ public class ComposingSyntaxDefTranslator {
                 }
             });
 
-            indents.add(3);
+            indents.add(4);
             code.add(String.format("%s.put(\"%s\", new Level(%d, %s));",
                                    BOUND_VARIABLES,
                                    var,
@@ -584,8 +581,8 @@ public class ComposingSyntaxDefTranslator {
 
     private static String convertToStringLiteralExpr(String id, List<String> code,
                                                      List<Integer> indents) {
-        String name = FreshName.getFreshName("stringLiteral");
-        indents.add(3);
+        String name = RatsUtil.getFreshName("stringLiteral");
+        indents.add(4);
         code.add("StringLiteralExpr " + prefixJavaVariable(name) +
                  " = ExprFactory.makeStringLiteralExpr(NodeFactory.makeSpan(\"blame ComposingSyntaxDefTranslater\"), \"\"+" + prefixJavaVariable(id) + ");");
         return name;

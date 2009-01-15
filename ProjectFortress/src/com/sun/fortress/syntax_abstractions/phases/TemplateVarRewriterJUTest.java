@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,7 +27,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.syntax_abstractions.rats.util.FreshName;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
 import com.sun.fortress.syntax_abstractions.environments.NTEnv;
@@ -78,7 +78,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         vars.put(NodeFactory.makeId(span, "foo"), expr);
         vars.put(NodeFactory.makeId(span, "bar"), expr);
         vars.put(NodeFactory.makeId(span, "Baz"), expr);
-        FreshName.reset();
+        RatsUtil.resetFreshName();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         String r = tvr.rewriteVars("a print ( foo Baz ) bar");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
@@ -98,7 +98,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         vars.put(NodeFactory.makeId(span, "foo"), expr);
         vars.put(NodeFactory.makeId(span, "bar"), expr);
         vars.put(NodeFactory.makeId(span, "Baz"), expr);
-        FreshName.reset();
+        RatsUtil.resetFreshName();
         TemplateVarRewriter tvr = new TemplateVarRewriter(emptyGapEnv, vars);
         String r = tvr.rewriteVars("a print ( foo Baz(bar) )");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
@@ -116,7 +116,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         vars.put(NodeFactory.makeId(span, "foo"), expr);
         vars.put(NodeFactory.makeId(span, "bar"), expr);
         vars.put(NodeFactory.makeId(span, "Baz"), expr);
-        FreshName.reset();
+        RatsUtil.resetFreshName();
         String r = tvr.rewriteVars("a print foo Baz(bar)");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
         String v3 = TemplateVarRewriter.getGapString("Baz(bar)", "Expr");
@@ -134,7 +134,7 @@ public class TemplateVarRewriterJUTest extends TestCase {
         vars.put(NodeFactory.makeId(span, "bar"), expr);
         vars.put(NodeFactory.makeId(span, "Baz"), expr);
         vars.put(NodeFactory.makeId(span, "Boz"), expr);
-        FreshName.reset();
+        RatsUtil.resetFreshName();
         String r = tvr.rewriteVars("a print foo Baz(bar, Boz) bar");
         String v1 = TemplateVarRewriter.getGapString("foo", "Expr");
         String v2 = TemplateVarRewriter.getGapString("Baz(bar, Boz)", "Expr");

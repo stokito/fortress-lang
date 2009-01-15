@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,13 +25,12 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.exceptions.MacroError;
 
 public class GapEnv {
-
     private final NTEnv ntEnv;
     private final Map<Id, Depth> varToDepth;
     private final Map<Id, Id> varToNT;
     private final Set<Id> stringVars;
 
-    protected GapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth, 
+    protected GapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth,
                      Map<Id, Id> varToNT, Set<Id> stringVars) {
         this.ntEnv = ntEnv;
         this.varToDepth = varToDepth;
@@ -56,7 +55,6 @@ public class GapEnv {
     }
 
     /* Nonterminals */
-
     public boolean hasNonterminal(Id var) {
         return varToNT.containsKey(var);
     }
@@ -71,7 +69,6 @@ public class GapEnv {
     }
 
     /* Types */
-
     /** id must be bound to a nonterminal
      * the type does not take depth into account
      * (that is, e:Expr* => e has type Expr, not List[\Expr\]

@@ -226,7 +226,9 @@ StringLiteralExpr StringLiteralExpr =
    ;
 
 private String StringLiteralContents =
-     StringLiteralContent* a1:[\n\f\r]+
+     StringLiteralContent* a1:[\n\f\r]+ &( w EndOfFile )
+     { yyValue = ""; }
+   / StringLiteralContent* a1:[\n\f\r]+
      { log(createSpan(yyStart,yyCount), "Unmatched delimiter \"\\\"\".");
        yyValue = "";
      }

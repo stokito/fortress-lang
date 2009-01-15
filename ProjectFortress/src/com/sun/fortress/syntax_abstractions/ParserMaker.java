@@ -146,7 +146,7 @@ public class ParserMaker {
         addKeywords(userModule, peg);
 
         // For each extended native nonterminal,
-        //   add new module's production to top
+        //   add new module's production to top.
         Map<String, Module> baseModules = getBaseModules(RatsUtil.getParserPath());
         Map<String, Module> templateModules = getBaseModules(RatsUtil.getTemplateParserPath());
         for (Id definedByPegId : peg.keySet()) {
@@ -177,19 +177,19 @@ public class ParserMaker {
                     } else {
                         // Debug.debug(Debug.Type.SYNTAX, 4,
                         //             "Ignoring production " + p.name.name +
-                        //            ". " + p.getClass().getName());
+                        //            ": " + p.getClass().getName());
                     }
                 }
                 if (!found) {
                     throw new MacroError(definedByPegId,
                                          "Failed to modify " + definedByPeg +
-                                         ". Could not find a production for it.");
+                                         ".  Could not find a production for it.");
                 }
             }
         }
 
-        // Add imports from every (ordinary) fortress module
-        // Add import from USER to every fortress module
+        // Add imports from every (ordinary) fortress module.
+        // Add import from USER to every fortress module.
         Module mainModule = null;
         ModuleName uname = new ModuleName("USERvar");
         /* modify fortress modules */
@@ -216,11 +216,6 @@ public class ParserMaker {
             if (!baseModule.name.name.equals(TEMPLATEPARSER) &&
                 !baseModule.name.name.equals(FORTRESS) &&
                 !baseModule.name.name.equals(TEMPLATECOMPILATION)) {
-                // ModuleName bname = new ModuleName(afterLastDot(baseModule.name.name));
-                // List<ModuleName> ups = new LinkedList<ModuleName>(userModule.parameters.names);
-                // ups.add(bname);
-                // userModule.parameters = new ModuleList(ups);
-                // userModule.dependencies.add(new ModuleImport(bname));
                 List<ModuleName> bps = new LinkedList<ModuleName>();
                 if (baseModule.parameters != null)
                     bps.addAll(baseModule.parameters.names);

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -23,7 +23,6 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.PrefixedSymbol;
 import com.sun.fortress.nodes.AndPredicateSymbol;
 import com.sun.fortress.nodes.NotPredicateSymbol;
-
 import com.sun.fortress.nodes.RepeatSymbol;
 import com.sun.fortress.nodes.RepeatOneOrMoreSymbol;
 import com.sun.fortress.nodes.OptionalSymbol;
@@ -48,7 +47,7 @@ public class VariableCollector extends NodeDepthFirstVisitor_void {
 
     @Override public void defaultCase(com.sun.fortress.nodes.Node that) {
         return;
-    }	
+    }
 
     @Override public void forPrefixedSymbol(PrefixedSymbol that) {
         this.depthMap.put(that.getId(), this.depth);

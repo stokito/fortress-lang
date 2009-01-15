@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -112,12 +112,12 @@ public class EnvFactory {
         return new NTEnv(ntToType);
     }
 
-    public static GapEnv makeTestingGapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth, 
+    public static GapEnv makeTestingGapEnv(NTEnv ntEnv, Map<Id, Depth> varToDepth,
                                            Map<Id, Id> varToNT, Set<Id> stringVars) {
         return new GapEnv(ntEnv, varToDepth, varToNT, stringVars);
     }
 
-    public static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
+    public static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis,
                                                         Collection<GrammarIndex> grammars) {
         Map<String, GrammarIndex> grammarMap = new HashMap<String, GrammarIndex>();
         for (ApiIndex a2: apis) {
@@ -130,12 +130,12 @@ public class EnvFactory {
             GrammarDecl og = grammar.ast();
             List<GrammarIndex> ls = new LinkedList<GrammarIndex>();
             for (Id n: og.getExtendsClause()) {
-                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() + 
+                Debug.debug(Debug.Type.SYNTAX, 3, "Add grammar " + n.getText() +
                             "[" + grammarMap.get(n.getText()) +
                             "] to the extends list of " + grammar );
                 ls.add(grammarMap.get(n.getText()));
             }
-            Debug.debug(Debug.Type.SYNTAX, 3, 
+            Debug.debug(Debug.Type.SYNTAX, 3,
                         "Grammar " + grammar.getName() + " extends " + ls);
             grammar.setExtended(ls);
         }

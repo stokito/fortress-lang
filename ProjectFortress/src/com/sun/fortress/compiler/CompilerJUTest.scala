@@ -102,7 +102,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0e() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.e.fss:24:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.e.fss:24:1-3\n" +
       "    Unmatched delimiter \"end\"."
     Shell.assertStaticErrors(compile("Compiled0.e.fss"), expected)
   }
@@ -118,7 +118,7 @@ class CompilerJUTest() extends TestCaseWrapper {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.g.fss:20:23\n" +
       "    Unmatched delimiter \"(\".\n" +
-      STATIC_TESTS_DIR + "/Compiled0.g.fss:24:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.g.fss:24:1-3\n" +
       "    Unmatched delimiter \"end\"."
     Shell.assertStaticErrors(compile("Compiled0.g.fss"), expected)
   }
@@ -153,9 +153,9 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0l() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:28-21:25\n" +
       "    Unmatched delimiter \"do\".\n" +
-      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.l.fss:20:3-21:25\n" +
       "    Unmatched delimiter \"component\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.l.fss:21:25\n" +
       "    Unmatched delimiter \"\\\"\"."
@@ -164,7 +164,7 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0m() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.m.fss:20:3-22:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.m.fss:20:3-22:3\n" +
       "    Unmatched delimiter \"component\".\n" +
       STATIC_TESTS_DIR + "/Compiled0.m.fss:21:13-25\n" +
       "    Unmatched delimiter \"\\\"\"."
@@ -180,21 +180,21 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0o() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.o.fss:20:3-22:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.o.fss:20:3-22:3\n" +
       "    Missing function body."
     Shell.assertStaticErrors(compile("Compiled0.o.fss"), expected)
   }
 
   def testCompiled0s() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.s.fss:18:1-24:2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.s.fss:18:1-24:3\n" +
       "    Nested component definitions are not allowed."
     Shell.assertStaticErrors(compile("Compiled0.s.fss"), expected)
   }
 
   def testCompiled0u() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.u.fss:21:1-2\n" +
+      STATIC_TESTS_DIR + "/Compiled0.u.fss:21:1-3\n" +
       "    Unmatched delimiter \"end\"."
     Shell.assertStaticErrors(compile("Compiled0.u.fss"), expected)
   }
