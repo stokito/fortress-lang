@@ -48,9 +48,9 @@ Vim: A directory containing vim script files for syntax highlighting.
 To enable syntax highlighting for fortress code copy the sub-directories
 under Vim/ to your ~/.vim directory.
   $ mkdir ~/.vim
-  $ cp -a Vim/ftdetect Vim/syntax ~/.vim/.
+  $ cp -a Vim/ftdetect Vim/syntax Vim/ftplugin ~/.vim/.
 If your cp command does not accept the -a option then use -r
-  $ cp -r Vim/ftdetect Vim/syntax ~/.vim/.
+  $ cp -r Vim/ftdetect Vim/syntax Vim/ftplugin ~/.vim/.
 
 You should also add the following line to your ~/.vimrc file
   au BufNewFile,BufRead *.fsi,*.fss set ft=fortress
