@@ -19,10 +19,10 @@ package com.sun.fortress.interpreter.glue.prim;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -157,23 +157,30 @@ protected FNativeObject makeNativeObject(List<FValue> args,
         }
     }
 
+    /**
+       This code used to use FileDescriptor.{out,err}, but now uses
+       System.{out.err}.  We only *write* to the underlying
+       PrintStream, which according to the Java 1.6 docs will bypass
+       the system encoding.  This means we can force UTF-8 here and it
+       will actually mean something (rather than resulting in bogus
+       double-encoded nonsense).
+     **/
     private static abstract class v2w extends NativeFn0 {
-        protected abstract FileDescriptor fileDescriptor();
+        protected abstract OutputStream outputStream();
         protected abstract String dummyName();
 
         @Override
         public final FValue applyToArgs() {
-            FileOutputStream fd = new FileOutputStream(this.fileDescriptor());
-            OutputStreamWriter out = new OutputStreamWriter(fd, Charset
-                    .forName("UTF-8"));
+            OutputStreamWriter out =
+                new OutputStreamWriter(this.outputStream(), Charset.forName("UTF-8"));
             return new PrimWriter(this.dummyName(), out);
         }
     }
 
     public static final class outputWriter extends v2w {
         @Override
-        protected FileDescriptor fileDescriptor() {
-            return FileDescriptor.out;
+        protected OutputStream outputStream() {
+            return System.out;
         }
         @Override
         protected String dummyName() {
@@ -183,8 +190,8 @@ protected FNativeObject makeNativeObject(List<FValue> args,
 
     public static final class errorWriter extends v2w {
         @Override
-        protected FileDescriptor fileDescriptor() {
-            return FileDescriptor.err;
+        protected OutputStream outputStream() {
+            return System.err;
         }
         @Override
         protected String dummyName() {
@@ -198,7 +205,7 @@ protected FNativeObject makeNativeObject(List<FValue> args,
             return FString.make(System.getProperty("line.separator"));
         }
     }
-    
+
     @Override
     protected void unregister() {
         con = null;
