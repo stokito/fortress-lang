@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -41,7 +41,7 @@ public class SyntaxAbstractionJUTest extends TestSuite {
             "LabelUse.fss",
             "SyntaxNodesUse.fss",
         };
-        TestSuite suite = new TestSuite();
+        TestSuite suite = new TestSuite("SyntaxAbstractionJUTest");
         for ( String filename : files ){
             File f = new File(STATIC_TESTS_DIR + filename );
             suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
