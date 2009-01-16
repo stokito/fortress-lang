@@ -726,7 +726,7 @@ maintain proper indentation.
           description="Clean, compile everything, and run all unit and system tests.">
   </target>
 
-  <target name="testFast" 
+  <target name="testFast"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -902,9 +902,7 @@ maintain proper indentation.
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
           <include name="**/SyntaxAbstractionJUTest.class"/>
-          <!--
-              <include name="**/SyntaxAbstractionJUTestAll.class"/>
-          -->
+          <include name="**/SyntaxAbstractionJUTestAll.class"/>
         </fileset>
       </batchtest>
     </junit>

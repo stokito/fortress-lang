@@ -196,7 +196,8 @@ class GrammarComposer {
                     " and grammar " + grammarName);
         GrammarIndex grammar = grammarMap.get(grammarName);
         if (grammar == null) {
-            throw new MacroError(grammarName, "Could not find grammar: " + grammarName);
+            throw new MacroError(grammarName,
+                                 "Could not find grammar: " + grammarName);
         }
 
         Option<NonterminalIndex> nt = grammar.getNonterminalDecl(nonterminalName);
