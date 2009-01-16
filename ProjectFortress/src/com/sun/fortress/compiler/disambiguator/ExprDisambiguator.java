@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -520,7 +520,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         Set<IdOrOpOrAnonymousName> inheritedMethods = inherited.second();
 
         ExprDisambiguator v = this.
-            extendWithVars(vars).
+            extendWithVarsNoCheck(vars).
             extendWithFns(inheritedMethods).
             extendWithSelf(NodeUtil.getSpan(that)).
             extendWithFns(fns).
@@ -708,8 +708,8 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
         v = this.extendWithVars(extractStaticExprVars
 				(NodeUtil.getStaticParams(that))).
             extendWithSelf(NodeUtil.getSpan(that)).
-            extendWithVars(extractParamNames(NodeUtil.getParams(that))).
-            extendWithVars(vars).extendWithFns(fns).
+            extendWithVarsNoCheck(extractParamNames(NodeUtil.getParams(that))).
+            extendWithVarsNoCheck(vars).extendWithFns(fns).
             extendWithFns(inheritedMethods).
             // TODO The following two extensions are problematic; getters and setters should
             // not be referred to without explicit receivers in most (all?) cases. But the
@@ -1105,7 +1105,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                                          that.getLexicalDepth(),
                                          (Op)that.getNames().get(0),
                                          that.getNames(),
-                                         that.getOverloadings(), 
+                                         that.getOverloadings(),
                                          that.getOverloadingType());
         }
         else {

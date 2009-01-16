@@ -44,12 +44,20 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
             suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
         }
 
+        /*
+        String[] regex = new File(STATIC_TESTS_DIR+"regex/").list(fssFilter);
+        for ( String filename : regex ){
+            File f = new File(STATIC_TESTS_DIR+"regex/" + filename);
+            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+        }
+
         @SuppressWarnings("unused")
         TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"xml/", Collections.<String>emptyList(), null);
         @SuppressWarnings("unused")
         TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"regex/", Collections.<String>emptyList(), null);
         @SuppressWarnings("unused")
         TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"sql/", Collections.<String>emptyList(), null);
+        */
         // suite.addStaticTests(xml);
         // suite.addStaticTests(regex);
         // suite.addStaticTests(sql);
