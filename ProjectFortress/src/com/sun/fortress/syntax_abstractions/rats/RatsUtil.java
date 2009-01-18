@@ -201,9 +201,9 @@ public abstract class RatsUtil {
      * @throws SecurityException
      * @throws NoSuchMethodException
      */
-    public static ParserBase getParser(Class<?> parserClass,
-                                       BufferedReader reader,
-                                       String filename)
+    public static ParserBase getParserObject(Class<?> parserClass,
+                                             BufferedReader reader,
+                                             String filename)
         throws IllegalArgumentException, InstantiationException,
                IllegalAccessException, InvocationTargetException,
                SecurityException, NoSuchMethodException {
@@ -222,41 +222,23 @@ public abstract class RatsUtil {
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
      */
-    public static Result parse( ParserBase parser )
+    public static Result getParserObject( ParserBase parser )
         throws IllegalArgumentException, SecurityException,
                IllegalAccessException, InvocationTargetException,
                NoSuchMethodException {
         String methodName = "pFile";
         Class[] types = new Class[] {int.class};
         Object args = 0;
-        return (Result) invokeMethod(parser, methodName, types, args);
-    }
-
-    /**
-     * Look up the given method in the current parser object
-     * using reflection using the supplied argument types.
-     * The method is invoked with the supplied arguments.
-     * If no method exists with the given name and argument types,
-     * an exception is thrown.
-     * If the arguments are not consistent with the declared types,
-     * an exception is thrown.
-     * @param methodName
-     * @param types
-     * @param args
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
-     * @throws NoSuchMethodException
-     * @throws SecurityException
-     */
-    private static Object invokeMethod(ParserBase parser, String methodName,
-                                       Class[] types, Object args)
-        throws IllegalArgumentException, IllegalAccessException,
-               InvocationTargetException, SecurityException,
-               NoSuchMethodException {
+        /**
+         * Look up the given method in the current parser object
+         * using reflection using the supplied argument types.
+         * The method is invoked with the supplied arguments.
+         * If no method exists with the given name and argument types,
+         * an exception is thrown.
+         * If the arguments are not consistent with the declared types,
+         * an exception is thrown.
+         */
         Method method = parser.getClass().getMethod(methodName, types);
-        Object o = method.invoke(parser, args);
-        return o;
+        return (Result) method.invoke(parser, args);
     }
-
 }

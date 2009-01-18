@@ -204,8 +204,8 @@ public class Parser {
         try {
             in = Useful.utf8BufferedFileReader(f);
             ParserBase p =
-                RatsUtil.getParser(temporaryParserClass, in, f.toString());
-            CompilationUnit original = Parser.checkResultCU(RatsUtil.parse(p), p, f.getName());
+                RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
+            CompilationUnit original = Parser.checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
             // dump(original, "original-" + f.getName());
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
             // dump(cu, "dump-" + f.getName());

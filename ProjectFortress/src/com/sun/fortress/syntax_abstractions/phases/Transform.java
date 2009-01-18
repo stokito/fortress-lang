@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,31 +17,25 @@
 
 package com.sun.fortress.syntax_abstractions.phases;
 
-import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
 
+import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.ApiIndex;
-
 import com.sun.fortress.exceptions.MacroError;
+import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Useful;
-
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-
-import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
-
-import com.sun.fortress.useful.Debug;
-
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.syntax_abstractions.rats.RatsUtil;
 
 /**
  * Macro expander: Traverses AST node, replacing transformation nodes with
@@ -54,17 +48,17 @@ public class Transform extends TemplateUpdateVisitor {
      * its ellipses nesting depth
      */
     private Map<String,Level> variables;
-    /* Map of original variable names to their renamed counterparts.
-     */
+    /* Map of original variable names to their renamed counterparts. */
     private SyntaxEnvironment syntaxEnvironment;
-    /* rename is true if a macro has been invoked. When it is true
-     * variables must be renamed hygienically.
+    /* rename is true if a macro has been invoked.
+     * When it is true variables must be renamed hygienically.
      */
     private final boolean rename;
-    // private EllipsesEnvironment env;
 
-    private Transform( Map<String,Transformer> transformers, Map<String,Level> variables, SyntaxEnvironment syntaxEnvironment, boolean rename ){
-        // this( transformers, variables, new EllipsesEnvironment() );
+    private Transform( Map<String,Transformer> transformers,
+                       Map<String,Level> variables,
+                       SyntaxEnvironment syntaxEnvironment,
+                       boolean rename ){
         this.transformers = transformers;
         this.variables = variables;
         this.syntaxEnvironment = syntaxEnvironment;
@@ -74,13 +68,29 @@ public class Transform extends TemplateUpdateVisitor {
     /* entry point to this class */
     public static Node transform(GlobalEnvironment env, Node node){
         Transform transform =
-            new Transform(populateTransformers(env), new HashMap<String,Level>(), SyntaxEnvironment.identityEnvironment(), false );
+            new Transform(populateTransformers(env),
+                          new HashMap<String,Level>(),
+                          SyntaxEnvironment.identityEnvironment(),
+                          false );
         return node.accept(transform);
+    }
+
+    private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
+        final Map<String,Transformer> map = new HashMap<String,Transformer>();
+        for (ApiIndex api : env.apis().values()){
+            api.ast().accept( new NodeDepthFirstVisitor_void(){
+                    @Override public void forNamedTransformerDef(NamedTransformerDef that) {
+                        map.put(that.getName(), that.getTransformer());
+                    }
+		});
+        }
+        return map;
     }
 
     /* Anyone that calls this method should be sure to save the syntax
      * environment on entry to the function and restore the environment
-     * on exit. Something like
+     * on exit.  Something like:
+     *
      * void foo(){
      *      SyntaxEnvironment save = getSyntaxEnvironment();
      *      ...
@@ -93,18 +103,6 @@ public class Transform extends TemplateUpdateVisitor {
         syntaxEnvironment = syntaxEnvironment.extend(from, to);
     }
 
-    /* generate a new unique id. a.k.a gensym */
-    private Id generateId(Id original){
-        return NodeFactory.makeId(original, RatsUtil.getFreshName(original.getText() + "-g"));
-    }
-
-    /*
-    public Node forIdOnly(Id that, Option<APIName> api_result) {
-        Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
-        return syntaxEnvironment.lookup(that);
-    }
-    */
-
     private SyntaxEnvironment getSyntaxEnvironment(){
         return this.syntaxEnvironment;
     }
@@ -113,22 +111,23 @@ public class Transform extends TemplateUpdateVisitor {
         this.syntaxEnvironment = e;
     }
 
+    /* generate a new unique id. a.k.a gensym */
+    private Id generateId(Id original){
+        return NodeFactory.makeId(original,
+                                  RatsUtil.getFreshName(original.getText() + "-g"));
+    }
+
     @Override
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
         Id var_result = syntaxEnvironment.lookup(that.getVarId());
-        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() + " in hygiene environment = " + var_result);
+        Debug.debug(Debug.Type.SYNTAX, 2, "Looking up var ref " + that.getVarId() +
+                    " in hygiene environment = " + var_result);
         ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
                                                  NodeUtil.isParenthesized(that),
                                                  exprType_result);
         return forVarRefOnly(that, info, var_result, that.getStaticArgs());
     }
-
-    /*
-    public Node forTemplateGapVarRef(TemplateGapVarRef that) {
-        return forVarRef((VarRef) super.forTemplateGapVarRef(that));
-    }
-    */
 
     /* Support renaming for these nodes
      * LValue  ( only for LocalVarDecl ) - done
@@ -156,7 +155,8 @@ public class Transform extends TemplateUpdateVisitor {
             }
         });
         Expr init_result = (Expr) recur(that.getInit());
-        return NodeFactory.makeGeneratorClause(NodeFactory.makeSpan(newIds, init_result), newIds, init_result);
+        return NodeFactory.makeGeneratorClause(NodeFactory.makeSpan(newIds, init_result),
+                                               newIds, init_result);
     }
 
     @Override
@@ -265,7 +265,6 @@ public class Transform extends TemplateUpdateVisitor {
         if ( rename ){
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-            // List<Id> bindIds_result = recurOnListOfId(that.getBindIds());
             List<Id> newIds = Useful.applyToAll(that.getBindIds(), new Fn<Id,Id>(){
                 public Id apply(Id value){
                     Id gen = generateId(value);
@@ -290,7 +289,6 @@ public class Transform extends TemplateUpdateVisitor {
     @Override
     public Node forFnExpr(FnExpr that) {
         if ( rename ){
-            final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             IdOrOpOrAnonymousName name_result = (IdOrOpOrAnonymousName) recur(NodeUtil.getName(that));
@@ -315,25 +313,6 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-    /* rename an id and extend the syntax environment only if the id was
-     * not a template parameter
-     */
-    private Id renameId(Id id){
-        return (Id) id.accept( new TemplateUpdateVisitor(){
-            public Node forTemplateGapId(TemplateGapId tid){
-                return tid.accept(Transform.this);
-            }
-
-            public Node forId(Id id){
-                Id old = (Id) id.accept(Transform.this);
-                Id generatedId = generateId(old);
-                Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                extendSyntaxEnvironment(old, generatedId);
-                return generatedId;
-            }
-        });
-    }
-
     private Fn<Param,Param> renameParam = new Fn<Param,Param>(){
         public Param apply(Param value){
             final Transform transformer = Transform.this;
@@ -346,32 +325,61 @@ public class Transform extends TemplateUpdateVisitor {
                                          Option<Expr> defaultExpr_result,
                                          Option<Type> varargsType_result) {
                     if ( ! NodeUtil.isVarargsParam(that) ) {
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Normal param id hash code " + name_result.generateHashCode() );
+                        Debug.debug( Debug.Type.SYNTAX, 2,
+                                     "Normal param id hash code " +
+                                     name_result.generateHashCode() );
                         Id generatedId = renameId(name_result);
-                        /*
-                          Id old = (Id) name_result.accept(transformer);
-                          Id generatedId = generateId(old);
-                          Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
-                          extendSyntaxEnvironment(old, generatedId);
-                        */
-                        return NodeFactory.makeParam(NodeUtil.getSpan(that), that.getMods(),
+                        return NodeFactory.makeParam(NodeUtil.getSpan(that),
+                                                     that.getMods(),
                                                      generatedId, type_result,
                                                      defaultExpr_result,
                                                      Option.<Type>none());
                     } else {
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Varargs param id hash code " + name_result.generateHashCode() );
+                        Debug.debug( Debug.Type.SYNTAX, 2,
+                                     "Varargs param id hash code " +
+                                     name_result.generateHashCode() );
                         Id old = (Id) name_result.accept(transformer);
                         Id generatedId = generateId(old);
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                        Debug.debug( Debug.Type.SYNTAX, 2,
+                                     "Generate new binding for " + old +
+                                     " = " + generatedId );
                         extendSyntaxEnvironment(old, generatedId);
-                        return NodeFactory.makeParam(NodeUtil.getSpan(that), that.getMods(),
-                                                     generatedId, Option.<Type>none(), Option.<Expr>none(),
+                        return NodeFactory.makeParam(NodeUtil.getSpan(that),
+                                                     that.getMods(),
+                                                     generatedId,
+                                                     Option.<Type>none(),
+                                                     Option.<Expr>none(),
                                                      varargsType_result);
                     }
                 }
             });
         }
     };
+
+    /* rename an id and extend the syntax environment only if the id was
+     * not a template parameter
+     */
+    private Id renameId(Id id){
+        return (Id) id.accept( new TemplateUpdateVisitor(){
+            @Override
+            public Node forTemplateGapId(TemplateGapId tid){
+                return tid.accept(Transform.this);
+            }
+
+            @Override
+            public Node forId(Id id){
+                Id old = (Id) id.accept(Transform.this);
+                Id generatedId = generateId(old);
+                Debug.debug( Debug.Type.SYNTAX, 2,
+                             "Generate new binding for " + old +
+                             " = " + generatedId );
+                extendSyntaxEnvironment(old, generatedId);
+                return generatedId;
+            }
+        });
+    }
+
+    /***********************************************************************************/
 
     @Override
     public Node forLetFn(LetFn that) {
@@ -387,7 +395,8 @@ public class Transform extends TemplateUpdateVisitor {
                         public Node forFnDeclOnly(FnDecl that, ASTNodeInfo info_result, FnHeader header_result, Id name_result, Option<Expr> body_result, Option<Id> implementsUnambiguousName_result) {
 
                             FnHeader new_fnHeader = (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
-                                @Override public Node forFnHeaderOnly(FnHeader that, List<StaticParam> staticParams_result, IdOrOpOrAnonymousName name_result, Option<WhereClause> whereClause_result, Option<List<BaseType>> throwsClause_result, Option<Contract> contract_result, List<Param> params_result, Option<Type> returnType_result) {
+                                @Override
+                                public Node forFnHeaderOnly(FnHeader that, List<StaticParam> staticParams_result, IdOrOpOrAnonymousName name_result, Option<WhereClause> whereClause_result, Option<List<BaseType>> throwsClause_result, Option<Contract> contract_result, List<Param> params_result, Option<Type> returnType_result) {
                                     List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
                                     return forFnHeaderOnly(that, staticParams_result, name_result, whereClause_result, throwsClause_result, contract_result, new_params_result, returnType_result);
                                 }
@@ -458,18 +467,6 @@ public class Transform extends TemplateUpdateVisitor {
         } else {
             return super.forLocalVarDecl(that);
         }
-    }
-
-    private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
-        final Map<String,Transformer> map = new HashMap<String,Transformer>();
-        for (ApiIndex api : env.apis().values()){
-            api.ast().accept( new NodeDepthFirstVisitor_void(){
-                    @Override public void forNamedTransformerDef(NamedTransformerDef that) {
-                        map.put(that.getName(), that.getTransformer());
-                    }
-		});
-        }
-        return map;
     }
 
     private Transformer lookupTransformer( String name ){
@@ -547,9 +544,10 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-    @Override public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
-                                             Id gapId_result,
-					     List<Id> templateParams_result) {
+    @Override
+    public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
+                                   Id gapId_result,
+                                   List<Id> templateParams_result) {
         /* another annoying cast */
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
         // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
@@ -601,12 +599,14 @@ public class Transform extends TemplateUpdateVisitor {
             return obj;
         }
 
-	@Override public Node forNodeTransformer(NodeTransformer that) {
+	@Override
+        public Node forNodeTransformer(NodeTransformer that) {
 	    return that.getNode().accept(new Transform(transformers, variables, SyntaxEnvironment.identityEnvironment(), true));
 	    // return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment, true));
 	}
 
-	@Override public Node forCaseTransformer(CaseTransformer that) {
+	@Override
+        public Node forCaseTransformer(CaseTransformer that) {
 	    Id gapName = that.getGapName();
 	    List<CaseTransformerClause> clauses = that.getClauses();
 
