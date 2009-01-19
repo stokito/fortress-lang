@@ -79,7 +79,7 @@ public class GapEnv {
         if (nt != null) {
             return ntEnv.getType(nt);
         } else if (hasJavaStringType(var)){
-            return NodeFactory.makeTraitType(NodeFactory.makeId(NodeFactory.macroSpan, "String"));
+            return NodeFactory.makeTraitType(NodeFactory.makeId(NodeFactory.macroSpan, "StringLiteralExpr"));
         } else {
             throw new MacroError(var, "Not a gap name bound to a nonterminal: " + var);
         }
