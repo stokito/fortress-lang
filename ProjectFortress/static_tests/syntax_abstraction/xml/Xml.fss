@@ -33,7 +33,7 @@ component Xml
         if info.startTag =/= endTag then
           println "Tags dont match start '" info.startTag "' end '" endTag "'"
         end
-        var s:String = "<" info.startTag (BIG || info.attributes) ">"
+        var s:String = "<" info.startTag (BIG || [x<-info.attributes] x) ">"
         for x <- seq(content_) do
           s := s (typecase x of
                    Element => // x.toXml()
@@ -62,7 +62,7 @@ component Xml
         end
 
     tag():String = info.startTag
-    
+
     attributes():List[\Attribute\] = info.attributes
   end
   Element(info:Header) = Element(info, emptyList[\Content\](), info.startTag)
