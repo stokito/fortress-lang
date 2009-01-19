@@ -28,23 +28,23 @@ api Xml
     toString():String
   end
 
-  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content 
+  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
     getter tag():String
     getter hasElements():Boolean
     getter children():List[\Element\]
     getter content():CData
     getter attributes():List[\Attribute\]
     getter toXml():String
-  end 
-  Element(info:Header)
-  Element(info:Header, endTag:String)
+  end
+  Element(info:Header): Element
+  Element(info:Header, endTag:String): Element
 
   object Attribute(key:String, val:String) extends Content
     getter getKey():String
     getter getValue():String
   end
-  
-  object Header(startTag:String, _attributes:List[\Attribute\])
+
+  object Header(startTag:String, attributes:List[\Attribute\])
   end
 
   object CData(v:String) extends Content
@@ -120,7 +120,7 @@ api Xml
 
     AttributeChar:String :StringLiteralExpr:=
       x:AnyChar => <[ x ]>
-    | x:['] => <[ x ]>
+    | x:['] => <[ x ]> (* ' *)
     | x:Slash => <[ x ]>
 
     Strings:String :Expr:= (* type: String *)
@@ -136,7 +136,7 @@ api Xml
   grammar Symbols extends Expression
 
     AnyChar:String :StringLiteralExpr:=
-      x:[A:Za:z0:9] => <[ x ]>
+      x:[A:Za:z0:9] => <[ "" x ]>
 
     OpenBracket:String :Expr:=
       < => <[ "<" ]>

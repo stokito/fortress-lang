@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.exceptions.MacroError;
 
 public class GapEnv {
@@ -77,6 +78,8 @@ public class GapEnv {
         Id nt = varToNT.get(var);
         if (nt != null) {
             return ntEnv.getType(nt);
+        } else if (hasJavaStringType(var)){
+            return NodeFactory.makeTraitType(NodeFactory.makeId(NodeFactory.macroSpan, "String"));
         } else {
             throw new MacroError(var, "Not a gap name bound to a nonterminal: " + var);
         }
