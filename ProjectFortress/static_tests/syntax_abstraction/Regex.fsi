@@ -39,16 +39,16 @@ api Regex
 
     object RepeatElement(e:Element) extends Element
     end
-    
+
     object RepeatNonGreedyElement(e:Element) extends Element
     end
-    
+
     object MaybeElement(e:Element) extends Element
     end
-    
+
     object RepeatOneElement(e:Element) extends Element
     end
-    
+
     object RepeatOneNonGreedyElement(e:Element) extends Element
     end
 
@@ -72,13 +72,13 @@ api Regex
 
     object ClassElement(e:List[\Element\]) extends Element
     end
-    
+
     object InverseClassElement(e:List[\Element\]) extends Element
     end
 
     object StartElement() extends Element
     end
-    
+
     object EndElement() extends Element
     end
 
@@ -92,7 +92,7 @@ api Regex
     end
 
     grammar regex extends {Expression, Symbols, Literal}
-        Expr:Regexp |Expr:= (* type: Content *)
+        Expr |:= (* type: Content *)
            x:Regex => <[ x ]>
 
         Regex:Regexp :Expr:=
@@ -130,7 +130,7 @@ api Regex
         |   c:CharacterClass => <[ c ]>
         |   (# e:Element#* ) => <[ GroupElement(<|e**|>) asif Element ]>
         |   s:AnyChar => <[ (CharElement(s) asif Element) ]>
-        
+
         CharacterClass:Element :Expr:=
             `[# ^# r:RangeItem#* `] => <[ InverseClassElement(<|r**|>) asif Element ]>
         |   `[# r:RangeItem#* `] => <[ ClassElement(<|r**|>) asif Element ]>
@@ -152,5 +152,5 @@ api Regex
         |   > => <[ ">" ]>
         |   `{ => <[ "{" ]>
         |   `} => <[ "}" ]>
-    end 
+    end
 end
