@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -47,7 +47,8 @@ public class FortressTypeToJavaType {
                 }
                 if (that.getArgs().size() != 1) {
                     throw new MacroError(that,
-                                         "One type argument was expected for type: "+that.getName());
+                                         "One type argument was expected for type "
+                                         + that.getName());
                 }
                 String arg = that.getArgs().get(0).accept(this);
                 if (that.getName().getText().equals("List")) {
@@ -62,7 +63,8 @@ public class FortressTypeToJavaType {
                 if (that.getName().getText().equals("Nothing")) {
                     return "Option<"+arg+">";
                 }
-                throw new MacroError(that, "Unexpected traittype: "+that.getName()+that.getArgs());
+                throw new MacroError(that, "Unexpected trait type "+ that.getName()
+                                     + "[\\" + that.getArgs() + "\\]");
             }
 
             @Override

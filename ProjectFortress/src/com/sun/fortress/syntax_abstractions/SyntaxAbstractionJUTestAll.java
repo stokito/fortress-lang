@@ -43,97 +43,30 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
             File f = new File(STATIC_TESTS_DIR + filename);
             suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
         }
-
-        /*
-        String[] regex = new File(STATIC_TESTS_DIR+"regex/").list(fssFilter);
-        for ( String filename : regex ){
-            File f = new File(STATIC_TESTS_DIR+"regex/" + filename);
-            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
-        }
-
-        @SuppressWarnings("unused")
-        TestCaseDir xml = new TestCaseDir(STATIC_TESTS_DIR+"xml/", Collections.<String>emptyList(), null);
-        @SuppressWarnings("unused")
-        TestCaseDir regex = new TestCaseDir(STATIC_TESTS_DIR+"regex/", Collections.<String>emptyList(), null);
-        @SuppressWarnings("unused")
-        TestCaseDir sql = new TestCaseDir(STATIC_TESTS_DIR+"sql/", Collections.<String>emptyList(), null);
-        */
-        // suite.addStaticTests(xml);
-        // suite.addStaticTests(regex);
-        // suite.addStaticTests(sql);
         return suite;
     }
 }
 
 /*
-not_yet_passing/
-regex/
-sql/
-transformer/
-xml/
-
 syntax_abstraction 306> l -1 not_yet_passing/
 SXXTemplateGapWithInconsistentParameters.fsi
 SXXTemplateGapWithInconsistentParameters.fss
 SXXTemplateGapWithInconsistentParametersUse.fss
+
 SXXTemplateParamsAreNotApplicable.fsi
 SXXTemplateParamsAreNotApplicable.fss
 SXXTemplateParamsAreNotApplicableUse.fss
+
 TemplateGapWithWrongASTType.fsi
 TemplateGapWithWrongASTType.fss
 TemplateGapWithWrongASTTypeUse.fss
+
 UsingJavaIdentifiersAsPatternVariables.fsi
 UsingJavaIdentifiersAsPatternVariables.fss
 UsingJavaIdentifiersAsPatternVariablesUse.fss
-
-syntax_abstraction 307> l -1 regex/
-Regex.fsi
-Regex.fss
-RegexUse1.fss
-RegexUse2.fss
 
 syntax_abstraction 308> l -1 sql
 Sql.fsi
 Sql.fss
 SqlUse.fss
-
-syntax_abstraction 309> l -1 transformer/
-SXXMultipleGrammarsWithSameName.fsi
-SXXMultipleGrammarsWithSameName.fss
-SXXMultipleGrammarsWithSameNameUse.fss
-SXXSyntaxMultipleNonterminalDefsWithSameName.fsi
-SXXSyntaxMultipleNonterminalDefsWithSameName.fss
-SXXSyntaxMultipleNonterminalDefsWithSameNameUse.fss
-SyntaxAST.fsi
-SyntaxAST.fss
-SyntaxASTUse.fss
-SyntaxExtends.fsi
-SyntaxExtends.fss
-SyntaxExtendsUse.fss
-SyntaxHelloWorld.fsi
-SyntaxHelloWorld.fss
-SyntaxHelloWorldTemplate.fsi
-SyntaxHelloWorldTemplate.fss
-SyntaxHelloWorldTemplateUse.fss
-SyntaxHelloWorldUse.fss
-SyntaxOption.fsi
-SyntaxOption.fss
-SyntaxOptionUse.fss
-SyntaxRepetition.fsi
-SyntaxRepetition.fss
-SyntaxRepetitionUse.fss
-SyntaxSymbols.fsi
-SyntaxSymbols.fss
-SyntaxSymbolsUse.fss
-SyntaxTemplateVars.fsi
-SyntaxTemplateVars.fss
-SyntaxTemplateVarsUse.fss
-SyntaxTest.fsi
-SyntaxTest.fss
-SyntaxTestUse.fss
-
-syntax_abstraction 310> l -1 xml
-Xml.fsi
-Xml.fss
-XmlUse.fss
 */

@@ -56,12 +56,6 @@ public class TransformationNode extends NodeClass {
     }
 
     private static List<Field> fields( ASTModel ast ){
-        /*
-        List<Field> fields = new ArrayList<Field>();
-        TypeName transformType = Types.parse( "com.sun.fortress.syntax_abstractions.phases.SyntaxTransformer", ast );
-        fields.add( new Field( transformType, "transformation", Option.<String>none(), false, true, true ) );
-        return fields;
-        */
         return new ArrayList<Field>();
     }
 

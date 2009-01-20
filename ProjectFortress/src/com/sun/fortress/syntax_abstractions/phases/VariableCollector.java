@@ -64,16 +64,20 @@ public class VariableCollector extends NodeDepthFirstVisitor_void {
 
     @Override public void forRepeatSymbol(RepeatSymbol that) {
         Debug.debug(Debug.Type.SYNTAX, 3, "Repeat symbol ", that.getSymbol());
-        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addStar()));
+        that.getSymbol().accept(new VariableCollector(this.depthMap,
+                                                      depth.addStar()));
     }
 
     @Override public void forRepeatOneOrMoreSymbol(RepeatOneOrMoreSymbol that) {
-        Debug.debug(Debug.Type.SYNTAX, 3, "Repeat One or more symbol ", that.getSymbol());
-        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addPlus()));
+        Debug.debug(Debug.Type.SYNTAX, 3, "Repeat One or more symbol ",
+                    that.getSymbol());
+        that.getSymbol().accept(new VariableCollector(this.depthMap,
+                                                      depth.addPlus()));
     }
 
     @Override public void forOptionalSymbol(OptionalSymbol that) {
         Debug.debug( Debug.Type.SYNTAX, 3, "Optional ", that.getSymbol() );
-        that.getSymbol().accept(new VariableCollector(this.depthMap, depth.addOptional()));
+        that.getSymbol().accept(new VariableCollector(this.depthMap,
+                                                      depth.addOptional()));
     }
 }

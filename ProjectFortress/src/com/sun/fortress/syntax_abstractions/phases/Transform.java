@@ -379,8 +379,6 @@ public class Transform extends TemplateUpdateVisitor {
         });
     }
 
-    /***********************************************************************************/
-
     @Override
     public Node forLetFn(LetFn that) {
         if ( rename ){
@@ -392,13 +390,33 @@ public class Transform extends TemplateUpdateVisitor {
                 public FnDecl apply(FnDecl fn){
                     return (FnDecl) fn.accept(new TemplateUpdateVisitor(){
                         @Override
-                        public Node forFnDeclOnly(FnDecl that, ASTNodeInfo info_result, FnHeader header_result, Id name_result, Option<Expr> body_result, Option<Id> implementsUnambiguousName_result) {
-
-                            FnHeader new_fnHeader = (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
+                        public Node forFnDeclOnly(FnDecl that,
+                                                  ASTNodeInfo info_result,
+                                                  FnHeader header_result,
+                                                  Id name_result,
+                                                  Option<Expr> body_result,
+                                                  Option<Id> implementsUnambiguousName_result) {
+                            FnHeader new_fnHeader =
+                                (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
                                 @Override
-                                public Node forFnHeaderOnly(FnHeader that, List<StaticParam> staticParams_result, IdOrOpOrAnonymousName name_result, Option<WhereClause> whereClause_result, Option<List<BaseType>> throwsClause_result, Option<Contract> contract_result, List<Param> params_result, Option<Type> returnType_result) {
-                                    List<Param> new_params_result = Useful.applyToAll(params_result, renameParam);
-                                    return forFnHeaderOnly(that, staticParams_result, name_result, whereClause_result, throwsClause_result, contract_result, new_params_result, returnType_result);
+                                public Node forFnHeaderOnly(FnHeader that,
+                                                            List<StaticParam> staticParams_result,
+                                                            IdOrOpOrAnonymousName name_result,
+                                                            Option<WhereClause> whereClause_result,
+                                                            Option<List<BaseType>> throwsClause_result,
+                                                            Option<Contract> contract_result,
+                                                            List<Param> params_result,
+                                                            Option<Type> returnType_result) {
+                                    List<Param> new_params_result = Useful.applyToAll(params_result,
+                                                                                      renameParam);
+                                    return forFnHeaderOnly(that,
+                                                           staticParams_result,
+                                                           name_result,
+                                                           whereClause_result,
+                                                           throwsClause_result,
+                                                           contract_result,
+                                                           new_params_result,
+                                                           returnType_result);
                                 }
                             });
 
@@ -428,7 +446,8 @@ public class Transform extends TemplateUpdateVisitor {
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
             Debug.debug( Debug.Type.SYNTAX, 2, "Transforming local var decl" );
-            List<LValue> lhs_result = Useful.applyToAll(that.getLhs(), new Fn<LValue, LValue>(){
+            List<LValue> lhs_result = Useful.applyToAll(that.getLhs(),
+                                                        new Fn<LValue, LValue>(){
                 public LValue apply(LValue value){
                     return (LValue) value.accept( new TemplateUpdateVisitor(){
                         @Override
@@ -437,9 +456,15 @@ public class Transform extends TemplateUpdateVisitor {
                                                   Option<Type> type_result) {
                             Id old = (Id) name_result.accept(transformer);
                             Id generatedId = generateId(old);
-                            Debug.debug( Debug.Type.SYNTAX, 2, "Generate new binding for " + old + " = " + generatedId );
+                            Debug.debug( Debug.Type.SYNTAX, 2,
+                                         "Generate new binding for " + old +
+                                         " = " + generatedId );
                             extendSyntaxEnvironment(old, generatedId);
-                            return NodeFactory.makeLValue(NodeUtil.getSpan(that), generatedId, that.getMods(), type_result, that.isMutable());
+                            return NodeFactory.makeLValue(NodeUtil.getSpan(that),
+                                                          generatedId,
+                                                          that.getMods(),
+                                                          type_result,
+                                                          that.isMutable());
                         }
                     });
                 }
@@ -447,11 +472,15 @@ public class Transform extends TemplateUpdateVisitor {
             Option<Expr> rhs_result = recurOnOptionOfExpr(that.getRhs());
             List<Expr> body_result = recurOnListOfExpr(that.getBody());
             /*
-            List<Expr> body_result = Useful.applyToAll(recurOnListOfExpr(that.getBody()), new Fn<Expr, Expr>(){
+            List<Expr> body_result = Useful.applyToAll(recurOnListOfExpr(that.getBody()),
+                                                       new Fn<Expr, Expr>(){
                 public Expr apply(Expr value){
                     return value.accept( new NodeUpdateVisitor(){
                         public Node forIdOnly(Id that, Option<APIName> api_result) {
-                            Debug.debug( Debug.Type.SYNTAX, 2, "Looking up id " + that + " in environment " + syntaxEnvironment );
+                            Debug.debug( Debug.Type.SYNTAX, 2,
+                                         "Looking up id " + that +
+                                         " in environment " +
+                                         syntaxEnvironment );
                             return Transform.this.syntaxEnvironment.lookup(that);
                         }
                     });
@@ -469,36 +498,25 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-    private Transformer lookupTransformer( String name ){
-        if ( transformers.get( name ) == null ){
-            throw new MacroError( "Cannot find transformer for " + name );
-        }
-        return transformers.get( name );
-    }
-
-    private Node curry( String original, Map<String,Level> vars,
-			List<String> parameters ){
-        return new CurriedTransformer(original, vars, parameters);
-    }
-
-    private boolean hasVariable( Id id ){
-        return this.variables.get(id.getText()) != null;
-    }
-
-    private int lookupLevel(Id id){
-        String variable = id.getText();
-        Level binding = this.variables.get(variable);
-        if ( binding == null ){
-            throw new MacroError( "Can't find a binding for gap " + id );
-        }
-        return binding.getLevel();
+    @Override
+    public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
+                                   Id gapId_result,
+                                   List<Id> templateParams_result) {
+        /* another annoying cast */
+        Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
+        // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
+        Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object());
+        // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
+        Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result +
+                     " is " + n.getClass() + " " + n );
+        return n;
     }
 
     private Level lookupVariable(Id id, List<Id> params){
         String variable = id.getText();
         Level binding = this.variables.get(variable);
         if ( binding == null ){
-                throw new MacroError( "Can't find a binding for gap " + id );
+            throw new MacroError( "Can't find a binding for gap " + id );
         } else {
             if ( params.isEmpty() ){
                 /*
@@ -506,10 +524,10 @@ public class Transform extends TemplateUpdateVisitor {
                     return new _RepeatedExpr((List) binding);
                 }
                 */
-                Debug.debug( Debug.Type.SYNTAX, 2, "Found template gap " + binding.get_object() );
+                Debug.debug( Debug.Type.SYNTAX, 2,
+                             "Found template gap " + binding.get_object() );
                 return binding;
             } else {
-
                 if ( ! (binding.get_object() instanceof CurriedTransformer) ){
                     throw new MacroError("Parameterized template gap is not bound " +
 					 "to a CurriedTransformer, instead bound to " +
@@ -525,7 +543,8 @@ public class Transform extends TemplateUpdateVisitor {
                 }
 
                 Debug.debug( Debug.Type.SYNTAX, 3,
-			     "Template gap " + id.getText() + " has parameters " + params );
+			     "Template gap " + id.getText() + " has parameters " +
+                             params );
                 for ( int i = 0; i < params.size(); i++ ){
                     Id parameter = params.get( i );
                     String name = curried.getSyntaxParameters().get( i );
@@ -542,19 +561,6 @@ public class Transform extends TemplateUpdateVisitor {
                 return new Level(binding.getLevel(), newNode.accept( this ) );
             }
         }
-    }
-
-    @Override
-    public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
-                                   Id gapId_result,
-                                   List<Id> templateParams_result) {
-        /* another annoying cast */
-        Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
-        // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
-        Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object());
-        // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
-        Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result + " is " + n.getClass() + " " + n );
-        return n;
     }
 
     /*
@@ -576,6 +582,119 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
     */
+
+    @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
+        if ( ! that.getSyntaxParameters().isEmpty() ){
+	    /* needs parameters, curry it! */
+            return curry( that.getSyntaxTransformer(),
+			  that.getVariables(),
+			  that.getSyntaxParameters() );
+        }
+        Debug.debug( Debug.Type.SYNTAX, 1,
+                     "Run transformation " + that.getSyntaxTransformer() );
+        Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
+        // EllipsesEnvironment env = new EllipsesEnvironment();
+        Map<String,Level> arguments = that.getVariables();
+        Map<String,Level> evaluated = new HashMap<String,Level>();
+        for ( Map.Entry<String,Level> var : arguments.entrySet() ){
+            String varName = var.getKey();
+            /*
+            if ( var.getValue() instanceof List ){
+                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
+                env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
+            }
+            */
+
+            /* argh, this cast shouldn't be needed */
+            Level argument = (Level) traverse( var.getValue() );
+
+            /* this is almost definately in the wrong place */
+            /*
+            if ( argument instanceof List ){
+                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
+                env.add( NodeFactory.makeId( varName ), 1, argument );
+            }
+            */
+
+            // checkFullyTransformed(argument);
+            // evaluated.put(varName, new Level( level.getLevel(), argument ) );
+            evaluated.put(varName, argument);
+            Debug.debug( Debug.Type.SYNTAX, 3,
+			 "Argument " + varName + " is " + argument);
+        }
+
+        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " +
+		     that.getSyntaxTransformer() );
+        Node transformed =
+	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated) );
+        checkFullyTransformed(transformed);
+        return transformed;
+    }
+
+    private Node curry( String original, Map<String,Level> vars,
+			List<String> parameters ){
+        return new CurriedTransformer(original, vars, parameters);
+    }
+
+    private Transformer lookupTransformer( String name ){
+        if ( transformers.get( name ) == null ){
+            throw new MacroError( "Cannot find transformer for " + name );
+        }
+        return transformers.get( name );
+    }
+
+    private Object traverse( Object partial ){
+        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
+        if ( partial instanceof Level ){
+            Level l = (Level) partial;
+            return new Level(l.getLevel(), traverse( l.get_object() ) );
+        } else if ( partial instanceof List ){
+            List<Object> all = new LinkedList<Object>();
+            for ( Object o : (List<?>) partial ){
+                if ( o instanceof _Ellipses ){
+                    all.addAll( (List<?>) traverse( o ) );
+                } else {
+                    all.add( traverse( o ) );
+                }
+            }
+            return all;
+        } else if ( partial instanceof _Ellipses ){
+            return traverse( handleEllipses( (_Ellipses) partial ) );
+        } else if ( partial instanceof Node ){
+            return ((Node) partial).accept( this );
+        }
+        throw new MacroError( "Unknown object type " + partial.getClass().getName() + " value: " + partial );
+    }
+
+    /***********************************************************************************/
+
+    @Override
+    public List<Expr> recurOnListOfExpr(List<Expr> that) {
+        List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
+        for (Expr elt : that) {
+            if ( elt instanceof _Ellipses ){
+                for ( Node n : handleEllipses((_Ellipses) elt) ){
+                    accum.add( (Expr) n );
+                }
+            } else {
+                accum.add((Expr) recur(elt));
+            }
+        }
+        return accum;
+    }
+
+    private boolean hasVariable( Id id ){
+        return this.variables.get(id.getText()) != null;
+    }
+
+    private int lookupLevel(Id id){
+        String variable = id.getText();
+        Level binding = this.variables.get(variable);
+        if ( binding == null ){
+            throw new MacroError( "Can't find a binding for gap " + id );
+        }
+        return binding.getLevel();
+    }
 
     class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
 	private Map<String,Transformer> transformers;
@@ -662,101 +781,6 @@ public class Transform extends TemplateUpdateVisitor {
 	    }
 	    return Option.<Node>none();
 	}
-    }
-
-    private Object traverse( Object partial ){
-        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
-        if ( partial instanceof Level ){
-            Level l = (Level) partial;
-            return new Level(l.getLevel(), traverse( l.get_object() ) );
-        } else if ( partial instanceof List ){
-            List<Object> all = new LinkedList<Object>();
-            for ( Object o : (List<?>) partial ){
-                if ( o instanceof _Ellipses ){
-                    all.addAll( (List<?>) traverse( o ) );
-                } else {
-                    all.add( traverse( o ) );
-                }
-            }
-            return all;
-        } else if ( partial instanceof _Ellipses ){
-            return traverse( handleEllipses( (_Ellipses) partial ) );
-        } else if ( partial instanceof Node ){
-            return ((Node) partial).accept( this );
-        }
-        throw new MacroError( "Unknown object type " + partial.getClass().getName() + " value: " + partial );
-    }
-
-    @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
-        if ( ! that.getSyntaxParameters().isEmpty() ){
-	    /* needs parameters, curry it! */
-            return curry( that.getSyntaxTransformer(),
-			  that.getVariables(),
-			  that.getSyntaxParameters() );
-        }
-        /*
-	  Debug.debug(Debug.Type.SYNTAX, 1,
-	              "Run transformation on " + that + " is " +
-		      that.getSyntaxTransformer().invoke());
-	  return that.getSyntaxTransformer().invoke().accept( this );
-	*/
-        Debug.debug( Debug.Type.SYNTAX, 1, "Run transformation " + that.getSyntaxTransformer() );
-        Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
-        //Debug.debug( Debug.Type.SYNTAX, 1,
-        //             "Transformation is " + FortressAstToConcrete.astToString(transformer));
-        // EllipsesEnvironment env = new EllipsesEnvironment();
-        Map<String,Level> arguments = that.getVariables();
-        Map<String,Level> evaluated = new HashMap<String,Level>();
-        for ( Map.Entry<String,Level> var : arguments.entrySet() ){
-            String varName = var.getKey();
-            // Node argument = ((Node)var.getValue()).accept(this);
-            /*
-            if ( var.getValue() instanceof List ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
-                env.add( NodeFactory.makeId( varName ), 1, var.getValue() );
-            }
-            */
-            // Level level = var.getValue();
-            // Object argument = traverse( level.get_object() );
-
-            /* argh, this cast shouldn't be needed */
-            Level argument = (Level) traverse( var.getValue() );
-
-            /* this is almost definately in the wrong place */
-            /*
-            if ( argument instanceof List ){
-                Debug.debug( Debug.Type.SYNTAX, 2, "Adding repeated node " + varName );
-                env.add( NodeFactory.makeId( varName ), 1, argument );
-            }
-            */
-
-            // checkFullyTransformed(argument);
-            // evaluated.put(varName, new Level( level.getLevel(), argument ) );
-            evaluated.put(varName, argument);
-            Debug.debug( Debug.Type.SYNTAX, 3,
-			 "Argument " + varName + " is " + argument);
-        }
-
-        Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " +
-		     that.getSyntaxTransformer() );
-        Node transformed =
-	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated) );
-        checkFullyTransformed(transformed);
-        return transformed;
-    }
-
-    @Override public List<Expr> recurOnListOfExpr(List<Expr> that) {
-        List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
-        for (Expr elt : that) {
-            if ( elt instanceof _Ellipses ){
-                for ( Node n : handleEllipses((_Ellipses) elt) ){
-                    accum.add( (Expr) n );
-                }
-            } else {
-                accum.add((Expr) recur(elt));
-            }
-        }
-        return accum;
     }
 
     private void checkFullyTransformed(Node n) {
