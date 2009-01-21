@@ -403,10 +403,13 @@ private List<AliasedSimpleName> AliasedSimpleNameList =
 /* AliasedQualifiedName ::= QualifiedName (w as w QualifiedName)? */
 private AliasedSimpleName AliasedQualifiedName =
      a1:QualifiedName a2:(w as w QualifiedName)?
-     { if (a2 == null)
+     { a1 = NodeFactory.makeDottedId(a1);
+       if (a2 == null)
            yyValue = NodeFactory.makeAliasedSimpleName(a1);
-       else
+       else {
+           a2 = NodeFactory.makeDottedId(a2);
            yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
+       }
      };
 
 /* AliasedQualifiedNameList ::= AliasedQualifiedName (w , w AliasedQualifiedName)* */

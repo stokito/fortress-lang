@@ -1038,6 +1038,18 @@ public class NodeFactory {
         return new AnonymousFnName(info, api);
     }
 
+    public static Id makeDottedId(Id id) {
+        if ( id.getApiName().isSome() ) {
+            APIName apiName = id.getApiName().unwrap();
+            String name = "";
+            for (Id n: apiName.getIds()) {
+                name += (n.getText() + ".");
+            }
+            return makeId(NodeUtil.getSpan(id), name + id.getText());
+        } else
+            return id;
+    }
+
     public static Id makeId(Span span, String name) {
         return makeId(span, Option.<APIName>none(), name);
     }
@@ -1046,7 +1058,6 @@ public class NodeFactory {
         SpanInfo info = makeSpanInfo(span);
         return new Id(info, apiName, text);
     }
-
 
     public static Id bogusId(Span span) {
         return makeId(span, Option.<APIName>none(), "_");
