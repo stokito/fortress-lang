@@ -15,9 +15,9 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 component UsingJavaIdentifiersAsPatternVariablesUse
-  
+
   import UsingJavaIdentifiersAsPatternVariables.{...}
   export Executable
 
-  run(args:String...):() = println (foo)
+  run(args:String...):() = println ( foo "foo" bar )
 end

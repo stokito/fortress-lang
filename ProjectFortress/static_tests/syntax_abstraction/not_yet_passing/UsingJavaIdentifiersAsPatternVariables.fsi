@@ -21,9 +21,9 @@ api UsingJavaIdentifiersAsPatternVariables
   import FortressSyntax.{Expression}
 
   grammar A extends Expression
-    Expr |Expr:= class:foo bb:Bar => <[ class " " bb(class) ]>
+    Expr |:= foo class:Expr bb:Bar => <[ class " " bb(class) ]>
 
-    Bar(interface:Expr) :Expr:= b:bar => <[ bar " " interface ]>
+    Bar(interface:Expr) :Expr:= b:bar => <[ interface ]>
   end
 
 end
