@@ -36,14 +36,6 @@ end
 
 run(args:String...) = do
 
-(* <{ (CData(a.tag()) asif Content) }> *)
-(* <| (<name></name> asif Content) | a <- ls |> *)
-    ls:List[\Content\] = <| ( (<aaa />) asif Content) |>
-    cs:List[\Content\] = <| ( x asif Content ) | x <- ls |>
-    xpersons = <x>
-                         <{ cs }>
-                       </x>
-    println "Answer is " xpersons
     println "Answer is " (<aaa />)
     println "Answer is " (<aaa foo="bar">a</aaa>)
     println "Answer is " (<aaa foo="bar/boo">a</aaa>)
