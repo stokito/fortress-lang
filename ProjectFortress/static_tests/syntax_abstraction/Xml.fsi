@@ -75,6 +75,7 @@ api Xml
 
     XmlContent:List[\Content\] :Expr:= (* type: List[\Content\] *)
       s:Strings => <[ <| (CData(s) asif Content) |> ]>
+    | <`{ e:Expr `}> => <[ (e asif List[\Content\]) ]>
     | c:CData+ => <[ <| CData(BIG ||| <| a.toString() | a <- <|c**|> |>) asif Content |> ]>
     | {x:XExpr SPACE}+ => <[ <|x**|> ]>
 

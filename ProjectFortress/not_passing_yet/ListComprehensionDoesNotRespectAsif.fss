@@ -23,7 +23,6 @@ export Executable
 
 
 trait A end
-
 object B extends A end
 
 run(args:String...) = do
