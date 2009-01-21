@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -45,14 +45,19 @@ import com.sun.fortress.useful.Debug;
  *
  * 1) Disambiguate item symbols and rewrite to either nonterminal,
  *    keyword or token symbol
- * 2) Disambiguate nonterminal parameters
+ * 2) Disambiguate nonterminal parameters (Not any more)
+ *    We need to support nonterminal parameters to express
+ *    desugaring of Fortress comprehensions?
+ *    In order to support it,
+ *    the parameters should be handled by TemplateVarRewriter.identifierLoop
+ *    and Transform should handle it appropriately.
  * 3) Remove whitespace where indicated by no-whitespace symbols
  * 4) Rewrite escaped symbols
  * 5) Desugar extensions: fill in unmentioned imported grammars
  *    and collect multiple extensions of same nonterminal together.
  * 6) Name transformers
- * 6) Parse pretemplates and replace with real templates
- * 7) Well-formedness check on template gaps (???)
+ * 7) Parse pretemplates and replace with real templates
+ * 8) Well-formedness check on template gaps (???)
  */
 public class GrammarRewriter {
 
@@ -86,7 +91,7 @@ public class GrammarRewriter {
             // No longer done.
 
             // 3) Remove whitespace where instructed by non-whitespace symbols
-            if (errors.isEmpty()) 
+            if (errors.isEmpty())
                 api = (Api) api.accept(new WhitespaceElimination());
 
             // 4) Rewrite escaped characters
@@ -126,25 +131,20 @@ public class GrammarRewriter {
         return results;
     }
 
-    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis, 
+    private static Collection<ApiIndex> buildApiIndexesOnly(Collection<Api> apis,
                                                             GlobalEnvironment env) {
         IndexBuilder.ApiResult apiN = IndexBuilder.buildApis(apis, System.currentTimeMillis() );
         return apiN.apis().values();
     }
 
     private static NTEnv buildNTEnv(Collection<ApiIndex> apis, GlobalEnvironment env) {
-        Map<String, GrammarIndex> grammars = 
-            initializeGrammarIndexes(apis, env.apis().values());
+        Map<String, GrammarIndex> grammars =
+            initializeGrammarIndexExtensions(apis, env.apis().values());
         return EnvFactory.makeNTEnv(grammars.values());
     }
 
-    private static void initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
-                                                        Collection<ApiIndex> moreApis ) {
-        initializeGrammarIndexes(apis, moreApis);
-    }
-
-    private static Map<String, GrammarIndex> initializeGrammarIndexes(Collection<ApiIndex> apis,
-                                                                      Collection<ApiIndex> moreApis) {
+    private static Map<String, GrammarIndex> initializeGrammarIndexExtensions(Collection<ApiIndex> apis,
+                                                                              Collection<ApiIndex> moreApis) {
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
 
         for (ApiIndex a2: moreApis) {
@@ -152,8 +152,8 @@ public class GrammarRewriter {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
-        for (ApiIndex a2: apis) {
-            for (Entry<String, GrammarIndex> e: a2.grammars().entrySet()) {
+        for (ApiIndex a1: apis) {
+            for (Entry<String, GrammarIndex> e: a1.grammars().entrySet()) {
                 grammars.put(e.getKey(), e.getValue());
             }
         }
