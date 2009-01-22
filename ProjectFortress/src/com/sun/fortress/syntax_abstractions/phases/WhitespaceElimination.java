@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,8 +27,6 @@ import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.SyntaxDef;
 import com.sun.fortress.nodes.SyntaxSymbol;
 import com.sun.fortress.nodes.WhitespaceSymbol;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.NodeFactory;
 
 import com.sun.fortress.useful.Debug;
 
@@ -50,10 +48,11 @@ public class WhitespaceElimination extends NodeUpdateVisitor {
                 }
                 ls.add(symbol);
             } else {
-                Debug.debug( Debug.Type.SYNTAX, 1, "[whitespace] Throwing out symbol ", symbol );
+                Debug.debug( Debug.Type.SYNTAX, 1,
+                             "[whitespace] Throwing out symbol ", symbol );
             }
         }
-        return new SyntaxDef(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)),
-                             that.getModifier(), ls, that.getTransformer());
+        return new SyntaxDef(that.getInfo(), that.getModifier(), ls,
+                             that.getTransformer());
     }
 }
