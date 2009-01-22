@@ -43,31 +43,49 @@ import edu.rice.cs.plt.tuple.OptionUnwrapException;
  */
 public class RewriteTransformerNames extends NodeUpdateVisitor {
 
-    // private List<String> names;
     private Option<String> api;
     private Option<String> grammar;
     private Option<String> productionName;
     // private Option<List<NonterminalParameter>> parameters;
 
     public RewriteTransformerNames(){
-        // this.names = new ArrayList<String>();
         this.api = Option.none();
         this.grammar = Option.none();
     }
 
-    @Override public Node forApi(Api that) {
+    @Override
+    public Node forApi(Api that) {
         api = Option.some(that.getName().toString());
         return super.forApi(that);
     }
 
-    @Override public Node forGrammarDecl(GrammarDecl that) {
+    @Override
+    public Node forGrammarDecl(GrammarDecl that) {
         grammar = Option.some(that.getName().toString().replace( '.', '_' ));
         return super.forGrammarDecl(that);
     }
 
-    /* These names might need to be consistently created, rather than use FreshName
-     * Also, at this point the grammar is fully qualifid so the output is something
-     * like api_api_grammar_name. If this ever matters then take off the first
+    @Override
+    public Node forNonterminalDef(NonterminalDef that) {
+        productionName = Option.some(that.getName().getText());
+        Node result = super.forNonterminalDef(that);
+        productionName = Option.none();
+        return result;
+    }
+
+    @Override
+    public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
+        productionName = Option.some(that.getName().getText());
+        Node result = super.forNonterminalExtensionDef(that);
+        productionName = Option.none();
+        return result;
+    }
+
+    /* These names might need to be consistently created,
+     * rather than use RatsUtil.getFreshName.
+     * Also, at this point, the grammar is fully qualifid
+     * so the output is something like api_api_grammar_name.
+     * If this ever matters then take off the prefix:
      * api.unwrap() + "_"
      */
     private String transformationName( String name ){
@@ -75,33 +93,12 @@ public class RewriteTransformerNames extends NodeUpdateVisitor {
             RatsUtil.getFreshName( name + "Transformer" );
     }
 
-    /*
-    @Override public Node forNonterminalHeader(NonterminalHeader that) {
-        parameters = Option.some(that.getParams());
-        productionName = Option.some(that.getName().getText());
-        Node result = super.forNonterminalHeader(that);
-        return result;
-    }
-    */
-
-    @Override public Node forNonterminalDef(NonterminalDef that) {
-        productionName = Option.some(that.getName().getText());
-        Node result = super.forNonterminalDef(that);
-        productionName = Option.none();
-        return result;
-    }
-
-    @Override public Node forNonterminalExtensionDef(NonterminalExtensionDef that) {
-        productionName = Option.some(that.getName().getText());
-        Node result = super.forNonterminalExtensionDef(that);
-        productionName = Option.none();
-        return result;
-    }
-
-    @Override public Node forPreTransformerDefOnly(PreTransformerDef that, ASTNodeInfo info,
-                                                   Transformer transformer) {
+    @Override
+    public Node forPreTransformerDefOnly(PreTransformerDef that, ASTNodeInfo info,
+                                         Transformer transformer) {
         try {
-            Debug.debug( Debug.Type.SYNTAX, 1, "Found a pre-transformer " + productionName.unwrap());
+            Debug.debug( Debug.Type.SYNTAX, 1,
+                         "Found a pre-transformer " + productionName.unwrap());
             String name = transformationName(productionName.unwrap());
             List<NonterminalParameter> params = new LinkedList<NonterminalParameter>();
             return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan("RewriteTransformerNames.forPreTransformerDefOnly")),

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -53,8 +53,8 @@ import com.sun.fortress.tools.FortressAstToConcrete;
 
 import edu.rice.cs.plt.tuple.Option;
 
-/* ExtensionDesugarer rewrites grammars to satisfy the
- * following postconditions:
+/* ExtensionDesugarer rewrites grammars to satisfy
+ * the following postconditions:
  *
  * - A nonterminal has at most one extension node
  *   (multiple extensions in a grammar are combined together)
@@ -62,7 +62,6 @@ import edu.rice.cs.plt.tuple.Option;
  *   has an extension node
  * - Every extension of a nonterminal mentions every imported grammar
  *   with public extensions exactly once
- *
  *
  * Also provides a public static method used by GrammarComposer
  * to generate implicit extensions.
@@ -145,9 +144,9 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         // Recombine into GrammarDecl
         GrammarDecl result =
-            new GrammarDecl(NodeFactory.makeSpanInfo(NodeUtil.getSpan(grammar)),
-                            grammar.getName(), grammar.getExtendsClause(),
-                           newMembers, grammar.getTransformers(), grammar.isNativeDef());
+            new GrammarDecl(grammar.getInfo(), grammar.getName(),
+                            grammar.getExtendsClause(), newMembers,
+                            grammar.getTransformers(), grammar.isNativeDef());
         Debug.debug(Debug.Type.SYNTAX, 3,
                     "Desugared grammar into:\n" + result.accept(new FortressAstToConcrete()));
 

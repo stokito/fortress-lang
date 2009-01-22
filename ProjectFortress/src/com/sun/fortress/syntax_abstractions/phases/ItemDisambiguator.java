@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -68,34 +68,21 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         this._errors.add(StaticError.make(msg, loc));
     }
 
-    private Option<GrammarIndex> grammarIndex(Id name) {
-        if (name.getApiName().isSome()) {
-            APIName api = name.getApiName().unwrap();
-            if (this._globalEnv.definesApi(api)) {
-                return Option.some(_globalEnv.api(api).grammars().get(name.getText()));
-            }
-            else {
-                return Option.none();
-            }
-        }
-        return Option.some(((ApiIndex) _currentApi).grammars().get(name));
-    }
-
     public Collection<StaticError> errors() {
         return this._errors;
     }
 
-    @Override public Node forApi(Api that) {
+    @Override
+    public Node forApi(Api that) {
         if (this._globalEnv.definesApi(that.getName())) {
             this._currentApi = this._globalEnv.api(that.getName());
-        }
-        else {
-            error("Undefined api ", that);
-        }
+        } else
+            error("Undefined API ", that);
         return super.forApi(that);
     }
 
-    @Override public Node forGrammarDecl(GrammarDecl that) {
+    @Override
+    public Node forGrammarDecl(GrammarDecl that) {
         Option<GrammarIndex> index = this.grammarIndex(that.getName());
         if (index.isSome()) {
             this._currentGrammarIndex = index.unwrap();
@@ -105,7 +92,21 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         return super.forGrammarDecl(that);
     }
 
-    @Override public Node forUnparsedTransformer(UnparsedTransformer that) {
+    private Option<GrammarIndex> grammarIndex(Id name) {
+        if (name.getApiName().isSome()) {
+            APIName api = name.getApiName().unwrap();
+            if (this._globalEnv.definesApi(api)) {
+                return Option.some(_globalEnv.api(api).grammars().get(name.getText()));
+            }
+            else {
+                return Option.none();
+            }
+        } else
+            return Option.some(((ApiIndex) _currentApi).grammars().get(name));
+    }
+
+    @Override
+    public Node forUnparsedTransformer(UnparsedTransformer that) {
         NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
         Option<Id> oname =
             nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex),
@@ -114,15 +115,13 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             return new UnparsedTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that, oname.unwrap())),
                                            that.getTransformer(), oname.unwrap());
         } else {
-            throw new MacroError(that, "Cannot find non-terminal " + that.getNonterminal());
+            throw new MacroError(that, "Cannot find nonterminal " + that.getNonterminal());
         }
     }
 
-    @Override public Node forItemSymbol(ItemSymbol that) {
+    @Override
+    public Node forItemSymbol(ItemSymbol that) {
         SyntaxSymbol n = nameResolution(that);
-        if (n instanceof NonterminalSymbol ||
-            n instanceof KeywordSymbol) {
-        }
         Debug.debug(Debug.Type.SYNTAX, 4, "Resolve item symbol " + that.getItem() + " to " + n);
         return n;
     }
@@ -133,7 +132,6 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
             NonterminalNameDisambiguator nnd = new NonterminalNameDisambiguator(this._globalEnv);
             Option<Id> oname =
                 nnd.handleNonterminalName(new NonterminalEnv(this._currentGrammarIndex), name);
-
             if (oname.isSome()) {
                 name = oname.unwrap();
                 return makeNonterminal(item, name);
@@ -145,27 +143,28 @@ public class ItemDisambiguator extends NodeUpdateVisitor {
         }
     }
 
-    private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
-        return new NonterminalSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), name);
-    }
-
-    private KeywordSymbol makeKeywordSymbol(ItemSymbol that) {
-        return new KeywordSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), that.getItem());
-    }
-
-    private TokenSymbol makeTokenSymbol(ItemSymbol that) {
-        return new TokenSymbol(NodeFactory.makeSpanInfo(NodeUtil.getSpan(that)), that.getItem());
-    }
-
     private static Id makeId(Span span, String item) {
         int lastIndexOf = item.lastIndexOf('.');
         if (lastIndexOf != -1) {
             APIName apiName = NodeFactory.makeAPIName(span,
                                                       item.substring(0, lastIndexOf));
-            return NodeFactory.makeId(span, apiName, NodeFactory.makeId(span, item.substring(lastIndexOf+1)));
+            return NodeFactory.makeId(span, apiName,
+                                      NodeFactory.makeId(span, item.substring(lastIndexOf+1)));
         }
         else {
             return NodeFactory.makeId(span, item);
         }
+    }
+
+    private NonterminalSymbol makeNonterminal(ItemSymbol that, Id name) {
+        return new NonterminalSymbol(that.getInfo(), name);
+    }
+
+    private KeywordSymbol makeKeywordSymbol(ItemSymbol that) {
+        return new KeywordSymbol(that.getInfo(), that.getItem());
+    }
+
+    private TokenSymbol makeTokenSymbol(ItemSymbol that) {
+        return new TokenSymbol(that.getInfo(), that.getItem());
     }
 }

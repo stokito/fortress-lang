@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -39,159 +39,116 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class NonterminalNameDisambiguator {
 
-	private List<StaticError> _errors;
-	private GlobalEnvironment _globalEnv;
+    private List<StaticError> _errors;
+    private GlobalEnvironment _globalEnv;
 
-	public NonterminalNameDisambiguator(GlobalEnvironment env) {
-		this._errors = new LinkedList<StaticError>();
-		this._globalEnv = env;
-	}
+    public NonterminalNameDisambiguator(GlobalEnvironment env) {
+        this._errors = new LinkedList<StaticError>();
+        this._globalEnv = env;
+    }
 
-	private void error(String msg, HasAt loc) {
-		this._errors.add(StaticError.make(msg, loc));
-	}
+    private void error(String msg, HasAt loc) {
+        this._errors.add(StaticError.make(msg, loc));
+    }
 
-	public List<StaticError> errors() {
-		return this._errors;
-	}
+    public List<StaticError> errors() {
+        return this._errors;
+    }
 
-	/**
-	 * Given a name Foo.Bar.Baz iterate though the set of {Foo, Bar, Baz} and
-	 * construct each of the prefixes: Foo, Foo.Bar, Foo.Bar.Baz.
-	 * For each of these prefix check if it is an API, if not proceed with the
-	 * next. If it is the next element must be a grammar.
-	 * E.g. if Foo.Bar is an API, then return the API name Foo.Bar.Baz.
-	 * Return none if no API is found and some if an API is found.
-	 * @param name
-	 * @return
-	 * TODO: we don't check for the case if an API exists which name is a prefix of
-	 * the intended name.
-	 */
-	public Option<APIName> grammarName(APIName name) {
-		List<Id> ids = new LinkedList<Id>();
-		Iterator<Id> it = name.getIds().iterator();
-		boolean foundApi = false;
-                Span span = NodeFactory.macroSpan;
-		while (it.hasNext() && !foundApi) {
-			ids.add(it.next());
-			boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span,ids));
-			if (realApi) {
-				foundApi = true;
-			}
-		}
-		if (!foundApi || !it.hasNext()) {
-			return Option.none();
-		}
-		Id grammarName = it.next();
-		Collection<Id> aids = new LinkedList<Id>();
-		aids.addAll(ids);
-		aids.add(grammarName);
-		return Option.some(NodeFactory.makeAPIName(span,aids));
-	}
-
-	/**
-	 * Disambiguate the given nonterminal name against the given nonterminal environment.
-	 * If reportNonterminalErrors is false, don't report errors relating to nonterminals
-	 * @param currentEnv
-	 * @param name
-	 * @return
-	 */
-        public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
-            // If it is already fully qualified
-            if (name.getApiName().isSome()) {
-                APIName originalApiGrammar = name.getApiName().unwrap();
-                Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
-                // Check that the qualifying part is a real grammar
-                if (realApiGrammarOpt.isNone()) {
-                    error("Undefined grammar: " + NodeUtil.nameString(originalApiGrammar) +" obtained from "+name, originalApiGrammar);
-                    return Option.none();
-                }
-                APIName realApiGrammar = realApiGrammarOpt.unwrap();
-                Id newN;
-                if (originalApiGrammar == realApiGrammar) { newN = name; }
-                else { newN = NodeFactory.makeId(realApiGrammar, name); }
-                //            System.err.println("newN: "+newN+" "+currentEnv.getGrammarIndex().getName());
-                if (!currentEnv.hasQualifiedNonterminal(newN)) {
-                    error("Undefined qualified nonterminal: " + NodeUtil.nameString(newN), newN);
-                    return Option.none();
-                }
-                return Option.some(newN);
-            }
-            else { // Unqualified name
-                String uqname = name.getText();
-                Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
-                // Is it defined in the current grammar?
-                if (1 == names.size()) {
-                    Id qname = IterUtil.first(names);
-                    return Option.some(qname);
-                }
-                // If the nonterminal is not defined in the current grammar then look
-                // among the inherited nonterminal names
-                if (names.isEmpty()) {
-                    names = currentEnv.inheritedNonterminalNames(uqname);
-
-                    // if not there it is undefined
-                    if (names.isEmpty()) {
-                        error("Undefined non-qualified nonterminal: " + uqname, name);
-                        return Option.none();
-                    }
-
-                    // If too many are found we are not sure which one is the right...
-                    if (names.size() > 1) {
-                        error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-                        return Option.none();
-                    }
-                    //				// We need to repatriating the nonterminal to this grammar
-                    //				Id currentName = currentEnv.getGrammarIndex().getName();
-                    //                APIName currentApi = currentName.getApiName().unwrap();
-                    //				Id qname = SyntaxAbstractionUtil.qualifyMemberName(currentApi, currentName.getText(), uqname);
-                    Debug.debug( Debug.Type.SYNTAX, 4, uqname + " is qualified as " + IterUtil.first(names) );
-                    return Option.some(IterUtil.first(names));
-                }
-                // names.size() > 1
-                error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-                return Option.none();
+    /**
+     * Given a name Foo.Bar.Baz, iterate though the set of {Foo, Bar, Baz} and
+     * construct each of the prefixes: Foo, Foo.Bar, Foo.Bar.Baz.
+     * For each of these prefixes, check if it is an API, if not proceed with
+     * the next.  If it is, the next element must be a grammar.
+     * E.g. if Foo.Bar is an API, then return the API name Foo.Bar.Baz.
+     * Return none if no API is found and some if an API is found.
+     * @param name
+     * @return
+     * TODO: we don't check for the case if an API exists which name is a prefix of
+     * the intended name.
+     */
+    private Option<APIName> grammarName(APIName name) {
+        List<Id> ids = new LinkedList<Id>();
+        Iterator<Id> it = name.getIds().iterator();
+        boolean foundApi = false;
+        Span span = NodeFactory.macroSpan;
+        while (it.hasNext() && !foundApi) {
+            ids.add(it.next());
+            boolean realApi = _globalEnv.definesApi(NodeFactory.makeAPIName(span,ids));
+            if (realApi) {
+                foundApi = true;
             }
         }
+        if (!foundApi || !it.hasNext()) {
+            return Option.none();
+        }
+        Id grammarName = it.next();
+        Collection<Id> aids = new LinkedList<Id>();
+        aids.addAll(ids);
+        aids.add(grammarName);
+        return Option.some(NodeFactory.makeAPIName(span,aids));
+    }
 
-	/*
-	 *         else { // Unqualified name
+    /**
+     * Disambiguate the given nonterminal name against
+     * the given nonterminal environment.
+     * @param currentEnv
+     * @param name
+     * @return
+     */
+    public Option<Id> handleNonterminalName(NonterminalEnv currentEnv, Id name) {
+        // If it is already fully qualified
+        if (name.getApiName().isSome()) {
+            APIName originalApiGrammar = name.getApiName().unwrap();
+            Option<APIName> realApiGrammarOpt = this.grammarName(originalApiGrammar);
+            // Check that the qualifying part is a real grammar
+            if (realApiGrammarOpt.isNone()) {
+                error("Undefined grammar: " +
+                      NodeUtil.nameString(originalApiGrammar) +
+                      " obtained from "+name, originalApiGrammar);
+                return Option.none();
+            }
+            APIName realApiGrammar = realApiGrammarOpt.unwrap();
+            Id newN;
+            if (originalApiGrammar == realApiGrammar) { newN = name; }
+            else { newN = NodeFactory.makeId(realApiGrammar, name); }
+            if (!currentEnv.hasQualifiedNonterminal(newN)) {
+                error("Undefined qualified nonterminal: " +
+                      NodeUtil.nameString(newN), newN);
+                return Option.none();
+            }
+            return Option.some(newN);
+        } else { // Unqualified name
             String uqname = name.getText();
             Set<Id> names = currentEnv.declaredNonterminalNames(uqname);
             // Is it defined in the current grammar?
-            if (currentEnv.hasNonterminal(uqname)) {
-                if (names.size() > 1) {
-                    error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
-                    return Option.none();
-                }
-                if (names.isEmpty()) {
-                    error("Internal error we know the nonterminal is there but can't see it: " + name, name);
-                    return Option.none();
-                }
+            if (1 == names.size()) {
                 Id qname = IterUtil.first(names);
                 return Option.some(qname);
             }
-            else {
-                // If the nonterminal is not defined in the current grammar then look
-                // among the inherited nonterminal names
-                if (names.isEmpty()) {
-                    names = currentEnv.inheritedNonterminalNames(uqname);
-                }
-
+            // If the nonterminal is not defined in the current grammar
+            // then look among the inherited nonterminal names
+            if (names.isEmpty()) {
+                names = currentEnv.inheritedNonterminalNames(uqname);
                 // if not there it is undefined
                 if (names.isEmpty()) {
                     error("Undefined non-qualified nonterminal: " + uqname, name);
                     return Option.none();
                 }
-
                 // If too many are found we are not sure which one is the right...
                 if (names.size() > 1) {
-                    error("Nonterminal name may refer to: " + NodeUtil.namesString(names), name);
+                    error("Nonterminal name may refer to: " +
+                          NodeUtil.namesString(names), name);
                     return Option.none();
                 }
-                Id qname = IterUtil.first(names);
-                return Option.some(qname);
+                Debug.debug( Debug.Type.SYNTAX, 4, uqname + " is qualified as " +
+                             IterUtil.first(names) );
+                return Option.some(IterUtil.first(names));
             }
+            // names.size() > 1
+            error("Nonterminal name may refer to: " + NodeUtil.namesString(names),
+                  name);
+            return Option.none();
         }
-	 */
+    }
 }
