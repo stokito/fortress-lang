@@ -58,20 +58,22 @@ import edu.rice.cs.plt.tuple.Option;
 public class TemplateParser {
 
     public static Api parseTemplates(final ApiIndex api, final NTEnv ntEnv) {
-        final Api raw = TemplateParser.rewriteTemplateVars((Api) api.ast(), ntEnv);
+        final Api raw = rewriteTemplateVars((Api) api.ast(), ntEnv);
         return (Api) raw.accept(new NodeUpdateVisitor() {
-                @Override public Node forGrammarDecl(GrammarDecl that) {
+                @Override
+                public Node forGrammarDecl(GrammarDecl that) {
                     if (!that.isNativeDef()){
                         final Class<?> parser = createParser(findGrammar(that));
                         return that.accept(new NodeUpdateVisitor() {
                                 @Override
-                                    public Node forUnparsedTransformer(UnparsedTransformer that) {
+                                public Node forUnparsedTransformer(UnparsedTransformer that) {
                                     AbstractNode templateNode =
                                         parseTemplate(raw.getName(),
                                                       that.getTransformer(),
                                                       that.getNonterminal(),
                                                       parser);
-                                    return new NodeTransformer(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(templateNode)), templateNode);
+                                    return new NodeTransformer(templateNode.getInfo(),
+                                                               templateNode);
                                 }
                             });
                     } else {
@@ -92,15 +94,18 @@ public class TemplateParser {
 
     private static Api rewriteTemplateVars(Api api, final NTEnv ntEnv) {
         return (Api) api.accept(new NodeUpdateVisitor() {
-                @Override public Node forSyntaxDef(SyntaxDef that) {
+                @Override
+                public Node forSyntaxDef(SyntaxDef that) {
                     final GapEnv gapEnv = EnvFactory.makeGapEnv(that, ntEnv);
                     Debug.debug(Debug.Type.SYNTAX, 3, "Gap env: " + gapEnv);
                     return that.accept(new NodeUpdateVisitor() {
-                            @Override public Node forNamedTransformerDef(NamedTransformerDef that) {
+                            @Override
+                            public Node forNamedTransformerDef(NamedTransformerDef that) {
                                 TemplateVarRewriter tvs = new TemplateVarRewriter(gapEnv);
                                 Transformer transformer =
                                     (Transformer) that.getTransformer().accept(tvs);
-                                return new NamedTransformerDef(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(that)), that.getName(),
+                                return new NamedTransformerDef(that.getInfo(),
+                                                               that.getName(),
                                                                that.getParameters(),
                                                                transformer);
                             }
@@ -114,18 +119,21 @@ public class TemplateParser {
     }
 
     private static AbstractNode parseTemplate(APIName apiName, String stuff,
-                                              Id nonterminal, Class<?> parserClass){
+                                              Id nonterminal,
+                                              Class<?> parserClass){
         try {
             BufferedReader in = Useful.bufferedStringReader(stuff.trim());
             Debug.debug(Debug.Type.SYNTAX, 3,
-                        "Parsing template '" + stuff + "' with nonterminal " + nonterminal );
+                        "Parsing template '" + stuff +
+                        "' with nonterminal " + nonterminal );
             ParserBase parser =
                 RatsUtil.getParserObject(parserClass, in, apiName.toString());
             xtc.parser.Result result =
                 (xtc.parser.Result) invokeMethod(parser, ratsParseMethod(nonterminal));
             if (result.hasValue()){
                 Object node = ((SemanticValue) result).value;
-                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff + "' as node " + node );
+                Debug.debug( Debug.Type.SYNTAX, 2, "Parsed '" + stuff +
+                             "' as node " + node );
                 return (AbstractNode) node;
             } else {
                 throw new ParserError((ParseError) result, parser);
@@ -137,7 +145,7 @@ public class TemplateParser {
 
     private static Object invokeMethod( Object obj, String name ){
         Option<Method> method = lookupExpression(obj.getClass(), name);
-        if ( ! method.isSome() ){
+        if ( method.isNone() ){
             throw new MacroError("Could not find method " + name +
                                  " in " + obj.getClass().getName());
         } else {
@@ -151,27 +159,15 @@ public class TemplateParser {
         }
     }
 
-    private static String ratsParseMethod( Id nonterminal ){
-        String str = nonterminal.toString();
-        if ( str.startsWith( "FortressSyntax" ) ){
-            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
-        } else {
-            return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
-        }
-    }
-
-    private static Option<Method> lookupExpression(Class<?> parser, String production){
+    private static Option<Method> lookupExpression(Class<?> parser,
+                                                   String production){
         try {
-            /* This is a Rats! specific naming convention. Move it
-             * elsewhere?
+            /* This is a Rats! specific naming convention.
+             * Move it elsewhere?
              */
-            String fullName = production;
-            // String fullName = "pExprOnly";
+            String fullName = production; // for example, "pExprOnly"
             Method found = parser.getDeclaredMethod(fullName, int.class);
-
-            /* method is private by default so we have to make
-             * it accessible
-             */
+            /* method is private by default so we have to make it accessible */
             if ( found != null ){
                 found.setAccessible(true);
                 return Option.wrap(found);
@@ -185,5 +181,12 @@ public class TemplateParser {
         }
     }
 
-
+    private static String ratsParseMethod( Id nonterminal ){
+        String str = nonterminal.toString();
+        if ( str.startsWith( "FortressSyntax" ) ){
+            return "p" + str.substring( str.indexOf(".") + 1 ).replace( '.', '$' );
+        } else {
+            return "pUSER_" + str.replaceAll("_", "__").replace('.', '_');
+        }
+    }
 }

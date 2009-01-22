@@ -77,6 +77,10 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         this._globalEnv = env;
     }
 
+    private void error(String msg, HasAt loc) {
+        this._errors.add(StaticError.make(msg, loc));
+    }
+
     public Collection<StaticError> errors() {
         return this._errors;
     }
@@ -86,8 +90,25 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
                               new HashMap<Id,List<NonterminalExtensionDef>>());
     }
 
-    private void error(String msg, HasAt loc) {
-        this._errors.add(StaticError.make(msg, loc));
+    @Override
+    public Node forApi(Api that) {
+        if (this._globalEnv.definesApi(that.getName())) {
+            this._currentApi = this._globalEnv.api(that.getName());
+        } else {
+            error("Undefined API ", that);
+        }
+        return super.forApi(that);
+    }
+
+    @Override
+    public Node forGrammarDecl(GrammarDecl that) {
+        Option<GrammarIndex> index = this.grammarIndex(that.getName());
+        if (index.isSome()) {
+            return rewriteGrammar(that, index.unwrap());
+        } else {
+            error("Grammar "+that.getName()+" not found", that);
+        }
+        return super.forGrammarDecl(that);
     }
 
     private Option<GrammarIndex> grammarIndex(Id name) {
@@ -101,25 +122,6 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         } else {
             return Option.some(((ApiIndex) _currentApi).grammars().get(name));
         }
-    }
-
-    @Override public Node forApi(Api that) {
-        if (this._globalEnv.definesApi(that.getName())) {
-            this._currentApi = this._globalEnv.api(that.getName());
-        } else {
-            error("Undefined api ", that);
-        }
-        return super.forApi(that);
-    }
-
-    @Override public Node forGrammarDecl(GrammarDecl that) {
-        Option<GrammarIndex> index = this.grammarIndex(that.getName());
-        if (index.isSome()) {
-            return rewriteGrammar(that, index.unwrap());
-        } else {
-            error("Grammar "+that.getName()+" not found", that);
-        }
-        return super.forGrammarDecl(that);
     }
 
     private Node rewriteGrammar(GrammarDecl grammar, GrammarIndex index) {
