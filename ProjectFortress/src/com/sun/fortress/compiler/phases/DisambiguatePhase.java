@@ -71,6 +71,10 @@ public class DisambiguatePhase extends Phase {
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             apiIR.apis()));
 
+//         System.out.println("apiEnv:");
+//         apiEnv.print();
+//         System.out.println("env apiEnv");
+
         Disambiguator.ComponentResult componentDR = 
             Disambiguator.disambiguateComponents(previous.componentIterator(), 
                                                  apiEnv,
