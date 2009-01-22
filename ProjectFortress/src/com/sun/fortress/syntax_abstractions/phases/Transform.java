@@ -79,7 +79,8 @@ public class Transform extends TemplateUpdateVisitor {
         final Map<String,Transformer> map = new HashMap<String,Transformer>();
         for (ApiIndex api : env.apis().values()){
             api.ast().accept( new NodeDepthFirstVisitor_void(){
-                    @Override public void forNamedTransformerDef(NamedTransformerDef that) {
+                    @Override
+                    public void forNamedTransformerDef(NamedTransformerDef that) {
                         map.put(that.getName(), that.getTransformer());
                     }
 		});
@@ -583,7 +584,8 @@ public class Transform extends TemplateUpdateVisitor {
     }
     */
 
-    @Override public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
+    @Override
+    public Node defaultTransformationNodeCase(_SyntaxTransformation that) {
         if ( ! that.getSyntaxParameters().isEmpty() ){
 	    /* needs parameters, curry it! */
             return curry( that.getSyntaxTransformer(),
@@ -593,7 +595,6 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, 1,
                      "Run transformation " + that.getSyntaxTransformer() );
         Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
-        // EllipsesEnvironment env = new EllipsesEnvironment();
         Map<String,Level> arguments = that.getVariables();
         Map<String,Level> evaluated = new HashMap<String,Level>();
         for ( Map.Entry<String,Level> var : arguments.entrySet() ){
@@ -616,8 +617,6 @@ public class Transform extends TemplateUpdateVisitor {
             }
             */
 
-            // checkFullyTransformed(argument);
-            // evaluated.put(varName, new Level( level.getLevel(), argument ) );
             evaluated.put(varName, argument);
             Debug.debug( Debug.Type.SYNTAX, 3,
 			 "Argument " + varName + " is " + argument);
@@ -626,7 +625,8 @@ public class Transform extends TemplateUpdateVisitor {
         Debug.debug( Debug.Type.SYNTAX, "Invoking transformer " +
 		     that.getSyntaxTransformer() );
         Node transformed =
-	    transformer.accept(new TransformerEvaluator(this.transformers, evaluated) );
+	    transformer.accept(new TransformerEvaluator(this.transformers,
+                                                        evaluated) );
         checkFullyTransformed(transformed);
         return transformed;
     }
@@ -644,7 +644,8 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     private Object traverse( Object partial ){
-        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " + partial.getClass().getName() );
+        Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " +
+                     partial.getClass().getName() );
         if ( partial instanceof Level ){
             Level l = (Level) partial;
             return new Level(l.getLevel(), traverse( l.get_object() ) );
@@ -663,10 +664,115 @@ public class Transform extends TemplateUpdateVisitor {
         } else if ( partial instanceof Node ){
             return ((Node) partial).accept( this );
         }
-        throw new MacroError( "Unknown object type " + partial.getClass().getName() + " value: " + partial );
+        throw new MacroError("Unknown object type " +
+                             partial.getClass().getName() + " value: " + partial);
     }
 
-    /***********************************************************************************/
+    class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
+	private Map<String,Transformer> transformers;
+	private Map<String,Level> variables;
+
+	private TransformerEvaluator(Map<String,Transformer> transformers,
+				     Map<String,Level> variables ){
+	    this.transformers = transformers;
+	    this.variables = variables;
+	}
+
+	@Override
+        public Node forNodeTransformer(NodeTransformer that) {
+	    return that.getNode().accept(new Transform(transformers, variables,
+                                                       SyntaxEnvironment.identityEnvironment(),
+                                                       true));
+	}
+
+	@Override
+        public Node forCaseTransformer(CaseTransformer that) {
+	    Id gapName = that.getGapName();
+	    List<CaseTransformerClause> clauses = that.getClauses();
+	    Level toMatch = lookupVariable(gapName);
+	    for (CaseTransformerClause clause : clauses) {
+		Option<Node> result = matchClause(clause, toMatch);
+		if (result.isSome()) {
+		    return result.unwrap();
+		}
+		// else continue;
+	    }
+	    throw new MacroError(that, "match failed");
+	}
+
+        private Level lookupVariable( Id name ){
+            Level obj = variables.get( name.getText() );
+            if ( obj == null ){
+                throw new MacroError( "Can't find a binding for gap " + name );
+            } else if ( obj.get_object() instanceof CurriedTransformer ){
+                throw new MacroError( name + " cannot accept parameters in a case expression" );
+            }
+            Debug.debug( Debug.Type.SYNTAX, 3,
+                         "Looking up variable in transformer evaluator: " + name +
+                         " and found " + obj );
+            return obj;
+        }
+
+	private Option<Node> matchClause(CaseTransformerClause clause,
+                                         Level toMatch) {
+	    String constructor = clause.getConstructor().getText();
+	    List<Id> parameters = clause.getParameters();
+	    int parameterCount = parameters.size();
+	    Transformer body = clause.getBody();
+
+	    if (!(constructor.equals("Cons") && parameterCount == 2) &&
+		!(constructor.equals("Empty") && parameterCount == 0)) {
+		// Nothing else implemented yet
+		throw new MacroError(clause.getConstructor(),
+                                     "bad case transformer constructor: " + constructor);
+	    }
+
+	    if (toMatch.get_object() instanceof List) {
+		List<?> list = (List<?>)toMatch.get_object();
+                Debug.debug( Debug.Type.SYNTAX, 2,
+                             "Matching Cons constructor to list " + list );
+		if (constructor.equals("Cons")) {
+		    if (!list.isEmpty()) {
+			Object first = list.get(0);
+			Object rest = list.subList(1, list.size());
+			String firstParam = parameters.get(0).getText();
+			String restParam = parameters.get(1).getText();
+			Map<String, Level> newEnv = new HashMap<String,Level>(variables);
+			newEnv.put(firstParam, new Level(toMatch.getLevel() - 1, first) );
+			newEnv.put(restParam, new Level(toMatch.getLevel(), rest) );
+                        Debug.debug( Debug.Type.SYNTAX, 2,
+                                     "Head of cons variable " + firstParam +
+                                     " is " + first );
+                        Debug.debug( Debug.Type.SYNTAX, 2,
+                                     "Tail of cons variable " + restParam +
+                                     " is " + rest );
+			return Option.wrap(body.accept(new TransformerEvaluator(transformers,
+                                                                                newEnv)));
+		    }
+		} else if (constructor.equals("Empty")) {
+		    if (list.isEmpty()) {
+			return Option.wrap(body.accept(this));
+		    }
+		}
+	    }
+	    return Option.<Node>none();
+	}
+    }
+
+    private void checkFullyTransformed(Node n) {
+        n.accept(new TemplateNodeDepthFirstVisitor_void() {
+                @Override
+                public void forTemplateGapOnly(TemplateGap that) {
+                    throw new MacroError("Transformation left over template gap: " +
+					 that);
+                }
+                @Override
+                public void for_SyntaxTransformationOnly(_SyntaxTransformation that) {
+                    throw new MacroError("Transformation left over transformation application: "
+                                         + that);
+                }
+            });
+    }
 
     @Override
     public List<Expr> recurOnListOfExpr(List<Expr> that) {
@@ -683,158 +789,25 @@ public class Transform extends TemplateUpdateVisitor {
         return accum;
     }
 
-    private boolean hasVariable( Id id ){
-        return this.variables.get(id.getText()) != null;
-    }
-
-    private int lookupLevel(Id id){
-        String variable = id.getText();
-        Level binding = this.variables.get(variable);
-        if ( binding == null ){
-            throw new MacroError( "Can't find a binding for gap " + id );
-        }
-        return binding.getLevel();
-    }
-
-    class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
-	private Map<String,Transformer> transformers;
-	private Map<String,Level> variables;
-        // private EllipsesEnvironment ellipsesEnv;
-
-	private TransformerEvaluator(Map<String,Transformer> transformers,
-				     Map<String,Level> variables ){
-	    this.transformers = transformers;
-	    this.variables = variables;
-	}
-
-        private Level lookupVariable( Id name ){
-            Level obj = variables.get( name.getText() );
-            if ( obj == null ){
-                throw new MacroError( "Can't find a binding for gap " + name );
-            } else if ( obj.get_object() instanceof CurriedTransformer ){
-                throw new MacroError( name + " cannot accept parameters in a case expression" );
+    private List<Node> handleEllipses( _Ellipses that ){
+        if ( controllable( that ) ){
+            List<Node> nodes = new ArrayList<Node>();
+            for ( Transform newEnv : decompose( freeVariables( that.getRepeatedNode() ) ) ){
+                nodes.add( that.getRepeatedNode().accept( newEnv ) );
             }
-            Debug.debug( Debug.Type.SYNTAX, 3, "Looking up variable in transformer evaluator: " + name + " and found " + obj );
-            return obj;
+            return nodes;
+        } else {
+            throw new MacroError( "Invalid ellipses expression: " + that );
         }
-
-	@Override
-        public Node forNodeTransformer(NodeTransformer that) {
-	    return that.getNode().accept(new Transform(transformers, variables, SyntaxEnvironment.identityEnvironment(), true));
-	    // return that.getNode().accept(new Transform(transformers, variables, Transform.this.syntaxEnvironment, true));
-	}
-
-	@Override
-        public Node forCaseTransformer(CaseTransformer that) {
-	    Id gapName = that.getGapName();
-	    List<CaseTransformerClause> clauses = that.getClauses();
-
-	    // Object toMatch = lookupVariable(gapName, new LinkedList<Id>());
-	    Level toMatch = lookupVariable(gapName);
-	    for (CaseTransformerClause clause : clauses) {
-		Option<Node> result = matchClause(clause, toMatch);
-		if (result.isSome()) {
-		    return result.unwrap();
-		}
-		// else continue;
-	    }
-	    throw new MacroError(that, "match failed");
-	}
-
-	private Option<Node> matchClause(CaseTransformerClause clause, Level toMatch) {
-	    String constructor = clause.getConstructor().getText();
-	    List<Id> parameters = clause.getParameters();
-	    int parameterCount = parameters.size();
-	    Transformer body = clause.getBody();
-
-	    if (!(constructor.equals("Cons") && parameterCount == 2) &&
-		!(constructor.equals("Empty") && parameterCount == 0)) {
-		// Nothing else implemented yet
-		throw new MacroError(clause.getConstructor(),
-                                     "bad case transformer constructor: " + constructor);
-	    }
-
-	    if (toMatch.get_object() instanceof List) {
-		List<?> list = (List<?>)toMatch.get_object();
-                Debug.debug( Debug.Type.SYNTAX, 2, "Matching Cons constructor to list " + list );
-		if (constructor.equals("Cons")) {
-		    if (!list.isEmpty()) {
-			Object first = list.get(0);
-			Object rest = list.subList(1, list.size());
-			String firstParam = parameters.get(0).getText();
-			String restParam = parameters.get(1).getText();
-			Map<String, Level> newEnv = new HashMap<String,Level>(variables);
-			// TODO not confident these spans are correct.
-			newEnv.put(firstParam, new Level(toMatch.getLevel() - 1, first) );
-			newEnv.put(restParam, new Level(toMatch.getLevel(), rest) );
-                        // EllipsesEnvironment env2 = new EllipsesEnvironment( ellipsesEnv );
-                        // env2.add( NodeFactory.makeId( restParam ), 1, rest );
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Head of cons variable " + firstParam + " is " + first );
-                        Debug.debug( Debug.Type.SYNTAX, 2, "Tail of cons variable " + restParam + " is " + rest );
-			return Option.wrap(body.accept(new TransformerEvaluator(transformers, newEnv)));
-		    }
-		} else if (constructor.equals("Empty")) {
-		    if (list.isEmpty()) {
-			return Option.wrap(body.accept(this));
-		    }
-		}
-	    }
-	    return Option.<Node>none();
-	}
     }
 
-    private void checkFullyTransformed(Node n) {
-        n.accept(new TemplateNodeDepthFirstVisitor_void() {
-                @Override public void forTemplateGapOnly(TemplateGap that) {
-                    throw new MacroError("Transformation left over template gap: " +
-					 that);
-                }
-                @Override public void for_SyntaxTransformationOnly(_SyntaxTransformation that) {
-                    throw new MacroError("Transformation left over transformation application: "
-                                               + that);
-                }
-            });
-    }
-
-    /* find the first length of some repeated pattern variable */
-    private int findRepeatedVar( List<Id> freeVariables ){
-        // for ( Id var : env.getVars() ){
-        for ( Id var : freeVariables ){
-            if ( lookupLevel( var ) > 0 ){
-                int size = ((List) lookupVariable( var, new LinkedList<Id>() ).get_object()).size();
-                Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
-                return size;
+    private boolean controllable( _Ellipses that ){
+        for ( Id var : freeVariables( that.getRepeatedNode() ) ){
+            if ( hasVariable( var ) && lookupLevel( var ) > 0 ){
+                return true;
             }
         }
-        throw new MacroError( "No repeated variables!" );
-    }
-
-    /* convert an environment into a list of environments, one for each value in the list
-     * of values
-     */
-    private List<Transform> decompose( List<Id> freeVariables ){
-        List<Transform> all = new ArrayList<Transform>();
-
-        Debug.debug( Debug.Type.SYNTAX, 2, "Free variables in the decomposed list: " + freeVariables );
-
-        int repeats = findRepeatedVar( freeVariables );
-        for ( int i = 0; i < repeats; i++){
-            Map<String,Level> newVars = new HashMap<String,Level>();
-
-            for ( Id var : freeVariables ){
-                Level value = lookupVariable( var, new LinkedList<Id>() );
-                if ( value.getLevel() == 0 ){
-                    newVars.put( var.getText(), new Level(value.getLevel(), value ) );
-                } else {
-                    List l = (List) value.get_object();
-                    newVars.put( var.getText(), new Level(value.getLevel() - 1, l.get( i ) ) );
-                }
-            }
-
-            all.add( new Transform( transformers, newVars, this.syntaxEnvironment, true ) );
-        }
-
-        return all;
+        return false;
     }
 
     private List<Id> freeVariables( Node node ){
@@ -850,40 +823,60 @@ public class Transform extends TemplateUpdateVisitor {
         return vars;
     }
 
-    private boolean controllable( _Ellipses that ){
-        for ( Id var : freeVariables( that.getRepeatedNode() ) ){
-            if ( hasVariable( var ) && lookupLevel( var ) > 0 ){
-                return true;
-            }
-        }
-        return false;
+    private boolean hasVariable( Id id ){
+        return this.variables.get(id.getText()) != null;
     }
 
-    private List<Node> handleEllipses( _Ellipses that ){
-        if ( controllable( that ) ){
-            List<Node> nodes = new ArrayList<Node>();
-            // Debug.debug( Debug.Type.SYNTAX, 2, "Original env " + env );
-            for ( Transform newEnv : decompose( freeVariables( that.getRepeatedNode() ) ) ){
-                // Debug.debug( Debug.Type.SYNTAX, 2, "Decomposed env ", newEnv );
-                // nodes.add( that.getRepeatedNode().accept( new EllipsesVisitor( newEnv ) ) );
-                /*
-                if ( that.getRepeatedNode() instanceof _RepeatedExpr ){
-                    nodes.addAll( ((_RepeatedExpr) that.getRepeatedNode()).getNodes() );
-                } else {
-                */
-                /*
-                Map<String, Object> variableEnv = new HashMap< String, Object >( variables );
-                for ( Id var : newEnv.getVars() ){
-                    variableEnv.put( var.getText(), newEnv.getValue( var ) );
-                }
-                */
-                nodes.add( that.getRepeatedNode().accept( newEnv ) );
-                // }
-            }
-            return nodes;
-        } else {
-            throw new MacroError( "Invalid ellipses expression: " + that );
+    private int lookupLevel(Id id){
+        String variable = id.getText();
+        Level binding = this.variables.get(variable);
+        if ( binding == null ){
+            throw new MacroError( "Can't find a binding for gap " + id );
         }
+        return binding.getLevel();
+    }
+
+    /* convert an environment into a list of environments,
+     * one for each value in the list of values
+     */
+    private List<Transform> decompose( List<Id> freeVariables ){
+        List<Transform> all = new ArrayList<Transform>();
+
+        Debug.debug( Debug.Type.SYNTAX, 2,
+                     "Free variables in the decomposed list: " + freeVariables );
+
+        int repeats = findRepeatedVar( freeVariables );
+        for ( int i = 0; i < repeats; i++){
+            Map<String,Level> newVars = new HashMap<String,Level>();
+
+            for ( Id var : freeVariables ){
+                Level value = lookupVariable( var, new LinkedList<Id>() );
+                if ( value.getLevel() == 0 ){
+                    newVars.put( var.getText(),
+                                 new Level(value.getLevel(), value ) );
+                } else {
+                    List l = (List) value.get_object();
+                    newVars.put( var.getText(),
+                                 new Level(value.getLevel() - 1, l.get( i ) ) );
+                }
+            }
+
+            all.add( new Transform( transformers, newVars,
+                                    this.syntaxEnvironment, true ) );
+        }
+        return all;
+    }
+
+    /* find the first length of some repeated pattern variable */
+    private int findRepeatedVar( List<Id> freeVariables ){
+        for ( Id var : freeVariables ){
+            if ( lookupLevel( var ) > 0 ){
+                int size = ((List) lookupVariable( var, new LinkedList<Id>() ).get_object()).size();
+                Debug.debug( Debug.Type.SYNTAX, 2, "Repeated variable " + var + " size is " + size );
+                return size;
+            }
+        }
+        throw new MacroError( "No repeated variables!" );
     }
 
     private class CurriedTransformer implements Node {
