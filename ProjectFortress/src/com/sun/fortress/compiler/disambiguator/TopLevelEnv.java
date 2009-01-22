@@ -66,6 +66,8 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.FilteredRelation;
 import edu.rice.cs.plt.collect.FilteredSet;
+import edu.rice.cs.plt.collect.IndexedRelation;
+import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
@@ -75,6 +77,10 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
 
+/**
+ * This class is used by the disambiguator to represent the top-level environment of a component or API. 
+ * The environment it represents includes all imported identifiers and all identifiers declared at top-level.
+ */
 public class TopLevelEnv extends NameEnv {
     private static final Set<String> WELL_KNOWN_APIS =
         Useful.set(WellKnownNames.fortressLibrary(),
@@ -101,16 +107,23 @@ public class TopLevelEnv extends NameEnv {
         _current = current;
         _errors = errors;
 
+//         System.err.println("global_env for " + current.ast().getName() + ":");
+//         globalEnv.print();
+        
         GlobalEnvironment filtered_global_env;
         if (current instanceof ApiIndex) {
          // Filter env based on what this api imports
           Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), ((Api)current.ast()));
           filtered_global_env = new GlobalEnvironment.FromMap(filtered);
         }
-        else if( current instanceof ComponentIndex ) {
+        else if (current instanceof ComponentIndex) {
             //  Filter env based on what this component imports
             Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), ((Component)current.ast()));
+//             System.err.println("filtered for " + current.ast().getName() + ":");
+//             System.err.println(filtered);
             filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+//             System.err.println("filtered_global_env for " + current.ast().getName() + ":");
+//            filtered_global_env.print();
         }
         else {
             throw new IllegalArgumentException("Unanticipated subtype of CompilationUnitIndex.");
@@ -126,6 +139,7 @@ public class TopLevelEnv extends NameEnv {
         _onDemandFunctionOps = functions_and_ops.second();
         _onDemandParametricOps = functions_and_ops.third();
         _onDemandGrammarNames = Collections.unmodifiableMap(initializeOnDemandGrammarNames(_onDemandImportedApis));
+
     }
 
     /**
@@ -245,11 +259,11 @@ public class TopLevelEnv extends NameEnv {
         for (Map.Entry<APIName, ApiIndex> apiEntry: imported_apis.entrySet()) {
             for (IdOrOpOrAnonymousName fnName: apiEntry.getValue().functions().firstSet()) {
 
-                if (fnName instanceof Id ) {
+                if (fnName instanceof Id) {
                     Id _fnName = (Id)fnName;
                     Id name = NodeFactory.makeId(NodeUtil.getSpan(_fnName),
-                            Option.some(apiEntry.getKey()),
-                            _fnName.getText());
+                                                 Option.some(apiEntry.getKey()),
+                                                 _fnName.getText());
                     if (fun_result.containsKey(_fnName)) {
                         fun_result.get(_fnName).add(name);
                     }
@@ -564,14 +578,14 @@ public class TopLevelEnv extends NameEnv {
         if (api.isNone() || _current.ast().getName().equals(actualApi)) {
             TypeConsIndex res = _current.typeConses().get(ignoreApi(name));
             if (res != null) return res;
-            System.err.println("Lookup of "+name+" in current api was null!\n  Trying qualified lookup, api = "+api);
+//             System.err.println("Lookup of "+name+" in current api was null!\n  Trying qualified lookup, api = "+api);
         }
 
         // By this point it should be okay to use the unfiltered environment because this
         // method should only be called after the name is disambiguated.
         TypeConsIndex res = _originalGlobalEnv.api(actualApi).typeConses().get(ignoreApi(name));
         if (res != null) return res;
-        System.err.println("Still couldn't find "+name);
+//         System.err.println("Still couldn't find "+name);
         return null;
     }
 
@@ -614,12 +628,12 @@ public class TopLevelEnv extends NameEnv {
             }});
     }
 
-    private static  Map<APIName, ApiIndex> filterApis(Map<APIName,ApiIndex> apis, Component comp) {
+    private Map<APIName, ApiIndex> filterApis(Map<APIName,ApiIndex> apis, Component comp) {
         Set<APIName> dont_import = findWellKnownExports(comp.getExports());
         return filterApis(Collections.unmodifiableMap(apis), comp.getImports(), dont_import);
     }
 
-    private static Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
+    private Map<APIName, ApiIndex> filterApis(Map<APIName, ApiIndex> apis, Api api) {
         // Insert 'this' api as an implicit import. This kind of strange, but the grammars
         // need them at a minimum.
         Import this_api_import = NodeFactory.makeImportStar(NodeFactory.makeSpan("implicit import, TopLevelEnv"),
@@ -688,28 +702,106 @@ public class TopLevelEnv extends NameEnv {
         return filterMap(map, set, pred);
     }
 
-    private static ApiIndex keep(ApiIndex index,
-            final Set<IdOrOpOrAnonymousName> allowed_) {
+    private static <T> Map<IdOrOpOrAnonymousName,T> alias(Map<IdOrOpOrAnonymousName,T> map, Set<AliasedSimpleName> aliases) { 
+        Map<IdOrOpOrAnonymousName,T> result = new HashMap<IdOrOpOrAnonymousName,T>();
+        result.putAll(map);
 
+        for (AliasedSimpleName alias : aliases) { 
+            if (alias.getAlias().isSome()) { 
+                if (result.containsKey(alias.getName())) { 
+                    result.put(alias.getAlias().unwrap(), result.get(alias.getName()));
+                    result.remove(alias.getName());
+                }
+            }
+        }
+        return result;
+    }
+
+    private Relation<IdOrOpOrAnonymousName,Function> alias(Relation<IdOrOpOrAnonymousName,Function> relation, 
+                                                           Set<AliasedSimpleName> aliases) 
+    { 
+//         System.err.println("alias called for functions");
+//         System.err.println("relation: " + relation);
+        // Argument false to the IndexedRelation constructor avoids unnecessary indexing from seconds to firsts.
+        Relation<IdOrOpOrAnonymousName,Function> result = new IndexedRelation<IdOrOpOrAnonymousName,Function>(false);
+        result.addAll(relation);
+
+        for (AliasedSimpleName alias : aliases) { 
+            if (alias.getAlias().isSome()) { 
+//                 System.err.println("alias " + alias.getName() + " -> " + alias.getAlias().unwrap());
+                IdOrOpOrAnonymousName oldFirst = alias.getName();
+                IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
+                Set<Function> seconds = result.matchFirst(oldFirst);
+                for (Function second : seconds) { 
+//                     System.err.println("Replacing " + oldFirst + " with " + newFirst);
+                    result.remove(oldFirst, second);
+                    result.add(newFirst, second);
+                }
+            } else {
+//                 System.err.println("alias " + alias.getName() + " empty");
+            }
+        }
+//         System.err.println("result: " + result);
+        return result;
+    }       
+
+    private <V> Map<Id,V> aliasIds(Map<Id,V> allowed, Set<AliasedSimpleName> aliased) {
+        Map<Id,V> result = new HashMap<Id,V>();
+        result.putAll(allowed);
+        
+        for (AliasedSimpleName alias : aliased) {
+            if (alias.getAlias().isSome()) {
+                IdOrOpOrAnonymousName oldFirst = alias.getName();
+                IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
+                if (result.containsValue(oldFirst)) {
+                    if (! (newFirst instanceof Id)) {
+                        _errors.add(StaticError.make("Attempt to alias variable " + oldFirst + " with invalid variable name:" + newFirst,
+                                                     NodeUtil.getSpan(alias).toString()));
+                        result.remove(oldFirst);
+                    } else {
+                        result.put((Id)newFirst, result.get(oldFirst));
+                    }
+                }
+            }
+        }
+        return result;
+    }                  
+  
+    private ApiIndex keep(ApiIndex index,
+                          final Set<IdOrOpOrAnonymousName> allowed_,
+                          final Set<AliasedSimpleName> aliased_) {
+
+//         System.err.println("keep called with allowed_=");
+        for (IdOrOpOrAnonymousName a : allowed_) {
+//             System.err.println(a.getClass() + " " + a);
+        }
+//         System.err.println("end allowed_");
         Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
-
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
+//                 System.err.println("Checking if allowed contains " + arg0.getClass() + " " + arg0 + ":" + allowed_.contains(arg0));
+//                 for (IdOrOpOrAnonymousName a : allowed_) {
+//                     System.err.println("a:" + (a).serialize());
+//                     System.err.println("arg0" + (arg0).serialize());
+//                     System.err.println("equals " + ((Id)a).getText().equals(((Id)arg0).getText()));
+//                     System.err.println("==" + (((Id)a).getText() == ((Id)arg0).getText()));
+//                 }
                 return allowed_.contains(arg0);
             }
 
         };
 
         return new ApiIndex((Api)index.ast(),
-                            keepHelper(index.variables(), allowed_),
-                            new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred),
+                            aliasIds(keepHelper(index.variables(), allowed_), aliased_),
+                            alias(new FilteredRelation<IdOrOpOrAnonymousName,Function>(index.functions(), pred), aliased_),
+
                             // Parametric operators are parameterized by their names; they can't be filtered
                             // in any straightforward way.
                             // TODO: Do we need to attach lists of filtered operators to suppress
                             // matching of certain parametric operators? EricAllen 12/18/2008
                             index.parametricOperators(),
-                            keepHelper(index.typeConses(), allowed_),
-                            keepHelper(index.dimensions(), allowed_),
-                            keepHelper(index.units(), allowed_),
+                            aliasIds(keepHelper(index.typeConses(), allowed_), aliased_),
+                            aliasIds(keepHelper(index.dimensions(), allowed_), aliased_),
+                            aliasIds(keepHelper(index.units(), allowed_), aliased_),
                             index.grammars(),
                             index.modifiedDate());
     }
@@ -718,13 +810,14 @@ public class TopLevelEnv extends NameEnv {
      * Filter out whole apis or parts of apis based on the imports of a component or
      * api. FortressBuiltin and AnyType are always imported, and FortressLibrary is only
      * imported implicitly if it is not imported explicitly. If {@code do_not_import} contains
-     * api names, those apis will not beimported no matter what.
+     * api names, those apis will not be imported no matter what.
      */
-    private static Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) {
+    private Map<APIName,ApiIndex> filterApis(Map<APIName, ApiIndex> apis, List<Import> imports, Set<APIName> do_not_import) {
         final Map<APIName, Set<IdOrOpOrAnonymousName>> exceptions = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
         final Map<APIName, Set<IdOrOpOrAnonymousName>> allowed = new HashMap<APIName, Set<IdOrOpOrAnonymousName>>();
+        final Map<APIName, Set<AliasedSimpleName>> aliases = new HashMap<APIName, Set<AliasedSimpleName>>();
 
-        NodeDepthFirstVisitor<Boolean> import_visitor = new NodeDepthFirstVisitor<Boolean>(){
+        NodeDepthFirstVisitor<Boolean> import_visitor = new NodeDepthFirstVisitor<Boolean>() {
             // Do nothing for template-related imports
             @Override public Boolean defaultCase(Node that) {return false;}
 
@@ -743,17 +836,23 @@ public class TopLevelEnv extends NameEnv {
 
             @Override
             public Boolean forImportNames(ImportNames that) {
-                APIName name = that.getApiName();
+                final APIName name = that.getApiName();
 
-                // TODO Handle these aliased names more thoroughly
-                List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(),
+                // Handle aliased names
+                final List<IdOrOpOrAnonymousName> names = CollectUtil.makeList(IterUtil.map(that.getAliasedNames(),
                         new Lambda<AliasedSimpleName,IdOrOpOrAnonymousName>(){
-                    public IdOrOpOrAnonymousName value(
-                            AliasedSimpleName arg0) {
-                        return arg0.getName();
-                    }}));
+                             public IdOrOpOrAnonymousName value(AliasedSimpleName arg0) {
+//                                  System.err.println("aliased name: " + arg0.getName());
+                                 if (aliases.containsKey(name)) {
+                                     aliases.get(name).add(arg0);
+                                 } else { 
+                                     aliases.put(name, Useful.set(arg0));
+                                 }
+                                 return arg0.getName();
+                             }}));
+//                 System.out.println("names: " + names);
 
-                if( allowed.containsKey(name) )
+                if (allowed.containsKey(name))
                     allowed.get(name).addAll(names);
                 else
                     allowed.put(name, new HashSet<IdOrOpOrAnonymousName>(names));
@@ -771,33 +870,37 @@ public class TopLevelEnv extends NameEnv {
             }
         };
 
-        // Visit each import, populating the exceptions and allowed maps
+        // Visit each import, populating the exceptions, allowed, and aliases maps
         Iterable<Boolean> temp=IterUtil.map(imports, import_visitor);
         boolean import_library = true;
-        for(Boolean t : temp){
+        for(Boolean t : temp) {
             import_library&=t;
         }
 
         // Created filters for ApiIndex in apis
         Map<APIName, ApiIndex> result = new HashMap<APIName, ApiIndex>();
-        for( Map.Entry<APIName, ApiIndex> api : apis.entrySet() ) {
+        for (Map.Entry<APIName, ApiIndex> api : apis.entrySet()) {
             // TODO: Report an error on conflicting import statements
             APIName name = api.getKey();
             ApiIndex index = api.getValue();
 
 
-            if( do_not_import.contains(name) ) {
+            if (do_not_import.contains(name)) {
                 // Do nothing! this is a set of things we must not import no matter what.
             }
-            else if( exceptions.containsKey(name) ) {
+            else if (exceptions.containsKey(name)) {
                 Set<IdOrOpOrAnonymousName> exceptions_ = exceptions.get(name);
                 result.put(name, remove(index, exceptions_));
             }
-            else if( allowed.containsKey(name) ) {
+            else if (allowed.containsKey(name)) {
+//                 System.err.println("allowed API: " + name);
+//                 System.err.println("allowed index: " + index);
                 Set<IdOrOpOrAnonymousName> allowed_ = allowed.get(name);
-                result.put(name, keep(index, allowed_));
+//                 System.err.println("allowed names: " + allowed_);
+                Set<AliasedSimpleName> aliased_ = aliases.get(name);
+                result.put(name, keep(index, allowed_, aliased_));
             }
-            else if( name.getText().equals(WellKnownNames.fortressBuiltin()) ) {
+            else if (name.getText().equals(WellKnownNames.fortressBuiltin())) {
                 // Fortress builtin is always implicitly imported
                 result.put(name, index);
             }
@@ -810,6 +913,12 @@ public class TopLevelEnv extends NameEnv {
                 result.put(name, index);
             }
         }
+
+        // Now handle aliases
+
+//         System.err.println("result");
+//         System.err.println(result);
+//         System.err.println("end result");
         return result;
     }
 }

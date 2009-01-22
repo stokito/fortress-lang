@@ -4462,9 +4462,9 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forVarRefOnly(VarRef that,
-                                               TypeCheckerResult exprType_result,
-                                               TypeCheckerResult var_result,
-                                               List<TypeCheckerResult> staticArgs_result) {
+                                           TypeCheckerResult exprType_result,
+                                           TypeCheckerResult var_result,
+                                           List<TypeCheckerResult> staticArgs_result) {
             if ( NodeUtil.isSingletonObject(that) )
                 return for_RewriteObjectRefOnly(that, exprType_result, var_result,
                                                 staticArgs_result);

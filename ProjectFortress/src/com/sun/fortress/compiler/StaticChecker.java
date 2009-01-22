@@ -105,6 +105,8 @@ public class StaticChecker {
         checkComponents(Map<APIName, ComponentIndex> components,
                         GlobalEnvironment env)
     {
+//         System.out.println("checkComponents");
+
         HashSet<Component> checkedComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
         List<APIName> failedComponents = new ArrayList<APIName>();
@@ -112,6 +114,7 @@ public class StaticChecker {
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
         
         for (APIName componentName : components.keySet()) {
+//            System.out.println("next");
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
             checkedComponents.add((Component)checked.ast());
             if (!checked.isSuccessful())
@@ -132,7 +135,12 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component,
                                                    GlobalEnvironment env)
     {
-        if (Shell.getTypeChecking() == true) {
+//         System.out.println("checkComponent");
+         if (Shell.getTypeChecking() == true) {
+//             System.out.println("env:");
+//             env.print();
+//             System.out.println("end env");
+
             Node component_ast = component.ast();
             
             // Replace implicit types with explicit ones.

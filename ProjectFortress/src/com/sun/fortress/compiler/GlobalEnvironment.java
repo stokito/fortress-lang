@@ -69,6 +69,8 @@ public abstract class GlobalEnvironment {
         public void print() {
             for (APIName name : apis().keySet()) {
                 System.out.println(name);
+                System.out.println(apis().get(name));
+                System.out.println();
             }
         }
     }

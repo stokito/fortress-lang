@@ -331,8 +331,8 @@ public class ForeignJava {
             recurOnClass(pkg_name, imported_class, imported_item);
             
         } /* for name : names */
-        System.err.println("javaImplementedAPIs="+javaImplementedAPIs);
-        System.err.println("itemsFromClasses="+itemsFromClasses);
+//        System.err.println("javaImplementedAPIs="+javaImplementedAPIs);
+//        System.err.println("itemsFromClasses="+itemsFromClasses);
     }
 
     /**
