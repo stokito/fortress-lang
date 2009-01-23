@@ -25,6 +25,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.exceptions.MacroError;
 
+/* maps variables to their types and stuff */
 public class GapEnv {
     private final NTEnv ntEnv;
     private final Map<Id, Depth> varToDepth;

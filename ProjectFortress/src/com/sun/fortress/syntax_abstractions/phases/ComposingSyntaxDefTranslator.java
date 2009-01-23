@@ -76,6 +76,9 @@ import com.sun.fortress.useful.Debug;
 
 import static com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 
+/* converts fortress syntax definitions into Rats! definitions
+ * using Rats! objects
+ */
 public class ComposingSyntaxDefTranslator {
 
     private static final String BOUND_VARIABLES = "boundVariables";

@@ -124,6 +124,7 @@ public class Transform extends TemplateUpdateVisitor {
                                   RatsUtil.getFreshName(original.getText() + "-g"));
     }
 
+    /* hygiene */
     @Override
     public Node forVarRef(VarRef that){
         Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
@@ -505,13 +506,18 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    /* end hygiene */
+
     @Override
     public Node forTemplateGapOnly(TemplateGap that, ASTNodeInfo info,
                                    Id gapId_result,
                                    List<Id> templateParams_result) {
-        /* another annoying cast */
         Debug.debug( Debug.Type.SYNTAX, 3, "Looking up gapid " + gapId_result );
+        /* I'm pretty sure the following line should be commented out. Explanation
+         * needed..
+         */
         // Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object()).accept(this);
+        /* another annoying cast */
         Node n = ((Node) lookupVariable(gapId_result, templateParams_result).get_object());
         // Debug.debug( Debug.Type.SYNTAX, 3, "Hash code for " + n + " is " + n.generateHashCode() );
         Debug.debug( Debug.Type.SYNTAX, 3, "Result for gapid " + gapId_result +
@@ -519,6 +525,9 @@ public class Transform extends TemplateUpdateVisitor {
         return n;
     }
 
+    /* return the value for a bound variable, and/or return a new Curried object
+     * if the value takes parameters
+     */
     private Level lookupVariable(Id id, List<Id> params){
         String variable = id.getText();
         Level binding = this.variables.get(variable);
@@ -560,7 +569,7 @@ public class Transform extends TemplateUpdateVisitor {
                 }
                 // return curry((Node)binding, vars);
 
-                /* the type of the transformer doesn't matter */
+                /* the type of the transformer (_SyntaxTransformationExpr) doesn't matter */
 		Node newNode =
 		    new _SyntaxTransformationExpr(NodeFactory.makeExprInfo(NodeFactory.macroSpan),
                                                   curried.getSyntaxTransformer(),
@@ -570,24 +579,9 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
-    /*
-    @Override public Node for_CurriedTransformer(_CurriedTransformer that) {
-        AbstractNode node = that.getOriginal();
-        if ( node instanceof _SyntaxTransformation ){
-            _SyntaxTransformation syntax = (_SyntaxTransformation) node;
-            Map<String,Object> newvars = new HashMap<String,Object>( syntax.getVariables() );
-            List<String> vars = new LinkedList<String>();
-            / * fill vars in the order that the transformation wants them * /
-
-            for ( String var : vars ){
-                newvars.put( var, that.getVariables().get( var ) );
-            }
-            return new _SyntaxTransformationExpr( NodeFactory.macroSpan,
-            syntax.getSyntaxTransformer(), newvars ).accept( this );
-        } else {
-            return node;
-        }
-    }
+    /* dont need this, this comment tells you not to try to define this method.
+     * _CurriedTransformer is dealt with in lookupVariable (the method above)
+    @Override public Node for_CurriedTransformer(_CurriedTransformer that);
     */
 
     @Override
@@ -645,6 +639,7 @@ public class Transform extends TemplateUpdateVisitor {
         return new CurriedTransformer(original, vars, parameters);
     }
 
+    /* find a transformer given its name */
     private Transformer lookupTransformer( String name ){
         if ( transformers.get( name ) == null ){
             throw new MacroError( "Cannot find transformer for " + name );
@@ -657,7 +652,7 @@ public class Transform extends TemplateUpdateVisitor {
      *   - List: traverse all values in the list and splice in the result of
      *     traversing ellipses nodes
      *   - Ellipses: expand ellipses and traverse the result
-     *   - Node
+     *   - Node: visit the node
      *
      * x = 'a : Level(0, 'a)
      * x = '(a) : Level(1, (list 'a))
@@ -681,6 +676,7 @@ public class Transform extends TemplateUpdateVisitor {
             }
             return all;
         } else if ( partial instanceof _Ellipses ){
+            /* expand ellipses and return some new node */
             return traverse( handleEllipses( (_Ellipses) partial ) );
         } else if ( partial instanceof Node ){
             return ((Node) partial).accept( this );
@@ -689,6 +685,9 @@ public class Transform extends TemplateUpdateVisitor {
                              partial.getClass().getName() + " value: " + partial);
     }
 
+    /* evaluates the stuff on the right hand side of the =>, the transformation
+     * expression
+     */
     class TransformerEvaluator extends NodeDepthFirstVisitor<Node> {
 	private Map<String,Transformer> transformers;
 	private Map<String,Level> variables;
@@ -734,6 +733,7 @@ public class Transform extends TemplateUpdateVisitor {
             return obj;
         }
 
+        /* match a case clause to one of its instantiations, cons or empty */
 	private Option<Node> matchClause(CaseTransformerClause clause,
                                          Level toMatch) {
 	    String constructor = clause.getConstructor().getText();
@@ -780,6 +780,7 @@ public class Transform extends TemplateUpdateVisitor {
 	}
     }
 
+    /* throw an error if n contains any syntax abstraction nodes in it */
     private void checkFullyTransformed(Node n) {
         n.accept(new TemplateNodeDepthFirstVisitor_void() {
                 @Override
@@ -795,6 +796,7 @@ public class Transform extends TemplateUpdateVisitor {
             });
     }
 
+    /* splice in the result of ellipses nodes into lists of expressions */
     @Override
     public List<Expr> recurOnListOfExpr(List<Expr> that) {
         List<Expr> accum = new java.util.ArrayList<Expr>(that.size());
@@ -810,9 +812,15 @@ public class Transform extends TemplateUpdateVisitor {
         return accum;
     }
 
+    /* expand an EllipsesXXX node using the macro by example algorithm */
     private List<Node> handleEllipses( _Ellipses that ){
         if ( controllable( that ) ){
             List<Node> nodes = new ArrayList<Node>();
+            /* for a given expression E that contains a repeated pattern
+             * variable i, create N new transforms where N is the number of items
+             * that i is bound to. then process the value of the i node with that
+             * new environment (which should have one less depth than the 'that'
+             */
             for ( Transform newEnv : decompose( freeVariables( that.getRepeatedNode() ) ) ){
                 nodes.add( that.getRepeatedNode().accept( newEnv ) );
             }
@@ -822,6 +830,9 @@ public class Transform extends TemplateUpdateVisitor {
         }
     }
 
+    /* return true if the node contains a pattern variable that has a depth
+     * greater than 0 (basically if its a repeated node)
+     */
     private boolean controllable( _Ellipses that ){
         for ( Id var : freeVariables( that.getRepeatedNode() ) ){
             if ( hasVariable( var ) && lookupLevel( var ) > 0 ){
@@ -831,6 +842,7 @@ public class Transform extends TemplateUpdateVisitor {
         return false;
     }
 
+    /* the usual thing.. free variables */
     private List<Id> freeVariables( Node node ){
         final List<Id> vars = new ArrayList<Id>();
 
@@ -844,10 +856,12 @@ public class Transform extends TemplateUpdateVisitor {
         return vars;
     }
 
+    /* whether this is a bound variable */
     private boolean hasVariable( Id id ){
         return this.variables.get(id.getText()) != null;
     }
 
+    /* return the depth for a given variable */
     private int lookupLevel(Id id){
         String variable = id.getText();
         Level binding = this.variables.get(variable);

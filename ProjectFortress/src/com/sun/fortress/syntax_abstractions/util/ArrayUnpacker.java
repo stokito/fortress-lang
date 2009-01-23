@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.LinkedList;
 import xtc.util.Pair;
 
+/* cheesy way of passing multiple values around by shoving them into an array
+ * and getting them back out of the array
+ */
 public class ArrayUnpacker {
 
     @SuppressWarnings("unchecked")
