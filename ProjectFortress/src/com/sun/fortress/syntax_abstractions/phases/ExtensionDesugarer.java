@@ -85,6 +85,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return this._errors;
     }
 
+    /* Get a list of grammars that an imported grammar imports ?? */
     public static List<NonterminalExtensionDef> createImplicitExtensions(List<GrammarIndex> grammars) {
         return rewriteMembers(grammarExtensionMap(grammars),
                               new HashMap<Id,List<NonterminalExtensionDef>>());
@@ -155,6 +156,10 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return result;
     }
 
+    /* Given a map of nonterminal names to all the grammars that define it and
+     * produce a list that contains nonterminals that include the inherited nonterminals
+     * in the alternatives of the nonterminal.
+     */
     private static List<NonterminalExtensionDef> rewriteMembers(Map<Id, List<GrammarIndex>> grammarExtensionMap,
                                                                 Map<Id, List<NonterminalExtensionDef>> extMap) {
 
@@ -198,6 +203,10 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return grammarExtensionMap(index.getExtended());
     }
 
+    /* return a map of nonterminal names to a list of grammars that have public nonterminals
+     * why isn't this recursive? does it return the transitive closure
+     * of extended grammars?
+     */
     private static Map<Id, List<GrammarIndex>> grammarExtensionMap(List<GrammarIndex> extendedGrammars) {
         Map<Id, List<GrammarIndex>> gMap = new HashMap<Id, List<GrammarIndex>>();
         for (GrammarIndex extended : extendedGrammars) {
@@ -213,6 +222,11 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return gMap;
     }
 
+    /* The goal of this function is to construct the complete nonterminal
+     * given its name and a list of grammars that it extends. If this nonterminal
+     * does not explicitly invoke 'super', then an implicit 'super' is added
+     * to the bottom of the nonterminal's alternative.s
+     */
     private static NonterminalExtensionDef combine(Id name,
                                                    List<NonterminalExtensionDef> extensions,
                                                    List<GrammarIndex> extendingGrammars) {
@@ -221,6 +235,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
 
         Set<Id> availableGrammarNames = new HashSet<Id>();
         Set<Id> usedGrammarNames = new HashSet<Id>();
+        /* add all extended grammars to the list of grammar names */
         for (GrammarIndex g : extendingGrammars) {
             availableGrammarNames.add(g.getName());
         }
@@ -232,8 +247,14 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         for (NonterminalExtensionDef extension : extensions) {
             if (theSpan == null) theSpan = NodeUtil.getSpan(extension);
             for (SyntaxDecl decl : extension.getSyntaxDecls()) {
+                /* if the syntax is a definition then add it directly */
                 if (decl instanceof SyntaxDef) {
                     resultDecls.add(decl);
+                /* otherwise if it invokes an inherited definition then
+                 * remove the grammar that contains the alternative from
+                 * the list of available grammars and add it to the list of
+                 * used grammars.
+                 */
                 } else if (decl instanceof SuperSyntaxDef) {
                     SuperSyntaxDef ssd = (SuperSyntaxDef) decl;
                     Id superGrammarName = ssd.getGrammarId();
@@ -255,6 +276,8 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
             }
         }
         if (theSpan == null) theSpan = NodeUtil.getSpan(name); // FIXME: maybe pick a better span
+
+        /* add an implicit super alternative for grammars that were not used */
         for (GrammarIndex eg : extendingGrammars) {
             if (availableGrammarNames.contains(eg.getName())) {
                 resultDecls.add(new SuperSyntaxDef(NodeFactory.makeSpanInfo(theSpan), Option.some("private"),
@@ -264,6 +287,7 @@ public class ExtensionDesugarer extends NodeUpdateVisitor {
         return new NonterminalExtensionDef(NodeFactory.makeSpanInfo(theSpan), name, resultDecls);
     }
 
+    /* returns true if the grammar has any public members (not private/without) */
     private static boolean hasPublicParts(NonterminalExtendIndex ni) {
         NonterminalExtensionDef nd = ni.ast();
         for (SyntaxDecl decl : nd.getSyntaxDecls()) {

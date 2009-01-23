@@ -65,7 +65,10 @@ class GrammarComposer {
         return composer.compose(definitions, extensions);
     }
 
-    /* entry point for components */
+    /* Entry point for components. Creates a peg given a list of
+     * grammars
+     * @imports - list of immediately imported api's that contain grammars
+     */
     public static PEG pegForComponent(List<GrammarIndex> imports) {
         Debug.debug(Debug.Type.SYNTAX, 2,
                     "GrammarComposer: create parser for component");
@@ -82,12 +85,14 @@ class GrammarComposer {
         return collectImports(grammar.getExtended());
     }
 
-    /* finds imported grammars as well as their imported gramars */
+    /* finds extended grammars as well as their extended gramars.
+     * The transitive closure of all extended grammars.
+     */
     private static Set<GrammarIndex> collectImports(List<GrammarIndex> extended) {
         Set<GrammarIndex> all = new HashSet<GrammarIndex>();
-        for (GrammarIndex importedGrammar : extended){
-            all.add(importedGrammar);
-            all.addAll(collectImports(importedGrammar));
+        for (GrammarIndex extendedGrammar : extended){
+            all.add(extendedGrammar);
+            all.addAll(collectImports(extendedGrammar));
         }
         return all;
     }
@@ -98,8 +103,11 @@ class GrammarComposer {
     private PEG compose(Collection<NonterminalDef> definitions,
                         Collection<NonterminalExtensionDef> extensions){
         PEG peg = new PEG();
+        /* adds nonterminal definitions for 2nd generation extended grammars */
         addGrammarDefsOnly(peg);
+        /* adds nonterminal definitions for immediately extended grammars */
         addDefs(peg, definitions);
+        /* modify nonterminals to include extended alternatives */
         for (NonterminalExtensionDef e : extensions){
             applyExtension(peg, e);
         }
@@ -107,6 +115,7 @@ class GrammarComposer {
         return peg;
     }
 
+    /* add all nonterminals that belong to a native grammar to the PEG */
     private void computeNativeNonterminals(PEG peg) {
         for (GrammarIndex grammar : grammarMap.values()) {
             GrammarDecl grammarDef = grammar.ast();

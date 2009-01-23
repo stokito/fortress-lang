@@ -147,6 +147,10 @@ public class Parser {
         }
     }
 
+    /* Returns a list of grammars imported by a component.
+     * This method scans the component for import statements and
+     * collects them in a list -- GrammarIndex.
+     */
     private static List<GrammarIndex> getImportedGrammars(Component c,
                                                           final GlobalEnvironment env) {
         final List<GrammarIndex> grammars = new ArrayList<GrammarIndex>();
@@ -189,13 +193,19 @@ public class Parser {
         return grammars;
     }
 
+    /* Invokes the syntax abstraction system on a component in 3 steps
+     * 1. Create a parser from the grammars
+     * 2. Create a Java parser by invoking Rats!
+     * 3. Parse the original component with that parser and transform
+     *    it to a core Fortress AST.
+     */
     private static Result parseWithGrammars(File f,
                                             GlobalEnvironment env,
                                             boolean verbose,
                                             List<GrammarIndex> grammars) {
         EnvFactory.initializeGrammarIndexExtensions(env.apis().values(), grammars);
 
-        // Compile the syntax abstractions and create a temporary parser
+        /* Compile the syntax abstractions and create a temporary parser */
         Class<?> temporaryParserClass = ParserMaker.parserForComponent(grammars);
 
         Debug.debug( Debug.Type.SYNTAX, 2, "Created a temporary parser." );
@@ -203,10 +213,14 @@ public class Parser {
         BufferedReader in = null;
         try {
             in = Useful.utf8BufferedFileReader(f);
-            ParserBase p =
-                RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
+            /* instantiate the class using reflection */
+            ParserBase p = RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
+            /* call the parser on the component and checks the validity,
+             * get back a component AST
+             */
             CompilationUnit original = Parser.checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
             // dump(original, "original-" + f.getName());
+            /* Transform the syntax abstraction nodes into core Fortress */
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);
             // dump(cu, "dump-" + f.getName());
             return new Result(cu, f.lastModified());

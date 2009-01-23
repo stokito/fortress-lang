@@ -65,16 +65,22 @@ public class Transform extends TemplateUpdateVisitor {
         this.rename = rename;
     }
 
-    /* entry point to this class */
+    /* entry point to this class. Rewrite an AST with syntax abstraction
+     * nodes so that only a core Fortress AST is left.
+     */
     public static Node transform(GlobalEnvironment env, Node node){
         Transform transform =
             new Transform(populateTransformers(env),
+                          /* map of variables and their ellipses depth */
                           new HashMap<String,Level>(),
+                          /* hygiene */
                           SyntaxEnvironment.identityEnvironment(),
                           false );
+        /* goes to defaultTransformationNodeCase */
         return node.accept(transform);
     }
 
+    /* maps each transformer's name to the transformer */
     private static Map<String,Transformer> populateTransformers(GlobalEnvironment env){
         final Map<String,Transformer> map = new HashMap<String,Transformer>();
         for (ApiIndex api : env.apis().values()){
@@ -597,6 +603,9 @@ public class Transform extends TemplateUpdateVisitor {
         Transformer transformer = lookupTransformer( that.getSyntaxTransformer() );
         Map<String,Level> arguments = that.getVariables();
         Map<String,Level> evaluated = new HashMap<String,Level>();
+        /* for each variable in the syntax environment, evaluate it
+         * and put it in the evaluated map
+         */
         for ( Map.Entry<String,Level> var : arguments.entrySet() ){
             String varName = var.getKey();
             /*
@@ -643,6 +652,18 @@ public class Transform extends TemplateUpdateVisitor {
         return transformers.get( name );
     }
 
+    /* convert an AST or List into a Fortress AST node
+     *   - Level: return the same level and traverse the value that is wrapped
+     *   - List: traverse all values in the list and splice in the result of
+     *     traversing ellipses nodes
+     *   - Ellipses: expand ellipses and traverse the result
+     *   - Node
+     *
+     * x = 'a : Level(0, 'a)
+     * x = '(a) : Level(1, (list 'a))
+     * x = '(a b) : Level(1, (list 'a 'b))
+     * x = '((a) (b)) : Level(2, (list (list 'a) (list 'b)))
+     */
     private Object traverse( Object partial ){
         Debug.debug( Debug.Type.SYNTAX, 2, "Traversing object " +
                      partial.getClass().getName() );
