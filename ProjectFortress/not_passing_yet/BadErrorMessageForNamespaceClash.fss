@@ -22,9 +22,9 @@ component BadErrorMessageForNamespaceClash
   trait Element
   end
 
-  Element(a:ZZ32) = Element(a, 0, 0)
-  Element(a:ZZ32, b:ZZ32) = Element(a, b, 0)
-  Element(a:ZZ32, b:ZZ32, c:ZZ32) = do
+  Element(a:ZZ32):Element = Element(a, 0, 0)
+  Element(a:ZZ32, b:ZZ32):Element = Element(a, b, 0)
+  Element(a:ZZ32, b:ZZ32, c:ZZ32):Element = do
      (MyImplementationDetail(a,b,c) asif Element)
   end
 
