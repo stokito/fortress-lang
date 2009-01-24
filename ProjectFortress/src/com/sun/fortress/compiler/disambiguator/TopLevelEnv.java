@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -78,7 +78,7 @@ import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
 
 /**
- * This class is used by the disambiguator to represent the top-level environment of a component or API. 
+ * This class is used by the disambiguator to represent the top-level environment of a component or API.
  * The environment it represents includes all imported identifiers and all identifiers declared at top-level.
  */
 public class TopLevelEnv extends NameEnv {
@@ -109,7 +109,7 @@ public class TopLevelEnv extends NameEnv {
 
 //         System.err.println("global_env for " + current.ast().getName() + ":");
 //         globalEnv.print();
-        
+
         GlobalEnvironment filtered_global_env;
         if (current instanceof ApiIndex) {
          // Filter env based on what this api imports
@@ -249,8 +249,8 @@ public class TopLevelEnv extends NameEnv {
     	return result;
     }
 
-    private static Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>> 
-        initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis) 
+    private static Triple<Map<Id, Set<Id>>, Map<Op, Set<Op>>, Set<Pair<ApiIndex, ParametricOperator>>>
+        initializeOnDemandFunctionNames(Map<APIName, ApiIndex> imported_apis)
     {
         Map<Id, Set<Id>> fun_result = new HashMap<Id, Set<Id>>();
         Map<Op, Set<Op>> ops_result =  new HashMap<Op, Set<Op>>();
@@ -287,7 +287,7 @@ public class TopLevelEnv extends NameEnv {
                     }
                 }
             }
-            // Accumulate parametrically named operators from imported APIs. 
+            // Accumulate parametrically named operators from imported APIs.
             ApiIndex api = apiEntry.getValue();
             paramOpsResult = CollectUtil.union(paramOpsResult, qualifyParametricOps(api));
         }
@@ -508,7 +508,7 @@ public class TopLevelEnv extends NameEnv {
     }
 
     public Set<Pair<ApiIndex, ParametricOperator>> onDemandParametricOps() {
-        return _onDemandParametricOps; 
+        return _onDemandParametricOps;
     }
 
     public Set<Id> onDemandGrammarNames(String name) {
@@ -702,13 +702,13 @@ public class TopLevelEnv extends NameEnv {
         return filterMap(map, set, pred);
     }
 
-    private static <T> Map<IdOrOpOrAnonymousName,T> alias(Map<IdOrOpOrAnonymousName,T> map, Set<AliasedSimpleName> aliases) { 
+    private static <T> Map<IdOrOpOrAnonymousName,T> alias(Map<IdOrOpOrAnonymousName,T> map, Set<AliasedSimpleName> aliases) {
         Map<IdOrOpOrAnonymousName,T> result = new HashMap<IdOrOpOrAnonymousName,T>();
         result.putAll(map);
 
-        for (AliasedSimpleName alias : aliases) { 
-            if (alias.getAlias().isSome()) { 
-                if (result.containsKey(alias.getName())) { 
+        for (AliasedSimpleName alias : aliases) {
+            if (alias.getAlias().isSome()) {
+                if (result.containsKey(alias.getName())) {
                     result.put(alias.getAlias().unwrap(), result.get(alias.getName()));
                     result.remove(alias.getName());
                 }
@@ -717,22 +717,22 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    private Relation<IdOrOpOrAnonymousName,Function> alias(Relation<IdOrOpOrAnonymousName,Function> relation, 
-                                                           Set<AliasedSimpleName> aliases) 
-    { 
+    private Relation<IdOrOpOrAnonymousName,Function> alias(Relation<IdOrOpOrAnonymousName,Function> relation,
+                                                           Set<AliasedSimpleName> aliases)
+    {
 //         System.err.println("alias called for functions");
 //         System.err.println("relation: " + relation);
         // Argument false to the IndexedRelation constructor avoids unnecessary indexing from seconds to firsts.
         Relation<IdOrOpOrAnonymousName,Function> result = new IndexedRelation<IdOrOpOrAnonymousName,Function>(false);
         result.addAll(relation);
 
-        for (AliasedSimpleName alias : aliases) { 
-            if (alias.getAlias().isSome()) { 
+        for (AliasedSimpleName alias : aliases) {
+            if (alias.getAlias().isSome()) {
 //                 System.err.println("alias " + alias.getName() + " -> " + alias.getAlias().unwrap());
                 IdOrOpOrAnonymousName oldFirst = alias.getName();
                 IdOrOpOrAnonymousName newFirst = alias.getAlias().unwrap();
                 Set<Function> seconds = result.matchFirst(oldFirst);
-                for (Function second : seconds) { 
+                for (Function second : seconds) {
 //                     System.err.println("Replacing " + oldFirst + " with " + newFirst);
                     result.remove(oldFirst, second);
                     result.add(newFirst, second);
@@ -743,12 +743,12 @@ public class TopLevelEnv extends NameEnv {
         }
 //         System.err.println("result: " + result);
         return result;
-    }       
+    }
 
     private <V> Map<Id,V> aliasIds(Map<Id,V> allowed, Set<AliasedSimpleName> aliased) {
         Map<Id,V> result = new HashMap<Id,V>();
         result.putAll(allowed);
-        
+
         for (AliasedSimpleName alias : aliased) {
             if (alias.getAlias().isSome()) {
                 IdOrOpOrAnonymousName oldFirst = alias.getName();
@@ -765,8 +765,8 @@ public class TopLevelEnv extends NameEnv {
             }
         }
         return result;
-    }                  
-  
+    }
+
     private ApiIndex keep(ApiIndex index,
                           final Set<IdOrOpOrAnonymousName> allowed_,
                           final Set<AliasedSimpleName> aliased_) {
@@ -845,7 +845,7 @@ public class TopLevelEnv extends NameEnv {
 //                                  System.err.println("aliased name: " + arg0.getName());
                                  if (aliases.containsKey(name)) {
                                      aliases.get(name).add(arg0);
-                                 } else { 
+                                 } else {
                                      aliases.put(name, Useful.set(arg0));
                                  }
                                  return arg0.getName();

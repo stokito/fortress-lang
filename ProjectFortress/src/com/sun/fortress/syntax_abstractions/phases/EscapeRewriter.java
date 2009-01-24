@@ -37,7 +37,7 @@ import com.sun.fortress.nodes.TokenSymbol;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.parser_util.SyntaxUtil;
+import com.sun.fortress.parser.Fortress;
 
 /* EscapeRewriter
  * Replaces escape sequences in strings
@@ -137,10 +137,10 @@ public class EscapeRewriter extends NodeUpdateVisitor {
     }
 
     private String removeEscape(String s) {
-        for (String symbol: SyntaxUtil.specialSymbols()) {
+        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_SYMBOLS) {
             s = s.replaceAll(ESCAPECHAR+symbol, symbol);
         }
-        for (String symbol: SyntaxUtil.specialChars()) {
+        for (String symbol: Fortress.FORTRESS_SYNTAX_SPECIAL_CHARS) {
             s = s.replaceAll(ESCAPECHAR+symbol, symbol);
         }
         return s;
