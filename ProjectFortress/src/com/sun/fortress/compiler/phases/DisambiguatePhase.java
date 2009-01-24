@@ -1,18 +1,18 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
-  4150 Network Circle, Santa Clara, California 95054, U.S.A.
-  All rights reserved.
+    Copyright 2008 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
-  U.S. Government Rights - Commercial software.
-  Government users are subject to the Sun Microsystems, Inc. standard
-  license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
-  Use is subject to license terms.
+    Use is subject to license terms.
 
-  This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
-  Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler.phases;
@@ -41,33 +41,33 @@ public class DisambiguatePhase extends Phase {
 
         // Build a new GlobalEnvironment consisting of all APIs in a global
         // repository combined with all APIs that have been processed in the
-        // previous step. For now, we are implementing pure static linking, so 
+        // previous step. For now, we are implementing pure static linking, so
         // there is no global repository.
-        GlobalEnvironment rawApiEnv = 
-            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(), 
+        GlobalEnvironment rawApiEnv =
+            new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             previous.apis()));
 
         // Rewrite all API ASTs so they include only fully qualified names,
-        // relying on the rawApiEnv constructed in the previous step. Note that, 
-        // after this step, the rawApiEnv is stale and needs to be rebuilt with 
+        // relying on the rawApiEnv constructed in the previous step. Note that,
+        // after this step, the rawApiEnv is stale and needs to be rebuilt with
         // the new API ASTs.
-        Disambiguator.ApiResult apiDR = 
-            Disambiguator.disambiguateApis(previous.apiIterator(), 
-                                           rawApiEnv, 
+        Disambiguator.ApiResult apiDR =
+            Disambiguator.disambiguateApis(previous.apiIterator(),
+                                           rawApiEnv,
                                            repository.apis());
         if (!apiDR.isSuccessful()) {
             throw new MultipleStaticError(apiDR.errors());
         }
 
         // Rebuild ApiIndices.
-        IndexBuilder.ApiResult apiIR = 
+        IndexBuilder.ApiResult apiIR =
             IndexBuilder.buildApis(apiDR.apis(), lastModified);
         if (!apiIR.isSuccessful()) {
             throw new MultipleStaticError(apiIR.errors());
         }
 
         // Rebuild GlobalEnvironment.
-        GlobalEnvironment apiEnv = 
+        GlobalEnvironment apiEnv =
             new GlobalEnvironment.FromMap(CollectUtil.union(repository.apis(),
                                                             apiIR.apis()));
 
@@ -75,8 +75,8 @@ public class DisambiguatePhase extends Phase {
 //         apiEnv.print();
 //         System.out.println("env apiEnv");
 
-        Disambiguator.ComponentResult componentDR = 
-            Disambiguator.disambiguateComponents(previous.componentIterator(), 
+        Disambiguator.ComponentResult componentDR =
+            Disambiguator.disambiguateComponents(previous.componentIterator(),
                                                  apiEnv,
                                                  previous.components());
         if (!componentDR.isSuccessful()) {
@@ -84,15 +84,15 @@ public class DisambiguatePhase extends Phase {
         }
 
         // Rebuild ComponentIndices.
-        IndexBuilder.ComponentResult componentsDone = 
+        IndexBuilder.ComponentResult componentsDone =
             IndexBuilder.buildComponents(componentDR.components(), lastModified);
         if (!componentsDone.isSuccessful()) {
             throw new MultipleStaticError(componentsDone.errors());
         }
 
-        return new AnalyzeResult(apiIR.apis(), 
+        return new AnalyzeResult(apiIR.apis(),
                                  componentsDone.components(),
-                                 IterUtil.<StaticError> empty(), 
+                                 IterUtil.<StaticError> empty(),
                                  previous.typeCheckerOutput());
 
     }

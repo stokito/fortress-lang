@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -57,7 +57,7 @@ import edu.rice.cs.plt.iter.IterUtil;
  * </li>
  */
 public class StaticChecker {
-    
+
     public static class ApiResult extends StaticPhaseResult {
         private Map<APIName, ApiIndex> _apis;
         public ApiResult(Iterable<? extends StaticError> errors, Map<APIName, ApiIndex> apis) {
@@ -82,7 +82,7 @@ public class StaticChecker {
         private final Map<APIName, ComponentIndex> _components;
         private final List<APIName> _failedComponents;
         private final TypeCheckerOutput _typeCheckerOutput;
-        
+
         public ComponentResult(Map<APIName, ComponentIndex> components,
                                List<APIName> failedComponents,
                                Iterable<? extends StaticError> errors,
@@ -94,7 +94,7 @@ public class StaticChecker {
         }
         public Map<APIName, ComponentIndex> components() { return _components; }
         public List<APIName> failed() { return _failedComponents; }
-        
+
         public TypeCheckerOutput typeCheckerOutput() {
             return this._typeCheckerOutput;
         }
@@ -112,14 +112,14 @@ public class StaticChecker {
         List<APIName> failedComponents = new ArrayList<APIName>();
 
         TypeCheckerOutput type_checker_output = TypeCheckerOutput.emptyOutput();
-        
+
         for (APIName componentName : components.keySet()) {
 //            System.out.println("next");
             TypeCheckerResult checked = checkComponent(components.get(componentName), env);
             checkedComponents.add((Component)checked.ast());
             if (!checked.isSuccessful())
                 failedComponents.add(componentName);
-            
+
             errors = IterUtil.compose(checked.errors(), errors);
             type_checker_output = new TypeCheckerOutput( type_checker_output, checked.getTypeCheckerOutput() );
         }
@@ -142,11 +142,11 @@ public class StaticChecker {
 //             System.out.println("end env");
 
             Node component_ast = component.ast();
-            
+
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
-        	
+
             TypeEnv typeEnv = TypeEnv.make(component);
 
             // Add all top-level function names to the component-level environment.
@@ -162,16 +162,16 @@ public class StaticChecker {
                                                       typeEnv,
                                                       component,
                                                       false);
-            // typecheck... 
+            // typecheck...
             TypeCheckerResult result = component_ast.accept(typeChecker);
 
             // then replace inference variables...
             InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
             component_ast = (Component)result.ast().accept(rep);
-            
+
             // then typecheck again!!!
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
-            
+
             typeEnv = TypeEnv.make(component);
 
             // Add all top-level function names to the component-level environment.
@@ -187,13 +187,13 @@ public class StaticChecker {
                                           typeEnv,
                                           component,
                                           true);
-            
+
             result = component_ast.accept(typeChecker);
-            
+
             // There should be no Inference vars left at this point
             if( TypesUtil.containsInferenceVarTypes(result.ast()) )
                 bug("Result of typechecking still contains inference varaibles. " + result.ast());
-            
+
             return result;
         } else {
             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
