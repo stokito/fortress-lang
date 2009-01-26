@@ -20,7 +20,6 @@ package com.sun.fortress.compiler.nativeInterface;
 import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
-import com.sun.fortress.repository.ProjectProperties;
 
 public class FortressTransformer {
     @SuppressWarnings("unchecked")

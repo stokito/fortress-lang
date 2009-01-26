@@ -16,14 +16,15 @@
  ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
+import edu.rice.cs.plt.tuple.Option;
+import java.util.*;
 
 /**
  * Returns Boolean.TRUE if the AST visited can be compiled.
  * "Can be compiled" depends on what we've implemented.
  * 
- * @author dr2chase
  */
 public class CanCompile extends NodeAbstractVisitor<Boolean> {
 
@@ -34,6 +35,30 @@ public class CanCompile extends NodeAbstractVisitor<Boolean> {
     public Boolean defaultCase(Node that) {
         return Boolean.FALSE;
     }
-    
 
+    public Boolean forFnDecl(FnDecl x) {
+        Option<Expr> b = x.getBody();
+        if (!b.isSome())
+            return true;
+        else 
+            return false;
+    }
+
+    public Boolean forComponent(Component x) {
+        List<Decl> decls = x.getDecls();
+        Boolean result = true;
+        for (Decl d : decls) {
+            if (!forDecl(d))
+                result = false;
+        }
+        return result;
+    }
+
+    public Boolean forDecl(Decl x) {
+        if (x instanceof FnDecl) {
+            return forFnDecl((FnDecl)x);
+        } else {
+            return false;
+        }
+    }
 }
