@@ -246,6 +246,7 @@ public class ProjectProperties {
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${CACHES}/interpreter_cache");
     public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${CACHES}/presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
+    public static final String ANALYZED_CACHE_DEPENDS_DIR = get("fortress.analyzed.cache.depends", "${CACHES}/analyzed_cache/depends");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/syntax_cache");
     public static final String BYTECODE_CACHE_DIR = get("fortress.bytecode.cache", "${CACHES}/bytecode_cache");    
     public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache", "${CACHES}/nativewrapper_cache");    
@@ -257,6 +258,7 @@ public class ProjectProperties {
         ensureDirectoryExists(PRESYNTAX_CACHE_DIR);
         ensureDirectoryExists(INTERPRETER_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
+        ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);
         ensureDirectoryExists(BYTECODE_CACHE_DIR);
         ensureDirectoryExists(NATIVE_WRAPPER_CACHE_DIR);
@@ -317,5 +319,22 @@ public class ProjectProperties {
 
     public static String apiFileName(String dir, String name) {
         return fileName(dir, name, ProjectProperties.API_TREE_SUFFIX);
+    }
+
+
+    public static int getInt(String s, int ifMissing) {
+        String result =  allProps.get(s);
+        if (result != null)
+            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        if (result == null) return ifMissing;
+        if (result.length() == 0)
+            return ifMissing;
+        int base = 10;
+        int underat = result.indexOf('_');
+        if (underat != -1) {
+            base = Integer.parseInt(result.substring(underat+1));
+            result = result.substring(0,underat);
+        }
+        return Integer.parseInt(result, base);
     }    
 }

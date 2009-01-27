@@ -78,8 +78,10 @@ public final class Shell {
     private static PhaseOrder finalPhase = PhaseOrder.CODEGEN;
 
     private final FortressRepository _repository;
-    private static final CacheBasedRepository defaultRepository =
-        new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
+    
+    private static final String defaultRepositoryDir = ProjectProperties.ANALYZED_CACHE_DIR;
+    private static final CacheBasedRepository defaultCache = new CacheBasedRepository(defaultRepositoryDir);
+    
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
     public Shell(FortressRepository repository) { _repository = repository; }
@@ -107,7 +109,7 @@ public final class Shell {
     }
 
     public static GraphRepository specificRepository(Path p) throws FileNotFoundException {
-        return specificRepository( p, defaultRepository );
+        return specificRepository( p, defaultCache);
     }
 
     /* Helper method to print usage message.*/
@@ -287,7 +289,7 @@ public final class Shell {
             } else { printUsageMessage(); }
         } catch ( StaticError e ){
             System.err.println(e);
-            if ( Debug.isOnMax() ){
+            if ( Debug.isOn() ){
                 e.printStackTrace();
             }
             return_code = -1;
@@ -407,7 +409,7 @@ public final class Shell {
             throw new UserError(file + " is not a component file.");
         APIName name = NodeUtil.apiName( file );
         Path path = sourcePath( file, name );
-        GraphRepository bcr = specificRepository( path, defaultRepository );
+        GraphRepository bcr = specificRepository( path );
         ComponentIndex c =  bcr.getLinkedComponent(name);
         FValue result = Driver.runProgram(bcr, c, args);
         bcr.deleteComponent(c.ast().getName());
@@ -499,7 +501,7 @@ public final class Shell {
                 }
             }
         } catch (ParserError e) {
-            if (Debug.isOnMax()) {
+            if (Debug.isOn()) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
@@ -509,7 +511,7 @@ public final class Shell {
         } catch (ProgramError e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
-            if (Debug.isOnMax()) {
+            if (Debug.isOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -658,7 +660,7 @@ public final class Shell {
             } catch (ProgramError e) {
                 System.err.println(e.getMessage());
                 e.printInterpreterStackTrace(System.err);
-                if (Debug.isOnMax()) {
+                if (Debug.isOn()) {
                     e.printStackTrace();
                 } else {
                     System.err.println(turnOnDebugMessage);
@@ -685,7 +687,7 @@ public final class Shell {
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
         APIName name = null;
         try {
-            bcr = specificRepository( path, defaultRepository );
+            bcr = specificRepository( path );
             Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
             name = cuName(file);
 
@@ -699,7 +701,7 @@ public final class Shell {
                 if ( out.isSome() ) {
                     ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
                             out.unwrap());
-                    ASTIO.deleteJavaAst( CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR, name) );
+                    ASTIO.deleteJavaAst( NamingCzar.cachedFileNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
                     bcr.deleteComponent( name );
                 }
             } else {
@@ -709,7 +711,7 @@ public final class Shell {
         } catch (ProgramError pe) {
             Iterable<? extends StaticError> se = pe.getStaticErrors();
             if (se == null) {
-                return IterUtil.singleton(new WrappedException(pe, Debug.isOnMax()));
+                return IterUtil.singleton(new WrappedException(pe, Debug.isOn()));
             }
             else {
                 return se;
@@ -723,15 +725,15 @@ public final class Shell {
         } catch (MultipleStaticError ex) {
             List<StaticError> result = new LinkedList<StaticError>();
             for( StaticError err : ex ) {
-                result.add(new WrappedException(err, Debug.isOnMax()));
+                result.add(new WrappedException(err, Debug.isOn()));
             }
             return result;
         } catch (StaticError ex) {
-             return IterUtil.singleton(new WrappedException(ex, Debug.isOnMax()));
+             return IterUtil.singleton(new WrappedException(ex, Debug.isOn()));
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
-            if (Debug.isOnMax()) {
+            if (Debug.isOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -812,7 +814,7 @@ public final class Shell {
                     throw (RuntimeException) th;
                 if (th instanceof Error)
                     throw (Error) th;
-                throw new WrappedException(th, Debug.isOnMax());
+                throw new WrappedException(th, Debug.isOn());
             }
 
             if ( !IterUtil.isEmpty(errors) ) {
@@ -826,7 +828,7 @@ public final class Shell {
             // by the CacheBasedRepository.
         } catch ( StaticError e ){
             System.err.println(e);
-            if ( Debug.isOnMax() ){
+            if ( Debug.isOn() ){
                 e.printStackTrace();
             }
             System.exit(-1);
@@ -834,7 +836,7 @@ public final class Shell {
             throw e;
         } catch (LabelException e) {
             System.err.println(e.getMessage());
-            if (Debug.isOnMax()) {
+            if (Debug.isOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -843,7 +845,7 @@ public final class Shell {
         } catch (FortressException e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
-            if (Debug.isOnMax()) {
+            if (Debug.isOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -900,7 +902,7 @@ public final class Shell {
                             throw new UserError(file + " is not a component file.");
                         APIName name = NodeUtil.apiName( file );
                         Path path = sourcePath( file, name );
-                        GraphRepository bcr = specificRepository( path, defaultRepository );
+                        GraphRepository bcr = specificRepository( path );
                         ComponentIndex cu =  bcr.getLinkedComponent(name);
                         Driver.runTests(bcr, cu, _verbose);
                     } catch (Throwable th) {
@@ -914,7 +916,7 @@ public final class Shell {
                             throw (RuntimeException) th;
                         if (th instanceof Error)
                             throw (Error) th;
-                        throw new WrappedException(th, Debug.isOnMax());
+                        throw new WrappedException(th, Debug.isOn());
                     }
 
                     for (StaticError error: errors) {
@@ -925,7 +927,7 @@ public final class Shell {
                     // by the CacheBasedRepository.
                 } catch ( StaticError e ){
                     System.err.println(e);
-                    if ( Debug.isOnMax() ){
+                    if ( Debug.isOn() ){
                         e.printStackTrace();
                     }
                 } catch (RepositoryError e) {
@@ -933,7 +935,7 @@ public final class Shell {
                 } catch (FortressException e) {
                     System.err.println(e.getMessage());
                     e.printInterpreterStackTrace(System.err);
-                    if (Debug.isOnMax()) {
+                    if (Debug.isOn()) {
                         e.printStackTrace();
                     } else {
                         System.err.println(turnOnDebugMessage);

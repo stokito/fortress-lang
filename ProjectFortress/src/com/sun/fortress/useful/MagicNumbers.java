@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -17,6 +17,7 @@
 
 package com.sun.fortress.useful;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -208,7 +209,7 @@ public final class MagicNumbers {
      * the one that is built in to the standard library.
      */
 
-    public static int hashList(List<? extends Object> list, int seed) {
+    public static int hashList(Collection<? extends Object> list, int seed) {
         int ls = list.size();
         int xx = seed | 1;
         int ff = array[ls & 1023]; // Depends on array being large enough
@@ -220,9 +221,49 @@ public final class MagicNumbers {
         return xx;
     }
 
-    public static int hashList(List<? extends Object> list) {
+    public static int hashList(Collection<? extends Object> list) {
         int ls = list.size();
         return hashList(list, ls * array[ (ls + 512) & 1023]);
+    }
+    
+    public static int hashArray(Object[] list, int seed) {
+        int ls = list.length;
+        int xx = seed | 1;
+        int ff = array[ls & 1023]; // Depends on array being large enough
+        for (Object oo : list) {
+            int hh = oo.hashCode();
+            int ah = xx >>> 29;
+            xx = xx * ff ^ hh + ah;
+        }
+        return xx;
+    }
+
+    public static int hashArray(Object[] list) {
+        int ls = list.length;
+        return hashArray(list, ls * array[ (ls + 512) & 1023]);
+    }
+
+    public static long hashArrayLong(Object[] list, long seed) {
+        int ls = list.length;
+        long xx = seed | 1;
+        int ff = array[ls & 1023]; // Depends on array being large enough
+        for (Object oo : list) {
+            int hh = oo.hashCode();
+            xx = hashStepLong(xx, ff, hh);
+        }
+        return xx;
+    }
+
+    public static long hashStepLong(long runningHash, int somePrime,
+            int nextItem) {
+        long ah = runningHash >>> 53;
+        runningHash = runningHash * somePrime ^ nextItem + ah;
+        return runningHash;
+    }
+
+    public static long hashArrayLong(Object[] list) {
+        int ls = list.length;
+        return hashArrayLong(list, ls * array[ (ls + 512) & 1023]);
     }
 
 }

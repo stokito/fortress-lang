@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -41,7 +42,6 @@ import com.sun.fortress.nodes._RewriteObjectExpr;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.DerivedFiles;
 import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.repository.ProjectProperties;
@@ -59,7 +59,7 @@ public class ComponentWrapper extends CUWrapper {
     private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
         @Override
         public String apply(APIName x) {
-            return ProjectProperties.compFileName(ProjectProperties.INTERPRETER_CACHE_DIR, CacheBasedRepository.deCaseName(x));
+            return ProjectProperties.compFileName(ProjectProperties.INTERPRETER_CACHE_DIR, NamingCzar.deCaseName(x));
         }
     };
     private static IOAst componentReaderWriter = new IOAst(toCompFileName);

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,7 +22,7 @@ import java.util.List;
 
 public final class Debug {
 
-    private static final int MAX_LEVEL = 99;	
+    private static final int MAX_LEVEL = 11;	
     private static int level = 0;
     private static final PrintStream debugPS = System.out;
 
@@ -160,11 +160,15 @@ public final class Debug {
         }
     }
 
-    /* Checking whether debugging is on in the most general sense: that the debug 
-     * level is either not specified when fortress is run or is set to MAX_LEVEL.  
-     */
     public static boolean isOnMax() {
         return(Debug.level == MAX_LEVEL);
+    }
+    
+    /* Checking whether debugging is on in the most general sense: that the debug 
+     * level is on at all..  
+     */
+    public static boolean isOn() {
+        return(Debug.level > 0);
     }
 
     /* Checking whether debugging is on for the type specified by the 

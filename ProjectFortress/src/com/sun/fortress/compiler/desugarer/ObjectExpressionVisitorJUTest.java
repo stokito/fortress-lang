@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.nodes_util.ASTIO;
@@ -93,7 +93,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             System.out.println("Evaluating " + file + "...");
             FValue original = Shell.eval(file);
             // Delete the cached file from evaluating the original file!!!
-            ASTIO.deleteJavaAst(CacheBasedRepository.cachedCompFileName(ProjectProperties.ANALYZED_CACHE_DIR,
+            ASTIO.deleteJavaAst(NamingCzar.cachedFileNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR,
                                                                         NodeUtil.apiName(file)));
             String name = file.substring(0, file.lastIndexOf("."));
             String tfs = name + ".tfs";

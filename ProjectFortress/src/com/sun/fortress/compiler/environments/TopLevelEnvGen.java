@@ -35,6 +35,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.CompilationUnitIndex;
@@ -45,7 +46,6 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.glue.WellKnownNames;
@@ -79,7 +79,7 @@ public class TopLevelEnvGen {
 
     public static String mangleClassIdentifier(String identifier) {
         String mangledString = identifier.replaceAll("\\.", "\\$");
-        return mangledString+CacheBasedRepository.deCase(mangledString);
+        return mangledString+NamingCzar.deCase(mangledString);
     }
 
     /**

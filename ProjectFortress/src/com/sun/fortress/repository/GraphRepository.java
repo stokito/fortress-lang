@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         this.cache = cache;
         graph = new Graph<GraphNode>();
         addRoots();
+    }
+
+    private GraphRepository(Path p, String cacheDir) throws FileNotFoundException {
+        this(p, new CacheBasedRepository(cacheDir));
     }
 
     private static String[] roots() {
@@ -447,12 +452,24 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException>{
+        // This may be over-conservative -- rebuilds get triggered transitively 
+        // across chains of API dependence.  "Youngest" is computed transitively.
         private Map<GraphNode, Long> youngestSourceDependedOn;
+        
+        // Dates are not available for foreign imports.  Therefore, keep track
+        // of a hashcode of the last-seen build, and if it does not match, then
+        // assume stale.
+        private Set<GraphNode> foreignChange;
+        
+        // In a second pass, if anything is stale, or depends on stale, it is 
+        // marked for rebuild.
         private Map<GraphNode, Boolean> staleOrDependsOnStale;
+        
 
         public OutOfDateVisitor(){
             youngestSourceDependedOn = new HashMap<GraphNode,Long>();
             staleOrDependsOnStale = new HashMap<GraphNode,Boolean>();
+            foreignChange = new HashSet<GraphNode>();
         }
 
         Fn<GraphNode,Boolean> outOfDateApi() {
@@ -460,7 +477,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 @Override
                 public Boolean apply(GraphNode g){
                     return g instanceof ApiGraphNode && (staleOrDependsOnStale.get(g) ||
-                            // TODO need to fix the whole date-stamp thing for APIs.
+                            // TODO is this strictly necessary?
                             foreignJava.definesApi(((ApiGraphNode)g).getName())
                             );
                 }
@@ -493,13 +510,23 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
             List<GraphNode> depends = graph.depends(node);
             Debug.debug( Debug.Type.REPOSITORY, 2, node + " depends on " + depends );
-            for ( GraphNode next : depends ){
-                long dependent_youngest = handle(next);
-                if (dependent_youngest > youngest) {
+            for (GraphNode next : depends) {
+                if (foreignJava.definesApi(next)) {
+                    // no date information here; need to look for the dependence
+                    // info for this node.
+                    if (foreignJava.dependenceChanged(node, next)) {
+                        foreignChange.add(node);
+                    }
+                } 
+                
+                    long dependent_youngest = handle(next);
+                    if (dependent_youngest > youngest) {
 
-                    Debug.debug( Debug.Type.REPOSITORY, 1, next + " has younger source than " + next );
-                    youngest = dependent_youngest;
-                }
+                        Debug.debug(Debug.Type.REPOSITORY, 3, next
+                                + " has younger source than " + node);
+                        youngest = dependent_youngest;
+                    }
+                
             }
 
             youngestSourceDependedOn.put(node, youngest);
@@ -512,7 +539,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 return staleOrDependsOnStale.get(node);
             }
 
-            boolean stale = youngestSourceDependedOn.get(node) > getCacheDate(node);
+            boolean stale = youngestSourceDependedOn.get(node) > getCacheDate(node) ||
+            foreignChange.contains(node);
 
             // If anything depended on has source that is younger than our compiled code,
             // then this is stale.
@@ -603,6 +631,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             new Fn<GraphNode, Api>(){
                 @Override
                 public Api apply(GraphNode g){
+                    Debug.debug( Debug.Type.REPOSITORY, 1, "Parsing API ", g );
                     return parseApi((ApiGraphNode) g);
                 }
             });
@@ -715,8 +744,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if ( node == null ){
             throw new RuntimeException("No such API '" + name + "'");
         } else {
+            // TODO if the name is native-implemented, be sure not to write
+            // it to a file.
             node.setApi(definition, definition.modifiedDate());
             cache.addApi(name, definition);
+            foreignJava.writeDependenceDataForAST(node);
+
         }
     }
 
@@ -729,6 +762,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         } else {
             node.setComponent(definition, definition.modifiedDate());
             cache.addComponent(name, definition);
+            foreignJava.writeDependenceDataForAST(node);
         }
     }
 
@@ -792,6 +826,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private List<APIName> collectExplicitImports(CompilationUnit comp) {
         List<APIName> all = new ArrayList<APIName>();
 
+        APIName comp_name = comp.getName();
+        
         for (Import i : comp.getImports()){
             Option<String> opt_fl = i.getForeignLanguage();
             boolean isNative = opt_fl.isSome();
@@ -806,7 +842,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                      *  Don't create the API yet; its contents depend on all
                      *  the imports.
                      */
-                    foreignJava.processJavaImport(i, ins);
+                    foreignJava.processJavaImport(comp, i, ins);
 
                     // depend on the API name;
                     // "compilation"/"reading" will get the API

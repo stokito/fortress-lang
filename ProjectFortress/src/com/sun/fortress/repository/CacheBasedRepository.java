@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import com.sun.fortress.compiler.IndexBuilder;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -155,28 +156,12 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));
     }
 
-    public static String deCase(APIName s) {
-        return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
-    }
-
-    public static String deCase(String s) {
-        return "_" + Integer.toString(s.hashCode()&0x7fffffff,16);
-    }
-
-    public static String deCaseName(APIName s) {
-        return s + "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
-    }
-
-    public static String cachedCompFileName(String passedPwd, APIName name) {
-        return ProjectProperties.compFileName(passedPwd,  deCaseName(name));
-    }
-
     private String compFileName(APIName name) {
-        return ProjectProperties.compFileName(pwd,  deCaseName(name));
+        return NamingCzar.cachedFileNameForCompAst(pwd, name);
     }
 
     private String apiFileName(APIName name) {
-        return ProjectProperties.apiFileName(pwd,  deCaseName(name));
+        return ProjectProperties.apiFileName(pwd,  NamingCzar.deCaseName(name));
     }
 
     private long dateFromFile(APIName name, String s, String tag)
