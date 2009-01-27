@@ -302,10 +302,19 @@ public class FileTests {
         String[] files = dir.list();
         System.err.println(dir);
         Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
+        int testCount = ProjectProperties.getInt("fortress.unittests.count",Integer.MAX_VALUE);
+        System.err.println("Test count = " + testCount);
+        int i = testCount;
         for(String s : shuffled){
-              if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss"))
+              if (i <= 0) {
+                  System.out.println("Early testing exit after " + testCount + " tests");
+                  break;
+              }
+              boolean decrement = true;
+              if (s.endsWith("Syntax.fss") || s.endsWith("DynamicSemantics.fss")) {
                   System.out.println("Not compiling file " + s);
-              else if (!s.startsWith(".")) {
+                  decrement = false;
+              } else if (!s.startsWith(".")) {
                   if (s.endsWith(".fss")) {
                       int l = s.lastIndexOf(".fss");
                       String testname = s.substring(0, l);
@@ -316,8 +325,14 @@ public class FileTests {
                       suite.addTest(new ShellTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else {
                       System.out.println("Not compiling file " + s);
+                      decrement = false;
                   }
               }
+              
+              if (decrement) {
+                  i--;
+              }
+              
         }
         return suite;
     }

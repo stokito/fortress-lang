@@ -15,33 +15,28 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.repository.graph;
+package com.sun.fortress.useful;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.repository.ProjectProperties;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-public abstract class GraphNode{
+public class MapOfMap<K, L, T> extends HashMap<K, Map<L, T>> {
 
-    long sourceDate;
-    long cacheDate = Long.MIN_VALUE; /* Missing = very old */
-    private final APIName name;
-
-    public GraphNode(APIName name, long sourceDate){
-        this.name = name;
-        this.sourceDate = sourceDate;
-    }
-
-    public APIName getName(){
-        return name;
+    public Map<L,T> putItem(K k, L l, T t) {
+        Map<L, T> map = get(k);
+        if (map == null) {
+            map = new HashMap<L,T>();
+            put(k,map);
+        }
+        map.put(l, t);
+        return map;
     }
     
-    public long getSourceDate() {
-        return sourceDate;
+    public static <K,L,T>CheapSerializer<Map<K, Map<L, T>>> serializer(CheapSerializer<K> k,
+            CheapSerializer<L> l, CheapSerializer<T> t) {
+        return new CheapSerializer.MAP<K, Map<L,T>>(k,
+                new CheapSerializer.MAP<L,T>(l,t));
     }
-    
-    public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
-    
-    public abstract String key();
-    
+
 }

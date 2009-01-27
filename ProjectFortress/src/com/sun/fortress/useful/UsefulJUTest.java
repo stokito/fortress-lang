@@ -17,10 +17,14 @@
 
 package com.sun.fortress.useful;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -243,7 +247,51 @@ public class UsefulJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
         assertEquals(eats.get("cow"), Useful.set("grass", "corn"));
         assertEquals(eats.get("rat"), Useful.set("cheese"));
         assertEquals(chases.get("dog"), Useful.set("cat"));             
-        assertEquals(chases.get("cat"), Useful.set("rat"));             
+        assertEquals(chases.get("cat"), Useful.set("rat"));
+        
+    }
+    
+    public void testMOMO() throws IOException, VersionMismatch {
+        MapOfMap<String, String, String> reln = new MapOfMap<String, String, String>();
+        
+        reln.putItem("eats", "cow", "grass");
+        reln.putItem("eats", "cow", "corn");
+        reln.putItem("eats", "rat", "cheese");
+        reln.putItem("chases", "dog", "cat");
+        reln.putItem("chases", "cat", "rat");
+        
+        Map<String, String> eats = reln.get("eats");
+        Map<String, String> chases = reln.get("chases");
+        
+        assertEquals(eats.get("cow"),  "corn");
+        assertEquals(eats.get("rat"), "cheese");
+        assertEquals(chases.get("dog"), "cat");             
+        assertEquals(chases.get("cat"), "rat");
+        
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        
+        CheapSerializer<Map<String, Map<String, String>>> ser =
+            MapOfMap.serializer(CheapSerializer.STRING,CheapSerializer.STRING,CheapSerializer.STRING);
+        
+        ser.version(bos);
+        ser.write(bos, reln);
+        
+        byte[] b = bos.toByteArray();
+        String s = new String(b);
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(b);
+        
+        ser.version(bis);
+        Map<String, Map<String, String>> reln2 = ser.read(bis);
+        
+        assertEquals(reln, reln2);
+        
+        
+        System.out.println(reln);
+        System.out.println(reln2);
+        System.out.println(s);
+               
+        
     }
     
 }

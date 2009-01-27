@@ -15,33 +15,27 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.repository.graph;
+package com.sun.fortress.useful;
 
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.repository.GraphRepository;
-import com.sun.fortress.repository.ProjectProperties;
+public class VersionMismatch extends Exception {
 
-public abstract class GraphNode{
-
-    long sourceDate;
-    long cacheDate = Long.MIN_VALUE; /* Missing = very old */
-    private final APIName name;
-
-    public GraphNode(APIName name, long sourceDate){
-        this.name = name;
-        this.sourceDate = sourceDate;
+    public VersionMismatch() {
+        // TODO Auto-generated constructor stub
     }
 
-    public APIName getName(){
-        return name;
+    public VersionMismatch(String message) {
+        super(message);
+        // TODO Auto-generated constructor stub
     }
-    
-    public long getSourceDate() {
-        return sourceDate;
+
+    public VersionMismatch(Throwable cause) {
+        super(cause);
+        // TODO Auto-generated constructor stub
     }
-    
-    public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
-    
-    public abstract String key();
-    
+
+    public VersionMismatch(String message, Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
+
 }

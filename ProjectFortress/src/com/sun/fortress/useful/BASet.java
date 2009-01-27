@@ -18,6 +18,7 @@
 package com.sun.fortress.useful;
 
 import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -358,6 +359,11 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
 
     public BASet(Comparator<T> c) {
         comp = c;
+    }
+    
+    public BASet(Comparator<T> c, Collection<T> it) {
+        comp = c;
+        this.addAll(it);
     }
 
     BASet(BASnode<T> r, Comparator<T> c) {
