@@ -56,7 +56,6 @@ public class RewriteHackList extends AbstractNode {
     public void accept(NodeVisitor_void visitor) {}
     public void accept(AbstractNodeVisitor_void visitor) {}
     public void output(java.io.Writer writer) {}
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
     public int generateHashCode() { return hashCode(); }
 
     /** Generate a human-readable representation that can be deserialized. */
