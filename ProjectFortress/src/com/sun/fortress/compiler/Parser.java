@@ -118,7 +118,7 @@ public class Parser {
                                     boolean verbose) {
         try {
             if ( Shell.getPreparse() ) { // if not bypass the syntactic abstraction
-                CompilationUnit cu = Parser.preparseFileConvertExn(f); // preparse
+                CompilationUnit cu = preparseFileConvertExn(f); // preparse
                 List<GrammarIndex> grammars; // directly imported grammars
                 if (cu instanceof Component) {
                     Component c = (Component) cu;
@@ -133,13 +133,13 @@ public class Parser {
                 }
                 if (verbose) System.err.println("Parsing file: "+f.getName());
                 if (grammars.isEmpty()) { // without new syntax
-                    return new Result(Parser.parseFileConvertExn(f),
+                    return new Result(parseFileConvertExn(f),
                                       f.lastModified());
                 } else { // with new syntax
                     return parseWithGrammars(f, env, verbose, grammars);
                 }
             } else { // if bypass the syntactic abstraction
-                return new Result(Parser.parseFileConvertExn(f),
+                return new Result(parseFileConvertExn(f),
                                   f.lastModified());
             }
         } catch (StaticError se) {
@@ -218,7 +218,7 @@ public class Parser {
             /* call the parser on the component and checks the validity,
              * get back a component AST
              */
-            CompilationUnit original = Parser.checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
+            CompilationUnit original = checkResultCU(RatsUtil.getParserObject(p), p, f.getName());
             // dump(original, "original-" + f.getName());
             /* Transform the syntax abstraction nodes into core Fortress */
             CompilationUnit cu = (CompilationUnit) Transform.transform(env, original);

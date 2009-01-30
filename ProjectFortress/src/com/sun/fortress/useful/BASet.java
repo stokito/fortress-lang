@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -360,7 +360,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
     public BASet(Comparator<T> c) {
         comp = c;
     }
-    
+
     public BASet(Comparator<T> c, Collection<T> it) {
         comp = c;
         this.addAll(it);
@@ -442,7 +442,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             add(k);
         }
     }
-    
+
     public boolean add(T k) {
         return put(k);
     }
