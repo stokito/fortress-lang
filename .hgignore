@@ -22,6 +22,8 @@ ProjectFortress/TEST-RESULTS/*
 *.jst
 *.out
 *.bin
+ProjectFortress/jrat.output
+ProjectFortress/shiftone-jrat-1-beta1
 SvnStats/
 ProjectFortress/*.tfs
 ProjectFortress/*.tfi

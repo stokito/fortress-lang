@@ -746,10 +746,12 @@ public class NodeFactory {
         return new TraitType(info, name, sargs, sparams);
     }
 
+    // used in testing, and in makeLValue and makeTypeParam (in this file)
     public static VarType makeVarType(Span span, String string) {
         return makeVarType(span, makeId(span, string));
     }
 
+        
     public static VarType makeVarType(Span span, Id id) {
         return makeVarType(span, false, id, lexicalDepth);
     }
