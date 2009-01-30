@@ -30,7 +30,6 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
-import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FnHeader;
@@ -120,9 +119,6 @@ public abstract class NativeApp implements Applicable {
     }
     public void accept(NodeVisitor_void visitor) {}
     public int generateHashCode() { return 0; }
-    public java.lang.String serialize() { return ""; }
-    public void serialize(java.io.Writer writer) {}
-    public void outputHelp(TabPrintWriter writer, boolean lossless) {}
 
     /**
      * Actually apply the native function to the passed-in arguments.

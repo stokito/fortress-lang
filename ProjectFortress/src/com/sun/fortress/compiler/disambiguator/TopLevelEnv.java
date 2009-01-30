@@ -778,13 +778,6 @@ public class TopLevelEnv extends NameEnv {
 //         System.err.println("end allowed_");
         Predicate2<IdOrOpOrAnonymousName,Function> pred = new Predicate2<IdOrOpOrAnonymousName,Function>(){
             public boolean contains(IdOrOpOrAnonymousName arg0, Function arg1) {
-//                 System.err.println("Checking if allowed contains " + arg0.getClass() + " " + arg0 + ":" + allowed_.contains(arg0));
-//                 for (IdOrOpOrAnonymousName a : allowed_) {
-//                     System.err.println("a:" + (a).serialize());
-//                     System.err.println("arg0" + (arg0).serialize());
-//                     System.err.println("equals " + ((Id)a).getText().equals(((Id)arg0).getText()));
-//                     System.err.println("==" + (((Id)a).getText() == ((Id)arg0).getText()));
-//                 }
                 return allowed_.contains(arg0);
             }
 
