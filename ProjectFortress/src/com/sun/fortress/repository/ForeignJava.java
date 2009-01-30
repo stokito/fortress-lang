@@ -90,6 +90,12 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class ForeignJava {
     
+    public static final ForeignJava only = new ForeignJava();
+    
+    private ForeignJava() {
+        
+    }
+    
     static class Packoid implements Comparable<Packoid> {
         String s;
         Packoid(String s) {

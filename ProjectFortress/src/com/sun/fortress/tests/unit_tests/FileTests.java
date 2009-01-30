@@ -303,7 +303,8 @@ public class FileTests {
         System.err.println(dir);
         Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
         int testCount = ProjectProperties.getInt("fortress.unittests.count",Integer.MAX_VALUE);
-        System.err.println("Test count = " + testCount);
+        if (testCount != Integer.MAX_VALUE)
+            System.err.println("Test count = " + testCount);
         int i = testCount;
         for(String s : shuffled){
               if (i <= 0) {

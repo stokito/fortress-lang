@@ -112,7 +112,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* If link is true then pull in a component for an API */
     private boolean link = false;
 
-    ForeignJava foreignJava = new ForeignJava();
+    ForeignJava foreignJava = ForeignJava.only;
 
     public GraphRepository(Path p, CacheBasedRepository cache) throws FileNotFoundException {
         this.path = p;
