@@ -5,7 +5,7 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/junit/junit.jar" sourcepath="third_party/junit/junit_src.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/plt/plt.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/jsr166y/jsr166y.jar" sourcepath="third_party/jsr166y/jsr166/src"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-3.1/src"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-3.1.src.zip"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/astgen/astgen.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/unsigned/unsigned.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>

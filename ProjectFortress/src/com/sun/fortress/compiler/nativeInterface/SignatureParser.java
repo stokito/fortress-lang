@@ -16,6 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.nativeInterface;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FLong;
@@ -30,16 +31,38 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class SignatureParser {
+    /**
+     * Tokenization of input signature into its single Java type elements.
+     */
     private List<String> arguments;
+    /**
+     * Tokenization and double translation of input signature into the
+     * Java types implementing the Fortress types corresponding to the
+     * Java types in the original signature.
+     */
     private List<String> fortressArguments;
+    /**
+     * result Java type from signature
+     */
     private String result;
+    /**
+     * Double translation of foreign Java type to corresponding Fortress type
+     * and then into imlementing Java type. 
+     */
     private String fortressResult;
-    private String signature;
+    /**
+     * Input signature to constructor.
+     */
+    private final String signature;
 
-    private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
+    // private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
 
-        
+            
     // For now only one dimensional arrays
+    /**
+     * Converts s, the signature of an existing Java method, into
+     * the 
+     */
     SignatureParser(String s) {
         arguments = new ArrayList<String>();
         fortressArguments = new ArrayList<String>();
@@ -55,41 +78,31 @@ public class SignatureParser {
             case 'S': error(s);
             case '[': error(s);
             case 'D': error(s);
+            break; // Superfluous, but just in case you thought error returned.
+            
             case 'C': 
-                arguments.add("C"); 
-                fortressArguments.add("L" + prefix + "FChar;");    
-                index++; break;
             case 'F': 
-                arguments.add("F"); 
-                fortressArguments.add("L" + prefix + "FFloat;");  
-                index++; 
-                break;
             case 'I': 
-                arguments.add("I"); 
-                fortressArguments.add("L" + prefix + "FInt;");    
-                index++; 
-                break;
             case 'J': 
-                arguments.add("J"); 
-                fortressArguments.add("L" + prefix + "FLong;");    
-                index++; 
-                break;
             case 'Z': 
-                arguments.add("Z"); 
-                fortressArguments.add("L" + prefix + "FBool;"); 
+            {
+                String arg_desc = String.valueOf((char)ch);
+                arguments.add(arg_desc);
+                String desc = toImplFFFF(arg_desc);
+                fortressArguments.add(desc);    
                 index++;
-                break;
+            } break;
+                 
             case 'L': 
+            {
                 int end = s.indexOf(';', index) + 1;
                 String javaType = s.substring(index, end);
                 arguments.add(javaType);
-                if (javaType.equals("Ljava/lang/String;")) {
-                    fortressArguments.add("L" + prefix + "FString;");
-                    index = end;
-                } else {
-                    error(s);
-                }
-                break;
+                String desc = toImplFFFF(javaType);
+                fortressArguments.add(desc);    
+                index = end;
+            } break;
+            
             default: error(s);
             }
             ch = s.charAt(index);
@@ -103,24 +116,52 @@ public class SignatureParser {
         case 'S': error(s);
         case '[': error(s);
         case 'D': error(s);
-        case 'V': result = "V"; fortressResult = "L" + prefix + "FVoid;";    break;
-        case 'C': result = "C"; fortressResult = "L" + prefix + "FChar;";    break;
-        case 'F': result = "F"; fortressResult = "L" + prefix + "FFloat;";   break;
-        case 'I': result = "I"; fortressResult = "L" + prefix + "FInt;";     break;
-        case 'J': result = "J"; fortressResult = "L" + prefix + "FLong;";    break;
-        case 'Z': result = "Z"; fortressResult = "L" + prefix + "FBool;";    break;
+        break; // Superfluous, but just in case you thought error returned.
+
+        case 'V': 
+        case 'C':
+        case 'F': 
+        case 'I':
+        case 'J':
+        case 'Z':   
+        {
+            String arg_desc = String.valueOf((char)ch);
+            result = arg_desc;
+            fortressResult = toImplFFFF(arg_desc);
+        }
+        break;
+        
         case 'L': 
-            int end = s.indexOf(';', index ) + 1;
-            String javaType = s.substring(index, end);
-            result = javaType;
-            if (javaType.equals("Ljava/lang/String;")) {
-                fortressResult = "L" + prefix + "FString;";
-            } else {
-                error(s);
-            }
+            {
+                int end = s.indexOf(';', index) + 1;
+                String javaType = s.substring(index, end);
+                result = javaType;
+                String desc = toImplFFFF(javaType);
+                fortressResult = desc;    
+            } 
+            
             break;
         default: error(s);
         }
+    }
+
+    /**
+     * converts an input, foreign, Java type descriptor into the Java type
+     * descriptor for the implementation of the corresponding Fortress type.
+     * 
+     * The name is an abbreviation for toImplForFortressForForeign.
+     * 
+     * @param arg_desc
+     * @return
+     */
+    private String toImplFFFF(String arg_desc) {
+        com.sun.fortress.nodes.Type ftype = NamingCzar.only.fortressTypeForForeignJavaType(arg_desc);
+        if (ftype == null)
+            error("No Fortress type (yet) for foreign Java type descriptor '" + arg_desc + "'");
+        String desc = NamingCzar.only.boxedImplDesc(ftype);
+        if (desc == null)
+            error("No Java impl type (yet) for Fortress type " + ftype + " for foreign descriptor '" + arg_desc + "'");
+        return desc;
     }
 
     List<String> getArguments() { return arguments;}
