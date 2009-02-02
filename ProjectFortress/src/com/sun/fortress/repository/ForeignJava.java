@@ -235,39 +235,6 @@ public class ForeignJava {
     static Span span = NodeFactory.internalSpan;
 
     static MyClassLoader loader = new MyClassLoader();
-
-    static Map<Type, com.sun.fortress.nodes.Type> specialCases = new HashMap<Type, com.sun.fortress.nodes.Type>();
-    static APIName fortLib =
-        NodeFactory.makeAPIName(span, "FortressLibrary");
-    
-    static void s(Type cl, APIName api, String str) {
-        specialCases.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
-    }
-    
-    /* Minor hackery here -- because we know these types are already loaded
-     * and not eligible for ASM-wrapping, we just go ahead and refer to the
-     * loaded class.
-     */
-    static void s(Class cl, APIName api, String str) {
-        s(Type.getType(cl), api, str);
-    }
-    
-    static {
-        s(Boolean.class, fortLib, "Boolean");
-        s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
-        s(Integer.class, fortLib, "ZZ32");
-        s(Type.INT_TYPE, fortLib, "ZZ32");
-        s(Long.class, fortLib, "ZZ64");
-        s(Type.LONG_TYPE, fortLib, "ZZ64");
-        s(Float.class, fortLib, "RR32");
-        s(Type.FLOAT_TYPE, fortLib, "RR32");
-        s(Double.class, fortLib, "RR64");
-        s(Type.DOUBLE_TYPE, fortLib, "RR64");
-        s(Object.class, fortLib, "Any");
-        s(String.class, fortLib, "String");
-        s(BigInteger.class, fortLib, "ZZ");
-        specialCases.put(Type.VOID_TYPE, NodeFactory.makeVoidType(span));
-    }
     
     static org.objectweb.asm.Type type(ClassNode cl) {
         return org.objectweb.asm.Type.getObjectType(cl.name);
@@ -416,7 +383,7 @@ public class ForeignJava {
     private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package, org.objectweb.asm.Type imported_type) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
-        com.sun.fortress.nodes.Type  t = specialCases.get(imported_type);
+        com.sun.fortress.nodes.Type t = NamingCzar.only.fortressTypeForForeignJavaType(imported_type);
         if (t != null)
             return t;
         

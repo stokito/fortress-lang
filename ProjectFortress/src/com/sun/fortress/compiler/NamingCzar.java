@@ -17,6 +17,10 @@
 
 package com.sun.fortress.compiler;
 
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
@@ -24,11 +28,18 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.TraitType;
-import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
+
+import org.objectweb.asm.Type;
+
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class NamingCzar {
     public final static NamingCzar only = new NamingCzar(ForeignJava.only);
@@ -102,7 +113,140 @@ public class NamingCzar {
          return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
      }
      
-    /* Converting names of Fortress entities into Java entities. */
+     /* Converting names of Fortress entities into Java entities.
+      * 
+        1. FortressLibrary.ZZ32
+           what we call it in Fortress
+
+        2. L/com/sun/fortress/interpreter/evaluator/values/FInt
+           the signature encoding of the Java type that we use to represent that.
+
+        3. I
+           the signature encoding of Java int.
+
+        4. int
+           Java int.
+
+        5. org.objectweb.asm.Type.INT_TYPE
+           The asm representation of the type of Java int.
+
+        6. java.lang.Integer.TYPE
+           The name of that "class" (int) in a running Java program.
+
+      * 
+      * For foreign interfaces, there's two translations.  From the foreign
+      * type, to the Fortress type we choose for the Fortress interfaces, 
+      * and then (same as other types) from the Fortress type to the type 
+      * of its bytecode encoding.
+      * 
+      */
+     
+     static Span span = NodeFactory.internalSpan;
+
+     static APIName fortLib =
+         NodeFactory.makeAPIName(span, "FortressLibrary");
+     
+     /**
+      * Given an ASM Type t from foreign Java, what is the corresponding type
+      * in Fortress (expressed as an AST Type node)?
+      * 
+      * If it is not defined in the current foreign interface implementation,
+      * null is returned.
+      */
+     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
+         return fortressTypeForForeignJavaType(t.getDescriptor());
+     }
+     
+     /**
+      * Given a Java type String descriptor ("Ljava/lang/Object;", V, [J, etc),
+      * what is the corresponding type in Fortress
+      * (expressed as an AST Type node)?
+      * 
+      * If it is not defined in the current foreign interface implementation,
+      * null is returned.
+      */
+     public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
+         return specialForeignJavaTranslations.get(s);
+     }
+     
+     static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
+     
+     /* Minor hackery here -- because we know these types are already loaded
+      * and not eligible for ASM-wrapping, we just go ahead and refer to the
+      * loaded class.
+      */
+     static void s(Class cl, APIName api, String str) {
+         s(Type.getType(cl), api, str);
+     }
+     
+     static void s(Type cl, APIName api, String str) {
+         s(cl.getDescriptor(), api, str);
+     }
+     
+     static void s(String cl, APIName api, String str) {
+         specialForeignJavaTranslations.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
+     }
+     
+     static {
+         s(Boolean.class, fortLib, "Boolean");
+         s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
+         s(Integer.class, fortLib, "ZZ32");
+         s(Type.INT_TYPE, fortLib, "ZZ32");
+         s(Long.class, fortLib, "ZZ64");
+         s(Type.LONG_TYPE, fortLib, "ZZ64");
+         s(Float.class, fortLib, "RR32");
+         s(Type.FLOAT_TYPE, fortLib, "RR32");
+         s(Double.class, fortLib, "RR64");
+         s(Type.DOUBLE_TYPE, fortLib, "RR64");
+         s(Object.class, fortLib, "Any");
+         s(String.class, fortLib, "String");
+         s(BigInteger.class, fortLib, "ZZ");
+         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
+     }
+
+     static final String interpreterValues = "Lcom/sun/fortress/interpreter/evaluator/values/";
+     
+     /**
+      * Given a Fortress type (expressed as AST node for a Type),
+      * what is the descriptor ("Ljava/lang/Object;", V, I, [J, etc)
+      * of the type implementing it in boxed form?
+      * 
+      * @param t
+      * @return
+      */
+     static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
+         return specialFortressTypes.get(t);
+     }
+     
+     static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
+ 
+     static void bl(APIName api, String str, String cl) {
+         b(api,str, interpreterValues+cl+";");
+     }
+     
+     static void bl(com.sun.fortress.nodes.Type t, String cl) {
+         b(t, interpreterValues+cl+";");
+     }
+     
+     static void b(APIName api, String str, String cl) {
+         b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)), cl);
+     }
+     
+     static void b(com.sun.fortress.nodes.Type t, String cl) {
+         specialFortressTypes.put(t, cl);
+     }
+     
+     static {
+         bl(fortLib, "Boolean", "FBool");
+         bl(fortLib, "Char", "FChar");
+         bl(fortLib, "RR32", "FFloat");
+         bl(fortLib, "ZZ32", "FInt");
+         bl(fortLib, "ZZ64", "FLong");
+         bl(fortLib, "String", "FString");
+         bl(NodeFactory.makeVoidType(span), "FVoid");
+     }
+ 
+     
     /**
      * If a type occurs in a parameter list or return type, it
      * is necessary to determine its name for purpose of generating
@@ -114,23 +258,28 @@ public class NamingCzar {
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
-     public String unboxedTypeName(Type t) {
+     public String boxedImplDesc(com.sun.fortress.nodes.Type t) {
+         String desc = javaDescriptorImplementingFortressType(t);
+         
+         if (desc != null)
+             return desc;
+         
          if (t instanceof ArrowType) {
              
          } else if (t instanceof BaseType) {
              if (t instanceof AnyType) {
-                 
+                 return interpreterValues + "FValue";
              } else if (t instanceof BottomType) {
-                 
+                 return bug("Not sure how bottom type translates into Java");
              } else if (t instanceof NamedType) {
                  if (t instanceof TraitType) {
-                     // has args, or not.
+                     return interpreterValues + "FValue";
                  } else if (t instanceof VarType) {
-                     // Cannot translate a VarType, need a binding.
+                     return bug("Need a binding to translate a VarType into Java");
                  }
              }
          }
-         throw new Error("unhanded case");
+         return bug ("unhandled type translation, Fortress type " + t);
 
      }
 
