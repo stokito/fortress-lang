@@ -50,7 +50,7 @@ import edu.rice.cs.plt.iter.IterUtil;
  * transformations:
  * <ul>
  * <li>All unknown placeholder types are provided explicit (inferred) values.</li>
- * <li>Explicit coercions are added where needed.</li>
+ * <li>Explicit coercions are added where needed. (Not yet!) </li>
  * <li>Juxtapositions are given a binary structure.</li>
  * <li>FieldRefs that refer to methods and that are followed by an argument expression
  *     become MethodInvocations.</li>

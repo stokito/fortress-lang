@@ -192,6 +192,14 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.assertStaticErrors(compile("Compiled0.s.fss"), expected)
   }
 
+  def testCompiled0t() = {
+    val expected =
+      STATIC_TESTS_DIR + "/Compiled0.t.fss:20:8-18\n" +
+      "    Component Compiled0.t imports and exports API Executable.\n" +
+      "    An API must not be imported and exported by the same component."
+    Shell.assertStaticErrors(compile("Compiled0.t.fss"), expected)
+  }
+
   def testCompiled0u() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.u.fss:21:1-3\n" +
