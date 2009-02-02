@@ -1,18 +1,18 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
-  4150 Network Circle, Santa Clara, California 95054, U.S.A.
-  All rights reserved.
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
 
-  U.S. Government Rights - Commercial software.
-  Government users are subject to the Sun Microsystems, Inc. standard
-  license agreement and applicable provisions of the FAR and its supplements.
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
-  Use is subject to license terms.
+    Use is subject to license terms.
 
-  This distribution may include materials developed by third parties.
+    This distribution may include materials developed by third parties.
 
-  Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-  trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.compiler;
@@ -26,6 +26,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.disambiguator.ExprDisambiguator;
 import com.sun.fortress.compiler.disambiguator.NameEnv;
@@ -44,45 +47,40 @@ import com.sun.fortress.nodes.GrammarDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.useful.Debug;
-
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.useful.HasAt;
 
 /**
  * Eliminates ambiguities in an AST that can be resolved solely by knowing what
  * kind of entity a name refers to.  This class specifically handles
- * the following:  
+ * the following:
  * <ul>
  * <li>All names referring to APIs are made fully qualified (FnRefs
  *     and OpExprs may then contain lists of qualified names referring to
  *     multiple APIs).</li>
  * <li>VarRefs referring to functions become FnRefs with placeholders
  *     for implicit static arguments filled in (to be replaced later
- *     during type inference).</li> 
+ *     during type inference).</li>
  * <li>VarRefs referring to getters, setters, or methods become FieldRefs.</li>
- * <li>VarRefs referring to methods, and that are juxtaposed with Exprs, become 
+ * <li>VarRefs referring to methods, and that are juxtaposed with Exprs, become
  *     MethodInvocations.</li>
  * <li>FieldRefs referring to methods, and that are juxtaposed with
  *     Exprs, become MethodInvocations.</li>
- * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become 
+ * <li>FnRefs referring to methods, and that are juxtaposed with Exprs, become
  *     MethodInvocations.</li>
  * <li>VarTypes referring to traits become TraitTypes (with 0
- *     arguments)</li> 
+ *     arguments)</li>
  * </ul>
- * 
+ *
  * Additionally, all name references that are undefined or used incorrectly are
  * treated as static errors.
  */
 public class Disambiguator {
-
-	
-
     /**
      * Disambiguate the names of nonterminals.
      */
     private static List<Api> disambiguateGrammarMembers(Collection<ApiIndex> apis,
                                                         List<StaticError> errors,
-                                                        GlobalEnvironment globalEnv) 
+                                                        GlobalEnvironment globalEnv)
     {
         List<Api> results = new ArrayList<Api>();
         for (ApiIndex index : apis) {
@@ -93,8 +91,8 @@ public class Disambiguator {
             Debug.debug( Debug.Type.COMPILER, 3, "Disambiguate grammar members for api " + index );
             Api pdResult = (Api) index.ast().accept(pd);
             results.add(pdResult);
-            if (!newErrs.isEmpty()) { 
-                errors.addAll(newErrs); 
+            if (!newErrs.isEmpty()) {
+                errors.addAll(newErrs);
             }
         }
         return results;
@@ -104,7 +102,7 @@ public class Disambiguator {
     public static class ApiResult extends StaticPhaseResult {
         private final Iterable<Api> _apis;
 
-        public ApiResult(Iterable<Api> apis, 
+        public ApiResult(Iterable<Api> apis,
                 Iterable<? extends StaticError> errors) {
             super(errors);
             _apis = apis;
@@ -114,7 +112,7 @@ public class Disambiguator {
     }
 
 
-    
+
     /**
      * Disambiguate the given apis. To support circular references,
      * the apis should appear in the given environment.
@@ -123,43 +121,43 @@ public class Disambiguator {
      * @param repository_apis Apis that already exist in the repository.
      */
     public static ApiResult disambiguateApis(Iterable<Api> apisToDisambiguate,
-                                             GlobalEnvironment globalEnv, 
-                                             Map<APIName, ApiIndex> repositoryApis) 
+                                             GlobalEnvironment globalEnv,
+                                             Map<APIName, ApiIndex> repositoryApis)
     {
-          	
+
     	repositoryApis = Collections.unmodifiableMap(repositoryApis);
-    	
+
         List<StaticError> errors = new ArrayList<StaticError>();
-        
+
         // First, loop through apis, disambiguating types.
         List<Api> newApis = new ArrayList<Api>();
         for (Api api : apisToDisambiguate) {
             ApiIndex index = globalEnv.api(api.getName());
-        	 
+
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-        	 
+
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
-             
+
             SelfParamDisambiguator selfDisambig = new SelfParamDisambiguator();
             Api spdResult = (Api) api.accept(selfDisambig);
-             
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            TypeDisambiguator td = 
+            TypeDisambiguator td =
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Api tdResult = (Api) spdResult.accept(td);
-             
+
             if (newErrs.isEmpty()) {
                 newApis.add(tdResult);
             } else {
              	errors.addAll(newErrs);
             }
         }
-        
+
         // Go no further if we couldn't disambiguate the types.
         if( errors.size() > 0 ) {
         	return new ApiResult(newApis, errors);
         }
-        
+
         // then, rebuild the indices
         IndexBuilder.ApiResult rebuiltIndx = IndexBuilder.buildApis(newApis, System.currentTimeMillis());
         GlobalEnvironment newGlobalEnv = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
@@ -169,9 +167,9 @@ public class Disambiguator {
         List<Api> results = new ArrayList<Api>();
         for (Api api : newApis) {
             ApiIndex index = newGlobalEnv.api(api.getName());
-        	
+
             NameEnv env = new TopLevelEnv(newGlobalEnv, index, errors);
-        	
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
             ExprDisambiguator ed = new ExprDisambiguator(env, newErrs);
             Api edResult = (Api) api.accept(ed);
@@ -181,7 +179,7 @@ public class Disambiguator {
             	errors.addAll(newErrs);
             }
         }
-        
+
         IndexBuilder.ApiResult rebuiltIndx2 = IndexBuilder.buildApis(results, System.currentTimeMillis());
         GlobalEnvironment newGlobalEnv2 = new GlobalEnvironment.FromMap(CollectUtil.union(repositoryApis,
                                                                                           rebuiltIndx2.apis()));
@@ -191,8 +189,8 @@ public class Disambiguator {
         return new ApiResult(results, errors);
     }
 
-    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis, 
-                                                                                      Collection<ApiIndex> moreApis ) 
+    private static Collection<? extends StaticError> initializeGrammarIndexExtensions(Collection<ApiIndex> apis,
+                                                                                      Collection<ApiIndex> moreApis )
     {
         List<StaticError> errors = new LinkedList<StaticError>();
         Map<String, GrammarIndex> grammars = new HashMap<String, GrammarIndex>();
@@ -251,11 +249,11 @@ public class Disambiguator {
     public static ComponentResult disambiguateComponents(Iterable<Component> components,
                                                          GlobalEnvironment globalEnv,
                                                          Map<APIName, ComponentIndex> indices) {
-    	
-    	
+
+
         List<Component> results = new ArrayList<Component>();
         List<StaticError> errors = new ArrayList<StaticError>();
-        
+
         // First, disambiguate the types
         List<Component> new_comps = new ArrayList<Component>();
         for (Component comp : components) {
@@ -263,16 +261,16 @@ public class Disambiguator {
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-            
+
 
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             Set<IdOrOpOrAnonymousName> onDemandImports = new HashSet<IdOrOpOrAnonymousName>();
 
             SelfParamDisambiguator self_disambig = new SelfParamDisambiguator();
             Component spdResult = (Component) comp.accept(self_disambig);
-            
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            TypeDisambiguator td = 
+            TypeDisambiguator td =
                 new TypeDisambiguator(env, onDemandImports, newErrs);
             Component tdResult = (Component) spdResult.accept(td);
             if (newErrs.isEmpty())
@@ -280,33 +278,91 @@ public class Disambiguator {
             else
             	errors.addAll(newErrs);
         }
-        
+
         // Then, rebuild the component indices based on disambiguated types
         IndexBuilder.ComponentResult new_comp_ir =
         	IndexBuilder.buildComponents(new_comps, System.currentTimeMillis());
-        
+
+        // Check the set of exported APIs in the components.
+        for( Component comp : new_comps ) {
+            ComponentIndex index = new_comp_ir.components().get(comp.getName());
+            if (index == null) {
+                throw new IllegalArgumentException("Missing component index");
+            }
+            checkExports(index, errors);
+            if ( !errors.isEmpty() )
+                return new ComponentResult(results, errors);
+        }
+
         // Finally, disambiguate the expressions
         for( Component comp : new_comps ) {
         	ComponentIndex index = new_comp_ir.components().get(comp.getName());
         	if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
-        	
+
         	// Filter env based on what this component imports
 //       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
 //       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
         	NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-            
+
             List<StaticError> newErrs = new ArrayList<StaticError>();
-            ExprDisambiguator ed = 
-                new ExprDisambiguator(env, //onDemandImports, 
+            ExprDisambiguator ed =
+                new ExprDisambiguator(env, //onDemandImports,
                 		newErrs);
             Component edResult = (Component) comp.accept(ed);
             if (newErrs.isEmpty())
             	results.add(edResult);
-            else 
+            else
             	errors.addAll(newErrs);
         }
+
         return new ComponentResult(results, errors);
+    }
+
+    /* Check the set of exported APIs in this component.
+     * Implements the semantics of export statements
+     * described in Section 20.2.2 in the Fortress language
+     * specification Version 1.0.
+     */
+    private static void checkExports(ComponentIndex component,
+                                     List<StaticError> errors) {
+        // No API may be both imported and exported by the same component.
+        Set<APIName> imports = component.imports();
+        Set<APIName> exports = component.exports();
+        for (APIName exp : exports) {
+            if ( imports.contains(exp) )
+                error(errors, exp,
+                      "Component " + component.ast().getName() +
+                      " imports and exports API " + exp + ".\n" +
+                      "    An API must not be imported and exported" +
+                      " by the same component.");
+    }
+        /*
+A component must provide a declaration, or a set of declarations, that satisfies every top-level declaration in any API
+that it exports, as described below. A component may include declarations that do not participate in satisfying any
+exported declaration (i.e., a declaration of any exported API).
+
+A top-level variable declaration declaring a single variable is satisfied by any top-level variable declaration that declares
+the name with the same type (in the component, the type may be inferred). A top-level variable declaration declaring
+multiple variables is satisfied by a set of declarations (possibly just one) that declare all the names with their respective
+types (which again, may be inferred). In either case, the mutability of a variable must be the same in the exported and
+satisfying declarations.
+
+A trait or object declaration is satisfied by a declaration that has the same header, and contains, for each field declaration
+and non-abstract method declaration in the exported declaration, a satisfying declaration (or a set of declarations).
+When a trait has an abstract method declared, a satisfying trait declaration is allowed to provide a concrete declaration.
+
+A satisfying trait or object declaration may contain method and ﬁeld declarations not exported by the API but these
+might not be overloaded with method or field declarations provided by (contained in or inherited by) any declarations
+exported by the API.
+
+For functional declarations, recall that several functional declarations may define the same entity (i.e., they may be
+overloaded). Given a set of overloaded declarations, it is not permitted to export some of them and not others.
+         */
+    }
+
+    private static void error(List<StaticError> errors, HasAt loc, String msg) {
+        errors.add(StaticError.make(msg, loc));
     }
 }
