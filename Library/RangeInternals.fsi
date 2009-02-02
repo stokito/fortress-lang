@@ -385,6 +385,8 @@ trait FullScalarRange[\I extends Integral[\I\]\]
     nonemptyUpwardIntersection(other: BoundedScalarRange[\I\], resultStride: I): FullScalarRange[\I\]
     nonemptyUpwardIntersectionWithPoint(other: BoundedScalarRange[\I\], resultStride: I, p: I): FullScalarRange[\I\]
     opr [ r: Range[\I\] ]: FullScalarRange[\I\]
+    opr[i: I]: I
+    indexOf(i: I): Maybe[\I\]
 end
 
 trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
@@ -399,6 +401,7 @@ trait FullRange2D[\I extends Integral[\I\], J extends Integral[\J\]\]
     flip(): FullRange2D[\I, J\]
     opr [ ij: (I, J) ]: (I, J)
     opr [ r: Range[\(I, J)\] ]: FullRange2D[\I, J\]
+    indexOf(n: (I,J)): Maybe[\(I,J)\]
 end
 
 tupleFlatten[\I, J, K\](t: (I, J), k: K): (I, J, K)
@@ -417,6 +420,7 @@ trait FullRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     flip(): FullRange3D[\I, J, K\]
     opr [ ij: (I, J, K) ]: (I, J, K)
     opr [ r: Range[\(I, J, K)\] ]: FullRange3D[\I, J, K\]
+    indexOf(n: (I,J,K)): Maybe[\(I,J,K)\]
 end
 
 trait CompactFullScalarRange[\I extends Integral[\I\]\]
@@ -429,6 +433,7 @@ trait CompactFullScalarRange[\I extends Integral[\I\]\]
 
     opr [ i: I ]: I
     opr IN(n: I, self): Boolean
+    indexOf(n: I): Maybe[\I\]
     shiftLeft(shift: I): CompactFullScalarRange[\I\]
     shiftRight(shift: I): CompactFullScalarRange[\I\]
 end
@@ -504,6 +509,7 @@ trait StridedFullScalarRange[\I extends Integral[\I\]\]
 
     opr [ i: I ]: I
     opr IN(n: I, self): Boolean
+    indexOf(n: I): Maybe[\I\]
     forward(): FullScalarRange[\I\]
 end
 
