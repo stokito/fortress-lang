@@ -90,7 +90,8 @@ object ExportChecker {
                           " which declares " + v + "\n    but the component does not " +
                           "declare it.")
             }
-            /* for the other kinds of top-level names
+            /* for the other kinds of top-level declarations
+             *
             Relation<IdOrOpOrAnonymousName, Function> functions = api.functions();
             Set<ParametricOperator> parametricOperators = api.parametricOperators();
             Map<Id, TypeConsIndex> typeConses = api.typeConses();
@@ -99,6 +100,7 @@ object ExportChecker {
             */
 
             /* from the spec
+             *
              * A trait or object declaration is satisfied by a declaration that
              * has the same header, and contains, for each field declaration
              * and non-abstract method declaration in the exported declaration,
