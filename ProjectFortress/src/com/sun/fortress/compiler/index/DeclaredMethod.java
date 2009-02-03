@@ -73,7 +73,7 @@ public class DeclaredMethod extends Method {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		if( NodeUtil.getThrowsClause(_ast).isSome() )
 			return Collections.emptyList();
 		else

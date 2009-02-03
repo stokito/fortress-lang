@@ -52,6 +52,8 @@ public class FunctionalMethod extends Function {
 
     public FnDecl ast() { return _ast; }
 
+    public Id declaringTrait() { return _declaringTrait; }
+
 	@Override
 	public Option<Expr> body() {
 		return _ast.accept(new NodeDepthFirstVisitor<Option<Expr>>(){
@@ -78,7 +80,7 @@ public class FunctionalMethod extends Function {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		if(  NodeUtil.getThrowsClause(_ast).isSome() )
 			return Collections.emptyList();
 		else

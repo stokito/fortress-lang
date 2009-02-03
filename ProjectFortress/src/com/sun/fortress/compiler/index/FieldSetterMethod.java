@@ -72,7 +72,7 @@ public class FieldSetterMethod extends Method {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		return Collections.emptyList();
 	}
 
