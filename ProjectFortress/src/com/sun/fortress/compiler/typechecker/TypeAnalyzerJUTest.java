@@ -17,25 +17,60 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import junit.framework.TestCase;
-import java.util.*;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
-import edu.rice.cs.plt.text.TextUtil;
+import static com.sun.fortress.compiler.Types.ANY;
+import static com.sun.fortress.compiler.Types.BOTTOM;
+import static com.sun.fortress.compiler.Types.VOID;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.falseFormula;
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.trueFormula;
+import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
-import com.sun.fortress.nodes.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import junit.framework.TestCase;
+
+import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.index.ApiIndex;
+import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.Dimension;
+import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.GrammarIndex;
+import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.ParametricOperator;
+import com.sun.fortress.compiler.index.ProperTraitIndex;
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.index.Unit;
+import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.Effect;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.KeywordType;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
-import static com.sun.fortress.compiler.Types.*;
 
-import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.text.TextUtil;
+import edu.rice.cs.plt.tuple.Option;
 
 public class TypeAnalyzerJUTest extends TestCase {
 

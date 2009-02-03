@@ -30,9 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
-//import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
@@ -47,9 +45,7 @@ import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.useful.IMultiMap;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.UsefulPLT;
-import com.sun.tools.apt.mirror.type.TypeMaker;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;

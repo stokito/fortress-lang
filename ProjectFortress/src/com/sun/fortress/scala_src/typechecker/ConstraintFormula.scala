@@ -30,7 +30,7 @@ import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import edu.rice.cs.plt.lambda.Lambda
 
-/*
+/**
  * This class represents the constraints accummulated on inference variables. All
  * constraints are kept in disjunctive normal form. In order to keep the size of
  * the or method eliminates redundant constraints. Further information can be found
@@ -38,31 +38,44 @@ import edu.rice.cs.plt.lambda.Lambda
  */
 
 sealed abstract class ConstraintFormula{
-  /*
+  /**
    * This method ands two constraint formulas
    */
   def and(c2 :ConstraintFormula, history: SubtypeHistory): ConstraintFormula
 
-  /*
+  /**
    * This method ors two constraint formulas
    */
   def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula
 
-   /*
-   * Returns a mapping of inference variables to types that satisfy a the constraints
+   /**
+   * If the constraints are satisfiable then this returns a substitution of types for
+   * inference variables that satisfies the constraints.
    */
   def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]]
 
+  /**
+   * 
+   */
   def isTrue():Boolean = false
 
+  /**
+   * 
+   */
   def isFalse():Boolean = false
 
+  /**
+   * 
+   */
   def isSatisfiable():Boolean
 
+  /**
+   * 
+   */
   def applySubstitution(substitution: Lambda[Type,Type]):ConstraintFormula
 }
 
-/*
+/**
  * Formulas with no disjunctions
  */
 sealed abstract class SimpleFormula extends ConstraintFormula{
@@ -73,8 +86,8 @@ sealed abstract class SimpleFormula extends ConstraintFormula{
 }
 
 
-/*
- * The formula with bounds Any:>T:>Bottom for all T
+/**
+ * The formula with bounds Any:>$i:>Bottom for all $i
  */
 case object CnTrue extends SimpleFormula{
   override def and(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2
@@ -86,7 +99,7 @@ case object CnTrue extends SimpleFormula{
   override def applySubstitution(substitution: Lambda[Type,Type]): ConstraintFormula = this
 }
 
-/*
+/**
  * The empty formula
  */
 case object CnFalse extends SimpleFormula{
@@ -100,9 +113,9 @@ case object CnFalse extends SimpleFormula{
 }
 
 
-/*
+/**
  * This class represents the conjunction of primitive formula of the form
- * U>:T>:B
+ * U>:$i>:B
  */
 case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVarType, Type]) extends SimpleFormula{
 
@@ -153,7 +166,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
 
   override def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
 
-    /*
+  /**
    * Merges the bounds from two conjunctive formulas
    */
   private def mergeBounds(bmap1: Map[_InferenceVarType,Type],
@@ -174,7 +187,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
       newbounds
   }
 
-  /*
+  /**
    * Compares the bounds from two conjunctive formulas
    */
   private def compareBounds(bmap1: Map[_InferenceVarType,Type],
@@ -196,7 +209,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
     accum
   }
 
-  /*
+  /**
    * Determines whether a given substitution of types for
    * inference variables is valid
    */
@@ -216,7 +229,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
 }
 
 
-/*
+/**
  * A disjunction of simple formulas
  */
 case class CnOr( conjuncts: List[CnAnd]) extends ConstraintFormula{
