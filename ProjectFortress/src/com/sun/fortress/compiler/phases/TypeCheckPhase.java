@@ -62,7 +62,7 @@ public class TypeCheckPhase extends Phase {
         }
 
         StaticChecker.ComponentResult componentSR = StaticChecker
-                .checkComponents(componentIndex.components(), env);
+            .checkComponents(componentIndex.components(), env, repository);
 
         if (!componentSR.isSuccessful()) {
             throw new MultipleStaticError(componentSR.errors());

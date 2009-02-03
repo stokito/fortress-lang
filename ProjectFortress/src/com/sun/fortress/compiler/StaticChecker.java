@@ -19,7 +19,10 @@ package com.sun.fortress.compiler;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,7 @@ import java.util.Map;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
 import com.sun.fortress.compiler.typechecker.TraitTable;
@@ -36,9 +40,12 @@ import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.exceptions.StaticError;
+import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.scala_src.typechecker.ExportChecker;
 
 import edu.rice.cs.plt.iter.IterUtil;
 
@@ -103,7 +110,8 @@ public class StaticChecker {
     /** Statically check the given components. */
     public static ComponentResult
         checkComponents(Map<APIName, ComponentIndex> components,
-                        GlobalEnvironment env)
+                        GlobalEnvironment env,
+                        FortressRepository repository)
     {
 //         System.out.println("checkComponents");
 
@@ -115,7 +123,8 @@ public class StaticChecker {
 
         for (APIName componentName : components.keySet()) {
 //            System.out.println("next");
-            TypeCheckerResult checked = checkComponent(components.get(componentName), env);
+            TypeCheckerResult checked = checkComponent(components.get(componentName), env,
+                                                       repository);
             checkedComponents.add((Component)checked.ast());
             if (!checked.isSuccessful())
                 failedComponents.add(componentName);
@@ -133,7 +142,8 @@ public class StaticChecker {
     }
 
     public static TypeCheckerResult checkComponent(ComponentIndex component,
-                                                   GlobalEnvironment env)
+                                                   GlobalEnvironment env,
+                                                   FortressRepository repository)
     {
 //         System.out.println("checkComponent");
          if (Shell.getTypeChecking() == true) {
@@ -194,9 +204,29 @@ public class StaticChecker {
             if( TypesUtil.containsInferenceVarTypes(result.ast()) )
                 bug("Result of typechecking still contains inference varaibles. " + result.ast());
 
+            // Check the set of exported APIs in this component.
+            // Add the Executable API explicitly to the global environment
+            // for this check.
+            APIName executableApi = NodeFactory.makeAPIName(NodeFactory.typeSpan,
+                                                            WellKnownNames.executableApi());
+            HashMap<APIName, ApiIndex> newMap = new HashMap<APIName, ApiIndex>(env.apis());
+            try {
+                newMap.put(executableApi, repository.getApi(executableApi));
+            } catch (FileNotFoundException e) {
+                bug("Couldn't find the file for API " + executableApi);
+            } catch (IOException e) {
+                bug("Couldn't open the file for API " + executableApi);
+            }
+            env = new GlobalEnvironment.FromMap(newMap);
+            List<StaticError> errors = ExportChecker.checkExports(component, env);
+            if ( ! errors.isEmpty() ) {
+                for ( StaticError error : errors ) {
+                    result = TypeCheckerResult.addError(result, error);
+                }
+            }
             return result;
-        } else {
-            return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
-        }
+         } else {
+             return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
+         }
     }
 }

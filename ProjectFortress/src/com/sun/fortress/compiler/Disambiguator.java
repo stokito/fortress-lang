@@ -283,29 +283,23 @@ public class Disambiguator {
         IndexBuilder.ComponentResult new_comp_ir =
         	IndexBuilder.buildComponents(new_comps, System.currentTimeMillis());
 
-        // Check the set of exported APIs in the components.
         for( Component comp : new_comps ) {
             ComponentIndex index = new_comp_ir.components().get(comp.getName());
             if (index == null) {
                 throw new IllegalArgumentException("Missing component index");
             }
+
+            // Filter env based on what this component imports
+//       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
+//       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
+
+            // Check the set of exported APIs in the components.
             checkExports(index, errors);
             if ( !errors.isEmpty() )
                 return new ComponentResult(results, errors);
-        }
 
-        // Finally, disambiguate the expressions
-        for( Component comp : new_comps ) {
-        	ComponentIndex index = new_comp_ir.components().get(comp.getName());
-        	if (index == null) {
-                throw new IllegalArgumentException("Missing component index");
-            }
-
-        	// Filter env based on what this component imports
-//       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
-//       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
-        	NameEnv env = new TopLevelEnv(globalEnv, index, errors);
-
+            // Finally, disambiguate the expressions
             List<StaticError> newErrs = new ArrayList<StaticError>();
             ExprDisambiguator ed =
                 new ExprDisambiguator(env, //onDemandImports,
@@ -320,46 +314,22 @@ public class Disambiguator {
         return new ComponentResult(results, errors);
     }
 
-    /* Check the set of exported APIs in this component.
-     * Implements the semantics of export statements
-     * described in Section 20.2.2 in the Fortress language
-     * specification Version 1.0.
+    /* Check the set of exported APIs in this component:
+     *   An API must not be imported and exported
+     *   by the same component.
      */
     private static void checkExports(ComponentIndex component,
                                      List<StaticError> errors) {
         // No API may be both imported and exported by the same component.
         Set<APIName> imports = component.imports();
-        Set<APIName> exports = component.exports();
-        for (APIName exp : exports) {
+        for (APIName exp : component.exports()) {
             if ( imports.contains(exp) )
                 error(errors, exp,
                       "Component " + component.ast().getName() +
                       " imports and exports API " + exp + ".\n" +
                       "    An API must not be imported and exported" +
                       " by the same component.");
-    }
-        /*
-A component must provide a declaration, or a set of declarations, that satisfies every top-level declaration in any API
-that it exports, as described below. A component may include declarations that do not participate in satisfying any
-exported declaration (i.e., a declaration of any exported API).
-
-A top-level variable declaration declaring a single variable is satisfied by any top-level variable declaration that declares
-the name with the same type (in the component, the type may be inferred). A top-level variable declaration declaring
-multiple variables is satisfied by a set of declarations (possibly just one) that declare all the names with their respective
-types (which again, may be inferred). In either case, the mutability of a variable must be the same in the exported and
-satisfying declarations.
-
-A trait or object declaration is satisfied by a declaration that has the same header, and contains, for each field declaration
-and non-abstract method declaration in the exported declaration, a satisfying declaration (or a set of declarations).
-When a trait has an abstract method declared, a satisfying trait declaration is allowed to provide a concrete declaration.
-
-A satisfying trait or object declaration may contain method and ﬁeld declarations not exported by the API but these
-might not be overloaded with method or field declarations provided by (contained in or inherited by) any declarations
-exported by the API.
-
-For functional declarations, recall that several functional declarations may define the same entity (i.e., they may be
-overloaded). Given a set of overloaded declarations, it is not permitted to export some of them and not others.
-         */
+        }
     }
 
     private static void error(List<StaticError> errors, HasAt loc, String msg) {

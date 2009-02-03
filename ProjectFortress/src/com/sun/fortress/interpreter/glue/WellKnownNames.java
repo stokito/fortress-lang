@@ -82,6 +82,7 @@ public class WellKnownNames {
     public static String fortressLibrary() { return _fortressLibrary; }
     public static String fortressBuiltin() { return _fortressBuiltin; }
     public static String anyTypeLibrary() { return _anyTypeLibrary; }
+    public static String executableApi() { return _executableApi; }
     public static String[] defaultLibrary() { return _defaultLibrary; }
 
     public static boolean exportsMain(String apiName) {
