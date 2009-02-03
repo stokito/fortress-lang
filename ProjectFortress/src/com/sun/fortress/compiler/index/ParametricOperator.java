@@ -39,8 +39,8 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.tuple.Option;
 
 /**
- * This is a operator declared in a trait or object whose name is an opr parameter. 
- * It needs to be promoted to top-level so it can match OpExprs appropriately. 
+ * This is a operator declared in a trait or object whose name is an opr parameter.
+ * It needs to be promoted to top-level so it can match OpExprs appropriately.
  */
 public class ParametricOperator extends FunctionalMethod {
     Op _name;
@@ -78,7 +78,7 @@ public class ParametricOperator extends FunctionalMethod {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		if(  NodeUtil.getThrowsClause(_ast).isSome() )
 			return Collections.emptyList();
 		else

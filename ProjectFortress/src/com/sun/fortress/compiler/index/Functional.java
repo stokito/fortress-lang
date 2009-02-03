@@ -46,9 +46,9 @@ public abstract class Functional {
 
     public abstract List<Param> parameters();
 
-    public abstract Iterable<BaseType> thrownTypes();
+    public abstract List<BaseType> thrownTypes();
 
     public abstract Option<Expr> body();
-    
+
     public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 }

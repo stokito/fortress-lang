@@ -68,7 +68,7 @@ public class DeclaredFunction extends Function {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		if( NodeUtil.getThrowsClause(_ast).isNone() )
 			return Collections.emptyList();
 		else

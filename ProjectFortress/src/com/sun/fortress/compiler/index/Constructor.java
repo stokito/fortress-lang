@@ -83,7 +83,7 @@ public class Constructor extends Function {
 	}
 
 	@Override
-	public Iterable<BaseType> thrownTypes() {
+	public List<BaseType> thrownTypes() {
 		if( _throwsClause.isNone() )
 			return Collections.emptyList();
 		else
