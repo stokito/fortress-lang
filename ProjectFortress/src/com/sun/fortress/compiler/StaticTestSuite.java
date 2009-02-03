@@ -288,7 +288,7 @@ public final class StaticTestSuite extends TestSuite {
             }
         }
 
-        private void assertWellFormedProgram(File f) 
+        private void assertWellFormedProgram(File f)
                 throws IOException, UserError {
             Iterable<? extends StaticError> errors = compile(f);
             String message = "Source " + f + " produces static errors:";
@@ -304,7 +304,7 @@ public final class StaticTestSuite extends TestSuite {
             if (VERBOSE) { System.out.println(f + "  OK"); }
         }
 
-        private Iterable<? extends StaticError> compile(File f) 
+        private Iterable<? extends StaticError> compile(File f)
                 throws IOException, UserError {
             return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
                                  f.getName());

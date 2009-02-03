@@ -1,4 +1,4 @@
-/*******************************************************************************
+(*******************************************************************************
     Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,20 +13,12 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************/
+ ******************************************************************************)
 
-package com.sun.fortress.compiler.index;
+component DXXmatchingDecls
+export DXXmatchingDecls
 
-import com.sun.fortress.nodes.NodeUpdateVisitor;
-import com.sun.fortress.nodes.Type;
+  x: () = ()
+  var y: String = "init"
 
-import com.sun.fortress.useful.NI;
-
-/** Comprises DeclaredVariable, ParamVariable, and SingletonVariable. */
-public abstract class Variable {
-
-    public Variable acceptNodeUpdateVisitor(NodeUpdateVisitor v) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-}
+end

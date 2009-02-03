@@ -85,18 +85,23 @@ public class TypeCheckerOutput {
         return this.nodeTypeEnvs.get(p);
     }
 
+    /** Commented out
+     * Originally designed for the closure conversion of object expressions (CCoOE)
+     * but it turned out that it was not suitable for both the type checker
+     * and the CCoOE.
+     * Unused and the type of the StaticChecker.checkComponent method has been changed.
+     * -- Sukyoung
+     */
     /**
      * Given a component ast with one of its subnodes overwritten, and
      * the ast of the component that it was to replace, this method
      * recreates both the ast and this object, so that they fulfill any invariants. It is
      * reasonable to think of this method as re-running the typechecker and returning the
      * result. The performance on this is poor so try and run it once per component.
-     */
     public Pair<Node,TypeCheckerOutput> populateType(Node old_component_ast,Node new_component_ast,
             GlobalEnvironment env) {
-    	/* Create a new copy of TypeCheckerOutput that does not contain any TypeEnvs for subnodes
-    	 * of old_comonent_ast.
-    	 */
+    	// Create a new copy of TypeCheckerOutput that does not contain any TypeEnvs for subnodes
+    	// of old_comonent_ast.
     	final Map<Pair<Node,Span>,TypeEnv> removed = new HashMap<Pair<Node,Span>,TypeEnv>();
     	NodeDepthFirstVisitor_void remover=new NodeDepthFirstVisitor_void(){
 
@@ -201,16 +206,16 @@ public class TypeCheckerOutput {
     	};
     	old_component_ast.accept(remover);
     	TypeCheckerOutput oldremoved = new TypeCheckerOutput(removed);
-    	/* Accumulate the necessary structures to rerun the typechecker on new_component_ast. Unfortunately you
-    	 * can't run the typechecker on new_node because the TypeEnv from nodeTypeEnvs won't contain any top-level
-    	 * functions that you define during closure conversion
-    	 */
+    	// Accumulate the necessary structures to rerun the typechecker on new_component_ast. Unfortunately you
+    	// can't run the typechecker on new_node because the TypeEnv from nodeTypeEnvs won't contain any top-level
+    	// functions that you define during closure conversion
         ComponentIndex component = IndexBuilder.builder.buildComponentIndex((Component)new_component_ast, System.currentTimeMillis());
-        TypeCheckerResult result = StaticChecker.checkComponent(component, env);
+        TypeCheckerResult result = StaticChecker.checkComponent(component, env, null); // FIX ME!!!
         TypeCheckerOutput newoutput = result.getTypeCheckerOutput();
         // Get the new ast out of result, merge the TypeCheckerOutput, and then return
         return Pair.make(result.ast(), new TypeCheckerOutput(oldremoved, newoutput));
     }
+     */
 
     public static TypeCheckerOutput emptyOutput() {
         return new TypeCheckerOutput(Collections.<Pair<Node,Span>, TypeEnv>emptyMap());
