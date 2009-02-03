@@ -18,17 +18,13 @@
 package com.sun.fortress.compiler.typechecker;
 
 
+import static com.sun.fortress.compiler.typechecker.ConstraintFormula.trueFormula;
+import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static edu.rice.cs.plt.tuple.Option.wrap;
-import static edu.rice.cs.plt.iter.IterUtil.tripleFirsts;
-import static edu.rice.cs.plt.iter.IterUtil.tripleSeconds;
-import static edu.rice.cs.plt.iter.IterUtil.tripleThirds;
-import static edu.rice.cs.plt.iter.IterUtil.pairFirsts;
-import static edu.rice.cs.plt.iter.IterUtil.pairSeconds;
-import static edu.rice.cs.plt.collect.CollectUtil.makeList;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -41,6 +37,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+
+import sun.tools.java.Imports;
 
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
@@ -56,7 +54,6 @@ import com.sun.fortress.compiler.index.ProperTraitIndex;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
-import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 import com.sun.fortress.exceptions.InterpreterBug;
@@ -79,15 +76,13 @@ import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.collect.UnionRelation;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.iter.SizedIterable;
 import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.lambda.Lambda2;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 import edu.rice.cs.plt.tuple.Triple;
-
-import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 /**
  * The fortress typechecker.<br>
@@ -2738,12 +2733,63 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     }
 
     @Override
-    public TypeCheckerResult forId(Id name) {
-        Option<APIName> apiName = name.getApiName();
+    public TypeCheckerResult forId(final Id original_name) {
+        
+        //experimental code to handle aliases
+        List<Import> imports = this.compilationUnit.ast().getImports();
+    	
+        final NodeDepthFirstVisitor<Option<Pair<Id,APIName>>> import_visitor = new NodeDepthFirstVisitor<Option<Pair<Id,APIName>>>(){
+
+			@Override
+			public Option<Pair<Id,APIName>> defaultCase(Node that) {
+				return Option.none();
+			}
+
+			@Override
+			public Option<Pair<Id,APIName>> forImportNames(ImportNames that) {
+				if(original_name.getApiName().isNone() || 
+						!original_name.getApiName().unwrap().equals(that.getApiName())){
+					return Option.none();
+				}
+				
+				
+				List<AliasedSimpleName> aliases = that.getAliasedNames();
+				for(AliasedSimpleName alias: aliases){
+					if(alias.getAlias().isSome()){
+						Id new_name = ((Id) alias.getAlias().unwrap());
+						if(new_name.getText().equals(original_name.getText())){
+							return Option.some(Pair.make((Id)alias.getName(),that.getApiName()));
+						}
+					}
+					
+					
+				}
+				return Option.none();
+			}
+        };
+
+        SizedIterable<Option<Pair<Id,APIName>>> aliases = IterUtil.map(imports,new Lambda<Import,Option<Pair<Id,APIName>>>(){
+			public Option<Pair<Id,APIName>> value(Import arg0) {
+				return arg0.accept(import_visitor);
+			}
+        	
+        });
+        
+        Id name = original_name; 
+        Option<APIName> apiName = original_name.getApiName();
+        for(Option<Pair<Id,APIName>> alias: aliases){
+        	if(alias.isSome()){
+        		name = alias.unwrap().first();
+        		apiName = Option.some(alias.unwrap().second());
+        	}
+        }
+        
+        //end experiment
+
+        
         if (apiName.isSome()) {
             APIName api = apiName.unwrap();
             TypeEnv apiTypeEnv = returnTypeEnvForApi(api);
-
             Option<Type> type = apiTypeEnv.type(name);
             if (type.isSome()) {
                 Type _type = type.unwrap();
@@ -2756,28 +2802,28 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                         _type = NodeFactory.makeNamedType(api, (NamedType) type.unwrap());
                     }
                 }
-                return new TypeCheckerResult(name, _type);
+                return new TypeCheckerResult(original_name, _type);
             } else {
                 // Operators are never qualified in source code, so if 'name' is qualified and not
                 // found, it must be a Id, not a Op.
-                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", name),
-                        name);
-                return new TypeCheckerResult(name, error);
+                StaticError error = TypeError.make(errorMsg("Attempt to reference unbound variable: ", original_name),
+                        original_name);
+                return new TypeCheckerResult(original_name, error);
             }
         }
         Option<Type> type = typeEnv.type(name);
         if (type.isSome()) {
             Type _type = type.unwrap();
             if (_type instanceof LabelType) { // then name must be an Id
-                return new TypeCheckerResult(name, makeLabelNameError((Id)name));
+                return new TypeCheckerResult(original_name, makeLabelNameError((Id)original_name));
             } else {
-                return new TypeCheckerResult(name, _type);
+                return new TypeCheckerResult(original_name, _type);
             }
         } else {
             StaticError error;
-            error = TypeError.make(errorMsg("Variable '", name, "' not found."),
-                    name);
-            return new TypeCheckerResult(name, error);
+            error = TypeError.make(errorMsg("Variable '", original_name, "' not found."),
+                    original_name);
+            return new TypeCheckerResult(original_name, error);
         }
     }
 
