@@ -25,9 +25,8 @@ import com.sun.fortress.useful.NI;
 
 
 public class Span implements Serializable {
-    public SourceLoc begin;
-
-    public SourceLoc end;
+    public final SourceLoc begin;
+    public final SourceLoc end;
 
     @Override
     public int hashCode() {
@@ -109,8 +108,8 @@ public class Span implements Serializable {
             throws IOException {
         int left_col = begin.column();
         int right_col = end.column();
-        boolean file_names_differ = !(begin.getFileName().equals(end
-                .getFileName()));
+        boolean file_names_differ =
+            !(begin.getFileName().equals(end.getFileName()));
         do_files |= file_names_differ;
 
         if (printer) w.append(" @");

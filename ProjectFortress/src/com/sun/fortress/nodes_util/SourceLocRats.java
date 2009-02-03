@@ -19,13 +19,20 @@ package com.sun.fortress.nodes_util;
 
 public class SourceLocRats extends SourceLoc {
 
-    int col;
+    final int col;
 
-    int line;
+    final int line;
 
-    int offset;
+    final int offset;
 
-    String fileName;
+    final String fileName;
+
+    public SourceLocRats(String f, int l, int c, int offset) {
+        this.fileName = f;
+        this.line = l;
+        this.col = c;
+        this.offset = offset;
+    }
 
     @Override
     public int column() {
@@ -42,40 +49,8 @@ public class SourceLocRats extends SourceLoc {
         return line;
     }
 
-    @Override
-    void setColumn(int column) {
-        this.col = column;
-
-    }
-
-    @Override
-    public void setFileName(String s) {
-        this.fileName = s;
-    }
-
-    @Override
-    void setLine(int x) {
-        this.line = x;
-
-    }
-
-    public SourceLocRats() {
-        fileName = "";
-    }
-
-    public SourceLocRats(SourceLoc x) {
-        this(x.getFileName(), x.getLine(), x.column(), x.getOffset());
-    }
-
-    public SourceLocRats(String f, int l, int c, int offset) {
-        this.fileName = f;
-        this.line = l;
-        this.col = c;
-        this.offset = offset;
-    }
-
     public int getOffset() {
-    	return offset;
+        return offset;
     }
 
 }

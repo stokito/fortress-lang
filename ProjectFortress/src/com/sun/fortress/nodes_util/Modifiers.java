@@ -18,6 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.lang.Math;
+import java.io.Serializable;
 
 /**
  * Modifiers represents a set of modifiers applied to some Fortress
@@ -43,7 +44,7 @@ import java.lang.Math;
  * AbsFldMod     ::= ApiFldMod | wrapped | private
  * ApiFldMod     ::= hidden | settable | test
  */
-public final class Modifiers {
+public final class Modifiers implements Serializable {
     /*
      * Local constants
      */
