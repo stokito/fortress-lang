@@ -197,7 +197,7 @@ maintain proper indentation.
   -->
   <target name="help">
     <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
-                   checkParserUptodate, clean, cleanCache, compile,
+                   checkParserUptodate, clean, cleanCache, compile, compileAll,
                    compileCommon, compileCommonLint, compileLint, doc,
                    grammarCoverage, help, init, interpreter-jar,
                    makeAST, operatorsGen, fortressparser, preparser,
@@ -679,7 +679,7 @@ maintain proper indentation.
   </target>
 
 
-  <target name="interpreter-jar" depends="compile"
+  <target name="interpreter-jar" depends="compileAll"
           description="Package up the interpreter in a jar.">
     <jar
         destfile="../bin/interpreter.jar"
@@ -687,7 +687,7 @@ maintain proper indentation.
         includes="**/*"/>
   </target>
 
-  <target name="testOnly" depends="compile"
+  <target name="testOnly" depends="compileAll"
           description="Run specific tests (use -DtestPattern=...).">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -755,7 +755,7 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testCruiseControl" depends="compile"
+  <target name="testCruiseControl" depends="compileAll"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -786,7 +786,7 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testNotPassing" depends="compile"
+  <target name="testNotPassing" depends="compileAll"
           description="Run system tests that aren't passing yet.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -811,7 +811,7 @@ maintain proper indentation.
     <fail message="Tests expected to fail are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testSpecData" depends="compile"
+  <target name="testSpecData" depends="compileAll"
           description="Run SpecDataJUTests.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -836,7 +836,7 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testSystem" depends="compile"
+  <target name="testSystem" depends="compileAll"
           description="Run SystemJUTests.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -884,7 +884,7 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testsyntax" depends="compile"
+  <target name="testsyntax" depends="compileAll"
           description="Run SyntaxAbstractionJUTests.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -910,7 +910,7 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
-  <target name="testDemos" depends="compile"
+  <target name="testDemos" depends="compileAll"
           description="Run demos in a test harness.">
     <mkdir dir="${test.results}"/>
     <mkdir dir="${basedir}/test-tmp" />
@@ -1113,7 +1113,7 @@ maintain proper indentation.
     <echo message="Wrote grammar coverage report to ${instrumentation.outfile}"/>
   </target>
 
-  <target name="doc" depends="compile">
+  <target name="doc" depends="compileAll">
     <javadoc overview="${src}/overview.html" destdir="${docs}" maxmemory="${junitMem}">
       <classpath refid="compile.classpath"/>
       <packageset dir="${src}">
@@ -1130,7 +1130,7 @@ maintain proper indentation.
   </target>
 
   <target name="jar"
-          depends="compile"
+          depends="compileAll"
           description="Package up a Fortress distribution as a self-extracting jar.">
     <tstamp>
       <format
@@ -1188,7 +1188,7 @@ maintain proper indentation.
           overwrite="false"/>
   </target>
 
-  <target name="installer" depends="compile"
+  <target name="installer" depends="compileAll"
           description="build a new installer as a jar">
     <delete dir="${installerDir}"/>
     <mkdir dir="${installerDir}/fortress"/>
