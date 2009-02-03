@@ -45,9 +45,10 @@ object ExportChecker {
      */
     def checkExports(component: ComponentIndex,
                      globalEnv: GlobalEnvironment): JavaList[StaticError] = {
-        val errors: JavaList[StaticError] = new ArrayList[StaticError]()
-        val componentName : APIName = component.ast().getName()
-        for ( e: APIName <- Conversions.convertSet(component.exports()) ) {
+        val errors = new ArrayList[StaticError]()
+        val componentName = component.ast().getName()
+        var missingDecls = List[Node]()
+        for ( e <- Conversions.convertSet(component.exports()) ) {
             /* A component must provide a declaration, or a set of declarations,
              * that satisfies every top-level declaration in any API
              * that it exports, as described below.
@@ -64,34 +65,37 @@ object ExportChecker {
              * of a variable must be the same in the exported and satisfying
              * declarations.
              */
-            val vsInComp: Set[Id] = component.variables().keySet()
+            val vsInComp = component.variables().keySet()
             for ( v <- Conversions.convertSet(api.variables().keySet()) ) {
                 // v should be in this component
                 if ( vsInComp.contains(v) ) {
                     (api.variables().get(v), component.variables().get(v)) match {
-                        case (DeclaredVariable(lvalueInAPI), DeclaredVariable(lvalueInComp)) =>
+                        case (DeclaredVariable(lvalueInAPI),
+                              DeclaredVariable(lvalueInComp)) =>
                             // with the same type
                             if ( ! equalOptTypes(toOption(lvalueInAPI.getIdType()),
                                                  toOption(lvalueInComp.getIdType())) )
-                                error(errors, v,
+                                error(errors, componentName,
                                       "Component " + componentName + " exports API " +
                                       apiName + " which declares " + v + "\n    but " +
                                       "the type of " + v + " in the component " +
                                       "and the API do not match.")
                             // with the same mutability
                             if ( lvalueInAPI.isMutable() != lvalueInComp.isMutable() )
-                                error(errors, v,
+                                error(errors, componentName,
                                       "Component " + componentName + " exports API " +
                                       apiName + " which declares " + v + "\n    but " +
                                       "the mutability of " + v + " in the component " +
                                       "and the API do not match.")
-                        case _ =>
+                        case _ => // non-DeclaredVariable
                     }
-                } else
-                    error(errors, v,
-                          "Component " + componentName + " exports API " + apiName +
-                          " which declares " + v + "\n    but the component does not " +
-                          "declare it.")
+                } else {
+                    api.variables().get(v) match {
+                        case DeclaredVariable(lvalue) =>
+                            missingDecls = lvalue :: missingDecls
+                        case _ => // non-DeclaredVariable
+                    }
+                }
             }
 
             /* For functional declarations, recall that several functional
@@ -127,14 +131,14 @@ object ExportChecker {
                             // with the same type
                             if ( ! equalOptTypes(toOption(lvalueInAPI.getIdType()),
                                                  toOption(lvalueInComp.getIdType())) )
-                                error(errors, v,
+                                error(errors, componentName,
                                       "Component " + componentName + " exports API " +
                                       apiName + " which declares " + v + "\n    but " +
                                       "the type of " + v + " in the component " +
                                       "and the API do not match.")
                             // with the same mutability
                             if ( lvalueInAPI.isMutable() != lvalueInComp.isMutable() )
-                                error(errors, v,
+                                error(errors, componentName,
                                       "Component " + componentName + " exports API " +
                                       apiName + " which declares " + v + "\n    but " +
                                       "the mutability of " + v + " in the component " +
@@ -147,11 +151,24 @@ object ExportChecker {
                         // If there is a set of overloaded declarations, skip.
                         case _ =>
                     }
-                } else
-                    error(errors, f,
-                          "Component " + componentName + " exports API " + apiName +
-                          " which declares " + f + "\n    but the component does not " +
-                          "declare it.")
+                } else {
+                    // No overloading for now.
+                    fnsInAPI.matchFirst(f).iterator().next() match {
+                        case DeclaredFunction(fd) =>
+                            missingDecls = fd :: missingDecls
+                        case _ =>
+                    }
+                }
+            }
+            // Collect the error messages for the missing declarations.
+            if ( ! missingDecls.isEmpty ) {
+                var message = "" + missingDecls.head
+                for ( f <- missingDecls.tail )
+                    message += ",\n                           " + f
+                error(errors, componentName,
+                      "Component " + componentName + " exports API " + apiName +
+                      "\n    but does not define all declarations in " + apiName +
+                      ".\n    Missing declarations: {" + message + "}")
             }
 
             /* for the other kinds of top-level declarations

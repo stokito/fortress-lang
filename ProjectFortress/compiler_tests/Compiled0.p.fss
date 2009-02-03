@@ -17,6 +17,6 @@
 component Compiled0.p
 export Executable
 
-  ran(args:String...):() = println "Hello, World!"
+  ran(args:String...):() = ()
 
 end

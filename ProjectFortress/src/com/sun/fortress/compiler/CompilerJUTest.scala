@@ -185,6 +185,15 @@ class CompilerJUTest() extends TestCaseWrapper {
     Shell.assertStaticErrors(compile("Compiled0.o.fss"), expected)
   }
 
+  def testCompiled0p() = {
+    val expected =
+      STATIC_TESTS_DIR + "/Compiled0.p.fss:17:11-21\n" +
+      "    Component Compiled0.p exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
+      "    Missing declarations: {run(args:String...):()}"
+    Shell.assertStaticErrors(compile("Compiled0.p.fss"), expected)
+  }
+
   def testCompiled0s() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.s.fss:18:1-24:3\n" +
