@@ -26,7 +26,7 @@ import com.sun.fortress.useful.StringMap;
 import com.sun.fortress.useful.Useful;
 
 public class ProjectProperties {
- 
+
     private static String fortressAutoHome() {
         String s = null;
         try {
@@ -112,18 +112,18 @@ public class ProjectProperties {
     }
 
     public static final String FORTRESS_AUTOHOME = fortressAutoHome(); // MUST PRECEDE FORTRESS_HOME
-    
+
     static final String home = System.getenv("HOME");
 
     /**
      * The search path for the repository, which will provide configuration information, etc.
      */
-    
+
     static final StringMap searchHead = new StringMap.ComposedMaps(
             new StringMap.FromReflection(ProjectProperties.class, "FORTRESS_"),
             new StringMap.FromSysProps(),
             new StringMap.FromEnv());
-    
+
     private static final String explicitRepository = searchHead.get("fortress.repository");
     public static final String REPOSITORY_PATH_STRING = explicitRepository != null ? explicitRepository :
         searchHead.getCompletely(";.fortress;${HOME}/.fortress;${FORTRESS_AUTOHOME}/local_repository;${FORTRESS_AUTOHOME}/default_repository",
@@ -143,11 +143,11 @@ public class ProjectProperties {
         if ("".equals(REPOSITORY)) {
             throw new Error("Could not find any readable directories in the (semicolon-separated) repository list " + REPOSITORY_PATH_STRING);
         }
-        
+
         File config = new File(REPOSITORY + "/configuration");
         File otherConfig = null;
         try {
-            otherConfig = REPOSITORY_PATH.findFile("configuration");                
+            otherConfig = REPOSITORY_PATH.findFile("configuration");
         } catch (IOException ex) {
             throw new Error(ex.getMessage());
         }
@@ -169,7 +169,7 @@ public class ProjectProperties {
             }
         }
     }
-    static final StringMap searchTail = 
+    static final StringMap searchTail =
             new StringMap.FromFileProps(REPOSITORY+"/configuration");
 
     static final StringMap allProps = new StringMap.ComposedMaps(
@@ -232,7 +232,7 @@ public class ProjectProperties {
         return result;
     }
 
- 
+
     /** This static field holds the absolute path of the (sub)project location, as
      * computed by reflectively finding the file location of the unnamed
      * package, and grabbing the parent directory.
@@ -242,14 +242,14 @@ public class ProjectProperties {
     public static final String BASEDIR = searchDef("BASEDIR", "BASEDIR", "${FORTRESS_AUTOHOME}/ProjectFortress/");
 
     public static final String CACHES = get("fortress.caches", "${REPOSITORY}/caches");
-    
+
     public static final String INTERPRETER_CACHE_DIR = get("fortress.interpreter.cache", "${CACHES}/interpreter_cache");
     public static final String PRESYNTAX_CACHE_DIR = get("fortress.presyntax.cache", "${CACHES}/presyntax_cache");
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
     public static final String ANALYZED_CACHE_DEPENDS_DIR = get("fortress.analyzed.cache.depends", "${CACHES}/analyzed_cache/depends");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/syntax_cache");
-    public static final String BYTECODE_CACHE_DIR = get("fortress.bytecode.cache", "${CACHES}/bytecode_cache");    
-    public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache", "${CACHES}/nativewrapper_cache");    
+    public static final String BYTECODE_CACHE_DIR = get("fortress.bytecode.cache", "${CACHES}/bytecode_cache");
+    public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache", "${CACHES}/nativewrapper_cache");
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
 
@@ -299,20 +299,20 @@ public class ProjectProperties {
     }
 
 
-    public static String astSuffixForSource(String s) {
-        if (s.endsWith("." + COMP_SOURCE_SUFFIX))
-            return COMP_TREE_SUFFIX;
+    // public static String astSuffixForSource(String s) {
+    //     if (s.endsWith("." + COMP_SOURCE_SUFFIX))
+    //         return COMP_TREE_SUFFIX;
 
-        if (s.endsWith("." + API_SOURCE_SUFFIX))
-            return API_TREE_SUFFIX;
+    //     if (s.endsWith("." + API_SOURCE_SUFFIX))
+    //         return API_TREE_SUFFIX;
 
-        throw new Error("Unexpected suffix on Fortress(?) source file");
-    }
-    
+    //     throw new Error("Unexpected suffix on Fortress(?) source file");
+    // }
+
     public static String fileName(String dir, String name, String suffix) {
         return dir + "/" + name + "." + suffix;
     }
-    
+
     public static String compFileName(String dir, String name) {
         return fileName(dir, name, ProjectProperties.COMP_TREE_SUFFIX);
     }
@@ -336,5 +336,5 @@ public class ProjectProperties {
             result = result.substring(0,underat);
         }
         return Integer.parseInt(result, base);
-    }    
+    }
 }

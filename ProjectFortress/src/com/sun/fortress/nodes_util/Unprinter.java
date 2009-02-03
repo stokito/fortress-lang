@@ -121,20 +121,25 @@ public class Unprinter extends NodeReflection {
         this.l = l;
     }
 
+    public String lexAfter(String expected) throws IOException {
+        expectPrefix(expected);
+        return l.name(false);
+    }
+
     /**
      * Reads the location-describing information that follows an at-sign (@)
      * following the class name in an S-expression. The most general location is
      * <br>
-     * "startfile",startline:startcolumn~"endfile",endline:endcolumn <br>
+     * "startfile":startline:startcolumn~"endfile":endline:endcolumn <br>
      * The full list of accepted location forms appears below. Missing
      * information is inferred; missing file is copied from the previous
      * location's ending file, missing endpoint is copied from the start point,
      * and missing line is copied from the same line.
      * <p>
-     * "f1",1:2~"f2",3:4<br>
-     * "f3",5:6~7:8<br>
-     * "f4",9:10~11 (range of columns)<br>
-     * "f5",12:13<br>
+     * "f1":1:2~"f2":3:4<br>
+     * "f3":5:6~7:8<br>
+     * "f4":9:10~11 (range of columns)<br>
+     * "f5":12:13<br>
      * 14:15~16:17<br>
      * 18:19~20 (range of columns)<br>
      * 21:22<br>
@@ -142,86 +147,48 @@ public class Unprinter extends NodeReflection {
      * @throws IOException
      */
     public String readSpan() throws IOException {
-        // Begin by copying the old source span,
-        // and then overwrite as information appears.
-        SourceLoc b = new SourceLocRats(lastSpan.begin);
-        SourceLoc e = new SourceLocRats(lastSpan.end);
-        lastSpan = new Span(b, e);
-
-        SourceLoc sloc = lastSpan.begin;
-
-        String fname = sloc.getFileName();
-        int line = sloc.getLine();
-        int column = sloc.column();
-
+        String fname = lastSpan.begin.getFileName();
         String next = l.name(false);
         if (next.startsWith("\"") && next.endsWith("\"")) {
-            fname = deQuote(next);
-            String colon = l.name(false);
-            if (!":".equals(colon)) {
-                bug("Expected colon, got " + colon);
-            }
-            next = l.name(false);
+            fname = deQuote(next).intern();
+            next = lexAfter(":");
         }
-        String l1 = next;
-        String colon = l.name(false);
-        String c1 = l.name(false);
-        line = Integer.parseInt(l1, 10);
-        column = Integer.parseInt(c1, 10);
+        int line = Integer.parseInt(next,10);
+        int column = Integer.parseInt(lexAfter(":"),10);
+        SourceLoc beginning = new SourceLocRats(fname, line, column, 0);
 
-        fname = fname.intern();
-        sloc.setFileName(fname);
-        sloc.setLine(line);
-        sloc.setColumn(column);
+        next = l.name(false);
 
-        sloc = lastSpan.end;
-
-        String sep = l.name(false);
-        if (Printer.tilde.equals(sep)) {
+        SourceLoc ending = beginning;
+        if (Printer.tilde.equals(next)) {
             next = l.name(false);
             boolean sawFile = false;
             if (next.startsWith("\"") && next.endsWith("\"")) {
-                fname = deQuote(next);
-                colon = l.name(false);
-                if (!":".equals(colon)) {
-                    bug("Expected colon, got " + colon);
-                }
-                next = l.name(false);
+                fname = deQuote(next).intern();
+                next = lexAfter(":");
                 sawFile = true;
             }
-            String l_or_c = next; // or perhaps column
-            colon = l.name(false);
-            if (":".equals(colon)) {
-                l1 = l_or_c;
-                c1 = l.name(false);
-                next = l.name();
+            int lineOrCol = Integer.parseInt(next);
+            next = l.name(false);
+            if (":".equals(next)) {
+                line = lineOrCol;
+                column = Integer.parseInt(l.name(false),10);
+                next = l.name(false);
             } else if (sawFile) {
-                next = bug("Saw f:l:c~f:l with no following colon");
+                return bug("Saw f:l:c~f:l with no following colon");
             } else {
-                c1 = l_or_c;
-                if (")".equals(colon)) {
-                    next = colon;
-                } else if (colon.length() == 0) {
-                    next = l.name();
-                } else {
-                    next = bug("Did we expect this?");
-                }
-
+                // line unchanged
+                column = lineOrCol;
             }
-
-        } else if (sep.length() == 0) {
-            next = l.name();
-        } else {
-            next = sep;
+            ending = new SourceLocRats(fname, line, column, 0);
         }
-        line = Integer.parseInt(l1, 10);
-        column = Integer.parseInt(c1, 10);
-
-        fname = fname.intern();
-        sloc.setFileName(fname);
-        sloc.setLine(line);
-        sloc.setColumn(column);
-
+        lastSpan = new Span(beginning, ending);
+        if (next.length() == 0) {
+            next = l.name();
+        } else if (!(")".equals(next))) {
+            bug("Did we expect this?");
+        }
+        // System.out.println("Returning "+lastSpan+" and \""+next+"\"");
         return next;
     }
 

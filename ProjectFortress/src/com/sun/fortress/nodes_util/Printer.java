@@ -86,10 +86,11 @@ public class Printer extends NodeReflection {
                 || !(lastSpan.begin.getFileName().equals(span.begin
                         .getFileName()));
 
-        if (lastSpan.begin.column() != span.begin.column()
+        if (do_file
+                || lastSpan.begin.column() != span.begin.column()
                 || lastSpan.end.column() != span.end.column()
                 || lastSpan.begin.getLine() != span.begin.getLine()
-                || lastSpan.end.getLine() != span.end.getLine() || do_file) {
+                || lastSpan.end.getLine() != span.end.getLine()) {
             span.appendTo(w, do_file, true);
         }
         lastSpan = span;

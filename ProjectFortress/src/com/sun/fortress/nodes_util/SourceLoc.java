@@ -42,8 +42,6 @@ abstract public class SourceLoc implements Serializable {
         return false;
     }
 
-    abstract void setColumn(int column);
-
     public final String at() {
         return getFileName() + ":" + getLine() + "." + column();
     }
@@ -53,17 +51,10 @@ abstract public class SourceLoc implements Serializable {
      */
     abstract public String getFileName();
 
-    abstract public void setFileName(String s);
-
     /**
      * @return Returns the line.
      */
     abstract public int getLine();
-
-    /**
-     * @return Sets the line.
-     */
-    abstract void setLine(int x);
 
     /**
      * @return Returns the offset.

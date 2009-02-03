@@ -17,7 +17,9 @@
 
 package com.sun.fortress.useful;
 
-public interface HasAt {
+import java.io.Serializable;
+
+public interface HasAt extends Serializable {
     static class FromString implements HasAt {
         public FromString (String s) {
             this.s = s;

@@ -49,7 +49,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     protected final BATree<APIName, ApiIndex> apis =
         new BATree<APIName, ApiIndex>(NodeComparator.apiNameComparer);
-    
+
     protected final BATree<APIName, ComponentIndex> components =
         new BATree<APIName, ComponentIndex>(NodeComparator.apiNameComparer);
 
@@ -83,7 +83,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         apis.put(name, ci);
         return ci;
     }
-    
+
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
         ComponentIndex ci = components.get(name);
         if (ci != null)
@@ -103,7 +103,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         return ci;
 
     }
-    
+
     public void addApi(APIName name, ApiIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
@@ -149,8 +149,8 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public void deleteApi(APIName name) {
         apis.remove(name);
-    }    
-    
+    }
+
     public void deleteComponent(APIName name) {
         components.remove(name);
         SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));

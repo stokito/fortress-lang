@@ -941,6 +941,22 @@ public class Useful {
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8")));
     }
 
+    /**
+     * Returns a BufferedWriter for the file named s, with encoding assumed to be UTF-8.
+     * @throws FileNotFoundException
+     */
+    static public BufferedWriter utf8BufferedFileWriter(String s, boolean append) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(s, append), Charset.forName("UTF-8")));
+    }
+
+    /**
+     * Returns a BufferedWriter for the file f, with encoding assumed to be UTF-8.
+     * @throws FileNotFoundException
+     */
+    static public BufferedWriter utf8BufferedFileWriter(File f, boolean append) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f, append), Charset.forName("UTF-8")));
+    }
+
     static public boolean olderThanOrMissing(String resultFile, String inputFile) throws FileNotFoundException {
         File res = new File(resultFile);
         File inp = new File(inputFile);
