@@ -43,11 +43,10 @@ import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
  * of the semantics of Fortress types.
  */
 public final class Types {
-
+	
     private Types() {}
 
     private static Span span = NodeFactory.internalSpan;
-
     public static final Id ANY_NAME = makeId(span, anyTypeLibrary(), "Any");
     public static final Id ARRAY_NAME = makeId(span, fortressLibrary(),"Array");
     // TODO: Replace ImmutableArray with ImmutableHeapSequence when
@@ -66,11 +65,14 @@ public final class Types {
     public static final TraitType ZZ32 = makeTraitType(span, fortressLibrary(), "ZZ32");
     public static final TraitType BOOLEAN = makeTraitType(span, fortressBuiltin(), "Boolean");
     public static final TraitType CHAR = makeTraitType(span, fortressBuiltin(), "Char");
-    public static final TraitType STRING = makeTraitType(span, fortressLibrary(), "String");
+    public static TraitType STRING = makeTraitType(span, fortressLibrary(), "String");
     public static final TraitType REGION = makeTraitType(span, fortressLibrary(), "Region");
     public static final TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
 
+    public static void useCompilerLibraries() {
+    	STRING = makeTraitType(span, fortressBuiltin(), "String");
+    }
 
     public static final LabelType LABEL = NodeFactory.makeLabelType(span);
 

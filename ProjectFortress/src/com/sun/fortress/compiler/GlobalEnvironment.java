@@ -60,8 +60,7 @@ public abstract class GlobalEnvironment {
         public ApiIndex api(APIName name) {
             ApiIndex result = _apis.get(name);
             if (result == null) {
-                throw new IllegalArgumentException("Undefined API: " +
-                                                   NodeUtil.nameString(name));
+                throw new IllegalArgumentException("Undefined API: " + NodeUtil.nameString(name));
             }
             else { return result; }
         }

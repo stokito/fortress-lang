@@ -3986,6 +3986,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 NodeUtil.isParenthesized(that),
                 Option.<Type>some(Types.STRING),
                 that.getText());
+        Type temp = Types.STRING;
         return new TypeCheckerResult(new_node, Types.STRING);
     }
 

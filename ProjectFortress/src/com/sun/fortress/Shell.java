@@ -631,6 +631,7 @@ public final class Shell {
             }
             else if (s.equals("-compiler-lib")) {
                 WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
             }
             else
                 invalidFlag(s, phase);
