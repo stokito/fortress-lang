@@ -19,7 +19,7 @@ package com.sun.fortress.scala_src.typechecker
 
 import _root_.java.util.ArrayList
 import _root_.java.util.{List => JavaList}
-import _root_.java.util.Set
+import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
@@ -31,14 +31,21 @@ import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{Constructor => JavaConstructor}
 import com.sun.fortress.compiler.index.{DeclaredFunction => JavaDeclaredFunction}
 import com.sun.fortress.compiler.index.{DeclaredVariable => JavaDeclaredVariable}
+import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.{ParamVariable => JavaParamVariable}
 import com.sun.fortress.compiler.index.{SingletonVariable => JavaSingletonVariable}
+import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
+import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.NodeFactory
+import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.nodes_util.Span
+import com.sun.fortress.parser_util.FortressUtil
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.useful.HasAt
 
@@ -50,7 +57,8 @@ object ExportChecker {
      * specification Version 1.0.
      */
     def checkExports(component: ComponentIndex,
-                     globalEnv: GlobalEnvironment): JavaList[StaticError] = {
+                     globalEnv: GlobalEnvironment,
+                     repository: FortressRepository): JavaList[StaticError] = {
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
         var missingDecls = List[Node]()
@@ -59,7 +67,8 @@ object ExportChecker {
              * that satisfies every top-level declaration in any API
              * that it exports, as described below.
              */
-            val api = globalEnv.api(e)
+            val api = try { globalEnv.api(e) }
+                      catch { case _ => repository.getApi(e) }
             val apiName = api.ast.getName
             /* A top-level variable declaration declaring a single variable
              * is satisfied by any top-level variable declaration that declares
@@ -121,7 +130,20 @@ object ExportChecker {
                                 // If they are not DeclaredFunction, skip.
                                 case _ =>
                             }
-                        // If there is a set of overloaded declarations, skip.
+                        // If there is a set of overloaded declarations in the component
+                        case (1, n) =>
+                            checkOverloading(f, declsInComp, errors)
+                            (declsInAPI.iterator.next,
+                             coverOverloading(declsInComp)) match {
+                                case (DeclaredFunction(FnDecl(a,l,b,c,d)),
+                                      DeclaredFunction(FnDecl(_,r,_,_,_))) =>
+                                    if ( ! equalFnHeaders(l, r) )
+                                        missingDecls = FnDecl(a,l,b,c,d) :: missingDecls
+                                // If they are not DeclaredFunction, skip.
+                                case _ =>
+                            }
+                        // If there is a set of overloaded declarations in the API,
+                        // skip.
                         case _ =>
                     }
                 } else {
@@ -171,6 +193,62 @@ object ExportChecker {
         errors
     }
 
+    /* Checks the validity of the overloaded function declarations.
+     * Nothing fancy here yet.
+     * Signals errors only for the declarations with the same types for now.
+     */
+    private def checkOverloading(name: IdOrOpOrAnonymousName,
+                                 set: JavaSet[JavaFunction],
+                                 errors: JavaList[StaticError]) = {
+        var signatures = List[((Type,Type),Span)]()
+        for ( f <- Conversions.convertSet(set) ) {
+            val result = f.getReturnType
+            val param = paramsToType(f.parameters, f.getSpan)
+            signatures.find(p => p._1 == (param,result)) match {
+                case Some((_,span)) =>
+                    error(errors, mergeSpan(span, f.getSpan),
+                          "There are multiple declarations of " +
+                          name + " with the same signature: " +
+                          param + " -> " + result)
+                case _ =>
+                    signatures = ((param, result), f.getSpan) :: signatures
+            }
+        }
+    }
+
+    private def mergeSpan(first: Span, second: Span): String = {
+        if (first.toString < second.toString)
+            first.toString + "\n" + second.toString
+        else
+            second.toString + "\n" + first.toString
+    }
+
+    /* Returns the type of the given list of parameters. */
+    private def paramsToType(params: JavaList[Param], span: Span): Type =
+        params.size match {
+            case 0 => NodeFactory.makeVoidType(span)
+            case 1 => paramToType(params.get(0))
+            case _ =>
+            NodeFactory.makeTupleType(FortressUtil.spanAll(params),
+                                      Lists.toJavaList(Lists.fromJavaList(params).map(p => paramToType(p))))
+        }
+
+    /* Returns the type of the given parameter. */
+    private def paramToType(param: Param): Type =
+        (toOption(param.getIdType), toOption(param.getVarargsType)) match {
+            case (Some(ty), _) => ty
+            case (_, Some(ty)) => ty
+            case _ => InterpreterBug.bug(param,
+                                         "Type checking couldn't infer the type of " + param)
+        }
+
+    /* Returns the function declaration covering the given set of
+     * the overloaded declarations.
+     * Invariant: set.size > 1
+     * Nothing fancy here yet.  Returns the first element for now.
+     */
+    private def coverOverloading(set: JavaSet[JavaFunction]) = set.iterator.next
+
     private def isDeclaredFunction(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
         case _ => false
@@ -178,6 +256,9 @@ object ExportChecker {
 
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
+
+    private def error(errors: JavaList[StaticError], loc: String, msg: String) =
+        errors.add(TypeError.make(msg, loc.toString()))
 
     /* Transforms a Java option to a Scala option */
     private def toOption[T](opt: JavaOption[T]): Option[T] =
@@ -270,6 +351,9 @@ object ExportChecker {
  * In order to use pattern matching over Java classes,
  * the following extractor objects are defined.
  */
+/* com.sun.fortress.compiler.index.Variable
+ *     comprises { DeclaredVariable, ParamVariable, SingletonVariable }
+ */
 object DeclaredVariable {
     def unapply(variable:JavaDeclaredVariable) =
         Some(variable.ast)
@@ -291,6 +375,15 @@ object SingletonVariable {
         new JavaSingletonVariable(id)
 }
 
+/* com.sun.fortress.compiler.index.Functional
+ *     comprises { Function, Method }
+ * Function
+ *     comprises { Constructor, DeclaredFunction, FunctionalMethod }
+ * Method
+ *     comprises { DeclaredMethod, FieldGetterMethod, FieldSetterMethod }
+ * FunctionalMethod
+ *     comprises { ParametricOperator }
+ */
 object Constructor {
     def unapply(function:JavaConstructor) =
         Some((function.declaringTrait, function.staticParameters,

@@ -27,6 +27,7 @@ import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes_util.Span;
 
 import edu.rice.cs.plt.tuple.Option;
 
@@ -39,6 +40,8 @@ public abstract class Functional {
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
     public abstract Functional instantiate(List<StaticParam> params, List<StaticArg> args);
+
+    public abstract Span getSpan();
 
     public abstract Type getReturnType();
 

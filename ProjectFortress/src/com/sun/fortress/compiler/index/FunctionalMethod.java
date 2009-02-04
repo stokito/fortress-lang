@@ -33,6 +33,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -51,6 +52,9 @@ public class FunctionalMethod extends Function {
     }
 
     public FnDecl ast() { return _ast; }
+
+    @Override
+    public Span getSpan() { return NodeUtil.getSpan(_ast); }
 
     public Id declaringTrait() { return _declaringTrait; }
 

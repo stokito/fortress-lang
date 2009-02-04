@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Compiled0
+component Compiled1
 export SimpleExecutable
 
 run() = do

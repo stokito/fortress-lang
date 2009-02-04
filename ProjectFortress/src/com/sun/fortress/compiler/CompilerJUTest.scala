@@ -38,13 +38,6 @@ class CompilerJUTest() extends TestCaseWrapper {
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
 
-  def testCompiled99() = {
-    val executableApi = NodeFactory.makeAPIName(NodeFactory.typeSpan,
-                                                WellKnownNames.executableApi)
-    ASTIO.deleteJavaAst( JavaNamingCzar.cachedFileNameForApiAst(ProjectProperties.ANALYZED_CACHE_DIR,
-                                                                 executableApi) )
-  }
-
   def compile(s:String) = {
     val s_ = STATIC_TESTS_DIR + "/" + s
     val name = NodeUtil.apiName(s_)
@@ -180,8 +173,8 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0n() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.n.fss:20:3-31\n" +
-      "    Function body has type (String...)->(), but declared return type is ()"
+      STATIC_TESTS_DIR + "/Compiled0.n.fss:20:3-17\n" +
+      "    Function body has type ()->(), but declared return type is ()"
     Shell.assertStaticErrors(compile("Compiled0.n.fss"), expected)
   }
 
@@ -195,27 +188,27 @@ class CompilerJUTest() extends TestCaseWrapper {
   def testCompiled0p() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.p.fss:17:11-21\n" +
-      "    Component Compiled0.p exports API Executable\n" +
-      "    but does not define all declarations in Executable.\n" +
-      "    Missing declarations: {run(args:String...):()}"
+      "    Component Compiled0.p exports API SimpleExecutable\n" +
+      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Missing declarations: {run():()}"
     Shell.assertStaticErrors(compile("Compiled0.p.fss"), expected)
   }
 
   def testCompiled0q() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.q.fss:17:11-21\n" +
-      "    Component Compiled0.q exports API Executable\n" +
-      "    but does not define all declarations in Executable.\n" +
-      "    Missing declarations: {run(args:String...):()}"
+      "    Component Compiled0.q exports API SimpleExecutable\n" +
+      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Missing declarations: {run():()}"
     Shell.assertStaticErrors(compile("Compiled0.q.fss"), expected)
   }
 
   def testCompiled0r() = {
     val expected =
       STATIC_TESTS_DIR + "/Compiled0.r.fss:17:11-21\n" +
-      "    Component Compiled0.r exports API Executable\n" +
-      "    but does not define all declarations in Executable.\n" +
-      "    Missing declarations: {run(args:String...):()}"
+      "    Component Compiled0.r exports API SimpleExecutable\n" +
+      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Missing declarations: {run():()}"
     Shell.assertStaticErrors(compile("Compiled0.r.fss"), expected)
   }
 
@@ -228,8 +221,8 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0t() = {
     val expected =
-      STATIC_TESTS_DIR + "/Compiled0.t.fss:20:8-18\n" +
-      "    Component Compiled0.t imports and exports API Executable.\n" +
+      STATIC_TESTS_DIR + "/Compiled0.t.fss:20:8-24\n" +
+      "    Component Compiled0.t imports and exports API SimpleExecutable.\n" +
       "    An API must not be imported and exported by the same component."
     Shell.assertStaticErrors(compile("Compiled0.t.fss"), expected)
   }
@@ -239,6 +232,18 @@ class CompilerJUTest() extends TestCaseWrapper {
       STATIC_TESTS_DIR + "/Compiled0.u.fss:21:1-3\n" +
       "    Unmatched delimiter \"end\"."
     Shell.assertStaticErrors(compile("Compiled0.u.fss"), expected)
+  }
+
+  def testCompiled0v() = {
+    val expected =
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:17:1-20:24\n" +
+      "    Component Compiled0.v exports API SimpleExecutable\n" +
+      "    but does not define all declarations in SimpleExecutable.\n" +
+      "    Missing declarations: {run():()}\n" +
+      "/Users/sukyoungryu/PFC/ProjectFortress/compiler_tests/Compiled0.v.fss:19:1-24\n" +
+      "/Users/sukyoungryu/PFC/ProjectFortress/compiler_tests/Compiled0.v.fss:20:1-24\n" +
+      "    There are multiple declarations of run with the same signature: String -> ()"
+    Shell.assertStaticErrors(compile("Compiled0.v.fss"), expected)
   }
 
 }
