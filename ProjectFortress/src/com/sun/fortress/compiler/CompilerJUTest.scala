@@ -240,8 +240,8 @@ class CompilerJUTest() extends TestCaseWrapper {
       "    Component Compiled0.v exports API SimpleExecutable\n" +
       "    but does not define all declarations in SimpleExecutable.\n" +
       "    Missing declarations: {run():()}\n" +
-      "/Users/sukyoungryu/PFC/ProjectFortress/compiler_tests/Compiled0.v.fss:19:1-24\n" +
-      "/Users/sukyoungryu/PFC/ProjectFortress/compiler_tests/Compiled0.v.fss:20:1-24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:19:1-24\n" +
+      STATIC_TESTS_DIR + "/Compiled0.v.fss:20:1-24\n" +
       "    There are multiple declarations of run with the same signature: String -> ()"
     Shell.assertStaticErrors(compile("Compiled0.v.fss"), expected)
   }
