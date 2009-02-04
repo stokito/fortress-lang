@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -76,7 +76,7 @@ public class Useful {
     	result.putAll(map);
     	return result;
     }
-    
+
      /**
      * Returns a string containing String.valueOf each element of l,
      * separated by commas, all surrounded by parentheses.
@@ -367,7 +367,7 @@ public class Useful {
       return result;
     }
 
- 
+
     public static <T> Set<T> set() {
         return Collections.emptySet();
       }
@@ -579,7 +579,7 @@ public class Useful {
     public static <T> List<T> list() {
         return Collections.emptyList();
       }
-    
+
     public static <T> List<T> immutableTrimmedList(List<T> x) {
         int l = x.size();
         if (l == 0)
@@ -587,7 +587,7 @@ public class Useful {
         if (l == 1)
             return Collections.<T>singletonList(x.get(0));
         return new ArrayList<T>(x);
-        
+
     }
 
     public static <T> List<T> immutableTrimmedList(PureList<T> x) {
@@ -600,7 +600,7 @@ public class Useful {
         for (T y : x)
             a.add(y);
         return a;
-        
+
     }
 
     /**
@@ -609,7 +609,7 @@ public class Useful {
     public static <T> List<T> cons(T x, List<T> y) {
     	return prepend(x,y);
     }
-    
+
       public static <T> List<T> prepend(T x, List<T> y) {
         ArrayList<T> result = new ArrayList<T>(1 + y.size());
         result.add(x);
@@ -617,8 +617,8 @@ public class Useful {
         return result;
     }
 
-      
-      
+
+
     public static <T> List<T> removeIndex(int i, List<T> y) {
         int l = y.size();
         if (i == 0) return y.subList(1,l);
@@ -653,7 +653,7 @@ public class Useful {
     public static <T> List<? extends T> questionMarkList(List<? extends T> list) {
     	return list;
     }
-    
+
     public static <T> List<T> concat(Collection<? extends T> x1, Collection<? extends T>x2) {
         ArrayList<T> result = new ArrayList<T>();
         result.addAll(x1);
@@ -740,7 +740,7 @@ public class Useful {
         int l = to_match.length();
         if (l == 0)
             return input.length() == 0 ? 1 : 0;
-       
+
         int i = input.indexOf(to_match);
 
         while (i != -1) {
@@ -749,7 +749,7 @@ public class Useful {
         }
         return j;
     }
-    
+
     public static String extractAfterMatch(String input, String to_match)
             throws NotFound {
         int i = input.indexOf(to_match);
@@ -888,7 +888,7 @@ public class Useful {
         return new BufferedWriter(
                 new FileWriter(filename));
     }
-    
+
     /**
      * @throws FileNotFoundException
      */
@@ -1074,7 +1074,7 @@ public class Useful {
         return e;
     }
 
-   
+
 	/**
          * Gets a string representing the pid of this program - Java VM
          */
