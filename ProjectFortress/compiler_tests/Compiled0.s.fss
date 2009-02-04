@@ -16,9 +16,9 @@
  ******************************************************************************)
 component Compiled0.s
 component Compiled0.s
-export Executable
+export SimpleExecutable
 
-run(args:String...) = println "Hello, World!"
+run() = println "Hello, World!"
 
 end
 end

@@ -30,6 +30,8 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -57,6 +59,9 @@ public class Constructor extends Function {
         _throwsClause = throwsClause;
         _where = where;
     }
+
+    @Override
+    public Span getSpan() { return NodeUtil.getSpan(_declaringTrait); }
 
     public Id declaringTrait() { return _declaringTrait; }
 //    public List<StaticParam> staticParams() { return _staticParams; }

@@ -51,6 +51,9 @@ public class FieldSetterMethod extends Method {
 
     public Binding ast() { return _ast; }
 
+    @Override
+    public Span getSpan() { return NodeUtil.getSpan(_ast); }
+
 	@Override
 	public Option<Expr> body() {
 		return Option.none();
