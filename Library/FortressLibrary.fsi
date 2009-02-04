@@ -2161,7 +2161,7 @@ trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\] }
     splitWithOffsets(): Generator[\(ZZ32, String)\]
     split(): Generator[\String\]
 
-    (**  A balanced version of the reciever  **)
+    (**  A balanced version of the receiver  **)
     balanced(): String ensures {outcome.isAlmostBalanced AND outcome = self}
 
     (** The operator %||% with at least one String argument converts to string and
