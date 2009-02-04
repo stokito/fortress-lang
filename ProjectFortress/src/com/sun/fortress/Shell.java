@@ -245,6 +245,7 @@ public final class Shell {
             List<String> args = Arrays.asList(tokens).subList(1, tokens.length);
             if (what.equals("compile")) {
                 WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 compile(args, Option.<String>none(), what);
@@ -788,6 +789,7 @@ public final class Shell {
             }
             else if (s.equals("-compiler-lib")) {
                 WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
             }
             else
                 invalidFlag(s, "run");
