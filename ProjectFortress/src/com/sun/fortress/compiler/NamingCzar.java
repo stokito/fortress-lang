@@ -43,13 +43,13 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class NamingCzar {
     public final static NamingCzar only = new NamingCzar(ForeignJava.only);
-    
+
     private final ForeignJava fj;
-    
+
     private NamingCzar(ForeignJava fj) {
         this.fj = fj;
     }
-    
+
     public static String deCase(String s) {
         return "_" + Integer.toString(s.hashCode()&0x7fffffff,16);
     }
@@ -67,14 +67,14 @@ public class NamingCzar {
     /**
      * Returns the name, with no leading directory, of the class
      * used to implement the environment for an API.
-     * 
+     *
      * @param a
      * @return
      */
     static public String cachedClassNameForApiEnv(APIName a, GraphRepository gr) {
         return "";
     }
-    
+
     /**
      * Returns the name, with no leading directory, of the class
      * used to implement the environment for a component.
@@ -83,38 +83,42 @@ public class NamingCzar {
      */
     static public String cachedClassNameForCompEnv(APIName a) {
         return "";
-    }    
-    
+    }
+
     /**
      * Returns the name, with no leading directory, of the file in which
      * in API's AST is stored.  Different phases that store AST, must store
      * in different directories.
-     * 
+     *
      * @param a
      * @return
      */
     static public String cachedFileNameForApiAst(APIName a) {
         return "";
     }
-    
+
     static public String cachedFileNameForCompAst(APIName a) {
         return "";
+    }
+
+     public static String cachedFileNameForApiAst(String passedPwd, APIName name) {
+        return ProjectProperties.apiFileName(passedPwd,  deCaseName(name));
     }
 
      public static String cachedFileNameForCompAst(String passedPwd, APIName name) {
         return ProjectProperties.compFileName(passedPwd,  deCaseName(name));
     }
-     
+
      public static String dependenceFileNameForCompAst(APIName name) {
          return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
      }
-     
+
      public static String dependenceFileNameForApiAst(APIName name) {
          return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
      }
-     
+
      /* Converting names of Fortress entities into Java entities.
-      * 
+      *
         1. FortressLibrary.ZZ32
            what we call it in Fortress
 
@@ -133,44 +137,44 @@ public class NamingCzar {
         6. java.lang.Integer.TYPE
            The name of that "class" (int) in a running Java program.
 
-      * 
+      *
       * For foreign interfaces, there's two translations.  From the foreign
-      * type, to the Fortress type we choose for the Fortress interfaces, 
-      * and then (same as other types) from the Fortress type to the type 
+      * type, to the Fortress type we choose for the Fortress interfaces,
+      * and then (same as other types) from the Fortress type to the type
       * of its bytecode encoding.
-      * 
+      *
       */
-     
+
      static Span span = NodeFactory.internalSpan;
 
      static APIName fortLib =
          NodeFactory.makeAPIName(span, "FortressLibrary");
-     
+
      /**
       * Given an ASM Type t from foreign Java, what is the corresponding type
       * in Fortress (expressed as an AST Type node)?
-      * 
+      *
       * If it is not defined in the current foreign interface implementation,
       * null is returned.
       */
      public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
          return fortressTypeForForeignJavaType(t.getDescriptor());
      }
-     
+
      /**
       * Given a Java type String descriptor ("Ljava/lang/Object;", V, [J, etc),
       * what is the corresponding type in Fortress
       * (expressed as an AST Type node)?
-      * 
+      *
       * If it is not defined in the current foreign interface implementation,
       * null is returned.
       */
      public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
          return specialForeignJavaTranslations.get(s);
      }
-     
+
      static Map<String, com.sun.fortress.nodes.Type> specialForeignJavaTranslations = new HashMap<String, com.sun.fortress.nodes.Type>();
-     
+
      /* Minor hackery here -- because we know these types are already loaded
       * and not eligible for ASM-wrapping, we just go ahead and refer to the
       * loaded class.
@@ -178,15 +182,15 @@ public class NamingCzar {
      static void s(Class cl, APIName api, String str) {
          s(Type.getType(cl), api, str);
      }
-     
+
      static void s(Type cl, APIName api, String str) {
          s(cl.getDescriptor(), api, str);
      }
-     
+
      static void s(String cl, APIName api, String str) {
          specialForeignJavaTranslations.put(cl, NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)));
      }
-     
+
      static {
          s(Boolean.class, fortLib, "Boolean");
          s(Type.BOOLEAN_TYPE, fortLib, "Boolean");
@@ -205,37 +209,37 @@ public class NamingCzar {
      }
 
      static final String interpreterValues = "Lcom/sun/fortress/interpreter/evaluator/values/";
-     
+
      /**
       * Given a Fortress type (expressed as AST node for a Type),
       * what is the descriptor ("Ljava/lang/Object;", V, I, [J, etc)
       * of the type implementing it in boxed form?
-      * 
+      *
       * @param t
       * @return
       */
      static String javaDescriptorImplementingFortressType(com.sun.fortress.nodes.Type t) {
          return specialFortressTypes.get(t);
      }
-     
+
      static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
- 
+
      static void bl(APIName api, String str, String cl) {
          b(api,str, interpreterValues+cl+";");
      }
-     
+
      static void bl(com.sun.fortress.nodes.Type t, String cl) {
          b(t, interpreterValues+cl+";");
      }
-     
+
      static void b(APIName api, String str, String cl) {
          b(NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, str)), cl);
      }
-     
+
      static void b(com.sun.fortress.nodes.Type t, String cl) {
          specialFortressTypes.put(t, cl);
      }
-     
+
      static {
          bl(fortLib, "Boolean", "FBool");
          bl(fortLib, "Char", "FChar");
@@ -245,27 +249,27 @@ public class NamingCzar {
          bl(fortLib, "String", "FString");
          bl(NodeFactory.makeVoidType(span), "FVoid");
      }
- 
-     
+
+
     /**
      * If a type occurs in a parameter list or return type, it
      * is necessary to determine its name for purpose of generating
      * the signature portion of a Java method name.
-     * 
+     *
      * The Java type that is generated will be an interface type for all
      * trait types, and a final class for all object types.
-     * 
+     *
      * Generic object types yield non-final classes; they are extended by their
      * instantiations (which are final classes).
      */
      public String boxedImplDesc(com.sun.fortress.nodes.Type t) {
          String desc = javaDescriptorImplementingFortressType(t);
-         
+
          if (desc != null)
              return desc;
-         
+
          if (t instanceof ArrowType) {
-             
+
          } else if (t instanceof BaseType) {
              if (t instanceof AnyType) {
                  return interpreterValues + "FValue";
