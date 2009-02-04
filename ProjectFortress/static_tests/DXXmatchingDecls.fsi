@@ -17,7 +17,7 @@
 
 api DXXmatchingDecls
   x: String
-  y: String
+  test var y: String
   z: String
 
 end

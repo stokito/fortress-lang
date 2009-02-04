@@ -243,10 +243,13 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
 
     public String forLValue(LValue node) {
         String r = "";
+        String mods = "" + node.getMods();
+        if (! mods.equals(""))
+            mods += " ";
         if (node.getIdType().isSome()) {
             r = ":" + node.getIdType().unwrap().accept(this);
         }
-        return NodeUtil.nameString(node.getName()) + r;
+        return mods + NodeUtil.nameString(node.getName()) + r;
     }
 
     public String forStaticParam(StaticParam node) {

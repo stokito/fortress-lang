@@ -17,26 +17,33 @@
 package com.sun.fortress.compiler
 
 import _root_.java.util.Arrays
-
 import junit.framework.TestSuite
-
-import com.sun.fortress.compiler.phases.PhaseOrder
-import com.sun.fortress.exceptions.ProgramError
-import com.sun.fortress.exceptions.WrappedException
-import com.sun.fortress.Shell
-import com.sun.fortress.exceptions.StaticError
-import com.sun.fortress.repository.ProjectProperties
-import com.sun.fortress.useful.TestCaseWrapper
-import com.sun.fortress.nodes_util.NodeUtil
-import com.sun.fortress.interpreter.glue.WellKnownNames
-
 import edu.rice.cs.plt.tuple.Option
 
+import com.sun.fortress.Shell
+import com.sun.fortress.compiler.{NamingCzar => JavaNamingCzar}
+import com.sun.fortress.compiler.phases.PhaseOrder
+import com.sun.fortress.exceptions.ProgramError
+import com.sun.fortress.exceptions.StaticError
+import com.sun.fortress.exceptions.WrappedException
+import com.sun.fortress.interpreter.glue.WellKnownNames
+import com.sun.fortress.nodes_util.ASTIO
+import com.sun.fortress.nodes_util.NodeFactory
+import com.sun.fortress.nodes_util.NodeUtil
+import com.sun.fortress.repository.ProjectProperties
+import com.sun.fortress.useful.TestCaseWrapper
 
 class CompilerJUTest() extends TestCaseWrapper {
 
   val STATIC_TESTS_DIR =
     ProjectProperties.BASEDIR + "compiler_tests"
+
+  def testCompiled99() = {
+    val executableApi = NodeFactory.makeAPIName(NodeFactory.typeSpan,
+                                                WellKnownNames.executableApi)
+    ASTIO.deleteJavaAst( JavaNamingCzar.cachedFileNameForApiAst(ProjectProperties.ANALYZED_CACHE_DIR,
+                                                                 executableApi) )
+  }
 
   def compile(s:String) = {
     val s_ = STATIC_TESTS_DIR + "/" + s
@@ -192,6 +199,24 @@ class CompilerJUTest() extends TestCaseWrapper {
       "    but does not define all declarations in Executable.\n" +
       "    Missing declarations: {run(args:String...):()}"
     Shell.assertStaticErrors(compile("Compiled0.p.fss"), expected)
+  }
+
+  def testCompiled0q() = {
+    val expected =
+      STATIC_TESTS_DIR + "/Compiled0.q.fss:17:11-21\n" +
+      "    Component Compiled0.q exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
+      "    Missing declarations: {run(args:String...):()}"
+    Shell.assertStaticErrors(compile("Compiled0.q.fss"), expected)
+  }
+
+  def testCompiled0r() = {
+    val expected =
+      STATIC_TESTS_DIR + "/Compiled0.r.fss:17:11-21\n" +
+      "    Component Compiled0.r exports API Executable\n" +
+      "    but does not define all declarations in Executable.\n" +
+      "    Missing declarations: {run(args:String...):()}"
+    Shell.assertStaticErrors(compile("Compiled0.r.fss"), expected)
   }
 
   def testCompiled0s() = {

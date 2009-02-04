@@ -19,6 +19,6 @@ component DXXmatchingDecls
 export DXXmatchingDecls
 
   x: () = ()
-  var y: String = "init"
+  y: String = "init"
 
 end
