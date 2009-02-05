@@ -78,10 +78,10 @@ public final class Shell {
     private static PhaseOrder finalPhase = PhaseOrder.CODEGEN;
 
     private final FortressRepository _repository;
-    
+
     private static final String defaultRepositoryDir = ProjectProperties.ANALYZED_CACHE_DIR;
     private static final CacheBasedRepository defaultCache = new CacheBasedRepository(defaultRepositoryDir);
-    
+
     public static FortressRepository CURRENT_INTERPRETER_REPOSITORY = null;
 
     public Shell(FortressRepository repository) { _repository = repository; }
@@ -248,7 +248,7 @@ public final class Shell {
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
-                compile(args, Option.<String>none(), what);
+                compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("run")) {
                 setPhase( PhaseOrder.CODEGEN );
                 run(args);
@@ -262,20 +262,20 @@ public final class Shell {
                 unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
-                compile(args, Option.<String>none(), what);
+                compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
                 setPhase( PhaseOrder.DESUGAR );
-                compile(args, Option.<String>none(), what);
+                compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "grammar" ) ){
                 setPhase( PhaseOrder.GRAMMAR );
-                compile(args, Option.<String>none(), what);
+                compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
-                compile(args, Option.<String>none(), what);
+                compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
                 setPhase( PhaseOrder.CODEGEN );
                 runTests(args, false);
@@ -614,7 +614,7 @@ public final class Shell {
      * Compile a file.
      * If you want a dump then give -out somefile.
      */
-    public static void compile(List<String> args, Option<String> out, String phase)
+    public static void compilerPhases(List<String> args, Option<String> out, String phase)
         throws UserError, InterruptedException, IOException, RepositoryError {
         if (args.size() == 0) {
             throw new UserError("compile command needs a file to compile");
@@ -636,14 +636,14 @@ public final class Shell {
             }
             else
                 invalidFlag(s, phase);
-            compile(rest, out, phase);
+            compilerPhases(rest, out, phase);
         } else {
             try {
                 APIName name = NodeUtil.apiName( s );
                 Path path = sourcePath( s, name );
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-                Iterable<? extends StaticError> errors = compile(path, file_name, out );
+                Iterable<? extends StaticError> errors = compilerPhases(path, file_name, out );
                 int num_errors = IterUtil.sizeOf(errors);
                 if ( !IterUtil.isEmpty(errors) ) {
                     for (StaticError error: errors) {
@@ -675,15 +675,15 @@ public final class Shell {
     /**
      * Compile a file.
      */
-    public static Iterable<? extends StaticError> compile(Path path,
-                                                          String file)
+    public static Iterable<? extends StaticError> compilerPhases(Path path,
+                                                                 String file)
         throws UserError {
-        return compile(path, file, Option.<String>none());
+        return compilerPhases(path, file, Option.<String>none());
     }
 
-    private static Iterable<? extends StaticError> compile(Path path,
-                                                           String file,
-                                                           Option<String> out)
+    private static Iterable<? extends StaticError> compilerPhases(Path path,
+                                                                  String file,
+                                                                  Option<String> out)
         throws UserError {
         GraphRepository bcr = null;
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );

@@ -306,8 +306,8 @@ public final class StaticTestSuite extends TestSuite {
 
         private Iterable<? extends StaticError> compile(File f)
                 throws IOException, UserError {
-            return Shell.compile(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
-                                 f.getName());
+            return Shell.compilerPhases(ProjectProperties.SOURCE_PATH.prepend(f.getParent()),
+                                        f.getName());
         }
     }
 }

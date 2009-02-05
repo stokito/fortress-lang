@@ -46,7 +46,7 @@ class CompilerJUTest() extends TestCaseWrapper {
     WellKnownNames.useCompilerLibraries()
     Shell.setTypeChecking(true)
     Shell.setPhase(PhaseOrder.CODEGEN)
-    Shell.compile(path, name + ".fss")
+    Shell.compilerPhases(path, name + ".fss")
   }
 
   def testCompiled0a() = {
