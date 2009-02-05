@@ -2735,7 +2735,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     @Override
     public TypeCheckerResult forId(final Id original_name) {
         
-        //experimental code to handle aliases
+    	//handle aliases
         List<Import> imports = this.compilationUnit.ast().getImports();
     	
         final NodeDepthFirstVisitor<Option<Pair<Id,APIName>>> import_visitor = new NodeDepthFirstVisitor<Option<Pair<Id,APIName>>>(){
@@ -2784,9 +2784,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         	}
         }
         
-        //end experiment
 
-        
+        //handle apis
         if (apiName.isSome()) {
             APIName api = apiName.unwrap();
             TypeEnv apiTypeEnv = returnTypeEnvForApi(api);

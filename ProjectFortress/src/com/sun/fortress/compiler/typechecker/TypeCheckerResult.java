@@ -51,7 +51,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 public class TypeCheckerResult extends StaticPhaseResult {
-    private final Node ast;
+    private Node ast;
     private final Option<Type> type;
     private final ConstraintFormula nodeConstraints;
     private final Map<Pair<Node,Span>, TypeEnv> nodeTypeEnvs;
@@ -464,6 +464,11 @@ public class TypeCheckerResult extends StaticPhaseResult {
         return new TypeCheckerOutput(this.getNodeTypeEnvs());
     }
 
+    //Provide a setter so that we can Normalize the AST and keep all of the other state in TypeCheckerResult
+    public void setAst(Node _ast){
+    	this.ast=_ast;
+    }
+    
     public TypeCheckerResult removeStaticParamsFromScope(List<StaticParam> staticParams) {
         List<VarType> var_types = new LinkedList<VarType>();
         for( StaticParam static_param : staticParams ) {

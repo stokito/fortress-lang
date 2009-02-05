@@ -27,7 +27,6 @@ import java.util.Map;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
-import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.compiler.typechecker.InferenceVarInserter;
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer;
 import com.sun.fortress.compiler.typechecker.TraitTable;
@@ -35,13 +34,14 @@ import com.sun.fortress.compiler.typechecker.TypeChecker;
 import com.sun.fortress.compiler.typechecker.TypeCheckerOutput;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
+import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
+import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
-
 import edu.rice.cs.plt.iter.IterUtil;
 
 /**
@@ -199,6 +199,7 @@ public class StaticChecker {
             if( TypesUtil.containsInferenceVarTypes(result.ast()) )
                 bug("Result of typechecking still contains inference varaibles. " + result.ast());
 
+            result.setAst(result.ast().accept(new TypeNormalizer()));
             // Check the set of exported APIs in this component.
             List<StaticError> errors = ExportChecker.checkExports(component, env, repository);
             if ( ! errors.isEmpty() ) {
@@ -206,6 +207,8 @@ public class StaticChecker {
                     result = TypeCheckerResult.addError(result, error);
                 }
             }
+   
+            
             return result;
          } else {
              return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
