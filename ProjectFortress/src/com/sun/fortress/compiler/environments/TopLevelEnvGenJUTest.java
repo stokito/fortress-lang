@@ -43,7 +43,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
 
 	private String fsiFiles[];
 	private String fssFiles[];
- 
+
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
@@ -51,25 +51,25 @@ public class TopLevelEnvGenJUTest extends TestCase {
     protected void setUp() throws Exception {
     	fssFiles = new String[4];
     	fsiFiles = new String[3];
-    	
+
     	fssFiles[0] = "TestCompiledEnvironments";
-    	fssFiles[1] = "TestCompiledImports"; 
+    	fssFiles[1] = "TestCompiledImports";
     	fssFiles[2] = "TestCompiledNestedImports";
     	fssFiles[3] = WellKnownNames.fortressLibrary();
-    	
+
     	for(String fssFile : fssFiles) {
-        	compileTestProgram(fssFile + ".fss");	
+        	compileTestProgram(fssFile + ".fss");
     	}
     	testCompiledEnv = SimpleClassLoader.loadEnvironment(fssFiles[0], false);
     	testCompiledImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[1], false);
     	testCompiledNestedImportEnv = SimpleClassLoader.loadEnvironment(fssFiles[2], false);
     	testLibraryEnv = SimpleClassLoader.loadEnvironment(fssFiles[3], false);
-    	
+
     	fsiFiles[0] = "AsciiVal";
     	fsiFiles[1] = "a.b.NestedOne";
     	fsiFiles[2] = "a.b.c.d.NestedTwo";
     }
-    
+
     public void testConstructor() {
     	WorseEnv worseEnv = new WorseEnv();
     	assertFalse(worseEnv.isTopLevel());
@@ -112,47 +112,47 @@ public class TopLevelEnvGenJUTest extends TestCase {
         testCompiledEnv.putIntRaw("run", 0);
         testCompiledEnv.putNatRaw("run", 0);
     }
-    
+
     public void testGetPutApi() throws IOException,
-                                       InstantiationException, 
+                                       InstantiationException,
                                        IllegalAccessException {
     	FInt val = FInt.make(65);
     	String apiName = fsiFiles[0];
-    	
-        assertNull(testCompiledImportEnv.getApiNull(apiName)); 
+
+        assertNull(testCompiledImportEnv.getApiNull(apiName));
         Environment loadedEnv = SimpleClassLoader.loadEnvironment(fsiFiles[0], true);
         testCompiledImportEnv.putApi(apiName, loadedEnv);
-        Environment env = testCompiledImportEnv.getApiNull(apiName);        
+        Environment env = testCompiledImportEnv.getApiNull(apiName);
         assertEquals(loadedEnv, env);
-        
-        testLibraryEnv.putValue("false", val);        
+
+        testLibraryEnv.putValue("false", val);
         env.putValueRaw("A", val);
         assertEquals(val, loadedEnv.getRootValueNull("A"));
     }
 
     public void testGetPutApiInNestedDir() throws IOException,
-                                                  InstantiationException, 
+                                                  InstantiationException,
                                                   IllegalAccessException {
     	FInt level = FInt.make(1);
-    	
+
     	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[1]));
-       	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[2])); 
+       	assertNull(testCompiledNestedImportEnv.getApiNull(fsiFiles[2]));
        	assertNull(testCompiledNestedImportEnv.getApiNull("NonExistentApi"));
-       	
+
     	Environment loadedLevel1Api = SimpleClassLoader.loadEnvironment(fsiFiles[1], true);
     	Environment loadedLevel2Api = SimpleClassLoader.loadEnvironment(fsiFiles[2], true);
     	testCompiledNestedImportEnv.putApi(fsiFiles[1], loadedLevel1Api);
     	testCompiledNestedImportEnv.putApi(fsiFiles[2], loadedLevel2Api);
-    	
+
     	Environment env1 = testCompiledNestedImportEnv.getApiNull(fsiFiles[1]);
        	Environment env2 = testCompiledNestedImportEnv.getApiNull(fsiFiles[2]);
-    	
+
     	assertEquals(loadedLevel1Api, env1);
     	assertEquals(loadedLevel2Api, env2);
-    	
+
     	env1.putValueRaw("level1", level);
     	env2.putValueRaw("level2", level);
-    	
+
     	assertEquals(level, loadedLevel1Api.getRootValueNull("level1"));
     	assertEquals(level, loadedLevel2Api.getRootValueNull("level2"));
     }
@@ -235,7 +235,7 @@ public class TopLevelEnvGenJUTest extends TestCase {
             path = path.prepend(head);
         }
 
-        Iterable<? extends StaticError> errors = Shell.compile(path, s);
+        Iterable<? extends StaticError> errors = Shell.compilerPhases(path, s);
 
         for (StaticError error: errors) {
             fail(error.toString());
