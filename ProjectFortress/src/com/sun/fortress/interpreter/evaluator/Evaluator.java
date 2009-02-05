@@ -234,6 +234,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
     // We ask lhs to accept twice (with this and an LHSEvaluator) in
     // the operator case. Might this cause the world to break?
+
     public FValue forAssignment(Assignment x) {
         Option<FunctionalRef> possOp = x.getAssignOp();
         LHSToLValue getLValue = new LHSToLValue(this);
@@ -355,7 +356,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
     }
 
     public FValue forDo(Do x) {
+	FValue res;
         int s = x.getFronts().size();
+	System.out.println("forDo with s = " + s + " x = " + x);
+
         if (s == 0) return FVoid.V;
         if (s == 1) {
             Block f = x.getFronts().get(0);
@@ -363,42 +367,46 @@ public class Evaluator extends EvaluatorBase<FValue> {
                 Expr regionExp = f.getLoc().unwrap();
                 FValue region = regionExp.accept(this);
             }
-            if (f.isAtomicBlock())
-                return forAtomicExpr(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f));
-            return f.accept(new Evaluator(this));
+            if (f.isAtomicBlock()) {
+                res = forAtomicExpr(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f));
+	    } else {
+		res = f.accept(new Evaluator(this));
+	    }
+	    return res;
        }
 
-       TupleTask[] tasks = new TupleTask[s];
-       List<Expr> locs = new ArrayList<Expr>(0);
-       for (int i = 0; i < s; i++) {
-           Block f = x.getFronts().get(i);
-           if (f.getLoc().isSome()) {
-               locs.add(f.getLoc().unwrap());
-           }
-           if (f.isAtomicBlock())
-               tasks[i] = new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this);
-           else
-               tasks[i] = new TupleTask(f, new Evaluator(this));
-       }
-       if (locs.size()>0) {
-           List<FValue> regions = evalExprListParallel(locs);
-       }
-       BaseTask currentTask = FortressTaskRunner.getTask();
-       TupleTask.forkJoin(tasks);
-       FortressTaskRunner.setCurrentTask(currentTask);
+	List<TupleTask> tasks = new ArrayList<TupleTask>();
 
-       for (int i = 0; i < s; i++) {
-           if (tasks[i].causedException()) {
-               Throwable t = tasks[i].taskException();
-               if (t instanceof Error) {
-                   throw (Error)t;
-               } else if (t instanceof RuntimeException) {
-                   throw (RuntimeException)t;
-               } else {
-                   error(x.getFronts().get(i), errorMsg("Wrapped Exception",t));
-               }
-           }
-       }
+	for (int i = 0; i < s; i++) {
+	    Block f = x.getFronts().get(i);
+
+            if (f.getLoc().isSome()) {
+                Expr regionExp = f.getLoc().unwrap();
+                FValue region = regionExp.accept(this);
+            }
+	    if (f.isAtomicBlock())
+		tasks.add(new TupleTask(ExprFactory.makeAtomicExpr(NodeUtil.getSpan(x), f), this));
+	    else {
+		tasks.add(new TupleTask(f, new Evaluator(this)));
+	    }
+	}
+
+	BaseTask currentTask = FortressTaskRunner.getTask();
+	TupleTask.invokeAll(tasks);
+	FortressTaskRunner.setCurrentTask(currentTask);
+       
+	for (TupleTask t : tasks) {
+            if (t.causedException()) {
+                Throwable th = t.taskException();
+                if (th instanceof Error) {
+                    throw (Error)th;
+                } else if (th instanceof RuntimeException) {
+                    throw (RuntimeException)th;
+                } else {
+		    error(t.getExpr(), errorMsg("Wrapped Exception",th));
+                }
+            }
+        }
        return FVoid.V;
     }
 
@@ -465,32 +473,36 @@ public class Evaluator extends EvaluatorBase<FValue> {
         // Added some special-case code to avoid explosion of TupleTasks.
         int sz = exprs.size();
         ArrayList<FValue> resList = new ArrayList<FValue>(sz);
-
+	ArrayList<TupleTask> TupleTasks = new ArrayList<TupleTask>(sz);
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
         } else if (sz > 1) {
-            TupleTask[] tasks = new TupleTask[exprs.size()];
-            int count = 0;
-            for (Expr e : exprs) {
-                tasks[count++] = new TupleTask(e, this);
-            }
+	    for (Expr expr : exprs) 
+		// We want to add things to the front of the list.
+		TupleTasks.add(0, new TupleTask(expr, this));
+	    
             BaseTask currentTask = FortressTaskRunner.getTask();
-            TupleTask.forkJoin(tasks);
+            TupleTask.invokeAll(TupleTasks);
             FortressTaskRunner.setCurrentTask(currentTask);
-            for (int i = 0; i < count; i++) {
-                if (tasks[i].causedException()) {
-                    Throwable t = tasks[i].taskException();
+
+	    for (TupleTask task : TupleTasks) {
+		if (task.causedException()) {
+                    Throwable t = task.taskException();
                     if (t instanceof Error) {
                         throw (Error)t;
                     } else if (t instanceof RuntimeException) {
                         throw (RuntimeException)t;
                     } else {
-                        error(exprs.get(i), errorMsg("Wrapped Exception",t));
+			error(task.getExpr(), errorMsg("Wrapped Exception",t));
                     }
                 }
-                resList.add(tasks[i].getRes());
+                resList.add(0,task.getRes());
             }
         }
+
+	if (resList.size() != exprs.size())
+	    bug("We should have the same number of results as we did exprs resList = " + 
+		resList + " exprs = " + exprs );
         return resList;
     }
 

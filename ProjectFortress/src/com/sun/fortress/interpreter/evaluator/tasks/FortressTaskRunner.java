@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.forkjoin.*;
+import jsr166y.*;
 import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.transactions.AbortedException;
 import com.sun.fortress.exceptions.transactions.OrphanedException;
@@ -143,8 +143,9 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         while (true) {
             // Someday figure out how aborted transactions get this far...
             Transaction me = getTransaction();
-            if (me != null && !me.isActive())
+            if (me != null && !me.isActive()) {
                 throw new AbortedException(me, "Got to doit with an aborted current transaction");
+	    }
             try {
                 T result = doItOnce(xaction);
                 return result;
