@@ -123,10 +123,10 @@ object ExportChecker {
                         case (1, 1) =>
                             (declsInAPI.iterator.next,
                              declsInComp.iterator.next) match {
-                                case (DeclaredFunction(FnDecl(a,l,b,c,d)),
+                                case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
                                       DeclaredFunction(FnDecl(_,r,_,_,_))) =>
                                     if ( ! equalFnHeaders(l, r) )
-                                        missingDecls = FnDecl(a,l,b,c,d) :: missingDecls
+                                        missingDecls = fd :: missingDecls
                                 // If they are not DeclaredFunction, skip.
                                 case _ =>
                             }
@@ -135,10 +135,10 @@ object ExportChecker {
                             checkOverloading(f, declsInComp, errors)
                             (declsInAPI.iterator.next,
                              coverOverloading(declsInComp)) match {
-                                case (DeclaredFunction(FnDecl(a,l,b,c,d)),
+                                case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
                                       DeclaredFunction(FnDecl(_,r,_,_,_))) =>
                                     if ( ! equalFnHeaders(l, r) )
-                                        missingDecls = FnDecl(a,l,b,c,d) :: missingDecls
+                                        missingDecls = fd :: missingDecls
                                 // If they are not DeclaredFunction, skip.
                                 case _ =>
                             }

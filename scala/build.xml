@@ -22,14 +22,14 @@
     The interpreter for the Fortress Core Calculus with Multiple Dispatch
     implemented in Scala.
   </description>
-	
+
   <property name="src.dir" location="${basedir}/src"/>
   <property name="build.dir" location="${basedir}/build"/>
-  <property name="third_party.dir" location = "${basedir}/third_party"/>
-  <property name="scala-compiler.jar" value="${third_party.dir}/scala-compiler-2.7.1.jar"/>
-  <property name="scala-library.jar" value="${third_party.dir}/scala-library-2.7.1.jar"/>
+  <property name="third_party.dir" location = "${basedir}/../ProjectFortress/third_party/scala"/>
+  <property name="scala-compiler.jar" value="${third_party.dir}/scala-compiler-2.7.2.jar"/>
+  <property name="scala-library.jar" value="${third_party.dir}/scala-library-2.7.2.jar"/>
   <property name="package.prefix" value="scortress"/>
-  
+
   <path id="scala.classpath">
     <pathelement location="${scala-compiler.jar}"/>
     <pathelement location="${scala-library.jar}"/>
@@ -43,7 +43,7 @@
   <taskdef resource="scala/tools/ant/antlib.xml">
     <classpath refid="scala.classpath"/>
   </taskdef>
-	
+
   <target name="compile">
   	<mkdir dir="${build.dir}"/>
     <scalac srcdir="${src.dir}" destdir="${build.dir}" classpathref="project.classpath" force="changed">
@@ -52,7 +52,7 @@
   </target>
 
   <target name="clean">
-    <delete dir="${build}"/>
+    <delete dir="${build.dir}"/>
   </target>
-  	
+
 </project>
