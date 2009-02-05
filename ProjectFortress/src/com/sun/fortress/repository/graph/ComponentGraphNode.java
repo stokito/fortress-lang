@@ -23,48 +23,48 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ComponentGraphNode extends GraphNode{
+public class ComponentGraphNode extends GraphNode {
 
-	private Option<ComponentIndex> component;
-        private final String k;
+    private Option<ComponentIndex> component;
+    private final String k;
 
-	public ComponentGraphNode( APIName name, long sourceDate ){
-	    super(name, sourceDate);
-	    k = key(name);
-	    this.component = Option.none();
-	}
+    public ComponentGraphNode( APIName name, long sourceDate ){
+        super(name, sourceDate);
+        k = key(name);
+        this.component = Option.none();
+    }
 
-	public boolean equals( Object o ){
-		if ( o instanceof ComponentGraphNode ){
-			ComponentGraphNode a = (ComponentGraphNode) o;
-			return a.getName().equals( getName() );
-		}
-		return false;
-	}
-
-	public Option<ComponentIndex> getComponent(){
-		return component;
-	}
-
-	public void setComponent( ComponentIndex c, long cacheDate){
-		this.component = Option.wrap(c);
-		this.cacheDate = cacheDate;
-	}
-
-	
-	public String toString(){
-		return "Component " + getName().toString();
-	}
-        
-        public <T,F extends Throwable> T accept( GraphVisitor<T,F>  g ) throws F{
-            return g.visit(this);
+    public boolean equals( Object o ){
+        if ( o instanceof ComponentGraphNode ){
+            ComponentGraphNode a = (ComponentGraphNode) o;
+            return a.getName().equals( getName() );
         }
-        
-        public String key() {
-            return k;
-        }
-        
-        public static String key(APIName k) {
-            return "component " + k.getText();
-        }
+        return false;
+    }
+
+    public Option<ComponentIndex> getComponent(){
+        return component;
+    }
+
+    public void setComponent( ComponentIndex c, long cacheDate){
+        this.component = Option.wrap(c);
+        this.cacheDate = cacheDate;
+    }
+
+
+    public String toString(){
+        return "Component " + getName().toString();
+    }
+
+    public <T,F extends Throwable> T accept( GraphVisitor<T,F>  g ) throws F{
+        return g.visit(this);
+    }
+
+    public String key() {
+        return k;
+    }
+
+    public static String key(APIName k) {
+        return "component " + k.getText();
+    }
 }

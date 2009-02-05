@@ -98,10 +98,10 @@ public class TransformationNode extends NodeClass {
         writeToString(writer);
         writer.println("");
         writeGenerateHashCode(writer);
-        // writer.println("");
-        // writeSerialize(writer);
-        // writer.println("");
-        // writeOutputHelp(writer, this.name());
+        writer.println("");
+        writeSerialize(writer);
+        writer.println("");
+        writeOutputHelp(writer, this.name());
 
         //   for (CodeGenerator g : gens) { g.generateClassMembers(writer, this); }
 

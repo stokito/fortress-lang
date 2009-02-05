@@ -30,6 +30,7 @@ import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.NativeConstructor;
 import com.sun.fortress.nodes.NodeVisitor;
 import com.sun.fortress.nodes.NodeVisitor_void;
+import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ExprMI;
 import com.sun.fortress.nodes.FnHeader;
@@ -49,6 +50,7 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.Pair;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 /**
  * A NativeApp indicates that an action is implemented natively; the
@@ -119,6 +121,9 @@ public abstract class NativeApp implements Applicable {
     }
     public void accept(NodeVisitor_void visitor) {}
     public int generateHashCode() { return 0; }
+    public String serialize() { return bug(this,errorMsg("Cannot serialize NativeApp ",this)); }
+    public void serialize(java.io.Writer writer) { String junk = serialize(); }
+    public void outputHelp(TabPrintWriter writer, boolean lossless) { String junk = serialize(); }
 
     /**
      * Actually apply the native function to the passed-in arguments.
