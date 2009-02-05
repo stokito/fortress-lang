@@ -219,8 +219,8 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
       val replacer=new InferenceVarReplacer(Conversions.unconvertMap(substitutions))
       val newbound=bound.asInstanceOf[Node].accept(replacer).asInstanceOf[Type]
       substitutions.get(ivar) match {
-        case None => accum&=false
-        case Some(substitution) => accum&=true //history.subtype(substitution,newbound).isTrue;
+        case None => accum&=history.subtypeNormal(ANY,newbound).isTrue;
+        case Some(substitution) => accum&=history.subtypeNormal(substitution,newbound).isTrue;
       }
     }
     accum
