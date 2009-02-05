@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -116,7 +116,7 @@ public class CUWrapper {
     };
 
 
-    public CUWrapper(Component comp, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
        this.implicitLibs = implicitLibs;
        if (comp == null)
             throw new NullPointerException("Null component (1st parameter to constructor) not allowed");
@@ -148,7 +148,7 @@ public class CUWrapper {
         }
     }
 
-    public CUWrapper(Api api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Api api, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         this.implicitLibs = implicitLibs;
         if (api == null)
             throw new NullPointerException("Null api (1st parameter to constructor) not allowed");
@@ -179,13 +179,13 @@ public class CUWrapper {
      * @param comp
      * @param api
      */
-    public CUWrapper(Component comp, APIWrapper api, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, APIWrapper api, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
 
         exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
-    public CUWrapper(Component comp, List<APIWrapper> api_list, HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, List<APIWrapper> api_list, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
         for (APIWrapper api : api_list)
             exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);

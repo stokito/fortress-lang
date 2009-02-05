@@ -85,27 +85,11 @@ public class NamingCzar {
         return "";
     }
 
-    /**
-     * Returns the name, with no leading directory, of the file in which
-     * in API's AST is stored.  Different phases that store AST, must store
-     * in different directories.
-     *
-     * @param a
-     * @return
-     */
-    static public String cachedFileNameForApiAst(APIName a) {
-        return "";
-    }
-
-    static public String cachedFileNameForCompAst(APIName a) {
-        return "";
-    }
-
-     public static String cachedFileNameForApiAst(String passedPwd, APIName name) {
-        return ProjectProperties.apiFileName(passedPwd,  deCaseName(name));
-    }
-
-     public static String cachedFileNameForCompAst(String passedPwd, APIName name) {
+    public static String cachedPathNameForApiAst(String passedPwd, APIName name) {
+       return ProjectProperties.apiFileName(passedPwd,  deCaseName(name));
+   }
+   
+     public static String cachedPathNameForCompAst(String passedPwd, APIName name) {
         return ProjectProperties.compFileName(passedPwd,  deCaseName(name));
     }
 
@@ -114,7 +98,7 @@ public class NamingCzar {
      }
 
      public static String dependenceFileNameForApiAst(APIName name) {
-         return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
+         return ProjectProperties.apiFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
      }
 
      /* Converting names of Fortress entities into Java entities.

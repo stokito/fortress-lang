@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,14 +20,15 @@ package com.sun.fortress.compiler.environments;
 import java.io.IOException;
 import java.util.HashMap;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.interpreter.env.BetterEnvLevelZero;
 import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.NonApiWrapper;
 import com.sun.fortress.interpreter.evaluator.BuildTopLevelEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.FortressRepository;
@@ -46,7 +47,7 @@ public class TopLevelEnvBenchmark {
             ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName(NodeFactory.testSpan,
                                                                                 WellKnownNames.fortressLibrary()));
             Environment betterEnv = new BetterEnvLevelZero(library.ast());
-            BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, ComponentWrapper>());
+            BuildTopLevelEnvironments be = new BuildTopLevelEnvironments(betterEnv, new HashMap<String, NonApiWrapper>());
             be.visit(library.ast());
             //Set verboseDump to true
             //betterEnv.dump(System.out);

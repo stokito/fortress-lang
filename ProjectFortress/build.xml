@@ -400,7 +400,7 @@ maintain proper indentation.
     <javac
         srcdir="${astgen.generators.src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -627,7 +627,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -650,7 +650,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true">
@@ -671,7 +671,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true">
@@ -1095,7 +1095,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.5"
+        source="1.6"
         debug="true"
         includeantruntime="false"
         fork="true"

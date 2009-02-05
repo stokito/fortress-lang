@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.interpreter.evaluator.BuildEnvironments;
 import com.sun.fortress.interpreter.evaluator.Environment;
@@ -30,7 +31,6 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
 import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
@@ -51,7 +51,7 @@ import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ComponentWrapper extends CUWrapper {
+public class ComponentWrapper extends NonApiWrapper {
 
     /*
      * Next three lines are for the "cache" of rewritten ASTs
@@ -79,7 +79,7 @@ public class ComponentWrapper extends CUWrapper {
             return  (Component) componentCache.get(comp.ast().getName(), comp.modifiedDate());
     }
 
-    public ComponentWrapper(ComponentIndex comp, HashMap<String, ComponentWrapper> linker,
+    public ComponentWrapper(ComponentIndex comp, HashMap<String, NonApiWrapper> linker,
             String[] implicitLibs) {
         super((Component) comp.ast(), linker, implicitLibs);
         cacheDisabled = noCache;
@@ -89,7 +89,7 @@ public class ComponentWrapper extends CUWrapper {
     }
 
     public ComponentWrapper(ComponentIndex comp, APIWrapper api,
-            HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super((Component) comp.ast(), api, linker, implicitLibs);
         cacheDisabled = noCache;
        transformed = getCached(comp);
@@ -104,7 +104,7 @@ public class ComponentWrapper extends CUWrapper {
      * @param implicitLibs
      */
     public ComponentWrapper(ComponentIndex comp, List<APIWrapper> api_list,
-            HashMap<String, ComponentWrapper> linker, String[] implicitLibs) {
+            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super((Component) comp.ast(), api_list, linker, implicitLibs);
         cacheDisabled = noCache;
         transformed = getCached(comp);

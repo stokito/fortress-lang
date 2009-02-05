@@ -31,7 +31,7 @@ import com.sun.fortress.useful.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 import com.sun.fortress.parser_util.FortressUtil;
 

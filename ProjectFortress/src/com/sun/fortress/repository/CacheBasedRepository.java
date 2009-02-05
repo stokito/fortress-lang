@@ -157,11 +157,11 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     }
 
     private String compFileName(APIName name) {
-        return NamingCzar.cachedFileNameForCompAst(pwd, name);
+        return NamingCzar.cachedPathNameForCompAst(pwd, name);
     }
 
     private String apiFileName(APIName name) {
-        return ProjectProperties.apiFileName(pwd,  NamingCzar.deCaseName(name));
+        return NamingCzar.cachedPathNameForApiAst(pwd,  name);
     }
 
     private long dateFromFile(APIName name, String s, String tag)

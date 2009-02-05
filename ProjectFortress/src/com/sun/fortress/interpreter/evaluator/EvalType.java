@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -45,12 +45,12 @@ import com.sun.fortress.interpreter.evaluator.types.TypeFixedDimIndices;
 import com.sun.fortress.interpreter.evaluator.types.TypeRange;
 import com.sun.fortress.interpreter.evaluator.values.Parameter;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.ProgramError;
 

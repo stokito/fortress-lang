@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Copyright 2008 Sun Microsystems, Inc.,
+  Copyright 2009 Sun Microsystems, Inc.,
   4150 Network Circle, Santa Clara, California 95054, U.S.A.
   All rights reserved.
 
@@ -27,9 +27,9 @@ import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.lambda.Lambda;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.ProgramError;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.Boolean.FALSE;
