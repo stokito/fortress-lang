@@ -1,6 +1,6 @@
 @ECHO OFF
 REM ################################################################################
-REM #    Copyright 2007 Sun Microsystems, Inc.,
+REM #    Copyright 2009 Sun Microsystems, Inc.,
 REM #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 REM #    All rights reserved.
 REM #

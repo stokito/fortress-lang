@@ -1,3 +1,20 @@
+<!--
+Copyright 2009 Sun Microsystems, Inc.,
+4150 Network Circle, Santa Clara, California 95054, U.S.A.
+All rights reserved.
+
+U.S. Government Rights - Commercial software.
+Government users are subject to the Sun Microsystems, Inc. standard
+license agreement and applicable provisions of the FAR and its supplements.
+
+Use is subject to license terms.
+
+This distribution may include materials developed by third parties.
+
+Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+-->
+
 <!-- Delegating build script, used to build ProjectFortress.
      Note that the basedir is set to the checked out project
      The explicit pathname seems to be a necessary evil <sigh> -->
@@ -6,12 +23,12 @@
         basedir="ProjectFortress">
 
   <!-- Scala jar files -->
-  <property name="scala-compiler.jar" 
+  <property name="scala-compiler.jar"
             value="${basedir}/third_party/scala/scala-compiler-2.7.2.jar"/>
-  <property name="scala-library.jar" 
+  <property name="scala-library.jar"
             value="${basedir}/third_party/scala/scala-library-2.7.2.jar"/>
 
-  <!-- 
+  <!--
        Paths
   -->
   <path id="scala.classpath">
@@ -20,9 +37,9 @@
   </path>
 
 
-  <!-- 
-       Taskdefs 
-  --> 
+  <!--
+       Taskdefs
+  -->
   <taskdef resource="scala/tools/ant/antlib.xml">
     <classpath refid="scala.classpath"/>
   </taskdef>
