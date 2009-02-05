@@ -970,5 +970,18 @@ public class Transform extends TemplateUpdateVisitor {
             error();
             return 0;
         }
+
+        public java.lang.String serialize(){
+            error();
+            return null;
+        }
+
+        public void serialize(java.io.Writer writer){
+            error();
+        }
+
+        public void outputHelp(TabPrintWriter writer, boolean lossless){
+            error();
+        }
     }
 }

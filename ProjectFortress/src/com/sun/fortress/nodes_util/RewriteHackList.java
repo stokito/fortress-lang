@@ -22,6 +22,8 @@ import java.util.List;
 import com.sun.fortress.useful.NI;
 import com.sun.fortress.useful.Voidoid;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 /**
  * If the name isn't a clue, this class exists only to make it
  * easier to add or delete items to a list during rewriting.
@@ -58,14 +60,8 @@ public class RewriteHackList extends AbstractNode {
     public void output(java.io.Writer writer) {}
     public int generateHashCode() { return hashCode(); }
 
-    /** Generate a human-readable representation that can be deserialized. */
-    public String serialize() {
-        return NI.<String>na("Instances of this helper class should never be serialized");
-    }
-    /** Generate a human-readable representation that can be deserialized. */
-    public void serialize(java.io.Writer writer) {
-        NI.<Voidoid>na("Instances of this helper class should never be serialized");
-    }
-
+    public String serialize() { return bug(this,"Cannot serialize RewriteHackList"); }
+    public void serialize(java.io.Writer writer) { String junk = serialize(); }
+    public void outputHelp(TabPrintWriter writer, boolean lossless) { String junk = serialize(); }
 
 }

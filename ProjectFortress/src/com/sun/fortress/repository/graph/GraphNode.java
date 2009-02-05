@@ -35,13 +35,13 @@ public abstract class GraphNode{
     public APIName getName(){
         return name;
     }
-    
+
     public long getSourceDate() {
         return sourceDate;
     }
-    
+
     public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
-    
+
     public abstract String key();
-    
+
 }

@@ -30,7 +30,7 @@ tabSize 4;
 allowNulls no;
 generateToString no;
 generateEquals yes;
-generateSerializers no;
+generateSerializers yes;
 generateRecursiveVisitors no;
 customClassPath ../build;
 

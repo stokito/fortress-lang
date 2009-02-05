@@ -37,15 +37,19 @@ import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.interpreter.reader.Lex;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
+import com.sun.fortress.nodes.NodeReader;
+import com.sun.fortress.nodes.TabPrintWriter;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.repository.ProjectProperties;
 
 import edu.rice.cs.plt.tuple.Option;
 
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
 public class ASTIO {
     private final static String LOG_FILE_NONE="";
-    private final static boolean useJavaSerialization =
-        ProjectProperties.getBoolean("fortress.astio.javaserialization",false);
+    private final static boolean useAstgenSerialization =
+        ProjectProperties.getBoolean("fortress.astio.astgenserialization",false);
     private static String logFileName =
         ProjectProperties.get("fortress.astio.logfile",LOG_FILE_NONE);
 
@@ -92,16 +96,13 @@ public class ASTIO {
             throws IOException {
         long t0 = logStart();
         try {
-            if (useJavaSerialization) {
-                ObjectOutputStream foutObj = new ObjectOutputStream(fout);
-                try {
-                    foutObj.writeObject(p);
-                    foutObj.flush();
-                } catch (NotSerializableException ns) {
-                    System.out.println("WRONG:");
-                    System.out.println(ns.toString());
-                    System.out.flush();
-                }
+            if (useAstgenSerialization) {
+                BufferedWriter utf8out =
+                    new BufferedWriter(new OutputStreamWriter(fout, Charset.forName("UTF-8")));
+                TabPrintWriter tpw = new TabPrintWriter(utf8out, 2);
+                p.outputHelp(tpw,true);
+                utf8out.write('\n');
+                utf8out.flush();
             } else {
                 BufferedWriter utf8fout =
                     new BufferedWriter(new OutputStreamWriter(fout, Charset.forName("UTF-8")));
@@ -145,14 +146,14 @@ public class ASTIO {
         throws IOException
     {
         long t0 = logStart();
-        if (useJavaSerialization) {
-            ObjectInputStream finObj = new ObjectInputStream(fin);
+        if (useAstgenSerialization) {
+            InputStreamReader ir = new InputStreamReader(fin, Charset.forName("UTF-8"));
             try {
-                CompilationUnit p = (CompilationUnit)finObj.readObject();
-                if (p==null) return Option.none();
+                CompilationUnit p = (CompilationUnit)NodeReader.read(ir);
+                if (p==null) return bug("Null result from NodeReader of "+reportedFileName);
                 return Option.some(p);
-            } catch (ClassNotFoundException wrongClass) {
-                return Option.none();
+            } catch (IOException ioe) {
+                return bug("I/O Exception while attempting NodeReader of "+reportedFileName, ioe);
             } finally {
                 logStop(t0,"R",reportedFileName);
             }
