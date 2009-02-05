@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.forkjoin.ForkJoinWorkerThread;
+import jsr166y.ForkJoinWorkerThread;
 import com.sun.fortress.interpreter.evaluator.Evaluator;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
@@ -66,6 +66,9 @@ public class TupleTask extends BaseTask {
     }
 
     public FValue getRes() { return res;}
+    public Expr getExpr() {return expr;}
+
+    // Commented out because not supported in new jsr166y library.
 
     // This is a static method of jsr166y.forkjoin.RecursiveAction,
     // but this has better static type information and exploits it to
@@ -73,28 +76,28 @@ public class TupleTask extends BaseTask {
     //
     // Actual code cribbed from jsr166y.forkjoin.ForkJoinTask.
     // However we rely on the invariant that the TupleTasks are all non-null.
-    public static void forkJoin(TupleTask []tasks) {
-        if (true) { // switch to false for standard version.
-            int last = tasks.length - 1;
-            Throwable ex = null;
-            for (int i = last; i > 0; --i) {
-                tasks[i].fork();
-            }
-            ex = tasks[0].exec();
-            for (int i = 1; i <= last; ++i) {
-                TupleTask t = tasks[i];
-                boolean pop = ForkJoinWorkerThread.removeIfNextLocalTask(t);
-                if (ex != null)
-                    t.cancel();
-                else if (!pop)
-                    ex = t.quietlyJoin();
-                else
-                    ex = t.exec();
-            }
-            if (ex != null)
-                bug(ex);
-        } else {
-            BaseTask.forkJoin(tasks);
-        }
-    }
+//     public static void forkJoin(TupleTask []tasks) {
+//         if (true) { // switch to false for standard version.
+//             int last = tasks.length - 1;
+//             Throwable ex = null;
+//             for (int i = last; i > 0; --i) {
+//                 tasks[i].fork();
+//             }
+//             ex = tasks[0].exec();
+//             for (int i = 1; i <= last; ++i) {
+//                 TupleTask t = tasks[i];
+//                 boolean pop = ForkJoinWorkerThread.removeIfNextLocalTask(t);
+//                 if (ex != null)
+//                     t.cancel();
+//                 else if (!pop)
+//                     ex = t.quietlyJoin();
+//                 else
+//                     ex = t.exec();
+//             }
+//             if (ex != null)
+//                 bug(ex);
+//         } else {
+//             BaseTask.forkJoin(tasks);
+//         }
+//     }
 }

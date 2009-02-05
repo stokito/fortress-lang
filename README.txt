@@ -106,7 +106,7 @@ We assume you are using an operating system with a Unix-style shell
 (for example, Solaris, Linux, Mac OS X, or Cygwin on Windows).  You
 will need to have access to the following:
 
-* J2SDK 1.5 or later.  See http://java.sun.com/javase/downloads/index.jsp
+* J2SDK 1.6 or later.  See http://java.sun.com/javase/downloads/index.jsp
 * Ant 1.6.5 or later.  See http://ant.apache.org/bindownload.cgi
 * Bash version 2.5 or later, installed at /bin/bash.
   See http://www.gnu.org/software/bash/

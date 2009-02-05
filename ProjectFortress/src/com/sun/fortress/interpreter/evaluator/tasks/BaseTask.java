@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.forkjoin.*;
+import jsr166y.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.fortress.exceptions.transactions.AbortedException;

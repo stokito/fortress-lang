@@ -17,7 +17,7 @@
 
 package com.sun.fortress.interpreter.evaluator.tasks;
 
-import jsr166y.forkjoin.*;
+import jsr166y.*;
 
 public class FortressTaskRunnerGroup extends ForkJoinPool {
     public static class FortressForkJoinWorkerThreadFactory
