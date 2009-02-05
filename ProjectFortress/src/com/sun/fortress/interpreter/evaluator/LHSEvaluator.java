@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
+
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.EvaluatorBase;
@@ -41,7 +43,6 @@ import com.sun.fortress.interpreter.evaluator.values.Indexed;
 import com.sun.fortress.interpreter.evaluator.values.Simple_fcn;
 import com.sun.fortress.interpreter.glue.Glue;
 import com.sun.fortress.interpreter.glue.IndexedArrayWrapper;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Name;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.NodeAbstractVisitor;

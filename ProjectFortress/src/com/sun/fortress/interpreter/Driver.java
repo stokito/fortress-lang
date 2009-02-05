@@ -17,6 +17,7 @@
 
 package com.sun.fortress.interpreter;
 
+import static com.sun.fortress.compiler.WellKnownNames.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
@@ -24,6 +25,8 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import com.sun.fortress.interpreter.env.APIWrapper;
 import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.ForeignComponentWrapper;
+import com.sun.fortress.interpreter.env.NonApiWrapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +41,10 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.sun.fortress.repository.DerivedFiles;
+import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.repository.IOAst;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.RedefinitionError;
@@ -56,7 +61,6 @@ import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.evaluator.values.FString;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
@@ -92,7 +96,6 @@ import com.sun.fortress.useful.Visitor1;
 import com.sun.fortress.useful.Visitor2;
 import edu.rice.cs.plt.tuple.Option;
 
-import static com.sun.fortress.interpreter.glue.WellKnownNames.*;
 
 public class Driver {
 
@@ -129,7 +132,7 @@ public class Driver {
          * infrastructure is present.
          */
 
-        HashMap<String, ComponentWrapper> linker = new HashMap<String, ComponentWrapper>();
+        HashMap<String, NonApiWrapper> linker = new HashMap<String, NonApiWrapper>();
 
         Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
         // ArrayList<ComponentWrapper>
@@ -279,7 +282,7 @@ public class Driver {
      * @param cw
      */
     private static boolean injectTraitMembersForDesugaring(
-            HashMap<String, ComponentWrapper> linker, ComponentWrapper cw) {
+            HashMap<String, NonApiWrapper> linker, ComponentWrapper cw) {
         CompilationUnit c = cw.getCompilationUnit();
         List<Import> imports = c.getImports();
         boolean change = false;
@@ -297,7 +300,7 @@ public class Driver {
                 APIName source = ix.getApiName();
                 String from_apiname = NodeUtil.nameString(source);
 
-                ComponentWrapper from_cw = linker.get(from_apiname);
+                NonApiWrapper from_cw = linker.get(from_apiname);
                 APIWrapper api_cw = from_cw.getExportedCW(from_apiname);
 
                 /* Pull in names, UNqualified */
@@ -423,7 +426,7 @@ public class Driver {
      */
     private static void ensureImportsImplemented (
             FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
+            HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile,
             List<Import> imports
         )
@@ -460,10 +463,10 @@ public class Driver {
      */
     private static ComponentWrapper ensureApiImplemented(
             FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
+            HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
-        ComponentWrapper newwrapper = linker.get(apiname);
+        NonApiWrapper newwrapper = linker.get(apiname);
         if (newwrapper == null) {
             /*
              * Here, the linker prototype takes the extreme shortcut of assuming
@@ -472,22 +475,30 @@ public class Driver {
              * These few lines are what needs to be replaced by a real linker.
              */
             Api newapi = readTreeOrSourceApi(apiname, apiname, fr);
-            ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
-
             APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary());
-            newwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary());
-            newwrapper.touchExports(true);
-            linker.put(apiname, newwrapper);
-            pile.push(newwrapper);
 
+            if (ForeignJava.only.definesApi(newapi.getName())) {
+                ForeignComponentWrapper fcw = new ForeignComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary());
+                linker.put(apiname, fcw);
+                // no need to push for additional imports, at least not quite yet.
+                return null;
+            } else {
+                ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
+                ComponentWrapper compwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary());
+                compwrapper.touchExports(true);
+                linker.put(apiname, compwrapper);
+                pile.push(compwrapper);
+                newwrapper = compwrapper;
+            }
             List<Import> imports = newapi.getImports();
             ensureImportsImplemented(fr, linker, pile, imports);
         }
-        return newwrapper;
+        // TODO temp hack till we knit in natives properly.
+        return (ComponentWrapper) newwrapper;
     }
 
     private static ComponentWrapper commandLineComponent(FortressRepository fr,
-            HashMap<String, ComponentWrapper> linker,
+            HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile, ComponentIndex comp_index) throws IOException {
 
             Component comp = (Component) (comp_index.ast());

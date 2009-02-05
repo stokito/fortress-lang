@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.FortressException;
 import com.sun.fortress.exceptions.LabelException;
@@ -64,7 +65,6 @@ import com.sun.fortress.interpreter.evaluator.values.MethodClosure;
 import com.sun.fortress.interpreter.evaluator.values.OverloadedFunction;
 import com.sun.fortress.interpreter.evaluator.values.Selectable;
 import com.sun.fortress.interpreter.glue.Glue;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
 import com.sun.fortress.nodes.AmbiguousMultifixOpExpr;

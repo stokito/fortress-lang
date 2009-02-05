@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,11 +22,11 @@ import java.util.*;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
 

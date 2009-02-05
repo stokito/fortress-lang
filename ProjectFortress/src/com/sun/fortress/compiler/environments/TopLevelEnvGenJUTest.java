@@ -23,6 +23,7 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.interpreter.env.WorseEnv;
@@ -30,7 +31,6 @@ import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Path;
 

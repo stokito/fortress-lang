@@ -30,7 +30,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.useful.Useful;
 
 import static com.sun.fortress.nodes_util.DesugarerUtil.*;

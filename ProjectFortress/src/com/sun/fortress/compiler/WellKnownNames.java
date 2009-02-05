@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.interpreter.glue;
+package com.sun.fortress.compiler;
 
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ObjectExpr;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,6 +19,7 @@ package com.sun.fortress.interpreter.glue;
 
 import java.util.ArrayList;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.interpreter.evaluator.values.DottedMethodApplication;
 import com.sun.fortress.interpreter.evaluator.values.FInt;
 import com.sun.fortress.interpreter.evaluator.values.FObject;

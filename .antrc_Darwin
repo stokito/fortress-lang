@@ -15,4 +15,9 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+if [ -z "$JAVACMD" ] ; then
+  JAVACMD="`which java`"
+  echo Using JAVACMD="\"$JAVACMD\""
+fi
+
 . .antrc_Unix

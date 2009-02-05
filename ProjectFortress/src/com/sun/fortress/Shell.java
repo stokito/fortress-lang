@@ -52,7 +52,6 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.interpreter.Driver;
 import com.sun.fortress.interpreter.evaluator.Init;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Files;
@@ -102,13 +101,13 @@ public final class Shell {
         CURRENT_INTERPRETER_REPOSITORY = g;
     }
 
-    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ) throws FileNotFoundException{
+    private static GraphRepository specificRepository(Path p, CacheBasedRepository cache ) throws IOException{
         GraphRepository fr = new GraphRepository( p, cache );
         CURRENT_INTERPRETER_REPOSITORY = fr;
         return fr;
     }
 
-    public static GraphRepository specificRepository(Path p) throws FileNotFoundException {
+    public static GraphRepository specificRepository(Path p) throws IOException {
         return specificRepository( p, defaultCache);
     }
 
@@ -703,7 +702,7 @@ public final class Shell {
                 if ( out.isSome() ) {
                     ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
                             out.unwrap());
-                    ASTIO.deleteJavaAst( NamingCzar.cachedFileNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
+                    ASTIO.deleteJavaAst( NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
                     bcr.deleteComponent( name );
                 }
             } else {

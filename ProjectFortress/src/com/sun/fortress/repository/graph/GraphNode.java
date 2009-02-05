@@ -17,6 +17,9 @@
 
 package com.sun.fortress.repository.graph;
 
+import java.io.File;
+import java.io.IOException;
+
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
@@ -27,11 +30,15 @@ public abstract class GraphNode{
     long cacheDate = Long.MIN_VALUE; /* Missing = very old */
     private final APIName name;
 
-    public GraphNode(APIName name, long sourceDate){
+    public GraphNode(APIName name, String canonicalSourceName, long sourceDate){
         this.name = name;
         this.sourceDate = sourceDate;
     }
 
+    public GraphNode(APIName name, File source_file) throws IOException{
+        this(name, source_file.getCanonicalPath(), source_file.lastModified());
+    }
+    
     public APIName getName(){
         return name;
     }

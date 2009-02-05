@@ -26,7 +26,6 @@ import com.sun.fortress.compiler.phases.PhaseOrder
 import com.sun.fortress.exceptions.ProgramError
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.WrappedException
-import com.sun.fortress.interpreter.glue.WellKnownNames
 import com.sun.fortress.nodes_util.ASTIO
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil

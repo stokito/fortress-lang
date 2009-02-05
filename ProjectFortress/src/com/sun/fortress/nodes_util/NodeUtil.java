@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,7 +32,7 @@ import edu.rice.cs.plt.lambda.Lambda2;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.compiler.Parser;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
 

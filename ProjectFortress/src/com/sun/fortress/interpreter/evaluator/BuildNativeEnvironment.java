@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,9 +21,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
 import com.sun.fortress.interpreter.env.LazilyEvaluatedCell;
+import com.sun.fortress.interpreter.env.NonApiWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FTraitOrObjectOrGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.types.FTypeObject;
@@ -31,7 +33,6 @@ import com.sun.fortress.interpreter.evaluator.values.Constructor;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.evaluator.values.GenericNativeConstructor;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.Expr;
 import com.sun.fortress.nodes.ObjectConstructor;
 import com.sun.fortress.nodes.Id;
@@ -47,7 +48,7 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class BuildNativeEnvironment extends BuildTopLevelEnvironments {
 
-    public BuildNativeEnvironment(Environment within, Map<String, ComponentWrapper> linker) {
+    public BuildNativeEnvironment(Environment within, Map<String, NonApiWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }

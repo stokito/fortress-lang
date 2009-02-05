@@ -30,7 +30,7 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
+import com.sun.fortress.compiler.WellKnownNames;
 
 import junit.framework.TestCase;
 

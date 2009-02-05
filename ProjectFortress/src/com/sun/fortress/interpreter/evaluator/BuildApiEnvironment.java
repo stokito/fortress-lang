@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import com.sun.fortress.interpreter.env.CUWrapper;
 import com.sun.fortress.interpreter.env.ComponentWrapper;
+import com.sun.fortress.interpreter.env.NonApiWrapper;
 import com.sun.fortress.interpreter.evaluator.types.FType;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.rewrite.ArrowOrFunctional;
@@ -154,7 +155,7 @@ public class BuildApiEnvironment extends BuildTopLevelEnvironments {
     }
 
     public BuildApiEnvironment(Environment within,
-            Map<String, ComponentWrapper> linker) {
+            Map<String, NonApiWrapper> linker) {
         super(within, linker);
         // TODO Auto-generated constructor stub
     }

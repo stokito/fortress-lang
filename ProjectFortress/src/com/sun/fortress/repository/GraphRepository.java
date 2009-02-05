@@ -17,7 +17,7 @@
 
 package com.sun.fortress.repository;
 
-import static com.sun.fortress.interpreter.glue.WellKnownNames.defaultLibrary;
+import static com.sun.fortress.compiler.WellKnownNames.defaultLibrary;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,6 +39,7 @@ import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -46,7 +47,6 @@ import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
-import com.sun.fortress.interpreter.glue.WellKnownNames;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AliasedAPIName;
 import com.sun.fortress.nodes.AliasedSimpleName;
@@ -114,14 +114,14 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     ForeignJava foreignJava = ForeignJava.only;
 
-    public GraphRepository(Path p, CacheBasedRepository cache) throws FileNotFoundException {
+    public GraphRepository(Path p, CacheBasedRepository cache) throws IOException {
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
         addRoots();
     }
 
-    private GraphRepository(Path p, String cacheDir) throws FileNotFoundException {
+    private GraphRepository(Path p, String cacheDir) throws IOException {
         this(p, new CacheBasedRepository(cacheDir));
     }
 
@@ -133,10 +133,11 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* by default all the root APIs should be added to the graph
      * and set as dependencies for everything else.
      */
-    private void addRoots() throws FileNotFoundException {
+    private void addRoots() throws IOException {
         for ( String root : roots() ){
             APIName name = NodeFactory.makeAPIName(NodeFactory.shellSpan,root);
-            ApiGraphNode api = new ApiGraphNode(name, getApiFileDate(name));
+            File api_file = getApiFile(name);
+            ApiGraphNode api = new ApiGraphNode(name, api_file);
             try{
                 long cache_date = cache.getModifiedDateForApi(api.getName());
                 api.setApi( cache.getApi( api.getName() ), cache_date);
@@ -212,14 +213,15 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 // TODO not smart about age of native API yet
                 // Make the native API be very old, so nothing is out of date;
                 needUpdate = true;
-                node = new ApiGraphNode(name, Long.MIN_VALUE);
+                node = new ApiGraphNode(name, "ForeignJava", Long.MIN_VALUE);
                 graph.addNode( node );
                 return node;
             }
 
             /* a new node was added, a recompile is needed */
             needUpdate = true;
-            node = new ApiGraphNode(name, getApiFileDate(name));
+            File api_file = getApiFile(name);
+            node = new ApiGraphNode(name, api_file);
             graph.addNode( node );
             try{
                 /* try to load the API from the cache.
@@ -256,7 +258,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if ( node == null ){
             /* a new node was added, a recompile is needed */
             needUpdate = true;
-            node = new ComponentGraphNode(name, getComponentFileDate(name));
+            File component_file = getComponentFile(name);
+            node = new ComponentGraphNode(name, component_file);
             graph.addNode( node );
             try{
                 /* try to load the component from the cache.
@@ -327,16 +330,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return node.getSourceDate();
     }
 
-    private long getComponentFileDate( APIName name ) throws FileNotFoundException {
-        return findFile( name, ProjectProperties.COMP_SOURCE_SUFFIX ).lastModified();
+    private File getComponentFile( APIName name ) throws FileNotFoundException {
+        return findFile( name, ProjectProperties.COMP_SOURCE_SUFFIX );
     }
 
     private long getApiFileDate( ApiGraphNode node ) throws FileNotFoundException {
         return node.getSourceDate();
     }
 
-    private long getApiFileDate( APIName name ) throws FileNotFoundException {
-        return findFile( name, ProjectProperties.API_SOURCE_SUFFIX ).lastModified();
+    private File getApiFile( APIName name ) throws FileNotFoundException {
+        return findFile( name, ProjectProperties.API_SOURCE_SUFFIX );
     }
 
     public File findFile(APIName name, String suffix) throws FileNotFoundException {
