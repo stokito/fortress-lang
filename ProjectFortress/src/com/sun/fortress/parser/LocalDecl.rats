@@ -151,7 +151,7 @@ LocalVarDecl LocalVarDecl =
        List<Type> tys = a3.getElements();
        Option<Expr> init;
        if (a2.size() != tys.size())
-           syntaxError(span, "Mismatched numbers of variables and types.");
+           log(span, "Mismatched numbers of variables and types.");
        if (a1 != null) {
            a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
            if (a4 == null) init = Option.none();
@@ -169,8 +169,9 @@ LocalVarDecl LocalVarDecl =
        yyValue = ExprFactory.makeLocalVarDecl(span, a2, init);
      }
    / <ErrorProduction> var w VarWoTypes s equals w NoNewlineExpr
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Mutable variables should be declared with their types.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Mutable variables should be declared with their types.");
+       yyValue = ExprFactory.makeLocalVarDecl(span, Collections.<LValue>emptyList());
      };
 
 LValue VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?

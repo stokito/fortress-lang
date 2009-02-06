@@ -87,11 +87,11 @@ FnHeaderFront OpHeaderFront :=
                left  = "BIG " + left;
                right = "BIG " + right;
            }
-           name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(NodeUtil.getSpan(leftOp),
-                              "Mismatched enclosing operator definition: " +
-                              left + " and " + right);
+           log(NodeUtil.getSpan(leftOp),
+               "Mismatched enclosing operator definition: " +
+               left + " and " + right);
+       name = NodeFactory.makeEnclosing(span, left, right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        if (opa3 == null) opa3 = FortressUtil.emptyParams();
        Option<Param> opparam = Option.wrap(opa5);
@@ -125,11 +125,11 @@ FnHeaderFront AbsOpHeaderFront :=
                left  = "BIG " + left;
                right = "BIG " + right;
            }
-           name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(NodeUtil.getSpan(leftOp),
-                              "Mismatched enclosing operator definition: " +
-                              left + " and " + right);
+           log(NodeUtil.getSpan(leftOp),
+               "Mismatched enclosing operator definition: " +
+               left + " and " + right);
+       name = NodeFactory.makeEnclosing(span, left, right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        if (opa3 == null) opa3 = FortressUtil.emptyParams();
        Option<Param> opparam = Option.wrap(opa5);

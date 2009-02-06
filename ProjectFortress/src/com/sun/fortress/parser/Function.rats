@@ -54,8 +54,10 @@ FnDecl FnSig =
        final List<Param>  params = FortressUtil.emptyParams();
 
        if (!(a2 instanceof ArrowType)) {
-           syntaxError(NodeUtil.getSpan(a2),
-                       "Abstract function declaration should have an arrow type.");
+           Span span = NodeUtil.getSpan(a2);
+           log(span, "Abstract function declaration should have an arrow type.");
+           Type ty = NodeFactory.makeVoidType(span);
+           a2 = NodeFactory.makeArrowType(span, ty, ty);
        }
        Type d = ((ArrowType) a2).getDomain();
        if ( d instanceof TupleType ) {

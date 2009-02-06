@@ -84,12 +84,14 @@ private TraitClause TraitClause =
    / a1:Comprises { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
    / a1:Where
      { yyValue = new Where(createSpan(yyStart,yyCount),
-                           Option.some(a1));
+                           Option.<WhereClause>some(a1));
      }
    / <ErrorProduction>
      ExtendsWhere
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before excludes/comprises/where clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before excludes/comprises/where clauses.");
+       yyValue = new Where(span, Option.<WhereClause>none());
      };
 
 /* GoInATrait ::=
@@ -104,23 +106,27 @@ private List<Decl> GoInATrait =
      }
    / <ErrorProduction1>
      GoFrontInATrait br Coercions (br GoBackInATrait)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction2>
      GoFrontInATrait br GoBackInATrait br Coercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction3>
      GoBackInATrait br Coercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction4>
      GoBackInATrait br GoFrontInATrait
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Field/getter/setter declarations should come before method declarations.");
+     { log(createSpan(yyStart,yyCount),
+           "Field/getter/setter declarations should come before method declarations.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
      { yyValue = new ArrayList<Decl>();
@@ -166,8 +172,8 @@ ObjectDecl ObjectDecl =
      a4:((s object)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))
-           yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
-                                 " has the different name " + a4 + " at the end.");
+           log(span, "An object declaration of " + a2.getName() +
+               " has the different name " + a4 + " at the end.");
        if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
@@ -185,13 +191,17 @@ private ObjectHeader ObjectHeader =
      <ErrorProduction>
      object w a1:OpName a2:(w StaticParams)? a3:(w ObjectValParam)?
      a4:(w ExtendsWhere)? a5:FnClauses
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid object name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid object name.\n" +
+           "A non-reserved word that is made up of a mixture" +
+           " of uppercase letters and underscores (but no " +
+           "digits), does not begin or end with an " +
+           "underscore, and contains at least two distinct " +
+           "letters is an operator name.");
+       yyValue = new ObjectHeader(NodeFactory.bogusId(span),
+                                  FortressUtil.emptyStaticParams(),
+                                  Option.<List<Param>>none(),
+                                  FortressUtil.emptyTraitTypeWheres(), a5);
      }
    / object w a1:Id a2:(w StaticParams)? a3:(w ObjectValParam)?
      a4:(w ExtendsWhere)? a5:FnClauses
@@ -216,23 +226,26 @@ private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
 Param Varargs :=
      <ErrorProduction>
      VarargsParam
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Varargs parameters of objects are not allowed.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Varargs parameters of objects are not allowed.");
+       yyValue = NodeFactory.bogusParam(span);
      };
 
 Param Param :=
      a1:ParamFldMods? a2:PlainParam
      { if (a1 != null) {
-           if (a1.isMutable() && a2.getIdType().isNone())
-               syntaxError(NodeUtil.getSpan(a2),
-                           "Mutable fields should be declared with their types.");
-           yyValue = NodeFactory.makeParam(a2, a1);
+           if (a1.isMutable() && a2.getIdType().isNone()) {
+               log(NodeUtil.getSpan(a2),
+                   "Mutable fields should be declared with their types.");
+               yyValue = NodeFactory.makeParam(a2, a1);
+           } else yyValue = NodeFactory.makeParam(a2, a1);
        } else yyValue = a2;
      }
    / <ErrorProduction2>
      var w PlainParam
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Mutable variables should be declared with their types.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Mutable variables should be declared with their types.");
+       yyValue = NodeFactory.bogusParam(span);
      };
 
 /* ParamWType ::= BindId w IsType */
@@ -252,23 +265,27 @@ List<Decl> GoInAnObject =
      }
    / <ErrorProduction1>
      GoFrontInAnObject br Coercions (br GoBackInAnObject)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction2>
      GoFrontInAnObject br GoBackInAnObject br Coercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction3>
      GoBackInAnObject br Coercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction4>
      GoBackInAnObject br GoFrontInAnObject
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Field/getter/setter declarations should come before method declarations.");
+     { log(createSpan(yyStart,yyCount),
+           "Field/getter/setter declarations should come before method declarations.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
      { yyValue = new ArrayList<Decl>();
@@ -311,9 +328,10 @@ TraitDecl AbsTraitDecl =
      a1:Mods? a2:TraitHeaderFront a3:AbsTraitClauses
      a4:(w AbsGoInATrait)? w end a5:((s trait)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
-       if (a5 != null && !a2.getName().getText().equals(a5.getText()))
-           yyValue = syntaxError(span, "A trait declaration of " + a2.getName() +
-                                 " has the different name " + a5 + " at the end.");
+       if (a5 != null && !a2.getName().getText().equals(a5.getText())) {
+           log(span, "A trait declaration of " + a2.getName() +
+               " has the different name " + a5 + " at the end.");
+       }
        if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl
@@ -345,8 +363,10 @@ private TraitClause AbsTraitClause =
      { yyValue = new Where(createSpan(yyStart,yyCount), Option.some(a1)); }
    / <ErrorProduction>
      ExtendsWhere
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before excludes/comprises/where clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before excludes/comprises/where clauses.");
+       yyValue = new Where(span, Option.<WhereClause>none());
      };
 
 /* AbsGoInATrait ::=
@@ -361,23 +381,27 @@ private List<Decl> AbsGoInATrait =
      }
    / <ErrorProduction1>
      AbsGoFrontInATrait br AbsCoercions (br AbsGoBackInATrait)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction2>
      AbsGoFrontInATrait br AbsGoBackInATrait br AbsCoercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction3>
      AbsGoBackInATrait br AbsCoercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction4>
      AbsGoBackInATrait br AbsGoFrontInATrait
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Field/getter/setter declarations should come before method declarations.");
+     { log(createSpan(yyStart,yyCount),
+           "Field/getter/setter declarations should come before method declarations.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
      { yyValue = new ArrayList<Decl>();
@@ -423,9 +447,10 @@ ObjectDecl AbsObjectDecl =
      a1:Mods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
      a4:((s object)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
-       if (a4 != null && !a2.getName().getText().equals(a4.getText()))
-           yyValue = syntaxError(span, "An object declaration of " + a2.getName() +
-                                 " has the different name " + a4 + " at the end.");
+       if (a4 != null && !a2.getName().getText().equals(a4.getText())) {
+           log(span, "An object declaration of " + a2.getName() +
+               " has the different name " + a4 + " at the end.");
+       }
        if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
@@ -450,23 +475,27 @@ List<Decl> AbsGoInAnObject =
      }
    / <ErrorProduction1>
      AbsGoFrontInAnObject br AbsCoercions (br AbsGoBackInAnObject)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction2>
      AbsGoFrontInAnObject br AbsGoBackInAnObject br AbsCoercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction3>
      AbsGoBackInAnObject br AbsCoercions
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Coercion declarations should come first.");
+     { log(createSpan(yyStart,yyCount),
+           "Coercion declarations should come first.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / <ErrorProduction4>
      AbsGoBackInAnObject br AbsGoFrontInAnObject
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Field/getter/setter declarations should come before method declarations.");
+     { log(createSpan(yyStart,yyCount),
+           "Field/getter/setter declarations should come before method declarations.");
+       yyValue = Collections.<Decl>emptyList();
      }
    / a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
      { yyValue = new ArrayList<Decl>();
