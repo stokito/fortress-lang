@@ -81,7 +81,7 @@ NumberLiteralExpr NumericLiteralExpr =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       NodeUtil.validNumericLiteral(span, numeral);
+       FortressUtil.validNumericLiteral(span, numeral);
        if ( FortressUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
        else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
@@ -94,8 +94,8 @@ private NumberLiteralExpr NumericLiteralWithRadix =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       NodeUtil.validNumericLiteral(span, numeral, a3);
-       numeral += "_"+NodeUtil.radix2Number(a3);
+       FortressUtil.validNumericLiteral(span, numeral, a3);
+       numeral += "_"+FortressUtil.radix2Number(a3);
        if ( FortressUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
        else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);

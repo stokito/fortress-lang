@@ -179,11 +179,7 @@ body {
     }
 
     private void log(Span span, String message) {
-        try {
-            writer.write( span + " : " + message + "\n" );
-        } catch (IOException error) {
-            error("Writing to a log file for the parser failed!");
-        }
+        FortressUtil.log(writer, span, message);
     }
 
 }

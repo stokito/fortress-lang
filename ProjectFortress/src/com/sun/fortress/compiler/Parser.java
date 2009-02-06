@@ -236,7 +236,10 @@ public class Parser {
             if (e.getMessage() != null) { desc += " (" + e.getMessage() + ")"; }
             return new Result(StaticError.make(desc, f.toString()));
         } finally {
-            if (in != null) try { in.close(); } catch (IOException ioe) {}
+            try {
+                Files.rm( f.getCanonicalPath() + ".macroError.log" );
+                if (in != null) in.close();
+            } catch (IOException ioe) {}
         }
     }
 
