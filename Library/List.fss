@@ -133,7 +133,7 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
     (** the operator %||% returns a list containing the elements of %self% followed
         by the elements of %f% *)
     opr ||(self, other:List[\E\]): List[\E\]
-    (** Helper methods for %append% *)
+    (** Helper methods for %||% *)
     private appendRC[\T\](other:List[\T\]): List[\E\]
     private appendLC[\T\](other:List[\T\]): List[\E\]
     private appendR[\T\](other:List[\T\]): List[\E\]

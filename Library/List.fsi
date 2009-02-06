@@ -34,12 +34,12 @@ api List
     Eventually the backing array fills and we must allocate a new
     backing array to accept new elements.  At the moment, we are not
     particularly careful to avoid stealing permission to extend for
-    overflowing %append% operations.
+    overflowing %||% operations.
 
     Note that because of this implementation, a %List% can be
     efficiently extended on either side, but only in a non-persistent
     way; if a single list is extended by two different calls to
-    %addRight% or %append% then one of them must pay the cost of
+    %addRight% or %||% then one of them must pay the cost of
     copying the list elements.
 
     Note also that the implementation has not yet been carefully
@@ -60,7 +60,7 @@ api List
     inference. **)
 trait AnyList excludes { Number, HasRank }
         (** \vspace{-4ex} Not yet: ``%comprises List[\E\] where [\E\]%'' *)
-    append(f:AnyList): AnyList
+    opr ||(self, f:AnyList): AnyList
     addLeft(e:Any): AnyList
     addRight(e:Any): AnyList
 end
@@ -81,10 +81,8 @@ trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
   getter right():Maybe[\E\]
   getter extractLeft(): Maybe[\(E,List[\E\])\]
   getter extractRight(): Maybe[\(List[\E\],E)\]
-  (** %append% returns a list containing the elements of %self% followed
+  (** the operator %||% returns a list containing the elements of %self% followed
       by the elements of %f% *)
-  append(f:List[\E\]): List[\E\]
-  (** the operator %||% performs the %append% operation *)
   opr ||(self, other:List[\E\]): List[\E\]
   (** %addLeft% and %addRight% add an element to the left or right of
       the list, respectively *)
