@@ -101,6 +101,13 @@ public class WellKnownNames {
             new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
     }
 
+    public static void useTypeCheckerLibraries() {
+        _fortressLibrary = "TypeCheckerLibrary";
+        _fortressBuiltin = "TypeCheckerBuiltin";
+        _defaultLibrary =
+            new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
+    }
+
     public final static String obfuscatedSingletonConstructorName(String fname, HasAt x) {
         // TODO Auto-generated method stub
         return "*1_" + fname;
