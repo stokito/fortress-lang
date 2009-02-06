@@ -45,8 +45,8 @@ Type NoNewlineType =
                yyValue = NodeFactory.makeTaggedDimType(NodeUtil.getSpan(_ty), false, _ty.getElemType(),
                                                        _ty.getDimExpr(), Option.some(a2));
            } else {
-               yyValue = syntaxError(NodeUtil.getSpan(ty),
-                                     "A dimension type is expected.");
+               log(NodeUtil.getSpan(ty), "A dimension type is expected.");
+               yyValue = ty;
            }
        }
      };

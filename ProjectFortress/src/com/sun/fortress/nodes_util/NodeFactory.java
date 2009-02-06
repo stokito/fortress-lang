@@ -517,6 +517,10 @@ public class NodeFactory {
         return new LValue(makeSpanInfo(span), name, mods, type, mutable);
     }
 
+    public static Param bogusParam(Span span) {
+        return makeParam(bogusId(span));
+    }
+
     public static Param makeParam(Span span, Modifiers mods, Id name,
                                   Type type) {
         return makeParam(span, mods, name, Option.<Type>some(type));
@@ -751,7 +755,7 @@ public class NodeFactory {
         return makeVarType(span, makeId(span, string));
     }
 
-        
+
     public static VarType makeVarType(Span span, Id id) {
         return makeVarType(span, false, id, lexicalDepth);
     }
