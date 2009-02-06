@@ -85,12 +85,8 @@ body {
     }
 
     private void log(Span span, String message) {
-        try {
-            withError = true;
-            writer.write( span + "\n    " + message + "\n" );
-        } catch (IOException error) {
-            error("Writing to a log file for the parser failed!");
-        }
+        withError = true;
+        FortressUtil.log(writer, span, message);
     }
 
 }

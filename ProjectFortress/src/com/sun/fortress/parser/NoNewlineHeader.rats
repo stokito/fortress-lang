@@ -264,7 +264,7 @@ private List<BaseType> MayTraitTypes =
 /* Each modifier cannot appear more than once. */
 /* Mods ::= (Mod w)+ */
 transient Modifiers Mods = a1s:(Mod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* Mod ::=
@@ -287,7 +287,7 @@ transient Modifiers Mod =
 /* ParamFldMods ::= (ParamFldMod w)+ */
 transient Modifiers ParamFldMods = a1s:(ParamFldMod w)+
      { yyValue =
-           FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+           FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
                                     FortressUtil.mkList(a1s.list()));
      };
 
@@ -301,13 +301,13 @@ transient private Modifiers ParamFldMod =
 /* Each modifier cannot appear more than once. */
 /* FldMods ::= (FldMod w)+ */
 transient Modifiers FldMods = a1s:(FldMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* Each modifier cannot appear more than once. */
 /* FldImmutableMods ::= (FldImmutableMod w)+ */
 transient Modifiers FldImmutableMods = a1s:(FldImmutableMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* FldMod ::= var | AbsFldMod */
@@ -325,7 +325,7 @@ transient private Modifiers FldImmutableMod =
 /* Each modifier cannot appear more than once. */
 /* AbsFldMods ::= (AbsFldMod w)+ */
 transient Modifiers AbsFldMods = a1s:(AbsFldMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* AbsFldMod ::= ApiFldMod | wrapped | private */
@@ -337,7 +337,7 @@ transient private Modifiers AbsFldMod =
 /* Each modifier cannot appear more than once. */
 /* ApiFldMods ::= (ApiFldMod w)+ */
 transient Modifiers ApiFldMods = a1s:(ApiFldMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* ApiFldMod ::= hidden | settable | test */

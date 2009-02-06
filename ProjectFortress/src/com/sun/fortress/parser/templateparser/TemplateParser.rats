@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -20,102 +20,102 @@
  */
 module com.sun.fortress.parser.templateparser.TemplateParser;
 modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Literal, Identifier, Keyword,
-                                           Symbol, Spacing);
+                                                          Symbol, Spacing);
 instantiate com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
-                                                OtherDecl, Spacing, Syntax)
+                                                               OtherDecl, Spacing, Syntax)
             as Declaration;
 instantiate com.sun.fortress.parser.templateparser.TraitObject(Method, Field, AbsField,
-                                                Parameter, OtherDecl,
-                                                NoNewlineHeader, Identifier,
-                                                Keyword, Symbol, Spacing)
+                                                               Parameter, OtherDecl,
+                                                               NoNewlineHeader, Identifier,
+                                                               Keyword, Symbol, Spacing)
             as TraitObject;
 instantiate com.sun.fortress.parser.templateparser.Function(Parameter, NoNewlineHeader,
-                                             NoNewlineType, NoNewlineExpr,
-                                             Identifier, Keyword, Symbol,
-                                             Spacing)
+                                                            NoNewlineType, NoNewlineExpr,
+                                                            Identifier, Keyword, Symbol,
+                                                            Spacing)
             as Function;
 instantiate com.sun.fortress.parser.templateparser.Parameter(NoNewlineHeader, MayNewlineHeader,
-                                              Type, Expression, Identifier,
-                                              Keyword, Symbol, Spacing)
+                                                             Type, Expression, Identifier,
+                                                             Keyword, Symbol, Spacing)
             as Parameter;
 instantiate com.sun.fortress.parser.templateparser.Method(MethodParam, NoNewlineHeader,
-                                           MayNewlineHeader, Type, NoNewlineExpr,
-                                           Identifier, Keyword, Symbol, Spacing)
+                                                          MayNewlineHeader, Type, NoNewlineExpr,
+                                                          Identifier, Keyword, Symbol, Spacing)
             as Method;
 instantiate com.sun.fortress.parser.templateparser.MethodParam(Parameter, Keyword)
             as MethodParam;
 instantiate com.sun.fortress.parser.templateparser.Variable(NoNewlineHeader, MayNewlineHeader,
-                                             NoNewlineType, NoNewlineExpr,
-                                             Identifier, Keyword, Symbol, Spacing)
+                                                            NoNewlineType, NoNewlineExpr,
+                                                            Identifier, Keyword, Symbol, Spacing)
             as Variable;
 instantiate com.sun.fortress.parser.templateparser.Field(Variable, NoNewlineHeader, Type,
-                                          Identifier, Spacing)
+                                                         Identifier, Spacing)
             as Field;
 instantiate com.sun.fortress.parser.templateparser.AbsField(Variable, NoNewlineHeader, Type,
-                                             Identifier, Spacing)
+                                                            Identifier, Spacing)
             as AbsField;
 instantiate com.sun.fortress.parser.templateparser.MayNewlineHeader(OtherDecl, Type,
-                                                     NoNewlineHeader, Expression,
-                                                     DelimitedExpr, Literal,
-                                                     Identifier, Keyword, Symbol,
-                                                     Spacing)
+                                                                    NoNewlineHeader, Expression,
+                                                                    DelimitedExpr, Literal,
+                                                                    Identifier, Keyword, Symbol,
+                                                                    Spacing)
             as MayNewlineHeader;
 instantiate com.sun.fortress.parser.templateparser.NoNewlineHeader(OtherDecl, NoNewlineType,
-                                                    NoNewlineExpr,
-                                                    MayNewlineHeader, Literal,
-                                                    Identifier, Keyword, Symbol,
-                                                    Spacing)
+                                                                   NoNewlineExpr,
+                                                                   MayNewlineHeader, Literal,
+                                                                   Identifier, Keyword, Symbol,
+                                                                   Spacing)
             as NoNewlineHeader;
 instantiate com.sun.fortress.parser.templateparser.OtherDecl(Parameter, NoNewlineHeader,
-                                              NoNewlineType, NoNewlineExpr,
-                                              Identifier, Keyword, Symbol,
-                                              Spacing)
+                                                             NoNewlineType, NoNewlineExpr,
+                                                             Identifier, Keyword, Symbol,
+                                                             Spacing)
             as OtherDecl;
 instantiate com.sun.fortress.parser.templateparser.Syntax(Identifier, Keyword, Spacing, Symbol,
-                                           Expression, DelimitedExpr, LocalDecl,
-                                           Unicode, NoNewlineHeader, Type)
+                                                          Expression, DelimitedExpr, LocalDecl,
+                                                          Unicode, NoNewlineHeader, Type)
             as Syntax;
 instantiate com.sun.fortress.parser.templateparser.Type(NoNewlineHeader, MayNewlineHeader,
-                                         Expression, Literal, Identifier,
-                                         Keyword, Symbol, Spacing)
+                                                        Expression, Literal, Identifier,
+                                                        Keyword, Symbol, Spacing)
             as Type;
 instantiate com.sun.fortress.parser.templateparser.NoNewlineType(Type, NoNewlineExpr, Keyword,
-                                                  Symbol, Spacing)
+                                                                 Symbol, Spacing)
             as NoNewlineType;
 instantiate com.sun.fortress.parser.templateparser.Expression(Parameter, NoNewlineHeader,
-                                               MayNewlineHeader, Type,
-                                               DelimitedExpr, Literal,
-                                               Identifier, Keyword, Symbol,
-                                               Spacing, Gaps)
+                                                              MayNewlineHeader, Type,
+                                                              DelimitedExpr, Literal,
+                                                              Identifier, Keyword, Symbol,
+                                                              Spacing, Gaps)
             as Expression;
 instantiate com.sun.fortress.parser.templateparser.DelimitedExpr(TraitObject, NoNewlineHeader,
-                                                  MayNewlineHeader, Type,
-                                                  Expression, LocalDecl, Literal,
-                                                  Identifier, Keyword, Symbol,
-                                                  Spacing)
+                                                                 MayNewlineHeader, Type,
+                                                                 Expression, LocalDecl, Literal,
+                                                                 Identifier, Keyword, Symbol,
+                                                                 Spacing)
             as DelimitedExpr;
 instantiate com.sun.fortress.parser.templateparser.NoNewlineExpr(Expression, NoNewlineType,
-                                                  Keyword, Symbol, Spacing)
+                                                                 Keyword, Symbol, Spacing)
             as NoNewlineExpr;
 instantiate com.sun.fortress.parser.templateparser.NoSpaceExpr(Expression, Keyword, Symbol,
-                                                Spacing)
+                                                               Spacing)
             as NoSpaceExpr;
 instantiate com.sun.fortress.parser.templateparser.Literal(MayNewlineHeader, DelimitedExpr,
-                                            NoSpaceExpr, Symbol,
-                                            Spacing, Identifier, Gaps)
+                                                           NoSpaceExpr, Symbol,
+                                                           Spacing, Identifier, Gaps)
             as Literal;
 instantiate com.sun.fortress.parser.templateparser.LocalDecl(Variable, Function, Parameter,
-                                              NoNewlineHeader, NoNewlineType,
-                                              NoNewlineExpr, DelimitedExpr,
-                                              Identifier, Keyword, Symbol,
-                                              Spacing)
+                                                             NoNewlineHeader, NoNewlineType,
+                                                             NoNewlineExpr, DelimitedExpr,
+                                                             Identifier, Keyword, Symbol,
+                                                             Spacing)
             as LocalDecl;
 instantiate com.sun.fortress.parser.templateparser.Identifier(Keyword, Symbol,
-                                               Unicode, Spacing, Gaps)
+                                                              Unicode, Spacing, Gaps)
             as Identifier;
 instantiate com.sun.fortress.parser.templateparser.Symbol(DelimitedExpr, LocalDecl,
-                                           NoNewlineExpr, Type, Identifier,
-                                           Spacing, Keyword)
+                                                          NoNewlineExpr, Type, Identifier,
+                                                          Spacing, Keyword)
             as Symbol;
 instantiate com.sun.fortress.parser.templateparser.Spacing(Symbol)
             as Spacing;
@@ -181,22 +181,29 @@ body {
         setExpectedName(Option.wrap(expectedName));
     }
 
-   Span createSpan(int start, int end) {
-       int i = end-2;
-       while ( i >= 0 && yyData[i] == ' ' ) { i--; }
+    Span createSpan(int start, int end) {
+        int i = end-2;
+        while ( i >= 0 && yyData[i] == ' ' ) { i--; }
         if ( i-1 >= start )
             end = i-1;
         else
             end = start;
-       Column s = column(start);
-       Column e = column(end);
-       SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column, start);
-       SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
-       return new Span(slStart, slEnd);
-   }
+        Column s = column(start);
+        Column e = column(end);
+        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column, start);
+        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
+        return new Span(slStart, slEnd);
+    }
 
-   private void log(Span span, String message) {}
-
+    private BufferedWriter writer = getWriter();
+    private BufferedWriter getWriter() {
+        try {
+            return Useful.filenameToBufferedWriter( column(0).file + ".macroError.log" );
+        } catch (IOException error) {
+            return error("Creating a log file for the parser failed!");
+        }
+    }
+    private void log(Span span, String message) {}
 }
 
 option flag(isNative), parser(com.sun.fortress.parser.templateparser.TemplateParser);

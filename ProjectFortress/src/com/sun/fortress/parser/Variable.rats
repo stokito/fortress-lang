@@ -106,14 +106,14 @@ VarDecl VarDecl =
 /* Each modifier cannot appear more than once. */
 /* VarMods ::= (VarMod w)+ */
 transient Modifiers VarMods = a1s:(VarMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* Each modifier cannot appear more than once. */
 /* VarImmutableMods ::= (VarImmutableMod w)+ */
 transient Modifiers VarImmutableMods =
      a1s:(VarImmutableMod w)+
-     { yyValue = FortressUtil.noDuplicate(createSpan(yyStart,yyCount), a1s);
+     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* VarMod ::= AbsVarMod | private */
@@ -187,7 +187,7 @@ VarDecl AbsVarDecl =
 /* AbsVarMods ::= (AbsVarMod w)+ */
 transient Modifiers AbsVarMods = a1s:(AbsVarMod w)+
      { yyValue =
-           FortressUtil.noDuplicate(createSpan(yyStart,yyCount),
+           FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
                                     FortressUtil.mkList(a1s.list()));
      };
 

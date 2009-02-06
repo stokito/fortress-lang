@@ -21,6 +21,8 @@
 
 package com.sun.fortress.parser_util;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +51,14 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 public final class FortressUtil {
     public static <T> T syntaxError(Span span, String msg) {
         return ProgramError.<T>error(ExprFactory.makeVoidLiteralExpr(span), msg);
+    }
+
+    public static void log(BufferedWriter writer, Span span, String msg) {
+        try {
+            writer.write( span + "\n    " + msg + "\n" );
+        } catch (IOException error) {
+            error("Writing to a log file for the parser failed!");
+        }
     }
 
     public static void println(String arg) {
@@ -147,11 +157,13 @@ public final class FortressUtil {
         });
     }
 
-    public static Modifiers noDuplicate(final Span span, Iterable<Modifiers> mods) {
+    public static Modifiers noDuplicate(BufferedWriter writer, final Span span,
+                                        Iterable<Modifiers> mods) {
         Modifiers res = Modifiers.None;
         for (Modifiers mod : mods) {
             if (res.containsAny(mod)) {
-                syntaxError(span, "Modifier " + mod + " must not occur multiple times");
+                log(writer, span,
+                    "Modifier " + mod + " must not occur multiple times");
             }
             res = res.combine(mod);
         }
@@ -233,7 +245,7 @@ public final class FortressUtil {
     public static boolean validId(String s) {
         String[] words = s.split("_");
         boolean isNumeral = (words.length == 2 &&
-                             (NodeUtil.radix2Number(words[1]) != -1 ||
+                             (radix2Number(words[1]) != -1 ||
                               allDigits(words[1])));
         return (!FortressUtil.validOp(s) && !s.equals("_") &&
                 !isNumeral && !s.equals("SUM") && !s.equals("PROD"));
@@ -744,4 +756,181 @@ public final class FortressUtil {
             return ExprFactory.makeTightJuxt(span, javaList);
         }
     }
+
+    public static void validNumericLiteral(Span span, String numeral) {
+        int numberOfDots = 0;
+        for (int index = 0; index < numeral.length(); index++) {
+            char c = numeral.charAt(index);
+            if (Character.isLetter(c))
+                syntaxError(span, "Syntax Error: a numeral contains " +
+                            "letters and does not have a radix specifier.");
+            if (c == '.') numberOfDots++;
+        }
+        if (numberOfDots > 1)
+            syntaxError(span, "Syntax Error: a numeral contains more " +
+                        "than one `.' character.");
+    }
+
+    public static void validNumericLiteral(Span span, String numeral,
+                                           String radix) {
+        int radixNumber = radix2Number(radix);
+        if (radixNumber == -1)
+            syntaxError(span, "Syntax Error: the radix of " +
+                        "a numeral should be an integer from 2 to 16.");
+        boolean sawUpperCase = false;
+        boolean sawLowerCase = false;
+        boolean sawAb = false;
+        boolean sawXe = false;
+        int numberOfDots = 0;
+        for (int index = 0; index < numeral.length(); index++) {
+            char c = numeral.charAt(index);
+            if (c == '.') numberOfDots++;
+            if (Character.isUpperCase(c)) {
+                if (sawLowerCase)
+                    syntaxError(span, "Syntax Error: a numeral " +
+                                "contains both uppercase and lowercase letters.");
+                else sawUpperCase = true;
+            } else if (Character.isLowerCase(c)) {
+                if (sawUpperCase)
+                    syntaxError(span, "Syntax Error: a numeral " +
+                                "contains both uppercase and lowercase letters.");
+                else sawLowerCase = true;
+            }
+            if (radixNumber == 12) {
+                if (!validDigitOrLetterIn12(c)
+                    && c != '.' && c != '\'' && c != '\u202F') {
+		    syntaxError(span, "Syntax Error: a numeral " +
+                                "has radix 12 and contains letters other " +
+                                "than A, B, X, E, a, b, x or e.");
+		}
+                if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
+                    if (sawXe)
+                        syntaxError(span, "Syntax Error: a numeral " +
+                                    "has radix 12 and contains at least one " +
+                                    "A, B, a or b and at least one X, E, x or e.");
+                    else sawAb = true;
+                } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
+                    if (sawAb)
+                        syntaxError(span, "Syntax Error: a numeral " +
+                                    "has radix 12 and contains at least one " +
+                                    "A, B, a or b and at least one X, E, x or e.");
+                    else sawXe = true;
+                }
+            }
+            // The numeral has a radix other than 12.
+            else if (!validDigitOrLetter(c, radixNumber)
+                     && c != '.' && c != '\'' && c != '\u202F') {
+                syntaxError(span, "Syntax Error: a numeral has a radix " +
+                            "specifier and contains a digit or letter that " +
+                            "denotes a value greater than or equal to the " +
+                            "numeral's radix.");
+	    }
+        }
+        if (numberOfDots > 1)
+            syntaxError(span, "Syntax Error: a numeral contains more " +
+                        "than one `.' character.");
+    }
+
+    public static int radix2Number(String radix) {
+        if (radix.equals("2") || radix.equals("TWO")) {
+            return 2;
+        } else if (radix.equals("3") || radix.equals("THREE")) {
+            return 3;
+        } else if (radix.equals("4") || radix.equals("FOUR")) {
+            return 4;
+        } else if (radix.equals("5") || radix.equals("FIVE")) {
+            return 5;
+        } else if (radix.equals("6") || radix.equals("SIX")) {
+            return 6;
+        } else if (radix.equals("7") || radix.equals("SEVEN")) {
+            return 7;
+        } else if (radix.equals("8") || radix.equals("EIGHT")) {
+            return 8;
+        } else if (radix.equals("9") || radix.equals("NINE")) {
+            return 9;
+        } else if (radix.equals("10") || radix.equals("TEN")) {
+            return 10;
+        } else if (radix.equals("11") || radix.equals("ELEVEN")) {
+            return 11;
+        } else if (radix.equals("12") || radix.equals("TWELVE")) {
+            return 12;
+        } else if (radix.equals("13") || radix.equals("THIRTEEN")) {
+            return 13;
+        } else if (radix.equals("14") || radix.equals("FOURTEEN")) {
+            return 14;
+        } else if (radix.equals("15") || radix.equals("FIFTEEN")) {
+            return 15;
+        } else if (radix.equals("16") || radix.equals("SIXTEEN")) {
+            return 16;
+        } else {
+            /* radix is not valid. */
+            return -1;
+        }
+    }
+
+    private static boolean validDigitOrLetterIn12(char c) {
+        if (Character.isLetter(c)) {
+            switch (c) {
+                case 'A':
+                case 'a':
+                case 'B':
+                case 'b':
+                case 'X':
+                case 'x':
+                case 'E':
+                case 'e': { break; }
+                default: {
+                    /* c is not valid in radix 12. */
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // radix is not 12.
+    private static boolean validDigitOrLetter(char c, int radix) {
+        if ((radix < 10 && Character.digit(c, radix) > -1) ||
+            (radix >= 10 && Character.isDigit(c)))
+            return true;
+        switch (c) {
+            case 'A':
+            case 'a': {
+                if (radix <= 10) return false;
+                break;
+            }
+            case 'B':
+            case 'b': {
+                if (radix <= 11) return false;
+                break;
+            }
+            case 'C':
+            case 'c': {
+                if (radix <= 12) return false;
+                break;
+            }
+            case 'D':
+            case 'd': {
+                if (radix <= 13) return false;
+                break;
+            }
+            case 'E':
+            case 'e': {
+                if (radix <= 14)
+                    return false;
+                break;
+            }
+            case 'F':
+            case 'f': {
+                if (radix <= 15) return false;
+                break;
+            }
+            default: {
+                /* c is not valid in a numeral of the radix. */
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
