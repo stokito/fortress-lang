@@ -83,7 +83,7 @@ VarDecl VarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           syntaxError(span, "Mismatched numbers of variables and types.");
+           log(span, "Mismatched numbers of variables and types.");
        List<LValue> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
@@ -97,8 +97,10 @@ VarDecl VarDecl =
      }
    / <ErrorProduction>
      var w BindIdOrBindIdTuple w equals w NoNewlineExpr
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Mutable variables should be declared with their types.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Mutable variables should be declared with their types.");
+       yyValue = NodeFactory.makeVarDecl(span, Collections.<LValue>emptyList(),
+                                         Option.<Expr>none());
      };
 
 /* Each modifier cannot appear more than once. */
@@ -173,7 +175,7 @@ VarDecl AbsVarDecl =
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
-           syntaxError(span, "Mismatched numbers of variables and types.");
+           log(span, "Mismatched numbers of variables and types.");
        List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
        else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
