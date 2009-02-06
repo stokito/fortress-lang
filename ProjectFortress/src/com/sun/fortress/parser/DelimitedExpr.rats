@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -61,24 +61,20 @@ Expr DelimitedExpr =
    / Do
    / label w a1:Id w a2:BlockElems w end w a3:Id
      { if (!a1.getText().equals(a3.getText()))
-             syntaxError(NodeUtil.getSpan(a1),
-                         "Mismatched identifiers for label expressions:\n'" +
-                         a1 + "' at " + NodeUtil.getSpan(a1) + " and\n'" +
-                         a3 + "' at " + NodeUtil.getSpan(a3));
+             log(NodeUtil.getSpan(a1),
+                 "Mismatched identifiers for label expressions:\n'" +
+                 a1 + "' at " + NodeUtil.getSpan(a1) + " and\n'" +
+                 a3 + "' at " + NodeUtil.getSpan(a3));
        yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), a1, a2);
      }
    / <ErrorProduction>
      label w a1:OpName w a2:BlockElems w end w a3:OpName
      { Span span = createSpan(yyStart,yyCount);
        if (a1.equals("in"))
-           yyValue = syntaxError(span, "'in' is a reserved word, and cannot be used as a label.");
+           log(span, "'in' is a reserved word, and cannot be used as a label.");
        else
-           yyValue = syntaxError(span, a1 + " is not a valid label name.\n" +
-                                 "A non-reserved word that is made up of a mixture" +
-                                 " of uppercase letters and underscores (but no " +
-                                 "digits),\ndoes not begin or end with an " +
-                                 "underscore, and contains at least two distinct " +
-                                 "letters is an operator name.");
+           log(span, a1 + " is not a valid label name.\n");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / while w a1:GeneratorClause w a2:Do
      { yyValue = ExprFactory.makeWhile(createSpan(yyStart,yyCount), a1, a2); }
@@ -121,8 +117,10 @@ Expr DelimitedExpr =
      }
    / <ErrorProduction1>
      case w Expr (w (Encloser / Op))? w do w CaseClauses (br CaseElse)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "In a case expression, 'do' is used incorrectly.  Use 'of' instead.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "In a case expression, 'do' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
      { Option<FunctionalRef> compare = Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
@@ -132,8 +130,10 @@ Expr DelimitedExpr =
      }
    / <ErrorProduction2>
      case w most w (Encloser / Op) w do w CaseClauses w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "In an extremum expression, 'do' is used incorrectly.  Use 'of' instead.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "In an extremum expression, 'do' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
      w end
@@ -144,13 +144,17 @@ Expr DelimitedExpr =
      }
    / <ErrorProduction3>
      typecase w TypecaseBindings w do w TypecaseClauses (br CaseElse)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "In a typecase expression, 'do' is used incorrectly.  Use 'of' instead.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "In a typecase expression, 'do' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / <ErrorProduction4>
      typecase w self w of w TypecaseClauses (br CaseElse)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "In a typecase expression, 'self' is used incorrectly.  Use a binding such as 'x = self' instead.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "In a typecase expression, 'self' is used incorrectly.  Use a binding such as 'x = self' instead.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
@@ -315,18 +319,24 @@ Expr Comprehension =
      <ErrorProduction1>
      (BIG w)? opensquare wr StaticArgs w ArrayComprehensionClause
      (br ArrayComprehensionClause)* w closesquare
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / <ErrorProduction2>
      (BIG w)? opencurly wr StaticArgs w Entry wr bar wr GeneratorClauseList w closecurly
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / <ErrorProduction3>
      (BIG w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / (BIG w)? opensquare a1:StaticArgs? w a2:ArrayComprehensionClause
      a3s:(br ArrayComprehensionClause)* w closesquare

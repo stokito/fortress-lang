@@ -119,8 +119,9 @@ constant transient Action<Expr> AssignLeftTail =
 constant inline Action<Expr> SubscriptAssign =
      <ErrorProduction>
      LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { log(createSpan(yyStart,yyCount),
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = new Action<Expr>() { public Expr run(Expr base) { return base; }};
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { yyValue = new Action<Expr>() {
@@ -331,8 +332,9 @@ constant Expr LeftAssociatedPrimary =
      <ErrorProduction>
      DottedIdChain wr StaticArgs ParenthesisDelimited
      ParenthesisDelimitedLeft* Selector*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / a1:DottedIdChain a2:StaticArgs a3:ParenthesisDelimited
      a4s:ParenthesisDelimitedLeft* a5s:Selector*
@@ -424,8 +426,10 @@ Expr PrimaryFront =
    / Comprehension
    / <ErrorProduction>
      LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { if (a3 == null) a3 = FortressUtil.emptyExprs();
@@ -446,8 +450,10 @@ Expr PrimaryFront =
 Expr VarOrFnRef =
      <ErrorProduction>
      Id wr StaticArgs
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / a1:Id a2:StaticArgs?
      { if (a2 == null)
@@ -464,8 +470,9 @@ constant inline Action<Expr> SubscriptingLeft =
      <ErrorProduction1>
      (opensquare / opencurly) wr StaticArgs (w ExprList)? w
      (closesquare / closecurly)
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { log(createSpan(yyStart,yyCount),
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = new Action<Expr>() { public Expr run(Expr base) { return base; }};
      }
    / a1:(opensquare / opencurly) a2:StaticArgs? a3:(w ExprList)? w
      a4:(closesquare / closecurly)
@@ -480,15 +487,19 @@ constant inline Action<Expr> SubscriptingLeft =
                    else            ss = a2;
                    return ExprFactory.makeSubscripting(span,
                                                         a1, a4, base, a3, ss);
-               } else return syntaxError(span,
-                                         "Mismatched subscripting operator: " +
-                                         a1 + " and " + a4);
+               } else {
+                   log(span,
+                       "Mismatched subscripting operator: " +
+                       a1 + " and " + a4);
+                   return ExprFactory.makeVoidLiteralExpr(span);
+               }
            }};
      }
    / <ErrorProduction2>
      LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { log(createSpan(yyStart,yyCount),
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = new Action<Expr>() { public Expr run(Expr base) { return base; }};
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { yyValue = new Action<Expr>() {
@@ -536,9 +547,11 @@ constant transient Action<Expr> Selector =
 constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
      <ErrorProduction>
      dot w Id wr StaticArgs ParenthesisDelimited ParenthesisDelimitedLeft*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { log(createSpan(yyStart,yyCount),
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = new Action<Expr>() { public Expr run(Expr base) { return base; }};
      }
+
    / dot w a1:Id a2:StaticArgs? a3:ParenthesisDelimited
      a4s:ParenthesisDelimitedLeft*
      { yyValue = new Action<Expr>() {
@@ -594,25 +607,30 @@ SubscriptingMI Subscripting =
      <ErrorProduction1>
      (opensquare / opencurly) wr StaticArgs (w ExprList)? w
      (closesquare / closecurly)
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeSubscriptingMI(span, NodeFactory.makeOp(span, "_"),
+                                                Collections.<Expr>emptyList(),
+                                                Collections.<StaticArg>emptyList());
      }
    / a1:(opensquare / opencurly) a2:StaticArgs? a3:(w ExprList)? w
      a4:(closesquare / closecurly)
      { Span span = createSpan(yyStart,yyCount);
-       if (PrecedenceMap.ONLY.matchedBrackets(a1, a4)) {
-           Op op = NodeFactory.makeEnclosing(span, a1, a4);
-           if (a2 == null) a2 = Collections.<StaticArg>emptyList();
-           if (a3 == null) a3 = Collections.<Expr>emptyList();
-           yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
-       } else return syntaxError(span,
-                                 "Mismatched subscripting operator: " + a1 +
-                                 " and " + a4);
+       Op op = NodeFactory.makeEnclosing(span, a1, a4);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       if (! PrecedenceMap.ONLY.matchedBrackets(a1, a4))
+           log(span,
+               "Mismatched subscripting operator: " + a1 + " and " + a4);
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
      }
    / <ErrorProduction2>
      LeftEncloser wr StaticArgs (w ExprList)? w RightEncloser
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeSubscriptingMI(span, NodeFactory.makeOp(span, "_"),
+                                                Collections.<Expr>emptyList(),
+                                                Collections.<StaticArg>emptyList());
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
@@ -628,17 +646,21 @@ SubscriptingMI Subscripting =
  */
 ExponentiationMI Exponentiation =
      <ErrorProduction>
-     caret wr Exponent
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately after '^'.");
+     a1:caret wr Exponent
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Space is not allowed immediately after '^'.");
+       yyValue = ExprFactory.makeExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
+                                                  Option.<Expr>none());
      }
    / a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
        yyValue = ExprFactory.makeExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
-                                      Option.some(a2));
+                                                  Option.some(a2));
      }
    / a1:ExponentOp
-     { yyValue = ExprFactory.makeExponentiationMI(NodeUtil.getSpan(a1), ExprFactory.makeOpRef(a1), Option.<Expr>none()); };
+     { yyValue = ExprFactory.makeExponentiationMI(NodeUtil.getSpan(a1),
+                                                  ExprFactory.makeOpRef(a1),
+                                                  Option.<Expr>none()); };
 
 /* Exponent ::=
      ParenthesisDelimited
@@ -672,8 +694,10 @@ Expr FlowExpr =
    / <ErrorProduction1>
      Accumulator wr StaticArgs
      (w opensquare w GeneratorClauseList w closesquare)? w Expr
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / a1:Accumulator a2:StaticArgs?
      a3:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a4:Expr
@@ -686,8 +710,10 @@ Expr FlowExpr =
      }
    / <ErrorProduction2>
      BIG w LeftEncloser wr StaticArgs w RightEncloser w Expr
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Space is not allowed immediately before left white square bracket.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Space is not allowed immediately before left white square bracket.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / BIG w opencurly w mapsto a1:StaticArgs? w closecurly w a2:Expr
      { Span span = createSpan(yyStart,yyCount);
