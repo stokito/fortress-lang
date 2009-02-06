@@ -1,5 +1,5 @@
 /********************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,7 +32,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public volatile BaseTask task;
     private int retries;
     private static long startTime = System.currentTimeMillis();
- 
+
     public int retries() { return retries;}
 
     private static void incRetries() {
@@ -74,8 +74,8 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
-        super(group); 
-        retries = 0; 
+        super(group);
+        retries = 0;
     }
 
     /**
