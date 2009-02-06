@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -127,75 +127,69 @@ transient WhereBinding WhereBinding =
      nat w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
        yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                  a1, supers, new KindNat());
+                                              a1, supers, new KindNat());
      }
    / <ErrorProduction1> nat w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid nat parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid nat parameter name.\n");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      }
    / int w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
        yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                  a1, supers, new KindInt());
+                                              a1, supers, new KindInt());
      }
    / <ErrorProduction2> int w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid int parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid int parameter name.\n");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      }
    / bool w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
        yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                  a1, supers, new KindBool());
+                                              a1, supers, new KindBool());
      }
    / <ErrorProduction3> bool w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid bool parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid bool parameter name.\n");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      }
    / unit w a1:Id
      { List<BaseType> supers = Collections.<BaseType>emptyList();
        yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                  a1, supers, new KindUnit());
+                                              a1, supers, new KindUnit());
      }
    / <ErrorProduction4> unit w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid unit parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid unit parameter name.\n");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      }
    / <ErrorProduction5> a1:OpName w a2:Extends
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid type parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid type parameter name.\n");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      }
    / a1:Id a2:(w a2:Extends)?
      { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
-       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount), a1, a2, new KindType());
+         yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
+                                                a1, a2, new KindType());
      }
    / <ErrorProduction6> opendoublesquare
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "White square bracket is not a valid where-clause binding.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "White square bracket is not a valid where-clause binding.");
+       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
+                                              FortressUtil.emptyTraitTypes(),
+                                              new KindType());
      };
 
 /* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
@@ -209,23 +203,43 @@ FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
 FnHeaderClause FnClauses =
      <ErrorProduction1>
      w Throws w ExtendsWhere (w Where)? Contract
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
+                                    Option.<WhereClause>none(),
+                                    Option.<Contract>none(),
+                                    Option.<Type>none());
      }
    / <ErrorProduction2>
      w Throws w Where w ExtendsWhere Contract
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
+                                    Option.<WhereClause>none(),
+                                    Option.<Contract>none(),
+                                    Option.<Type>none());
      }
    / <ErrorProduction3>
      w Where w ExtendsWhere Contract
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
+                                    Option.<WhereClause>none(),
+                                    Option.<Contract>none(),
+                                    Option.<Type>none());
      }
    / <ErrorProduction4>
      w Where w Throws Contract
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Throws clauses should come before where clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Throws clauses should come before where clauses.");
+       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
+                                    Option.<WhereClause>none(),
+                                    Option.<Contract>none(),
+                                    Option.<Type>none());
      }
    / a1:(w Throws)? a2:(w Where)? a3:Contract
      { Option<List<BaseType>> throwsClause = Option.wrap(a1);
@@ -233,7 +247,7 @@ FnHeaderClause FnClauses =
        if (a2 == null)
            where = Option.<WhereClause>none();
        else
-           where = Option.some(a2);
+           where = Option.<WhereClause>some(a2);
        Option<Contract> contractClause = Option.wrap(a3);
        yyValue = new FnHeaderClause(throwsClause, where, contractClause,
                                     Option.<Type>none());
@@ -353,19 +367,18 @@ private List<StaticParam> StaticParamList =
 private StaticParam StaticParam =
      nat w a1:Id
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 Option.<Type>none(), false,
-                                 new KindNat());
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / <ErrorProduction1>
      nat w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid nat parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid nat parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / int w a1:Id
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
@@ -375,13 +388,12 @@ private StaticParam StaticParam =
      }
    / <ErrorProduction2>
      int w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid int parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid int parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / bool w a1:Id
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
@@ -391,13 +403,12 @@ private StaticParam StaticParam =
      }
    / <ErrorProduction3>
      bool w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid bool parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid bool parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / dim w a1:Id
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
@@ -407,13 +418,12 @@ private StaticParam StaticParam =
      }
    / <ErrorProduction4>
      dim w a1:OpName
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid dim parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid dim parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { Option<Type> derived = Option.wrap(a2);
@@ -425,13 +435,12 @@ private StaticParam StaticParam =
      }
    / <ErrorProduction5>
      unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid unit parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid unit parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / opr w a1:Op
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
@@ -440,13 +449,12 @@ private StaticParam StaticParam =
                                  new KindOp()); }
    / <ErrorProduction6>
      a1:OpName w a2:Extends a3:(w absorbs w unit)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             a1 + " is not a valid type parameter name.\n" +
-                             "A non-reserved word that is made up of a mixture" +
-                             " of uppercase letters and underscores (but no " +
-                             "digits), does not begin or end with an " +
-                             "underscore, and contains at least two distinct " +
-                             "letters is an operator name.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid type parameter name.\n");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
      { if (a2 == null) a2 = Collections.<BaseType>emptyList();
@@ -459,6 +467,10 @@ private StaticParam StaticParam =
      }
    / <ErrorProduction7>
      opendoublesquare
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "White square bracket is not a valid static parameter.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "White square bracket is not a valid static parameter.");
+       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
+                                             Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindNat());
      };

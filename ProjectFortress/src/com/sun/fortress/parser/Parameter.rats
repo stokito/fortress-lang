@@ -57,18 +57,21 @@ transient List<Param> AbsValParam =
 transient List<Param> Params =
      <ErrorProduction1>
      (Param w comma w)+ (Keyword w comma w)+ Varargs
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Varargs parameters should come before keyword parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Varargs parameters should come before keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / <ErrorProduction2>
      Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Normal parameters should come before varargs parameters and keyword parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters and keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / <ErrorProduction3>
      Varargs (w comma w Param)+ (w comma w Keyword)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Normal parameters should come before varargs parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
@@ -90,18 +93,21 @@ transient List<Param> Params =
 transient List<Param> AbsParams =
      <ErrorProduction1>
      (AbsParam w comma w)+ (Keyword w comma w)+ Varargs
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Varargs parameters should come before keyword parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Varargs parameters should come before keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / <ErrorProduction2>
      Varargs w comma w (Keyword w comma w)+ AbsParam (w comma w AbsParam)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Normal parameters should come before varargs parameters and keyword parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters and keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / <ErrorProduction3>
      Varargs (w comma w AbsParam)+ (w comma w Keyword)*
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Normal parameters should come before varargs parameters.");
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters.");
+       yyValue = Collections.<Param>emptyList();
      }
    / a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
@@ -167,11 +173,11 @@ FnHeaderFront OpHeaderFront =
                left  = "BIG " + left;
                right = "BIG " + right;
            }
-           name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(NodeUtil.getSpan(leftOp),
-                              "Mismatched enclosing operator definition: " +
-                              left + " and " + right);
+           log(NodeUtil.getSpan(leftOp),
+               "Mismatched enclosing operator definition: " +
+               left + " and " + right);
+       name = NodeFactory.makeEnclosing(span, left, right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        if (opa3 == null) opa3 = FortressUtil.emptyParams();
        yyValue = new FnHeaderFront(name, opa2, opa3);
@@ -209,8 +215,9 @@ FnHeaderFront OpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = syntaxError(NodeUtil.getSpan(op),
-                            "Operator fixity is invalid in its declaration.");
+           log(NodeUtil.getSpan(op),
+               "Operator fixity is invalid in its declaration.");
+           op = NodeFactory.makeOpNofix(op);
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
        else            yyValue = new FnHeaderFront(op, a2, a3);
@@ -241,11 +248,11 @@ FnHeaderFront AbsOpHeaderFront =
                left  = "BIG " + left;
                right = "BIG " + right;
            }
-           name = NodeFactory.makeEnclosing(span, left, right);
        } else
-           name = syntaxError(NodeUtil.getSpan(leftOp),
-                              "Mismatched enclosing operator definition: " +
-                              left + " and " + right);
+           log(NodeUtil.getSpan(leftOp),
+               "Mismatched enclosing operator definition: " +
+               left + " and " + right);
+       name = NodeFactory.makeEnclosing(span, left, right);
        if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
        if (opa3 == null) opa3 = FortressUtil.emptyParams();
        yyValue = new FnHeaderFront(name, opa2, opa3);
@@ -283,8 +290,9 @@ FnHeaderFront AbsOpHeaderFront =
        } else if (a3.size() == 2) { // infix
            op = NodeFactory.makeOpInfix(op);
        } else { // error
-           op = syntaxError(NodeUtil.getSpan(op),
-                            "Operator fixity is invalid in its declaration.");
+           op = NodeFactory.makeOpNofix(op);
+           log(NodeUtil.getSpan(op),
+               "Operator fixity is invalid in its declaration.");
        }
        if (a2 == null) yyValue = new FnHeaderFront(op, a3);
        else            yyValue = new FnHeaderFront(op, a2, a3);

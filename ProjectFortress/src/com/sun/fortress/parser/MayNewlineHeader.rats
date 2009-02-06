@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -442,63 +442,111 @@ private constant inline Action<UnitExpr> ExponentUnitExpr =
 transient Contract Contract =
      <ErrorProduction1>
      w Requires w (ExtendsWhere / Throws / Where) (w Ensures)? (w Invariant)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction2>
      w Requires w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction3>
      w Requires w Ensures w Invariant w (ExtendsWhere / Throws / Where)
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction4>
      w Ensures w (ExtendsWhere / Throws / Where) (w Invariant)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction5>
      w Ensures w Invariant w (ExtendsWhere / Throws / Where)
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction6>
      w Invariant w (ExtendsWhere / Throws / Where)
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Extends clauses should come before throws/where/contract clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction7>
      w Requires w Invariant w Ensures
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Ensures clauses should come before invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Ensures clauses should come before invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction8>
      w Invariant w Ensures w Requires
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Requires clauses should come before ensures/invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Requires clauses should come before ensures/invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction9>
      w Invariant w Requires (w Ensures)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Requires clauses should come before ensures/invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Requires clauses should come before ensures/invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction10>
      w Ensures w Invariant w Requires
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Requires clauses should come before ensures/invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Requires clauses should come before ensures/invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction111>
      w Ensures w Requires (w Invariant)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Requires clauses should come before ensures/invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Requires clauses should come before ensures/invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / <ErrorProduction12>
      w Invariant w Ensures
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Ensures clauses should come before invariant clauses.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Ensures clauses should come before invariant clauses.");
+       yyValue = NodeFactory.makeContract(span, Option.<List<Expr>>none(),
+                                          Option.<List<EnsuresClause>>none(),
+                                          Option.<List<Expr>>none());
      }
    / a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
      { Option<List<Expr>> requires = Option.wrap(a1);
@@ -506,7 +554,7 @@ transient Contract Contract =
        Option<List<Expr>> invariant = Option.wrap(a3);
        if (a1 == null && a2 == null && a3 == null) yyValue = null;
        else yyValue = NodeFactory.makeContract(createSpan(yyStart,yyCount), requires,
-                                   ensures, invariant);
+                                               ensures, invariant);
      };
 
 /* Requires ::= requires w { (w ExprList)? w } */

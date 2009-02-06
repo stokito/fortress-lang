@@ -47,20 +47,25 @@ void closeParser = w EndOfFile
 CompilationUnit Program =
      yyValue:CompilationUnit
      { Span span = createSpan(yyStart,yyCount);
-       String filename = span.getBegin().getFileName();
+       String file = span.getBegin().getFileName();
        String cuname = yyValue.getName().toString();
-       if (!Shell.checkCompilationUnitName(filename,
-                                           cuname))
-           yyValue = syntaxError(NodeUtil.getSpan(yyValue.getName()),
-                                 "    Component/API names must match their enclosing file names." +
-                                 "\n    File name: " + filename +
-                                 "\n    Component/API name: " + cuname);
+       if (!Shell.checkCompilationUnitName(file, cuname)) {
+           log(NodeUtil.getSpan(yyValue.getName()),
+               "    Component/API names must match their enclosing file names." +
+               "\n    File name: " + file +
+               "\n    Component/API name: " + cuname);
+       }
      }
    / <ErrorProduction1>
      Exports (w semicolon)? w Imports (w semicolon)?
      (w Decls (w semicolon)?)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Import statements should come before export statements.");
+     { Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
+       log(span, "Import statements should come before export statements.");
+       yyValue = NodeFactory.makeComponent(span, name, Collections.<Import>emptyList(),
+                                           Collections.<Decl>emptyList(),
+                                           Collections.<APIName>emptyList());
      }
    / a1:(yyValue:Imports (w semicolon)? w)? a2:Exports (w semicolon)?
      a3:(w yyValue:Decls (w semicolon)?)?
@@ -100,24 +105,30 @@ private CompilationUnit CompilationUnit =
  */
 private Component Component =
      <ErrorProduction1>
-     (native w)? component w APIName w Exports (w semicolon)?
+     (native w)? component w a1:APIName w Exports (w semicolon)?
      w Imports (w semicolon)? (w Decls (w semicolon)?)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Import statements should come before export statements.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Import statements should come before export statements.");
+       yyValue = NodeFactory.makeComponent(span, a1, Collections.<Import>emptyList(),
+                                           Collections.<Decl>emptyList(),
+                                           Collections.<APIName>emptyList());
      }
    / <ErrorProduction2>
-     (native w)? component w APIName (w Imports (w semicolon)?)?
+     (native w)? component w a1:APIName (w Imports (w semicolon)?)?
      (w Decls (w semicolon)?)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Components should have at least one export statement.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Components should have at least one export statement.");
+       yyValue = NodeFactory.makeComponent(span, a1, Collections.<Import>emptyList(),
+                                           Collections.<Decl>emptyList(),
+                                           Collections.<APIName>emptyList());
      }
    / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
      a4:Exports (w semicolon)? a5:(w yyValue:Decls (w semicolon)?)? w end
      a6:((s component)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
        if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
-           yyValue = syntaxError(span, "A component declaration of " + a2 +
-                                 " has the different name " + a6 + " at the end.");
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a6 + " at the end.");
        if (a3 == null) a3 = Collections.<Import>emptyList();
        if (a5 == null) a5 = Collections.<Decl>emptyList();
        if (a1 == null)
@@ -131,18 +142,20 @@ private Component Component =
  */
 private Api Api =
      <ErrorProduction1>
-     native w api w APIName (w Imports (w semicolon)?)?
+     native w api w a1:APIName (w Imports (w semicolon)?)?
      (w AbsDecls (w semicolon)?)? w end
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "The native modifier is only for components not for APIs.");
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The native modifier is only for components not for APIs.");
+       yyValue = NodeFactory.makeApi(span, a1, Collections.<Import>emptyList(),
+                                     Collections.<Decl>emptyList());
      }
    / api w a1:APIName a2:(w yyValue:Imports (w semicolon)?)?
      a3:(w yyValue:AbsDecls (w semicolon)?)? w end
      a4:((s api)? s APIName)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !NodeUtil.nameString(a4).equals(NodeUtil.nameString(a1)))
-           yyValue = syntaxError(span, "An API declaration of " + a1 +
-                                 " has the different name " + a4 + " at the end.");
+           log(span, "An API declaration of " + a1 +
+               " has the different name " + a4 + " at the end.");
        if (a2 == null) a2 = Collections.<Import>emptyList();
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeApi(span, a1, a2, a3);
@@ -239,8 +252,9 @@ private List<Import> ImportedNames =
      }
    / <ErrorProduction>
      Id (w as w Id)?
-     { yyValue = syntaxError(createSpan(yyStart,yyCount),
-                             "Syntax Error: Try \"import api APIName\"");
+     { log(createSpan(yyStart,yyCount),
+           "Syntax Error: Try \"import api APIName\"");
+       yyValue = Collections.<Import>emptyList();
      };
 
 /* SimpleNames ::= SimpleName | { w SimpleNameList w } */
