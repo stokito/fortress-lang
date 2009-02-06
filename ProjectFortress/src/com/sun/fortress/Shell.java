@@ -272,6 +272,13 @@ public final class Shell {
                 compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
+                WellKnownNames.useTypeCheckerLibraries();
+                Types.useTypeCheckerLibraries();
+                setTypeChecking(true);
+                setPhase( PhaseOrder.TYPECHECK );
+                compilerPhases(args, Option.<String>none(), what);
+            } else if (what.equals("typecheck-old")) {
+                /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
                 compilerPhases(args, Option.<String>none(), what);

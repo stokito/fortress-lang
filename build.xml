@@ -47,6 +47,9 @@ trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
   <target name="compile">
     <ant target="compile"/>
   </target>
+  <target name="compileJava">
+    <ant target="compileJava"/>
+  </target>
   <target name="compileAll">
     <ant target="compileAll"/>
   </target>

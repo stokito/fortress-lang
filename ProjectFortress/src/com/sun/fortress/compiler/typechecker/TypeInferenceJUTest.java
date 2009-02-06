@@ -132,7 +132,7 @@ public class TypeInferenceJUTest extends TestCase {
             String fq_exp_fname = testDirectory.getAbsolutePath() + SEP + EXPECTED_FILE_NAME;
             String fq_cached_fname = testDirectory.getAbsolutePath() + SEP + CACHED_TFS_NAME;
 
-            String[] command = new String[] {"typecheck", "-out", fq_cached_fname, fq_input_fname};
+            String[] command = new String[] {"typecheck-old", "-out", fq_cached_fname, fq_input_fname};
             Shell.main(command);
 
             command = new String[]{"unparse", "-out", fq_output_fname, fq_cached_fname};

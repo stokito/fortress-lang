@@ -70,8 +70,16 @@ public final class Types {
     public static final TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
     public static final TraitType CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
 
+    /**
+     * It's necessary to set STRING when using the compiler libraries because the location of String
+     * in the compiler libraries differs from its location in the full libraries. 
+     */
     public static void useCompilerLibraries() {
     	STRING = makeTraitType(span, fortressBuiltin(), "String");
+    }
+
+    public static void useTypeCheckerLibraries() {
+    	useCompilerLibraries();
     }
 
     public static final LabelType LABEL = NodeFactory.makeLabelType(span);
