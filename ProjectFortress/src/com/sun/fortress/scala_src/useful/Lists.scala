@@ -40,7 +40,11 @@ object Lists {
     }
     result
   }
+  
+  def map[S,T](list: JavaList[S], fun: S=>T ): JavaList[T] = toJavaList(fromJavaList(list).map(fun))
+  
 }
+
 
 class ListsJUTest() extends TestCase {
   def testEmptyToJavaList() = {

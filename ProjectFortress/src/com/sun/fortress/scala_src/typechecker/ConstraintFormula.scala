@@ -155,8 +155,8 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
     case CnTrue => true
     case CnFalse => false
     case CnAnd(u2,l2) =>
-      val impliesuppers = compareBounds(uppers,u2,ANY,(t1:Type, t2:Type) => true)//history.subtype(t1,t2).isTrue)
-      val implieslowers = compareBounds(lowers,l2,BOTTOM,(t1:Type, t2:Type) => true)// history.subtype(t2,t1).isTrue)
+      val impliesuppers = compareBounds(uppers,u2,ANY,(t1:Type, t2:Type) => true)//history.subtypeNormal(t1,t2).isTrue)
+      val implieslowers = compareBounds(lowers,l2,BOTTOM,(t1:Type, t2:Type) => true)// history.subtypeNormal(t2,t1).isTrue)
       impliesuppers && implieslowers
   }
 
