@@ -358,7 +358,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
     public FValue forDo(Do x) {
 	FValue res;
         int s = x.getFronts().size();
-	System.out.println("forDo with s = " + s + " x = " + x);
+        //	System.out.println("forDo with s = " + s + " x = " + x);
 
         if (s == 0) return FVoid.V;
         if (s == 1) {
@@ -394,7 +394,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
 	BaseTask currentTask = FortressTaskRunner.getTask();
 	TupleTask.invokeAll(tasks);
 	FortressTaskRunner.setCurrentTask(currentTask);
-       
+
 	for (TupleTask t : tasks) {
             if (t.causedException()) {
                 Throwable th = t.taskException();
@@ -477,10 +477,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         if (sz==1) {
             resList.add(exprs.get(0).accept(this));
         } else if (sz > 1) {
-	    for (Expr expr : exprs) 
+	    for (Expr expr : exprs)
 		// We want to add things to the front of the list.
 		TupleTasks.add(0, new TupleTask(expr, this));
-	    
+
             BaseTask currentTask = FortressTaskRunner.getTask();
             TupleTask.invokeAll(TupleTasks);
             FortressTaskRunner.setCurrentTask(currentTask);
@@ -501,7 +501,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         }
 
 	if (resList.size() != exprs.size())
-	    bug("We should have the same number of results as we did exprs resList = " + 
+	    bug("We should have the same number of results as we did exprs resList = " +
 		resList + " exprs = " + exprs );
         return resList;
     }

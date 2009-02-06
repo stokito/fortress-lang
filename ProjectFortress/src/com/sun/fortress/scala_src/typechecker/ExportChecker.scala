@@ -269,7 +269,7 @@ object ExportChecker {
      * Should be able to handle arbitrary type equality testing.
      * Only works for NamedType for now.
      */
-    private def equalOptTypes(left: Option[Type], right: Option[Type]): boolean =
+    private def equalOptTypes(left: Option[Type], right: Option[Type]): Boolean =
         (left, right) match {
             case (None, None) => true
             case (Some(tyLeft), Some(tyRight)) => equalTypes(tyLeft, tyRight)
@@ -280,7 +280,7 @@ object ExportChecker {
      * Should be able to handle arbitrary type equality testing.
      * Only works for NamedType for now.
      */
-    private def equalTypes(left: Type, right: Type): boolean =
+    private def equalTypes(left: Type, right: Type): Boolean =
         (left, right) match {
             case (VarType(_,nameLeft,_), VarType(_,nameRight,_)) =>
                 equalIds(nameLeft, nameRight)
@@ -303,7 +303,7 @@ object ExportChecker {
         }
 
     /* Returns true if two Ids denote the same type. */
-    private def equalIds(left: Id, right: Id): boolean =
+    private def equalIds(left: Id, right: Id): Boolean =
         (left, right) match {
             case (Id(_, apiLeft,  textLeft),
                   Id(_, apiRight, textRight)) =>
@@ -313,7 +313,7 @@ object ExportChecker {
 
     /* Returns true if two optional APINames are the same. */
     private def equalOptAPINames(left: Option[APIName],
-                                 right: Option[APIName]): boolean =
+                                 right: Option[APIName]): Boolean =
         (left, right) match {
             case (None, None) => true
             case (Some(APIName(_, idsLeft, _)), Some(APIName(_, idsRight, _))) =>
@@ -326,12 +326,12 @@ object ExportChecker {
      * Should check the modifiers and default expressions
      * Only checks the types for now.
      */
-    private def equalParams(left: Param, right: Param): boolean =
+    private def equalParams(left: Param, right: Param): Boolean =
         equalOptTypes(toOption(left.getIdType), toOption(right.getIdType)) &&
         equalOptTypes(toOption(left.getVarargsType), toOption(right.getVarargsType))
 
     /* Returns true if two lists of Params are the same. */
-    private def equalListParams(left: List[Param], right: List[Param]): boolean =
+    private def equalListParams(left: List[Param], right: List[Param]): Boolean =
         left.length == right.length &&
         List.forall2(left, right)((l,r) => equalParams(l,r))
 
@@ -340,7 +340,7 @@ object ExportChecker {
      * throws clauses, and contracts.
      * Only checks the parameter types and the return types for now.
      */
-    private def equalFnHeaders(left: FnHeader, right: FnHeader): boolean =
+    private def equalFnHeaders(left: FnHeader, right: FnHeader): Boolean =
         equalListParams(Lists.fromJavaList(left.getParams),
                         Lists.fromJavaList(right.getParams)) &&
         equalOptTypes(toOption(left.getReturnType),
