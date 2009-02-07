@@ -145,27 +145,29 @@ Once you have built the interpreter, you can call it from any directory,
 on any Fortress file, simply by typing one of the following commands at a
 command line:
 
-    fortress compile somefile.fs{s,i}
     fortress [run] [-test] [-debug] somefile.fss arg...
     fortress help
 
-A command of the form "fortress compile somefile.fss" or
-"fortress compile somefile.fsi" calls the static checker on the given
-file and stores the result in a hidden "cache" directory.  No user-visible
-object file is generated.  (At present, the static checker has limited
+The first time you run a Fortress program, the static checker is
+called on the given file and the results are stored in a cache
+directory (by default this cache is kept in default_repository/caches
+in the root of your Fortress distribution).  No user-visible object
+file is generated.  (At present, the static checker has limited
 functionality.  Most significantly, static type errors are not yet
-signaled.)  A file with suffix .fsi should contain a single API definition.
-The name of the API should match the name of the file.  Similarly, a file
-with the suffix .fss should contain a single component definition.  The name
-of the component should match the name of the file.
+signaled.)  A file with suffix .fsi should contain a single API
+definition.  The name of the API should match the name of the file.
+Similarly, a file with the suffix .fss should contain a single
+component definition.  The name of the component should match the name
+of the file.
 
-A command of the form "fortress run somefile.fss" checks whether a cached
-and up to date result of compiling the given file exists.  If so, it runs
-the cached file.  Otherwise, it compiles the given file and runs the result.
-This command can be abbreviated as "fortress somefile.fss".  If the optional
-flag -test is given, all test functions defined in the given file are run.
-If the optional flag -debug is given, stack traces from the underlying
-interpreter are displayed when errors are signaled.
+A command of the form "fortress run somefile.fss" checks whether a
+cached and up to date result of compiling the given file exists.  If
+so, it runs the cached file.  Otherwise, it processes the given file
+and runs the result.  This command can be abbreviated as "fortress
+somefile.fss".  If the optional flag -test is given, all test
+functions defined in the given file are run instead.  If the optional
+flag -debug is given, stack traces from the underlying interpreter are
+displayed when errors are signaled.
 
 If all else fails, look at the script bin/fortress to see if your system
 has peculiarities (for example cygwin requires ; separators in the
