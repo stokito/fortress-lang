@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -57,7 +57,7 @@ private ArrayElements RectElements =
              list.add(ExprFactory.makeArrayElement(a1));
              yyValue = ExprFactory.makeArrayElements(NodeUtil.getSpan(a1), 1, list);
          } else
-           yyValue = FortressUtil.multiDimCons(a1, a2s.list());
+           yyValue = FortressUtil.multiDimCons(writer, a1, a2s.list());
      };
 
 /* MultiDimCons ::= RectSeparator NoSpaceExpr */
@@ -81,7 +81,7 @@ NumberLiteralExpr NumericLiteralExpr =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       FortressUtil.validNumericLiteral(span, numeral);
+       FortressUtil.validNumericLiteral(writer, span, numeral);
        if ( FortressUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
        else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
@@ -94,7 +94,7 @@ private NumberLiteralExpr NumericLiteralWithRadix =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       FortressUtil.validNumericLiteral(span, numeral, a3);
+       FortressUtil.validNumericLiteral(writer, span, numeral, a3);
        numeral += "_"+FortressUtil.radix2Number(a3);
        if ( FortressUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
@@ -117,7 +117,7 @@ private transient String NumericSeparator = NumericSpace / "." ;
 private transient String NumericSpace = "'" / "\u202f" ;
 
 private transient String RadixSpecifier =
-     a1:DigitString !([a-zA-Z]) &{ FortressUtil.validRadix(createSpan(yyStart,yyCount), a1) }
+     a1:DigitString !([a-zA-Z]) &{ FortressUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
    / RadixNames ;
 
 private transient String DigitString = [0-9]+;

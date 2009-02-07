@@ -55,7 +55,6 @@ import java.lang.reflect.Field;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.parser_util.FortressUtil.syntaxError;
 }
 
 body {
