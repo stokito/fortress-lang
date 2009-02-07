@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -49,10 +49,6 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 public final class FortressUtil {
-    public static <T> T syntaxError(Span span, String msg) {
-        return ProgramError.<T>error(ExprFactory.makeVoidLiteralExpr(span), msg);
-    }
-
     public static void log(BufferedWriter writer, Span span, String msg) {
         try {
             writer.write( span + "\n    " + msg + "\n" );
@@ -170,14 +166,15 @@ public final class FortressUtil {
         return res;
     }
 
-    public static void checkNoWrapped(Option<List<Param>> optParams) {
+    public static void checkNoWrapped(BufferedWriter writer,
+                                      Option<List<Param>> optParams) {
         if ( optParams.isSome() ) {
             List<Param> params = optParams.unwrap();
             for ( Param param : params ) {
                 if (param.getMods().isWrapped()) {
-                    syntaxError(NodeUtil.getSpan(param),
-                                "The modifier \"wrapped\" cannot " +
-                                "appear in an API.");
+                    log(writer, NodeUtil.getSpan(param),
+                        "The modifier \"wrapped\" cannot " +
+                        "appear in an API.");
                 }
             }
         }
@@ -191,13 +188,14 @@ public final class FortressUtil {
         return false;
     }
 
-    public static boolean validRadix(Span span, String radix) {
+    public static boolean validRadix(BufferedWriter writer,
+                                     Span span, String radix) {
         String[] all = new String[]{"2","3","4","5","6","7","8","9","10",
                                     "11","12","13","14","15","16"};
         List<String> validRadix = new LinkedList<String>(java.util.Arrays.asList(all));
         if (! validRadix.contains( radix )) {
-            syntaxError(span, "Syntax Error: the radix of " +
-                        "a numeral must be an integer from 2 to 16.");
+            log(writer, span, "Syntax Error: the radix of " +
+                "a numeral must be an integer from 2 to 16.");
             return false;
         } else return true;
     }
@@ -210,12 +208,12 @@ public final class FortressUtil {
         return true;
     }
 
-    public static void validId(Id name) {
+    public static void validId(final BufferedWriter writer, Id name) {
         name.accept(new NodeDepthFirstVisitor_void(){
             public void forIdOnly(Id id){
                 if (id.getText().equals("outcome"))
-                    syntaxError(NodeUtil.getSpan(id),
-                                "Invalid variable name: 'outcome' is a reserved word.");
+                    log(writer, NodeUtil.getSpan(id),
+                        "Invalid variable name: 'outcome' is a reserved word.");
             }
 
             public void defaultTemplateGap(TemplateGap g){
@@ -228,9 +226,9 @@ public final class FortressUtil {
         });
     }
 
-    public static void validId(List<? extends LValue> lvs) {
+    public static void validId(BufferedWriter writer, List<? extends LValue> lvs) {
         for (LValue lv : lvs) {
-            validId(lv.getName());
+            validId(writer, lv.getName());
         }
     }
 
@@ -278,11 +276,11 @@ public final class FortressUtil {
         return true;
     }
 
-    public static void allHaveTypes(List<LValue> vars) {
+    public static void allHaveTypes(BufferedWriter writer, List<LValue> vars) {
         for (LValue l : vars) {
             if (l.getIdType().isNone())
-                syntaxError(NodeUtil.getSpan(l),
-                            "Mutable variables should be declared with their types.");
+                log(writer, NodeUtil.getSpan(l),
+                    "Mutable variables should be declared with their types.");
         }
     }
 
@@ -514,8 +512,9 @@ public final class FortressUtil {
     private static ArrayExpr multiDimElement(Expr expr) {
         return ExprFactory.makeArrayElement(expr);
     }
-    private static ArrayElements addOneMultiDim(ArrayExpr multi, int dim,
-                                              Expr expr){
+    private static ArrayElements addOneMultiDim(BufferedWriter writer,
+                                                ArrayExpr multi, int dim,
+                                                Expr expr){
         Span span = spanTwo(multi, expr);
         ArrayExpr elem = multiDimElement(expr);
         if (multi instanceof ArrayElement) {
@@ -536,21 +535,24 @@ public final class FortressUtil {
                 elems.add(elem);
                 return ExprFactory.makeArrayElements(span, dim, elems);
             } else if (elements.size() == 0) {
-                return syntaxError(NodeUtil.getSpan(multi),
-                                   "Empty array/matrix literal.");
+                log(writer, NodeUtil.getSpan(multi),
+                    "Empty array/matrix literal.");
+                return ExprFactory.makeArrayElements(span, _dim, elements);
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
                 ArrayExpr last = elements.get(index);
-                elements.set(index, addOneMultiDim(last, dim, expr));
+                elements.set(index, addOneMultiDim(writer, last, dim, expr));
                 return ExprFactory.makeArrayElements(span, _dim, elements);
             }
         } else {
-            return syntaxError(NodeUtil.getSpan(multi),
-                               "ArrayElement or ArrayElements is expected.");
+            log(writer, NodeUtil.getSpan(multi),
+                "ArrayElement or ArrayElements is expected.");
+            return ExprFactory.makeArrayElements(span, 0,
+                                                 Collections.<ArrayExpr>emptyList());
         }
     }
-    public static ArrayElements multiDimCons(Expr init,
-                                        List<Pair<Integer,Expr>> rest) {
+    public static ArrayElements multiDimCons(BufferedWriter writer, Expr init,
+                                             List<Pair<Integer,Expr>> rest) {
         ArrayExpr _init = multiDimElement(init);
         if (rest.isEmpty()) {
             return bug(init, "multiDimCons: empty rest");
@@ -566,7 +568,7 @@ public final class FortressUtil {
                 int _dim   = _pair.getA();
                 Expr _expr = _pair.getB();
                 Span span = spanTwo(result, _expr);
-                result = addOneMultiDim(result, _dim, _expr);
+                result = addOneMultiDim(writer, result, _dim, _expr);
             }
             return result;
         }
@@ -599,7 +601,8 @@ public final class FortressUtil {
 //                  unpasting_split span dim (one :: elems)
 //            | _ -> Errors.internal_error span "Empty unpasting.")
 /*
-    public static Unpasting unpastingCons(Span span, Unpasting one, int sep,
+    public static Unpasting unpastingCons(BufferedWriter writer,
+                                          Span span, Unpasting one, int sep,
                                           Unpasting two) {
         List<Unpasting> onetwo = new ArrayList<Unpasting>();
         onetwo.add(one);
@@ -622,7 +625,8 @@ public final class FortressUtil {
                     return new UnpastingSplit(span, elems, dim);
                 }
             } else { // elems.size() == 0
-                return syntaxError(two.getSpan(), "Empty unpasting.");
+                log(writer, two.getSpan(), "Empty unpasting.");
+                return new UnpastingSplit(span, elems, 0);
             }
         } else { //    !(two instanceof UnpastingBind)
                  // && !(two instanceof UnpastingSplit)
@@ -694,7 +698,7 @@ public final class FortressUtil {
         return ExprFactory.makeBlock(span, emptyExprs());
     }
 
-    public static Block doBlock(List<Expr> exprs) {
+    public static Block doBlock(BufferedWriter writer, List<Expr> exprs) {
         Span span;
         if ( exprs.size() == 0 )
             span = NodeFactory.parserSpan;
@@ -707,17 +711,17 @@ public final class FortressUtil {
                 LetExpr _e = (LetExpr)e;
                 if (_e.getBody().isEmpty()) {
                     if (_e instanceof LocalVarDecl) {
-                        validId(((LocalVarDecl)_e).getLhs());
+                        validId(writer, ((LocalVarDecl)_e).getLhs());
                     }
                     _e = ExprFactory.makeLetExpr(_e, es);
                     es = mkList((Expr)_e);
                 } else {
-                    syntaxError(NodeUtil.getSpan(e), "Misparsed variable introduction!");
+                    log(writer, NodeUtil.getSpan(e), "Misparsed variable introduction!");
                 }
             } else {
                 if (isEquality(e) && !NodeUtil.isParenthesized(e))
-                    syntaxError(NodeUtil.getSpan(e),
-                                "Equality testing expressions should be parenthesized.");
+                    log(writer, NodeUtil.getSpan(e),
+                        "Equality testing expressions should be parenthesized.");
                 else es.add(0, e);
             }
         }
@@ -757,26 +761,28 @@ public final class FortressUtil {
         }
     }
 
-    public static void validNumericLiteral(Span span, String numeral) {
+    public static void validNumericLiteral(BufferedWriter writer,
+                                           Span span, String numeral) {
         int numberOfDots = 0;
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
             if (Character.isLetter(c))
-                syntaxError(span, "Syntax Error: a numeral contains " +
-                            "letters and does not have a radix specifier.");
+                log(writer, span, "Syntax Error: a numeral contains " +
+                    "letters and does not have a radix specifier.");
             if (c == '.') numberOfDots++;
         }
         if (numberOfDots > 1)
-            syntaxError(span, "Syntax Error: a numeral contains more " +
-                        "than one `.' character.");
+            log(writer, span, "Syntax Error: a numeral contains more " +
+                "than one `.' character.");
     }
 
-    public static void validNumericLiteral(Span span, String numeral,
+    public static void validNumericLiteral(BufferedWriter writer,
+                                           Span span, String numeral,
                                            String radix) {
         int radixNumber = radix2Number(radix);
         if (radixNumber == -1)
-            syntaxError(span, "Syntax Error: the radix of " +
-                        "a numeral should be an integer from 2 to 16.");
+            log(writer, span, "Syntax Error: the radix of " +
+                "a numeral should be an integer from 2 to 16.");
         boolean sawUpperCase = false;
         boolean sawLowerCase = false;
         boolean sawAb = false;
@@ -787,48 +793,48 @@ public final class FortressUtil {
             if (c == '.') numberOfDots++;
             if (Character.isUpperCase(c)) {
                 if (sawLowerCase)
-                    syntaxError(span, "Syntax Error: a numeral " +
-                                "contains both uppercase and lowercase letters.");
+                    log(writer, span, "Syntax Error: a numeral " +
+                        "contains both uppercase and lowercase letters.");
                 else sawUpperCase = true;
             } else if (Character.isLowerCase(c)) {
                 if (sawUpperCase)
-                    syntaxError(span, "Syntax Error: a numeral " +
-                                "contains both uppercase and lowercase letters.");
+                    log(writer, span, "Syntax Error: a numeral " +
+                        "contains both uppercase and lowercase letters.");
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-		    syntaxError(span, "Syntax Error: a numeral " +
-                                "has radix 12 and contains letters other " +
-                                "than A, B, X, E, a, b, x or e.");
+		    log(writer, span, "Syntax Error: a numeral " +
+                        "has radix 12 and contains letters other " +
+                        "than A, B, X, E, a, b, x or e.");
 		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
                     if (sawXe)
-                        syntaxError(span, "Syntax Error: a numeral " +
-                                    "has radix 12 and contains at least one " +
-                                    "A, B, a or b and at least one X, E, x or e.");
+                        log(writer, span, "Syntax Error: a numeral " +
+                            "has radix 12 and contains at least one " +
+                            "A, B, a or b and at least one X, E, x or e.");
                     else sawAb = true;
                 } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
                     if (sawAb)
-                        syntaxError(span, "Syntax Error: a numeral " +
-                                    "has radix 12 and contains at least one " +
-                                    "A, B, a or b and at least one X, E, x or e.");
+                        log(writer, span, "Syntax Error: a numeral " +
+                            "has radix 12 and contains at least one " +
+                            "A, B, a or b and at least one X, E, x or e.");
                     else sawXe = true;
                 }
             }
             // The numeral has a radix other than 12.
             else if (!validDigitOrLetter(c, radixNumber)
                      && c != '.' && c != '\'' && c != '\u202F') {
-                syntaxError(span, "Syntax Error: a numeral has a radix " +
-                            "specifier and contains a digit or letter that " +
-                            "denotes a value greater than or equal to the " +
-                            "numeral's radix.");
+                log(writer, span, "Syntax Error: a numeral has a radix " +
+                    "specifier and contains a digit or letter that " +
+                    "denotes a value greater than or equal to the " +
+                    "numeral's radix.");
 	    }
         }
         if (numberOfDots > 1)
-            syntaxError(span, "Syntax Error: a numeral contains more " +
-                        "than one `.' character.");
+            log(writer, span, "Syntax Error: a numeral contains more " +
+                "than one `.' character.");
     }
 
     public static int radix2Number(String radix) {

@@ -40,7 +40,7 @@ import Spacing;
  */
 Block BlockElems =
      a1:BlockElemCollection
-     { yyValue = FortressUtil.doBlock(a1); };
+     { yyValue = FortressUtil.doBlock(writer, a1); };
 
 private List<Expr> BlockElemCollection =
      a1:BlockElem br a2:BlockElemCollection
@@ -112,7 +112,7 @@ private FnDecl LocalFnDecl =
 LocalVarDecl LocalVarDecl =
      a1:(var w)? a2:VarMayTypes s equals w a3:NoNewlineExpr
      { if (a1 != null) {
-           FortressUtil.allHaveTypes(a2);
+           FortressUtil.allHaveTypes(writer, a2);
            a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
        }
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);

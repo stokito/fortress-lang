@@ -17,6 +17,7 @@
 
 package com.sun.fortress.nodes_util;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
 import java.math.BigInteger;
@@ -1705,34 +1706,55 @@ public class NodeFactory {
 
     public static VarDecl makeVarDecl(Span span, List<LValue> lvals,
                                       Option<Expr> expr) {
-        FortressUtil.validId(lvals);
         return new VarDecl(makeSpanInfo(span), lvals, expr);
-    }
-
-    public static VarDecl makeVarDecl(Span span, List<LValue> lvals) {
-        FortressUtil.validId(lvals);
-        return makeVarDecl(span, lvals, Option.<Expr>none());
-    }
-
-    public static VarDecl makeVarDecl(Span span, List<LValue> lvals, Expr init) {
-        FortressUtil.validId(lvals);
-        return makeVarDecl(span, lvals, Option.<Expr>some(init));
-    }
-
-    public static VarDecl makeVarDecl(Span span, Id name, Expr init) {
-        FortressUtil.validId(name);
-        LValue bind = new LValue(makeSpanInfo(span), name, Modifiers.None,
-                                 Option.<Type>none(), true);
-        return makeVarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
     }
 
     public static VarDecl makeVarDecl(Span span, String name, Expr init) {
         Id id = makeId(span, name);
-        FortressUtil.validId(id);
         LValue bind = new LValue(makeSpanInfo(span), id,
                                  Modifiers.None,
                                  Option.<Type>none(), false);
-        return makeVarDecl(span, Useful.<LValue>list(bind), Option.<Expr>some(init));
+        return makeVarDecl(span, Useful.<LValue>list(bind),
+                           Option.<Expr>some(init));
+    }
+
+    public static VarDecl makeVarDecl(BufferedWriter writer,
+                                      Span span, List<LValue> lvals,
+                                      Option<Expr> expr) {
+        FortressUtil.validId(writer, lvals);
+        return new VarDecl(makeSpanInfo(span), lvals, expr);
+    }
+
+    public static VarDecl makeVarDecl(BufferedWriter writer,
+                                      Span span, List<LValue> lvals) {
+        FortressUtil.validId(writer, lvals);
+        return makeVarDecl(writer, span, lvals, Option.<Expr>none());
+    }
+
+    public static VarDecl makeVarDecl(BufferedWriter writer,
+                                      Span span, List<LValue> lvals, Expr init) {
+        FortressUtil.validId(writer, lvals);
+        return makeVarDecl(writer, span, lvals, Option.<Expr>some(init));
+    }
+
+    public static VarDecl makeVarDecl(BufferedWriter writer,
+                                      Span span, Id name, Expr init) {
+        FortressUtil.validId(writer, name);
+        LValue bind = new LValue(makeSpanInfo(span), name, Modifiers.None,
+                                 Option.<Type>none(), true);
+        return makeVarDecl(writer, span, Useful.<LValue>list(bind),
+                           Option.<Expr>some(init));
+    }
+
+    public static VarDecl makeVarDecl(BufferedWriter writer,
+                                      Span span, String name, Expr init) {
+        Id id = makeId(span, name);
+        FortressUtil.validId(writer, id);
+        LValue bind = new LValue(makeSpanInfo(span), id,
+                                 Modifiers.None,
+                                 Option.<Type>none(), false);
+        return makeVarDecl(writer, span, Useful.<LValue>list(bind),
+                           Option.<Expr>some(init));
     }
 
     public static BoolExpr makeInParentheses(BoolExpr be) {
