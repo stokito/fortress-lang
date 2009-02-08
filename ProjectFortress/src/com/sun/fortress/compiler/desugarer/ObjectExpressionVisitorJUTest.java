@@ -91,10 +91,9 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             System.setErr(wt_err);
             System.setOut(wt_out);
             System.out.println("Evaluating " + file + "...");
-            FValue original = Shell.eval(file);
+            FValue original = Shell.eval(file, true);
             // Delete the cached file from evaluating the original file!!!
-            ASTIO.deleteJavaAst(NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR,
-                                                                        NodeUtil.apiName(file)));
+            
             String name = file.substring(0, file.lastIndexOf("."));
             String tfs = name + ".tfs";
 
@@ -117,7 +116,7 @@ public class ObjectExpressionVisitorJUTest extends TestCase {
             Shell.setObjExprDesugaring(false);
 
             System.out.println("Evaluating " + generated + "...");
-            assertEquals(original, Shell.eval(generated));
+            assertEquals(original, Shell.eval(generated, false));
         } finally {
             ComponentWrapper.noCache = false;
             System.setErr(oldErr);

@@ -25,10 +25,6 @@ import com.sun.fortress.nodes.APIName;
 
 public class StubRepository implements FortressRepository {
 
-    public void forgetComponent(APIName name) {
-        deleteComponent(name);
-    }
-
     private boolean verbose;
 
     /**
@@ -56,7 +52,17 @@ public class StubRepository implements FortressRepository {
 
     }
 
-    public void deleteComponent(APIName name) {
+    /**
+     * Removes the AST for the component form any in-memory caches and/or maps,
+     * and optionally remove it from any stable storage as well.
+     * 
+     * Used to avoid memory leaks in unit testing, and to clear non-standard
+     * scribbles from the cache.
+     * 
+     * @param name
+     * @param andTheFileToo
+     */
+    public void deleteComponent(APIName name, boolean andTheFileToo) {
         throw new UnsupportedOperationException();
 
     }
