@@ -15,4 +15,6 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+# No special options (yet) on Linux
+
 . .antrc_Unix

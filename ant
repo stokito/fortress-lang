@@ -17,5 +17,5 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-. ProjectFortress/ant
-
+cd ProjectFortress
+. ./ant
