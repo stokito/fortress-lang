@@ -15,12 +15,4 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-# ant is the cleverer idiot when it comes to finding java on MacOS.
-# rather than use "java", it roots around in the install directory, and finds the wrong version.
-
-if [ -z "$JAVACMD" ] ; then
-  export JAVACMD="`which java`"
-  echo Using JAVACMD="\"$JAVACMD\""
-fi
-
-. .antrc_Unix
+. ../.antrc_Unix

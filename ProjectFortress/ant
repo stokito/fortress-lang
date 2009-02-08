@@ -49,6 +49,6 @@ if [ $n -ne 0 ]; then
 fi
 
 # Note that the scripts reference must export their symbols so that they are available below.
-. antrc_suggested
+. ../antrc_suggested
 
 "$ant_exec" -noclasspath "$@"
