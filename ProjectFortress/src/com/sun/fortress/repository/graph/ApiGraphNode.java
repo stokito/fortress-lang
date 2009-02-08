@@ -27,7 +27,7 @@ import com.sun.fortress.compiler.index.ApiIndex;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class ApiGraphNode extends GraphNode{
+public class ApiGraphNode extends GraphNode {
 	private Option<ApiIndex> api;
 	private final String k;
 	
@@ -75,4 +75,5 @@ public class ApiGraphNode extends GraphNode{
         public static String key(APIName k) {
             return "api " + k.getText();
         }
+       
 }

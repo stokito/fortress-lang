@@ -16,7 +16,7 @@
 ################################################################################
 
 if [ -z "$JAVACMD" ] ; then
-  JAVACMD="`which java`"
+  export JAVACMD="`which java`"
   echo Using JAVACMD="\"$JAVACMD\""
 fi
 

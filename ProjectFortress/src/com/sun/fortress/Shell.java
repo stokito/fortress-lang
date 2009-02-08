@@ -404,12 +404,12 @@ public final class Shell {
     /**
      * Evaluate a given component and returns its value.
      */
-    public static FValue eval( String file )
+    public static FValue eval( String file, boolean unCacheWhenDone )
         throws Throwable {
-        return eval( file, new ArrayList<String>() );
+        return eval( file, new ArrayList<String>(), unCacheWhenDone );
     }
 
-    public static FValue eval( String file, List<String> args )
+    public static FValue eval( String file, List<String> args, boolean unCacheWhenDone )
         throws Throwable {
         setPhase( PhaseOrder.CODEGEN );
         if ( ! isComponent(file) )
@@ -419,7 +419,7 @@ public final class Shell {
         GraphRepository bcr = specificRepository( path );
         ComponentIndex c =  bcr.getLinkedComponent(name);
         FValue result = Driver.runProgram(bcr, c, args);
-        bcr.deleteComponent(c.ast().getName());
+        bcr.deleteComponent(c.ast().getName(), unCacheWhenDone);
         return result;
     }
 
@@ -456,8 +456,8 @@ public final class Shell {
                      "found " + first + "and " + second);
         }
 
-        FValue value1 = eval( first );
-        FValue value2 = eval( second );
+        FValue value1 = eval( first, false );
+        FValue value2 = eval( second, false );
         if (value1 == value2)
             System.out.println( "Compare: values are equal" );
         else System.out.println( "Compare failed: " +
@@ -709,8 +709,7 @@ public final class Shell {
                 if ( out.isSome() ) {
                     ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
                             out.unwrap());
-                    ASTIO.deleteJavaAst( NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
-                    bcr.deleteComponent( name );
+                    bcr.deleteComponent( name, true);
                 }
             } else {
                 throw new UserError( "What kind of file is " + file +
@@ -749,7 +748,7 @@ public final class Shell {
             System.exit(1);
         } finally {
             if (bcr != null && name != null)
-             bcr.deleteComponent(name);
+             bcr.deleteComponent(name, false);
         }
 
         if (bcr != null && bcr.verbose())
@@ -811,7 +810,7 @@ public final class Shell {
         try {
             Iterable<? extends StaticError> errors = IterUtil.empty();
             try {
-                eval( fileName, args );
+                eval( fileName, args, false);
             } catch (Throwable th) {
                 // TODO FIXME what is the proper treatment of errors/exceptions etc.?
                 if (th instanceof FortressException) {

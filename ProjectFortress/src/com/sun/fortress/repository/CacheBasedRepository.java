@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.repository.graph.ApiGraphNode;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 
@@ -172,7 +173,9 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
             return f.lastModified();
     }
 
-    public long getModifiedDateForApi(APIName name) throws FileNotFoundException {
+    public long getModifiedDateForApi(ApiGraphNode node) throws FileNotFoundException {
+        APIName name = node.getName();
+        String sourcePath = node.getSourcePath();
         ApiIndex i = apis.get(name);
 
         if (i != null){

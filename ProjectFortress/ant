@@ -28,20 +28,8 @@
 #
 
 find_ant(){
-
-  # if $ANT_HOME is set then search for ant there
-  if [ "x$ANT_HOME" != "x" ]; then
-    if [ -x "$ANT_HOME/bin/ant" ]; then
-      echo "$ANT_HOME/bin/ant"
-      return
-    else
-      echo "Did not find ant in $ANT_HOME/bin" >&2
-    fi
-  else
-    echo "ANT_HOME is not set" >&2
-  fi
-
-  # Otherwise use whatever is in $PATH, minus any dots
+  # Strip "." from the path, and look for ant.
+  # This avoids infinite regress if this is the first or only "ant" on the normal PATH.
   export NODOTPATH="`echo "$PATH" | sed -e '1,$s/^[.]://g'`"
   NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]:/:/g'`"
   NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]$//g'`"
@@ -59,5 +47,8 @@ n=$?
 if [ $n -ne 0 ]; then
         exit $n
 fi
-export ANT_OPTS="-Xmx256m"
-"$ant_exec" -noclasspath -lib third_party/junit "$@"
+
+# Note that the scripts reference must export their symbols so that they are available below.
+. antrc_suggested
+
+"$ant_exec" -noclasspath "$@"

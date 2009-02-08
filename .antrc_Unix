@@ -26,6 +26,6 @@
 #
 
 if [ -z "$ANT_OPTS" ] ; then
-  ANT_OPTS="-Xmx256m"
+  export ANT_OPTS="-Xmx256m -Xss8m"
   echo Using ANT_OPTS="\"$ANT_OPTS\""
 fi

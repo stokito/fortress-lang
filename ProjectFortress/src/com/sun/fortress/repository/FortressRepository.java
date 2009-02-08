@@ -55,16 +55,16 @@ public interface FortressRepository {
     public void addComponent(APIName name, ComponentIndex definition);
 
     /**
-     * Delete a compiled/processed component from the repository.
+     * Removes the AST for the component form any in-memory caches and/or maps,
+     * and optionally remove it from any stable storage as well.
+     * 
+     * Used to avoid memory leaks in unit testing, and to clear non-standard
+     * scribbles from the cache.
+     * 
+     * @param name
+     * @param andTheFileToo
      */
-    public void deleteComponent(APIName name);
-    
-    
-    /**
-     * "Forget" a compiled/processed component -- allow later
-     * rereading from disk, if necessary.
-     */
-    public void forgetComponent(APIName name);
+    public void deleteComponent(APIName name, boolean andTheFileToo);
 
     /**
      * Retrieve an api from the repository given a name.

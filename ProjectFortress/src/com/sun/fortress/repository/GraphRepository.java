@@ -38,6 +38,7 @@ import java.util.Set;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.Parser.Result;
@@ -65,6 +66,7 @@ import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -139,7 +141,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             File api_file = getApiFile(name);
             ApiGraphNode api = new ApiGraphNode(name, api_file);
             try{
-                long cache_date = cache.getModifiedDateForApi(api.getName());
+                long cache_date = cache.getModifiedDateForApi(api);
                 api.setApi( cache.getApi( api.getName() ), cache_date);
             } catch ( FileNotFoundException e ){
             } catch ( IOException e ){
@@ -304,7 +306,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private long getCacheDate( ApiGraphNode node ){
         try{
-            return cache.getModifiedDateForApi(node.getName());
+            return cache.getModifiedDateForApi(node);
         } catch ( FileNotFoundException e ){
             return Long.MIN_VALUE;
         }
@@ -770,10 +772,18 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     @Override
-    public void deleteComponent(APIName name) {
+    public void deleteComponent(APIName name, boolean andTheFileToo) {
         ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
         if ( node != null ){
             cache.deleteComponent(name);
+            if (andTheFileToo) {
+                try {
+                    ASTIO.deleteJavaAst(
+                            NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
+                } catch (IOException e) {
+                    // We tried.  Maybe it was never written anyhow.
+                }
+        }
         }
     }
 

@@ -29,10 +29,12 @@ public abstract class GraphNode{
     long sourceDate;
     long cacheDate = Long.MIN_VALUE; /* Missing = very old */
     private final APIName name;
+    private String canonicalSourceName;
 
     public GraphNode(APIName name, String canonicalSourceName, long sourceDate){
         this.name = name;
         this.sourceDate = sourceDate;
+        this.canonicalSourceName = canonicalSourceName;
     }
 
     public GraphNode(APIName name, File source_file) throws IOException{
@@ -45,6 +47,10 @@ public abstract class GraphNode{
 
     public long getSourceDate() {
         return sourceDate;
+    }
+    
+    public String getSourcePath() {
+        return canonicalSourceName;
     }
 
     public abstract <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F;
