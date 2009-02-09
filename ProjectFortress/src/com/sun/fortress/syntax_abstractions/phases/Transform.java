@@ -393,7 +393,6 @@ public class Transform extends TemplateUpdateVisitor {
             final Transform transformer = this;
             SyntaxEnvironment save = getSyntaxEnvironment();
             Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
-            List<Expr> body_result = recurOnListOfExpr(that.getBody());
             List<FnDecl> fns_result = Useful.applyToAll(that.getFns(), new Fn<FnDecl, FnDecl>(){
                 public FnDecl apply(FnDecl fn){
                     return (FnDecl) fn.accept(new TemplateUpdateVisitor(){
@@ -404,6 +403,10 @@ public class Transform extends TemplateUpdateVisitor {
                                                   Id name_result,
                                                   Option<Expr> body_result,
                                                   Option<Id> implementsUnambiguousName_result) {
+                            Id old = (Id) ((Id)name_result).accept(transformer);
+                            final Id generatedId = generateId(old);
+                            extendSyntaxEnvironment(old, generatedId);
+
                             FnHeader new_fnHeader =
                                 (FnHeader) header_result.accept(new TemplateUpdateVisitor(){
                                 @Override
@@ -417,25 +420,26 @@ public class Transform extends TemplateUpdateVisitor {
                                                             Option<Type> returnType_result) {
                                     List<Param> new_params_result = Useful.applyToAll(params_result,
                                                                                       renameParam);
-                                    return forFnHeaderOnly(that,
-                                                           staticParams_result,
-                                                           name_result,
-                                                           whereClause_result,
-                                                           throwsClause_result,
-                                                           contract_result,
-                                                           new_params_result,
-                                                           returnType_result);
+                                    return super.forFnHeaderOnly(that,
+                                                                 staticParams_result,
+                                                                 generatedId,
+                                                                 whereClause_result,
+                                                                 throwsClause_result,
+                                                                 contract_result,
+                                                                 new_params_result,
+                                                                 returnType_result);
                                 }
                             });
 
-                            Id old = (Id) ((Id)name_result).accept(transformer);
-                            Id generatedId = generateId(old);
-                            extendSyntaxEnvironment(old, generatedId);
-                            return forFnDeclOnly(that, info_result, new_fnHeader, generatedId, body_result, implementsUnambiguousName_result);
+                            return super.forFnDeclOnly(that, info_result,
+                                                       new_fnHeader, generatedId,
+                                                       body_result,
+                                                       implementsUnambiguousName_result);
                             }
                         });
                 }
             });
+            List<Expr> body_result = recurOnListOfExpr(that.getBody());
             ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
                                                      NodeUtil.isParenthesized(that),
                                                      exprType_result);

@@ -34,7 +34,8 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     public static TestSuite suite() {
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                return ( name.endsWith("Use.fss") );
+                return ( ! name.endsWith("LocalFnUse.fss") &&
+                         name.endsWith("Use.fss") );
             }
         };
         String[] basisTests = new File(STATIC_TESTS_DIR).list(fssFilter);
