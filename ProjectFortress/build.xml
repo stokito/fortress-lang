@@ -718,6 +718,7 @@ maintain proper indentation.
             <filename name="**/*${testPattern}*/**" />
             <or>
               <filename name="**/*JUTest.class" />
+              <filename name="**/*JUTestAll.class" />
               <filename name="**/*JxTest.class" />
             </or>
           </and>
