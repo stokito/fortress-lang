@@ -20,6 +20,7 @@ package com.sun.fortress.compiler;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +40,7 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.WireTappedPrintStream;
 
 public final class StaticTestSuite extends TestSuite {
 
@@ -188,9 +190,23 @@ public final class StaticTestSuite extends TestSuite {
         private void assertSyntaxAbstractionFails(File f) throws IOException, UserError {
             Shell.setTypeChecking(false);
             try{
+
+                PrintStream oldOut = System.out;
+                PrintStream oldErr = System.err;
+                WireTappedPrintStream wt_err =
+                    WireTappedPrintStream.make(System.err, true);
+                WireTappedPrintStream wt_out =
+                    WireTappedPrintStream.make(System.out, true);
+                System.setErr(wt_err);
+                System.setOut(wt_out);
                 Iterable<? extends StaticError> errors = compile(f);
+                System.setErr(oldErr);
+                System.setOut(oldOut);
+                System.out.println("  " + f + "  OK");
+
                 assertFalse("Source " + f + " was compiled without syntax abstraction errors",
                             IterUtil.isEmpty(errors));
+
             } catch ( MacroError error ){
                 if (VERBOSE) {
                     System.out.println(f + "  OK -- errors:");

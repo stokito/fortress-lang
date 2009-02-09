@@ -19,31 +19,47 @@ package com.sun.fortress.syntax_abstractions;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Collections;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-
 import com.sun.fortress.compiler.StaticTestSuite;
-import com.sun.fortress.compiler.StaticTestSuite.TestCaseDir;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.tests.unit_tests.FileTests;
 
 public class SyntaxAbstractionJUTestAll extends TestCase {
+
+    private static final char SEP = File.separatorChar;
     private final static String STATIC_TESTS_DIR =
-        ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
+        ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction";
 
     public static TestSuite suite() {
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                return name.endsWith("fss");
+                return ( ! name.endsWith("GeneratorClauseUse.fss") &&
+                         name.endsWith("Use.fss") );
             }
         };
         String[] basisTests = new File(STATIC_TESTS_DIR).list(fssFilter);
         TestSuite suite = new TestSuite("SyntaxAbstractionJUTestAll");
         for ( String filename : basisTests ){
-            File f = new File(STATIC_TESTS_DIR + filename);
-            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+            if ( filename.contains("SXX") ) {
+                assertFails(suite, filename);
+            } else {
+                String testname = filename.substring(0, filename.lastIndexOf(".fss"));
+                assertSucceeds(suite, testname);
+            }
         }
         return suite;
+    }
+
+    private static void assertFails(TestSuite suite, String filename) {
+        File f = new File(STATIC_TESTS_DIR + SEP + filename);
+        suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+    }
+
+    private static void assertSucceeds(TestSuite suite, String testname) {
+        suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR,
+                                            STATIC_TESTS_DIR,
+                                            testname, true, false));
     }
 }
 

@@ -39,10 +39,11 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class ParserJUTest extends TestCaseWrapper {
 
+    private static final String SEP = File.separator;
     private final static String PARSER_FAIL_TESTS_DIR =
-        ProjectProperties.BASEDIR + "parser_tests/";
+        ProjectProperties.BASEDIR + "parser_tests" + SEP;
     private final static String PARSER_NYI_TESTS_DIR =
-        ProjectProperties.BASEDIR + "not_passing_yet/";
+        ProjectProperties.BASEDIR + "not_passing_yet" + SEP;
     private static boolean isNYI(String parent) {
         return parent.contains("not_passing_yet");
     }
