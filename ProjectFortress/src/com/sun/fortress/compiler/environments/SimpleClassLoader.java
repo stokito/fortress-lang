@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.ProjectProperties;
@@ -45,12 +46,11 @@ public class SimpleClassLoader extends ClassLoader {
                                     throws IOException, InstantiationException, IllegalAccessException {
     	String className = fortressFileName;
     	if(isApi) {
-    		className += TopLevelEnvGen.API_ENV_SUFFIX;
+    		className = NamingCzar.classNameForApiEnvironment(className);
     	}
     	else {
-    		className += TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
+    		className = NamingCzar.classNameForComponentEnvironment(className);
     	}
-    	className = TopLevelEnvGen.mangleClassIdentifier(className);
     	
         SimpleClassLoader classLoader = aLoader; // new SimpleClassLoader();
         File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +

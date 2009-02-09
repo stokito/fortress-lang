@@ -23,6 +23,7 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import com.sun.fortress.Shell;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
@@ -79,10 +80,10 @@ public class TopLevelEnvGenJUTest extends TestCase {
     public void testNameMangling() {
     	String input = "/.;$<>[]:\\";
     	String mangledInput = "\\|\\,\\?\\%\\^\\_\\{\\}\\!\\-";
-    	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);
+    	assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
     	input = "hello" + input;
     	mangledInput = "\\=" + "hello" + mangledInput;
-    	assertEquals(TopLevelEnvGen.mangleIdentifier(input), mangledInput);
+    	assertEquals(NamingCzar.mangleIdentifier(input), mangledInput);
     }
 
     public void testRemoveMethods() {
