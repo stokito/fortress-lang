@@ -17,17 +17,22 @@
 
 package com.sun.fortress.syntax_abstractions;
 
-import java.io.File;
+import java.io.IOException;
+import junit.framework.Test;
 import junit.framework.TestSuite;
-import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.tests.unit_tests.FileTests;
 
-public class SyntaxAbstractionJUTest extends TestSuite {
+public class SyntaxAbstractionJUTest {
 
     private final static String STATIC_TESTS_DIR =
-        ProjectProperties.BASEDIR + "static_tests/syntax_abstraction/";
+        ProjectProperties.BASEDIR + "static_tests/syntax_abstraction";
 
-    public static TestSuite suite() {
+    public static void main(String[] args) throws IOException {
+        junit.textui.TestRunner.run(suite());
+    }
+
+    public static Test suite() throws IOException {
         String[] files = new String[]{
             // List trimmed to keep testing time quick.
             "CaseUse.fss",
@@ -41,10 +46,12 @@ public class SyntaxAbstractionJUTest extends TestSuite {
             "LabelUse.fss",
             "SyntaxNodesUse.fss",
         };
+
         TestSuite suite = new TestSuite("SyntaxAbstractionJUTest");
         for ( String filename : files ){
-            File f = new File(STATIC_TESTS_DIR + filename );
-            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
+            String testname = filename.substring(0, filename.lastIndexOf(".fss"));
+            suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR, STATIC_TESTS_DIR,
+                                                testname, false, false));
         }
         return suite;
     }
