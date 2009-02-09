@@ -51,7 +51,7 @@ public class SyntaxAbstractionJUTest {
         for ( String filename : files ){
             String testname = filename.substring(0, filename.lastIndexOf(".fss"));
             suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR, STATIC_TESTS_DIR,
-                                                testname, false, false));
+                                                testname, true, false));
         }
         return suite;
     }
