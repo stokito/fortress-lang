@@ -77,47 +77,6 @@ public class TopLevelEnvGen {
         public Map<APIName, Pair<String, byte[]>> generatedEnvs() { return _compUnits; }
     }
 
-    public static String mangleClassIdentifier(String identifier) {
-        String mangledString = identifier.replaceAll("\\.", "\\$");
-        return mangledString+NamingCzar.deCase(mangledString);
-    }
-
-    /**
-     * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
-     * Dangerous characters are the union of all characters forbidden
-     * or otherwise restricted by the JVM specification, plus their mates,
-     * if they are brackets.
-
-     * @param identifier
-     * @return
-     */
-    public static String mangleIdentifier(String identifier) {
-
-        // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
-        String mangledString = identifier.replaceAll("\\\\", "\\\\-");
-
-        // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
-        mangledString = mangledString.replaceAll("/", "\\\\|");
-        mangledString = mangledString.replaceAll("\\.", "\\\\,");
-        mangledString = mangledString.replaceAll(";", "\\\\?");
-        mangledString = mangledString.replaceAll("\\$", "\\\\%");
-        mangledString = mangledString.replaceAll("<", "\\\\^");
-        mangledString = mangledString.replaceAll(">", "\\\\_");
-        mangledString = mangledString.replaceAll("\\[", "\\\\{");
-        mangledString = mangledString.replaceAll("\\]", "\\\\}");
-        mangledString = mangledString.replaceAll(":", "\\\\!");
-
-        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
-        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
-
-        // 3. If the first two steps introduced any change, <em>and</em> if the
-        // string does not already begin with a backslash, prepend a null prefix (\=)
-        if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {
-            mangledString = "\\=" + mangledString;
-        }
-        return mangledString;
-    }
-
     /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
@@ -128,11 +87,9 @@ public class TopLevelEnvGen {
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
         for(APIName apiName : apis.keySet()) {
-            String className = NodeUtil.nameString(apiName);
-            className = className + API_ENV_SUFFIX;
+            String className = NamingCzar.classNameForApiEnvironment(apiName);
 
             try {
-                className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
                 byte[] envClass = generateForCompilationUnit(className, apis.get(apiName));
                 compiledApis.put(apiName, new Pair<String,byte[]>(className, envClass));
             } catch(StaticError staticError) {
@@ -147,7 +104,7 @@ public class TopLevelEnvGen {
         return new CompilationUnitResult(compiledApis, errors);
     }
 
-    /**
+     /**
      * Given a list of components, generate a Java bytecode compiled environment
      * for each component.
      */
@@ -157,9 +114,7 @@ public class TopLevelEnvGen {
         HashSet<StaticError> errors = new HashSet<StaticError>();
 
         for(APIName componentName : components.keySet()) {
-            String className = NodeUtil.nameString(componentName);
-            className = className + COMPONENT_ENV_SUFFIX;
-            className = mangleClassIdentifier(className);  // Need to mangle the name if it contains "."
+            String className = NamingCzar.classNameForComponentEnvironment(componentName);
             try {
                 byte[] envClass = generateForCompilationUnit(className,
                                                              components.get(componentName));
@@ -175,7 +130,6 @@ public class TopLevelEnvGen {
 
         return new CompilationUnitResult(compiledComponents, errors);
     }
-
 
     /**
      * Given one component, generate a Java bytecode compiled environment
@@ -384,7 +338,7 @@ public class TopLevelEnvGen {
             ClassWriter cw, EnvSymbolNames symbolNames, String idString) {
         symbolNames.add(nameSpace, idString);
         idString = idString + nameSpace.namespace();
-        cw.visitField(Opcodes.ACC_PUBLIC, mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
+        cw.visitField(Opcodes.ACC_PUBLIC, NamingCzar.mangleIdentifier(idString), nameSpace.descriptor(), null, null).visitEnd();
         return;
     }
 
@@ -492,7 +446,7 @@ public class TopLevelEnvGen {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
                 String idString = testString + environmentClass.namespace();
                 mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    mangleIdentifier(idString),
+                    NamingCzar.mangleIdentifier(idString),
                         environmentClass.descriptor());
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitLabel(afterReturn);
@@ -583,7 +537,7 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             String idString = testString + environmentClass.namespace();
             mv.visitFieldInsn(Opcodes.PUTFIELD, className,
-                    mangleIdentifier(idString), environmentClass.descriptor());
+                    NamingCzar.mangleIdentifier(idString), environmentClass.descriptor());
             mv.visitInsn(Opcodes.RETURN);
             mv.visitLabel(afterSetValue);
         }
@@ -734,7 +688,7 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             String idString = fieldName + eClass.namespace();
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    mangleIdentifier(idString), eClass.descriptor());
+                    NamingCzar.mangleIdentifier(idString), eClass.descriptor());
             Label l8 = new Label();
             mv.visitJumpInsn(Opcodes.IFNULL, l8);
             Label l9 = new Label();
@@ -742,7 +696,7 @@ public class TopLevelEnvGen {
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, className,
-                    mangleIdentifier(idString), eClass.descriptor());
+                    NamingCzar.mangleIdentifier(idString), eClass.descriptor());
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, eClass
                     .internalName(), "toString", "()Ljava/lang/String;");
             mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/lang/Appendable",

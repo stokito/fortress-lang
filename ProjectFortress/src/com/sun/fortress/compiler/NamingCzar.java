@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
@@ -30,6 +31,7 @@ import com.sun.fortress.nodes.NamedType;
 import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
@@ -62,28 +64,6 @@ public class NamingCzar {
         return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
     }
 
-
-    /* File name stuff */
-    /**
-     * Returns the name, with no leading directory, of the class
-     * used to implement the environment for an API.
-     *
-     * @param a
-     * @return
-     */
-    static public String cachedClassNameForApiEnv(APIName a, GraphRepository gr) {
-        return "";
-    }
-
-    /**
-     * Returns the name, with no leading directory, of the class
-     * used to implement the environment for a component.
-     * @param a
-     * @return
-     */
-    static public String cachedClassNameForCompEnv(APIName a) {
-        return "";
-    }
 
     public static String cachedPathNameForApiAst(String passedPwd, APIName name) {
        return ProjectProperties.apiFileName(passedPwd,  deCaseName(name));
@@ -270,5 +250,74 @@ public class NamingCzar {
          return bug ("unhandled type translation, Fortress type " + t);
 
      }
+
+    /**
+     * @param componentName
+     * @return
+     */
+     public static String classNameForComponentEnvironment(APIName componentName) {
+         return classNameForComponentEnvironment(NodeUtil.nameString(componentName));
+     }
+     
+    public static String classNameForComponentEnvironment(String componentName) {
+        componentName = componentName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
+        componentName = mangleClassIdentifier(componentName);  // Need to mangle the name if it contains "."
+        return componentName;
+    }
+
+    /**
+     * @param apiName
+     * @return
+     */
+    public static String classNameForApiEnvironment(APIName apiName) {
+        return classNameForApiEnvironment(NodeUtil.nameString(apiName));
+    }
+    
+    public static String classNameForApiEnvironment(String apiName) {
+        apiName = apiName + TopLevelEnvGen.API_ENV_SUFFIX;
+        apiName = mangleClassIdentifier(apiName);  // Need to mangle the name if it contains "."
+        return apiName;
+    }
+
+    public static String mangleClassIdentifier(String identifier) {
+        String mangledString = identifier.replaceAll("\\.", "\\$");
+        return mangledString+deCase(mangledString);
+    }
+
+    /**
+     * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
+     * Dangerous characters are the union of all characters forbidden
+     * or otherwise restricted by the JVM specification, plus their mates,
+     * if they are brackets.
+    
+     * @param identifier
+     * @return
+     */
+    public static String mangleIdentifier(String identifier) {
+    
+        // 1. In each accidental escape, replace the backslash with an escape sequence (\-)
+        String mangledString = identifier.replaceAll("\\\\", "\\\\-");
+    
+        // 2. Replace each dangerous character with an escape sequence (\| for /, etc.)
+        mangledString = mangledString.replaceAll("/", "\\\\|");
+        mangledString = mangledString.replaceAll("\\.", "\\\\,");
+        mangledString = mangledString.replaceAll(";", "\\\\?");
+        mangledString = mangledString.replaceAll("\\$", "\\\\%");
+        mangledString = mangledString.replaceAll("<", "\\\\^");
+        mangledString = mangledString.replaceAll(">", "\\\\_");
+        mangledString = mangledString.replaceAll("\\[", "\\\\{");
+        mangledString = mangledString.replaceAll("\\]", "\\\\}");
+        mangledString = mangledString.replaceAll(":", "\\\\!");
+    
+        // Non-standard name-mangling convention.  Michael Spiegel 6/16/2008
+        mangledString = mangledString.replaceAll("\\ ", "\\\\~");
+    
+        // 3. If the first two steps introduced any change, <em>and</em> if the
+        // string does not already begin with a backslash, prepend a null prefix (\=)
+        if (!mangledString.equals(identifier) && !(mangledString.charAt(0) == '\\')) {
+            mangledString = "\\=" + mangledString;
+        }
+        return mangledString;
+    }
 
 }
