@@ -56,7 +56,7 @@ public class Compile extends NodeAbstractVisitor_void {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
-    
+
     private void generateRunMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "run", "()V", null, null);
         mv.visitCode();
@@ -72,21 +72,21 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     private void generateTestMethod() {
-        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "test", "()V", null, null);        
-        mv.visitCode();        
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "test", "()V", null, null);
+        mv.visitCode();
         mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System","out","Ljava/io/PrintStream;");
         mv.visitLdcInsn("This is just a test header");
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
-        mv.visitInsn(Opcodes.RETURN);        
+        mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(2,1);
         mv.visitEnd();
     }
 
     public Compile(String n) {
-        loader = new MyClassLoader();        
+        loader = new MyClassLoader();
         cw = new ClassWriter(0);
         className = n;
-        c = new CanCompile();    
+        c = new CanCompile();
 
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, className, null, "java/lang/Object", null);
         generateInitMethod();
@@ -102,17 +102,17 @@ public class Compile extends NodeAbstractVisitor_void {
 
     private void sayWhat(Node that) {
         throw new RuntimeException("Can't compile " + that);
-    }        
-    
+    }
+
     public void defaultCase(Node that) {
-        System.out.println("defaultCase" + that);
+        // System.out.println("defaultCase" + that);
         sayWhat(that);
     }
 
     public void forFnDecl(FnDecl x) {
         if (x.accept(c)) {
             try {
-                System.out.println("forFnDecl " + x);
+                // System.out.println("forFnDecl " + x);
                 //         dump(x);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -124,7 +124,7 @@ public class Compile extends NodeAbstractVisitor_void {
     public void forComponent(Component x) {
         CanCompile c = new CanCompile();
         if (x.accept(c)) {
-            System.out.println("About to compile Component x");
+            // System.out.println("About to compile Component x");
             List<Decl> decls = x.getDecls();
             for (Decl d : decls) {
                 forDecl(d);
@@ -133,11 +133,10 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forDecl(Decl x) {
-        if (x instanceof FnDecl) 
+        if (x instanceof FnDecl)
             forFnDecl((FnDecl) x);
         else {
             throw new RuntimeException("Only know how to compile FnDecls");
         }
     }
 }
-
