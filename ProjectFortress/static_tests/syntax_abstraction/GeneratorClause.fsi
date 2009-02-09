@@ -23,36 +23,41 @@ api GeneratorClause
         Expr |:=
             a:foobar {e:Expr ,? SPACE}* =>
             case e of
-                Empty => <[ 1 ]>
+                Empty => <[ println 0 ]>
                 Cons(fs,bs) =>
                     <[
                     do
-                        for x <- 0#fs do
-                            x + (foobar bs**)
+                        for x <- 0#(fs asif ZZ32) do
+                            println x
+                            (foobar bs**)
                         end
                     end
                 ]>
             end
        |  a:goobar {e:Expr ,? SPACE}* =>
             case e of
-                Empty => <[ 1 ]>
+                Empty => <[ println "Empty" ]>
                 Cons(fs,bs) =>
                     <[
                     do
-                        while x <- 0#fs do
-                            x + (goobar bs**)
+                        var t: Boolean = fs
+                        while x <- t do
+                            t := false
+                            println "Cons"
+                            (goobar bs**)
                         end
                     end
                 ]>
             end
         |  a:moobar {e:Expr ,? SPACE}* =>
             case e of
-                Empty => <[ 1 ]>
+                Empty => <[ 0 ]>
                 Cons(fs,bs) =>
                     <[
                     do
-                        if x <- fs then
-                            x + (moobar bs**)
+                        if x <- fs
+                        then 1 + (moobar bs**)
+                        else (moobar bs**)
                         end
                     end
                 ]>
