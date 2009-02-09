@@ -133,6 +133,7 @@ maintain proper indentation.
   <!-- Other settings -->
   <property name="junitMem" value="768m"/>
   <property name="junit.dir" value="junit-results"/>
+  <property name="javaSourceVersion" value="1.5"/>
   <property environment="env"/>
   <condition property="correct.environment">
     <and>
@@ -400,7 +401,7 @@ maintain proper indentation.
     <javac
         srcdir="${astgen.generators.src}"
         destdir="${build}"
-        source="1.6"
+        source="${javaSourceVersion}"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -629,7 +630,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.6"
+        source="${javaSourceVersion}"
         debug="true"
         includeantruntime="false"
         fork="true"
@@ -652,7 +653,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.6"
+        source="${javaSourceVersion}"
         debug="true"
         includeantruntime="false"
         fork="true">
@@ -673,7 +674,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.6"
+        source="${javaSourceVersion}"
         debug="true"
         includeantruntime="false"
         fork="true">
@@ -1098,7 +1099,7 @@ maintain proper indentation.
     <javac
         srcdir="${src}"
         destdir="${build}"
-        source="1.6"
+        source="${javaSourceVersion}"
         debug="true"
         includeantruntime="false"
         fork="true"
