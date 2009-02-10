@@ -278,9 +278,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             } catch ( IOException e ){
             }
 
-            /* make this component depend on the APIs it imports */
+            /* make this component depend on the APIs it imports and
+             * exports except the executable APIs */
             for ( APIName api : dependencies(node) ){
-                nodeDependsOnApi(node, api);
+                if ( WellKnownNames.exportsMain(api.getText()) )
+                    addApiGraph(api);
+                else nodeDependsOnApi(node, api);
             }
             /* and depend on all the root APIs */
             for ( String root : roots() ){
@@ -385,12 +388,13 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     }
 
-    private List<APIName> dependencies(ComponentGraphNode node) throws FileNotFoundException, StaticError {
+    private List<APIName> dependencies(ComponentGraphNode node)
+        throws FileNotFoundException, StaticError {
         CompilationUnit cu = node.getComponent().isSome() ?
                 node.getComponent().unwrap().ast() :
                     readCUFor(node, ProjectProperties.COMP_SOURCE_SUFFIX);
 
-        return collectComponentImports((Component)cu);
+        return collectComponentImportsExports((Component)cu);
     }
 
     private boolean inApiList( APIName name, List<ApiGraphNode> nodes ){
@@ -457,19 +461,19 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     private class OutOfDateVisitor implements GraphVisitor<Boolean,FileNotFoundException>{
-        // This may be over-conservative -- rebuilds get triggered transitively 
+        // This may be over-conservative -- rebuilds get triggered transitively
         // across chains of API dependence.  "Youngest" is computed transitively.
         private Map<GraphNode, Long> youngestSourceDependedOn;
-        
+
         // Dates are not available for foreign imports.  Therefore, keep track
         // of a hashcode of the last-seen build, and if it does not match, then
         // assume stale.
         private Set<GraphNode> foreignChange;
-        
-        // In a second pass, if anything is stale, or depends on stale, it is 
+
+        // In a second pass, if anything is stale, or depends on stale, it is
         // marked for rebuild.
         private Map<GraphNode, Boolean> staleOrDependsOnStale;
-        
+
 
         public OutOfDateVisitor(){
             youngestSourceDependedOn = new HashMap<GraphNode,Long>();
@@ -522,8 +526,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                     if (foreignJava.dependenceChanged(node, next)) {
                         foreignChange.add(node);
                     }
-                } 
-                
+                }
+
                     long dependent_youngest = handle(next);
                     if (dependent_youngest > youngest) {
 
@@ -531,7 +535,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                                 + " has younger source than " + node);
                         youngest = dependent_youngest;
                     }
-                
+
             }
 
             youngestSourceDependedOn.put(node, youngest);
@@ -713,6 +717,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         AnalyzeResult result =
             Shell.analyze(shell.getRepository(),
                           knownApis, new ArrayList<Api>(), components, now );
+        Debug.debug( Debug.Type.REPOSITORY, 1, "Shell.analyze for ", component, " done." );
         if ( !result.isSuccessful() ){
             throw new MultipleStaticError(result.errors());
         }
@@ -840,7 +845,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         List<APIName> all = new ArrayList<APIName>();
 
         APIName comp_name = comp.getName();
-        
+
         for (Import i : comp.getImports()){
             Option<String> opt_fl = i.getForeignLanguage();
             boolean isNative = opt_fl.isSome();
@@ -881,35 +886,25 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         return all;
     }
 
-    private  List<APIName> collectComponentImports(Component comp) {
+    private  List<APIName> collectComponentImportsExports(Component comp) {
          List<APIName> all =  collectExplicitImports(comp);
 
          for (APIName api : comp.getExports()) {
              all.add(api);
          }
-         return removeExecutableApi(all);
+         return all;
      }
 
     private  List<APIName> collectApiImports(Api api) {
         List<APIName> all =  collectExplicitImports(api);
 
-        return removeExecutableApi(all);
+        return all;
     }
 
     private CompilationUnit readCUFor(GraphNode node, String sourceSuffix) throws FileNotFoundException {
         APIName name = node.getName();
         File fdot = findFile(name, sourceSuffix);
         return Parser.preparseFileConvertExn(fdot);
-    }
-
-    private static List<APIName> removeExecutableApi(List<APIName> all){
-        List<APIName> fixed = new ArrayList<APIName>();
-        for (APIName name : all){
-            if (! WellKnownNames.exportsMain(name.getText())) {
-                fixed.add(name);
-            }
-        }
-        return fixed;
     }
 
 }

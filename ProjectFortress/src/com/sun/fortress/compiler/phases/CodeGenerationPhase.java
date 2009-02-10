@@ -56,15 +56,19 @@ public class CodeGenerationPhase extends Phase {
 
         // Generate bytecodes for as much as we can.
 
+        Debug.debug(Debug.Type.CODEGEN, 1, "Before invoking Compile: components=" + previous.components());
+        //Debug.debug(Debug.Type.CODEGEN, 1, "Before invoking Compile: apis      =" + previous.apis());
+
         for (Component comp : previous.componentIterator()) {
-            Debug.debug(Debug.Type.COMPILER, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
+            Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
             Compile c = new Compile(comp.getName().getText());
             comp.accept(c);
             c.dumpClass();
         }
 
         return new AnalyzeResult(previous.apis(), previous.components(),
-                IterUtil.<StaticError> empty(), previous.typeCheckerOutput());
+                                 IterUtil.<StaticError> empty(),
+                                 previous.typeCheckerOutput());
 
     }
 

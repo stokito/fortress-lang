@@ -696,7 +696,6 @@ public final class Shell {
         APIName name = null;
         try {
             bcr = specificRepository( path );
-            Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
             name = cuName(file);
 
             if ( isApi(file) ) {
