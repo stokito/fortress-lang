@@ -721,9 +721,9 @@ public class ForeignJava {
 
     static private String dependsFileName(GraphNode node) {
         if (node instanceof ApiGraphNode) {
-            return NamingCzar.dependenceFileNameForApiAst(node.getName());
+            return NamingCzar.dependenceFileNameForApiAst(node.getName(), node.getSourcePath());
         } else {
-            return NamingCzar.dependenceFileNameForCompAst(node.getName());
+            return NamingCzar.dependenceFileNameForCompAst(node.getName(), node.getSourcePath());
         }
     }
 

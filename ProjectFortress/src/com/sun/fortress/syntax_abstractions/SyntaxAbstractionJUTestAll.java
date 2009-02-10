@@ -19,9 +19,14 @@ package com.sun.fortress.syntax_abstractions;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.StaticTestSuite;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.tests.unit_tests.FileTests;
 
@@ -31,7 +36,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     private final static String STATIC_TESTS_DIR =
         ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction";
 
-    public static TestSuite suite() {
+    public static TestSuite suite() throws IOException {
         FilenameFilter fssFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return ( ! name.endsWith("LocalFnUse.fss") &&
@@ -56,8 +61,9 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
         suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
     }
 
-    private static void assertSucceeds(TestSuite suite, String testname) {
-        suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR,
+    private static void assertSucceeds(TestSuite suite, String testname) throws IOException {
+        GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(STATIC_TESTS_DIR) );
+        suite.addTest(new FileTests.FSSTest(fr, STATIC_TESTS_DIR,
                                             STATIC_TESTS_DIR,
                                             testname, true, false));
     }

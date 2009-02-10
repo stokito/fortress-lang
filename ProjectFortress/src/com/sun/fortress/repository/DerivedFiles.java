@@ -21,28 +21,28 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.fortress.compiler.PathTaggedApiName;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.APIName;
 
 public class DerivedFiles<T> {
-    protected final Map<APIName, T> cached =
-        new HashMap<APIName, T>();
+    protected final Map<PathTaggedApiName, T> cached =
+        new HashMap<PathTaggedApiName, T>();
     
-    protected final IO<APIName, T> ioForAPINames;
+    protected final IO<PathTaggedApiName, T> ioForPathTaggedApiNames;
     
-    public DerivedFiles (IO<APIName, T> io) {
-        this.ioForAPINames = io;
+    public DerivedFiles (IO<PathTaggedApiName, T> io) {
+        this.ioForPathTaggedApiNames = io;
     }
     
-    public T get(APIName name, long mustBeNewerThan) {
+    public T get(PathTaggedApiName name, long mustBeNewerThan) {
         T x = cached.get(name);
         if (x == null) {
             try {
-                long lastModified = ioForAPINames.lastModified(name);
+                long lastModified = ioForPathTaggedApiNames.lastModified(name);
                 if (lastModified < mustBeNewerThan)
                     return null;
-                x = ioForAPINames.read(name);
+                x = ioForPathTaggedApiNames.read(name);
                 cached.put(name, x);
             } catch (IOException e) {
                 /*
@@ -58,16 +58,16 @@ public class DerivedFiles<T> {
         return x;
     }
     
-    public void put(APIName name, T x) {
+    public void put(PathTaggedApiName name, T x) {
         cached.put(name, x);
         try {
-            ioForAPINames.write(name, x);
+            ioForPathTaggedApiNames.write(name, x);
         } catch (IOException e) {
             InterpreterBug.bug("Failed to write " + name);
         }
     }
     
-    public void forget(APIName name) {
+    public void forget(PathTaggedApiName name) {
         cached.remove(name);
     }
 

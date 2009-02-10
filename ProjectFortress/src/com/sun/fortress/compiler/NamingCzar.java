@@ -56,29 +56,28 @@ public class NamingCzar {
         return "_" + Integer.toString(s.hashCode()&0x7fffffff,16);
     }
 
-    public static String deCaseName(APIName s) {
-        return s + "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
+    public static String deCaseName(PathTaggedApiName ptan) {
+        return deCaseName(ptan.name, ptan.source_path);
+        
+    }
+    public static String deCaseName(APIName s, String sourcePath) {
+        return s + "-" + Integer.toString(sourcePath.hashCode()&0x7fffffff,16);
     }
 
-    public static String deCase(APIName s) {
-        return "-" + Integer.toString(s.getText().hashCode()&0x7fffffff,16);
-    }
-
-
-    public static String cachedPathNameForApiAst(String passedPwd, APIName name) {
-       return ProjectProperties.apiFileName(passedPwd,  deCaseName(name));
+    public static String cachedPathNameForApiAst(String passedPwd, String sourcePath, APIName name) {
+       return ProjectProperties.apiFileName(passedPwd,  deCaseName(name, sourcePath));
    }
    
-     public static String cachedPathNameForCompAst(String passedPwd, APIName name) {
-        return ProjectProperties.compFileName(passedPwd,  deCaseName(name));
+     public static String cachedPathNameForCompAst(String passedPwd, String sourcePath, APIName name) {
+        return ProjectProperties.compFileName(passedPwd,  deCaseName(name, sourcePath));
     }
 
-     public static String dependenceFileNameForCompAst(APIName name) {
-         return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
+     public static String dependenceFileNameForCompAst(APIName name, String sourcePath) {
+         return ProjectProperties.compFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
      }
 
-     public static String dependenceFileNameForApiAst(APIName name) {
-         return ProjectProperties.apiFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name));
+     public static String dependenceFileNameForApiAst(APIName name, String sourcePath) {
+         return ProjectProperties.apiFileName(ProjectProperties.ANALYZED_CACHE_DEPENDS_DIR, deCaseName(name, sourcePath));
      }
 
      /* Converting names of Fortress entities into Java entities.

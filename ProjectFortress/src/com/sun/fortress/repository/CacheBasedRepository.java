@@ -40,12 +40,13 @@ import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.repository.graph.ApiGraphNode;
+import com.sun.fortress.repository.graph.ComponentGraphNode;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class CacheBasedRepository extends StubRepository implements FortressRepository {
+public class CacheBasedRepository { // extends StubRepository implements FortressRepository {
 
 
     protected final BATree<APIName, ApiIndex> apis =
@@ -64,12 +65,12 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     public Map<APIName, ComponentIndex> components() { return components; }
 
-    public ApiIndex getApi(APIName name) throws FileNotFoundException,
+    public ApiIndex getApi(APIName name, String sourcePath) throws FileNotFoundException,
             IOException {
         ApiIndex ci = apis.get(name);
         if (ci != null)
             return ci;
-        String s = apiFileName(name);
+        String s = apiFileName(name, sourcePath);
 
         File f = new File(s);
         if (!f.exists()) {
@@ -85,11 +86,11 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         return ci;
     }
 
-    public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException {
+    public ComponentIndex getComponent(APIName name, String sourcePath) throws FileNotFoundException, IOException {
         ComponentIndex ci = components.get(name);
         if (ci != null)
             return ci;
-        String s = compFileName(name);
+        String s = compFileName(name, sourcePath);
 
         File f = new File(s);
         if (! f.exists()) {
@@ -105,7 +106,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
 
     }
 
-    public void addApi(APIName name, ApiIndex def) {
+    public void addApi(APIName name, ApiIndex def, String sourcePath) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
 
@@ -113,7 +114,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         apis.put(name, def);
 
         try {
-            ASTIO.writeJavaAst(ast, apiFileName(ast.getName() ));
+            ASTIO.writeJavaAst(ast, apiFileName(ast.getName(), sourcePath));
         } catch (IOException e) {
             throw new ShellException(e);
         }
@@ -128,13 +129,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         }
     }
 
-    public void addApis(Map<APIName, ApiIndex> newApis) {
-        for (Map.Entry<APIName, ApiIndex> entry: newApis.entrySet()) {
-            addApi(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void addComponent(APIName name, ComponentIndex def) {
+    public void addComponent(APIName name, ComponentIndex def, String sourcePath) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
         Debug.debug( Debug.Type.REPOSITORY, 2, "addComponent: Component ", name, " created at ", def.modifiedDate() );
@@ -142,7 +137,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         components.put(name, def);
 
         try {
-            ASTIO.writeJavaAst(ast, compFileName(ast.getName()));
+            ASTIO.writeJavaAst(ast, compFileName(ast.getName(), sourcePath));
         } catch (IOException e) {
             throw new ShellException(e);
         }
@@ -157,12 +152,12 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
         SimpleClassLoader.reloadEnvironment(NodeUtil.nameString(name));
     }
 
-    private String compFileName(APIName name) {
-        return NamingCzar.cachedPathNameForCompAst(pwd, name);
+    private String compFileName(APIName name, String sourcePath) {
+        return NamingCzar.cachedPathNameForCompAst(pwd, sourcePath, name);
     }
 
-    private String apiFileName(APIName name) {
-        return NamingCzar.cachedPathNameForApiAst(pwd,  name);
+    private String apiFileName(APIName name, String sourcePath) {
+        return NamingCzar.cachedPathNameForApiAst(pwd,  sourcePath, name);
     }
 
     private long dateFromFile(APIName name, String s, String tag)
@@ -183,19 +178,22 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
             return i.modifiedDate();
         }
 
-       String s = apiFileName(name);
+       String s = apiFileName(name, sourcePath);
        String tag = "API ";
        return dateFromFile(name, s, tag);
     }
 
-    public long getModifiedDateForComponent(APIName name) throws FileNotFoundException {
+    public long getModifiedDateForComponent(ComponentGraphNode node) throws FileNotFoundException {
+        APIName name = node.getName();
+        String sourcePath = node.getSourcePath();
+
         ComponentIndex i = components.get(name);
         if (i != null){
             Debug.debug( Debug.Type.REPOSITORY, 2, "Cached modified date for component ", name, " is ", i.modifiedDate() );
             return i.modifiedDate();
         }
 
-       String s = compFileName(name);
+       String s = compFileName(name, sourcePath);
        String tag = "Component ";
        return dateFromFile(name, s, tag);
     }

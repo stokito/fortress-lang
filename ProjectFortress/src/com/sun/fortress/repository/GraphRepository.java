@@ -40,6 +40,7 @@ import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.Parser;
+import com.sun.fortress.compiler.PathTaggedApiName;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.Parser.Result;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -113,6 +114,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
+    
+    static private Map<String, DerivedFiles<CompilationUnit>> otherCaches = new HashMap<String, DerivedFiles<CompilationUnit>>();
 
     ForeignJava foreignJava = ForeignJava.only;
 
@@ -127,6 +130,28 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         this(p, new CacheBasedRepository(cacheDir));
     }
 
+    public DerivedFiles<CompilationUnit> getDerivedComponentCache(final String cache_path) {
+        String key=path+"//"+cache_path;
+        DerivedFiles<CompilationUnit> derived_cache = otherCaches.get(key);
+        if (derived_cache == null) {
+            
+            Fn<PathTaggedApiName, String> toCompFileName = new Fn<PathTaggedApiName, String>() {
+                @Override
+                public String apply(PathTaggedApiName x) {
+                    return ProjectProperties.compFileName(cache_path, NamingCzar.deCaseName(x));
+                }
+            };
+            
+            IOAst componentReaderWriter = new IOAst(toCompFileName);
+            
+            derived_cache =
+                new DerivedFiles<CompilationUnit>(componentReaderWriter);
+            
+            otherCaches.put(key, derived_cache);
+        }
+        return derived_cache;
+    }
+    
     private static String[] roots() {
         /* files that are dependencies of everything */
         return defaultLibrary();
@@ -142,7 +167,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             ApiGraphNode api = new ApiGraphNode(name, api_file);
             try{
                 long cache_date = cache.getModifiedDateForApi(api);
-                api.setApi( cache.getApi( api.getName() ), cache_date);
+                api.setApi( cache.getApi( api.getName(), api.getSourcePath()), cache_date);
             } catch ( FileNotFoundException e ){
             } catch ( IOException e ){
             }
@@ -233,7 +258,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 long cache_date = getCacheDate(node);
                 if ( cache_date > getApiFileDate(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2 , "Found cached version of ", node );
-                    node.setApi( cache.getApi(name), cache_date);
+                    node.setApi( cache.getApi(name, node.getSourcePath()), cache_date);
                 }
             } catch ( FileNotFoundException f ){
                 /* oh well */
@@ -271,7 +296,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 long cache_date = getCacheDate(node);
                 if ( cache_date > getComponentFileDate(node) ){
                     Debug.debug( Debug.Type.REPOSITORY, 2 , "Found cached version of ", node );
-                    node.setComponent( cache.getComponent(name), cache_date);
+                    node.setComponent( cache.getComponent(name, node.getSourcePath()), cache_date);
                 }
             } catch ( FileNotFoundException f ){
                 /* oh well */
@@ -317,7 +342,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
 
     private long getCacheDate( ComponentGraphNode node ){
         try{
-            return cache.getModifiedDateForComponent(node.getName());
+            return cache.getModifiedDateForComponent(node);
         } catch ( FileNotFoundException e ){
             return Long.MIN_VALUE;
         }
@@ -757,7 +782,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             // TODO if the name is native-implemented, be sure not to write
             // it to a file.
             node.setApi(definition, definition.modifiedDate());
-            cache.addApi(name, definition);
+            cache.addApi(name, definition, node.getSourcePath());
             foreignJava.writeDependenceDataForAST(node);
 
         }
@@ -771,7 +796,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throw new RuntimeException("No such component " + name);
         } else {
             node.setComponent(definition, definition.modifiedDate());
-            cache.addComponent(name, definition);
+            cache.addComponent(name, definition, node.getSourcePath());
             foreignJava.writeDependenceDataForAST(node);
         }
     }
@@ -784,7 +809,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             if (andTheFileToo) {
                 try {
                     ASTIO.deleteJavaAst(
-                            NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, name) );
+                            NamingCzar.cachedPathNameForCompAst(ProjectProperties.ANALYZED_CACHE_DIR, node.getSourcePath(), name) );
                 } catch (IOException e) {
                     // We tried.  Maybe it was never written anyhow.
                 }
@@ -905,6 +930,16 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         APIName name = node.getName();
         File fdot = findFile(name, sourceSuffix);
         return Parser.preparseFileConvertExn(fdot);
+    }
+
+    public String getComponentSourcePath(APIName name) {
+        ComponentGraphNode node = (ComponentGraphNode) graph.find(ComponentGraphNode.key(name));
+
+        return node.getSourcePath();
+    }
+    
+    public PathTaggedApiName pathTaggedComponent(APIName name) {
+        return new PathTaggedApiName(getComponentSourcePath(name), name);
     }
 
 }
