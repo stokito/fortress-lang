@@ -145,12 +145,12 @@ public class Transform extends TemplateUpdateVisitor {
      * Typecase - done
      * Catch - done
      * GeneratorClause - all the following nodes can contain GeneratorClause
-     *    TestDecl
      *    For - done
      *    While - done
-     *    Accumulator -
-     *    ArrayComprehensionClause
      *    IfClause - done
+     *    Accumulator - done
+     *    ArrayComprehensionClause - on hold till it's implemented
+     *    TestDecl - on hold till it's implemented
      */
 
     /* this should only be called by a method that has a GeneratorClause */
@@ -215,6 +215,29 @@ public class Transform extends TemplateUpdateVisitor {
             return forWhileOnly(that, info, test_result, body_result);
         } else {
             return super.forWhile(that);
+        }
+    }
+
+    @Override
+    public Node forAccumulator(Accumulator that) {
+        if ( rename ){
+            SyntaxEnvironment save = getSyntaxEnvironment();
+            Option<Type> exprType_result = recurOnOptionOfType(NodeUtil.getExprType(that));
+            List<StaticArg> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+            Op accOp_result = (Op) recur(that.getAccOp());
+            List<GeneratorClause> gens_result = new ArrayList<GeneratorClause>();
+            for ( GeneratorClause g : that.getGens() ) {
+                gens_result.add(handleGeneratorClause(g));
+            }
+            Expr body_result = (Expr) recur(that.getBody());
+            setSyntaxEnvironment(save);
+            ExprInfo info = NodeFactory.makeExprInfo(NodeUtil.getSpan(that),
+                                                     NodeUtil.isParenthesized(that),
+                                                     exprType_result);
+            return forAccumulatorOnly(that, info, staticArgs_result, accOp_result,
+                                      gens_result, body_result);
+        } else {
+            return super.forAccumulator(that);
         }
     }
 

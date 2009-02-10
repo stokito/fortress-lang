@@ -26,6 +26,8 @@ run(args:String...) = do
     println (goobar true, true, true, false, true)
     (* if *)
     println (moobar true, false, true)
+    (* accumulator *)
+    println (noobar 1, 2, 3, 4, 5)
 end
 
 end
