@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -14,23 +14,27 @@
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
-
 api For
-    import FortressAst.{...}
-    import FortressSyntax.{...}
 
-    grammar M extends {Expression, Identifier}
-        Expr |:=
-            a:for {i:Id <- e:Expr ,? SPACE}* ; b:do block:Expr ; c:end =>
-            <[ for2 i** ; e** ; do block ; end ]>
-        | a:for2 i:Id* ; e:Expr* ; b:do block:Expr ; c:end =>
-            case i of
-                Empty => <[ block ]>
-                Cons(ia, ib) =>
-                    case e of
-                        Cons (ea, eb) => 
-                          <[ ((ea).loop(fn ia => (for2 ib** ; eb** ; do block ; end)))]>
-                    end
-            end
-    end
+import FortressAst.{...}
+import FortressSyntax.{...}
+
+object Unreachable extends UncheckedException end
+
+grammar ForLoop extends {Expression, Identifier}
+    Expr |:=
+        for {i:Id <- e:Expr ,? SPACE}* do block:Expr end =>
+        <[ for2 i** ; e** ; do block ; end ]>
+      | for2 i:Id* ; e:Expr* ; do block:Expr ; end =>
+        case i of
+            Empty => <[ block ]>
+            Cons(ia, ib) =>
+                case e of
+                    Empty => <[ throw Unreachable ]>
+                    Cons (ea, eb) =>
+                    <[ ((ea).loop(fn ia => (for2 ib** ; eb** ; do block ; end))) ]>
+                end
+        end
+end
+
 end
