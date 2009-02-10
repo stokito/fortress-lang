@@ -18,38 +18,26 @@
 package com.sun.fortress.syntax_abstractions;
 
 import java.io.File;
-import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import com.sun.fortress.compiler.StaticTestSuite;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.tests.unit_tests.FileTests;
 
-public class SyntaxAbstractionJUTest extends TestCase {
+public class SyntaxAbstractionJUTest extends TestSuite {
 
     private static final char SEP = File.separatorChar;
     private final static String STATIC_TESTS_DIR =
-        ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction";
+        ProjectProperties.BASEDIR + "static_tests" + SEP + "syntax_abstraction" + SEP;
 
-    public static Test suite() {
+    public static TestSuite suite() {
         String[] files = new String[]{
             // List trimmed to keep testing time quick.
-            "CaseUse.fss",
-            "DoubleCaseUse.fss",
-            "GrammarCompositionUseA.fss",
-            "GrammarCompositionUseB.fss",
-            "GrammarCompositionUseC.fss",
-            "GrammarCompositionUseD.fss",
-            "ForUse.fss",
-            "OrUse.fss",
-            "LabelUse.fss",
-            "SyntaxNodesUse.fss",
+            "ForUse.fss"
         };
 
         TestSuite suite = new TestSuite("SyntaxAbstractionJUTest");
         for ( String filename : files ){
-            String testname = filename.substring(0, filename.lastIndexOf(".fss"));
-            suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR, STATIC_TESTS_DIR,
-                                                testname, true, false));
+            File f = new File(STATIC_TESTS_DIR + filename );
+            suite.addTest(new StaticTestSuite.StaticTestCase(f, false));
         }
         return suite;
     }
