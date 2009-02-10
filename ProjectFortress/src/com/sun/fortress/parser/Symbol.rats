@@ -48,12 +48,10 @@ Op ExponentOp = a1:exponentOp
  */
 Op EncloserPair =
      a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
-     { if (PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
-           yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount), a1.getText(), a2.getText());
-       else {
+     { if (! PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
            log(NodeUtil.getSpan(a2), "Mismatched Enclosers: " + a1 + " and " + a2);
-           yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount), a1.getText(), a2.getText());
-       }
+       yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount),
+                                           a1.getText(), a2.getText());
      };
 
 transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
@@ -67,7 +65,7 @@ transient private void closingComprehension =
 transient private String sd = [*.]? ;
 transient private String bars = "|" (sd "|")* ;
 transient private String slashes = "/" (sd "/")*
-                       / "\\" (sd "\\")* ;
+                                 / "\\" (sd "\\")* ;
 transient private String lesses = "<" (sd "<")*;
 transient private String greaters = ">" (sd ">")*;
 
@@ -261,5 +259,5 @@ transient Op Accumulator =
 ArrayComprehensionClause ArrayComprehensionClause =
      a1:ArrayComprehensionLeft wr bar wr a2:GeneratorClauseList
      { yyValue = NodeFactory.makeArrayComprehensionClause(createSpan(yyStart,yyCount),
-                                              a1.getA(), a1.getB(), a2);
+                                                          a1.getA(), a1.getB(), a2);
      };

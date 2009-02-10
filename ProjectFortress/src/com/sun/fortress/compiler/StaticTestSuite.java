@@ -305,8 +305,19 @@ public final class StaticTestSuite extends TestSuite {
         }
 
         private void assertWellFormedProgram(File f)
-                throws IOException, UserError {
+            throws IOException, UserError {
+            PrintStream oldOut = System.out;
+            PrintStream oldErr = System.err;
+            WireTappedPrintStream wt_err =
+                WireTappedPrintStream.make(System.err, true);
+            WireTappedPrintStream wt_out =
+                WireTappedPrintStream.make(System.out, true);
+            System.setErr(wt_err);
+            System.setOut(wt_out);
             Iterable<? extends StaticError> errors = compile(f);
+            System.setErr(oldErr);
+            System.setOut(oldOut);
+
             String message = "Source " + f + " produces static errors:";
             for (StaticError error : errors) {
                 try { throw error; }
