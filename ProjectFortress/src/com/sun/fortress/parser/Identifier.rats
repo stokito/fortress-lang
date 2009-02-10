@@ -76,7 +76,11 @@ List<Id> BindIdOrBindIdTuple =
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
      { yyValue = FortressUtil.mkList(a1, a2s); };
 
-/* SimpleName ::= Id | opr w (Encloser | Op) | opr w EncloserPair */
+/* SimpleName ::=
+     Id
+   | opr (w BIG)? w (Encloser | Op)
+   | opr (w BIG)? w EncloserPair
+ */
 IdOrOpOrAnonymousName SimpleName =
      Id
    / opr big:(w BIG)? w a1:(Encloser / Op)
@@ -99,9 +103,9 @@ APIName APIName =
        if (FORTRESS_KEYWORDS.contains(a1)) {
            log(span, a1 + " is a Fortress keyword.");
            yyValue = NodeFactory.makeAPIName(span, bogusId);
-       } else if (FortressUtil.validId(a1))
+       } else if (FortressUtil.validId(a1)) {
            yyValue = NodeFactory.makeAPIName(span, NodeFactory.makeId(span, a1));
-       else if (FortressUtil.validOp(a1)) {
+       } else if (FortressUtil.validOp(a1)) {
            log(span, a1 + " is not a valid Fortress identifier.");
            yyValue = NodeFactory.makeAPIName(span, bogusId);
        } else {
@@ -119,16 +123,12 @@ APIName APIName =
        Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();
-           if (FORTRESS_KEYWORDS.contains(id)) {
+           if (FORTRESS_KEYWORDS.contains(id))
                log(span, id + " is a Fortress keyword.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           } else if (FortressUtil.validOp(id)) {
+           else if (FortressUtil.validOp(id))
                log(span, id + " is not a valid Fortress identifier.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           } else if (!FortressUtil.validId(id)) {
+           else if (!FortressUtil.validId(id))
                log(span, id + " is not a valid Fortress identifier.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           }
        }
        yyValue = NodeFactory.makeAPIName(span, ids);
      }
@@ -142,16 +142,12 @@ APIName APIName =
        Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();
-           if (FORTRESS_KEYWORDS.contains(id)) {
+           if (FORTRESS_KEYWORDS.contains(id))
                log(span, id + " is a Fortress keyword.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           } else if (FortressUtil.validOp(id)) {
+           else if (FortressUtil.validOp(id))
                log(span, id + " is not a valid Fortress identifier.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           } else if (!FortressUtil.validId(id)) {
+           else if (!FortressUtil.validId(id))
                log(span, id + " is not a valid Fortress identifier.");
-               yyValue = NodeFactory.makeAPIName(span, bogusId);
-           }
        }
        yyValue = NodeFactory.makeAPIName(span, ids);
      };
