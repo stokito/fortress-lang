@@ -32,7 +32,9 @@ import com.sun.fortress.interpreter.evaluator.types.IntNat;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Path;
 
 public class TopLevelEnvBenchmark {
 
@@ -43,7 +45,8 @@ public class TopLevelEnvBenchmark {
     public static void main(String[] args) {
         try {
             Environment compiled = SimpleClassLoader.loadEnvironment(WellKnownNames.fortressLibrary(), false);
-            FortressRepository defaultRepository = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
+            CacheBasedRepository cache = new CacheBasedRepository(ProjectProperties.ANALYZED_CACHE_DIR);
+            GraphRepository defaultRepository = new GraphRepository(new Path("."), cache); // likely to fail, but it typechecks
             ApiIndex library = defaultRepository.getApi(NodeFactory.makeAPIName(NodeFactory.testSpan,
                                                                                 WellKnownNames.fortressLibrary()));
             Environment betterEnv = new BetterEnvLevelZero(library.ast());

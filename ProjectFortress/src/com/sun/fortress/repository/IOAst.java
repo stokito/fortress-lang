@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import com.sun.fortress.compiler.PathTaggedApiName;
 import com.sun.fortress.exceptions.shell.RepositoryError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.CompilationUnit;
@@ -29,15 +30,15 @@ import com.sun.fortress.useful.Pair;
 
 import edu.rice.cs.plt.tuple.Option;
 
-public class IOAst implements IO<APIName, CompilationUnit> {
+public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
 
-    Fn<APIName, String> toFileName;
+    Fn<PathTaggedApiName, String> toFileName;
     
-    public IOAst(Fn<APIName, String> toFileName) {
+    public IOAst(Fn<PathTaggedApiName, String> toFileName) {
         this.toFileName = toFileName;
     }
     
-    public CompilationUnit read(APIName name) throws IOException {
+    public CompilationUnit read(PathTaggedApiName name) throws IOException {
         String s = toFileName.apply(name);
         File f = new File(s);
         if (!f.exists()) {
@@ -51,12 +52,12 @@ public class IOAst implements IO<APIName, CompilationUnit> {
         return candidate.unwrap();
     }
 
-    public void write(APIName name, CompilationUnit data) throws IOException {
+    public void write(PathTaggedApiName name, CompilationUnit data) throws IOException {
         String s = toFileName.apply(name);
         ASTIO.writeJavaAst(data, s);
     }
 
-    public long lastModified(APIName name) {
+    public long lastModified(PathTaggedApiName name) {
         String s = toFileName.apply(name);
         File f = new File(s);
         return f.lastModified();

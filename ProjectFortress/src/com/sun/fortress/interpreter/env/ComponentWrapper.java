@@ -43,6 +43,7 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.DerivedFiles;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BASet;
@@ -56,45 +57,39 @@ public class ComponentWrapper extends NonApiWrapper {
     /*
      * Next three lines are for the "cache" of rewritten ASTs
      */
-    private static Fn<APIName, String> toCompFileName = new Fn<APIName, String>() {
-        @Override
-        public String apply(APIName x) {
-            return ProjectProperties.compFileName(ProjectProperties.INTERPRETER_CACHE_DIR, NamingCzar.deCaseName(x));
-        }
-    };
-    private static IOAst componentReaderWriter = new IOAst(toCompFileName);
-    private static DerivedFiles<CompilationUnit> componentCache =
-        new DerivedFiles<CompilationUnit>(componentReaderWriter);
 
-    public static boolean noCache;
+     private final  DerivedFiles<CompilationUnit> componentCache;
 
-    Component transformed;
-    boolean cacheDisabled;
+     public static boolean noCache;
+     private final GraphRepository graphRepository;
+     Component transformed;
+     boolean cacheDisabled;
 
 
     private Component getCached(ComponentIndex comp) {
         if (cacheDisabled)
             return null;
         else
-            return  (Component) componentCache.get(comp.ast().getName(), comp.modifiedDate());
+            return  (Component) componentCache.get(graphRepository.pathTaggedComponent(comp.ast().getName()), comp.modifiedDate());
     }
 
     public ComponentWrapper(ComponentIndex comp, HashMap<String, NonApiWrapper> linker,
-            String[] implicitLibs) {
+            String[] implicitLibs, GraphRepository gr) {
         super((Component) comp.ast(), linker, implicitLibs);
         cacheDisabled = noCache;
-
+        graphRepository = gr;
+        componentCache = gr.getDerivedComponentCache(ProjectProperties.INTERPRETER_CACHE_DIR);
         transformed = getCached(comp);
-        // TODO Auto-generated constructor stub
     }
 
     public ComponentWrapper(ComponentIndex comp, APIWrapper api,
-            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
+            HashMap<String, NonApiWrapper> linker, String[] implicitLibs, GraphRepository gr) {
         super((Component) comp.ast(), api, linker, implicitLibs);
         cacheDisabled = noCache;
+        componentCache = gr.getDerivedComponentCache(ProjectProperties.INTERPRETER_CACHE_DIR);
+        graphRepository = gr;
        transformed = getCached(comp);
-        // TODO Auto-generated constructor stub
-    }
+   }
 
     /**
      * Reads a "command line" component; do not leave in the cache.
@@ -104,9 +99,11 @@ public class ComponentWrapper extends NonApiWrapper {
      * @param implicitLibs
      */
     public ComponentWrapper(ComponentIndex comp, List<APIWrapper> api_list,
-            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
+            HashMap<String, NonApiWrapper> linker, String[] implicitLibs, GraphRepository gr) {
         super((Component) comp.ast(), api_list, linker, implicitLibs);
         cacheDisabled = noCache;
+        componentCache = gr.getDerivedComponentCache(ProjectProperties.INTERPRETER_CACHE_DIR);
+        graphRepository = gr;
         transformed = getCached(comp);
     }
 
@@ -122,13 +119,13 @@ public class ComponentWrapper extends NonApiWrapper {
             cu = (Component) RewriteInPresenceOfTypeInfoVisitor.Only.visit(comp_unit);
             transformed = (Component) desugarer.visit(cu); // Rewrites cu!
             if (!cacheDisabled) {
-                componentCache.put(transformed.getName(), transformed);
+                componentCache.put(graphRepository.pathTaggedComponent(transformed.getName()), transformed);
             }
         }
 
         if (!cacheDisabled && exportsMain(transformed)) {
             // It's not a library, no point keeping this copy in memory.
-            componentCache.forget(transformed.getName());
+            componentCache.forget(graphRepository.pathTaggedComponent(transformed.getName()));
         }
         cu = transformed;
         be.visit(cu);

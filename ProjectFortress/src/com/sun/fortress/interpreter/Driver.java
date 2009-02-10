@@ -43,6 +43,7 @@ import java.util.Stack;
 import com.sun.fortress.repository.DerivedFiles;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.FortressRepository;
+import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.IOAst;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -122,7 +123,7 @@ public class Driver {
     }
 
     public static Environment evalComponent(ComponentIndex p,
-                                            FortressRepository fr)
+                                            GraphRepository fr)
         throws IOException {
 
         Init.initializeEverything();
@@ -185,7 +186,7 @@ public class Driver {
          * Notice that builtins is used ONLY to satisfy the interface of the
          * importer for purposes of injecting primitives &c into other components.
          */
-        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(anyTypeLibrary(), anyTypeLibrary(), fr), linker, WellKnownNames.defaultLibrary());
+        ComponentWrapper builtins = new ComponentWrapper(readTreeOrSourceComponent(anyTypeLibrary(), anyTypeLibrary(), fr), linker, WellKnownNames.defaultLibrary(), fr);
         builtins.getEnvironment().installPrimitives();
         linker.put(anyTypeLibrary(), builtins);
 
@@ -425,7 +426,7 @@ public class Driver {
      * @param imports
      */
     private static void ensureImportsImplemented (
-            FortressRepository fr,
+            GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile,
             List<Import> imports
@@ -462,7 +463,7 @@ public class Driver {
      * @param id
      */
     private static ComponentWrapper ensureApiImplemented(
-            FortressRepository fr,
+            GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
@@ -484,7 +485,7 @@ public class Driver {
                 return null;
             } else {
                 ComponentIndex newcomp = readTreeOrSourceComponent(apiname, apiname, fr) ;
-                ComponentWrapper compwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary());
+                ComponentWrapper compwrapper = new ComponentWrapper(newcomp, apicw, linker, WellKnownNames.defaultLibrary(), fr);
                 compwrapper.touchExports(true);
                 linker.put(apiname, compwrapper);
                 pile.push(compwrapper);
@@ -497,7 +498,7 @@ public class Driver {
         return (ComponentWrapper) newwrapper;
     }
 
-    private static ComponentWrapper commandLineComponent(FortressRepository fr,
+    private static ComponentWrapper commandLineComponent(GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
             Stack<ComponentWrapper> pile, ComponentIndex comp_index) throws IOException {
 
@@ -513,7 +514,7 @@ public class Driver {
                 exports_list.add( new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary()) );
             }
 
-            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary());
+            comp_wrapper = new ComponentWrapper(comp_index, exports_list, linker, WellKnownNames.defaultLibrary(), fr);
             fr.deleteComponent(name, false);
             comp_wrapper.touchExports(true);
             linker.put(apiname, comp_wrapper);
@@ -531,7 +532,7 @@ public class Driver {
     public static FValue
         runProgramTask(ComponentIndex p,
                        List<String> args, String toBeRun,
-                       FortressRepository fr)
+                       GraphRepository fr)
         throws IOException
     {
 
@@ -571,7 +572,7 @@ public class Driver {
     }
 
 
-    public static void runTests(FortressRepository fr, ComponentIndex p, boolean verbose)
+    public static void runTests(GraphRepository fr, ComponentIndex p, boolean verbose)
         throws Throwable {
 
         CollectTests bte = new CollectTests ();
@@ -596,7 +597,7 @@ public class Driver {
     }
 
     // This creates the parallel context
-    public static FValue runProgram(FortressRepository fr, ComponentIndex p,
+    public static FValue runProgram(GraphRepository fr, ComponentIndex p,
                                     List<String> args)
         throws Throwable {
 

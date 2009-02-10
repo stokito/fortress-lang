@@ -148,9 +148,11 @@ public class FileTests {
     }
 
     public static class FSSTest extends BaseTest {
-
-        public FSSTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
+        GraphRepository fr;
+        
+        public FSSTest(GraphRepository fr, String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super(path, d, s, unexpected_only, expect_failure);
+            this.fr = fr;
         }
 
         public void testFile() throws Throwable {
@@ -172,7 +174,6 @@ public class FileTests {
 
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             long start = System.nanoTime();
-            GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
@@ -306,6 +307,8 @@ public class FileTests {
         if (testCount != Integer.MAX_VALUE)
             System.err.println("Test count = " + testCount);
         int i = testCount;
+        
+        
         for(String s : shuffled){
               if (i <= 0) {
                   System.out.println("Early testing exit after " + testCount + " tests");
@@ -319,7 +322,8 @@ public class FileTests {
                   if (s.endsWith(".fss")) {
                       int l = s.lastIndexOf(".fss");
                       String testname = s.substring(0, l);
-                      suite.addTest(new FSSTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                      GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(dir.getCanonicalPath()) );
+                      suite.addTest(new FSSTest(fr, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else if (s.endsWith(".sh")) {
                       int l = s.lastIndexOf(".sh");
                       String testname = s.substring(0, l);
