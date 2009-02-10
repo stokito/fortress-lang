@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,14 +29,14 @@ run(args:String...) = do
     n = <|1,2,3|>
     b = <|100,101,102|>
     println "With seq"
-    for a <- seq(n) ; do
-        (println a) ;
+    for a <- seq(n) do
+        (println a)
     end
 
     println "And without seq"
 
-    for a <- n , q <- b ; do
-        (println a " and " q) ;
+    for a <- n , q <- b do
+        (println a " and " q)
     end
     println "Ok, im done!"
 end
