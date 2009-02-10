@@ -62,6 +62,12 @@ api GeneratorClause
                     end
                 ]>
             end
+        |  a:noobar {e:Expr ,? SPACE}* =>
+            case e of
+                Empty => <[ 0 ]>
+                Cons(fs,bs) =>
+                    <[ (SUM [v <- 0:(fs asif ZZ32)] v) + (noobar bs**) ]>
+            end
 
     end
 end
