@@ -57,6 +57,7 @@ public class CodeGenerationPhase extends Phase {
         // Generate bytecodes for as much as we can.
 
         for (Component comp : previous.componentIterator()) {
+            Debug.debug(Debug.Type.COMPILER, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
             Compile c = new Compile(comp.getName().getText());
             comp.accept(c);
             c.dumpClass();
