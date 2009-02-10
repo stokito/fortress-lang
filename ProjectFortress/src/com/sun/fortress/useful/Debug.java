@@ -22,7 +22,7 @@ import java.util.List;
 
 public final class Debug {
 
-    private static final int MAX_LEVEL = 11;	
+    private static final int MAX_LEVEL = 11;
     private static int level = 0;
     private static final PrintStream debugPS = System.out;
 
@@ -32,9 +32,9 @@ public final class Debug {
 
     /* A list of possible debugging type. */
     public enum Type {
-        FORTRESS("fortress"), ASTGEN("astgen"), COMPILER("compiler"), 
-            INTERPRETER("interpreter"), PARSER("parser"), REPOSITORY("repository"), 
-            SYNTAX("syntax");
+        FORTRESS("fortress"), ASTGEN("astgen"), CODEGEN("codegen"),
+        COMPILER("compiler"), INTERPRETER("interpreter"), PARSER("parser"),
+        REPOSITORY("repository"), SYNTAX("syntax");
 
         private final String name;
         private boolean isOn;
@@ -49,7 +49,7 @@ public final class Debug {
         }
 
         public String toString() {
-            return name;		
+            return name;
         }
 
         public boolean isOn() {
@@ -73,8 +73,8 @@ public final class Debug {
         return retString;
     }
 
-    /* Takes in a list of options, parse the ones relavent to the Debug facility, 
-     * and return the rest of the options that are not used. 
+    /* Takes in a list of options, parse the ones relavent to the Debug facility,
+     * and return the rest of the options that are not used.
      */
     public static List<String> parseOptions(List<String> options) {
         Debug.level = MAX_LEVEL;
@@ -90,6 +90,10 @@ public final class Debug {
                 tokenConsumed++;
             } else if( option.equals(Type.ASTGEN.toString()) ) {
                 Type.ASTGEN.setOn(true);
+                somethingIsOn = true;
+                tokenConsumed++;
+            } else if( option.equals(Type.CODEGEN.toString()) ) {
+                Type.CODEGEN.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
             } else if( option.equals(Type.COMPILER.toString()) ) {
@@ -133,8 +137,8 @@ public final class Debug {
         return options.subList(tokenConsumed, options.size());
     }
 
-    /* Print the debugging string iff the debugging type is on 
-     * and no specific debugging level is set when fortress is run. 
+    /* Print the debugging string iff the debugging type is on
+     * and no specific debugging level is set when fortress is run.
      */
     public static void debug(Type type, Object... msgs) {
         if ( type.isOn() && Debug.level == MAX_LEVEL ) {
@@ -146,8 +150,8 @@ public final class Debug {
         }
     }
 
-    /* Print the debugging string iff the debugging type is on 
-     * and if the level argument is smaller than the debugging level 
+    /* Print the debugging string iff the debugging type is on
+     * and if the level argument is smaller than the debugging level
      * set when fortress is run.
      */
     public static void debug(Type type, int level, Object... msgs) {
@@ -163,32 +167,32 @@ public final class Debug {
     public static boolean isOnMax() {
         return(Debug.level == MAX_LEVEL);
     }
-    
-    /* Checking whether debugging is on in the most general sense: that the debug 
-     * level is on at all..  
+
+    /* Checking whether debugging is on in the most general sense: that the debug
+     * level is on at all..
      */
     public static boolean isOn() {
         return(Debug.level > 0);
     }
 
-    /* Checking whether debugging is on for the type specified by the 
-     * arguments and that the debug level is either not specified when fortress 
-     * is run or is set to the MAX_LEVEL.  
+    /* Checking whether debugging is on for the type specified by the
+     * arguments and that the debug level is either not specified when fortress
+     * is run or is set to the MAX_LEVEL.
      */
     public static boolean isOnMaxFor(Type type) {
         if(type.isOn() && Debug.level == MAX_LEVEL) return true;
         return false;
     }
 
-    /* Checking whether debugging is on for the level and 
-     * type specified by the arguments.  
+    /* Checking whether debugging is on for the level and
+     * type specified by the arguments.
      */
     public static boolean isOnFor(int l, Type type) {
         if(type.isOn() && l <= Debug.level ) return true;
         return false;
     }
 
-    /* Doesn't seem like anyone is using it    
+    /* Doesn't seem like anyone is using it
        public static void debugArray(Type type, int level, Object[] o ) {
        if( type.isOn() && level <= Debug.level ) {
        debugPS.println( String.format("Array %s", o.toString()) );

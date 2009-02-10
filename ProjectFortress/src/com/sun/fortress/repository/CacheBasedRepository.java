@@ -137,7 +137,7 @@ public class CacheBasedRepository extends StubRepository implements FortressRepo
     public void addComponent(APIName name, ComponentIndex def) {
         CompilationUnit ast = def.ast();
         checkName(name, ast);
-        Debug.debug( Debug.Type.REPOSITORY, 2, "Component ", name, " created at ", def.modifiedDate() );
+        Debug.debug( Debug.Type.REPOSITORY, 2, "addComponent: Component ", name, " created at ", def.modifiedDate() );
         // Cache component for quick retrieval.
         components.put(name, def);
 
