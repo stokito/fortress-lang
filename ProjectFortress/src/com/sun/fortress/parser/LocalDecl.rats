@@ -22,7 +22,7 @@ module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header,
                                          NoNewlineType, NoNewlineExpr,
                                          DelimitedExpr, Identifier, Keyword,
                                          Symbol, Spacing);
-modify Variable;
+import Variable;
 import Function;
 import Param;
 import Header;
@@ -91,7 +91,7 @@ private FnDecl LocalFnDecl =
      (var w)? LocalVarMayTypes s = w NoNewlineExpr
    | (var w)? NoNewlineLocalVarWTypes s := w NoNewlineExpr
    | (var w)? NoNewlineLocalVarWTypes
-   |          LocalVarWoTypes s = w NoNewlineExpr
+   |       LocalVarWoTypes s = w NoNewlineExpr
    | (var w)? LocalVarWoTypes s : s Type s ... (s InitVal)?
    | (var w)? LocalVarWoTypes s : s NoNewlineTupleType (s InitVal)?
    NoNewlineLocalVarWTypes ::=
@@ -110,71 +110,62 @@ private FnDecl LocalFnDecl =
    | Unpasting
  */
 LocalVarDecl LocalVarDecl =
-     a1:(var w)? a2:VarMayTypes s equals w a3:NoNewlineExpr
-     { if (a1 != null) {
-           FortressUtil.allHaveTypes(writer, a2);
-           a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
-       }
+     a1:Mods? a2:VarMayTypes s equals w a3:NoNewlineExpr
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), false);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
-   / a1:(var w)? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
-     { a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+   / a1:Mods? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), true);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
-   / a1:(var w)? a2:NoNewlineVarWTypes
-     { if (a1 != null) a2 = FortressUtil.setMutable(a2, createSpan(yyStart,3));
+   / a1:Mods? a2:NoNewlineVarWTypes
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), false);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:VarWoTypes s equals w a2:NoNewlineExpr
      { yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount),a1,a2); }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:NoNewlineType s ellipses a4:(s InitVal)?
+   / a1:Mods? a2:VarWoTypes s colon s a3:NoNewlineType s ellipses a4:(s InitVal)?
      { Option<Expr> init;
-       if (a1 != null) {
-           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), a3);
-           if (a4 == null) init = Option.none();
-           else            init = Option.some(a4.getA());
+       if ( a4 != null ) {
+           init = Option.<Expr>some(a4.getA());
+           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1),
+                                    Option.<Type>some(a3), a4.getB());
        } else {
-           if (a4 == null) {
-               init = Option.none();
-               a2 = FortressUtil.setType(a2, a3);
-           } else {
-               init = Option.some(a4.getA());
-               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, a3);
-               else a2 = FortressUtil.setType(a2, a3);
-           }
+           init = Option.<Expr>none();
+           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1),
+                                    Option.<Type>some(a3), false);
        }
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2,
                                              init);
      }
-   / a1:(var w)? a2:VarWoTypes s colon s a3:NoNewlineTupleType a4:(s InitVal)?
+   / a1:Mods? a2:VarWoTypes s colon s a3:NoNewlineTupleType a4:(s InitVal)?
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
-       Option<Expr> init;
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
-       if (a1 != null) {
-           a2 = FortressUtil.setMutableAndType(a2, createSpan(yyStart,3), tys);
-           if (a4 == null) init = Option.none();
-           else            init = Option.some(a4.getA());
+       Option<Expr> init;
+       if ( a4 != null ) {
+           init = Option.<Expr>some(a4.getA());
+           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), tys, a4.getB());
        } else {
-           if (a4 == null) {
-               init = Option.none();
-               a2 = FortressUtil.setType(a2, tys);
-           } else {
-               init = Option.some(a4.getA());
-               if (a4.getB()) a2 = FortressUtil.setMutableAndType(a2, tys);
-               else a2 = FortressUtil.setType(a2, tys);
-           }
+           init = Option.<Expr>none();
+           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), tys, false);
        }
        yyValue = ExprFactory.makeLocalVarDecl(span, a2, init);
-     }
-   / <ErrorProduction> var w VarWoTypes s equals w NoNewlineExpr
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Mutable variables should be declared with their types.");
-       yyValue = ExprFactory.makeLocalVarDecl(span, Collections.<LValue>emptyList());
      };
 
-LValue VarMayType := a1:BindId a2:(s void:colon s NoNewlineType)?
+/* VarMayTypes ::=
+     VarMayType
+   | ( w VarMayType (w , w VarMayType)+ w )
+ */
+List<LValue> VarMayTypes =
+     a1:VarMayType
+     { yyValue = FortressUtil.mkList(a1); }
+   / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
+     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+
+/* VarMayType ::= BindId (s : s NoNewlineType)? */
+LValue VarMayType = a1:BindId a2:(s void:colon s NoNewlineType)?
      { if (a2 == null)
            yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
        else
@@ -228,5 +219,5 @@ private void UnpastingDim =
 /* CaseClause ::= NoNewlineExpr w => w BlockElems */
 CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems
      { yyValue = NodeFactory.makeCaseClause(createSpan(yyStart,yyCount), a1, a2,
-                                Option.<FunctionalRef>none());
+                                            Option.<FunctionalRef>none());
      };
