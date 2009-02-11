@@ -27,6 +27,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.lambda.Lambda;
 
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.parser_util.*;
 import com.sun.fortress.useful.*;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -231,7 +232,7 @@ public class NodeFactory {
 
     public static AliasedSimpleName makeAliasedSimpleName(IdOrOpOrAnonymousName name,
                                                           IdOrOpOrAnonymousName alias) {
-        return makeAliasedSimpleName(FortressUtil.spanTwo(name, alias), name,
+        return makeAliasedSimpleName(NodeUtil.spanTwo(name, alias), name,
                                      Option.<IdOrOpOrAnonymousName>some(alias));
     }
 
@@ -246,7 +247,7 @@ public class NodeFactory {
     }
 
     public static AliasedAPIName makeAliasedAPIName(APIName api, Id alias) {
-        return makeAliasedAPIName(FortressUtil.spanTwo(api, alias), api,
+        return makeAliasedAPIName(NodeUtil.spanTwo(api, alias), api,
                                   Option.<Id>some(alias));
     }
 
@@ -326,6 +327,63 @@ public class NodeFactory {
                                                      throwsC, contract, extendsC,
                                                      decls);
         return new ObjectDecl(makeSpanInfo(span), header, params);
+    }
+
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
+                                  FnHeaderFront fhf, FnHeaderClause fhc) {
+        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<WhereClause> where_ = fhc.getWhereClause();
+        Option<Contract> contract = fhc.getContractClause();
+        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
+                                      fhf.getStaticParams(), fhf.getParams(),
+                                      fhc.getReturnType(), throws_, where_,
+                                      contract);
+    }
+
+
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
+                                  IdOrOpOrAnonymousName name, List<StaticParam> sparams,
+                                  List<Param> params,
+                                  FnHeaderClause fhc) {
+        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<WhereClause> where_ = fhc.getWhereClause();
+        Option<Contract> contract = fhc.getContractClause();
+        return NodeFactory.makeFnDecl(span, mods, name,
+                                      sparams, params,
+                                      Option.<Type>none(), throws_,
+                                      where_, contract);
+    }
+
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
+                                  IdOrOpOrAnonymousName name, List<Param> params,
+                                  Type ty) {
+        return NodeFactory.makeFnDecl(span, mods, name,
+                                      Collections.<StaticParam>emptyList(),
+                                      params, Option.<Type>some(ty));
+    }
+
+    public static FnDecl mkFnDecl(Span span, Modifiers mods,
+                                 FnHeaderFront fhf,
+                                 FnHeaderClause fhc, Expr expr) {
+        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<WhereClause> where_ = fhc.getWhereClause();
+        Option<Contract> contract = fhc.getContractClause();
+        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
+                                      fhf.getStaticParams(), fhf.getParams(),
+                                      fhc.getReturnType(), throws_, where_,
+                                      contract, Option.<Expr>some(expr));
+    }
+
+    public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
+                                 List<StaticParam> sparams, List<Param> params,
+                                 FnHeaderClause fhc, Expr expr) {
+        Option<List<BaseType>> throws_ = fhc.getThrowsClause();
+        Option<WhereClause> where_ = fhc.getWhereClause();
+        Option<Contract> contract = fhc.getContractClause();
+        return NodeFactory.makeFnDecl(span, mods, name,
+                                      sparams, params, Option.<Type>none(),
+                                      throws_, where_, contract,
+                                      Option.<Expr>some(expr));
     }
 
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
@@ -443,7 +501,7 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(Id name, Id type) {
-        return makeLValue(FortressUtil.spanTwo(name, type),
+        return makeLValue(NodeUtil.spanTwo(name, type),
                           name,
                           Modifiers.None,
                           Option.some((Type)makeVarType(NodeUtil.getSpan(type),type)),
@@ -857,7 +915,7 @@ public class NodeFactory {
     }
 
     public static UnionType makeUnionType(Type t1, Type t2) {
-        return makeUnionType(FortressUtil.spanTwo(t1, t2), false,
+        return makeUnionType(NodeUtil.spanTwo(t1, t2), false,
                              Arrays.asList(t1, t2));
     }
 
@@ -866,7 +924,7 @@ public class NodeFactory {
         if ( types.isEmpty() )
             span = typeSpan;
         else
-            span = FortressUtil.spanAll(types);
+            span = NodeUtil.spanAll(types);
         return makeUnionType(span, false,
                              CollectUtil.makeList(types));
     }
@@ -951,7 +1009,7 @@ public class NodeFactory {
     }
 
     public static IntersectionType makeIntersectionType(Type t1, Type t2) {
-        return makeIntersectionType(FortressUtil.spanTwo(t1, t2), false,
+        return makeIntersectionType(NodeUtil.spanTwo(t1, t2), false,
                                     Arrays.asList(t1, t2));
     }
 
@@ -960,7 +1018,7 @@ public class NodeFactory {
         if ( types.isEmpty() )
             span = typeSpan;
         else
-            span = FortressUtil.spanAll(types);
+            span = NodeUtil.spanAll(types);
         return makeIntersectionType(span, false, CollectUtil.makeList(types));
     }
 
@@ -989,12 +1047,12 @@ public class NodeFactory {
         if ( throwsClause.isEmpty() )
             span = typeSpan;
         else
-            span = FortressUtil.spanAll(throwsClause);
+            span = NodeUtil.spanAll(throwsClause);
         return makeEffect(span, Option.some(throwsClause), false);
     }
 
     public static Effect makeEffect(SourceLoc defaultLoc, List<BaseType> throwsClause) {
-        return makeEffect(FortressUtil.spanAll(defaultLoc, throwsClause),
+        return makeEffect(NodeUtil.spanAll(defaultLoc, throwsClause),
                           Option.some(throwsClause), false);
     }
 
@@ -1006,13 +1064,13 @@ public class NodeFactory {
             if ( throwsClause.unwrap().isEmpty() )
                 span = typeSpan;
             else
-                span = FortressUtil.spanAll(throwsClause.unwrap());
+                span = NodeUtil.spanAll(throwsClause.unwrap());
         }
         return makeEffect(span, throwsClause, false);
     }
 
     public static Effect makeEffect(SourceLoc defaultLoc, Option<List<BaseType>> throwsClause) {
-        Span span = FortressUtil.spanAll(defaultLoc,
+        Span span = NodeUtil.spanAll(defaultLoc,
                                          throwsClause.unwrap(Collections.<BaseType>emptyList()));
         return makeEffect(span, throwsClause, false);
     }
@@ -1096,7 +1154,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(Iterable<Id> apiIds, Id id) {
-        Span span = FortressUtil.spanTwo(FortressUtil.spanAll(apiIds),
+        Span span = NodeUtil.spanTwo(NodeUtil.spanAll(apiIds),
                                          NodeUtil.getSpan(id));
         Option<APIName> api;
         if (IterUtil.isEmpty(apiIds)) {
@@ -1151,7 +1209,7 @@ public class NodeFactory {
     }
 
     public static Id makeId(APIName api, Id name) {
-        return makeId(FortressUtil.spanTwo(api, name), Option.some(api),
+        return makeId(NodeUtil.spanTwo(api, name), Option.some(api),
                 name.getText());
     }
 
@@ -1177,7 +1235,7 @@ public class NodeFactory {
             if (!IterUtil.isEmpty(apiNames)) last = IterUtil.last(apiNames);
         }
         ids = Useful.immutableTrimmedList(ids);
-        return makeAPIName(FortressUtil.spanTwo(first, last), ids);
+        return makeAPIName(NodeUtil.spanTwo(first, last), ids);
     }
 
     public static APIName makeAPIName(Id first, Id rest) {
@@ -1188,7 +1246,7 @@ public class NodeFactory {
         }
         ids.add(makeId(NodeUtil.getSpan(rest), rest.getText()));
         ids = Useful.immutableTrimmedList(ids);
-        return makeAPIName(FortressUtil.spanTwo(first, rest), ids);
+        return makeAPIName(NodeUtil.spanTwo(first, rest), ids);
     }
 
     public static APIName makeAPIName(Span span) {
@@ -1233,8 +1291,8 @@ public class NodeFactory {
         if ( IterUtil.isEmpty(ids) )
             span = NodeUtil.getSpan(id);
         else
-            span = FortressUtil.spanTwo(NodeUtil.getSpan(id),
-                                        FortressUtil.spanAll(ids));
+            span = NodeUtil.spanTwo(NodeUtil.getSpan(id),
+                                        NodeUtil.spanAll(ids));
         return makeAPIName(span, CollectUtil.makeList(IterUtil.compose(id, ids)));
     }
 
@@ -1394,7 +1452,7 @@ public class NodeFactory {
     }
 
     public static KeywordType makeKeywordType(Id name, Type type) {
-        return makeKeywordType(FortressUtil.spanTwo(name,type), name, type);
+        return makeKeywordType(NodeUtil.spanTwo(name,type), name, type);
     }
 
     public static KeywordType makeKeywordType(Span span, Id name, Type type) {
@@ -1732,25 +1790,25 @@ public class NodeFactory {
     public static VarDecl makeVarDecl(BufferedWriter writer,
                                       Span span, List<LValue> lvals,
                                       Option<Expr> expr) {
-        FortressUtil.validId(writer, lvals);
+        NodeUtil.validId(writer, lvals);
         return new VarDecl(makeSpanInfo(span), lvals, expr);
     }
 
     public static VarDecl makeVarDecl(BufferedWriter writer,
                                       Span span, List<LValue> lvals) {
-        FortressUtil.validId(writer, lvals);
+        NodeUtil.validId(writer, lvals);
         return makeVarDecl(writer, span, lvals, Option.<Expr>none());
     }
 
     public static VarDecl makeVarDecl(BufferedWriter writer,
                                       Span span, List<LValue> lvals, Expr init) {
-        FortressUtil.validId(writer, lvals);
+        NodeUtil.validId(writer, lvals);
         return makeVarDecl(writer, span, lvals, Option.<Expr>some(init));
     }
 
     public static VarDecl makeVarDecl(BufferedWriter writer,
                                       Span span, Id name, Expr init) {
-        FortressUtil.validId(writer, name);
+        NodeUtil.validId(writer, name);
         LValue bind = new LValue(makeSpanInfo(span), name, Modifiers.None,
                                  Option.<Type>none(), true);
         return makeVarDecl(writer, span, Useful.<LValue>list(bind),
@@ -1760,7 +1818,7 @@ public class NodeFactory {
     public static VarDecl makeVarDecl(BufferedWriter writer,
                                       Span span, String name, Expr init) {
         Id id = makeId(span, name);
-        FortressUtil.validId(writer, id);
+        NodeUtil.validId(writer, id);
         LValue bind = new LValue(makeSpanInfo(span), id,
                                  Modifiers.None,
                                  Option.<Type>none(), false);
@@ -2082,7 +2140,7 @@ public class NodeFactory {
             if ( mods.isSome() ) lvs.add(makeLValue(l, mods.unwrap(), mutable));
             else                 lvs.add(makeLValue(l, Modifiers.None, mutable));
         }
-        FortressUtil.validId(writer, lvs);
+        NodeUtil.validId(writer, lvs);
         return lvs;
     }
 
@@ -2099,7 +2157,7 @@ public class NodeFactory {
             if ( mods.isSome() ) lvs.add(makeLValue(l, mods.unwrap(), ty, mutable));
             else                 lvs.add(makeLValue(l, Modifiers.None, ty, mutable));
         }
-        FortressUtil.validId(writer, lvs);
+        NodeUtil.validId(writer, lvs);
         return lvs;
     }
 
@@ -2122,7 +2180,7 @@ public class NodeFactory {
                                    Option.<Type>some(tys.get(ind)), mutable));
             ind += 1;
         }
-        FortressUtil.validId(writer, lvs);
+        NodeUtil.validId(writer, lvs);
         return lvs;
     }
 }

@@ -454,7 +454,7 @@ ObjectDecl AbsObjectDecl =
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> contract = fhc.getContractClause();
        Option<List<Param>> params = a2.getParams();
-       FortressUtil.checkNoWrapped(writer, params);
+       NodeUtil.checkNoWrapped(writer, params);
        yyValue = NodeFactory.makeObjectDecl
            (span, a1, a2.getName(),
             a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),

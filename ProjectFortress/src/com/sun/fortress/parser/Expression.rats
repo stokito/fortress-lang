@@ -133,7 +133,7 @@ constant inline Action<Expr> SubscriptAssign =
              List<Expr> es;
              if (a3 == null) es = FortressUtil.emptyExprs();
              else            es = a3;
-             Op op = NodeFactory.makeEnclosing(FortressUtil.spanTwo(a1,a4),
+             Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
                                                a1.getText(),a4.getText());
              return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op),
                                                   sargs);
@@ -229,18 +229,18 @@ PureList<PrecedenceOpExpr> OpExprLeftEncloser =
  */
 PureList<PrecedenceOpExpr> OpExprPrimary =
      a1:Primary a2:TightInfixPostfix
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / a1:Primary a2:TightInfixRight
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / <Primary>   a1:Primary wr a2:OpExprPrimary
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / <Loose>     a1:Primary wr a2:LooseInfix
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / <LeftLoose> a1:Primary wr a2:LeftLooseInfix
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / a1:Primary
      { yyValue =
-           PureList.make((PrecedenceOpExpr)new RealExpr(FortressUtil.buildPrimary(a1))); };
+           PureList.make((PrecedenceOpExpr)new RealExpr(ExprFactory.buildPrimary(a1))); };
 
 /* OpExprPrefix ::=
      Op OpExprPrimary
@@ -309,7 +309,7 @@ constant PureList<Expr> Primary =
      { List<PureList<Expr>> elists = FortressUtil.mkList(a1, a2s.list());
        List<Expr> es = new ArrayList<Expr>();
        for (PureList<Expr> elist : elists) {
-           es.add(FortressUtil.buildPrimary(elist));
+           es.add(ExprFactory.buildPrimary(elist));
        }
        yyValue = PureList.make((Expr)ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
                                                                es));
@@ -340,7 +340,7 @@ constant Expr LeftAssociatedPrimary =
      a4s:ParenthesisDelimitedLeft* a5s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
-       Span span = FortressUtil.spanTwo(receiver,a3);
+       Span span = NodeUtil.spanTwo(receiver,a3);
        Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2, a3);
        Expr e2 = (Expr)apply(a4s, e1);
        yyValue = (Expr)apply(a5s, e2);
@@ -349,7 +349,7 @@ constant Expr LeftAssociatedPrimary =
      a4s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
-       Span span = FortressUtil.spanTwo(receiver,last);
+       Span span = NodeUtil.spanTwo(receiver,last);
        Expr e1 = ExprFactory.makeFieldRef(span, receiver, last);
        Expr e2 = (Expr)apply(a2s, e1);
        Expr e3 = (Expr)apply(a3s, e2);
@@ -359,7 +359,7 @@ constant Expr LeftAssociatedPrimary =
      a4s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
-       Span span = FortressUtil.spanTwo(receiver,a2);
+       Span span = NodeUtil.spanTwo(receiver,a2);
        Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2);
        Expr e2 = (Expr)apply(a3s, e1);
        yyValue = (Expr)apply(a4s, e2);
@@ -367,7 +367,7 @@ constant Expr LeftAssociatedPrimary =
    / a1:DottedIdChain a2s:Selector*
      { Id last = IterUtil.last(a1);
        Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
-       Span span = FortressUtil.spanTwo(receiver,last);
+       Span span = NodeUtil.spanTwo(receiver,last);
        Expr e1 = ExprFactory.makeFieldRef(span, receiver, last);
        yyValue = (Expr)apply(a2s, e1);
      }
@@ -433,7 +433,7 @@ Expr PrimaryFront =
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
      { if (a3 == null) a3 = FortressUtil.emptyExprs();
-       Span span = FortressUtil.spanTwo(a1, a4);
+       Span span = NodeUtil.spanTwo(a1, a4);
        if (a2 == null) yyValue = ASTUtil.enclosing(span, a1, a3, a4);
        else            yyValue = ASTUtil.enclosing(span, a1, a2, a3, a4);
      }
@@ -523,7 +523,7 @@ constant inline Action<Expr> ParenthesisDelimitedLeft =
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
               List<Expr> exprs = FortressUtil.mkList(base, a1);
-              return ExprFactory.makeTightJuxt(FortressUtil.spanTwo(base, a1), false, exprs);
+              return ExprFactory.makeTightJuxt(NodeUtil.spanTwo(base, a1), false, exprs);
           }};
     };
 
@@ -559,7 +559,7 @@ constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
                List<StaticArg> sargs;
                if (a2 == null) sargs = Collections.<StaticArg>emptyList();
                else            sargs = a2;
-               Expr mtdInv = ExprFactory.makeMethodInvocation(FortressUtil.spanTwo(base, a3),
+               Expr mtdInv = ExprFactory.makeMethodInvocation(NodeUtil.spanTwo(base, a3),
                                                               base, a1, sargs, a3);
                return (Expr)apply(a4s, mtdInv);
            }};

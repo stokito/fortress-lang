@@ -115,12 +115,12 @@ transient private String exponentOp =
  * underscore, and contains at least two distinct letters is also an
  * operator.  For example: MAX MIN SQRT TIMES
  *
- * Note that FortressUtil.validOp just checks whether the string is
+ * Note that NodeUtil.validOp just checks whether the string is
  * all-caps with underscores; it doesn't look it up anywhere, and
  * shouldn't since this set of operators is open-ended.
  */
 String OpName =
-     opn:id &{FortressUtil.validOp(opn) };
+     opn:id &{NodeUtil.validOp(opn) };
 
 Op Op =
      a1:(condOp / op !(equalsOp) / compOp)

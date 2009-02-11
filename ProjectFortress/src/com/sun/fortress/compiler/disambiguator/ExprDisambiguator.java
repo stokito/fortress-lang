@@ -425,7 +425,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
                 if (NodeUtil.getMods(that).isGetterSetter()) {
                     accessors.add(NodeUtil.getName(that));
                     return Collections.emptySet();
-                } else if (FortressUtil.isFunctionalMethod(NodeUtil.getParams(that))) {
+                } else if (NodeUtil.isFunctionalMethod(NodeUtil.getParams(that))) {
                     // don't add functional methods! they go at the top level...
                     return Collections.emptySet();
                 } else {

@@ -81,7 +81,7 @@ Expr DelimitedExpr =
    / for w a1:GeneratorClauseList w a2:DoFront w end
      { yyValue = ExprFactory.makeFor(createSpan(yyStart,yyCount), a1, a2); }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
-     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        Option<Block> elseC = Option.wrap(a4);
@@ -89,7 +89,7 @@ Expr DelimitedExpr =
      }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
      (w end)? &(w closeparen)
-     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
@@ -97,7 +97,7 @@ Expr DelimitedExpr =
      }
    / openparen w if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
        (w end)? w closeparen
-     { IfClause ic = NodeFactory.makeIfClause(FortressUtil.spanTwo(a1,a2), a1, a2);
+     { IfClause ic = NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = FortressUtil.mkList(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,

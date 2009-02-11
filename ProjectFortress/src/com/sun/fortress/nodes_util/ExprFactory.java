@@ -19,6 +19,7 @@ package com.sun.fortress.nodes_util;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
+import java.io.BufferedWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,9 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.PureList;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -109,6 +113,15 @@ public class ExprFactory {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
         return new ArrayElements(info, staticArgs, dim, elems,
                                  outermost);
+    }
+
+    public static ArrayElements finalizeArrayExpr(ArrayElements a) {
+        return makeArrayElements(a, true);
+    }
+
+    public static ArrayElements addStaticArgsToArrayExpr(List<StaticArg> sargs,
+                                                         ArrayElements a) {
+        return makeArrayElements(a, sargs, true);
     }
 
     public static MathPrimary makeMathPrimary(Span span, Expr front,
@@ -214,13 +227,13 @@ public class ExprFactory {
     }
 
     public static OpExpr makeOpExpr(Expr e,FunctionalRef op) {
-        return makeOpExpr(FortressUtil.spanTwo(e, op), false,
+        return makeOpExpr(NodeUtil.spanTwo(e, op), false,
                           Option.<Type>none(),
                           op, Useful.list(e));
     }
 
     public static OpExpr makeOpExpr(FunctionalRef op, Expr e_1, Expr e_2) {
-        return makeOpExpr(FortressUtil.spanTwo(e_1, e_2), op, e_1, e_2);
+        return makeOpExpr(NodeUtil.spanTwo(e_1, e_2), op, e_1, e_2);
     }
 
     public static OpExpr makeOpExpr(Span span, boolean parenthesized,
@@ -648,7 +661,7 @@ public class ExprFactory {
         Option<Expr> _rhs = Option.some(_r);
         _body.add(_body_expr);
         _lhs.add(NodeFactory.makeLValue(NodeUtil.getSpan(p), p));
-        return makeLocalVarDecl(FortressUtil.spanTwo(p, _r), _body, _lhs, _rhs);
+        return makeLocalVarDecl(NodeUtil.spanTwo(p, _r), _body, _lhs, _rhs);
     }
 
     public static LocalVarDecl makeLocalVarDecl(Span sp, Id p, Expr _r, Expr _body_expr) {
@@ -1144,7 +1157,7 @@ public class ExprFactory {
     }
 
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
-        return make_RewriteFnApp(FortressUtil.spanTwo(e_1, e_2), false,
+        return make_RewriteFnApp(NodeUtil.spanTwo(e_1, e_2), false,
                                  Option.<Type>none(), e_1, e_2);
     }
 
@@ -1178,7 +1191,7 @@ public class ExprFactory {
     }
 
     public static FieldRef makeFieldRef(Expr receiver, Id field) {
-        return makeFieldRef(FortressUtil.spanTwo(receiver, field), receiver, field);
+        return makeFieldRef(NodeUtil.spanTwo(receiver, field), receiver, field);
     }
 
     public static FieldRef makeFieldRef(Span span,
@@ -1488,7 +1501,7 @@ public class ExprFactory {
     public static LetExpr makeLetExpr(final LetExpr let_expr, final List<Expr> body) {
         return let_expr.accept(new NodeAbstractVisitor<LetExpr>() {
             public LetExpr forLetFn(LetFn expr) {
-                return ExprFactory.makeLetFn(NodeUtil.getSpan(expr), body, expr.getFns());
+                return makeLetFn(NodeUtil.getSpan(expr), body, expr.getFns());
             }
             public LetExpr forLocalVarDecl(LocalVarDecl expr) {
                 return makeLocalVarDecl(NodeUtil.getSpan(expr), false, Option.<Type>none(),
@@ -1903,5 +1916,226 @@ public class ExprFactory {
                                                     List<StaticArg> sargs) {
         return new SubscriptingMI(NodeFactory.makeSpanInfo(span), op, exprs, sargs);
     }
+
+// (* Turn an expr list into a single TightJuxt *)
+// let build_primary (p : expr list) : expr =
+//   match p with
+//     | [e] -> e
+//     | _ ->
+//         let es = List.rev p in
+//           Node.node (span_all es) (`TightJuxt es)
+    public static Expr buildPrimary(PureList<Expr> exprs) {
+        if (exprs.size() == 1) return ((Cons<Expr>)exprs).getFirst();
+        else {
+            exprs = exprs.reverse();
+            List<Expr> javaList = Useful.immutableTrimmedList(exprs);
+            Span span;
+            if ( javaList.size() == 0 )
+                span = NodeFactory.parserSpan;
+            else
+                span = NodeUtil.spanAll(javaList.toArray(new AbstractNode[0]),
+                                        javaList.size());
+            return ExprFactory.makeTightJuxt(span, javaList);
+        }
+    }
+
+// let build_block (exprs : expr list) : expr list =
+//   List_aux.foldr
+//     (fun e es ->
+//        match e.node_data with
+//          | `LetExpr (le,[]) -> [{ e with node_data = `LetExpr (le, es) }]
+//          | `LetExpr _ -> raise (Failure "misparsed variable introduction!")
+//          | _ -> e :: es)
+//     exprs
+//     []
+//
+// let do_block (body : expr list) : expr =
+//   let span = span_all body in
+//     node span (`FlowExpr (node span (`BlockExpr (build_block body))))
+    public static Block doBlock(Span span) {
+        return ExprFactory.makeBlock(span, Collections.<Expr>emptyList());
+    }
+
+    public static Block doBlock(BufferedWriter writer, List<Expr> exprs) {
+        Span span;
+        if ( exprs.size() == 0 )
+            span = NodeFactory.parserSpan;
+        else
+            span = NodeUtil.spanAll(exprs.toArray(new AbstractNode[0]), exprs.size());
+        List<Expr> es = new ArrayList<Expr>();
+        Collections.reverse(exprs);
+        for (Expr e : exprs) {
+            if (e instanceof LetExpr) {
+                LetExpr _e = (LetExpr)e;
+                if (_e.getBody().isEmpty()) {
+                    if (_e instanceof LocalVarDecl) {
+                        NodeUtil.validId(writer, ((LocalVarDecl)_e).getLhs());
+                    }
+                    _e = ExprFactory.makeLetExpr(_e, es);
+                    es = new ArrayList<Expr>();
+                    es.add((Expr)_e);
+                } else {
+                    FortressUtil.log(writer, NodeUtil.getSpan(e), "Misparsed variable introduction!");
+                }
+            } else {
+                if (isEquality(e) && !NodeUtil.isParenthesized(e))
+                    FortressUtil.log(writer, NodeUtil.getSpan(e),
+                        "Equality testing expressions should be parenthesized.");
+                else es.add(0, e);
+            }
+        }
+        return ExprFactory.makeBlock(span, es);
+    }
+
+    private static boolean isEquality(Expr expr) {
+        if (expr instanceof ChainExpr) {
+            ChainExpr e = (ChainExpr)expr;
+            List<Link> links = e.getLinks();
+            if (links.size() == 1) {
+                IdOrOp op = links.get(0).getOp().getOriginalName();
+                return (op instanceof Op && ((Op)op).getText().equals("="));
+            } else return false;
+        } else return false;
+    }
+
+// let rec multi_dim_cons (expr : expr)
+//                        (dim : int)
+//                        (multi : multi_dim_expr) : multi_dim_expr =
+//   let elem = multi_dim_elem expr in
+//   let span = span_two expr multi in
+//     match multi.node_data with
+//       | `ArrayElement _ ->
+//           multi_dim_row span dim [ elem; multi ]
+//       | `ArrayElements
+//           { node_span = row_span;
+//             node_data =
+//               { multi_dim_row_dimension = row_dim;
+//                 multi_dim_row_elements = elements; } } ->
+//           if dim = row_dim
+//           then multi_dim_row span dim (elem :: elements)
+//           else if dim > row_dim
+//           then multi_dim_row span dim [ elem; multi ]
+//           else
+//             (match elements with
+//                | [] -> Errors.internal_error row_span
+//                    "empty array/matrix literal"
+//                | first::rest ->
+//                    multi_dim_row span row_dim
+//                      (multi_dim_cons expr dim first :: rest))
+    private static ArrayExpr multiDimElement(Expr expr) {
+        return makeArrayElement(expr);
+    }
+    private static ArrayElements addOneMultiDim(BufferedWriter writer,
+                                                ArrayExpr multi, int dim,
+                                                Expr expr){
+        Span span = NodeUtil.spanTwo(multi, expr);
+        ArrayExpr elem = multiDimElement(expr);
+        if (multi instanceof ArrayElement) {
+            List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
+            elems.add(multi);
+            elems.add(elem);
+            return makeArrayElements(span, dim, elems);
+        } else if (multi instanceof ArrayElements) {
+            ArrayElements m = (ArrayElements)multi;
+            int _dim = m.getDimension();
+            List<ArrayExpr> elements = m.getElements();
+            if (dim == _dim) {
+                elements.add(elem);
+                return makeArrayElements(span, dim, elements);
+            } else if (dim > _dim) {
+                List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
+                elems.add(multi);
+                elems.add(elem);
+                return makeArrayElements(span, dim, elems);
+            } else if (elements.size() == 0) {
+                FortressUtil.log(writer, NodeUtil.getSpan(multi),
+                    "Empty array/matrix literal.");
+                return makeArrayElements(span, _dim, elements);
+            } else { // if (dim < _dim)
+                int index = elements.size()-1;
+                ArrayExpr last = elements.get(index);
+                elements.set(index, addOneMultiDim(writer, last, dim, expr));
+                return makeArrayElements(span, _dim, elements);
+            }
+        } else {
+            FortressUtil.log(writer, NodeUtil.getSpan(multi),
+                "ArrayElement or ArrayElements is expected.");
+            return makeArrayElements(span, 0, Collections.<ArrayExpr>emptyList());
+        }
+    }
+    public static ArrayElements multiDimCons(BufferedWriter writer, Expr init,
+                                             List<Pair<Integer,Expr>> rest) {
+        ArrayExpr _init = multiDimElement(init);
+        if (rest.isEmpty()) {
+            return bug(init, "multiDimCons: empty rest");
+        } else {
+            Pair<Integer,Expr> pair = rest.get(0);
+            Expr expr = pair.getB();
+            List<ArrayExpr> elems = new ArrayList<ArrayExpr>();
+            elems.add(_init);
+            elems.add(multiDimElement(expr));
+            ArrayElements result = makeArrayElements(NodeUtil.spanTwo(_init,expr),
+                                                     pair.getA(), elems);
+            for (Pair<Integer,Expr> _pair : rest.subList(1, rest.size())) {
+                int _dim   = _pair.getA();
+                Expr _expr = _pair.getB();
+                Span span = NodeUtil.spanTwo(result, _expr);
+                result = addOneMultiDim(writer, result, _dim, _expr);
+            }
+            return result;
+        }
+    }
+
+// let rec unpasting_cons (span : span)
+//                        (one : unpasting)
+//                        (sep : int)
+//                        (two : unpasting) : unpasting =
+//   match two.node_data with
+//     | `UnpastingBind _ | `UnpastingNest _ -> unpasting_split span sep [one;two]
+//     | `UnpastingSplit split ->
+//         (match split.node_data with
+//            | { unpasting_split_elems = (head :: tail) as elems;
+//                unpasting_split_dim = dim; } ->
+//                if sep > dim then unpasting_split span sep [one;two]
+//                else if sep < dim then
+//                  unpasting_split span dim
+//                    (unpasting_cons (span_two one head) one sep head :: tail)
+//                else (* sep = dim *)
+//                  unpasting_split span dim (one :: elems)
+//            | _ -> Errors.internal_error span "Empty unpasting.")
+/*
+    public static Unpasting unpastingCons(BufferedWriter writer,
+                                          Span span, Unpasting one, int sep,
+                                          Unpasting two) {
+        List<Unpasting> onetwo = new ArrayList<Unpasting>();
+        onetwo.add(one);
+        onetwo.add(two);
+        if (two instanceof UnpastingBind) {
+            return new UnpastingSplit(span, onetwo, sep);
+        } else if (two instanceof UnpastingSplit) {
+            UnpastingSplit split = (UnpastingSplit)two;
+            List<Unpasting> elems = split.getElems();
+            if (elems.size() != 0) {
+                int dim = split.getDim();
+                if (sep > dim) {
+                    return new UnpastingSplit(span, onetwo, sep);
+                } else if (sep < dim) {
+                    Unpasting head = elems.get(0);
+                    elems.set(0, unpastingCons(spanTwo(one,head),one,sep,head));
+                    return new UnpastingSplit(span, elems, dim);
+                } else { // sep = dim
+                    elems.add(0, one);
+                    return new UnpastingSplit(span, elems, dim);
+                }
+            } else { // elems.size() == 0
+                FortressUtil.log(writer, two.getSpan(), "Empty unpasting.");
+                return new UnpastingSplit(span, elems, 0);
+            }
+        } else { //    !(two instanceof UnpastingBind)
+                 // && !(two instanceof UnpastingSplit)
+            return bug(two, "UnpastingBind or UnpastingSplit expected.");
+        }
+    }
+*/
 
 }

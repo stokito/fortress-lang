@@ -264,7 +264,7 @@ private List<BaseType> MayTraitTypes =
 /* Each modifier cannot appear more than once. */
 /* Mods ::= (Mod w)+ */
 transient Modifiers Mods = a1s:(Mod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
+     { yyValue = NodeUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
      };
 
 /* Mod ::=
@@ -287,7 +287,7 @@ transient Modifiers Mod =
 /* ParamFldMods ::= (ParamFldMod w)+ */
 transient Modifiers ParamFldMods = a1s:(ParamFldMod w)+
      { yyValue =
-           FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
+           NodeUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
                                     FortressUtil.mkList(a1s.list()));
      };
 

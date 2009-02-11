@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -41,7 +41,6 @@ import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.RealExpr;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.PureList;
@@ -108,7 +107,7 @@ public class ASTUtil {
     public static Expr enclosing(Span span, Op left, List<StaticArg> sargs,
                                  List<Expr> args, Op right) {
         if (PrecedenceMap.ONLY.matchedBrackets(left.getText(), right.getText())) {
-            Span s = FortressUtil.spanTwo(left, right);
+            Span s = NodeUtil.spanTwo(left, right);
             Op en = NodeFactory.makeEnclosing(s, left.getText(), right.getText());
             FunctionalRef ref = ExprFactory.makeOpRef(en, sargs);
             return ExprFactory.makeOpExpr(span, ref, args);

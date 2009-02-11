@@ -45,8 +45,8 @@ Expr LiteralExpr =
 /* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
 ArrayElements ArrayExpr =
      void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
-     { if (a1 == null) yyValue = FortressUtil.finalizeArrayExpr(a2);
-       else            yyValue = FortressUtil.addStaticArgsToArrayExpr(a1, a2);
+     { if (a1 == null) yyValue = ExprFactory.finalizeArrayExpr(a2);
+       else            yyValue = ExprFactory.addStaticArgsToArrayExpr(a1, a2);
      };
 
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
@@ -57,7 +57,7 @@ private ArrayElements RectElements =
              list.add(ExprFactory.makeArrayElement(a1));
              yyValue = ExprFactory.makeArrayElements(NodeUtil.getSpan(a1), 1, list);
          } else
-           yyValue = FortressUtil.multiDimCons(writer, a1, a2s.list());
+           yyValue = ExprFactory.multiDimCons(writer, a1, a2s.list());
      };
 
 /* MultiDimCons ::= RectSeparator NoSpaceExpr */
@@ -81,8 +81,8 @@ NumberLiteralExpr NumericLiteralExpr =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       FortressUtil.validNumericLiteral(writer, span, numeral);
-       if ( FortressUtil.validIntLiteral(numeral) )
+       NodeUtil.validNumericLiteral(writer, span, numeral);
+       if ( NodeUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
        else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
      };
@@ -94,9 +94,9 @@ private NumberLiteralExpr NumericLiteralWithRadix =
            numeral += n;
        }
        Span span = createSpan(yyStart,yyCount);
-       FortressUtil.validNumericLiteral(writer, span, numeral, a3);
-       numeral += "_"+FortressUtil.radix2Number(a3);
-       if ( FortressUtil.validIntLiteral(numeral) )
+       NodeUtil.validNumericLiteral(writer, span, numeral, a3);
+       numeral += "_"+NodeUtil.radix2Number(a3);
+       if ( NodeUtil.validIntLiteral(numeral) )
            yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
        else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
      };
@@ -117,7 +117,7 @@ private transient String NumericSeparator = NumericSpace / "." ;
 private transient String NumericSpace = "'" / "\u202f" ;
 
 private transient String RadixSpecifier =
-     a1:DigitString !([a-zA-Z]) &{ FortressUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
+     a1:DigitString !([a-zA-Z]) &{ NodeUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
    / RadixNames ;
 
 private transient String DigitString = [0-9]+;

@@ -229,7 +229,7 @@ object ExportChecker {
             case 0 => NodeFactory.makeVoidType(span)
             case 1 => paramToType(params.get(0))
             case _ =>
-            NodeFactory.makeTupleType(FortressUtil.spanAll(params),
+            NodeFactory.makeTupleType(NodeUtil.spanAll(params),
                                       Lists.toJavaList(Lists.fromJavaList(params).map(p => paramToType(p))))
         }
 

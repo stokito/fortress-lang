@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -32,7 +32,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Chain;
 import com.sun.fortress.parser_util.precedence_opexpr.Equal;
 import com.sun.fortress.parser_util.precedence_opexpr.Higher;
@@ -65,6 +64,7 @@ import com.sun.fortress.useful.PureList;
 
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
+import static com.sun.fortress.nodes_util.NodeUtil.spanTwo;
 
 /*
  * This class implements the functionality for resolving operator precedence during parsing.
@@ -132,7 +132,7 @@ public class Resolver {
             if ( ops.size() == 0 )
                 span = NodeFactory.parserSpan;
             else
-                span = FortressUtil.spanAll(ops.toArray(), ops.size());
+                span = NodeUtil.spanAll(ops.toArray(), ops.size());
             throw new ReadError(span,
                                 "Incompatible chaining operators.");
         }
@@ -216,7 +216,7 @@ public class Resolver {
           Op op3 = ((TightInfix)prefix[3]).getOp();
 
           if (isDiv(op1) && isDiv(op3) && op1.getText().equals(op3.getText())) {
-              throw new ReadError(FortressUtil.spanTwo(op1,op3), op1.getText() +
+              throw new ReadError(spanTwo(op1,op3), op1.getText() +
                                   " does not associate.");
           }
         }
@@ -235,7 +235,7 @@ public class Resolver {
           Expr expr2 = ((RealExpr)prefix[2]).getExpr();
 
           if(isDiv(op1)) {
-            Span span = FortressUtil.spanTwo(expr0, expr2);
+            Span span = spanTwo(expr0, expr2);
             RealExpr e = new RealExpr(ASTUtil.infix(span, expr0, op1, expr2));
 
             return resolveTightDiv(__rest.cons(e));
@@ -357,7 +357,7 @@ public class Resolver {
             prefix[1] instanceof RealExpr &&
             prefix[2] instanceof RealExpr)
         {
-          Span span = FortressUtil.spanTwo
+          Span span = spanTwo
             (((RealExpr)prefix[1]).getExpr(),
              ((RealExpr)prefix[2]).getExpr());
           throw new ReadError(span,
@@ -524,7 +524,7 @@ public class Resolver {
           InfixOpExpr second = _rest.getFirst();
 
           if (second instanceof RealExpr) {
-            Span span = FortressUtil.spanTwo
+            Span span = spanTwo
               (((RealExpr)first).getExpr(),
                ((RealExpr)second).getExpr());
 
@@ -580,7 +580,7 @@ public class Resolver {
       if ( exprs.size() == 0 )
           span = NodeFactory.parserSpan;
       else
-          span = FortressUtil.spanAll(exprs.toArray(),exprs.size());
+          span = NodeUtil.spanAll(exprs.toArray(),exprs.size());
       return ASTUtil.multifix(span, op, args.toJavaList());
     }
     else { // frame instanceof TightChain || frame instanceof LooseChain
@@ -606,7 +606,7 @@ public class Resolver {
       PureList<ExprOpPair> rest = ((Cons<ExprOpPair>)links).getRest();
       Expr first = link.getA();
       Op op = NodeFactory.makeOpInfix(link.getB());
-      Span span = FortressUtil.spanTwo(first, last);
+      Span span = spanTwo(first, last);
 
       return ASTUtil.chain(span, first, buildLinks(op, rest, last).toJavaList());
     }
@@ -699,7 +699,7 @@ public class Resolver {
           return looseInfixStack(finishInfixFrame(e,frame),op,rest);
         }
         else {
-          throw new ReadError(FortressUtil.spanTwo(_op,op),
+          throw new ReadError(spanTwo(_op,op),
                               "Tight operator " + _op.getText() +
                               " near loose operator " + op.getText() + ".");
         }
@@ -724,7 +724,7 @@ public class Resolver {
                                    op, rest);
           }
           else { // prec instanceof None
-            throw new ReadError(FortressUtil.spanTwo(_op, op),
+            throw new ReadError(spanTwo(_op, op),
                                 "Loose operators " + _op.getText()
                                   + " and " + op.getText() +
                                 " have incomparable precedence.");
@@ -754,7 +754,7 @@ public class Resolver {
                               " not parsed as such.");
         }
         else { // prec instanceof None
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Loose operators " + _op.getText()
                                 + " and " + op.getText() +
                               " have incomparable precedence.");
@@ -774,7 +774,7 @@ public class Resolver {
                                    op, rest);
           }
           else {
-            throw new ReadError(FortressUtil.spanTwo(_op,op),
+            throw new ReadError(spanTwo(_op,op),
                                 "Tight operator " + _op.getText() +
                                 " near loose operator " +
                                 op.getText() + ".");
@@ -845,7 +845,7 @@ public class Resolver {
           return stack.cons(new Tight(op, PureList.make(e)));
         }
         else {
-          throw new ReadError(FortressUtil.spanTwo(_op,op),
+          throw new ReadError(spanTwo(_op,op),
                               "Loose operator " + _op.getText() +
                               " near tight operator " + op.getText() + ".");
         }
@@ -869,7 +869,7 @@ public class Resolver {
                                    op, rest);
           }
           else { // prec instanceof None
-            throw new ReadError(FortressUtil.spanTwo(_op, op),
+            throw new ReadError(spanTwo(_op, op),
                                 "Tight operators " + _op.getText()
                                   + " and " + op.getText() +
                                 " have incomparable precedence.");
@@ -900,7 +900,7 @@ public class Resolver {
                               " not parsed as such.");
         }
         else { // prec instanceof None
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Tight operators " + _op.getText()
                                 + " and " + op.getText() +
                               " have incomparable precedence.");
@@ -919,7 +919,7 @@ public class Resolver {
             return stack.cons(new Tight(op, PureList.make(e)));
           }
           else {
-            throw new ReadError(FortressUtil.spanTwo(_op,op),
+            throw new ReadError(spanTwo(_op,op),
                                 "Loose operator " + _op.getText() +
                                 " near tight operator " +
                                 op.getText() + ".");
@@ -974,7 +974,7 @@ public class Resolver {
           return looseChainStack(finishInfixFrame(e,frame),op,rest);
         }
         else {
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Tight operator " + _op.getText() +
                               " near loose operator " + op.getText() + ".");
         }
@@ -996,7 +996,7 @@ public class Resolver {
                               " not parsed as such.");
         }
         else { // prec instanceof None
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Loose operators " + _op.getText() +
                               " and " + op.getText() + ".");
         }
@@ -1058,7 +1058,7 @@ public class Resolver {
             (new TightChain(PureList.make(new ExprOpPair(e,op))));
         }
         else {
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Loose operator " + _op.getText() +
                               " near tight operator " + op.getText() + ".");
         }
@@ -1080,7 +1080,7 @@ public class Resolver {
                               " not parsed as such.");
         }
         else { // prec instanceof None
-          throw new ReadError(FortressUtil.spanTwo(_op, op),
+          throw new ReadError(spanTwo(_op, op),
                               "Tight operators " + _op.getText() +
                               " and " + op.getText() + ".");
         }
@@ -1189,7 +1189,7 @@ public class Resolver {
       List<Expr> es = new ArrayList<Expr>();
       es.add(buildLayer(layer.getList()));
       RealExpr expr = new RealExpr
-        (ASTUtil.enclosing(FortressUtil.spanTwo(layerOp, op), layerOp, es, op));
+        (ASTUtil.enclosing(spanTwo(layerOp, op), layerOp, es, op));
 
       return resolveOpsEnclosing(opExprs.cons(expr), layer.getNext());
     }

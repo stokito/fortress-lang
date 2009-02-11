@@ -49,7 +49,7 @@ transient String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s)
 transient String idstart = UnicodeIdStart / [_] ;
 transient String idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest ; // '
 
-private String IdText  = a1:id &{ FortressUtil.validId(a1) } ;
+private String IdText  = a1:id &{ NodeUtil.validId(a1) } ;
 
 Id Id =
      <FIRST> a1:IdText { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
@@ -103,9 +103,9 @@ APIName APIName =
        if (FORTRESS_KEYWORDS.contains(a1)) {
            log(span, a1 + " is a Fortress keyword.");
            yyValue = NodeFactory.makeAPIName(span, bogusId);
-       } else if (FortressUtil.validId(a1)) {
+       } else if (NodeUtil.validId(a1)) {
            yyValue = NodeFactory.makeAPIName(span, NodeFactory.makeId(span, a1));
-       } else if (FortressUtil.validOp(a1)) {
+       } else if (NodeUtil.validOp(a1)) {
            log(span, a1 + " is not a valid Fortress identifier.");
            yyValue = NodeFactory.makeAPIName(span, bogusId);
        } else {
@@ -125,9 +125,9 @@ APIName APIName =
            String id = _id.getText();
            if (FORTRESS_KEYWORDS.contains(id))
                log(span, id + " is a Fortress keyword.");
-           else if (FortressUtil.validOp(id))
+           else if (NodeUtil.validOp(id))
                log(span, id + " is not a valid Fortress identifier.");
-           else if (!FortressUtil.validId(id))
+           else if (!NodeUtil.validId(id))
                log(span, id + " is not a valid Fortress identifier.");
        }
        yyValue = NodeFactory.makeAPIName(span, ids);
@@ -144,9 +144,9 @@ APIName APIName =
            String id = _id.getText();
            if (FORTRESS_KEYWORDS.contains(id))
                log(span, id + " is a Fortress keyword.");
-           else if (FortressUtil.validOp(id))
+           else if (NodeUtil.validOp(id))
                log(span, id + " is not a valid Fortress identifier.");
-           else if (!FortressUtil.validId(id))
+           else if (!NodeUtil.validId(id))
                log(span, id + " is not a valid Fortress identifier.");
        }
        yyValue = NodeFactory.makeAPIName(span, ids);

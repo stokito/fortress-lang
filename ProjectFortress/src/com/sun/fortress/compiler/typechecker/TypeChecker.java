@@ -1998,7 +1998,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             link_result.add(link.accept(this));
 
             // Check a temporary binary op, to see if the result is <: Boolean
-            OpExpr tempOpExpr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(prev,next),
+            OpExpr tempOpExpr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(prev,next),
                                                                    op, prev, next);
             TypeCheckerResult temp_op_result = tempOpExpr.accept(this);
             temps_result.add(temp_op_result);
@@ -2448,7 +2448,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
             }
         }
 
-        ArrowType arr = NodeFactory.makeArrowType(FortressUtil.spanTwo(domain, return_type),
+        ArrowType arr = NodeFactory.makeArrowType(NodeUtil.spanTwo(domain, return_type),
                 domain, return_type);
         FnExpr new_node = ExprFactory.makeFnExpr(NodeUtil.getSpan(that),
                 NodeUtil.isParenthesized(that),
@@ -2734,10 +2734,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     @Override
     public TypeCheckerResult forId(final Id original_name) {
-        
+
     	//handle aliases
         List<Import> imports = this.compilationUnit.ast().getImports();
-    	
+
         final NodeDepthFirstVisitor<Option<Pair<Id,APIName>>> import_visitor = new NodeDepthFirstVisitor<Option<Pair<Id,APIName>>>(){
 
 			@Override
@@ -2747,12 +2747,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
 			@Override
 			public Option<Pair<Id,APIName>> forImportNames(ImportNames that) {
-				if(original_name.getApiName().isNone() || 
+				if(original_name.getApiName().isNone() ||
 						!original_name.getApiName().unwrap().equals(that.getApiName())){
 					return Option.none();
 				}
-				
-				
+
+
 				List<AliasedSimpleName> aliases = that.getAliasedNames();
 				for(AliasedSimpleName alias: aliases){
 					if(alias.getAlias().isSome()){
@@ -2761,8 +2761,8 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 							return Option.some(Pair.make((Id)alias.getName(),that.getApiName()));
 						}
 					}
-					
-					
+
+
 				}
 				return Option.none();
 			}
@@ -2772,10 +2772,10 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 			public Option<Pair<Id,APIName>> value(Import arg0) {
 				return arg0.accept(import_visitor);
 			}
-        	
+
         });
-        
-        Id name = original_name; 
+
+        Id name = original_name;
         Option<APIName> apiName = original_name.getApiName();
         for(Option<Pair<Id,APIName>> alias: aliases){
         	if(alias.isSome()){
@@ -2783,7 +2783,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         		apiName = Option.some(alias.unwrap().second());
         	}
         }
-        
+
 
         //handle apis
         if (apiName.isSome()) {
@@ -3204,12 +3204,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
                 Iterator<Expr> expr_iter = new_juxt_exprs.iterator();
                 Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
                 Expr expr_2 = expr_iter.next();
-                OpExpr cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(expr_1,expr_2),
+                OpExpr cur_op_expr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(expr_1,expr_2),
                                                             that.getInfixJuxt(),
                                                             expr_1, expr_2);
                 while( expr_iter.hasNext() ) {
                     Expr next_expr = expr_iter.next();
-                    cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(cur_op_expr,next_expr),
+                    cur_op_expr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(cur_op_expr,next_expr),
                                                          that.getInfixJuxt(),
                                                          cur_op_expr, next_expr);
                 }
@@ -4727,12 +4727,12 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
         Iterator<Expr> expr_iter = exprs.iterator();
         Expr expr_1 = expr_iter.next(); // the fact that >= two items are here is guaranteed from above.
         Expr expr_2 = expr_iter.next();
-        OpExpr cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(expr_1,expr_2),
+        OpExpr cur_op_expr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(expr_1,expr_2),
                                                             that.getInfixJuxt(),
                                                             expr_1, expr_2);
         while( expr_iter.hasNext() ) {
             Expr next_expr = expr_iter.next();
-            cur_op_expr = ExprFactory.makeOpExpr(FortressUtil.spanTwo(cur_op_expr,next_expr),
+            cur_op_expr = ExprFactory.makeOpExpr(NodeUtil.spanTwo(cur_op_expr,next_expr),
                                                              that.getInfixJuxt(),
                                                              cur_op_expr, next_expr);
         }
