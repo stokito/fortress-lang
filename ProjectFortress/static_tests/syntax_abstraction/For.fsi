@@ -23,8 +23,8 @@ object Unreachable extends UncheckedException end
 
 grammar ForLoop extends {Expression, Identifier}
     Expr |:=
-        for {i:Id <- e:Expr ,? SPACE}* do block:Expr end =>
-        <[ for2 i** ; e** ; do block ; end ]>
+        for i1:Id <- e1:Expr {, i2:Id <- e2:Expr}* do block:Expr end =>
+        <[ ((e1).loop(fn i1 => (for2 i2** ; e2** ; do block ; end))) ]>
       | for2 i:Id* ; e:Expr* ; do block:Expr ; end =>
         case i of
             Empty => <[ block ]>
