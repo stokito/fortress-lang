@@ -276,6 +276,85 @@ public final class FortressUtil {
         return true;
     }
 
+    public static List<LValue> makeLvs(BufferedWriter writer, List<Id> ids,
+                                       Option<Modifiers> mods, Option<Type> ty,
+                                       boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(ids.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        for (Id id : ids) {
+            if ( mods.isSome() )
+                lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id),
+                                               id, mods.unwrap(), ty, mutable));
+            else
+                lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id),
+                                               id, Modifiers.None, ty, mutable));
+        }
+        validId(writer, lvs);
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<Id> ids,
+                                       Option<Modifiers> mods, List<Type> tys,
+                                       boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(ids.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        int ind = 0;
+        for (Id id : ids) {
+            if ( mods.isSome() )
+                lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id),
+                                               id, mods.unwrap(),
+                                               Option.<Type>some(tys.get(ind)),
+                                               mutable));
+            else
+                lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id),
+                                               id, Modifiers.None,
+                                               Option.<Type>some(tys.get(ind)),
+                                               mutable));
+            ind += 1;
+        }
+        validId(writer, lvs);
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
+                                       Option<Modifiers> mods) {
+        List<LValue> lvs = new ArrayList<LValue>(vars.size());
+        for (LValue l : vars) {
+            if ( mods.isSome() )
+                lvs.add(NodeFactory.makeLValue(l, mods.unwrap()));
+            else
+                lvs.add(NodeFactory.makeLValue(l, Modifiers.None));
+        }
+        validId(writer, lvs);
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
+                                       Option<Modifiers> mods, boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(vars.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        for (LValue l : vars) {
+            if ( mods.isSome() )
+                lvs.add(NodeFactory.makeLValue(l, mods.unwrap(), mutable));
+            else
+                lvs.add(NodeFactory.makeLValue(l, Modifiers.None, mutable));
+        }
+        validId(writer, lvs);
+        return lvs;
+    }
+
     public static void allHaveTypes(BufferedWriter writer, List<LValue> vars) {
         for (LValue l : vars) {
             if (l.getIdType().isNone())
@@ -381,51 +460,6 @@ public final class FortressUtil {
             ind += 1;
         }
         return result;
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
-                                       Option<Type> ty, boolean mutable) {
-        List<LValue> lvs = new ArrayList<LValue>();
-        for (Id id : ids) {
-            lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id), id, mods, ty, mutable));
-        }
-        return lvs;
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
-                                       Type ty, boolean mutable) {
-        return ids2Lvs(ids, mods, Option.<Type>some(ty), mutable);
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, Type ty,
-                                           boolean mutable) {
-        return ids2Lvs(ids, Modifiers.None, Option.<Type>some(ty), mutable);
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods) {
-        return ids2Lvs(ids, mods, Option.<Type>none(), false);
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids) {
-        return ids2Lvs(ids, Modifiers.None, Option.<Type>none(), false);
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, Modifiers mods,
-                                           List<Type> tys, boolean mutable) {
-        List<LValue> lvs = new ArrayList<LValue>();
-        int ind = 0;
-        for (Id id : ids) {
-            lvs.add(NodeFactory.makeLValue(NodeUtil.getSpan(id), id, mods,
-                                           Option.<Type>some(tys.get(ind)),
-                                           mutable));
-            ind += 1;
-        }
-        return lvs;
-    }
-
-    public static List<LValue> ids2Lvs(List<Id> ids, List<Type> tys,
-                                           boolean mutable) {
-        return ids2Lvs(ids, Modifiers.None, tys, mutable);
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
