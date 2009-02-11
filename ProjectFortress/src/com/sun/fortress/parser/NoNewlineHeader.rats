@@ -298,54 +298,6 @@ transient private Modifiers ParamFldMod =
    / settable { yyValue = Modifiers.Settable; }
    / wrapped  { yyValue = Modifiers.Wrapped; };
 
-/* Each modifier cannot appear more than once. */
-/* FldMods ::= (FldMod w)+ */
-transient Modifiers FldMods = a1s:(FldMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* Each modifier cannot appear more than once. */
-/* FldImmutableMods ::= (FldImmutableMod w)+ */
-transient Modifiers FldImmutableMods = a1s:(FldImmutableMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* FldMod ::= var | AbsFldMod */
-transient private Modifiers FldMod =
-     var { yyValue = Modifiers.Var; }
-   / AbsFldMod ;
-
-/* FldImmutableMod ::= hidden / test / wrapped / private */
-transient private Modifiers FldImmutableMod =
-     hidden  { yyValue = Modifiers.Hidden; }
-   / test    { yyValue = Modifiers.Test; }
-   / wrapped { yyValue = Modifiers.Wrapped; }
-   / private { yyValue = Modifiers.Private; };
-
-/* Each modifier cannot appear more than once. */
-/* AbsFldMods ::= (AbsFldMod w)+ */
-transient Modifiers AbsFldMods = a1s:(AbsFldMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* AbsFldMod ::= ApiFldMod | wrapped | private */
-transient private Modifiers AbsFldMod =
-      ApiFldMod
-    / wrapped { yyValue = Modifiers.Wrapped; }
-    / private { yyValue = Modifiers.Private; };
-
-/* Each modifier cannot appear more than once. */
-/* ApiFldMods ::= (ApiFldMod w)+ */
-transient Modifiers ApiFldMods = a1s:(ApiFldMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* ApiFldMod ::= hidden | settable | test */
-transient private Modifiers ApiFldMod =
-     hidden   { yyValue = Modifiers.Hidden; }
-   / settable { yyValue = Modifiers.Settable; }
-   / test     { yyValue = Modifiers.Test; };
-
 /* StaticParams ::= [\ w StaticParamList w \] */
 List<StaticParam> StaticParams =
      opendoublesquare w StaticParamList w closedoublesquare ;

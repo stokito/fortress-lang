@@ -39,47 +39,20 @@ import Spacing;
  */
 VarDecl VarDecl =
      a1:Mods? a2:VarMayTypes w a3:InitVal
-     { if (a1 != null) {
-           if (a3.getB()) {
-               FortressUtil.allHaveTypes(writer, a2);
-               a2 = FortressUtil.setModsAndMutable(a2, a1);
-           } else {
-               if (a1.isMutable())
-                   FortressUtil.allHaveTypes(writer, a2);
-               a2 = FortressUtil.setMods(a2, a1);
-           }
-       } else {
-             if (a3.getB()) {
-                 FortressUtil.allHaveTypes(writer, a2);
-                 a2 = FortressUtil.setMutable(a2);
-             }
-       }
-       FortressUtil.validId(writer, a2);
+     { a2 = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                 a3.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>some(a3.getA()));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
-     { Span span = createSpan(yyStart,yyCount);
-       List<LValue> lvs;
-       if (a1 != null) {
-           if ( a1.isMutable() )
-               log(span, "Mutable variables should be declared with their types.");
-           lvs = FortressUtil.ids2Lvs(a2, a1);
-       } else lvs = FortressUtil.ids2Lvs(a2);
-       FortressUtil.validId(writer, lvs);
-       yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
-                                         Option.<Expr>some(a3));
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                               Option.<Type>none(), false);
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
+                                         lvs, Option.<Expr>some(a3));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
-     { List<LValue> lvs;
-       if (a1 != null) {
-           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
-           else           lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
-       } else {
-           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a3, true);
-           else           lvs = FortressUtil.ids2Lvs(a2, a3, false);
-       }
-       FortressUtil.validId(writer, lvs);
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                               Option.<Type>some(a3), a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>some(a4.getA()));
      }
@@ -88,25 +61,10 @@ VarDecl VarDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
-       List<LValue> lvs;
-       if (a1 != null) {
-           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, tys, true);
-           else           lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
-       } else {
-           if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, tys, true);
-           else           lvs = FortressUtil.ids2Lvs(a2, tys, false);
-       }
-       FortressUtil.validId(writer, lvs);
+       List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                               tys, a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
                                          Option.<Expr>some(a4.getA()));
-     }
-   / <ErrorProduction>
-     var w BindIdOrBindIdTuple w equals w NoNewlineExpr
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Mutable variables should be declared with their types.");
-       yyValue = NodeFactory.makeVarDecl(writer, span,
-                                         Collections.<LValue>emptyList(),
-                                         Option.<Expr>none());
      };
 
 /* VarMayTypes ::=
@@ -141,27 +99,22 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
  */
 VarDecl AbsVarDecl =
      a1:Mods? a2:NoNewlineVarWTypes
-     { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
-       FortressUtil.validId(writer, a2);
+     { a2 = FortressUtil.makeLvs(writer, a2, Option.wrap(a1));
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>none());
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
-     { List<LValue> lvs;
-       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
-       else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
-       FortressUtil.validId(writer, lvs);
-       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
-                                         Option.<Expr>none());
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                               Option.<Type>some(a3), false);
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
+                                         lvs, Option.<Expr>none());
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
-       List<LValue> lvs;
-       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, tys, false);
-       else            lvs = FortressUtil.ids2Lvs(a2, tys, false);
-       FortressUtil.validId(writer, lvs);
+       List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+                                               tys, false);
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs, Option.<Expr>none());
      };
