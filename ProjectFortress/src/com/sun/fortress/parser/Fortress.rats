@@ -24,10 +24,10 @@ modify com.sun.fortress.parser.Compilation(Declaration, Literal, Identifier,
 instantiate com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
                                                 OtherDecl, Spacing, Syntax)
             as Declaration;
-instantiate com.sun.fortress.parser.TraitObject(Method, Field, AbsField,
-                                                Parameter, OtherDecl,
-                                                NoNewlineHeader, Identifier,
-                                                Keyword, Symbol, Spacing)
+instantiate com.sun.fortress.parser.TraitObject(Method, Variable, Parameter,
+                                                OtherDecl, NoNewlineHeader,
+                                                Identifier, Keyword, Symbol,
+                                                Spacing)
             as TraitObject;
 instantiate com.sun.fortress.parser.Function(Parameter, NoNewlineHeader,
                                              NoNewlineType, NoNewlineExpr,
@@ -48,12 +48,6 @@ instantiate com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader,
                                              NoNewlineType, NoNewlineExpr,
                                              Identifier, Keyword, Symbol, Spacing)
             as Variable;
-instantiate com.sun.fortress.parser.Field(Variable, NoNewlineHeader, NoNewlineType,
-                                          Identifier, Spacing)
-            as Field;
-instantiate com.sun.fortress.parser.AbsField(Variable, NoNewlineHeader,
-                                             NoNewlineType, Identifier, Spacing)
-            as AbsField;
 instantiate com.sun.fortress.parser.MayNewlineHeader(OtherDecl, Type,
                                                      NoNewlineHeader, Expression,
                                                      DelimitedExpr, Literal,
