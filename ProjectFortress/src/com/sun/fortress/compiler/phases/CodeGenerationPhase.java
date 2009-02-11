@@ -62,9 +62,8 @@ public class CodeGenerationPhase extends Phase {
         for (Component comp : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
             String compName = comp.getName().getText();
-            if (compName.equals("Compile0")) {
+            if (compName.equals("Compiled0")) {
                 Compile c = new Compile(comp.getName().getText());
-                System.out.println("CodeGenerationPhase: name = " + comp.getName().getText() + " comp = " + comp + " Compile = " + c);
                 comp.accept(c);
             }
         }
