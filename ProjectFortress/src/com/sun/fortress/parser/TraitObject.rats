@@ -18,13 +18,11 @@
 /*
  * Definition of Fortress trait and object declarations.
  */
-module com.sun.fortress.parser.TraitObject(Method, Field, AbsField, Param, Other,
-                                           Header, Identifier, Keyword, Symbol,
-                                           Spacing);
+module com.sun.fortress.parser.TraitObject(Method, Variable, Param, Other, Header,
+                                           Identifier, Keyword, Symbol, Spacing);
 
 import Method;
-import Field;
-import AbsField;
+import Variable;
 modify Param;
 import Other;
 import Header;
@@ -149,9 +147,9 @@ private List<Decl> GoFrontInATrait =
      a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* GoesFrontInATrait ::= AbsFldDecl | GetterSetterDecl | PropertyDecl */
+/* GoesFrontInATrait ::= AbsVarDecl | GetterSetterDecl | PropertyDecl */
 private Decl GoesFrontInATrait =
-     AbsFldDecl
+     AbsVarDecl
    / GetterSetterDecl
    / PropertyDecl ;
 
@@ -304,9 +302,9 @@ private List<Decl> GoFrontInAnObject =
      a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* GoesFrontInAnObject ::= FldDecl | GetterSetterDef | PropertyDecl */
+/* GoesFrontInAnObject ::= VarDecl | GetterSetterDef | PropertyDecl */
 private Decl GoesFrontInAnObject =
-     FldDecl
+     VarDecl
    / GetterSetterDef
    / PropertyDecl ;
 
@@ -424,9 +422,9 @@ private List<Decl> AbsGoFrontInATrait =
      a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AbsGoesFrontInATrait ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
+/* AbsGoesFrontInATrait ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
 private Decl AbsGoesFrontInATrait =
-     ApiFldDecl
+     AbsVarDecl
    / AbsGetterSetterDecl
    / PropertyDecl ;
 
@@ -516,9 +514,9 @@ private List<Decl> AbsGoFrontInAnObject =
      a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
      { yyValue = FortressUtil.mkList(a1, a2s.list()); };
 
-/* AbsGoesFrontInAnObject ::= ApiFldDecl | AbsGetterSetterDecl | PropertyDecl */
+/* AbsGoesFrontInAnObject ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
 private Decl AbsGoesFrontInAnObject =
-     ApiFldDecl
+     AbsVarDecl
    / AbsGetterSetterDecl
    / PropertyDecl ;
 

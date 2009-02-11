@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -19,7 +19,7 @@ api ApiFieldTest
 
 trait T
   (a: ZZ32, b: String)
-  test x: ZZ32
+  settable x: ZZ32
 end
 
 end

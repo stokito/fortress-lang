@@ -32,13 +32,13 @@ import Symbol;
 import Spacing;
 
 /* VarDecl ::=
-     VarMods? VarMayTypes w InitVal
-   | VarImmutableMods? BindIdOrBindIdTuple w = w NoNewlineExpr
-   | VarMods? BindIdOrBindIdTuple w : w NoNewlineType w ... w InitVal
-   | VarMods? BindIdOrBindIdTuple w : w NoNewlineTupleType w InitVal
+     Mods? VarMayTypes w InitVal
+   | Mods? BindIdOrBindIdTuple w = w NoNewlineExpr
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineType w ... w InitVal
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineTupleType w InitVal
  */
 VarDecl VarDecl =
-     a1:VarMods? a2:VarMayTypes w a3:InitVal
+     a1:Mods? a2:VarMayTypes w a3:InitVal
      { if (a1 != null) {
            if (a3.getB()) {
                FortressUtil.allHaveTypes(writer, a2);
@@ -58,15 +58,19 @@ VarDecl VarDecl =
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>some(a3.getA()));
      }
-   / a1:VarImmutableMods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
-     { List<LValue> lvs;
-       if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1);
-       else lvs = FortressUtil.ids2Lvs(a2);
+   / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       List<LValue> lvs;
+       if (a1 != null) {
+           if ( a1.isMutable() )
+               log(span, "Mutable variables should be declared with their types.");
+           lvs = FortressUtil.ids2Lvs(a2, a1);
+       } else lvs = FortressUtil.ids2Lvs(a2);
        FortressUtil.validId(writer, lvs);
-       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
+       yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
                                          Option.<Expr>some(a3));
      }
-   / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
      { List<LValue> lvs;
        if (a1 != null) {
            if (a4.getB()) lvs = FortressUtil.ids2Lvs(a2, a1, a3, true);
@@ -79,7 +83,7 @@ VarDecl VarDecl =
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>some(a4.getA()));
      }
-   / a1:VarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType w a4:InitVal
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType w a4:InitVal
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
@@ -104,31 +108,6 @@ VarDecl VarDecl =
                                          Collections.<LValue>emptyList(),
                                          Option.<Expr>none());
      };
-
-/* Each modifier cannot appear more than once. */
-/* VarMods ::= (VarMod w)+ */
-transient Modifiers VarMods = a1s:(VarMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* Each modifier cannot appear more than once. */
-/* VarImmutableMods ::= (VarImmutableMod w)+ */
-transient Modifiers VarImmutableMods =
-     a1s:(VarImmutableMod w)+
-     { yyValue = FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
-     };
-
-/* VarMod ::= AbsVarMod | private */
-transient private Modifiers VarMod =
-     AbsVarMod
-   / a1:private
-     { yyValue = Modifiers.Private; };
-
-/* VarImmutableMod ::= AbsVarImmutableMod | private */
-transient private Modifiers VarImmutableMod =
-     AbsVarImmutableMod
-   / a1:private
-     { yyValue = Modifiers.Private; };
 
 /* VarMayTypes ::=
      VarMayType
@@ -156,18 +135,18 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
      };
 
 /* AbsVarDecl ::=
-     AbsVarMods? NoNewlineVarWTypes
-   | AbsVarMods? BindIdOrBindIdTuple w : w NoNewlineType w ...
-   | AbsVarMods? BindIdOrBindIdTuple w : w NoNewlineTupleType
+     Mods? NoNewlineVarWTypes
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineType w ...
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineTupleType
  */
 VarDecl AbsVarDecl =
-     a1:AbsVarMods? a2:NoNewlineVarWTypes
+     a1:Mods? a2:NoNewlineVarWTypes
      { if (a1 != null) a2 = FortressUtil.setMods(a2, a1);
        FortressUtil.validId(writer, a2);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>none());
      }
-   / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValue> lvs;
        if (a1 != null) lvs = FortressUtil.ids2Lvs(a2, a1, a3, false);
        else            lvs = FortressUtil.ids2Lvs(a2, a3, false);
@@ -175,7 +154,7 @@ VarDecl AbsVarDecl =
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>none());
      }
-   / a1:AbsVarMods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
      { Span span = createSpan(yyStart,yyCount);
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
@@ -186,20 +165,3 @@ VarDecl AbsVarDecl =
        FortressUtil.validId(writer, lvs);
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs, Option.<Expr>none());
      };
-
-/* Each modifier cannot appear more than once. */
-/* AbsVarMods ::= (AbsVarMod w)+ */
-transient Modifiers AbsVarMods = a1s:(AbsVarMod w)+
-     { yyValue =
-           FortressUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
-                                    FortressUtil.mkList(a1s.list()));
-     };
-
-/* AbsVarMod ::= var | AbsVarImmutableMod */
-transient private Modifiers AbsVarMod =
-     a1:var  { yyValue = Modifiers.Var; }
-   / AbsVarImmutableMod ;
-
-/* AbsVarImmutableMod ::= test */
-transient private Modifiers AbsVarImmutableMod =
-     a1:test { yyValue = Modifiers.Test; };

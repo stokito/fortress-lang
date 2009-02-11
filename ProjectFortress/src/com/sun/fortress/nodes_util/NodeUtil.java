@@ -18,6 +18,7 @@
 package com.sun.fortress.nodes_util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
+import com.sun.fortress.parser_util.FortressUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -314,6 +316,16 @@ public class NodeUtil {
         }
     }
 
+    /* Getters for VarDecl */
+    public static Modifiers getMods(BufferedWriter writer, VarDecl v) {
+        if ( v.getLhs().isEmpty() ) {
+            FortressUtil.log(writer, getSpan(v),
+                             "Variable declaration does not declare any: " + v);
+            return Modifiers.None;
+        } else
+            return v.getLhs().get(0).getMods();
+    }
+
     /* get the declared name of a component or api */
     public static APIName apiName( String path ) throws UserError, IOException {
         try {
@@ -416,11 +428,11 @@ public class NodeUtil {
     }
 
     public static boolean hasVarargs(TupleType t) {
-        return (! t.getVarargs().isNone() );
+        return t.getVarargs().isSome();
     }
 
     public static boolean isVarargsParam(Param p) {
-        return (! p.getVarargsType().isNone());
+        return p.getVarargsType().isSome();
     }
 
     public static boolean isSingletonObject(VarRef v) {

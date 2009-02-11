@@ -24,10 +24,10 @@ modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Literal, 
 instantiate com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
                                                                OtherDecl, Spacing, Syntax)
             as Declaration;
-instantiate com.sun.fortress.parser.templateparser.TraitObject(Method, Field, AbsField,
-                                                               Parameter, OtherDecl,
-                                                               NoNewlineHeader, Identifier,
-                                                               Keyword, Symbol, Spacing)
+instantiate com.sun.fortress.parser.templateparser.TraitObject(Method, Variable, Parameter,
+                                                               OtherDecl, NoNewlineHeader,
+                                                               Identifier, Keyword, Symbol,
+                                                               Spacing)
             as TraitObject;
 instantiate com.sun.fortress.parser.templateparser.Function(Parameter, NoNewlineHeader,
                                                             NoNewlineType, NoNewlineExpr,
@@ -48,12 +48,6 @@ instantiate com.sun.fortress.parser.templateparser.Variable(NoNewlineHeader, May
                                                             NoNewlineType, NoNewlineExpr,
                                                             Identifier, Keyword, Symbol, Spacing)
             as Variable;
-instantiate com.sun.fortress.parser.templateparser.Field(Variable, NoNewlineHeader, Type,
-                                                         Identifier, Spacing)
-            as Field;
-instantiate com.sun.fortress.parser.templateparser.AbsField(Variable, NoNewlineHeader, Type,
-                                                            Identifier, Spacing)
-            as AbsField;
 instantiate com.sun.fortress.parser.templateparser.MayNewlineHeader(OtherDecl, Type,
                                                                     NoNewlineHeader, Expression,
                                                                     DelimitedExpr, Literal,

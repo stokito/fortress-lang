@@ -673,6 +673,18 @@ public class NodeFactory {
         return new TupleType(info, elements, varargs, keywords);
     }
 
+    public static TupleType makeVoidType(Span span) {
+        return makeTupleType(span, false, Collections.<Type>emptyList(),
+                             Option.<Type>none(),
+                             Collections.<KeywordType>emptyList());
+    }
+
+    public static TupleType makeVarargsType(Span span, Type ty) {
+        return makeTupleType(span, false, Collections.<Type>emptyList(),
+                             Option.<Type>some(ty),
+                             Collections.<KeywordType>emptyList());
+    }
+
     public static TaggedDimType makeTaggedDimType(TaggedDimType t, Type s,
                                                   DimExpr u) {
         return makeTaggedDimType(NodeUtil.getSpan(t), NodeUtil.isParenthesized(t), s, u,
@@ -1642,12 +1654,6 @@ public class NodeFactory {
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindNat());
-    }
-
-    public static TupleType makeVoidType(Span span) {
-        return makeTupleType(span, false, Collections.<Type>emptyList(),
-                             Option.<Type>none(),
-                             Collections.<KeywordType>emptyList());
     }
 
     public static BoolBase makeBoolBase(Span span,

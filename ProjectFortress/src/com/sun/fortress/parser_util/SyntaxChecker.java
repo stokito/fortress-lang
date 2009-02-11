@@ -119,17 +119,40 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         inObject = false;
     }
 
-/* ParamFldMod ::= var | hidden | settable |        wrapped */
-/* FldMod      ::= var | hidden | settable | test | wrapped | private */
-/* FldImmutableMod   ::= hidden |            test | wrapped | private */
-/* AbsFldMod         ::= hidden | settable | test | wrapped | private */
-/* ApiFldMod         ::= hidden | settable | test */
-
     public void forVarDeclOnly(VarDecl that) {
-        if ( that.getInit().isNone() ) { // variable declaration without a body expression
-            for (LValue lvb : that.getLhs()) {
-                if ( lvb.getIdType().isNone() )
+        for (LValue lvb : that.getLhs()) {
+            // variable declaration without a body expression or
+            if ( that.getInit().isNone() ||
+                 lvb.isMutable() ) { // a mutable variable
+                if ( lvb.getIdType().isNone() ) // type is required
                     log(lvb, "The type of " + lvb.getName() + " is required.");
+            }
+        }
+
+        Modifiers mods = NodeUtil.getMods(writer, that);
+        if ( inComponent ) {
+            if ( inTrait ) {
+                if (! Modifiers.AbsFldMod.containsAll(mods) )
+                    log(that, mods.remove(Modifiers.AbsFldMod) +
+                        " cannot modify fields in a trait in a component.");
+            } else if ( inObject ) {
+                if (! Modifiers.FldMod.containsAll(mods) )
+                    log(that, mods.remove(Modifiers.FldMod) +
+                        " cannot modify fields in an object in a component.");
+            } else { // top-level variable declaration
+                if (! Modifiers.VarMod.containsAll(mods) )
+                    log(that, mods.remove(Modifiers.VarMod) +
+                        " cannot modify top-level variables in a component.");
+            }
+        } else { // in API
+            if ( inTrait || inObject ) {
+                if (! Modifiers.ApiFldMod.containsAll(mods) )
+                    log(that, mods.remove(Modifiers.ApiFldMod) +
+                        " cannot modify fields in an API.");
+            } else { // top-level variable declaration
+                if (! Modifiers.AbsVarMod.containsAll(mods) )
+                    log(that, mods.remove(Modifiers.AbsVarMod) +
+                        " cannot modify top-level variables in an API.");
             }
         }
     }
