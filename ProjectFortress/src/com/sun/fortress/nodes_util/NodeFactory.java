@@ -2061,4 +2061,68 @@ public class NodeFactory {
         return new _RewriteFunctionalMethodDecl(makeSpanInfo(span), names);
     }
 
+    public static List<LValue> ids2Lvs(List<Id> ids) {
+        List<LValue> lvs = new ArrayList<LValue>(ids.size());
+        for (Id id : ids) {
+            lvs.add(makeLValue(NodeUtil.getSpan(id), id, Modifiers.None,
+                               Option.<Type>none(), false));
+        }
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
+                                       Option<Modifiers> mods, boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(vars.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        for (LValue l : vars) {
+            if ( mods.isSome() ) lvs.add(makeLValue(l, mods.unwrap(), mutable));
+            else                 lvs.add(makeLValue(l, Modifiers.None, mutable));
+        }
+        FortressUtil.validId(writer, lvs);
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
+                                       Option<Modifiers> mods, Option<Type> ty,
+                                       boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(vars.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        for (LValue l : vars) {
+            if ( mods.isSome() ) lvs.add(makeLValue(l, mods.unwrap(), ty, mutable));
+            else                 lvs.add(makeLValue(l, Modifiers.None, ty, mutable));
+        }
+        FortressUtil.validId(writer, lvs);
+        return lvs;
+    }
+
+    public static List<LValue> makeLvs(BufferedWriter writer, List<LValue> vars,
+                                       Option<Modifiers> mods, List<Type> tys,
+                                       boolean colonEqual) {
+        List<LValue> lvs = new ArrayList<LValue>(vars.size());
+        boolean mutable;
+        if ( mods.isSome() )
+            mutable = mods.unwrap().isMutable() || colonEqual;
+        else
+            mutable = colonEqual;
+        int ind = 0;
+        for (LValue l : vars) {
+            if ( mods.isSome() )
+                lvs.add(makeLValue(l, mods.unwrap(),
+                                   Option.<Type>some(tys.get(ind)), mutable));
+            else
+                lvs.add(makeLValue(l, Modifiers.None,
+                                   Option.<Type>some(tys.get(ind)), mutable));
+            ind += 1;
+        }
+        FortressUtil.validId(writer, lvs);
+        return lvs;
+    }
 }
