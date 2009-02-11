@@ -326,6 +326,16 @@ public class NodeUtil {
             return v.getLhs().get(0).getMods();
     }
 
+    /* Getters for LocalVarDecl */
+    public static Modifiers getMods(BufferedWriter writer, LocalVarDecl v) {
+        if ( v.getLhs().isEmpty() ) {
+            FortressUtil.log(writer, getSpan(v),
+                             "Variable declaration does not declare any: " + v);
+            return Modifiers.None;
+        } else
+            return v.getLhs().get(0).getMods();
+    }
+
     /* get the declared name of a component or api */
     public static APIName apiName( String path ) throws UserError, IOException {
         try {

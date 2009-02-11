@@ -45,13 +45,15 @@ VarDecl VarDecl =
                                          Option.<Expr>some(a3.getA()));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
-     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, FortressUtil.ids2Lvs(a2),
+                                               Option.wrap(a1),
                                                Option.<Type>none(), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>some(a3));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
-     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, FortressUtil.ids2Lvs(a2),
+                                               Option.wrap(a1),
                                                Option.<Type>some(a3), a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>some(a4.getA()));
@@ -61,8 +63,8 @@ VarDecl VarDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
-       List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
-                                               tys, a4.getB());
+       List<LValue> lvs = FortressUtil.makeLvs(writer, FortressUtil.ids2Lvs(a2),
+                                               Option.wrap(a1), tys, a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
                                          Option.<Expr>some(a4.getA()));
      };
@@ -104,7 +106,8 @@ VarDecl AbsVarDecl =
                                          Option.<Expr>none());
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
-     { List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
+     { List<LValue> lvs = FortressUtil.makeLvs(writer, FortressUtil.ids2Lvs(a2),
+                                               Option.wrap(a1),
                                                Option.<Type>some(a3), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>none());
@@ -114,7 +117,7 @@ VarDecl AbsVarDecl =
        List<Type> tys = a3.getElements();
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
-       List<LValue> lvs = FortressUtil.makeLvs(writer, a2, Option.wrap(a1),
-                                               tys, false);
+       List<LValue> lvs = FortressUtil.makeLvs(writer, FortressUtil.ids2Lvs(a2),
+                                               Option.wrap(a1), tys, false);
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs, Option.<Expr>none());
      };

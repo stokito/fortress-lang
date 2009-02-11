@@ -158,6 +158,7 @@ public final class Modifiers implements Serializable {
     public static final Modifiers ParamFldMod   = Var.combine(Hidden.combine(Settable.combine(Wrapped)));
     public static final Modifiers AbsVarMod     = Var.combine(Test);
     public static final Modifiers VarMod        = AbsVarMod.combine(Private);
+    public static final Modifiers LocalVarMod   = Var;
     public static final Modifiers ApiFldMod     = Hidden.combine(Settable);
     public static final Modifiers AbsFldMod     = ApiFldMod.combine(Wrapped.combine(Private));
     public static final Modifiers FldMod        = Var.combine(AbsFldMod);
