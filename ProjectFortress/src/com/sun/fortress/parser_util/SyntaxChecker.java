@@ -119,6 +119,22 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         inObject = false;
     }
 
+    public void forLocalVarDeclOnly(LocalVarDecl that) {
+        for (LValue lvb : that.getLhs()) {
+            // variable declaration without a body expression or
+            if ( that.getRhs().isNone() ||
+                 lvb.isMutable() ) { // a mutable variable
+                if ( lvb.getIdType().isNone() ) // type is required
+                    log(lvb, "The type of " + lvb.getName() + " is required.");
+            }
+        }
+
+        Modifiers mods = NodeUtil.getMods(writer, that);
+        if (! Modifiers.LocalVarMod.containsAll(mods) )
+            log(that, mods.remove(Modifiers.LocalVarMod) +
+                " cannot modify local variables.");
+    }
+
     public void forVarDeclOnly(VarDecl that) {
         for (LValue lvb : that.getLhs()) {
             // variable declaration without a body expression or

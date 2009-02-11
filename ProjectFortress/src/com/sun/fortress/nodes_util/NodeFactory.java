@@ -476,6 +476,11 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(LValue lvb, Modifiers mods,
+                                    Option<Type> ty, boolean mutable) {
+        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, ty, mutable);
+    }
+
+    public static LValue makeLValue(LValue lvb, Modifiers mods,
                                     boolean mutable) {
         return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, lvb.getIdType(), mutable);
     }
