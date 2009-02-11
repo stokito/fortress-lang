@@ -22,7 +22,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 import edu.rice.cs.plt.tuple.Option;
@@ -42,6 +44,52 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class NodeUtil {
+
+// let join (one : span) (two : span) : span =
+//   match one, two with
+//     | None, span | span, None -> span
+//     | Some (left,_), Some (_,right) -> Some (left,right)
+
+// let span_two (one : 'a node) (two : 'b node) : span =
+//   join one.node_span two.node_span
+
+    public static Span spanTwo(ASTNode s1, ASTNode s2) {
+        return new Span(getSpan(s1).getBegin(), getSpan(s2).getEnd());
+    }
+
+    public static Span spanTwo(Span s1, Span s2) {
+        return new Span(s1.getBegin(), s2.getEnd());
+    }
+
+// let rec span_all (com.sun.fortress.interpreter.nodes : 'a node list) : span =
+//   match com.sun.fortress.interpreter.nodes with
+//     | [] -> None
+//     | node :: rest -> join node.node_span (span_all rest)
+    public static Span spanAll(Object[] nodes, int size) {
+        if (size == 0)
+            return bug("Cannot make a span from an empty list of nodes.");
+        else { // size != 0
+            return new Span(getSpan((ASTNode)Array.get(nodes,0)).getBegin(),
+                            getSpan((ASTNode)Array.get(nodes,size-1)).getEnd());
+        }
+    }
+
+    public static Span spanAll(Iterable<? extends ASTNode> nodes) {
+        if (IterUtil.isEmpty(nodes))
+            return bug("Cannot make a span from an empty list of nodes.");
+        else {
+            return new Span(getSpan(IterUtil.first(nodes)).getBegin(),
+                            getSpan(IterUtil.last(nodes)).getEnd());
+        }
+    }
+
+    public static Span spanAll(SourceLoc defaultLoc, Iterable<? extends ASTNode> nodes) {
+        if (IterUtil.isEmpty(nodes)) { return new Span(defaultLoc, defaultLoc); }
+        else {
+            return new Span(getSpan(IterUtil.first(nodes)).getBegin(),
+                            getSpan(IterUtil.last(nodes)).getEnd());
+        }
+    }
 
     /* Getters for ASTNode */
 
@@ -410,7 +458,7 @@ public class NodeUtil {
      */
     public static int selfParameterIndex(Applicable d) {
         int i = 0;
-        for (Param p : NodeUtil.getParams(d)) {
+        for (Param p : getParams(d)) {
             Id name = p.getName();
                 if (WellKnownNames.defaultSelfName.equals(nameString(name))) {
                 return i;
@@ -422,7 +470,7 @@ public class NodeUtil {
 
     /* for Applicable ******************************************************/
     public static String nameAsMethod(Applicable app) {
-        String name = nameString(NodeUtil.getName(app));
+        String name = nameString(getName(app));
             int spi = selfParameterIndex(app);
             if (spi >= 0)
                 return "rm$" + spi + "$" + name;
@@ -810,4 +858,307 @@ public class NodeUtil {
     public static String nameString(IntRef vre) {
         return nameString(vre.getName());
     }
+
+    /* for Literals ********************************************************/
+    public static boolean validRadix(BufferedWriter writer,
+                                     Span span, String radix) {
+        String[] all = new String[]{"2","3","4","5","6","7","8","9","10",
+                                    "11","12","13","14","15","16"};
+        List<String> validRadix = new LinkedList<String>(java.util.Arrays.asList(all));
+        if (! validRadix.contains( radix )) {
+            FortressUtil.log(writer, span, "Syntax Error: the radix of " +
+                "a numeral must be an integer from 2 to 16.");
+            return false;
+        } else return true;
+    }
+
+    public static boolean validIntLiteral(String numeral) {
+        for (int index = 0; index < numeral.length(); index++) {
+            if (numeral.charAt(index) == '.')
+                return false;
+        }
+        return true;
+    }
+
+    public static void validNumericLiteral(BufferedWriter writer,
+                                           Span span, String numeral) {
+        int numberOfDots = 0;
+        for (int index = 0; index < numeral.length(); index++) {
+            char c = numeral.charAt(index);
+            if (Character.isLetter(c))
+                FortressUtil.log(writer, span, "Syntax Error: a numeral contains " +
+                    "letters and does not have a radix specifier.");
+            if (c == '.') numberOfDots++;
+        }
+        if (numberOfDots > 1)
+            FortressUtil.log(writer, span, "Syntax Error: a numeral contains more " +
+                "than one `.' character.");
+    }
+
+    public static void validNumericLiteral(BufferedWriter writer,
+                                           Span span, String numeral,
+                                           String radix) {
+        int radixNumber = radix2Number(radix);
+        if (radixNumber == -1)
+            FortressUtil.log(writer, span, "Syntax Error: the radix of " +
+                "a numeral should be an integer from 2 to 16.");
+        boolean sawUpperCase = false;
+        boolean sawLowerCase = false;
+        boolean sawAb = false;
+        boolean sawXe = false;
+        int numberOfDots = 0;
+        for (int index = 0; index < numeral.length(); index++) {
+            char c = numeral.charAt(index);
+            if (c == '.') numberOfDots++;
+            if (Character.isUpperCase(c)) {
+                if (sawLowerCase)
+                    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                        "contains both uppercase and lowercase letters.");
+                else sawUpperCase = true;
+            } else if (Character.isLowerCase(c)) {
+                if (sawUpperCase)
+                    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                        "contains both uppercase and lowercase letters.");
+                else sawLowerCase = true;
+            }
+            if (radixNumber == 12) {
+                if (!validDigitOrLetterIn12(c)
+                    && c != '.' && c != '\'' && c != '\u202F') {
+		    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                        "has radix 12 and contains letters other " +
+                        "than A, B, X, E, a, b, x or e.");
+		}
+                if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
+                    if (sawXe)
+                        FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                            "has radix 12 and contains at least one " +
+                            "A, B, a or b and at least one X, E, x or e.");
+                    else sawAb = true;
+                } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
+                    if (sawAb)
+                        FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                            "has radix 12 and contains at least one " +
+                            "A, B, a or b and at least one X, E, x or e.");
+                    else sawXe = true;
+                }
+            }
+            // The numeral has a radix other than 12.
+            else if (!validDigitOrLetter(c, radixNumber)
+                     && c != '.' && c != '\'' && c != '\u202F') {
+                FortressUtil.log(writer, span, "Syntax Error: a numeral has a radix " +
+                    "specifier and contains a digit or letter that " +
+                    "denotes a value greater than or equal to the " +
+                    "numeral's radix.");
+	    }
+        }
+        if (numberOfDots > 1)
+            FortressUtil.log(writer, span, "Syntax Error: a numeral contains more " +
+                "than one `.' character.");
+    }
+
+    public static int radix2Number(String radix) {
+        if (radix.equals("2") || radix.equals("TWO")) {
+            return 2;
+        } else if (radix.equals("3") || radix.equals("THREE")) {
+            return 3;
+        } else if (radix.equals("4") || radix.equals("FOUR")) {
+            return 4;
+        } else if (radix.equals("5") || radix.equals("FIVE")) {
+            return 5;
+        } else if (radix.equals("6") || radix.equals("SIX")) {
+            return 6;
+        } else if (radix.equals("7") || radix.equals("SEVEN")) {
+            return 7;
+        } else if (radix.equals("8") || radix.equals("EIGHT")) {
+            return 8;
+        } else if (radix.equals("9") || radix.equals("NINE")) {
+            return 9;
+        } else if (radix.equals("10") || radix.equals("TEN")) {
+            return 10;
+        } else if (radix.equals("11") || radix.equals("ELEVEN")) {
+            return 11;
+        } else if (radix.equals("12") || radix.equals("TWELVE")) {
+            return 12;
+        } else if (radix.equals("13") || radix.equals("THIRTEEN")) {
+            return 13;
+        } else if (radix.equals("14") || radix.equals("FOURTEEN")) {
+            return 14;
+        } else if (radix.equals("15") || radix.equals("FIFTEEN")) {
+            return 15;
+        } else if (radix.equals("16") || radix.equals("SIXTEEN")) {
+            return 16;
+        } else {
+            /* radix is not valid. */
+            return -1;
+        }
+    }
+
+    private static boolean validDigitOrLetterIn12(char c) {
+        if (Character.isLetter(c)) {
+            switch (c) {
+                case 'A':
+                case 'a':
+                case 'B':
+                case 'b':
+                case 'X':
+                case 'x':
+                case 'E':
+                case 'e': { break; }
+                default: {
+                    /* c is not valid in radix 12. */
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // radix is not 12.
+    private static boolean validDigitOrLetter(char c, int radix) {
+        if ((radix < 10 && Character.digit(c, radix) > -1) ||
+            (radix >= 10 && Character.isDigit(c)))
+            return true;
+        switch (c) {
+            case 'A':
+            case 'a': {
+                if (radix <= 10) return false;
+                break;
+            }
+            case 'B':
+            case 'b': {
+                if (radix <= 11) return false;
+                break;
+            }
+            case 'C':
+            case 'c': {
+                if (radix <= 12) return false;
+                break;
+            }
+            case 'D':
+            case 'd': {
+                if (radix <= 13) return false;
+                break;
+            }
+            case 'E':
+            case 'e': {
+                if (radix <= 14)
+                    return false;
+                break;
+            }
+            case 'F':
+            case 'f': {
+                if (radix <= 15) return false;
+                break;
+            }
+            default: {
+                /* c is not valid in a numeral of the radix. */
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static Modifiers noDuplicate(BufferedWriter writer, final Span span,
+                                        Iterable<Modifiers> mods) {
+        Modifiers res = Modifiers.None;
+        for (Modifiers mod : mods) {
+            if (res.containsAny(mod)) {
+                FortressUtil.log(writer, span,
+                    "Modifier " + mod + " must not occur multiple times");
+            }
+            res = res.combine(mod);
+        }
+        return res;
+    }
+
+    public static void checkNoWrapped(BufferedWriter writer,
+                                      Option<List<Param>> optParams) {
+        if ( optParams.isSome() ) {
+            List<Param> params = optParams.unwrap();
+            for ( Param param : params ) {
+                if (param.getMods().isWrapped()) {
+                    FortressUtil.log(writer, NodeUtil.getSpan(param),
+                        "The modifier \"wrapped\" cannot " +
+                        "appear in an API.");
+                }
+            }
+        }
+    }
+
+    /* true is there exists a self parameter in a given parameter list */
+    public static boolean isFunctionalMethod(List<Param> params) {
+        for (Param p : params) {
+            if (p.getName().getText().equals("self")) return true;
+        }
+        return false;
+    }
+
+    public static void validId(final BufferedWriter writer, Id name) {
+        name.accept(new NodeDepthFirstVisitor_void(){
+            public void forIdOnly(Id id){
+                if (id.getText().equals("outcome"))
+                    FortressUtil.log(writer, NodeUtil.getSpan(id),
+                        "Invalid variable name: 'outcome' is a reserved word.");
+            }
+
+            public void defaultTemplateGap(TemplateGap g){
+                /* nothing */
+            }
+
+            public void for_EllipsesIdOnly(_EllipsesId e){
+                /* nothing */
+            }
+        });
+    }
+
+    public static void validId(BufferedWriter writer, List<? extends LValue> lvs) {
+        for (LValue lv : lvs) {
+            validId(writer, lv.getName());
+        }
+    }
+
+    private static boolean allDigits(String s) {
+        for (int index = 0; index < s.length(); index++) {
+            if ( ! Character.isDigit(s.charAt(index)) )
+                return false;
+        }
+        return true;
+    }
+
+    public static boolean validId(String s) {
+        String[] words = s.split("_");
+        boolean isNumeral = (words.length == 2 &&
+                             (NodeUtil.radix2Number(words[1]) != -1 ||
+                              allDigits(words[1])));
+        return (! validOp(s) && !s.equals("_") &&
+                !isNumeral && !s.equals("SUM") && !s.equals("PROD"));
+    }
+
+    private static boolean compoundOp(String s) {
+        return (s.length() > 1 && s.endsWith("=")
+                && !s.equals("<=") && !s.equals(">=")
+                && !s.equals("=/=") && !s.equals("==="));
+    }
+    private static boolean validOpChar(char c) {
+        return (c == '_' || java.lang.Character.isUpperCase(c));
+    }
+    public static boolean validOp(String s) {
+        if (s.equals("juxtaposition") || s.equals("in") || s.equals("per") ||
+            s.equals("square") || s.equals("cubic") || s.equals("inverse") ||
+            s.equals("squared") || s.equals("cubed"))
+            return true;
+        if (s.equals("SUM") || s.equals("PROD")) return false;
+        int length = s.length();
+        if (length < 2 || compoundOp(s)) return false;
+        char start = s.charAt(0);
+        if (length == 2 && start == s.charAt(1)) return false;
+        if (length > 2 && start == s.charAt(1) && s.charAt(2) == '_')
+            return false;
+        if (start == '_' || s.endsWith("_")) return false;
+        for (int i = 0; i < length; i++) {
+            if (!validOpChar(s.charAt(i))) return false;
+        }
+        return true;
+    }
+
 }

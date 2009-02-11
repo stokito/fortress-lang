@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,7 +28,6 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.*;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Fn;
@@ -41,7 +40,7 @@ import com.sun.fortress.exceptions.ProgramError;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.nodes_util.OprUtil.noColonText;
 import static com.sun.fortress.nodes_util.NodeFactory.makeInParentheses;
-import static com.sun.fortress.parser_util.FortressUtil.spanTwo;
+import static com.sun.fortress.nodes_util.NodeUtil.spanTwo;
 
 /*
  * This class implements the functionality for resolving operator precedence during parsing.

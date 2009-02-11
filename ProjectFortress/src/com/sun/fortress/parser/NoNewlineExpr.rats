@@ -132,11 +132,11 @@ PureList<PrecedenceOpExpr> LeftLooseInfix := ...
  */
 PureList<PrecedenceOpExpr> OpExprPrimary := ...
    / <Primary>   a1:Primary sr a2:OpExprPrimary
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / <Loose>     a1:Primary sr a2:LooseInfix
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); }
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
    / <LeftLoose> a1:Primary sr a2:LeftLooseInfix
-     { yyValue = a2.cons(new RealExpr(FortressUtil.buildPrimary(a1))); };
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); };
 
 /* NoNewlineOpExprPrefix ::=
      Op NoNewlineOpExprPrimary

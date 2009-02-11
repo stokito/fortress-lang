@@ -22,7 +22,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.parser_util.precedence_opexpr.Equal;
 import com.sun.fortress.parser_util.precedence_opexpr.Higher;
 import com.sun.fortress.parser_util.precedence_opexpr.Lower;
@@ -58,7 +58,7 @@ public class PrecedenceMapJUTest extends com.sun.fortress.useful.TestCaseWrapper
 
     public void testIsOperator() {
         for (String op : Operators.ops) {
-            if (FortressUtil.validOp(op)) continue;
+            if (NodeUtil.validOp(op)) continue;
             assertEquals(op,true,pm.isOperator(op));
         }
     }

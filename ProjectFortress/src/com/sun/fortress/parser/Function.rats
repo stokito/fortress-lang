@@ -39,11 +39,11 @@ import Spacing;
 Decl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
      }
    / a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
 
@@ -87,7 +87,7 @@ FnDecl FnSig =
                                             Option.<Type>none()));
        }
        */
-       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
                                        params, ((ArrowType)a2).getRange());
      };
 
@@ -98,7 +98,7 @@ FnDecl FnSig =
 FnDecl AbsFnDecl =
      a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = FortressUtil.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
 

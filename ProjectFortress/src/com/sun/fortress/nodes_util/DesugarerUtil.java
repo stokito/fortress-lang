@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.useful.Useful;
 
@@ -392,7 +391,7 @@ public class DesugarerUtil {
      */
     private static Expr oneGenerator(GeneratorClause g, VarRef reduction, Expr body) {
         Expr loopBody = bindsAndBody(g, body);
-        Span span = FortressUtil.spanTwo(reduction, loopBody);
+        Span span = NodeUtil.spanTwo(reduction, loopBody);
         Expr params = ExprFactory.makeTupleExpr(span, g.getInit(), reduction, loopBody);
         return ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), GENERATE_NAME, params);
     }
