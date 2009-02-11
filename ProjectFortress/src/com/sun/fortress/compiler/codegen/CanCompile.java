@@ -32,26 +32,59 @@ public class CanCompile extends NodeAbstractVisitor<Boolean> {
         // TODO Auto-generated constructor stub
     }
 
-    public Boolean defaultCase(Node that) {
-        return Boolean.FALSE;
+    public Boolean defaultCase(Node x) {
+        throw new RuntimeException("CanCompile reverting to default case for " + x + " asclass " + x.getClass().getName());
+    }
+
+    /** Process an instance of Component. */
+    public Boolean forComponent(Component x) {
+        if (x.is_native()) return true;
+        List<Decl> decls = x.getDecls();
+
+        for (Decl d : decls) {
+            if (!forDecl(d))
+                return false;
+        }
+        return true;
+    }
+
+    public Boolean forBlock(Block x) {
+        List<Expr> exprs = x.getExprs();
+        for (Expr e : exprs) {
+            if (!e.accept(this))
+                return false;
+        }
+        return true;
+    }
+
+    public Boolean forImport(Import x) {
+        // We'll figure out the import later.
+        return true;
+    }
+
+    public Boolean for_RewriteFnApp(_RewriteFnApp x) {
+        Expr function = x.getFunction();
+        Expr argument = x.getArgument();
+        return function.accept(this) && argument.accept(this);
     }
 
     public Boolean forFnDecl(FnDecl x) {
-        Option<Expr> b = x.getBody();
-        if (!b.isSome())
-            return true;
-        else
-            return false;
+        Id unambiguousName = x.getUnambiguousName();
+        Option<Expr> body = x.getBody();
+        Option<Id> id = x.getImplementsUnambiguousName();
+        if (!body.isSome()) return true;
+        Expr e = body.unwrap();
+        return e.accept(this);
     }
 
-    public Boolean forComponent(Component x) {
-        List<Decl> decls = x.getDecls();
-        Boolean result = true;
-        for (Decl d : decls) {
-            if (!forDecl(d))
-                result = false;
-        }
-        return result;
+    public Boolean forStringLiteralExpr(StringLiteralExpr x) {return true;}
+ 
+    // Very wimpy for now.  Of course we can't compile all function refs.
+    public Boolean forFnRef(FnRef x) {
+        List<StaticArg> _staticArgs = x.getStaticArgs();
+        IdOrOp originalName = x.getOriginalName();
+        List<IdOrOp> names = x.getNames();
+        return true;
     }
 
     public Boolean forDecl(Decl x) {
@@ -61,4 +94,14 @@ public class CanCompile extends NodeAbstractVisitor<Boolean> {
             return false;
         }
     }
+
+    public Boolean forDo(Do x) {
+        List<Block> fronts = x.getFronts();
+        for (Block b : fronts) {
+            if (!b.accept(this))
+                return false;
+        }
+        return true;
+    }
+
 }
