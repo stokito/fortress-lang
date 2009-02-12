@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 ################################################################################
-#    Copyright 2008 Sun Microsystems, Inc.,
+#    Copyright 2009 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -158,7 +158,7 @@ sub ranges2ValidId {
 }
 
 print RATS "/*******************************************************************************\n";
-print RATS "    Copyright 2008 Sun Microsystems, Inc.,\n";
+print RATS "    Copyright 2009 Sun Microsystems, Inc.,\n";
 print RATS "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
 print RATS "    All rights reserved.\n\n";
 print RATS "    U.S. Government Rights - Commercial software.\n";

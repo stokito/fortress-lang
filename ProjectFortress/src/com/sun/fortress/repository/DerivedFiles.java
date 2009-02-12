@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,13 +28,13 @@ import com.sun.fortress.exceptions.InterpreterBug;
 public class DerivedFiles<T> {
     protected final Map<PathTaggedApiName, T> cached =
         new HashMap<PathTaggedApiName, T>();
-    
+
     protected final IO<PathTaggedApiName, T> ioForPathTaggedApiNames;
-    
+
     public DerivedFiles (IO<PathTaggedApiName, T> io) {
         this.ioForPathTaggedApiNames = io;
     }
-    
+
     public T get(PathTaggedApiName name, long mustBeNewerThan) {
         T x = cached.get(name);
         if (x == null) {
@@ -48,16 +48,16 @@ public class DerivedFiles<T> {
                 /*
                  * This will probably never hit, because of the lastModified
                  * check above.
-                 * 
+                 *
                  * It DOES hit, if a compilation is interrupted.
-                 */ 
-                
+                 */
+
                 return null;
             }
         }
         return x;
     }
-    
+
     public void put(PathTaggedApiName name, T x) {
         cached.put(name, x);
         try {
@@ -66,7 +66,7 @@ public class DerivedFiles<T> {
             InterpreterBug.bug("Failed to write " + name);
         }
     }
-    
+
     public void forget(PathTaggedApiName name) {
         cached.remove(name);
     }

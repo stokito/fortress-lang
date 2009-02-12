@@ -480,9 +480,7 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(Span span, Id name, Option<Type> type) {
-        return makeLValue(span, name,
-                          Modifiers.None,
-                          type, false);
+        return makeLValue(span, name, Modifiers.None, type, false);
     }
 
     public static LValue makeLValue(Span span, Id id, Type ty) {
@@ -498,79 +496,49 @@ public class NodeFactory {
     }
 
     public static LValue makeLValue(Id name, Id type) {
-        return makeLValue(NodeUtil.spanTwo(name, type),
-                          name,
-                          Modifiers.None,
-                          Option.some((Type)makeVarType(NodeUtil.getSpan(type),type)),
-                          false);
+        return makeLValue(name, makeVarType(NodeUtil.getSpan(type),type),
+                          Modifiers.None);
     }
 
     public static LValue makeLValue(Id id, Type ty) {
         return makeLValue(id, ty, Modifiers.None);
     }
 
-    public static LValue makeLValue(Id id, Type ty,
-                                    Modifiers mods) {
+    public static LValue makeLValue(Id id, Type ty, Modifiers mods) {
         return makeLValue(NodeUtil.getSpan(id), id, mods, Option.<Type>some(ty),
                           mods.isMutable());
     }
 
     public static LValue makeLValue(String name, Type type) {
         Span span = NodeUtil.getSpan(type);
-        return makeLValue(span, makeId(span, name),
-                          Modifiers.None, Option.some(type), false);
+        return makeLValue(span, makeId(span, name), type);
     }
 
     public static LValue makeLValue(String name, Type type, Modifiers mods) {
-        Span span = NodeUtil.getSpan(type);
-        return makeLValue(span, makeId(span, name), mods, Option.some(type), false);
+        return makeLValue(makeId(NodeUtil.getSpan(type), name), type, mods);
     }
 
     public static LValue makeLValue(Span span, String name, String type) {
         return makeLValue(makeId(span, name), makeVarType(span, type));
     }
 
+    //
     public static LValue makeLValue(LValue lvb, Modifiers mods,
                                     Option<Type> ty, boolean mutable) {
         return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, ty, mutable);
     }
 
+    //
     public static LValue makeLValue(LValue lvb, Modifiers mods,
                                     boolean mutable) {
-        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, lvb.getIdType(), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Id name) {
-        return makeLValue(NodeUtil.getSpan(lvb), name, lvb.getMods(), lvb.getIdType(),
-                          lvb.isMutable());
-    }
-
-    public static LValue makeLValue(LValue lvb, boolean mutable) {
-        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(), lvb.getIdType(),
-                          mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Modifiers mods) {
-        boolean mutable = lvb.isMutable() || mods.isMutable();
-        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods, lvb.getIdType(), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty) {
-        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(),
-                          Option.<Type>some(ty), lvb.isMutable());
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty,
-                                    boolean mutable) {
-        return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), lvb.getMods(),
-                          Option.<Type>some(ty), mutable);
-    }
-
-    public static LValue makeLValue(LValue lvb, Type ty,
-                                    Modifiers mods) {
-        boolean mutable = lvb.isMutable() || mods.isMutable();
         return makeLValue(NodeUtil.getSpan(lvb), lvb.getName(), mods,
-                          Option.<Type>some(ty), mutable);
+                          lvb.getIdType(), mutable);
+    }
+
+    //
+    public static LValue makeLValue(LValue lvb, Id name) {
+        return makeLValue(NodeUtil.getSpan(lvb), name, lvb.getMods(),
+                          lvb.getIdType(), lvb.isMutable());
     }
 
     public static LValue makeLValue(Span span, Id name, Modifiers mods,
