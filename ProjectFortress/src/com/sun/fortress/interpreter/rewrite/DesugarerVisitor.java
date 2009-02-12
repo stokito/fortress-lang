@@ -119,12 +119,12 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 
-public class DesugarerVisitor extends NodeUpdateVisitor {
+public class DesugarerVisitor extends NodeUpdateVisitor  {
 
     private boolean suppressDebugDump;
     private final static boolean debug = false;
 
-    private class Thing {
+    private class Thing implements InterpreterNameRewriter {
         int objectNestedness;
         int lexicalNestedness;
         Thing() {
@@ -143,25 +143,25 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
         }
 
         /** May assume {@code original} has a non-zero length. */
-        Expr replacement(VarRef original) {
+        public Expr replacement(VarRef original) {
             return ExprFactory.makeVarRef(original, lexicalNestedness);
         }
 
-        BoolRef replacement(BoolRef original) {
+        public BoolRef replacement(BoolRef original) {
             return NodeFactory.makeBoolRef(original, lexicalNestedness);
         }
 
-        IntRef replacement(IntRef original) {
+        public IntRef replacement(IntRef original) {
             return NodeFactory.makeIntRef(original, lexicalNestedness);
         }
 
-        Expr replacement(FnRef original) {
+        public Expr replacement(FnRef original) {
             return ExprFactory.makeFnRef(original, lexicalNestedness);
         }
-        Expr replacement(OpRef original) {
+        public Expr replacement(OpRef original) {
             return ExprFactory.makeOpRef(original, lexicalNestedness);
         }
-        VarType replacement(VarType original) {
+        public VarType replacement(VarType original) {
              return NodeFactory.makeVarType(original, lexicalNestedness);
         }
 //        TraitType replacement(TraitType original) {
@@ -189,8 +189,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private class Trait extends Local {
         TraitDecl defOrDecl;
-        Map<String, Thing> env;
-        Trait(TraitDecl dod, Map<String, Thing> env) { defOrDecl = dod; this.env = env; }
+        Map<String, InterpreterNameRewriter> env;
+        Trait(TraitDecl dod, Map<String, InterpreterNameRewriter> env) { defOrDecl = dod; this.env = env; }
         public String toString() { return "Trait="+defOrDecl; }
 
         public boolean equals (Object o) {
@@ -216,7 +216,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     private class Member extends Thing {
         Member() { super(); }
         @Override
-        Expr replacement(VarRef original) {
+        public Expr replacement(VarRef original) {
             return ExprFactory.makeFieldRef(NodeUtil.getSpan(original),
                                 // Use this constructor
                                 // here because it is a
@@ -233,7 +233,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
     private class SelfRewrite extends Member {
         SelfRewrite() {}
-        Expr replacement(VarRef original) {
+        public Expr replacement(VarRef original) {
             Expr expr = dottedReference(NodeUtil.getSpan(original),
                     objectNestingDepth - objectNestedness);
             return expr;
@@ -244,7 +244,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     /**
      * Rewritings in scope.
      */
-    private BATree<String, Thing> rewrites;
+    private BATree<String, InterpreterNameRewriter> rewrites;
 
     /*
      * The next four methods all do the same thing,
@@ -254,19 +254,19 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * ways at different lexical depths; need to check
      * whether that is allowed, or might become allowed).
      */
-    public Thing var_rewrites_put(String k, Thing d) {
+    public InterpreterNameRewriter var_rewrites_put(String k, InterpreterNameRewriter d) {
         return rewrites.put(k, d);
     }
 
-    public Thing obj_rewrites_put(String k, Thing d) {
+    public InterpreterNameRewriter obj_rewrites_put(String k, InterpreterNameRewriter d) {
         return rewrites.put(k, d);
     }
 
-    public Thing rewrites_put(String k, Thing d) {
+    public InterpreterNameRewriter rewrites_put(String k, InterpreterNameRewriter d) {
         return rewrites.put(k, d);
     }
 
-    public Thing type_rewrites_put(String k, Thing d) {
+    public InterpreterNameRewriter type_rewrites_put(String k, InterpreterNameRewriter d) {
         return rewrites.put(k, d);
     }
 
@@ -299,7 +299,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      */
     private List<_RewriteObjectExpr> objectExprs = new ArrayList<_RewriteObjectExpr>();
 
-    DesugarerVisitor(BATree<String, Thing> initial,
+    DesugarerVisitor(BATree<String, InterpreterNameRewriter> initial,
               BATree<String, StaticParam> initialGenericScope,
               BASet<String> initialArrows,
               BASet<String> initialFunctionals) {
@@ -318,7 +318,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      * @param list
      */
     public DesugarerVisitor(boolean suppressDebugDump) {
-        this(new BATree<String, Thing>(StringHashComparer.V),
+        this(new BATree<String, InterpreterNameRewriter>(StringHashComparer.V),
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V)
@@ -365,7 +365,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     BATree<String, Boolean> immediateDef = null;
 
     Expr newName(VarRef vre, String s) {
-        Thing t = rewrites.get(s);
+        InterpreterNameRewriter t = rewrites.get(s);
 
         if ( NodeUtil.isSingletonObject(vre) ) {
             if (t == null) {
@@ -385,7 +385,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     Expr newName(OpRef vre, String s) {
-        Thing t = rewrites.get(s);
+        InterpreterNameRewriter t = rewrites.get(s);
         if (t == null) {
             return vre;
         } else {
@@ -395,7 +395,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     BoolRef newName(BoolRef vre, String s) {
-        Thing t = rewrites.get(s);
+        InterpreterNameRewriter t = rewrites.get(s);
         if (t == null) {
             return vre;
         } else {
@@ -405,7 +405,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     IntRef newName(IntRef vre, String s) {
-        Thing t = rewrites.get(s);
+        InterpreterNameRewriter t = rewrites.get(s);
         if (t == null) {
             return vre;
         } else {
@@ -416,7 +416,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
 
    NamedType newType(VarType nt, String s) {
 
-        Thing t = rewrites.get(s);
+       InterpreterNameRewriter t = rewrites.get(s);
         if (t == null) {
             return nt;
         } else {
@@ -492,8 +492,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
     }
 
     public boolean injectAtTopLevel(String putName, String getName, DesugarerVisitor getFrom, Set<String>excluded) {
-        Thing th = getFrom.rewrites.get(getName);
-        Thing old = rewrites.get(putName);
+        InterpreterNameRewriter th = getFrom.rewrites.get(getName);
+        InterpreterNameRewriter old = rewrites.get(putName);
         /* Empty means do  add */
         if (old == null) {
             rewrites_put(putName, th);
@@ -588,7 +588,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
    @Override
    public Node recur(Node that) {
 
-        BATree<String, Thing> savedE = rewrites;
+        BATree<String, InterpreterNameRewriter> savedE = rewrites;
         rewrites = rewrites.copy();
 
         BASet<String> savedA = arrows;
@@ -1247,7 +1247,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 rewrites);
     }
 
-    private void accumulateMembersFromExtends(List<BaseType> xtends, Map<String, Thing> disEnv) {
+    private void accumulateMembersFromExtends(List<BaseType> xtends, Map<String, InterpreterNameRewriter> disEnv) {
         Set<String> members = new HashSet<String>();
         Set<String> types = new HashSet<String>();
         Set<String> arrow_names = new HashSet<String>();
@@ -1507,7 +1507,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
      *            bad inputs
      */
     private void accumulateTraitsAndMethods(List<BaseType> xtends,
-            Map<String, Thing> typeEnv, Set<String> members, Set<String> types,
+            Map<String, InterpreterNameRewriter> typeEnv, Set<String> members, Set<String> types,
             Set<String> arrow_names, Set<String> not_arrow_names,
             Set<AbstractNode> visited) {
 
@@ -1530,7 +1530,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor {
                 if (true || !hasApi) {
                     // TODO we've got to generalize this to qualified names.
                     String s = name.getText();
-                    Thing th;
+                    InterpreterNameRewriter th;
                     try {
                         th = typeEnv.get(s);
                     } catch (NullPointerException x) {

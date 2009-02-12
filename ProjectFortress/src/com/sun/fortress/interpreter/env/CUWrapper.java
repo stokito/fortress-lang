@@ -177,12 +177,12 @@ public class CUWrapper {
     /**
      * Simple/stupid wrapper constructor for the non-general 1-1 case.
      * @param comp
-     * @param api
+     * @param apicw
      */
-    public CUWrapper(Component comp, APIWrapper api, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
+    public CUWrapper(Component comp, APIWrapper apicw, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
 
-        exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
+        exports.put(NodeUtil.nameString(apicw.getCompilationUnit().getName()), apicw);
     }
 
     public CUWrapper(Component comp, List<APIWrapper> api_list, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
@@ -191,7 +191,11 @@ public class CUWrapper {
             exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
-
+    public CUWrapper(APIWrapper apicw, HashMap<String, NonApiWrapper> linker,
+            String[] implicitLibs) {
+        this.implicitLibs = implicitLibs;
+        exports.put(NodeUtil.nameString(apicw.getCompilationUnit().getName()), apicw);
+    }
 
     public static boolean overloadable(Object u) {
         return u instanceof Fcn || u instanceof GenericConstructor;

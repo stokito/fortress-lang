@@ -704,9 +704,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                     throw StaticError.make("Unexpected parse of API " + api_name, "");
                 }
             }
-        } catch ( FileNotFoundException e ){
-            throw new WrappedException(e);
-        } catch ( IOException e ){
+            } catch ( IOException e ){
             throw new WrappedException(e);
         }
     }

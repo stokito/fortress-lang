@@ -23,9 +23,9 @@ import com.sun.fortress.nodes.Api;
 
 public class ForeignComponentWrapper extends NonApiWrapper {
 
-    public ForeignComponentWrapper(Api api,
-            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
-        super(api, linker, implicitLibs);
+    public ForeignComponentWrapper(
+            APIWrapper apicw, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
+        super(apicw, linker, implicitLibs);
         // TODO Auto-generated constructor stub
     }
 

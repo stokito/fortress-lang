@@ -479,7 +479,7 @@ public class Driver {
             APIWrapper apicw = new APIWrapper(newapi, linker, WellKnownNames.defaultLibrary());
 
             if (ForeignJava.only.definesApi(newapi.getName())) {
-                ForeignComponentWrapper fcw = new ForeignComponentWrapper(newapi, linker, WellKnownNames.defaultLibrary());
+                ForeignComponentWrapper fcw = new ForeignComponentWrapper(apicw, linker, WellKnownNames.defaultLibrary());
                 linker.put(apiname, fcw);
                 // no need to push for additional imports, at least not quite yet.
                 return null;

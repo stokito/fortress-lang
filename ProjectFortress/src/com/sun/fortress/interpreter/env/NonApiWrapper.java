@@ -39,13 +39,16 @@ public class NonApiWrapper extends CUWrapper {
     public NonApiWrapper(Component comp, APIWrapper api,
             HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super(comp, api, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
     }
 
     public NonApiWrapper(Component comp, List<APIWrapper> api_list,
             HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super(comp, api_list, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
+    }
+
+    public NonApiWrapper(APIWrapper apicw,
+            HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
+        super(apicw, linker, implicitLibs);
     }
 
 }
