@@ -21,12 +21,13 @@
  */
 package com.sun.fortress.parser_util;
 
+import java.util.Collections;
 import java.util.List;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes.BaseType;
 
 public class Excludes extends TraitClause {
-    private List<BaseType> excludes  = FortressUtil.emptyTraitTypes();
+    private List<BaseType> excludes  = Collections.<BaseType>emptyList();
 
     public Excludes(Span span, List<BaseType> excludes) {
         super(span);

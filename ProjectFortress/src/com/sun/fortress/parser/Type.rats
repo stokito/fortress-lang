@@ -173,7 +173,7 @@ Type Domain =
        yyValue = NodeFactory.makeDomain(span, ts1, ts2, ts3);
      }
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
-     { List<Type> ts1 = FortressUtil.mkList(a1s.list());
+     { List<Type> ts1 = Useful.list(a1s.list());
        Span span = createSpan(yyStart,yyCount);
        Option<Type> ts2 = Option.some(a2);
        yyValue = NodeFactory.makeDomain(span, ts1, ts2,
@@ -187,13 +187,13 @@ private KeywordType KeywordType = a1:BindId w equals w a2:Type
 /* TupleType ::= ( w Type w , w TypeList w ) */
 TupleType TupleType =
      openparen w a1:Type w comma w a2:TypeList w closeparen
-     { List<Type> ts = FortressUtil.mkList(a1, a2);
+     { List<Type> ts = Useful.cons(a1, a2);
        yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts);
      };
 
 /* TypeList ::= Type (w , w Type)* */
 List<Type> TypeList = a1:Type a2s:(w comma w Type)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* TypeRef ::= DottedIdChain StaticArgs? */
 /* TypeRef ::= Id StaticArgs? */
@@ -253,7 +253,7 @@ constant inline Action<Type> ArrayTypeSize =
 
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
 private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
-     { List<ExtentRange> es = FortressUtil.mkList(a1, a2s.list());
+     { List<ExtentRange> es = Useful.cons(a1, a2s.list());
        yyValue = NodeFactory.makeIndices(createSpan(yyStart,yyCount), es);
      };
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -66,7 +66,7 @@ List<DimUnitDecl> DimUnitDecl =
        }
        UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids, Option.some(ty),
                                                 Option.wrap(a6));
-       yyValue = FortressUtil.mkList(dim, unit);
+       yyValue = Useful.list(dim, unit);
      }
    / dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)? a3:(w default w IdOrOpName)?
      { Span span = createSpan(yyStart,yyCount);
@@ -86,7 +86,7 @@ List<DimUnitDecl> DimUnitDecl =
            unitId = NodeFactory.bogusId(span);
        }
        dim = NodeFactory.makeDimDecl(span, dimId, Option.wrap(a2), Option.wrap(unitId));
-       yyValue = FortressUtil.mkList((DimUnitDecl)dim);
+       yyValue = Useful.list((DimUnitDecl)dim);
      }
    / a1:(unit / SI_unit) w a2:IdOrOpName a3s:(wr Id)* a4:(w void:colon w NoNewlineType)?
      a5:(w void:equals w NoNewlineExpr)?
@@ -104,14 +104,14 @@ List<DimUnitDecl> DimUnitDecl =
        for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
        UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids,
                                                 Option.wrap(a4), Option.wrap(a5));
-       yyValue = FortressUtil.mkList((DimUnitDecl)unit);
+       yyValue = Useful.list((DimUnitDecl)unit);
      };
 
 /* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
 TypeAlias TypeAlias =
      type w a1:IdOrOpName a2:(w StaticParams)? w equals w a3:NoNewlineType
      { Span span = createSpan(yyStart,yyCount);
-       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        Id id;
        if ( a1 instanceof Id )
            id = (Id)a1;
@@ -155,6 +155,6 @@ PropertyDecl PropertyDecl =
                id = Option.<Id>none();
            }
        }
-       if (a2 == null) a2 = FortressUtil.emptyParams();
+       if (a2 == null) a2 = Collections.<Param>emptyList();
        yyValue = NodeFactory.makePropertyDecl(createSpan(yyStart,yyCount), id, a2, a3);
      };

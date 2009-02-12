@@ -30,7 +30,6 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.Pair;
@@ -620,7 +619,7 @@ public class ExprFactory {
                                         List<StaticArg> sargs) {
         Op op = NodeFactory.makeEnclosing(span, open, close);
         List<Expr> es;
-        if (args == null) es = FortressUtil.emptyExprs();
+        if (args == null) es = Collections.<Expr>emptyList();
         else              es = args;
         return makeSubscriptExpr(span, base, es, Option.<Op>some(op), sargs);
     }
@@ -1935,7 +1934,7 @@ public class ExprFactory {
             else
                 span = NodeUtil.spanAll(javaList.toArray(new AbstractNode[0]),
                                         javaList.size());
-            return ExprFactory.makeTightJuxt(span, javaList);
+            return makeTightJuxt(span, javaList);
         }
     }
 
@@ -1953,7 +1952,7 @@ public class ExprFactory {
 //   let span = span_all body in
 //     node span (`FlowExpr (node span (`BlockExpr (build_block body))))
     public static Block doBlock(Span span) {
-        return ExprFactory.makeBlock(span, Collections.<Expr>emptyList());
+        return makeBlock(span, Collections.<Expr>emptyList());
     }
 
     public static Block doBlock(BufferedWriter writer, List<Expr> exprs) {
@@ -1971,20 +1970,20 @@ public class ExprFactory {
                     if (_e instanceof LocalVarDecl) {
                         NodeUtil.validId(writer, ((LocalVarDecl)_e).getLhs());
                     }
-                    _e = ExprFactory.makeLetExpr(_e, es);
+                    _e = makeLetExpr(_e, es);
                     es = new ArrayList<Expr>();
                     es.add((Expr)_e);
                 } else {
-                    FortressUtil.log(writer, NodeUtil.getSpan(e), "Misparsed variable introduction!");
+                    NodeUtil.log(writer, NodeUtil.getSpan(e), "Misparsed variable introduction!");
                 }
             } else {
                 if (isEquality(e) && !NodeUtil.isParenthesized(e))
-                    FortressUtil.log(writer, NodeUtil.getSpan(e),
-                        "Equality testing expressions should be parenthesized.");
+                    NodeUtil.log(writer, NodeUtil.getSpan(e),
+                                 "Equality testing expressions should be parenthesized.");
                 else es.add(0, e);
             }
         }
-        return ExprFactory.makeBlock(span, es);
+        return makeBlock(span, es);
     }
 
     private static boolean isEquality(Expr expr) {
@@ -2048,8 +2047,8 @@ public class ExprFactory {
                 elems.add(elem);
                 return makeArrayElements(span, dim, elems);
             } else if (elements.size() == 0) {
-                FortressUtil.log(writer, NodeUtil.getSpan(multi),
-                    "Empty array/matrix literal.");
+                NodeUtil.log(writer, NodeUtil.getSpan(multi),
+                             "Empty array/matrix literal.");
                 return makeArrayElements(span, _dim, elements);
             } else { // if (dim < _dim)
                 int index = elements.size()-1;
@@ -2058,8 +2057,8 @@ public class ExprFactory {
                 return makeArrayElements(span, _dim, elements);
             }
         } else {
-            FortressUtil.log(writer, NodeUtil.getSpan(multi),
-                "ArrayElement or ArrayElements is expected.");
+            NodeUtil.log(writer, NodeUtil.getSpan(multi),
+                         "ArrayElement or ArrayElements is expected.");
             return makeArrayElements(span, 0, Collections.<ArrayExpr>emptyList());
         }
     }
@@ -2128,7 +2127,7 @@ public class ExprFactory {
                     return new UnpastingSplit(span, elems, dim);
                 }
             } else { // elems.size() == 0
-                FortressUtil.log(writer, two.getSpan(), "Empty unpasting.");
+                NodeUtil.log(writer, two.getSpan(), "Empty unpasting.");
                 return new UnpastingSplit(span, elems, 0);
             }
         } else { //    !(two instanceof UnpastingBind)

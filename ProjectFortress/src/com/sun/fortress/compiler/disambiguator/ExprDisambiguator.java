@@ -95,7 +95,6 @@ import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.useful.HasAt;
 import com.sun.fortress.useful.Useful;
 
@@ -472,7 +471,7 @@ public class ExprDisambiguator extends NodeUpdateVisitor {
 //             public Set<IdOrOpOrAnonymousName> forFnDecl(FnDecl that) {
 //                 if( isSetterOrGetter(that.getMods()) )
 //                     accessors.add(that.getName());
-//                 if( FortressUtil.isFunctionalMethod(that.getParams()) ) {
+//                 if( NodeUtil.isFunctionalMethod(that.getParams()) ) {
 //                     // don't add functional methods! they go at the top level...
 //                     return Collections.emptySet();
 //                 }

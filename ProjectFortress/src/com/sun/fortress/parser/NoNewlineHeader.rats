@@ -36,13 +36,13 @@ List<TraitTypeWhere> ExtendsWhere = extends w TraitTypeWheres ;
 
 /* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
 private List<TraitTypeWhere> TraitTypeWheres =
-     a1:TraitTypeWhere { yyValue = FortressUtil.mkList(a1); }
+     a1:TraitTypeWhere { yyValue = Useful.list(a1); }
    / void:opencurly w TraitTypeWhereList w void:closecurly ;
 
 /* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
 private List<TraitTypeWhere> TraitTypeWhereList =
      a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* TraitTypeWhere ::= TraitType (w Where)? */
 private TraitTypeWhere TraitTypeWhere =
@@ -70,16 +70,16 @@ List<BaseType> AbsComprises = comprises w ComprisingTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<BaseType> TraitTypes =
-     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
+     a1:TraitType { yyValue = Useful.list(a1); }
    / void:opencurly w TraitTypeList w void:closecurly ;
 
 /* TraitTypeList ::= TraitType (w , w TraitType)* */
 private List<BaseType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
 private List<BaseType> ComprisingTypes =
-     a1:TraitType { yyValue = FortressUtil.mkList(a1); }
+     a1:TraitType { yyValue = Useful.list(a1); }
    / void:opencurly w ComprisingTypeList w void:closecurly ;
 
 /* ComprisingTypeList ::=
@@ -88,9 +88,9 @@ private List<BaseType> ComprisingTypes =
  */
 private List<BaseType> ComprisingTypeList =
      ellipses
-     { yyValue = FortressUtil.emptyTraitTypes(); }
+     { yyValue = Collections.<BaseType>emptyList(); }
    / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* Where ::=
      where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
@@ -114,7 +114,7 @@ transient WhereClause Where =
 /* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
 transient List<WhereBinding> WhereBindingList =
      a1:WhereBinding a2s:(w comma w WhereBinding)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* WhereBinding ::=
      nat w Id
@@ -133,7 +133,7 @@ transient WhereBinding WhereBinding =
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid nat parameter name.\n");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      }
    / int w a1:Id
@@ -145,7 +145,7 @@ transient WhereBinding WhereBinding =
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid int parameter name.\n");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      }
    / bool w a1:Id
@@ -157,7 +157,7 @@ transient WhereBinding WhereBinding =
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid bool parameter name.\n");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      }
    / unit w a1:Id
@@ -169,18 +169,18 @@ transient WhereBinding WhereBinding =
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid unit parameter name.\n");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      }
    / <ErrorProduction5> a1:OpName w a2:Extends
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid type parameter name.\n");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      }
    / a1:Id a2:(w a2:Extends)?
-     { if (a2 == null) a2 = FortressUtil.emptyTraitTypes();
+     { if (a2 == null) a2 = Collections.<BaseType>emptyList();
          yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
                                                 a1, a2, new KindType());
      }
@@ -188,7 +188,7 @@ transient WhereBinding WhereBinding =
      { Span span = createSpan(yyStart,yyCount);
        log(span, "White square bracket is not a valid where-clause binding.");
        yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              FortressUtil.emptyTraitTypes(),
+                                              Collections.<BaseType>emptyList(),
                                               new KindType());
      };
 
@@ -258,7 +258,7 @@ List<BaseType> Throws = throws w MayTraitTypes ;
 
 /* MayTraitTypes ::= { w } | TraitTypes  */
 private List<BaseType> MayTraitTypes =
-     opencurly w closecurly { yyValue = FortressUtil.emptyTraitTypes(); }
+     opencurly w closecurly { yyValue = Collections.<BaseType>emptyList(); }
    / TraitTypes ;
 
 /* Each modifier cannot appear more than once. */
@@ -288,7 +288,7 @@ transient Modifiers Mod =
 transient Modifiers ParamFldMods = a1s:(ParamFldMod w)+
      { yyValue =
            NodeUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
-                                    FortressUtil.mkList(a1s.list()));
+                                    Useful.list(a1s.list()));
      };
 
 /* ParamFldMod ::= var | hidden | settable | wrapped */
@@ -305,7 +305,7 @@ List<StaticParam> StaticParams =
 /* StaticParamList ::= StaticParam (w , w StaticParam)* */
 private List<StaticParam> StaticParamList =
      a1:StaticParam a2s:(w comma w StaticParam)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* StaticParam ::=
      nat w Id

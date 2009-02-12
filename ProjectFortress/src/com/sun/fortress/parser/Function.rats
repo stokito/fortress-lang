@@ -51,7 +51,7 @@ Decl FnDecl =
 FnDecl FnSig =
      a1:SimpleName w colon w a2:NoNewlineType
      { final Modifiers mods = Modifiers.None;
-       final List<Param>  params = FortressUtil.emptyParams();
+       final List<Param>  params = Collections.<Param>emptyList();
 
        if (!(a2 instanceof ArrowType)) {
            Span span = NodeUtil.getSpan(a2);
@@ -121,13 +121,13 @@ FnHeaderFront AbsFnHeaderFront =
 /* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
 FnHeaderFront NamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        yyValue = new FnHeaderFront(a1, a2, a3);
      };
 
 /* AbsNamedFnHeaderFront ::= Id (w StaticParams)? w AbsValParam */
 FnHeaderFront AbsNamedFnHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:AbsValParam
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        yyValue = new FnHeaderFront(a1, a2, a3);
      };

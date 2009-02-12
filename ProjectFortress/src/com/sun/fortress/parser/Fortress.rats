@@ -172,7 +172,7 @@ body {
     }
 
     private void log(Span span, String message) {
-        FortressUtil.log(writer, span, message);
+        NodeUtil.log(writer, span, message);
     }
 
 }
