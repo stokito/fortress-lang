@@ -39,21 +39,6 @@ public class CodeGenerationPhase extends Phase {
         Debug.debug(Debug.Type.FORTRESS, 1, "Start phase CodeGeneration");
         AnalyzeResult previous = parentPhase.getResult();
 
-        TopLevelEnvGen.CompilationUnitResult apiGR = TopLevelEnvGen
-                .generateApiEnvs(previous.apis());
-
-        if (!apiGR.isSuccessful()) {
-            throw new MultipleStaticError(apiGR.errors());
-        }
-
-        // Generate top-level byte code environments for components
-        TopLevelEnvGen.CompilationUnitResult componentGR = TopLevelEnvGen
-                .generateComponentEnvs(previous.components());
-
-        if (!componentGR.isSuccessful()) {
-            throw new MultipleStaticError(componentGR.errors());
-        }
-
         // Generate bytecodes for as much as we can.
 
         Debug.debug(Debug.Type.CODEGEN, 1, "Before invoking Compile: components=" + previous.components());
@@ -62,10 +47,10 @@ public class CodeGenerationPhase extends Phase {
         for (Component comp : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
             String compName = comp.getName().getText();
-            if (compName.equals("Compiled0")) {
+            //            if (compName.equals("Compiled0")) {
                 Compile c = new Compile(comp.getName().getText());
                 comp.accept(c);
-            }
+                //            }
         }
 
         return new AnalyzeResult(previous.apis(), previous.components(),

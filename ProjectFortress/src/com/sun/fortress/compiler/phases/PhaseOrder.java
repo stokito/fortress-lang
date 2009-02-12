@@ -61,6 +61,9 @@ public enum PhaseOrder {
      * More details in com.sun.fortress.compiler.OverloadRewriter
      */
     OVERLOADREWRITE("Overloading Rewriting"),
+    /* Generate top level environments
+     */
+    ENVGEN("Environment Generation"),
     /* Generates a Java bytecode compiled environment.
      * More details in com.sun.fortress.compiler.environments.TopLevelEnvGen
      */
@@ -104,8 +107,10 @@ public enum PhaseOrder {
             return new DesugarPhase(TYPECHECK.makePhaseHelper(phase));
         case OVERLOADREWRITE:
             return new OverloadRewritingPhase(DESUGAR.makePhaseHelper(phase));
+        case ENVGEN:
+            return new EnvGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));            
         case CODEGEN:
-            return new CodeGenerationPhase(OVERLOADREWRITE.makePhaseHelper(phase));
+            return new CodeGenerationPhase(ENVGEN.makePhaseHelper(phase));
         default:
             return InterpreterBug.bug("Unknown static analysis phase: "
                                       + phaseName);
