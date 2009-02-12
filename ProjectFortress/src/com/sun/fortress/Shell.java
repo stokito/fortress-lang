@@ -290,8 +290,11 @@ public final class Shell {
                 setPhase( PhaseOrder.ENVGEN );
                 runTests(args, false);
             } else if (what.equals("codegen")) {
+                WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
+                setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
-                runTests(args, false);
+                compilerPhases(args, Option.<String>none(), what);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
