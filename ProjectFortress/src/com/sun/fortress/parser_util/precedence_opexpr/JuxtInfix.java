@@ -19,7 +19,7 @@ package com.sun.fortress.parser_util.precedence_opexpr;
 
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.Effect;
-import com.sun.fortress.parser_util.FortressUtil;
+import com.sun.fortress.nodes_util.NodeFactory;
 
 /**
  * Class JuxtInfix, a component of the OpExpr composite hierarchy.
@@ -42,7 +42,7 @@ public abstract class JuxtInfix extends Object implements InfixOpExpr {
          throw new java.lang.IllegalArgumentException("Parameter 'op' to the JuxtInfix constructor was null. This class may not have null field values.");
       }
       _op = in_op;
-      _effect = FortressUtil.emptyEffect();
+      _effect = NodeFactory.emptyEffect;
    }
 
    public JuxtInfix(Op in_op, Effect in_effect) {

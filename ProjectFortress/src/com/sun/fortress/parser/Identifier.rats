@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -64,7 +64,7 @@ Id BindId =
 
 /* BindIdList ::= BindId (w , w BindId)* */
 List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* BindIdOrBindIdTuple ::=
      BindId
@@ -72,9 +72,9 @@ List<Id> BindIdList = a1:BindId a2s:(w comma w BindId)*
  */
 List<Id> BindIdOrBindIdTuple =
      <FIRST> a1:BindId
-     { yyValue = FortressUtil.mkList(a1); }
+     { yyValue = Useful.list(a1); }
    / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s); };
+     { yyValue = Useful.cons(a1, a2s); };
 
 /* SimpleName ::=
      Id

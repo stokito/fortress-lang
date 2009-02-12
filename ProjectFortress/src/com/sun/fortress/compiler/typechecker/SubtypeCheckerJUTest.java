@@ -24,7 +24,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
-import com.sun.fortress.parser_util.FortressUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;

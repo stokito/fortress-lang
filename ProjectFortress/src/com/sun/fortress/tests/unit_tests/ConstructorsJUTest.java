@@ -38,7 +38,6 @@ import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.ExprFactory;
-import com.sun.fortress.parser_util.FortressUtil;
 
 public class ConstructorsJUTest extends com.sun.fortress.useful.TestCaseWrapper  {
     public void testSourceLoc() {

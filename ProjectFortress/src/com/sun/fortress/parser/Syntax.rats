@@ -68,12 +68,12 @@ List<Id> GrammarExtends = extends w QualifiedNames ;
 
 /* QualifiedNames ::= QualifiedName | { w QualifiedNameList w } */
 List<Id> QualifiedNames =
-     a1:QualifiedName { yyValue = FortressUtil.mkList(a1); }
+     a1:QualifiedName { yyValue = Useful.list(a1); }
    / void:opencurly w QualifiedNameList w void:closecurly ;
 
 /* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
 private List<Id> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedName)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* Extends ::= extends w IdName */
 Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.some(a1); };
@@ -103,7 +103,7 @@ private NonterminalHeader NonterminalHeader =
         mod:(NonTermMod w)? name:Id params:(w NonterminalArguments)? staticParams:(w StaticParams)? type:(void:colon Type)? whereClauses:(w Where)?
         { if (mod == null) mod = Modifiers.None;
           if (params == null) params = new LinkedList<NonterminalParameter>();
-          if (staticParams == null) staticParams = FortressUtil.emptyStaticParams();
+          if (staticParams == null) staticParams = Collections.<StaticParam>emptyList();
           Option<Type> type1 = Option.<Type>none();
           if (type != null) type1 = Option.some(type);
           Option<WhereClause> where;
@@ -123,9 +123,9 @@ private List<NonterminalParameter> NonterminalArguments =
 
 private List<NonterminalParameter> DeclList =
         a1:Decl w comma w a2s:DeclList
-        { yyValue = FortressUtil.mkList(a1, a2s); }
+        { yyValue = Useful.cons(a1, a2s); }
      /  a1:Decl
-        { yyValue = FortressUtil.mkList(a1); };
+        { yyValue = Useful.list(a1); };
 
 private NonterminalParameter Decl =
         a1:Id colon a2:TraitType
@@ -171,7 +171,7 @@ Transformer PreTransformer =
 
 List<CaseTransformerClause> CaseTransformerClauses =
      a1:CaseTransformerClause a2s:(br CaseTransformerClause)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 CaseTransformerClause CaseTransformerClause =
      c:Id w openparen w gaps:BindIdList w closeparen w void:separator w transformer:PreTransformer
@@ -183,7 +183,7 @@ String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
 
 List<SyntaxSymbol> SyntaxSymbols =
       a1:SyntaxSymbol a1s:Symbs* &(w separator)
-      { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
+      { List<SyntaxSymbol> ls = Useful.list(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
         }
@@ -191,14 +191,14 @@ List<SyntaxSymbol> SyntaxSymbols =
 
 List<SyntaxSymbol> SyntaxSymbolsX =
       a1:SyntaxSymbol a1s:Symbs*
-      { List<SyntaxSymbol> ls = FortressUtil.mkList(a1);
+      { List<SyntaxSymbol> ls = Useful.list(a1);
         for(List<SyntaxSymbol> sl: a1s.list()) {
           ls.addAll(sl);
         }
         yyValue = ls; };
 
 List<SyntaxSymbol> Symbs = a1:SpaceOrBreakline+ a2:SyntaxSymbol
-     { yyValue = FortressUtil.mkList(a1.list(),a2);};
+     { yyValue = Useful.list(a1.list(),a2);};
 
 SyntaxSymbol SpaceOrBreakline =
       a1:sr
@@ -261,9 +261,9 @@ SyntaxSymbol Single =
     { if ( s instanceof NoWhitespaceSymbol ){
         yyValue = new NoWhitespaceSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)),
                                          new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)),
-                                                         FortressUtil.mkList(((NoWhitespaceSymbol) s).getSymbol())) );
+                                                         Useful.list(((NoWhitespaceSymbol) s).getSymbol())) );
       } else {
-            yyValue = new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), FortressUtil.mkList(s)); }
+            yyValue = new GroupSymbol(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), Useful.list(s)); }
       }
     ;
 

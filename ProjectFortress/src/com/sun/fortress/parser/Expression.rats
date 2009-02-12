@@ -91,9 +91,9 @@ Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
  */
 List<Lhs> AssignLefts =
      openparen w a1:AssignLeft a2s:(w comma w AssignLeft)* w closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); }
+     { yyValue = Useful.cons(a1, a2s.list()); }
    / a1:AssignLeft
-     { yyValue = FortressUtil.mkList(a1); };
+     { yyValue = Useful.list(a1); };
 
 /* AssignLeft ::=
      SubscriptExpr
@@ -131,7 +131,7 @@ constant inline Action<Expr> SubscriptAssign =
              if (a2 == null) sargs = Collections.<StaticArg>emptyList();
              else            sargs = a2;
              List<Expr> es;
-             if (a3 == null) es = FortressUtil.emptyExprs();
+             if (a3 == null) es = Collections.<Expr>emptyList();
              else            es = a3;
              Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
                                                a1.getText(),a4.getText());
@@ -306,7 +306,7 @@ PureList<PrecedenceOpExpr> LooseInfix =
 constant PureList<Expr> Primary =
     a1:PrimaryItem a2s:(w comma w PrimaryItem)+
     &(Encloser (wr / br / w comma / w RightEncloser))
-     { List<PureList<Expr>> elists = FortressUtil.mkList(a1, a2s.list());
+     { List<PureList<Expr>> elists = Useful.cons(a1, a2s.list());
        List<Expr> es = new ArrayList<Expr>();
        for (PureList<Expr> elist : elists) {
            es.add(ExprFactory.buildPrimary(elist));
@@ -394,7 +394,7 @@ constant Expr LeftAssociatedPrimary =
 /* QualifiedName is not yet implemented in the interpreter. */
 /* DottedIdChain ::= Id(. w Id)+ */
 List<Id> DottedIdChain = a1:Id a2s:(dot w Id)+
-    { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+    { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* MathPrimary ::= PrimaryFront MathItem* */
 constant Expr MathPrimary =
@@ -432,7 +432,7 @@ Expr PrimaryFront =
        yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / a1:LeftEncloser a2:StaticArgs? a3:(w ExprList)? w a4:RightEncloser
-     { if (a3 == null) a3 = FortressUtil.emptyExprs();
+     { if (a3 == null) a3 = Collections.<Expr>emptyList();
        Span span = NodeUtil.spanTwo(a1, a4);
        if (a2 == null) yyValue = ASTUtil.enclosing(span, a1, a3, a4);
        else            yyValue = ASTUtil.enclosing(span, a1, a2, a3, a4);
@@ -522,7 +522,7 @@ constant inline Action<Expr> ParenthesisDelimitedLeft =
     a1:ParenthesisDelimited
     { yyValue = new Action<Expr>() {
           public Expr run(Expr base) {
-              List<Expr> exprs = FortressUtil.mkList(base, a1);
+              List<Expr> exprs = Useful.list(base, a1);
               return ExprFactory.makeTightJuxt(NodeUtil.spanTwo(base, a1), false, exprs);
           }};
     };
@@ -750,7 +750,7 @@ Expr AtomicBack =
 /* GeneratorClauseList ::= GeneratorBinding (w , w GeneratorClause)* */
 List<GeneratorClause> GeneratorClauseList =
      a1:GeneratorBinding a2s:(w comma w GeneratorClause)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GeneratorBinding ::= BindIdOrBindIdTuple w <- w Expr */
 GeneratorClause GeneratorBinding =

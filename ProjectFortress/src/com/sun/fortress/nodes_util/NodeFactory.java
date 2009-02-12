@@ -35,7 +35,6 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
-import com.sun.fortress.parser_util.FortressUtil;
 
 public class NodeFactory {
     public static int lexicalDepth = -2147483648;
@@ -334,10 +333,10 @@ public class NodeFactory {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
-                                      fhf.getStaticParams(), fhf.getParams(),
-                                      fhc.getReturnType(), throws_, where_,
-                                      contract);
+        return makeFnDecl(span, mods, fhf.getName(),
+                          fhf.getStaticParams(), fhf.getParams(),
+                          fhc.getReturnType(), throws_, where_,
+                          contract);
     }
 
 
@@ -348,18 +347,16 @@ public class NodeFactory {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, name,
-                                      sparams, params,
-                                      Option.<Type>none(), throws_,
-                                      where_, contract);
+        return makeFnDecl(span, mods, name, sparams, params,
+                          Option.<Type>none(), throws_, where_, contract);
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
                                   IdOrOpOrAnonymousName name, List<Param> params,
                                   Type ty) {
-        return NodeFactory.makeFnDecl(span, mods, name,
-                                      Collections.<StaticParam>emptyList(),
-                                      params, Option.<Type>some(ty));
+        return makeFnDecl(span, mods, name,
+                          Collections.<StaticParam>emptyList(),
+                          params, Option.<Type>some(ty));
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods,
@@ -368,10 +365,10 @@ public class NodeFactory {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, fhf.getName(),
-                                      fhf.getStaticParams(), fhf.getParams(),
-                                      fhc.getReturnType(), throws_, where_,
-                                      contract, Option.<Expr>some(expr));
+        return makeFnDecl(span, mods, fhf.getName(),
+                          fhf.getStaticParams(), fhf.getParams(),
+                          fhc.getReturnType(), throws_, where_,
+                          contract, Option.<Expr>some(expr));
     }
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
@@ -380,10 +377,10 @@ public class NodeFactory {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
-        return NodeFactory.makeFnDecl(span, mods, name,
-                                      sparams, params, Option.<Type>none(),
-                                      throws_, where_, contract,
-                                      Option.<Expr>some(expr));
+        return makeFnDecl(span, mods, name,
+                          sparams, params, Option.<Type>none(),
+                          throws_, where_, contract,
+                          Option.<Expr>some(expr));
     }
 
     public static FnDecl makeFnDecl(Span span, Modifiers mods,
@@ -1033,6 +1030,8 @@ public class NodeFactory {
         return new IntersectionType(info, elems);
     }
 
+    public static Effect emptyEffect = makeEffect(makeSpan("singleton"));
+
     /** Create an "empty" effect at the given location. */
     public static Effect makeEffect(SourceLoc loc) {
         return makeEffect(new Span(loc, loc));
@@ -1575,7 +1574,7 @@ public class NodeFactory {
     }
 
     public static Op makeOpInfix(Span span, String apiName, String name) {
-        Op op =  makeOp(span, Option.some(NodeFactory.makeAPIName(span,apiName)),
+        Op op =  makeOp(span, Option.some(makeAPIName(span,apiName)),
                         PrecedenceMap.ONLY.canon(name), infix, false);
         return op;
 

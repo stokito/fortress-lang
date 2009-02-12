@@ -45,7 +45,6 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.nodes_util.Span
-import com.sun.fortress.parser_util.FortressUtil
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.useful.HasAt
 

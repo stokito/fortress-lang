@@ -454,6 +454,12 @@ public class Useful {
         return j < s ? l.get(j) : l.get(s - 1);
     }
 
+    public static <U, T extends U> List<U> list(List<T> all) {
+        List<U> l = new ArrayList<U>();
+        l.addAll(all);
+        return l;
+    }
+
     public static <T> List<T> list(Iterable<T> xs) {
         ArrayList<T> result;
         if (xs instanceof Collection<?>) {
@@ -579,6 +585,13 @@ public class Useful {
     public static <T> List<T> list() {
         return Collections.emptyList();
       }
+
+    public static <U, T extends U> List<U> list(List<T> rest, U last) {
+        List<U> l = new ArrayList<U>();
+        l.addAll(rest);
+        l.add(last);
+        return l;
+    }
 
     public static <T> List<T> immutableTrimmedList(List<T> x) {
         int l = x.size();

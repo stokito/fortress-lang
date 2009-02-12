@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -79,14 +79,14 @@ private FnHeaderFront AbsMdHeaderFront =
 /* NamedMdHeaderFront ::= Id (w StaticParams)? w MdValParam */
 FnHeaderFront NamedMdHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:ValParam
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        yyValue = new FnHeaderFront(a1, a2, a3);
      };
 
 /* AbsNamedMdHeaderFront ::= Id (w StaticParams)? w AbsMdValParam */
 FnHeaderFront AbsNamedMdHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:AbsValParam
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        yyValue = new FnHeaderFront(a1, a2, a3);
      };
 
@@ -137,8 +137,8 @@ FnDecl AbsGetterSetterDecl =
 Decl Coercion =
      coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
      a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
-     { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
-       List<Param> params = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a2, a3));
+     { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
+       List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
@@ -151,8 +151,8 @@ Decl Coercion =
 Decl AbsCoercion =
      coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
      a4:CoercionClauses a5:(w widens)?
-     { if (a1 == null) a1 = FortressUtil.emptyStaticParams();
-       List<Param> params = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a2, a3));
+     { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
+       List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
@@ -203,7 +203,7 @@ private WhereClause CoercionWhere =
  */
 private List<WhereConstraint> CoercionWhereConstraintList =
      a1:CoercionWhereConstraint a2s:(w comma w CoercionWhereConstraint)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* CoercionWhereConstraint ::=
      WhereConstraint

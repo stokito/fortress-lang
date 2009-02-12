@@ -34,20 +34,20 @@ import Spacing;
 /* ValParam ::= BindId | ( (w Params)? w ) */
 transient List<Param> ValParam =
      a1:BindId
-     { yyValue = FortressUtil.<Param, Param>mkList(NodeFactory.makeParam(a1)); }
+     { yyValue = Useful.list(NodeFactory.makeParam(a1)); }
    / openparen a1:(w Params)? w closeparen
-     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
        else            yyValue = a1;
      };
 
 /* AbsValParam ::= ( (w AbsParams)? w ) | Type */
 transient List<Param> AbsValParam =
      openparen a1:(w AbsParams)? w closeparen
-     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
        else            yyValue = a1;
      }
    / a1:Type
-     { yyValue = FortressUtil.<Param, Param>mkList(NodeFactory.makeAbsParam(a1)); };
+     { yyValue = Useful.list(NodeFactory.makeAbsParam(a1)); };
 
 /* Params ::=
      (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
@@ -75,15 +75,15 @@ transient List<Param> Params =
      }
    / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
-     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list());
+     { yyValue = Useful.list(a1s.list());
        if (a2 != null) yyValue.add(a2);
        yyValue.add(a3);
        yyValue.addAll(a4s.list());
      }
    / a1s:(Param w comma w)* a2:Varargs
-     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list(), a2); }
+     { yyValue = Useful.list(a1s.list(), a2); }
    / a1:Param a2s:(w comma w Param)*
-     { yyValue = FortressUtil.<Param, Param>mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsParams ::=
      (AbsParam w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
@@ -111,15 +111,15 @@ transient List<Param> AbsParams =
      }
    / a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
        a4s:(w comma w Keyword)*
-     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list());
+     { yyValue = Useful.list(a1s.list());
        if (a2 != null) yyValue.add(a2);
        yyValue.add(a3);
        yyValue.addAll(a4s.list());
      }
    / a1s:(AbsParam w comma w)* a2:Varargs
-     { yyValue = FortressUtil.<Param, Param>mkList(a1s.list(), a2); }
+     { yyValue = Useful.list(a1s.list(), a2); }
    / a1:AbsParam a2s:(w comma w AbsParam)*
-     { yyValue = FortressUtil.<Param, Param>mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* Varargs ::= BindId w : w Type w ... */
 transient Param VarargsParam = a1:BindId w colon w a2:Type w ellipses
@@ -178,8 +178,8 @@ FnHeaderFront OpHeaderFront =
                "Mismatched enclosing operator definition: " +
                left + " and " + right);
        name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
-       if (opa3 == null) opa3 = FortressUtil.emptyParams();
+       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = new FnHeaderFront(name, opa2, opa3);
      }
    / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
@@ -253,8 +253,8 @@ FnHeaderFront AbsOpHeaderFront =
                "Mismatched enclosing operator definition: " +
                left + " and " + right);
        name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
-       if (opa3 == null) opa3 = FortressUtil.emptyParams();
+       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = new FnHeaderFront(name, opa2, opa3);
      }
    / opr w a1:AbsValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?

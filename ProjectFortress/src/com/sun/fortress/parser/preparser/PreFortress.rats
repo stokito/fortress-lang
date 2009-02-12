@@ -85,7 +85,7 @@ body {
 
     private void log(Span span, String message) {
         withError = true;
-        FortressUtil.log(writer, span, message);
+        NodeUtil.log(writer, span, message);
     }
 
 }

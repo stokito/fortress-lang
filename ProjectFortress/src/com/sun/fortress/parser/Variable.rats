@@ -74,9 +74,9 @@ VarDecl VarDecl =
  */
 List<LValue> VarMayTypes =
      a1:VarMayType
-     { yyValue = FortressUtil.mkList(a1); }
+     { yyValue = Useful.list(a1); }
    / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* VarMayType ::= BindId (w IsType)? */
 LValue VarMayType = a1:BindId a2:(w IsType)

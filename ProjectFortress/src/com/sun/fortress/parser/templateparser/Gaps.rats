@@ -26,7 +26,7 @@ import Identifier;
 
 List<Id> ParamList =
      openparen a1:Id a2s:(w comma w Id)* closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 String prefix = "<!@#$%^&*<";
 String suffix = ">*&^%$#@!>";
@@ -65,7 +65,7 @@ List<Id> BindIdOrBindIdTupleGap =
      <GAP> prefix "List<Id>" w a1:Id params:ParamList? w suffix
      { if (params == null) params = new LinkedList<Id>();
        TemplateGapId t = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params);
-       yyValue = FortressUtil.<Id, TemplateGapId>mkList(t);
+       yyValue = Useful.list((Id)t);
      };
 
 Name NameGap =

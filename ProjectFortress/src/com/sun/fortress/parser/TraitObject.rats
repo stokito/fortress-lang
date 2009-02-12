@@ -58,8 +58,8 @@ private TraitHeader TraitHeaderFront =
        yyValue = new TraitHeader(id, a2, a3);
      }
    / trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
-     { if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       if (a3 == null) a3 = FortressUtil.emptyTraitTypeWheres();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       if (a3 == null) a3 = Collections.<TraitTypeWhere>emptyList();
        yyValue = new TraitHeader(a1, a2, a3);
      };
 
@@ -140,12 +140,12 @@ private List<Decl> GoInATrait =
 
 /* Coercions ::= Coercion (br Coercion)* */
 private List<Decl> Coercions = a1:Coercion a2s:(br Coercion)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
 private List<Decl> GoFrontInATrait =
      a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GoesFrontInATrait ::= AbsVarDecl | GetterSetterDecl | PropertyDecl */
 private Decl GoesFrontInATrait =
@@ -156,7 +156,7 @@ private Decl GoesFrontInATrait =
 /* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
 private List<Decl> GoBackInATrait =
      a1:GoesBackInATrait a2s:(br GoesBackInATrait)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GoesBackInATrait ::= MdDecl | PropertyDecl */
 private Decl GoesBackInATrait =
@@ -197,21 +197,21 @@ private ObjectHeader ObjectHeader =
            "underscore, and contains at least two distinct " +
            "letters is an operator name.");
        yyValue = new ObjectHeader(NodeFactory.bogusId(span),
-                                  FortressUtil.emptyStaticParams(),
+                                  Collections.<StaticParam>emptyList(),
                                   Option.<List<Param>>none(),
-                                  FortressUtil.emptyTraitTypeWheres(), a5);
+                                  Collections.<TraitTypeWhere>emptyList(), a5);
      }
    / object w a1:Id a2:(w StaticParams)? a3:(w ObjectValParam)?
      a4:(w ExtendsWhere)? a5:FnClauses
      { Option<List<Param>> ps = Option.wrap(a3);
-       if (a2 == null) a2 = FortressUtil.emptyStaticParams();
-       if (a4 == null) a4 = FortressUtil.emptyTraitTypeWheres();
+       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
        yyValue = new ObjectHeader(a1, a2, ps, a4, a5);
      };
 
 /* ObjectValParam ::= ( (w ObjectParams)? w ) */
 private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
-     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
        else yyValue = a1;
      };
 
@@ -300,7 +300,7 @@ List<Decl> GoInAnObject =
 /* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
 private List<Decl> GoFrontInAnObject =
      a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GoesFrontInAnObject ::= VarDecl | GetterSetterDef | PropertyDecl */
 private Decl GoesFrontInAnObject =
@@ -311,7 +311,7 @@ private Decl GoesFrontInAnObject =
 /* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
 private List<Decl> GoBackInAnObject =
      a1:GoesBackInAnObject a2s:(br GoesBackInAnObject)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* GoesBackInAnObject ::= MdDef | PropertyDecl */
 private Decl GoesBackInAnObject =
@@ -415,12 +415,12 @@ private List<Decl> AbsGoInATrait =
 
 /* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
 private List<Decl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
 private List<Decl> AbsGoFrontInATrait =
      a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsGoesFrontInATrait ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
 private Decl AbsGoesFrontInATrait =
@@ -431,7 +431,7 @@ private Decl AbsGoesFrontInATrait =
 /* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
 private List<Decl> AbsGoBackInATrait =
      a1:AbsGoesBackInATrait a2s:(br AbsGoesBackInATrait)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsGoesBackInATrait ::= AbsMdDecl | PropertyDecl */
 private Decl AbsGoesBackInATrait =
@@ -512,7 +512,7 @@ List<Decl> AbsGoInAnObject =
  */
 private List<Decl> AbsGoFrontInAnObject =
      a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsGoesFrontInAnObject ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
 private Decl AbsGoesFrontInAnObject =
@@ -523,7 +523,7 @@ private Decl AbsGoesFrontInAnObject =
 /* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
 private List<Decl> AbsGoBackInAnObject =
      a1:AbsGoesBackInAnObject a2s:(br AbsGoesBackInAnObject)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
 private Decl AbsGoesBackInAnObject =

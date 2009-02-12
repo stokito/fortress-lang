@@ -21,6 +21,7 @@
  */
 package com.sun.fortress.parser_util;
 
+import java.util.Collections;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -33,7 +34,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class TraitClauses {
 
-    private List<BaseType>         excludes  = FortressUtil.emptyTraitTypes();
+    private List<BaseType>         excludes  = Collections.<BaseType>emptyList();
     private Option<List<BaseType>> comprises = Option.<List<BaseType>>none();
     private Option<WhereClause>    where     = Option.<WhereClause>none();
     private boolean setExcludes  = false;

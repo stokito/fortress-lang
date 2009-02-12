@@ -38,12 +38,12 @@ import Keyword;
    AbsMdParam::= self | AbsParam
  */
 List<Param> ValParam := openparen a1:(w Params)? w closeparen
-     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
        else            yyValue = a1;
      };
 
 List<Param> AbsValParam := openparen a1:(w AbsParams)? w closeparen
-     { if (a1 == null) yyValue = FortressUtil.emptyParams();
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
        else            yyValue = a1;
      };
 
@@ -92,8 +92,8 @@ FnHeaderFront OpHeaderFront :=
                "Mismatched enclosing operator definition: " +
                left + " and " + right);
        name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
-       if (opa3 == null) opa3 = FortressUtil.emptyParams();
+       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
      }
@@ -130,8 +130,8 @@ FnHeaderFront AbsOpHeaderFront :=
                "Mismatched enclosing operator definition: " +
                left + " and " + right);
        name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = FortressUtil.emptyStaticParams();
-       if (opa3 == null) opa3 = FortressUtil.emptyParams();
+       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
        Option<Param> opparam = Option.wrap(opa5);
        yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
      }

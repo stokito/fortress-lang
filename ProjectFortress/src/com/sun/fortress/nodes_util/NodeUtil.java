@@ -38,12 +38,19 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
-import com.sun.fortress.parser_util.FortressUtil;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 public class NodeUtil {
+
+    public static void log(BufferedWriter writer, Span span, String msg) {
+        try {
+            writer.write( span + "\n    " + msg + "\n" );
+        } catch (IOException error) {
+            error("Writing to a log file for the parser failed!");
+        }
+    }
 
 // let join (one : span) (two : span) : span =
 //   match one, two with
@@ -367,8 +374,8 @@ public class NodeUtil {
     /* Getters for VarDecl */
     public static Modifiers getMods(BufferedWriter writer, VarDecl v) {
         if ( v.getLhs().isEmpty() ) {
-            FortressUtil.log(writer, getSpan(v),
-                             "Variable declaration does not declare any: " + v);
+            log(writer, getSpan(v),
+                "Variable declaration does not declare any: " + v);
             return Modifiers.None;
         } else
             return v.getLhs().get(0).getMods();
@@ -377,8 +384,8 @@ public class NodeUtil {
     /* Getters for LocalVarDecl */
     public static Modifiers getMods(BufferedWriter writer, LocalVarDecl v) {
         if ( v.getLhs().isEmpty() ) {
-            FortressUtil.log(writer, getSpan(v),
-                             "Variable declaration does not declare any: " + v);
+            log(writer, getSpan(v),
+                "Variable declaration does not declare any: " + v);
             return Modifiers.None;
         } else
             return v.getLhs().get(0).getMods();
@@ -866,7 +873,7 @@ public class NodeUtil {
                                     "11","12","13","14","15","16"};
         List<String> validRadix = new LinkedList<String>(java.util.Arrays.asList(all));
         if (! validRadix.contains( radix )) {
-            FortressUtil.log(writer, span, "Syntax Error: the radix of " +
+            log(writer, span, "Syntax Error: the radix of " +
                 "a numeral must be an integer from 2 to 16.");
             return false;
         } else return true;
@@ -886,12 +893,12 @@ public class NodeUtil {
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
             if (Character.isLetter(c))
-                FortressUtil.log(writer, span, "Syntax Error: a numeral contains " +
+                log(writer, span, "Syntax Error: a numeral contains " +
                     "letters and does not have a radix specifier.");
             if (c == '.') numberOfDots++;
         }
         if (numberOfDots > 1)
-            FortressUtil.log(writer, span, "Syntax Error: a numeral contains more " +
+            log(writer, span, "Syntax Error: a numeral contains more " +
                 "than one `.' character.");
     }
 
@@ -900,7 +907,7 @@ public class NodeUtil {
                                            String radix) {
         int radixNumber = radix2Number(radix);
         if (radixNumber == -1)
-            FortressUtil.log(writer, span, "Syntax Error: the radix of " +
+            log(writer, span, "Syntax Error: the radix of " +
                 "a numeral should be an integer from 2 to 16.");
         boolean sawUpperCase = false;
         boolean sawLowerCase = false;
@@ -912,31 +919,31 @@ public class NodeUtil {
             if (c == '.') numberOfDots++;
             if (Character.isUpperCase(c)) {
                 if (sawLowerCase)
-                    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                    log(writer, span, "Syntax Error: a numeral " +
                         "contains both uppercase and lowercase letters.");
                 else sawUpperCase = true;
             } else if (Character.isLowerCase(c)) {
                 if (sawUpperCase)
-                    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                    log(writer, span, "Syntax Error: a numeral " +
                         "contains both uppercase and lowercase letters.");
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-		    FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+		    log(writer, span, "Syntax Error: a numeral " +
                         "has radix 12 and contains letters other " +
                         "than A, B, X, E, a, b, x or e.");
 		}
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
                     if (sawXe)
-                        FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                        log(writer, span, "Syntax Error: a numeral " +
                             "has radix 12 and contains at least one " +
                             "A, B, a or b and at least one X, E, x or e.");
                     else sawAb = true;
                 } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
                     if (sawAb)
-                        FortressUtil.log(writer, span, "Syntax Error: a numeral " +
+                        log(writer, span, "Syntax Error: a numeral " +
                             "has radix 12 and contains at least one " +
                             "A, B, a or b and at least one X, E, x or e.");
                     else sawXe = true;
@@ -945,14 +952,14 @@ public class NodeUtil {
             // The numeral has a radix other than 12.
             else if (!validDigitOrLetter(c, radixNumber)
                      && c != '.' && c != '\'' && c != '\u202F') {
-                FortressUtil.log(writer, span, "Syntax Error: a numeral has a radix " +
+                log(writer, span, "Syntax Error: a numeral has a radix " +
                     "specifier and contains a digit or letter that " +
                     "denotes a value greater than or equal to the " +
                     "numeral's radix.");
 	    }
         }
         if (numberOfDots > 1)
-            FortressUtil.log(writer, span, "Syntax Error: a numeral contains more " +
+            log(writer, span, "Syntax Error: a numeral contains more " +
                 "than one `.' character.");
     }
 
@@ -1063,7 +1070,7 @@ public class NodeUtil {
         Modifiers res = Modifiers.None;
         for (Modifiers mod : mods) {
             if (res.containsAny(mod)) {
-                FortressUtil.log(writer, span,
+                log(writer, span,
                     "Modifier " + mod + " must not occur multiple times");
             }
             res = res.combine(mod);
@@ -1077,7 +1084,7 @@ public class NodeUtil {
             List<Param> params = optParams.unwrap();
             for ( Param param : params ) {
                 if (param.getMods().isWrapped()) {
-                    FortressUtil.log(writer, NodeUtil.getSpan(param),
+                    log(writer, getSpan(param),
                         "The modifier \"wrapped\" cannot " +
                         "appear in an API.");
                 }
@@ -1097,7 +1104,7 @@ public class NodeUtil {
         name.accept(new NodeDepthFirstVisitor_void(){
             public void forIdOnly(Id id){
                 if (id.getText().equals("outcome"))
-                    FortressUtil.log(writer, NodeUtil.getSpan(id),
+                    log(writer, getSpan(id),
                         "Invalid variable name: 'outcome' is a reserved word.");
             }
 
@@ -1128,7 +1135,7 @@ public class NodeUtil {
     public static boolean validId(String s) {
         String[] words = s.split("_");
         boolean isNumeral = (words.length == 2 &&
-                             (NodeUtil.radix2Number(words[1]) != -1 ||
+                             (radix2Number(words[1]) != -1 ||
                               allDigits(words[1])));
         return (! validOp(s) && !s.equals("_") &&
                 !isNumeral && !s.equals("SUM") && !s.equals("PROD"));

@@ -189,7 +189,7 @@ PureList<PrecedenceOpExpr> LooseInfix := ...
  */
 List<GeneratorClause> GeneratorClauseList :=
      a1:GeneratorBinding a2s:(s comma w GeneratorClause)*
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;
 
 /* NoNewlineVarWTypes ::=
@@ -198,10 +198,10 @@ List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;
  */
 List<LValue> NoNewlineVarWTypes =
      a1:NoNewlineVarWType
-     { yyValue = FortressUtil.mkList(a1); }
+     { yyValue = Useful.list(a1); }
    / openparen w a1:NoNewlineVarWType a2s:(w comma w NoNewlineVarWType)+ w
      closeparen
-     { yyValue = FortressUtil.mkList(a1, a2s.list()); };
+     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* NoNewlineVarWType ::= BindId s NoNewlineIsType */
 LValue NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType

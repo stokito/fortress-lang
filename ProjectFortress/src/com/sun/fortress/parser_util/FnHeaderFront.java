@@ -21,6 +21,7 @@
  */
 package com.sun.fortress.parser_util;
 
+import java.util.Collections;
 import java.util.List;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -63,7 +64,7 @@ public class FnHeaderFront {
     }
 
     public FnHeaderFront(IdOrOpOrAnonymousName name, List<Param> params1) {
-        this(Option.<Id>none(), name, FortressUtil.emptyStaticParams(), params1,
+        this(Option.<Id>none(), name, Collections.<StaticParam>emptyList(), params1,
              Option.<Param>none());
     }
 

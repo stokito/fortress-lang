@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -47,14 +47,14 @@ List<Decl> Decls = a1:Decl a2s:(br Decl)*
    | PropertyDecl
 */
 List<Decl> Decl =
-     a1:TraitDecl    { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:ObjectDecl   { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:VarDecl      { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:FnDecl       { yyValue = FortressUtil.mkList((Decl)a1); }
+     a1:TraitDecl    { yyValue = Useful.list((Decl)a1); }
+   / a1:ObjectDecl   { yyValue = Useful.list((Decl)a1); }
+   / a1:VarDecl      { yyValue = Useful.list((Decl)a1); }
+   / a1:FnDecl       { yyValue = Useful.list((Decl)a1); }
    / DimUnitDecl
-   / a1:TypeAlias    { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:TestDecl     { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:PropertyDecl { yyValue = FortressUtil.mkList((Decl)a1); };
+   / a1:TypeAlias    { yyValue = Useful.list((Decl)a1); }
+   / a1:TestDecl     { yyValue = Useful.list((Decl)a1); }
+   / a1:PropertyDecl { yyValue = Useful.list((Decl)a1); };
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
@@ -76,13 +76,13 @@ List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
    | GrammarDef
  */
 List<Decl> AbsDecl =
-     a1:AbsTraitDecl  { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:AbsObjectDecl { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:AbsVarDecl    { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:AbsFnDecl     { yyValue = FortressUtil.mkList((Decl)a1); }
+     a1:AbsTraitDecl  { yyValue = Useful.list((Decl)a1); }
+   / a1:AbsObjectDecl { yyValue = Useful.list((Decl)a1); }
+   / a1:AbsVarDecl    { yyValue = Useful.list((Decl)a1); }
+   / a1:AbsFnDecl     { yyValue = Useful.list((Decl)a1); }
    / DimUnitDecl
-   / a1:TypeAlias     { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:TestDecl      { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:PropertyDecl  { yyValue = FortressUtil.mkList((Decl)a1); }
-   / a1:GrammarDef    { yyValue = FortressUtil.mkList((Decl)a1); }
+   / a1:TypeAlias     { yyValue = Useful.list((Decl)a1); }
+   / a1:TestDecl      { yyValue = Useful.list((Decl)a1); }
+   / a1:PropertyDecl  { yyValue = Useful.list((Decl)a1); }
+   / a1:GrammarDef    { yyValue = Useful.list((Decl)a1); }
    ;
