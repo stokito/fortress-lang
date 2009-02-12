@@ -74,7 +74,7 @@ public final class Shell {
     private static CompileProperties compileProperties = new CompileProperties();
 
     /* set this statically if you only want to run up to a certain phase */
-    private static PhaseOrder finalPhase = PhaseOrder.CODEGEN;
+    private static PhaseOrder finalPhase = PhaseOrder.ENVGEN;
 
     private final FortressRepository _repository;
 
@@ -126,6 +126,7 @@ public final class Shell {
         System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
+        System.err.println(" codegen [-debug [type]* [#]] somefile.fss");
         System.err.println("");
         System.err.println(" help");
     }
@@ -179,6 +180,9 @@ public final class Shell {
          "  If -unqualified is given, identifiers are dumped without their API prefixes.\n"+
          "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
+         "\n"+
+         "fortress codegen [-debug [type]* [#]] somefile.tf{i,s}\n"+
+         "  Generate a java class file which has runs indepently of the interpreter\n"+
          "\n"+
          "\n"+
          "More details on each flag:\n"+
@@ -246,10 +250,10 @@ public final class Shell {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
-                setPhase( PhaseOrder.CODEGEN );
+                setPhase( PhaseOrder.ENVGEN );
                 compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("run")) {
-                setPhase( PhaseOrder.CODEGEN );
+                setPhase( PhaseOrder.ENVGEN );
                 run(args);
             } else if ( what.equals("api" ) ){
                 api(args, Option.<String>none(), Option.<String>none());
@@ -283,12 +287,15 @@ public final class Shell {
                 setPhase( PhaseOrder.TYPECHECK );
                 compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
+                setPhase( PhaseOrder.ENVGEN );
+                runTests(args, false);
+            } else if (what.equals("codegen")) {
                 setPhase( PhaseOrder.CODEGEN );
                 runTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
                 // no "run" command.
-                setPhase( PhaseOrder.CODEGEN );
+                setPhase( PhaseOrder.ENVGEN );
                 run(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 printHelpMessage();
@@ -411,7 +418,7 @@ public final class Shell {
 
     public static FValue eval( String file, List<String> args, boolean unCacheWhenDone )
         throws Throwable {
-        setPhase( PhaseOrder.CODEGEN );
+        setPhase( PhaseOrder.ENVGEN );
         if ( ! isComponent(file) )
             throw new UserError(file + " is not a component file.");
         APIName name = NodeUtil.apiName( file );

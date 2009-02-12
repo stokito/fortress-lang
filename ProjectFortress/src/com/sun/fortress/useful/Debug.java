@@ -32,9 +32,9 @@ public final class Debug {
 
     /* A list of possible debugging type. */
     public enum Type {
-        FORTRESS("fortress"), ASTGEN("astgen"), CODEGEN("codegen"),
-        COMPILER("compiler"), INTERPRETER("interpreter"), PARSER("parser"),
-        REPOSITORY("repository"), SYNTAX("syntax");
+        FORTRESS("fortress"), ASTGEN("astgen"), CODEGEN("codegen"), 
+        ENVGEN("envgen"), COMPILER("compiler"), INTERPRETER("interpreter"), 
+        PARSER("parser"), REPOSITORY("repository"), SYNTAX("syntax");
 
         private final String name;
         private boolean isOn;
@@ -90,6 +90,10 @@ public final class Debug {
                 tokenConsumed++;
             } else if( option.equals(Type.ASTGEN.toString()) ) {
                 Type.ASTGEN.setOn(true);
+                somethingIsOn = true;
+                tokenConsumed++;
+            } else if( option.equals(Type.ENVGEN.toString()) ) {
+                Type.ENVGEN.setOn(true);
                 somethingIsOn = true;
                 tokenConsumed++;
             } else if( option.equals(Type.CODEGEN.toString()) ) {
