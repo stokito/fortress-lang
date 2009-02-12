@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -33,11 +33,11 @@ import edu.rice.cs.plt.tuple.Option;
 public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
 
     Fn<PathTaggedApiName, String> toFileName;
-    
+
     public IOAst(Fn<PathTaggedApiName, String> toFileName) {
         this.toFileName = toFileName;
     }
-    
+
     public CompilationUnit read(PathTaggedApiName name) throws IOException {
         String s = toFileName.apply(name);
         File f = new File(s);
@@ -62,7 +62,7 @@ public class IOAst implements IO<PathTaggedApiName, CompilationUnit> {
         File f = new File(s);
         return f.lastModified();
     }
-    
-    
+
+
 
 }

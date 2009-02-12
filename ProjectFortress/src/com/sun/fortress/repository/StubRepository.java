@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -55,10 +55,10 @@ public class StubRepository implements FortressRepository {
     /**
      * Removes the AST for the component form any in-memory caches and/or maps,
      * and optionally remove it from any stable storage as well.
-     * 
+     *
      * Used to avoid memory leaks in unit testing, and to clear non-standard
      * scribbles from the cache.
-     * 
+     *
      * @param name
      * @param andTheFileToo
      */

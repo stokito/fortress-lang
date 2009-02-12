@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -31,9 +31,9 @@ import com.sun.fortress.repository.ProjectProperties;
 public class SimpleClassLoader extends ClassLoader {
 
     static SimpleClassLoader aLoader = new SimpleClassLoader();
-    
+
     static Set<String> reloadEnvs = new HashSet<String>();
-    
+
     public Class<?> defineClass(String name, byte[] b) {
         return defineClass(name, b, 0, b.length);
     }
@@ -41,8 +41,8 @@ public class SimpleClassLoader extends ClassLoader {
     public static void reloadEnvironment(String name) {
         reloadEnvs.add(name);
     }
-    
-    public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi) 
+
+    public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi)
                                     throws IOException, InstantiationException, IllegalAccessException {
     	String className = fortressFileName;
     	if(isApi) {
@@ -51,7 +51,7 @@ public class SimpleClassLoader extends ClassLoader {
     	else {
     		className = NamingCzar.classNameForComponentEnvironment(className);
     	}
-    	
+
         SimpleClassLoader classLoader = aLoader; // new SimpleClassLoader();
         File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +
                                   File.separator + className + ".class");
@@ -65,11 +65,11 @@ public class SimpleClassLoader extends ClassLoader {
             classLoader = new SimpleClassLoader();
             reloadEnvs.clear();
         }
-        Class<?> generatedClass = classLoader.findLoadedClass(className);       
+        Class<?> generatedClass = classLoader.findLoadedClass(className);
         if (generatedClass == null)
             generatedClass = classLoader.defineClass(className, bytecode);
         BaseEnv envObject = (BaseEnv) generatedClass.newInstance();
-        
+
         return(envObject);
     }
 
