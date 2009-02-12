@@ -98,11 +98,9 @@ class Parser {
         try {
             in = Useful.utf8BufferedFileReader(filename);
             parse(in, filename);
-        } catch (FileNotFoundException fnfe) {
-            throw new RuntimeException(fnfe);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
-        } finally {
+         } finally {
             if (in != null) try { in.close(); } catch (IOException ioe) {}
         }
     }
