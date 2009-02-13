@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.rice.cs.astgen.ASTModel;
+import edu.rice.cs.astgen.NodeClass;
 import edu.rice.cs.astgen.CodeGenerator;
 import edu.rice.cs.astgen.Field;
 import edu.rice.cs.astgen.NodeInterface;
@@ -91,8 +92,8 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         for (NodeType t : ast.descendents(root)) {
           if (!t.isAbstract()) {
             writer.println();
-            if ( t instanceof TransformationNode ){
-                outputForTransformationCaseOnly( (TransformationNode) t, writer, root );
+            if (t.name().startsWith("_SyntaxTransformation")){
+                outputForTransformationCaseOnly(t, writer, root);
             } else if ( t instanceof EllipsesNode ){
                 outputForEllipsesCaseOnly( (EllipsesNode) t, writer, root );
             } else {
@@ -141,8 +142,13 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         writer.close();
     }
 
-    protected void outputForTransformationCaseOnly( TransformationNode node, TabPrintWriter writer, NodeType root ){
+    protected void outputForTransformationCaseOnly(NodeType node, TabPrintWriter writer, NodeType root ){
         List<String> params = new ArrayList<String>();
+        /*
+        for (Field f : node.allFields(ast)) {
+            params.add(f.name());
+        }
+        */
         outputForCaseHeader(node, writer, root.name(), "Only", params);
         writer.indent();
         writer.startLine("return defaultTransformationNodeCase(that);");
@@ -212,7 +218,9 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
                 }
             }
             writer.startLine("return " + visitorMethodName(t) + "Only(that");
-            for (String recurVal : recurVals) { writer.print(", " + recurVal); }
+            if (!t.name().startsWith("_SyntaxTransformation")){
+                for (String recurVal : recurVals) { writer.print(", " + recurVal); }
+            }
             writer.print(");");
         }
         writer.unindent();
@@ -278,4 +286,15 @@ public class TemplateVisitorGenerator extends UpdateVisitorGenerator {
         return deps;
     }
 
+    @Override
+    public void generateClassMembers(TabPrintWriter writer, NodeClass arg1) {
+        System.out.println("Transformation creator: " + arg1.name());
+        if (arg1.name().startsWith("_SyntaxTransformation")){
+            writer.startLine("public Node accept(TemplateUpdateVisitor visitor) {");
+            writer.indent();
+            writer.startLine("return visitor.for"+arg1.name()+"(this);");
+            writer.unindent();
+            writer.startLine("}");
+        }
+    }
 }

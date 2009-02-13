@@ -32,33 +32,35 @@ import edu.rice.cs.astgen.Types.TypeName;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
+import static java.util.Arrays.asList;
+
 public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
 
     private TypeName idType = Types.parse("Id", ast);
     private TypeName listIdType = Types.parse("List<Id>", ast);
 
     public static List<Field> TEMPLATEGAPFIELDS; {
-        TEMPLATEGAPFIELDS = new LinkedList<Field>();
-        TypeName infoType = Types.parse("ASTNodeInfo", ast);
-        TEMPLATEGAPFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true));
-        TEMPLATEGAPFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
-        TEMPLATEGAPFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
+        TEMPLATEGAPFIELDS = asList(
+            new Field(Types.parse("ASTNodeInfo", ast), "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true),
+            new Field(idType , "gapId", Option.<String>none(), false, false, true),
+            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
+        );
     }
 
     public static List<Field> TEMPLATEGAPEXPRFIELDS; {
-        TEMPLATEGAPEXPRFIELDS = new LinkedList<Field>();
-        TypeName infoType = Types.parse("ExprInfo", ast);
-        TEMPLATEGAPEXPRFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true));
-        TEMPLATEGAPEXPRFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
-        TEMPLATEGAPEXPRFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
+        TEMPLATEGAPEXPRFIELDS = asList(
+            new Field(Types.parse("ExprInfo", ast), "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true),
+            new Field(idType , "gapId", Option.<String>none(), false, false, true),
+            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
+        );
     }
 
     public static List<Field> TEMPLATEGAPTYPEFIELDS; {
-        TEMPLATEGAPTYPEFIELDS = new LinkedList<Field>();
-        TypeName infoType = Types.parse("TypeInfo", ast);
-        TEMPLATEGAPTYPEFIELDS.add(new Field(infoType , "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true));
-        TEMPLATEGAPTYPEFIELDS.add(new Field(idType , "gapId", Option.<String>none(), false, false, true));
-        TEMPLATEGAPTYPEFIELDS.add(new Field(listIdType , "templateParams", Option.<String>none(), false, false, true));
+        TEMPLATEGAPTYPEFIELDS = asList(
+            new Field(Types.parse("TypeInfo", ast), "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true),
+            new Field(idType , "gapId", Option.<String>none(), false, false, true),
+            new Field(listIdType , "templateParams", Option.<String>none(), false, false, true)
+        );
     }
 
     public TemplateGapNodeCreator(ASTModel ast) {
@@ -86,7 +88,9 @@ public class TemplateGapNodeCreator extends CodeGenerator implements Runnable {
             throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
         for (NodeClass nodeClass: ast.classes()) {
             if ( nodeClass.getClass() == NodeClass.class &&
-                 ast.isDescendent(abstractNode, nodeClass) ){
+                 ast.isDescendent(abstractNode, nodeClass) &&
+                 !nodeClass.name().startsWith("_Ellipses") &&
+                 !nodeClass.name().startsWith("_SyntaxTransformation")){
                 List<TypeName> interfaces = new LinkedList<TypeName>();
                 interfaces.add(templateGapName);
                 String infoType;

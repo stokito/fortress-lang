@@ -603,8 +603,10 @@ public class Transform extends TemplateUpdateVisitor {
                 /* the type of the transformer (_SyntaxTransformationExpr) doesn't matter */
 		Node newNode =
 		    new _SyntaxTransformationExpr(NodeFactory.makeExprInfo(NodeFactory.macroSpan),
-                                                  curried.getSyntaxTransformer(),
-						  vars, new LinkedList<String>());
+                                                  vars,
+						  new LinkedList<String>(),
+                                                  curried.getSyntaxTransformer()
+                                                  );
                 return new Level(binding.getLevel(), newNode.accept( this ) );
             }
         }

@@ -253,17 +253,11 @@ public class TemplateGapClass extends NodeClass {
         writer.startLine(infoType + " temp_info = getInfo();");
         writer.startLine("writer.startLine();");
         writer.startLine("writer.print(\"info = \");");
-        writer.startLine("if (lossless) {");
-        writer.indent();
-        writer.startLine("writer.printSerialized(temp_info);");
-        writer.startLine("writer.print(\" \");");
-        writer.startLine("writer.printEscaped(temp_info);");
-        writer.unindent();
-        writer.startLine("} else { writer.print(temp_info); }");
+        writer.startLine("temp_info.outputHelp(writer, lossless);");
 
         writer.startLine("Id temp_id = getGapId();");
         writer.startLine("writer.startLine();");
-        writer.startLine("writer.print(\"id = \");");
+        writer.startLine("writer.print(\"gapId = \");");
         writer.startLine("temp_id.outputHelp(writer, lossless);");
 
         writer.startLine("List<Id> temp_templateParams = getTemplateParams();");
