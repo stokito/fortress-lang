@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
-package com.sun.fortress.compiler.typechecker;
+package com.sun.fortress.compiler.typechecker.constraints;
 
 import static com.sun.fortress.compiler.Types.ANY;
 import static com.sun.fortress.compiler.Types.BOTTOM;
@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -258,7 +259,7 @@ public abstract class ConstraintFormula {
         }
 
         @Override
-        protected ConstraintFormula solve() {
+        public ConstraintFormula solve() {
             ConstraintFormula solved_constraint = unsolved_formula.solve();
             if( solved_constraint.isTrue() )
                 return new SolvedFormula(CollectUtil.union(solved_constraint.getMap(), results), history);
@@ -493,7 +494,7 @@ public abstract class ConstraintFormula {
 
 		// Returns a solved constraint formula, solved by doing the steps in 20.2 of spec1 beta
 		@Override
-		protected ConstraintFormula solve() {
+		public ConstraintFormula solve() {
 
 			Set<_InferenceVarType> ivars = CollectUtil.union(ivarLowerBounds.keySet(), ivarUpperBounds.keySet());
 
@@ -705,7 +706,7 @@ public abstract class ConstraintFormula {
 		 * Returns the first constraint formula that is solvable.
 		 */
 		@Override
-		protected ConstraintFormula solve() {
+		public ConstraintFormula solve() {
 			for(ConjunctiveFormula cf: conjuncts){
 				ConstraintFormula sf= cf.solve();
 				if(sf.isSatisfiable())
@@ -910,7 +911,7 @@ public abstract class ConstraintFormula {
         }
 
         @Override
-        protected ConstraintFormula solve() {
+        public ConstraintFormula solve() {
             return new ReplacedConstraintFormula(delegate.solve(), newIVar, removedIVars);
         }
 
@@ -1012,7 +1013,7 @@ public abstract class ConstraintFormula {
     /** Merge this and another formula by asserting that one of the two must be true. */
     public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
 
-    protected ConstraintFormula solve() {
+    public ConstraintFormula solve() {
 		return this;
 	}
 

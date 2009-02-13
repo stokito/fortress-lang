@@ -19,8 +19,8 @@ package com.sun.fortress.compiler.desugarer;
 
 import java.util.*;
 import com.sun.fortress.compiler.*;
-import com.sun.fortress.compiler.typechecker.ConstraintFormula;
 import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.nodes.*;

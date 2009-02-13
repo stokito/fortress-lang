@@ -20,8 +20,8 @@ package com.sun.fortress.compiler.typechecker;
 import static com.sun.fortress.compiler.Types.ANY;
 import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.compiler.Types.VOID;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.falseFormula;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.trueFormula;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.falseFormula;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.trueFormula;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
 import java.util.ArrayList;
@@ -48,6 +48,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Unit;
 import com.sun.fortress.compiler.index.Variable;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
 import com.sun.fortress.nodes.BaseType;

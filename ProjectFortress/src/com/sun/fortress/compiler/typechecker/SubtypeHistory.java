@@ -34,10 +34,13 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.index.*;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
+
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
 import static com.sun.fortress.nodes_util.NodeFactory.make_InferenceVarType;
 import static edu.rice.cs.plt.iter.IterUtil.cross;
 import static edu.rice.cs.plt.iter.IterUtil.collapse;
@@ -51,7 +54,6 @@ import static edu.rice.cs.plt.iter.IterUtil.skipLast;
 import static edu.rice.cs.plt.iter.IterUtil.last;
 import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
 import static edu.rice.cs.plt.collect.CollectUtil.makeList;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
 

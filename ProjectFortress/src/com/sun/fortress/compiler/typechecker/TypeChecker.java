@@ -18,8 +18,8 @@
 package com.sun.fortress.compiler.typechecker;
 
 
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.trueFormula;
 import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.trueFormula;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.none;
@@ -56,6 +56,7 @@ import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
 import com.sun.fortress.compiler.typechecker.TypeEnv.BindingLookup;
 import com.sun.fortress.compiler.typechecker.TypesUtil.ArgList;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.TypeError;
