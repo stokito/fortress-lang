@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -53,9 +53,9 @@ import xtc.parser.SemanticValue;
  *
  * Also a command line tool:
  *
- * usage: 
+ * usage:
  *   java com.sun.fortress.parser_util.instrumentation.Parser file ...
- * Parses the listed files with the default (non-instrumented) parser, 
+ * Parses the listed files with the default (non-instrumented) parser,
  * reporting total parse time after parsing all files.
  *
  * (Especially useful with the java -verbose:gc option.)
