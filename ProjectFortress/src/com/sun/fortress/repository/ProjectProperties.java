@@ -337,4 +337,21 @@ public class ProjectProperties {
         }
         return Integer.parseInt(result, base);
     }
+
+
+    public static long getLong(String s, long ifMissing) {
+        String result =  allProps.get(s);
+        if (result != null)
+            result = Useful.substituteVarsCompletely(result, allProps, 1000);
+        if (result == null) return ifMissing;
+        if (result.length() == 0)
+            return ifMissing;
+        int base = 10;
+        int underat = result.indexOf('_');
+        if (underat != -1) {
+            base = Integer.parseInt(result.substring(underat+1));
+            result = result.substring(0,underat);
+        }
+        return Long.parseLong(result, base);
+    }
 }
