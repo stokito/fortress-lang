@@ -119,7 +119,7 @@ import static com.sun.fortress.exceptions.ProgramError.error;
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 
-public class DesugarerVisitor extends NodeUpdateVisitor  {
+public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
 
     private boolean suppressDebugDump;
     private final static boolean debug = false;
@@ -245,6 +245,9 @@ public class DesugarerVisitor extends NodeUpdateVisitor  {
      * Rewritings in scope.
      */
     private BATree<String, InterpreterNameRewriter> rewrites;
+    public Map<String, InterpreterNameRewriter> getRewrites() {
+        return rewrites.copy();
+    }
 
     /*
      * The next four methods all do the same thing,
@@ -491,8 +494,8 @@ public class DesugarerVisitor extends NodeUpdateVisitor  {
 
     }
 
-    public boolean injectAtTopLevel(String putName, String getName, DesugarerVisitor getFrom, Set<String>excluded) {
-        InterpreterNameRewriter th = getFrom.rewrites.get(getName);
+    public boolean injectAtTopLevel(String putName, String getName, Map<String, InterpreterNameRewriter> getFrom, Set<String>excluded) {
+        InterpreterNameRewriter th = getFrom.get(getName);
         InterpreterNameRewriter old = rewrites.get(putName);
         /* Empty means do  add */
         if (old == null) {

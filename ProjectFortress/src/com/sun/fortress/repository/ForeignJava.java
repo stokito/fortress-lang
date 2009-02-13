@@ -95,33 +95,7 @@ public class ForeignJava {
     private ForeignJava() {
         
     }
-    
-    static class Packoid implements Comparable<Packoid> {
-        String s;
-        Packoid(String s) {
-            this.s = s;
-        }
-        Packoid(org.objectweb.asm.Type cl) {
-            
-        }
-        public int hashCode() {
-            return s.hashCode();
-        }
-        public boolean equals(Object o) {
-            if (o instanceof Packoid) {
-                return ((Packoid)o).s.equals(s);
-            }
-            return false;
-        }
-        public int compareTo(Packoid o) {
-            if (o instanceof Packoid) {
-                return ((Packoid)o).s.compareTo(s);
-            }
-            return getClass().getName().compareTo(o.getClass().getName());
-        }
-        
-    }
-
+  
    /** given an API Name, what Java classes does it use (include)?  (Existing
      * Java class, not its compiled Fortress wrapper class.)
      * This is a subset of all the classes available in the package
@@ -232,8 +206,23 @@ public class ForeignJava {
     static CheapSerializer<Map<Type, Long>> dependenceSerializer =
         new CheapSerializer.MAP<Type, Long>(typeSerializer, CheapSerializer.LONG);
     
-    static Span span = NodeFactory.internalSpan;
-
+    private static Span span() {
+        return NodeFactory.internalSpan;
+    }
+    private static Span span(MethodNode m) {
+        return NodeFactory.makeSpan(m.desc);
+    }
+    private static Span span(APIName a) {
+        return NodeFactory.makeSpan(a.getText());
+    }
+    private static Span span(String s) {
+        return NodeFactory.makeSpan(s);
+    }
+    private static Span span(Type t) {
+        return NodeFactory.makeSpan(t.getDescriptor());
+    }
+    
+ 
     static MyClassLoader loader = new MyClassLoader();
     
     static org.objectweb.asm.Type type(ClassNode cl) {
@@ -271,8 +260,8 @@ public class ForeignJava {
         return getPackageName(cl.name);
     }
     
-    static APIName packageToAPIName(Packoid p) {
-        return NodeFactory.makeAPIName(span, p.s);
+    static APIName packageToAPIName(String s) {
+        return NodeFactory.makeAPIName(span(s), s);
     }
 
     void processJavaImport(CompilationUnit comp, Import i, ImportNames ins) {
@@ -391,9 +380,8 @@ public class ForeignJava {
         String package_name = getPackageName(internal_name);
         String simple_name = getSimpleName(internal_name);
         
-        Packoid p = new Packoid(package_name);
-        APIName api_name = packageToAPIName(p);
-        Id name = NodeFactory.makeId(span, simple_name);
+        APIName api_name = packageToAPIName(package_name);
+        Id name = NodeFactory.makeId(span(package_name), simple_name);
 
         /* Though the class may have been previously referenced, the import
          * may still need to be recorded.  Re-recording an existing import
@@ -422,7 +410,7 @@ public class ForeignJava {
         // LOSE THE DOTTED REFERENCE, at least for now.
         // name = NodeFactory.makeId(api_name, name);
         // Note: a TraitType is a reference to a trait.
-        return NodeFactory.makeTraitType(span, false, name);
+        return NodeFactory.makeTraitType(span(imported_type), false, name);
     }
 
     private void classToTraitType(Type imported_class, APIName api_name,
@@ -433,7 +421,7 @@ public class ForeignJava {
         Option<WhereClause> whereC = Option.none();
         List<BaseType> excludesC = Collections.emptyList();
         Option<List<BaseType>> comprisesC = Option.none();
-        TraitDecl td = NodeFactory.makeTraitDecl (span, mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
+        TraitDecl td = NodeFactory.makeTraitDecl (span(imported_class), mods, name, sparams, extendsC, whereC, decls, excludesC, comprisesC);
         // Need to fake up an API for this class, too.
         classToTraitDecl.put(imported_class, td);
         apiToStaticDecls.putItem(api_name, td);
@@ -521,7 +509,7 @@ public class ForeignJava {
             }
         }
         
-        Id name = NodeFactory.makeId(span, getSimpleName(imported_class));
+        Id name = NodeFactory.makeId(span(), getSimpleName(imported_class));
         classToTraitType(t, pkg_name, name, trait_decls);
         
     }
@@ -539,13 +527,13 @@ public class ForeignJava {
         int i = 0;
         for (Type pt : pts) {
             com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt);
-            Span param_span = NodeFactory.makeSpan(m.toString() + " p#" + i);
+            Span param_span = NodeFactory.makeSpan(span(m) + " p#" + i);
             Id id = NodeFactory.makeId(param_span, "p"+(i++));
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
         
-        Span fn_span = NodeFactory.makeSpan(m.toString());
+        Span fn_span = span(m);
         Id id = is_static ?
                 NodeFactory.makeId(fn_span, getSimpleName(cl)+"."+ getName(m)) :
             NodeFactory.makeId(fn_span, getName(m));
@@ -594,7 +582,7 @@ public class ForeignJava {
             for (Decl d : apiToStaticDecls.get(name)) {
                 decls.add(d);
             }
-            Api a = NodeFactory.makeApi(span, name, imports, decls);
+            Api a = NodeFactory.makeApi(span(name), name, imports, decls);
 
             result = IndexBuilder.builder.buildApiIndex(a, Long.MIN_VALUE + 2);
             cachedFakeApis.put(name, result);
@@ -612,7 +600,7 @@ public class ForeignJava {
                 return NodeFactory.makeAliasedSimpleName(x);
             } }, lasn);
         
-        ImportNames imp_names = NodeFactory.makeImportNames(span, Option.some("java"), a, lasn);
+        ImportNames imp_names = NodeFactory.makeImportNames(span(), Option.some("java"), a, lasn);
        
         imports.add(imp_names);
     }
