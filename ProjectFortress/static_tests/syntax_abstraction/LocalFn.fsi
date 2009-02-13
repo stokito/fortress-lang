@@ -27,13 +27,8 @@ grammar LocalFn extends { Expression, Declaration }
                 Empty => <[ 0 ]>
                 Cons(fs,bs) =>
                     <[ do
-                           pr(z) =
-                               if z = () then println "()" else println "Other" end
-                           if x <- fs
-                           then println x
-                                1 + (foo bs**)
-                           else (foo bs**)
-                           end
+                           pr(z) = z
+                           pr(fs) + (foo bs**)
                        end
                      ]>
             end

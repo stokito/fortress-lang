@@ -441,11 +441,14 @@ public class Transform extends TemplateUpdateVisitor {
                                                             Option<Contract> contract_result,
                                                             List<Param> params_result,
                                                             Option<Type> returnType_result) {
+                                    Id oldName = (Id) ((Id)name_result).accept(transformer);
+                                    final Id generatedName = generateId(oldName);
+                                    extendSyntaxEnvironment(oldName, generatedName);
                                     List<Param> new_params_result = Useful.applyToAll(params_result,
                                                                                       renameParam);
                                     return super.forFnHeaderOnly(that,
                                                                  staticParams_result,
-                                                                 generatedId,
+                                                                 generatedName,
                                                                  whereClause_result,
                                                                  throwsClause_result,
                                                                  contract_result,
@@ -454,9 +457,10 @@ public class Transform extends TemplateUpdateVisitor {
                                 }
                             });
 
+                            Option<Expr> new_body = transformer.recurOnOptionOfExpr(body_result);
                             return super.forFnDeclOnly(that, info_result,
                                                        new_fnHeader, generatedId,
-                                                       body_result,
+                                                       new_body,
                                                        implementsUnambiguousName_result);
                             }
                         });
@@ -858,7 +862,7 @@ public class Transform extends TemplateUpdateVisitor {
     }
 
     /* return true if the node contains a pattern variable that has a depth
-     * greater than 0 (basically if its a repeated node)
+     * greater than 0 (basically if it is a repeated node)
      */
     private boolean controllable( _Ellipses that ){
         for ( Id var : freeVariables( that.getRepeatedNode() ) ){
