@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -29,7 +29,7 @@ import edu.rice.cs.plt.tuple.Option;
 
 public class DesugaringResult extends StaticPhaseResult {
     private final Node ast;
-   
+
     public DesugaringResult(Node _ast) { ast = _ast; }
 
     public Node ast() { return ast; }

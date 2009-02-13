@@ -184,7 +184,7 @@ ranges2(@codesrest2);
 close RATS;
 
 print UTIL "/*******************************************************************************\n";
-print UTIL "    Copyright 2008 Sun Microsystems, Inc.,\n";
+print UTIL "    Copyright 2009 Sun Microsystems, Inc.,\n";
 print UTIL "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
 print UTIL "    All rights reserved.\n\n";
 print UTIL "    U.S. Government Rights - Commercial software.\n";
