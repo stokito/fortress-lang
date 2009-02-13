@@ -28,52 +28,52 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ApiGraphNode extends GraphNode {
-	private Option<ApiIndex> api;
-	private final String k;
-	
-	public ApiGraphNode( APIName name, String canonicalSourceName, long sourceDate ){
-            super(name, canonicalSourceName, sourceDate);
-            k = key(name);
-            this.api = Option.none();
-        }
+    private Option<ApiIndex> api;
+    private final String k;
 
-	public ApiGraphNode( APIName name, File source_file ) throws IOException{
-            super(name, source_file);
-            k = key(name);
-            this.api = Option.none();
-        }
+    public ApiGraphNode( APIName name, String canonicalSourceName, long sourceDate ){
+        super(name, canonicalSourceName, sourceDate);
+        k = key(name);
+        this.api = Option.none();
+    }
 
-        public boolean equals( Object o ){
-		if ( o instanceof ApiGraphNode ){
-			ApiGraphNode a = (ApiGraphNode) o;
-			return a.getName().equals( getName() );
-		}
-		return false;
-	}
+    public ApiGraphNode( APIName name, File source_file ) throws IOException{
+        super(name, source_file);
+        k = key(name);
+        this.api = Option.none();
+    }
 
-	public Option<ApiIndex> getApi(){
-		return this.api;
-	}
+    public boolean equals( Object o ){
+        if ( o instanceof ApiGraphNode ){
+            ApiGraphNode a = (ApiGraphNode) o;
+            return a.getName().equals( getName() );
+        }
+        return false;
+    }
 
-	public void setApi(ApiIndex api, long cacheDate){
-		this.api = Option.wrap(api);
-		this.cacheDate = cacheDate;
-	}
+    public Option<ApiIndex> getApi(){
+        return this.api;
+    }
 
-	public String toString(){
-		return "Api " + getName().toString();
-	}
-        
-        public <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F{
-            return g.visit(this);
-        }
-        
-        public String key() {
-            return k;
-        }
-        
-        public static String key(APIName k) {
-            return "api " + k.getText();
-        }
-       
+    public void setApi(ApiIndex api, long cacheDate){
+        this.api = Option.wrap(api);
+        this.cacheDate = cacheDate;
+    }
+
+    public String toString(){
+        return "Api " + getName().toString();
+    }
+
+    public <T,F extends Throwable> T accept( GraphVisitor<T,F> g ) throws F{
+        return g.visit(this);
+    }
+
+    public String key() {
+        return k;
+    }
+
+    public static String key(APIName k) {
+        return "api " + k.getText();
+    }
+
 }
