@@ -18,15 +18,26 @@
 package com.sun.fortress.interpreter.env;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import com.sun.fortress.interpreter.rewrite.InterpreterNameRewriter;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.StringHashComparer;
 
 public class ForeignComponentWrapper extends NonApiWrapper {
 
-    public ForeignComponentWrapper(
+   Map<String, InterpreterNameRewriter> rewrites =
+        new BATree<String, InterpreterNameRewriter>(StringHashComparer.V);
+    
+   public ForeignComponentWrapper(
             APIWrapper apicw, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         super(apicw, linker, implicitLibs);
-        // TODO Auto-generated constructor stub
-    }
+        // For each name in the API, need to add something to getRewrites
+   }
 
+    protected  Map<String, InterpreterNameRewriter> getRewrites() {
+        return rewrites;
+    }
 }

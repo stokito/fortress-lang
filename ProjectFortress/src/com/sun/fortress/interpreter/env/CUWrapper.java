@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
@@ -35,6 +36,8 @@ import com.sun.fortress.interpreter.evaluator.types.FTypeGeneric;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.evaluator.values.GenericConstructor;
 import com.sun.fortress.interpreter.rewrite.DesugarerVisitor;
+import com.sun.fortress.interpreter.rewrite.HasRewrites;
+import com.sun.fortress.interpreter.rewrite.InterpreterNameRewriter;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AbstractNode;
@@ -92,6 +95,10 @@ public class CUWrapper {
 
     protected DesugarerVisitor desugarer;
 
+    protected  Map<String, InterpreterNameRewriter> getRewrites() {
+        return desugarer.getRewrites();
+    }
+    
     int visitState;
     protected final static int UNVISITED=0, IMPORTED=1, POPULATED=2, TYPED=3, FUNCTIONED=4, FINISHED=5;
 
@@ -241,12 +248,16 @@ public class CUWrapper {
 
     public void preloadTopLevel() {
 
-        desugarer.preloadTopLevel(comp_unit);
-        /* Need to capture these names early so that rewriter
-         * name injection will follow the same no-duplicates
-         * rules as other name visibility.
-         */
-        ownNames.addAll(desugarer.getTopLevelRewriteNames());
+        if (! (this instanceof ForeignComponentWrapper)) {
+            desugarer.preloadTopLevel(comp_unit);
+            /* Need to capture these names early so that rewriter
+             * name injection will follow the same no-duplicates
+             * rules as other name visibility.
+             */
+            ownNames.addAll(desugarer.getTopLevelRewriteNames());
+        } else {
+            desugarer = desugarer;
+        }
         for (CUWrapper api: exports.values()) {
             api.preloadTopLevel();
         }
@@ -258,7 +269,7 @@ public class CUWrapper {
     }
 
     public boolean injectAtTopLevel(String putName, String getName, CUWrapper getFrom, Set<String>excluded) {
-        return desugarer.injectAtTopLevel(putName, getName, getFrom.desugarer, excluded);
+        return desugarer.injectAtTopLevel(putName, getName, getFrom.getRewrites(), excluded);
     }
 
 

@@ -116,9 +116,11 @@ public class Driver {
     }
 
     public static ArrayList<ComponentWrapper> components;
+    public static ArrayList<NonApiWrapper> foreigns;
 
     public static void reset() {
         components = null;
+        foreigns = null;
         libraryComponentWrapper = null;
     }
 
@@ -135,9 +137,10 @@ public class Driver {
 
         HashMap<String, NonApiWrapper> linker = new HashMap<String, NonApiWrapper>();
 
-        Stack<ComponentWrapper> pile = new Stack<ComponentWrapper>();
+        Stack<NonApiWrapper> pile = new Stack<NonApiWrapper>();
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
+        foreigns = new ArrayList<NonApiWrapper>();
 
         /*
          * This looks like gratuitous and useless error checking that
@@ -209,17 +212,25 @@ public class Driver {
          */
         while (!pile.isEmpty()) {
 
-            ComponentWrapper cw = pile.pop();
-            components.add(cw);
+            NonApiWrapper naw = pile.pop();
+            if (naw instanceof ComponentWrapper) {
+                ComponentWrapper cw = (ComponentWrapper) naw;
+                components.add(cw);
 
-            CompilationUnit c = cw.getCompilationUnit();
-            List<Import> imports = c.getImports();
+                CompilationUnit c = cw.getCompilationUnit();
+                List<Import> imports = c.getImports();
 
-            ensureImportsImplemented(fr, linker, pile, imports);
+                ensureImportsImplemented(fr, linker, pile, imports);
+            } else {
+                foreigns.add(naw);
+            }
         }
 
         // Desugarer needs to know about trait members.
         for (CUWrapper cw : components) {
+            cw.preloadTopLevel();
+        }
+        for (NonApiWrapper cw : foreigns) {
             cw.preloadTopLevel();
         }
 
@@ -428,7 +439,7 @@ public class Driver {
     private static void ensureImportsImplemented (
             GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
-            Stack<ComponentWrapper> pile,
+            Stack<NonApiWrapper> pile,
             List<Import> imports
         )
         throws IOException
@@ -465,7 +476,7 @@ public class Driver {
     private static ComponentWrapper ensureApiImplemented(
             GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
-            Stack<ComponentWrapper> pile, APIName name) throws IOException {
+            Stack<NonApiWrapper> pile, APIName name) throws IOException {
         String apiname = NodeUtil.nameString(name);
         NonApiWrapper newwrapper = linker.get(apiname);
         if (newwrapper == null) {
@@ -481,6 +492,7 @@ public class Driver {
             if (ForeignJava.only.definesApi(newapi.getName())) {
                 ForeignComponentWrapper fcw = new ForeignComponentWrapper(apicw, linker, WellKnownNames.defaultLibrary());
                 linker.put(apiname, fcw);
+                pile.push(fcw);
                 // no need to push for additional imports, at least not quite yet.
                 return null;
             } else {
@@ -500,7 +512,7 @@ public class Driver {
 
     private static ComponentWrapper commandLineComponent(GraphRepository fr,
             HashMap<String, NonApiWrapper> linker,
-            Stack<ComponentWrapper> pile, ComponentIndex comp_index) throws IOException {
+            Stack<NonApiWrapper> pile, ComponentIndex comp_index) throws IOException {
 
             Component comp = (Component) (comp_index.ast());
             APIName name = comp.getName();
