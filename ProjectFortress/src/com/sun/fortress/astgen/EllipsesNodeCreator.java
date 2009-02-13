@@ -61,7 +61,9 @@ public class EllipsesNodeCreator extends CodeGenerator implements Runnable {
             abstractNode = ast.typeForName("AbstractNode").unwrap();
         for ( NodeType n : ast.classes() ){
             if ( n.getClass() == NodeClass.class &&
-                 ast.isDescendent(abstractNode, n) ){
+                 ast.isDescendent(abstractNode, n) &&
+                 !n.name().startsWith("_SyntaxTransformation") &&
+                 !n.name().startsWith("TemplateGap")){
 
                 String infoType;
                 if ( ast.isDescendent(exprNode, n) ) infoType = "ExprInfo";

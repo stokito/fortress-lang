@@ -238,14 +238,7 @@ public class TransformationNode extends NodeClass {
         writer.startLine(infoType + " temp_info = getInfo();");
         writer.startLine("writer.startLine();");
         writer.startLine("writer.print(\"info = \");");
-        writer.startLine("if (lossless) {");
-        writer.indent();
-        writer.startLine("writer.printSerialized(temp_info);");
-        writer.startLine("writer.print(\" \");");
-        writer.startLine("writer.printEscaped(temp_info);");
-        writer.unindent();
-        writer.startLine("} else { writer.print(temp_info); }");
-        writer.startLine("writer.unindent();");
+        writer.startLine("temp_info.outputHelp(writer, lossless);");
         writer.unindent();
         writer.startLine("}");
     }

@@ -20,6 +20,7 @@ package com.sun.fortress.astgen;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import edu.rice.cs.astgen.ASTModel;
 import edu.rice.cs.astgen.CodeGenerator;
@@ -33,6 +34,8 @@ import edu.rice.cs.astgen.Types.TypeName;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
+import static java.util.Arrays.asList;
+
 public class TransformationNodeCreator extends CodeGenerator implements Runnable {
 
     public TransformationNodeCreator(ASTModel ast) {
@@ -44,8 +47,41 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
         return new LinkedList<Class<? extends CodeGenerator>>();
     }
 
+    private <T> List<T> combine(List<T>... a){
+        List<T> ok = new ArrayList<T>();
+        for (List<T> in : a){
+            ok.addAll(in);
+        }
+        return ok;
+    }
+
     public void run() {
         List<Pair<NodeType, NodeType>> all = new LinkedList<Pair<NodeType, NodeType>>();
+
+        TypeName idType = Types.parse("Id", ast);
+        TypeName listIdType = Types.parse("List<Id>", ast);
+
+        List<Field> normalFields = asList(
+                new Field(Types.parse("java.util.Map<String,Level>", ast), "variables", Option.<String>none(), false, false, true),
+                new Field(Types.parse("java.util.List<String>", ast), "syntaxParameters", Option.<String>none(), false, false, true),
+                new Field(Types.parse("String", ast), "syntaxTransformer", Option.<String>none(), false, false, true)
+                );
+
+        List<Field> astFields = combine(asList(
+                new Field(Types.parse("ASTNodeInfo", ast), "info", Option.<String>some("NodeFactory.makeASTNodeInfo(NodeFactory.macroSpan)"), false, true, true)),
+                normalFields
+                );
+
+        List<Field> exprFields = combine(asList(
+                new Field(Types.parse("ExprInfo", ast), "info", Option.<String>some("NodeFactory.makeExprInfo(NodeFactory.macroSpan)"), false, true, true)),
+                normalFields
+                );
+
+        List<Field> typeFields = combine(asList(
+                new Field(Types.parse("TypeInfo", ast), "info", Option.<String>some("NodeFactory.makeTypeInfo(NodeFactory.macroSpan)"), false, true, true)),
+                normalFields
+                );
+
         NodeType abstractNode;
         NodeType exprNode;
         NodeType typeNode;
@@ -59,14 +95,25 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
             throw new RuntimeException("Fortress.ast does not define AbstractNode/Expr/Type!");
         for ( NodeType n : ast.classes() ){
             if ( n.getClass() == NodeClass.class &&
-                 ast.isDescendent(abstractNode, n) ){
+                 ast.isDescendent(abstractNode, n) &&
+                 !n.name().startsWith("TemplateGap") &&
+                 !n.name().startsWith("_Ellipses") ){
 
                 String infoType;
-                if ( ast.isDescendent(exprNode, n) ) infoType = "ExprInfo";
-                else if ( ast.isDescendent(typeNode, n) ) infoType = "TypeInfo";
-                else infoType = "ASTNodeInfo";
+                List<Field> fields;
+                if ( ast.isDescendent(exprNode, n) ){
+                    infoType = "ExprInfo";
+                    fields = exprFields;
+                } else if (ast.isDescendent(typeNode, n)){
+                    infoType = "TypeInfo";
+                    fields = typeFields;
+                } else {
+                    infoType = "ASTNodeInfo";
+                    fields = astFields;
+                }
 
-                NodeType child = new TransformationNode((NodeClass) n,ast,infoType);
+                // NodeType child = new TransformationNode((NodeClass) n,ast,infoType);
+                NodeType child = new NodeClass("_SyntaxTransformation" + ((NodeClass) n).name(), false, fields, Types.parse((n).name(), ast), Collections.singletonList(Types.parse("_SyntaxTransformation",ast)));
                 all.add( new Pair<NodeType,NodeType>( child, n ) );
             }
         }
@@ -88,7 +135,15 @@ public class TransformationNodeCreator extends CodeGenerator implements Runnable
     }
 
     @Override
-    public void generateClassMembers(TabPrintWriter arg0, NodeClass arg1) {
+    public void generateClassMembers(TabPrintWriter writer, NodeClass arg1) {
+        System.out.println("Transformation creator: " + arg1.name());
+        if (arg1.name().startsWith("_SyntaxTransformation")){
+            writer.startLine("public Node accept(TemplateUpdateVisitor visitor) {");
+            writer.indent();
+            writer.startLine("return visitor.for"+arg1.name()+"(this);");
+            writer.unindent();
+            writer.startLine("}");
+        }
     }
 
     @Override
