@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BottomType;
@@ -59,7 +60,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
 
 /**
  * Contains static utility methods for type checking.

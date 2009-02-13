@@ -26,6 +26,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.compiler.typechecker.SubtypeHistory;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.Node;
@@ -48,7 +49,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.compiler.typechecker.ConstraintFormula.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private Node ast;
