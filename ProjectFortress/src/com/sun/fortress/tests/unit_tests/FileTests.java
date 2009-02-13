@@ -27,6 +27,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Random;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -148,17 +149,15 @@ public class FileTests {
     }
 
     public static class FSSTest extends BaseTest {
-        GraphRepository fr;
-        
-        public FSSTest(GraphRepository fr, String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
+
+        public FSSTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
             super(path, d, s, unexpected_only, expect_failure);
-            this.fr = fr;
         }
 
         public void testFile() throws Throwable {
-            // Usefull when a test is running forever
-//            System.out.println(this.name);
-//            System.out.flush();
+            // Useful when a test is running forever
+            //            System.out.println(this.name);
+            //            System.out.flush();
 
             PrintStream oldOut = System.out;
             PrintStream oldErr = System.err;
@@ -174,6 +173,7 @@ public class FileTests {
 
             BufferedReader in = Useful.utf8BufferedFileReader(fssFile);
             long start = System.nanoTime();
+            GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(path) );
             try {
                 try {
                     oldOut.print("  ") ; oldOut.print(f); oldOut.print(" "); oldOut.flush();
@@ -302,13 +302,38 @@ public class FileTests {
         }
         String[] files = dir.list();
         System.err.println(dir);
-        Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files));
-        int testCount = ProjectProperties.getInt("fortress.unittests.count",Integer.MAX_VALUE);
+        long default_seed = System.currentTimeMillis();
+        long seed = default_seed;
+        try {
+            seed = ProjectProperties.getLong("fortress.unittests.seed",
+                    default_seed);
+        } catch (NumberFormatException ex) {
+            System.err
+                    .println("Failed to translate property fortress.unittests.seed as a long, string = "
+                            + ProjectProperties.get("fortress.unittests.seed"));
+            System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
+        }
+        Random random = new java.util.Random(seed);
+        Iterable<String> shuffled = IterUtil.shuffle(Arrays.asList(files),
+                random);
+        System.err.println("Test shuffling seed env var = FORTRESS_UNITTESTS_SEED="
+                + Long.toHexString(seed) + "_16");
+
+        int testCount = Integer.MAX_VALUE;
+        try {
+            testCount = ProjectProperties.getInt("fortress.unittests.count",
+                    Integer.MAX_VALUE);
+        } catch (NumberFormatException ex) {
+            System.err
+                    .println("Failed to translate property fortress.unittests.count as an int, string = "
+                            + ProjectProperties.get("fortress.unittests.count"));
+            System.err.println("Expected a number in the form DIGITS (base 10) or DIGITS_BASE");
+        }
+        
+        
         if (testCount != Integer.MAX_VALUE)
             System.err.println("Test count = " + testCount);
         int i = testCount;
-        
-        
         for(String s : shuffled){
               if (i <= 0) {
                   System.out.println("Early testing exit after " + testCount + " tests");
@@ -322,8 +347,7 @@ public class FileTests {
                   if (s.endsWith(".fss")) {
                       int l = s.lastIndexOf(".fss");
                       String testname = s.substring(0, l);
-                      GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(dir.getCanonicalPath()) );
-                      suite.addTest(new FSSTest(fr, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                      suite.addTest(new FSSTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else if (s.endsWith(".sh")) {
                       int l = s.lastIndexOf(".sh");
                       String testname = s.substring(0, l);

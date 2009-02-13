@@ -61,8 +61,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     }
 
     private static void assertSucceeds(TestSuite suite, String testname) throws IOException {
-        GraphRepository fr = Shell.specificRepository( ProjectProperties.SOURCE_PATH.prepend(STATIC_TESTS_DIR) );
-        suite.addTest(new FileTests.FSSTest(fr, STATIC_TESTS_DIR,
+        suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR,
                                             STATIC_TESTS_DIR,
                                             testname, true, false));
     }
