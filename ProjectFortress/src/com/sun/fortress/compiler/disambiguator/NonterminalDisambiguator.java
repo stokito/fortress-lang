@@ -90,7 +90,7 @@ public class NonterminalDisambiguator extends NodeUpdateVisitor {
                                       NonterminalHeader header_result,
                                       Option<BaseType> astType_result) {
         if (astType_result.isNone()) {
-            throw new RuntimeException("Type inference is not supported yet!");
+            error("Type inference is not supported yet!", that);
         }
         return super.forNonterminalDefOnly(that, that.getInfo(),
                                            header_result.getName(), syntaxDefs_result,

@@ -40,6 +40,11 @@ run(args:String...) = do
         (println "Works.")
     end
 
+    println "Testing filter expressions"
+    for a <- b , even(a) do
+        (println a " is an even number.")
+    end
+
     println "Ok, im done!"
 end
 
