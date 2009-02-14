@@ -24,9 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
+
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.SubtypeHistory;
-import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.TypeExpander;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.TypeExpander;
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;

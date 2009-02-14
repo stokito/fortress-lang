@@ -40,7 +40,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import static com.sun.fortress.compiler.Types.*;
 import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 import static com.sun.fortress.nodes_util.NodeFactory.make_InferenceVarType;
 import static edu.rice.cs.plt.iter.IterUtil.cross;
 import static edu.rice.cs.plt.iter.IterUtil.collapse;

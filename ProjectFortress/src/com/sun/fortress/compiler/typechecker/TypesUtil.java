@@ -60,7 +60,7 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 /**
  * Contains static utility methods for type checking.
