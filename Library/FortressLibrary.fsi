@@ -525,6 +525,8 @@ end
 trait ZZ extends { Integral[\ZZ\] } comprises { BigNum, ZZ64}
     opr /(self,other:ZZ):QQ
     numerator(self): ZZ
+    odd(self): Boolean
+    even(self): Boolean
 end
 
 (************************************************************
@@ -2324,13 +2326,13 @@ opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison
 
 
 (*---------------------------- for Generators-of-Generators ---------------*)
-switchDispatching(r : Boolean) : () 
+switchDispatching(r : Boolean) : ()
 dispatchingEnabled() : Boolean
 
 trait SomeGenerator2 end  (* marking for GG *)
 
 (* non-filtered GG *)
-trait Generator2[\ E \] 
+trait Generator2[\ E \]
   extends {Generator[\ Generator[\ E \] \], SomeGenerator2}
   getter seed() : Generator[\ E \]
 
