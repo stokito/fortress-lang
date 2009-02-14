@@ -22,19 +22,17 @@ import FortressSyntax.{...}
 object Unreachable extends UncheckedException end
 
 grammar ForLoop extends {Expression, Identifier}
-    Expr |:=
-        for i1:Id <- e1:Expr {, i2:Id <- e2:Expr}* do block:Expr end =>
-        <[ ((e1).loop(fn i1 => (for2 i2** ; e2** ; do block ; end))) ]>
-      | for2 i:Id* ; e:Expr* ; do block:Expr ; end =>
-        case i of
-            Empty => <[ block ]>
-            Cons(ia, ib) =>
-                case e of
-                    Empty => <[ throw Unreachable ]>
-                    Cons (ea, eb) =>
-                    <[ ((ea).loop(fn ia => (for2 ib** ; eb** ; do block ; end))) ]>
-                end
-        end
+    Expr |:= for b:forstart => <[ b ]>
+
+    forstart :Expr:=
+        i:Id <- e:Expr do block:Expr end =>
+        <[ ((e).loop(fn i => block)) ]>
+      | e:Expr do block:Expr end =>
+        <[ if e then block end ]>
+      | i:Id <- e:Expr , b:forstart =>
+        <[ ((e).loop(fn i => b)) ]>
+      | e:Expr , b:forstart =>
+        <[ if e then b end ]>
 end
 
 end
