@@ -56,6 +56,7 @@ import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
 import static edu.rice.cs.plt.collect.CollectUtil.makeList;
 
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 /**
  * Provides core type analysis algorithms in a specific type context.

@@ -17,17 +17,12 @@
 
 package com.sun.fortress.compiler.typechecker.constraints;
 
-import static com.sun.fortress.compiler.Types.ANY;
-import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.SubtypeHistory;
@@ -35,7 +30,6 @@ import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor_void;
-import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeDepthFirstVisitor;
 import com.sun.fortress.nodes.VarType;
@@ -46,7 +40,6 @@ import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.useful.IMultiMap;
 import com.sun.fortress.useful.MultiMap;
 import com.sun.fortress.useful.NI;
-import com.sun.fortress.useful.UsefulPLT;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.collect.ConsList;
@@ -65,58 +58,6 @@ import edu.rice.cs.plt.tuple.Option;
  */
 public abstract class ConstraintFormula{
 
-	/**
-	 * AND together all of the given constraints.
-	 */
-	public static ConstraintFormula bigAnd(Iterable<? extends ConstraintFormula> constraints,
-			SubtypeHistory hist) {
-		ConstraintFormula result = trueFormula();
-		for( ConstraintFormula constraint : constraints ) {
-			result = result.and(constraint, hist);
-		}
-		return result;
-	}
-
-	public static ConstraintFormula falseFormula(){return FalseConstraint.FALSE;}
-
-	public static ConstraintFormula trueFormula(){return TrueConstraint.TRUE;}
-
-	public static ConstraintFormula fromBoolean(boolean b) {
-		return b ? falseFormula() : trueFormula();
-	}
-
-	public static ConstraintFormula lowerBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
-		debug.logStart(new String[]{"var","lowerBound"}, var, bound);
-		if (history.subtypeNormal(bound, BOTTOM).isTrue()) {
-			debug.logEnd("result", trueFormula());
-			return trueFormula();
-		}
-		else {
-			//            IMultiMap<_InferenceVarType,Type> lowers = new MultiMap<_InferenceVarType,Type>();
-			//            lowers.putItem(var, bound);
-			ConstraintFormula result =
-				new ConjunctiveFormula(UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(),
-						UsefulPLT.singletonMultiMap(var, bound), history);
-			debug.logEnd("result", result);
-			return result;
-		}
-	}
-
-	public static ConstraintFormula upperBound(_InferenceVarType var, Type bound, SubtypeHistory history) {
-		debug.logStart(new String[]{"var","upperBound"}, var, bound);
-		if (history.subtypeNormal(ANY, bound).isTrue()) {
-			debug.logEnd("result", trueFormula());
-			return trueFormula();
-		}
-		else{
-			ConstraintFormula result =
-				new ConjunctiveFormula(UsefulPLT.singletonMultiMap(var, bound),
-						UsefulPLT.<_InferenceVarType,Type>emptyMultiMap(), history);
-			debug.logEnd("result", result);
-			return result;
-		}
-	}
-
 	/** Merge this and another formula by asserting that they must both be true. */
 	public abstract ConstraintFormula and(ConstraintFormula c, SubtypeHistory history);
 
@@ -132,7 +73,6 @@ public abstract class ConstraintFormula{
 	public Map<_InferenceVarType, Type> getMap(){
 		return Collections.emptyMap();
 	}
-
 
 
 	/** Determine whether the formula is false for all inference variable instantiations. */
@@ -153,35 +93,6 @@ public abstract class ConstraintFormula{
 
 	public ConstraintFormula solve() {
 		return this;
-	}
-
-	static protected class TypeExpander extends NodeUpdateVisitor{
-		Map<_InferenceVarType,Type> bounds;
-		Set<_InferenceVarType> context;
-		TypeExpander(Map<_InferenceVarType,Type> _bounds){
-			bounds=_bounds;
-			context= new HashSet<_InferenceVarType>();
-		}
-		TypeExpander extend(_InferenceVarType t){
-			TypeExpander temp = new TypeExpander(bounds);
-			temp.context.addAll(context);
-			temp.context.add(t);
-			return temp;
-		}
-
-		@Override
-		public Type for_InferenceVarType(_InferenceVarType that) {
-			if(context.contains(that)){
-				return that;
-			}
-			else{
-				Type bound=bounds.get(that);
-				TypeExpander v = this.extend(that);
-				//return NodeFactory.makeFixedPointType(that,(Type)bound.accept(v));
-				return (Type)bound.accept(v);
-			}
-		}
-
 	}
 
 }

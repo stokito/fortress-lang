@@ -49,7 +49,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private Node ast;
@@ -68,7 +68,7 @@ public class TypeCheckerResult extends StaticPhaseResult {
                     return arg0.nodeConstraints;
                 }});
 
-        ConstraintFormula and = ConstraintFormula.bigAnd(constraints, empty_history);
+        ConstraintFormula and = bigAnd(constraints, empty_history);
 
         return Pair.make(and, Option.<StaticError>none());
     }

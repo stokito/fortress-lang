@@ -33,7 +33,7 @@ import com.sun.fortress.useful.NI;
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.Lambda;
-
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 
 public class DisjunctiveFormula extends ConstraintFormula {

@@ -19,12 +19,12 @@ package com.sun.fortress.compiler.typechecker;
 
 
 import static com.sun.fortress.compiler.typechecker.TypeNormalizer.normalize;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.trueFormula;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.StaticError.errorMsg;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static edu.rice.cs.plt.tuple.Option.wrap;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-
-import sun.tools.java.Imports;
 
 import com.sun.fortress.compiler.IndexBuilder;
 import com.sun.fortress.compiler.Types;
@@ -569,7 +567,7 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
 
     public TypeChecker extendWithConstraints(Iterable<ConstraintFormula> constraints) {
         constraints = IterUtil.compose(downwardConstraint, constraints);
-        ConstraintFormula new_constraint = ConstraintFormula.bigAnd(constraints,
+        ConstraintFormula new_constraint = bigAnd(constraints,
                 new SubtypeHistory(subtypeChecker));
         return new TypeChecker(table,
                 typeEnv,
