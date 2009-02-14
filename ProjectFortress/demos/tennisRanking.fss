@@ -454,7 +454,6 @@ addGame(fout: WriteStream,
     (validDiff, notPlayed) = validGame(winner1, winner2, loser1, loser2, diff)
     (* winners get                 "5 diff + 100" points and
        losers lose approximately "2.5 diff +  50" points *)
-    even(z: ZZ32) = (z REM 2 = 0)
     if validDiff AND notPlayed
     then won(winner1, winner2, loser1, loser2, 5 diff + 100)
          lost(loser1, loser2, winner1, winner2,
