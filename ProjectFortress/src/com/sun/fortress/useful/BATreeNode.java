@@ -22,7 +22,7 @@ import java.util.Map;
 
 import com.sun.fortress.useful.BASet.BASnode;
 
-public final class BATreeNode<T, U> implements Map.Entry<T, U> {
+public final class BATreeNode<T, U> implements Map.Entry<T, U>, java.io.Serializable {
 
         public String toString() {
             return recursiveToStringLines();
