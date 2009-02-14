@@ -45,6 +45,15 @@ run(args:String...) = do
         (println a " is an even number.")
     end
 
+    println "Testing more doFront"
+    for a <- b at Global do
+        (println "Testing at")
+    end
+    for a <- b do end
+    for a <- b atomic do
+        (println "Testing atomic")
+    end
+
     println "Ok, im done!"
 end
 
