@@ -236,8 +236,7 @@ public class EllipsesNode extends NodeClass {
     private void writeOutputHelp(TabPrintWriter writer, String name) {
         writer.startLine("public void outputHelp(TabPrintWriter writer, boolean lossless) {");
         writer.indent();
-        writer.startLine("writer.print(\""+name+":\");");
-        writer.startLine("writer.indent();");
+        writer.startLine("writer.print(\""+name+":\"); writer.indent();");
 
         writer.startLine(infoType + " temp_info = getInfo();");
         writer.startLine("writer.startLine();");

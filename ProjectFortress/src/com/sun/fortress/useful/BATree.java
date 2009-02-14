@@ -31,7 +31,7 @@ import java.util.Set;
  *
  * Does not yet support all the SortedMap methods that it could in principle support.
  */
-public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U> {
+public class BATree<T, U> extends AbstractMap<T,U> implements Map<T,U>, java.io.Serializable {
 
      static class EntrySet<T, U> extends AbstractSet<Map.Entry<T, U>> implements Set<Map.Entry<T, U>> {
 

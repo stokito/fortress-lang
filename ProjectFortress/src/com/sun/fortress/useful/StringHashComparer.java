@@ -25,7 +25,7 @@ import java.util.Comparator;
  *
  * @author dr2chase
  */
-public final class StringHashComparer implements Comparator<String> {
+public final class StringHashComparer implements Comparator<String>, java.io.Serializable {
 
     public int compare(String arg0, String arg1) {
         int h0 = arg0.hashCode();
