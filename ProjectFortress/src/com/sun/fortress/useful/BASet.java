@@ -229,7 +229,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
             // Worst-case balance: 2^(n+1)-1 vs 2^(n-1)
             int rw = weight(r);
             int lw = weight(l);
-            if (lw  > rw << 2) {
+            if (lw  > rw << 1) {
                 // Must rotate.
                 int lrw = l.rightWeight();
                 int llw = l.leftWeight();
@@ -250,7 +250,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
            // Worst-case balance: 2^(n-1) vs 2^(n+1)-1
             int rw = weight(r);
             int lw = weight(l);
-           if (rw > lw << 2) {
+           if (rw > lw << 1) {
                 // Must rotate.
                 int rrw = r.rightWeight();
                 int rlw = r.leftWeight();
