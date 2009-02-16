@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # ################################################################################
 #    Copyright 2009 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
@@ -15,8 +16,6 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
-
-
 use XML::Simple;
 use IO::File;
 use strict;
@@ -30,7 +29,7 @@ if (!$path) {
    exit;
  }
 
-print "$path\n";
+#print "$path\n";
 
 chdir $path;
 
@@ -39,10 +38,10 @@ my $checkDate = 2009;    # Only examine files in this year.
 my $rootDir = $path;
 my $copyright = "Copyright $checkDate Sun Microsystems, Inc."; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
-my $ignoreThese = 'README.txt|fortress.vim|\.ods|\.jar$|\.tgz$|\/\.';
+my $ignoreThese = 'ant|UserDictionary|README.txt|README$|\.fsg$|\.NW$|fortress.vim|\.ods|\.jar$|\.tgz$|\/\.|^\.|^Sandbox';
 my $tempFile = '/tmp/svnInfo.xml';
 
-# 
+#
 my $xmlfh;  		 # a filehandle for the XML output of the svn command.
 
 if ($debug>1) {
@@ -53,8 +52,8 @@ if ($debug>1) {
 }
 
 
-my $xs1 = XML::Simple->new();  
-my $doc = $xs1->XMLin($xmlfh);   #  Read the XML filehandle 
+my $xs1 = XML::Simple->new();
+my $doc = $xs1->XMLin($xmlfh);   #  Read the XML filehandle
 
 $xmlfh->close();		 # Done, close it.
 
@@ -64,7 +63,7 @@ foreach my $entry ((@{$doc->{entry}})){
      next if ( $entry->{revision} < $checkRev );# ...old revisions
      next if ( $entry->{commit}->{date} !~ m/$checkDate/); # ...things before this year.
      next if ( $entry->{path} =~ m/$ignoreThese/ );    # ... file names to ignore
-     
+
      # Scan the beginging of the file for the copyright message.
      my ($line,$cnt,$missingCopyRight);
      $missingCopyRight=1;
@@ -81,8 +80,7 @@ foreach my $entry ((@{$doc->{entry}})){
      }
      $fh->close();
      # If the copyRight wasn't found, print out the file name.
-     if ($missingCopyRight) {   
-       print "$entry->{path} \n";
+     if ($missingCopyRight) {
+       print "$entry->{path}\n";
      }
   }
-

@@ -1,3 +1,20 @@
+/*******************************************************************************
+    Copyright 2009 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************/
+
 package com.sun.fortress.compiler.typechecker.constraints;
 
 import static com.sun.fortress.compiler.Types.ANY;
@@ -29,7 +46,7 @@ public class ConstraintUtil {
 			temp.context.add(t);
 			return temp;
 		}
-	
+
 		@Override
 		public Type for_InferenceVarType(_InferenceVarType that) {
 			if(context.contains(that)){
@@ -42,7 +59,7 @@ public class ConstraintUtil {
 				return (Type)bound.accept(v);
 			}
 		}
-	
+
 	}
 
 	/**
