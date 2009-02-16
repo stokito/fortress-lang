@@ -1,4 +1,4 @@
- /*******************************************************************************
+/*******************************************************************************
     Copyright 2008 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -106,7 +106,7 @@ public class ReferenceCell extends IndirectionCell {
                     // must be preserved.
                     node = new ValueNode(node.getValue(), null, old.getReaders(), null);
                 } else  if (old != null) {
-                    // Committed to a parent transaction, must preserve readers and 
+                    // Committed to a parent transaction, must preserve readers and
                     // old transaction.
                     node = new ValueNode(node.getValue(), p, old.getReaders(), old);
                 } else {
@@ -129,7 +129,7 @@ public class ReferenceCell extends IndirectionCell {
     public synchronized void assignValue(FValue f2) {
         Transaction me  = FortressTaskRunner.getTransaction();
         cleanup();
-        if (Transaction.debug) 
+        if (Transaction.debug)
             FortressTaskRunner.debugPrintln(this + " assignValue start = " + node + " value = " + f2);
 
         if (node == ValueNode.nullValueNode) {
@@ -138,7 +138,7 @@ public class ReferenceCell extends IndirectionCell {
 
         // writer is either active, or null
         if (me == null) { // top level assignment
-            if (node == ValueNode.nullValueNode) 
+            if (node == ValueNode.nullValueNode)
                 node = new ValueNode(f2, me, null, null);
             else {
                 ValueNode temp = node;
@@ -151,7 +151,7 @@ public class ReferenceCell extends IndirectionCell {
             node.resolveReadWriteConflicts();
             cleanup();
             if (!me.isActive())
-                throw new AbortedException(me, "Somebody killed me ");      
+                throw new AbortedException(me, "Somebody killed me ");
 
             Transaction w = node.getWriter();
             ValueNode old = node.getOld();
@@ -171,7 +171,7 @@ public class ReferenceCell extends IndirectionCell {
 
     public synchronized FValue getValue() {
         Transaction me  = FortressTaskRunner.getTransaction();
-        // Top Level transaction 
+        // Top Level transaction
         if (me == null) {
                         while (node.getWriter() != null) {
                                 node.AbortWriter();
@@ -180,9 +180,9 @@ public class ReferenceCell extends IndirectionCell {
             return node.getValue();
         }
 
-        if (!me.isActive()) throw new AbortedException(me, "Somebody killed me");   
+        if (!me.isActive()) throw new AbortedException(me, "Somebody killed me");
 
-        cleanup();  
+        cleanup();
 
         Transaction w = node.getWriter();
         if (w == me) {
@@ -191,7 +191,7 @@ public class ReferenceCell extends IndirectionCell {
             node.addReader();
             if (Transaction.debug) me.addRead(this, node.getValue());
             return node.getValue();
-        } else if (w.isActive()) {      
+        } else if (w.isActive()) {
             node.resolveWriteConflict();
         }
         return getValue();
@@ -206,7 +206,7 @@ public class ReferenceCell extends IndirectionCell {
                 throw new AbortedException(t, "UhOh Someone aborted me");
             else if (t.isOrphaned())
                 throw new OrphanedException(t, "UhOh I'm an orphan");
-            else 
+            else
                 throw new RuntimeException(runner.getName() + " getValueNull is about to return a null value ReferenceCell = " + this + " node = " + node + " task = " + runner.getTask());
         }
         return res;
@@ -224,7 +224,7 @@ public class ReferenceCell extends IndirectionCell {
             bug("Internal error, second store of type");
         theType = f2;
     }
-    
+
     public boolean isInitialized() {
         return getValue() != null;
     }

@@ -252,4 +252,5 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         super.forBlock( that );
         inBlock = false;
     }
+
 }
