@@ -127,8 +127,14 @@ public class ComposingSyntaxDefTranslator {
             NamedTransformerDef def = (NamedTransformerDef) transformation;
             String parameters = collectParameters(def, code, indents);
             String name = def.getName();
-            code.add(String.format("yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
-                                   type, BOUND_VARIABLES, parameters, name));
+            /* rafkind 2/15/09 horrible hack just to get XmlUse.fss to work */
+            if (type.equals("StringLiteralExpr")){
+                code.add(String.format("yyValue = new _SyntaxTransformation%s(\"bogus\", NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
+                                       type, BOUND_VARIABLES, parameters, name));
+            } else {
+                code.add(String.format("yyValue = new _SyntaxTransformation%s(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), %s, %s, \"%s\");",
+                                       type, BOUND_VARIABLES, parameters, name));
+            }
             indents.add(4);
         } else {
             throw new MacroError("Don't know what to do with " + transformation +
