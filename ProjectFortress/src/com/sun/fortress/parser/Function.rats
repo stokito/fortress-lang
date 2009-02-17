@@ -33,19 +33,55 @@ import Spacing;
 
 /* FnDecl ::=
      Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
-   | Mods? AbsFnHeaderFront FnHeaderClause
-   | FnSig
+   | AbsFnDecl
  */
 Decl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
      }
-   / a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
+   / AbsFnDecl ;
+
+/* AbsFnDecl ::=
+     Mods? AbsFnHeaderFront FnHeaderClause
+   | FnSig
+ */
+FnDecl AbsFnDecl =
+     a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = Modifiers.None;
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
      }
    / FnSig ;
+
+/* FnHeaderFront ::=
+     NamedFnHeaderFront
+   | OpHeaderFront
+ */
+FnHeaderFront FnHeaderFront =
+     NamedFnHeaderFront
+   / OpHeaderFront ;
+
+/* AbsFnHeaderFront ::=
+     AbsNamedFnHeaderFront
+   | AbsOpHeaderFront
+ */
+FnHeaderFront AbsFnHeaderFront =
+     AbsNamedFnHeaderFront
+   / AbsOpHeaderFront ;
+
+/* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
+FnHeaderFront NamedFnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* AbsNamedFnHeaderFront ::= Id (w StaticParams)? w AbsValParam */
+FnHeaderFront AbsNamedFnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:AbsValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
 
 /* FnSig ::= SimpleName w : w NoNewlineType */
 FnDecl FnSig =
@@ -89,45 +125,4 @@ FnDecl FnSig =
        */
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
                                        params, ((ArrowType)a2).getRange());
-     };
-
-/* AbsFnDecl ::=
-     Mods? AbsFnHeaderFront FnHeaderClause
-   | FnSig
- */
-FnDecl AbsFnDecl =
-     a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
-     { if (a1 == null) a1 = Modifiers.None;
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
-     }
-   / FnSig ;
-
-/* FnHeaderFront ::=
-     NamedFnHeaderFront
-   | OpHeaderFront
- */
-FnHeaderFront FnHeaderFront =
-     NamedFnHeaderFront
-   / OpHeaderFront ;
-
-/* AbsFnHeaderFront ::=
-     AbsNamedFnHeaderFront
-   | AbsOpHeaderFront
- */
-FnHeaderFront AbsFnHeaderFront =
-     AbsNamedFnHeaderFront
-   / AbsOpHeaderFront ;
-
-/* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
-FnHeaderFront NamedFnHeaderFront =
-     a1:Id a2:(w StaticParams)? w a3:ValParam
-     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
-       yyValue = new FnHeaderFront(a1, a2, a3);
-     };
-
-/* AbsNamedFnHeaderFront ::= Id (w StaticParams)? w AbsValParam */
-FnHeaderFront AbsNamedFnHeaderFront =
-     a1:Id a2:(w StaticParams)? w a3:AbsValParam
-     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
-       yyValue = new FnHeaderFront(a1, a2, a3);
      };
