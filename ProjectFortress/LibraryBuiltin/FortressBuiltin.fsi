@@ -40,7 +40,7 @@ trait Object extends Any
     getter asString(): String                (* for normal use *)
     getter asDebugString(): String    (* for debugging; may contain more information *)
     getter asExprString(): String       (* when considered as Fortress expression, will equal self *)
-    
+
     getter toString(): String                (* deprecated *)
 end
 
@@ -200,7 +200,7 @@ value object Char extends { StandardTotalOrder[\Char\] }
     isMirrored(self): Boolean
     isSpaceChar(self): Boolean
     isSupplementaryCodePoint(self): Boolean
-    isSurrogatePair(self, Char low): Boolean
+    isSurrogatePair(self, low: Char): Boolean
     isTitleCase(self): Boolean
     isUnicodeIdentifierPart(self): Boolean
     isUnicodeIdentifierStart(self): Boolean

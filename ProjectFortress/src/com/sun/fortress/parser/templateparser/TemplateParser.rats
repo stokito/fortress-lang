@@ -98,11 +98,10 @@ instantiate com.sun.fortress.parser.templateparser.Literal(MayNewlineHeader, Del
                                                            NoSpaceExpr, Symbol,
                                                            Spacing, Identifier, Gaps)
             as Literal;
-instantiate com.sun.fortress.parser.templateparser.LocalDecl(Variable, Function, Parameter,
-                                                             NoNewlineHeader, NoNewlineType,
-                                                             NoNewlineExpr, DelimitedExpr,
-                                                             Identifier, Keyword, Symbol,
-                                                             Spacing)
+instantiate com.sun.fortress.parser.templateparser.LocalDecl(Variable, NoNewlineHeader,
+                                                             NoNewlineType, NoNewlineExpr,
+                                                             DelimitedExpr, Identifier,
+                                                             Keyword, Symbol, Spacing)
             as LocalDecl;
 instantiate com.sun.fortress.parser.templateparser.Identifier(Keyword, Symbol,
                                                               Unicode, Spacing, Gaps)

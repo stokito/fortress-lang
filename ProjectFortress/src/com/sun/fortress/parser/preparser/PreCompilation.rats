@@ -626,7 +626,27 @@ transient void ValParam =
    |  Param (w , w Param)*
  */
 transient void Params =
-     (Param w comma w)* (Varargs w comma w)? Keyword (w comma w Keyword)*
+     (Param w comma w)+ (Keyword w comma w)+ Varargs
+     { log(createSpan(yyStart,yyCount),
+           "Varargs parameters should come before keyword parameters.");
+     }
+   / Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters and keyword parameters.");
+     }
+   / Varargs (w comma w Param)+ (w comma w Keyword)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters.");
+     }
+   / Keyword (w comma w Keyword)* w comma w Varargs (w comma w Param)*
+     { log(createSpan(yyStart,yyCount),
+           "Keyword parameters should come after normal parameters and varargs parameters.");
+     }
+   / Keyword (w comma w Keyword)* (w comma w Param)+ (w comma w Varargs)?
+     { log(createSpan(yyStart,yyCount),
+           "Keyword parameters should come after normal parameters and varargs parameters.");
+     }
+   / (Param w comma w)* (Varargs w comma w)? Keyword (w comma w Keyword)*
    / (Param w comma w)* Varargs
    / Param (w comma w Param)* ;
 

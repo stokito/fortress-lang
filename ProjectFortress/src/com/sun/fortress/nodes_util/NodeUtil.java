@@ -500,6 +500,10 @@ public class NodeUtil {
         return p.getVarargsType().isSome();
     }
 
+    public static boolean isKeywordParam(Param p) {
+        return p.getDefaultExpr().isSome();
+    }
+
     public static boolean isSingletonObject(VarRef v) {
         return (! v.getStaticArgs().isEmpty());
     }
@@ -1168,4 +1172,39 @@ public class NodeUtil {
         return true;
     }
 
+    public static void checkParams(BufferedWriter writer,
+                                   List<Param> params) {
+        boolean seenKeyword = false;
+        boolean seenVarargs = false;
+        for ( Param p : params ) {
+            if ( isVarargsParam(p) ) {
+                seenVarargs = true;
+                if ( seenKeyword )
+                    log(writer, getSpan(p),
+                        "Keyword parameters should come after varargs parameters.");
+            } else if ( isKeywordParam(p) ) {
+                seenKeyword = true;
+            } else {
+                if ( seenVarargs || seenKeyword )
+                    log(writer, getSpan(p),
+                        "Keyword parameters and varargs parameters should come after normal parameters.");
+            }
+        }
+    }
+
+    public static Param checkAbsParam(BufferedWriter writer, Param p) {
+        if ( p.getIdType().isNone() && p.getVarargsType().isNone() )
+            return NodeFactory.makeAbsParam(NodeFactory.makeVarType(getSpan(p), p.getName()));
+        else
+            return p;
+    }
+
+    public static List<Param> checkAbsParams(BufferedWriter writer,
+                                             List<Param> params) {
+        List<Param> absParams = new ArrayList<Param>(params.size());
+        for ( Param p : params ) {
+            absParams.add(checkAbsParam(writer, p));
+        }
+        return absParams;
+    }
 }
