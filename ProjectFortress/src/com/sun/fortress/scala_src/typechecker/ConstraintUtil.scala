@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import edu.rice.cs.plt.lambda.Lambda
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 
 /*
  * Helper methods for ConstraintFormula
