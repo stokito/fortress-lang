@@ -18,13 +18,10 @@
 /*
  * Definition of Fortress local declarations.
  */
-module com.sun.fortress.parser.LocalDecl(Variable, Function, Param, Header,
-                                         NoNewlineType, NoNewlineExpr,
-                                         DelimitedExpr, Identifier, Keyword,
-                                         Symbol, Spacing);
+module com.sun.fortress.parser.LocalDecl(Variable, Header, NoNewlineType,
+                                         NoNewlineExpr, DelimitedExpr, Identifier,
+                                         Keyword, Symbol, Spacing);
 import Variable;
-import Function;
-import Param;
 import Header;
 import NoNewlineType;
 import NoNewlineExpr;
@@ -82,10 +79,72 @@ private LetExpr LocalVarFnDecl =
 
 /* LocalFnDecl ::= Mods? NamedFnHeaderFront FnHeaderClause w = w NoNewlineExpr */
 private FnDecl LocalFnDecl =
-     a1:Mods? a2:NamedFnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     a1:Mods? a2:Id a3:(w StaticParams)? w a4:ValParam a5:FnHeaderClause w equals
+     w a6:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
+       if (a3 == null) a3 = Collections.<StaticParam>emptyList();
+       FnHeaderFront hd = new FnHeaderFront(a2, a3, a4);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,hd,a5,a6);
      };
+
+transient List<Param> ValParam =
+     openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     }
+   / a1:BindId
+     { yyValue = Useful.list(NodeFactory.makeParam(a1)); };
+
+/* Params ::=
+     (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (Param w , w)*  Varargs
+   |  Param (w , w Param)*
+ */
+transient List<Param> Params =
+     <ErrorProduction1>
+     (Param w comma w)+ (Keyword w comma w)+ Varargs
+     { log(createSpan(yyStart,yyCount),
+           "Varargs parameters should come before keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / <ErrorProduction2>
+     Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters and keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / <ErrorProduction3>
+     Varargs (w comma w Param)+ (w comma w Keyword)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
+       a4s:(w comma w Keyword)*
+     { yyValue = Useful.list(a1s.list());
+       if (a2 != null) yyValue.add(a2);
+       yyValue.add(a3);
+       yyValue.addAll(a4s.list());
+     }
+   / a1s:(Param w comma w)* a2:Varargs
+     { yyValue = Useful.list(a1s.list(), a2); }
+   / a1:Param a2s:(w comma w Param)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* Param ::= BindId (w IsType)? */
+transient Param Param =
+     a1:BindId a2:(s void:colon s NoNewlineType)?
+     { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
+       else            yyValue = NodeFactory.makeParam(a1);
+     };
+
+/* Varargs ::= BindId s : s NoNewlineType s ... */
+transient Param Varargs = a1:BindId s colon s a2:NoNewlineType s ellipses
+     { yyValue = NodeFactory.makeVarargsParam(a1, a2); };
+
+/* Keyword ::= Param s = w NoNewlineExpr */
+transient Param Keyword = a1:Param s equals w a2:NoNewlineExpr
+     { yyValue = NodeFactory.makeParam(a1, a2); };
 
 /* LocalVarDecl ::=
      (var w)? LocalVarMayTypes s = w NoNewlineExpr
