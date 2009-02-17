@@ -51,12 +51,14 @@ Param Param :=
      PlainParam
    / a1:self
      { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
-                                              "self")); };
+                                                          "self"));
+     };
 
 Param AbsParam :=
      a1:self
      { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
-                                              "self")); }
+                                                          "self"));
+     }
    / AbsPlainParam;
 
 /* OpMdHeaderFront ::=
@@ -66,36 +68,15 @@ Param AbsParam :=
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 FnHeaderFront OpHeaderFront :=
-     <Enclosing> opr big:(w BIG)? w
-     opa1:(opencurly w mapsto
-           {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
-                                                "{|->");}
-         / LeftEncloser
-         / Encloser)
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
      opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
      opa5:(w void:colonequals w openparen w SubscriptAssignParam w closeparen)?
-     { IdOrOpOrAnonymousName name;
-       Span span = createSpan(yyStart,yyCount);
-       Op leftOp = (Op)opa1;
-       String left  = leftOp.getText();
-       String right = opa4.getText();
-       if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
-           (left.equals("{|->") || left.equals("{\u21a6") ||
-            left.equals("\u007b|->") || left.equals("\u007b\u21a6")) &&
-           (right.equals("}") || right.equals("\u007d"))) {
-           if (big != null) {
-               left  = "BIG " + left;
-               right = "BIG " + right;
-           }
-       } else
-           log(NodeUtil.getSpan(leftOp),
-               "Mismatched enclosing operator definition: " +
-               left + " and " + right);
-       name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
-       Option<Param> opparam = Option.wrap(opa5);
-       yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(),
+                                            Option.wrap(big), opa2, opa3,
+                                            Option.wrap(opa5));
      }
    / ... ;
 
@@ -106,34 +87,15 @@ FnHeaderFront OpHeaderFront :=
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
  */
 FnHeaderFront AbsOpHeaderFront :=
-     <Enclosing> opr big:(w BIG)? w
-     opa1:(opencurly w mapsto
-           {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
-                                                "{|->");}
-         / LeftEncloser
-         / Encloser)
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
      opa2:(w StaticParams)? opa3:(w AbsParams)? w opa4:(RightEncloser / Encloser)
      opa5:(w void:colonequals w openparen w AbsSubscriptAssignParam w closeparen)?
-     { IdOrOpOrAnonymousName name;
-       Span span = createSpan(yyStart,yyCount);
-       Op leftOp = (Op)opa1;
-       String left  = leftOp.getText();
-       String right = opa4.getText();
-       if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
-           left.equals("{|->") && right.equals("}")) {
-           if (big != null) {
-               left  = "BIG " + left;
-               right = "BIG " + right;
-           }
-       } else
-           log(NodeUtil.getSpan(leftOp),
-               "Mismatched enclosing operator definition: " +
-               left + " and " + right);
-       name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
-       Option<Param> opparam = Option.wrap(opa5);
-       yyValue = new FnHeaderFront(name, opa2, opa3, opparam);
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(),
+                                            Option.wrap(big), opa2, opa3,
+                                            Option.wrap(opa5));
      }
    / ... ;
 
