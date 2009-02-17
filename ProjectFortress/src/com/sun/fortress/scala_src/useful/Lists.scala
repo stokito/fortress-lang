@@ -32,7 +32,7 @@ object Lists {
       }
     }
   }
-  def fromJavaList[T](xs:JavaList[T]) = {
+  def toScalaList[T](xs:JavaList[T]) = {
     var result = ScalaList[T]()
     val rightmost = xs.size - 1
     for (i <- 0 to rightmost) {
@@ -41,7 +41,7 @@ object Lists {
     result
   }
   
-  def map[S,T](list: JavaList[S], fun: S=>T ): JavaList[T] = toJavaList(fromJavaList(list).map(fun))
+  def map[S,T](list: JavaList[S], fun: S=>T ): JavaList[T] = toJavaList(toScalaList(list).map(fun))
   
 }
 

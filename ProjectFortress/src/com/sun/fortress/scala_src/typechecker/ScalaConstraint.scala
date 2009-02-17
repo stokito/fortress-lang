@@ -5,20 +5,19 @@
 
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
+    license agreement scala_and applicable provisions of the FAR scala_and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+    Sun, Sun Microsystems, the Sun logo scala_and Java are trademarks scala_or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. scala_and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.typechecker
 
 import scala.collection.immutable.HashMap
-import scala.collection.jcl.{HashMap => JavaHashMap}
 import scala.collection.jcl.MapWrapper
 import scala.collection.jcl.Conversions
 import com.sun.fortress.nodes._
@@ -29,56 +28,50 @@ import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import com.sun.fortress.compiler.typechecker.InferenceVarReplacer
 import com.sun.fortress.compiler.typechecker.SubtypeHistory
 import edu.rice.cs.plt.lambda.Lambda
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 
 /**
  * This class represents the constraints accummulated on inference variables. All
- * constraints are kept in disjunctive normal form. In order to keep the size of
- * the or method eliminates redundant constraints. Further information can be found
- * in Section 3.2.2 of Dan Smith's paper Java Type Inference is Broken
+ * constraints are kept in disjunctive normal form. In scala_order to keep the size of
+ * the scala_or method eliminates redundant constraints. Further information can be found
+ * in Section 3.2.2 of Dan Smith's paper Java Type Inference is Broken.
+ * 
+ * Currently it also works as a wrapper to interface with the Java Constraint Formulas
  */
 
-sealed abstract class ConstraintFormula{
+sealed abstract class ScalaConstraint extends ConstraintFormula{
   /**
-   * This method ands two constraint formulas
+   * This method scala_ands two constraint formulas
    */
-  def and(c2 :ConstraintFormula, history: SubtypeHistory): ConstraintFormula
+  def scala_and(c2 :ScalaConstraint, history: SubtypeHistory): ScalaConstraint
 
   /**
-   * This method ors two constraint formulas
+   * This method scala_ors two constraint formulas
    */
-  def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula
+  def scala_or(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint
 
    /**
    * If the constraints are satisfiable then this returns a substitution of types for
    * inference variables that satisfies the constraints.
    */
-  def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]]
-
-  /**
-   * 
-   */
-  def isTrue():Boolean = false
-
-  /**
-   * 
-   */
-  def isFalse():Boolean = false
-
-  /**
-   * 
-   */
-  def isSatisfiable():Boolean
-
-  /**
-   * 
-   */
-  def applySubstitution(substitution: Lambda[Type,Type]):ConstraintFormula
+  def scala_solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]]
+  
+  override def and(c: ConstraintFormula, h: SubtypeHistory):ConstraintFormula = c match{
+    case c2:ScalaConstraint => scala_and(c2,h)
+    case _ => c
+  }
+  
+  override def or(c: ConstraintFormula, h: SubtypeHistory):ConstraintFormula = c match{
+    case c2:ScalaConstraint => scala_or(c2,h)
+    case _ => c
+  }
+  
 }
 
 /**
  * Formulas with no disjunctions
  */
-sealed abstract class SimpleFormula extends ConstraintFormula{
+sealed abstract class SimpleFormula extends ScalaConstraint{
   /**
    * This method is used to determine whether a constraint formula is redundant
    */
@@ -90,26 +83,24 @@ sealed abstract class SimpleFormula extends ConstraintFormula{
  * The formula with bounds Any:>$i:>Bottom for all $i
  */
 case object CnTrue extends SimpleFormula{
-  override def and(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2
-  override def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = this
+  override def scala_and(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2
+  override def scala_or(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = this
   override def implies(c2: SimpleFormula, history: SubtypeHistory): Boolean = false
-  override def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = Some(Map.empty)
+  override def scala_solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = Some(Map.empty)
   override def isTrue():Boolean = true
-  override def isSatisfiable():Boolean = true
-  override def applySubstitution(substitution: Lambda[Type,Type]): ConstraintFormula = this
+  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
 }
 
 /**
  * The empty formula
  */
 case object CnFalse extends SimpleFormula{
-  override def and(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = this
-  override def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2
+  override def scala_and(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = this
+  override def scala_or(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2
   override def implies(c2: SimpleFormula, history: SubtypeHistory): Boolean = true
-  override def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
+  override def scala_solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
   override def isFalse():Boolean = true
-  override def isSatisfiable():Boolean = false
-  override def applySubstitution(substitution: Lambda[Type,Type]): ConstraintFormula = this
+  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
 }
 
 
@@ -119,7 +110,7 @@ case object CnFalse extends SimpleFormula{
  */
 case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVarType, Type]) extends SimpleFormula{
 
-  override def and(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2 match{
+  override def scala_and(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2 match{
     case CnTrue => this
     case CnFalse => c2
     case CnAnd(u2,l2) =>
@@ -127,11 +118,11 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
       val newlowers = mergeBounds(lowers,l2,(x:Type, y:Type) => NodeFactory.makeUnionType(x,y))
       new CnAnd(newuppers,newlowers)
     case CnOr(conjuncts) =>
-      val newconjuncts=conjuncts.map((sf: SimpleFormula)=>this.and(sf,history))
-      newconjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1: ConstraintFormula, c2: ConstraintFormula) => c1.or(c2,history))
+      val newconjuncts=conjuncts.map((sf: SimpleFormula)=>this.scala_and(sf,history))
+      newconjuncts.foldRight(CnFalse.asInstanceOf[ScalaConstraint])((c1: ScalaConstraint, c2: ScalaConstraint) => c1.scala_or(c2,history))
   }
 
-  override def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2 match{
+  override def scala_or(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2 match{
     case CnTrue => c2
     case CnFalse => this
     case c2@CnAnd(u2,l2) => (this.implies(c2,history),c2.implies(this,history)) match{
@@ -160,11 +151,9 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
       impliesuppers && implieslowers
   }
 
-  override def isSatisfiable():Boolean = true
+  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
 
-  override def applySubstitution(substitution: Lambda[Type,Type]): ConstraintFormula = this
-
-  override def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
+  override def scala_solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
 
   /**
    * Merges the bounds from two conjunctive formulas
@@ -232,29 +221,27 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
 /**
  * A disjunction of simple formulas
  */
-case class CnOr( conjuncts: List[CnAnd]) extends ConstraintFormula{
-  override def and(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2 match{
+case class CnOr( conjuncts: List[CnAnd]) extends ScalaConstraint{
+  override def scala_and(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2 match{
     case CnFalse => c2
     case CnTrue => this
-    case CnAnd(u2,l2) => c2.and(this,history)
+    case CnAnd(u2,l2) => c2.scala_and(this,history)
     case c2@CnOr(conjuncts2) =>
-      val newconjuncts = conjuncts.map((cf: ConstraintFormula) => cf.and(c2,history))
-      newconjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1: ConstraintFormula, c2: ConstraintFormula) => c1.or(c2,history))
+      val newconjuncts = conjuncts.map((cf: ScalaConstraint) => cf.scala_and(c2,history))
+      newconjuncts.foldRight(CnFalse.asInstanceOf[ScalaConstraint])((c1: ScalaConstraint, c2: ScalaConstraint) => c1.scala_or(c2,history))
   }
 
-  override def or(c2: ConstraintFormula, history: SubtypeHistory): ConstraintFormula = c2 match{
+  override def scala_or(c2: ScalaConstraint, history: SubtypeHistory): ScalaConstraint = c2 match{
     case CnFalse => this
     case CnTrue => c2
-    case CnAnd(u2,l2) => c2.or(this,history)
+    case CnAnd(u2,l2) => c2.scala_or(this,history)
     case CnOr(conjuncts2) =>
       val newconjuncts = conjuncts ++ conjuncts2
-      newconjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1: ConstraintFormula, c2: ConstraintFormula) => c1.or(c2,history))
+      newconjuncts.foldRight(CnFalse.asInstanceOf[ScalaConstraint])((c1: ScalaConstraint, c2: ScalaConstraint) => c1.scala_or(c2,history))
   }
 
-  override def solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
+  override def scala_solve(history: SubtypeHistory): Option[Map[_InferenceVarType,Type]] = None
 
-  override def isSatisfiable():Boolean = true
-
-  override def applySubstitution(substitution: Lambda[Type,Type]): ConstraintFormula = this
+  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = this
 
 }

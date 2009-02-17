@@ -76,21 +76,21 @@ public abstract class ConstraintFormula{
 
 
 	/** Determine whether the formula is false for all inference variable instantiations. */
-	public abstract boolean isFalse();
+	public boolean isFalse(){return false;}
 
 	/** Determine whether there exists some choice for inference variables that makes the formula true. */
 	public boolean isSatisfiable() { return !isFalse(); }
 
 	/** Determine whether the formula is true for all inference variable instantiations. */
-	public abstract boolean isTrue();
+	public boolean isTrue(){return false;}
 
 	/** Indicates that the given types have just gone out of scope, so in the resulting
 	 *  ConstraintFormula they must not be mentioned. */
-	public abstract ConstraintFormula removeTypesFromScope(List<VarType> types);
+	public ConstraintFormula removeTypesFromScope(List<VarType> types){return this;}
 
 	/** Merge this and another formula by asserting that one of the two must be true. */
 	public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
 
-	public abstract ConstraintFormula solve();
+	public ConstraintFormula solve() {return this;}
 
 }
