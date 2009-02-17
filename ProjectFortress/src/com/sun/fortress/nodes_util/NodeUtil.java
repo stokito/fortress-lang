@@ -38,6 +38,8 @@ import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
+import com.sun.fortress.parser_util.FnHeaderFront;
+import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -1207,4 +1209,64 @@ public class NodeUtil {
         }
         return absParams;
     }
+
+    public static FnHeaderFront makeOpHeaderFront(BufferedWriter writer, Span span,
+                                                  Op leftOp, String right,
+                                                  Option<String> big,
+                                                  List<StaticParam> sparams,
+                                                  List<Param> params) {
+        return makeOpHeaderFront(writer, span, leftOp, right, big, sparams, params,
+                                 Option.<Param>none());
+    }
+
+    public static FnHeaderFront makeOpHeaderFront(BufferedWriter writer, Span span,
+                                                  Op leftOp, String right,
+                                                  Option<String> big,
+                                                  List<StaticParam> sparams,
+                                                  List<Param> params,
+                                                  Option<Param> opparam) {
+        String left  = leftOp.getText();
+        if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
+            (left.equals("{|->") || left.equals("{\u21a6") ||
+             left.equals("\u007b|->") || left.equals("\u007b\u21a6")) &&
+            (right.equals("}") || right.equals("\u007d"))) {
+            if (big.isSome()) {
+                left  = "BIG " + left;
+                right = "BIG " + right;
+            }
+        } else
+            log(writer, getSpan(leftOp),
+                "Mismatched enclosing operator definition: " + left + " and " + right);
+        IdOrOpOrAnonymousName name = NodeFactory.makeEnclosing(span, left, right);
+        return new FnHeaderFront(name, sparams, params, opparam);
+    }
+
+    public static FnHeaderFront makeOpHeaderFront(BufferedWriter writer, Span span,
+                                                  Op op, Option<String> big,
+                                                  Option<List<StaticParam>> sparams,
+                                                  List<Param> params) {
+        if (big.isSome())
+            op = NodeFactory.makeOpBig(getSpan(op), "BIG " + op.getText());
+        else if (op.getText().equals("BIG +") ||
+                 op.getText().equals("BIG juxtaposition")) {
+            op = op;
+        } else if (params.size() == 0) { // nofix
+            op = NodeFactory.makeOpNofix(op);
+        } else if (isMultifix(params)) { // multifix
+            op = NodeFactory.makeOpMultifix(op);
+        } else if (params.size() == 1) { // prefix
+            op = NodeFactory.makeOpPrefix(op);
+        } else if (params.size() == 2) { // infix
+            op = NodeFactory.makeOpInfix(op);
+        } else { // error
+            log(writer, getSpan(op),
+                "Operator fixity is invalid in its declaration.");
+            op = NodeFactory.makeOpNofix(op);
+        }
+        if (sparams.isNone())
+            return new FnHeaderFront(op, params);
+        else
+            return new FnHeaderFront(op, sparams.unwrap(), params);
+    }
+
 }

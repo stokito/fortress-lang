@@ -54,72 +54,24 @@ transient List<Param> AbsValParam =
    | (Param w , w)*  Varargs
    |  Param (w , w Param)*
  */
+transient Param Parameter = Keyword / Varargs / Param ;
 transient List<Param> Params =
-     <ErrorProduction1>
-     (Param w comma w)+ (Keyword w comma w)+ Varargs
-     { log(createSpan(yyStart,yyCount),
-           "Varargs parameters should come before keyword parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / <ErrorProduction2>
-     Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
-     { log(createSpan(yyStart,yyCount),
-           "Normal parameters should come before varargs parameters and keyword parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / <ErrorProduction3>
-     Varargs (w comma w Param)+ (w comma w Keyword)*
-     { log(createSpan(yyStart,yyCount),
-           "Normal parameters should come before varargs parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
-       a4s:(w comma w Keyword)*
-     { yyValue = Useful.list(a1s.list());
-       if (a2 != null) yyValue.add(a2);
-       yyValue.add(a3);
-       yyValue.addAll(a4s.list());
-     }
-   / a1s:(Param w comma w)* a2:Varargs
-     { yyValue = Useful.list(a1s.list(), a2); }
-   / a1:Param a2s:(w comma w Param)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:Parameter a2s:(w comma w Parameter)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     };
 
 /* AbsParams ::=
      (AbsParam w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
    | (AbsParam w , w)*  Varargs
    |  AbsParam (w , w AbsParam)*
  */
+transient Param AbsParameter = Keyword / Varargs / AbsParam ;
 transient List<Param> AbsParams =
-     <ErrorProduction1>
-     (AbsParam w comma w)+ (Keyword w comma w)+ Varargs
-     { log(createSpan(yyStart,yyCount),
-           "Varargs parameters should come before keyword parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / <ErrorProduction2>
-     Varargs w comma w (Keyword w comma w)+ AbsParam (w comma w AbsParam)*
-     { log(createSpan(yyStart,yyCount),
-           "Normal parameters should come before varargs parameters and keyword parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / <ErrorProduction3>
-     Varargs (w comma w AbsParam)+ (w comma w Keyword)*
-     { log(createSpan(yyStart,yyCount),
-           "Normal parameters should come before varargs parameters.");
-       yyValue = Collections.<Param>emptyList();
-     }
-   / a1s:(AbsParam w comma w)* a2:(Varargs w comma w)? a3:Keyword
-       a4s:(w comma w Keyword)*
-     { yyValue = Useful.list(a1s.list());
-       if (a2 != null) yyValue.add(a2);
-       yyValue.add(a3);
-       yyValue.addAll(a4s.list());
-     }
-   / a1s:(AbsParam w comma w)* a2:Varargs
-     { yyValue = Useful.list(a1s.list(), a2); }
-   / a1:AbsParam a2s:(w comma w AbsParam)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:AbsParameter a2s:(w comma w AbsParameter)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     };
 
 /* Varargs ::= BindId w : w Type w ... */
 transient Param VarargsParam = a1:BindId w colon w a2:Type w ellipses
@@ -152,75 +104,37 @@ transient Param AbsParam = AbsPlainParam ;
    | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
+transient Op LeftOp =
+     opencurly w mapsto
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), "{|->"); }
+   / LeftEncloser
+   / Encloser ;
+transient Op SingleOp =
+     Op
+   / caret { yyValue=NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^"); }
+   / Encloser
+   / SUM  { yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); }
+   / PROD { yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                          "BIG juxtaposition"); };
 FnHeaderFront OpHeaderFront =
-     <Enclosing> opr big:(w BIG)? w
-     opa1:(opencurly w mapsto
-           {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
-                                                "{|->");}
-         / LeftEncloser
-         / Encloser)
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
      opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
-     { IdOrOpOrAnonymousName name;
-       Span span = createSpan(yyStart,yyCount);
-       Op leftOp = (Op)opa1;
-       String left  = leftOp.getText();
-       String right = opa4.getText();
-       if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
-           (left.equals("{|->") || left.equals("{\u21a6") ||
-            left.equals("\u007b|->") || left.equals("\u007b\u21a6")) &&
-           (right.equals("}") || right.equals("\u007d"))) {
-           if (big != null) {
-               left  = "BIG " + left;
-               right = "BIG " + right;
-           }
-       } else
-           log(NodeUtil.getSpan(leftOp),
-               "Mismatched enclosing operator definition: " +
-               left + " and " + right);
-       name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
-       yyValue = new FnHeaderFront(name, opa2, opa3);
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(), Option.wrap(big),
+                                            opa2, opa3);
      }
    / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (a3 == null)
+     { if (a3 == null)
            yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
        else
            yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
      }
-   / opr big:(w BIG)? w
-     a1:(Op
-        / caret {yyValue=NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount),
-                                                   "^");}
-        / Encloser
-        / SUM  {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
-                                              "BIG +");}
-        / PROD {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
-                                              "BIG juxtaposition");})
-     a2:(w StaticParams)? w a3:ValParam
-     { Span span = createSpan(yyStart,yyCount);
-       Op op = (Op)a1;
-       if (big != null)
-           op = NodeFactory.makeOpBig(NodeUtil.getSpan(op), "BIG " + op.getText());
-       else if (op.getText().equals("BIG +") ||
-                op.getText().equals("BIG juxtaposition")) {
-           op = op;
-       } else if (a3.size() == 0) { // nofix
-           op = NodeFactory.makeOpNofix(op);
-       } else if (NodeUtil.isMultifix(a3)) { // multifix
-           op = NodeFactory.makeOpMultifix(op);
-       } else if (a3.size() == 1) { // prefix
-           op = NodeFactory.makeOpPrefix(op);
-       } else if (a3.size() == 2) { // infix
-           op = NodeFactory.makeOpInfix(op);
-       } else { // error
-           log(NodeUtil.getSpan(op),
-               "Operator fixity is invalid in its declaration.");
-           op = NodeFactory.makeOpNofix(op);
-       }
-       if (a2 == null) yyValue = new FnHeaderFront(op, a3);
-       else            yyValue = new FnHeaderFront(op, a2, a3);
+   / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:ValParam
+     { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            a1, Option.wrap(big), Option.wrap(a2),
+                                            a3);
      };
 
 /* AbsOpHeaderFront ::=
@@ -230,70 +144,22 @@ FnHeaderFront OpHeaderFront =
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
  */
 FnHeaderFront AbsOpHeaderFront =
-     <Enclosing> opr big:(w BIG)? w
-     opa1:(opencurly w mapsto
-           {yyValue=NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
-                                                "{|->");}
-         / LeftEncloser
-         / Encloser)
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
      opa2:(w StaticParams)? opa3:(w AbsParams)? w opa4:(RightEncloser / Encloser)
-     { IdOrOpOrAnonymousName name;
-       Span span = createSpan(yyStart,yyCount);
-       Op leftOp = (Op)opa1;
-       String left  = leftOp.getText();
-       String right = opa4.getText();
-       if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
-           left.equals("{|->") && right.equals("}")) {
-           if (big != null) {
-               left  = "BIG " + left;
-               right = "BIG " + right;
-           }
-       } else
-           log(NodeUtil.getSpan(leftOp),
-               "Mismatched enclosing operator definition: " +
-               left + " and " + right);
-       name = NodeFactory.makeEnclosing(span, left, right);
-       if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
-       yyValue = new FnHeaderFront(name, opa2, opa3);
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(), Option.wrap(big),
+                                            opa2, opa3);
      }
    / opr w a1:AbsValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (a3 == null)
+     { if (a3 == null)
            yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a1);
        else
            yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
      }
-   / opr big:(w BIG)? w
-     a1:(Op
-        / caret {yyValue=NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount),
-                                                   "^");}
-        / Encloser
-        / SUM  {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
-                                              "BIG +");}
-        / PROD {yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
-                                              "BIG juxtaposition");})
-     a2:(w StaticParams)? w a3:AbsValParam
-     { Span span = createSpan(yyStart,yyCount);
-       Op op = (Op)a1;
-       if (big != null)
-           op = NodeFactory.makeOpBig(NodeUtil.getSpan(op), "BIG " + op.getText());
-       else if (op.getText().equals("BIG +") ||
-                op.getText().equals("BIG juxtaposition")) {
-           op = op;
-       } else if (a3.size() == 0) { // nofix
-           op = NodeFactory.makeOpNofix(op);
-       } else if (NodeUtil.isMultifix(a3)) { // multifix
-           op = NodeFactory.makeOpMultifix(op);
-       } else if (a3.size() == 1) { // prefix
-           op = NodeFactory.makeOpPrefix(op);
-       } else if (a3.size() == 2) { // infix
-           op = NodeFactory.makeOpInfix(op);
-       } else { // error
-           op = NodeFactory.makeOpNofix(op);
-           log(NodeUtil.getSpan(op),
-               "Operator fixity is invalid in its declaration.");
-       }
-       if (a2 == null) yyValue = new FnHeaderFront(op, a3);
-       else            yyValue = new FnHeaderFront(op, a2, a3);
+   / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:AbsValParam
+      { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            a1, Option.wrap(big), Option.wrap(a2),
+                                            a3);
      };
