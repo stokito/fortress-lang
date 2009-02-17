@@ -91,8 +91,6 @@ public abstract class ConstraintFormula{
 	/** Merge this and another formula by asserting that one of the two must be true. */
 	public abstract ConstraintFormula or(ConstraintFormula c, SubtypeHistory history);
 
-	public ConstraintFormula solve() {
-		return this;
-	}
+	public abstract ConstraintFormula solve();
 
 }
