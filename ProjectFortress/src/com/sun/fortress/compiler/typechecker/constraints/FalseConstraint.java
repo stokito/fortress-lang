@@ -28,11 +28,12 @@ import edu.rice.cs.plt.lambda.Lambda;
 public class FalseConstraint extends ConstraintFormula {
 	public static FalseConstraint FALSE = new FalseConstraint();
 	private FalseConstraint(){}
-	public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
-	public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
-	public boolean isFalse() { return true; }
-	public boolean isTrue() { return false; }
-	public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
-	public String toString() { return "(false)"; }
+	@Override public ConstraintFormula and(ConstraintFormula f, SubtypeHistory history) { return this; }
+	@Override public ConstraintFormula applySubstitution(Lambda<Type, Type> sigma) { return this; }
+	@Override public boolean isFalse() { return true; }
+	@Override public boolean isTrue() { return false; }
+	@Override public ConstraintFormula or(ConstraintFormula f, SubtypeHistory history) { return f; }
+	@Override public String toString() { return "(false)"; }
 	@Override public ConstraintFormula removeTypesFromScope(List<VarType> types) { return this; }
+	@Override public ConstraintFormula solve(){return this;}
 }

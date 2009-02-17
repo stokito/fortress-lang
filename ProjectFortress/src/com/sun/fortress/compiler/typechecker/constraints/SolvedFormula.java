@@ -85,4 +85,7 @@ public class SolvedFormula extends ConstraintFormula {
 	public ConstraintFormula removeTypesFromScope(List<VarType> types) {
 		return bug("Once constraint has been solved, this should not be called");
 	}
+	
+	@Override
+	public ConstraintFormula solve(){ return this;}
 }
