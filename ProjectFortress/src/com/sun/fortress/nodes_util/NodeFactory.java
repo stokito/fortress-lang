@@ -272,11 +272,24 @@ public class NodeFactory {
                                           List<Decl> decls,
                                           List<BaseType> excludesC,
                                           Option<List<BaseType>> comprisesC) {
+        return makeTraitDecl(span, mods, name, sparams, extendsC, whereC, decls,
+                             excludesC, comprisesC, false);
+    }
+
+    public static TraitDecl makeTraitDecl(Span span, Modifiers mods, Id name,
+                                          List<StaticParam> sparams,
+                                          List<TraitTypeWhere> extendsC,
+                                          Option<WhereClause> whereC,
+                                          List<Decl> decls,
+                                          List<BaseType> excludesC,
+                                          Option<List<BaseType>> comprisesC,
+                                          boolean comprisesEllipses) {
         TraitTypeHeader header = makeTraitTypeHeader(mods, name, sparams, whereC,
                                                      Option.<List<BaseType>>none(),
                                                      Option.<Contract>none(),
                                                      extendsC, decls);
-        return new TraitDecl(makeSpanInfo(span), header, excludesC, comprisesC);
+        return new TraitDecl(makeSpanInfo(span), header, excludesC, comprisesC,
+                             comprisesEllipses);
     }
 
     public static ObjectDecl makeObjectDecl(Span span, Id name,
@@ -373,14 +386,13 @@ public class NodeFactory {
 
     public static FnDecl mkFnDecl(Span span, Modifiers mods, IdOrOpOrAnonymousName name,
                                  List<StaticParam> sparams, List<Param> params,
-                                 FnHeaderClause fhc, Expr expr) {
+                                 FnHeaderClause fhc, Option<Expr> expr) {
         Option<List<BaseType>> throws_ = fhc.getThrowsClause();
         Option<WhereClause> where_ = fhc.getWhereClause();
         Option<Contract> contract = fhc.getContractClause();
         return makeFnDecl(span, mods, name,
                           sparams, params, Option.<Type>none(),
-                          throws_, where_, contract,
-                          Option.<Expr>some(expr));
+                          throws_, where_, contract, expr);
     }
 
     public static FnDecl makeFnDecl(Span span, Modifiers mods,

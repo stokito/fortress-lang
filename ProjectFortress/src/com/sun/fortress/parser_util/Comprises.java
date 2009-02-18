@@ -29,14 +29,26 @@ import com.sun.fortress.nodes.BaseType;
 
 public class Comprises extends TraitClause {
     private Option<List<BaseType>> comprises = Option.none();
+    private boolean ellipses = false;
+
+    public Comprises(Span span, List<BaseType> comprises, boolean ellipses) {
+        super(span);
+        this.comprises = Option.some(comprises);
+        this.ellipses = ellipses;
+    }
 
     public Comprises(Span span, List<BaseType> comprises) {
         super(span);
         this.comprises = Option.some(comprises);
+        this.ellipses = false;
     }
 
     public Option<List<BaseType>> getComprises() {
         return comprises;
+    }
+
+    public boolean hasEllipses() {
+        return ellipses;
     }
 
     public String message() {

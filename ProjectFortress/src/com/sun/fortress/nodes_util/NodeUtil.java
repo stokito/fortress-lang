@@ -1186,7 +1186,7 @@ public class NodeUtil {
                         "Keyword parameters should come after varargs parameters.");
             } else if ( isKeywordParam(p) ) {
                 seenKeyword = true;
-            } else {
+            } else { // normal parameter
                 if ( seenVarargs || seenKeyword )
                     log(writer, getSpan(p),
                         "Keyword parameters and varargs parameters should come after normal parameters.");
@@ -1208,6 +1208,56 @@ public class NodeUtil {
             absParams.add(checkAbsParam(writer, p));
         }
         return absParams;
+    }
+
+    // AbsVarDecl / GetterSetterDecl / PropertyDecl
+    private static boolean isFieldLike(Decl d) {
+        return ( d instanceof VarDecl ||
+                 d instanceof FnDecl &&
+                 (isGetter((FnDecl)d) || isSetter((FnDecl)d)) ||
+                 d instanceof PropertyDecl );
+    }
+
+    private static boolean isCoercion(Decl d) {
+        return ( d instanceof FnDecl &&
+                 getName((FnDecl)d) instanceof Id &&
+                 ((Id)getName((FnDecl)d)).getText().equals("coerce") );
+    }
+
+    public static void checkMembers(BufferedWriter writer, List<Decl> members) {
+        boolean seenField = false;
+        boolean seenMethod = false;
+        for ( Decl d : members ) {
+            if ( isCoercion(d) ) {
+                if ( seenField || seenMethod ) {
+                    log(writer, getSpan(d),
+                        "Coercion declarations should come first.");
+                }
+            } else if ( isFieldLike(d) ) {
+                seenField = true;
+                if ( seenMethod )
+                    log(writer, getSpan(d),
+                        "Field/getter/setter declarations should come " +
+                        "before method declarations.");
+            } else // method and property declarations
+                seenMethod = true;
+        }
+    }
+
+    public static void checkAbsMembers(BufferedWriter writer, List<Decl> members) {
+        checkMembers(writer, members);
+        absDecls(writer, members);
+    }
+
+    private static void absDecls(BufferedWriter writer, List<Decl> members) {
+        for ( Decl d : members ) {
+            if ( d instanceof VarDecl &&
+                 ((VarDecl)d).getInit().isSome() ||
+                 d instanceof FnDecl &&
+                 ((FnDecl)d).getBody().isSome() )
+                log(writer, getSpan(d),
+                    "Declarations in APIs should not have defining expressions.");
+        }
     }
 
     public static FnHeaderFront makeOpHeaderFront(BufferedWriter writer, Span span,
