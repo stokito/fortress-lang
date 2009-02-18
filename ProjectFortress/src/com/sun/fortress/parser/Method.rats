@@ -43,17 +43,15 @@ FnDecl MdDecl =
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
      a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { a1 = Modifiers.nonNull(a1);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1,
-                                       a2, a3, a4);
+     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
+                                      Modifiers.nonNull(a1), a2, a3, a4);
      };
 
-/* AbsMdDecl ::= (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause */
+/* AbsMdDecl ::= Mods? AbsMdHeaderFront FnHeaderClause */
 FnDecl AbsMdDecl =
-     a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
-     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2);;
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       a3, a4);
+     a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
+     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
+                                      Modifiers.nonNull(a1), a2, a3);
      };
 
 /* MdHeaderFront ::=
@@ -88,42 +86,24 @@ FnHeaderFront AbsNamedMdHeaderFront =
 
 /* GetterSetterDecl ::=
      GetterSetterDef
-   | (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
+   | AbsGetterSetterDecl
  */
 FnDecl GetterSetterDecl =
      GetterSetterDef
-   / a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
-     a5:FnHeaderClause
-     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2,a3);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       a4, a5);
-     };
+   / AbsGetterSetterDecl ;
 
-/* GetterSetterDef ::=
-     Mods? GetterSetterMod MdHeaderFront FnHeaderClause w = w NoNewlineExpr
- */
+/* GetterSetterDef ::= Mods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl GetterSetterDef =
-     a1:Mods? a2:GetterSetterMod a3:MdHeaderFront a4:FnHeaderClause w equals w
-     a5:NoNewlineExpr
-     { a1 = Modifiers.combine(a1,a2);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1,
-                                       a3, a4, a5);
+     a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
+                                      Modifiers.nonNull(a1), a2, a3, a4);
      };
 
-/* GetterSetterMod ::= getter w | setter w */
-transient private Modifiers GetterSetterMod =
-     a1:getter w { yyValue = Modifiers.Getter;}
-   / a1:setter w { yyValue = Modifiers.Setter;};
-
-/* AbsGetterSetterDecl ::=
-     (abstract w) Mods? GetterSetterMod AbsMdHeaderFront FnHeaderClause
- */
+/* AbsGetterSetterDecl ::= Mods? AbsMdHeaderFront FnHeaderClause */
 FnDecl AbsGetterSetterDecl =
-     a1:(abstract w)? a2:Mods? a3:GetterSetterMod a4:AbsMdHeaderFront
-     a5:FnHeaderClause
-     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2,a3);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       a4, a5);
+     a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
+     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
+                                      Modifiers.nonNull(a1), a2, a3);
      };
 
 /* Coercion ::=
@@ -131,71 +111,21 @@ FnDecl AbsGetterSetterDecl =
      w = w NoNewlineExpr
    AbsCoercion ::=
      coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
+   CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)?
+   CoercionWhere ::=
+     where w [\ w WhereBindingList w \] (w { w CoercionWhereConstraintList w })?
+   | where w { w CoercionWhereConstraintList w }
+   CoercionWhereConstraintList ::=
+     CoercionWhereConstraint (w , w CoercionWhereConstraint)*
  */
 Decl Coercion =
      coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
-     a4:CoercionClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
+     a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
      { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
        List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
-       Span span = createSpan(yyStart+9,8);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                      NodeFactory.makeId(span,"coerce"), a1,
-                                      params, a4, Option.wrap(a6));
-     };
-
-/* CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)? */
-private FnHeaderClause CoercionClauses =
-     a1:(w CoercionWhere)? a2:(w Ensures)? a3:(w Invariant)?
-     { Option<WhereClause> where;
-       if (a1 == null)
-           where = Option.<WhereClause>none();
-       else
-           where = Option.some(a1);
-       Option<Contract> contractClause;
-       if (a2 == null && a3 == null) contractClause = Option.<Contract>none();
-       else contractClause = Option.<Contract>some(
-                                    NodeFactory.makeContract(createSpan(yyStart,yyCount),
-                                                 Option.<List<Expr>>none(),
-                                                 Option.wrap(a2),
-                                                 Option.wrap(a3)));
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(), where,
-                                    contractClause, Option.<Type>none());
-     };
-
-/* CoercionWhere ::=
-     where w [\ w WhereBindingList w \] (w { w CoercionWhereConstraintList w })?
-   | where w { w CoercionWhereConstraintList w }
- */
-private WhereClause CoercionWhere =
-     where w opendoublesquare w a1:WhereBindingList w closedoublesquare
-     a2:(w void:opencurly w CoercionWhereConstraintList w void:closecurly)?
-     { if (a2 == null)
-         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                   a1, Collections.<WhereConstraint>emptyList());
-       else
-         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                   a1, a2);
-     }
-   / where w opencurly w a1:CoercionWhereConstraintList w closecurly
-     { yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                 Collections.<WhereBinding>emptyList(), a1);
-     };
-
-/* CoercionWhereConstraintList ::=
-     CoercionWhereConstraint (w , w CoercionWhereConstraint)*
- */
-private List<WhereConstraint> CoercionWhereConstraintList =
-     a1:CoercionWhereConstraint a2s:(w comma w CoercionWhereConstraint)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* CoercionWhereConstraint ::=
-     WhereConstraint
-   | Type w widens w or w coerces w Type
-*/
-private WhereConstraint CoercionWhereConstraint =
-     WhereConstraint
-   / a1:Type w widens w or w coerces w a2:Type
-     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
-                                  true, true);
+       Span span = createSpan(yyStart,yyCount);
+       NodeUtil.checkCoercionClauses(writer, span, a4);
+       yyValue = NodeFactory.mkFnDecl(span, mods, NodeFactory.makeId(span,"coerce"),
+                                      a1, params, a4, Option.wrap(a6));
      };

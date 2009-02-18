@@ -109,8 +109,10 @@ private NonterminalHeader NonterminalHeader =
           Option<WhereClause> where;
           if (whereClauses == null)
               where = Option.<WhereClause>none();
-          else
-              where = Option.some(whereClauses);
+          else {
+              where = Option.<WhereClause>some(whereClauses);
+              NodeUtil.checkWhereClauses(writer, whereClauses);
+          }
           yyValue = new NonterminalHeader(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)), mod, name,
                                           params, staticParams, type1, where);
         };

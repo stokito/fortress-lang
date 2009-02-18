@@ -50,8 +50,10 @@ private TraitTypeWhere TraitTypeWhere =
      { Option<WhereClause> where;
        if (a2 == null)
            where = Option.<WhereClause>none();
-       else
-           where = Option.some(a2);
+       else {
+           where = Option.<WhereClause>some(a2);
+           NodeUtil.checkWhereClauses(writer, a2);
+       }
        yyValue = NodeFactory.makeTraitTypeWhere(createSpan(yyStart,yyCount),
                                                 a1, where);
      };
@@ -197,6 +199,7 @@ transient WhereBinding WhereBinding =
 /* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
      { Option<Type> returnType = Option.wrap(a1);
+       NodeUtil.checkWhereClauses(writer, a2.getWhereClause());
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), returnType);
      };
@@ -263,22 +266,26 @@ private List<BaseType> MayTraitTypes =
      opencurly w closecurly { yyValue = Collections.<BaseType>emptyList(); }
    / TraitTypes ;
 
-/* Each modifier cannot appear more than once. */
 /* Mods ::= (Mod w)+ */
 transient Modifiers Mods = a1s:(Mod w)+
-     { yyValue = NodeUtil.noDuplicate(writer, createSpan(yyStart,yyCount), a1s);
+     { yyValue = NodeUtil.checkModifiers(writer, createSpan(yyStart,yyCount),
+                                         a1s.list());
      };
 
 /* Mod ::=
-   atomic | hidden | io | override | private | settable | test | value | var | wrapped
+     abstract atomic | getter | hidden | io | override | private | settable
+   | setter | test | value | var | wrapped
  */
 transient Modifiers Mod =
-     atomic   { yyValue = Modifiers.Atomic; }
+     abstract { yyValue = Modifiers.Abstract; }
+   / atomic   { yyValue = Modifiers.Atomic; }
+   / getter   { yyValue = Modifiers.Getter; }
    / hidden   { yyValue = Modifiers.Hidden; }
    / io       { yyValue = Modifiers.IO; }
    / override { yyValue = Modifiers.Override; }
    / private  { yyValue = Modifiers.Private; }
    / settable { yyValue = Modifiers.Settable; }
+   / setter   { yyValue = Modifiers.Setter; }
    / test     { yyValue = Modifiers.Test; }
    / value    { yyValue = Modifiers.Value; }
    / var      { yyValue = Modifiers.Var; }

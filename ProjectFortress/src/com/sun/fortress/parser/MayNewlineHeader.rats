@@ -51,6 +51,7 @@ transient List<WhereConstraint> WhereConstraintList =
    | QualifiedName w = w QualifiedName
    | IntConstraint
    | BoolConstraint
+   | Type w widens w or w coerces w Type
  */
 transient WhereConstraint WhereConstraint =
      a1:Id w a2:Extends
@@ -76,7 +77,11 @@ transient WhereConstraint WhereConstraint =
      { yyValue = NodeFactory.makeWhereEquals(createSpan(yyStart,yyCount), a1, a2); }
    / IntConstraint
    / a1:BoolConstraint
-     { yyValue = NodeFactory.makeBoolConstraintExpr(createSpan(yyStart,yyCount), a1); };
+     { yyValue = NodeFactory.makeBoolConstraintExpr(createSpan(yyStart,yyCount), a1); }
+   / a1:Type w widens w or w coerces w a2:Type
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                              true, true);
+     };
 
 /* UnitConstraint ::=
      dimensionless w = w Id
