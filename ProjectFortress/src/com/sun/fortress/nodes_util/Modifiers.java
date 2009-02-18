@@ -32,8 +32,8 @@ import java.io.Serializable;
  * AbsTraitMod   ::= value | test
  * ObjectMods    ::= TraitMods
  * AbsObjectMods ::= AbsTraitMods
- * MdMod         ::= FnMod | override
- * AbsMdMod      ::= AbsFnMod | override
+ * MdMod         ::= FnMod | getter | override | setter
+ * AbsMdMod      ::= AbsFnMod | abstract | getter | override | setter
  * FnMod         ::= AbsFnMod | private
  * AbsFnMod      ::= LocalFnMod | test
  * LocalFnMod    ::= atomic | io
@@ -152,9 +152,9 @@ public final class Modifiers implements Serializable {
     public static final Modifiers AbsObjectMod  = AbsTraitMod;
     public static final Modifiers LocalFnMod    = Atomic.combine(IO);
     public static final Modifiers AbsFnMod      = LocalFnMod.combine(Test);
-    public static final Modifiers AbsMdMod      = AbsFnMod.combine(Override);
+    public static final Modifiers AbsMdMod      = AbsFnMod.combine(Abstract.combine(Getter.combine(Override.combine(Setter))));
     public static final Modifiers FnMod         = AbsFnMod.combine(Private);
-    public static final Modifiers MdMod         = FnMod.combine(Override);
+    public static final Modifiers MdMod         = FnMod.combine(Getter.combine(Override.combine(Setter)));
     public static final Modifiers ParamFldMod   = Var.combine(Hidden.combine(Settable.combine(Wrapped)));
     public static final Modifiers AbsVarMod     = Var.combine(Test);
     public static final Modifiers VarMod        = AbsVarMod.combine(Private);

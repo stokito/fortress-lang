@@ -39,6 +39,7 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.parser_util.FnHeaderFront;
+import com.sun.fortress.parser_util.FnHeaderClause;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -1071,15 +1072,28 @@ public class NodeUtil {
         return true;
     }
 
-    public static Modifiers noDuplicate(BufferedWriter writer, final Span span,
-                                        Iterable<Modifiers> mods) {
+    /* Each modifier cannot appear more than once.
+     * The modifier abstract should be the last one.
+     * The modifiers getter/setter should be the last one.
+     */
+    public static Modifiers checkModifiers(BufferedWriter writer, final Span span,
+                                           List<Modifiers> mods) {
         Modifiers res = Modifiers.None;
+        int index = 0;
         for (Modifiers mod : mods) {
+            if ( mod.isAbstract() && index > 0 )
+                log(writer, span,
+                    "Modifier " + mod + " should come first.");
+            if ( (mod.isGetter() || mod.isSetter()) &&
+                 index != mods.size()-1 )
+                log(writer, span,
+                    "Modifier " + mod + " should come last.");
             if (res.containsAny(mod)) {
                 log(writer, span,
-                    "Modifier " + mod + " must not occur multiple times");
+                    "Modifier " + mod + " must not occur multiple times.");
             }
             res = res.combine(mod);
+            index++;
         }
         return res;
     }
@@ -1257,6 +1271,36 @@ public class NodeUtil {
                  ((FnDecl)d).getBody().isSome() )
                 log(writer, getSpan(d),
                     "Declarations in APIs should not have defining expressions.");
+        }
+    }
+
+    /* No throws clause
+     * No requires clause
+     */
+    public static void checkCoercionClauses(BufferedWriter writer, Span span,
+                                            FnHeaderClause fnh) {
+        if ( fnh.getThrowsClause().isSome() )
+            log(writer, span, "Coercion declarations are not allowed to have " +
+                "throws clauses.");
+        if ( fnh.getContractClause().isSome() &&
+             fnh.getContractClause().unwrap().getRequiresClause().isSome() )
+            log(writer, span, "Coercion declarations are not allowed to have " +
+                "requires clauses.");
+    }
+
+    /* No coercion constraint: Type widens or coerces Type */
+    public static void checkWhereClauses(BufferedWriter writer,
+                                         Option<WhereClause> where) {
+        if ( where.isSome() ) checkWhereClauses(writer, where.unwrap());
+    }
+    public static void checkWhereClauses(BufferedWriter writer,
+                                         WhereClause where) {
+        for ( WhereConstraint c : where.getConstraints() ) {
+            if ( c instanceof WhereCoerces &&
+                 ((WhereCoerces)c).isCoerces() &&
+                 ((WhereCoerces)c).isWidens() )
+                log(writer, getSpan(c), "This where clause constraint is " +
+                    "allowed only for coercion declarations.");
         }
     }
 

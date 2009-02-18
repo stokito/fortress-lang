@@ -88,6 +88,7 @@ private TraitClause TraitClause =
    / a1:Where
      { yyValue = new Where(createSpan(yyStart,yyCount),
                            Option.<WhereClause>some(a1));
+       NodeUtil.checkWhereClauses(writer, a1);
      }
    / <ErrorProduction>
      ExtendsWhere
@@ -146,6 +147,7 @@ private ObjectHeader ObjectHeader =
      a4:(w ExtendsWhere)? a5:FnClauses
      { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid object name.");
+       NodeUtil.checkWhereClauses(writer, a5.getWhereClause());
        yyValue = new ObjectHeader(NodeFactory.bogusId(span),
                                   Collections.<StaticParam>emptyList(),
                                   Option.<List<Param>>none(),
@@ -156,6 +158,7 @@ private ObjectHeader ObjectHeader =
      { Option<List<Param>> ps = Option.wrap(a3);
        if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
+       NodeUtil.checkWhereClauses(writer, a5.getWhereClause());
        yyValue = new ObjectHeader(a1, a2, ps, a4, a5);
      };
 
