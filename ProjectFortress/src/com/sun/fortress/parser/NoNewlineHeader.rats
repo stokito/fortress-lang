@@ -62,12 +62,6 @@ List<BaseType> Extends = extends w TraitTypes ;
 /* Excludes ::= excludes w TraitTypes */
 List<BaseType> Excludes = excludes w TraitTypes ;
 
-/* Comprises ::= comprises w TraitTypes */
-List<BaseType> Comprises = comprises w TraitTypes ;
-
-/* AbsComprises ::= comprises w ComprisingTypes */
-List<BaseType> AbsComprises = comprises w ComprisingTypes ;
-
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
 List<BaseType> TraitTypes =
      a1:TraitType { yyValue = Useful.list(a1); }
@@ -77,20 +71,28 @@ List<BaseType> TraitTypes =
 private List<BaseType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
      { yyValue = Useful.cons(a1, a2s.list()); };
 
+/*    Comprises ::= comprises w TraitTypes */
+/* AbsComprises ::= comprises w ComprisingTypes */
 /* ComprisingTypes ::= TraitType | { w ComprisingTypeList w } */
-private List<BaseType> ComprisingTypes =
-     a1:TraitType { yyValue = Useful.list(a1); }
-   / void:opencurly w ComprisingTypeList w void:closecurly ;
+Comprises Comprises =
+     comprises w a1:TraitType
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), Useful.list(a1)); }
+   / comprises w void:opencurly w ComprisingTypeList w void:closecurly ;
 
 /* ComprisingTypeList ::=
      ...
    | TraitType (w , w TraitType)* (w , w ...)?
  */
-private List<BaseType> ComprisingTypeList =
+private Comprises ComprisingTypeList =
      ellipses
-     { yyValue = Collections.<BaseType>emptyList(); }
-   / a1:TraitType a2s:(w comma w TraitType)* (w comma w ellipses)?
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     { yyValue = new Comprises(createSpan(yyStart,yyCount),
+                               Collections.<BaseType>emptyList(), true);
+     }
+   / a1:TraitType a2s:(w comma w TraitType)* a3:(w comma w ellipses)?
+     { yyValue = new Comprises(createSpan(yyStart,yyCount),
+                               Useful.cons(a1, a2s.list()),
+                               a3 != null);
+     };
 
 /* Where ::=
      where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
@@ -280,22 +282,6 @@ transient Modifiers Mod =
    / test     { yyValue = Modifiers.Test; }
    / value    { yyValue = Modifiers.Value; }
    / var      { yyValue = Modifiers.Var; }
-   / wrapped  { yyValue = Modifiers.Wrapped; };
-
-
-/* Each modifier cannot appear more than once. */
-/* ParamFldMods ::= (ParamFldMod w)+ */
-transient Modifiers ParamFldMods = a1s:(ParamFldMod w)+
-     { yyValue =
-           NodeUtil.noDuplicate(writer, createSpan(yyStart,yyCount),
-                                    Useful.list(a1s.list()));
-     };
-
-/* ParamFldMod ::= var | hidden | settable | wrapped */
-transient private Modifiers ParamFldMod =
-     var      { yyValue = Modifiers.Var; }
-   / hidden   { yyValue = Modifiers.Hidden; }
-   / settable { yyValue = Modifiers.Settable; }
    / wrapped  { yyValue = Modifiers.Wrapped; };
 
 /* StaticParams ::= [\ w StaticParamList w \] */

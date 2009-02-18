@@ -97,8 +97,8 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                 NodeUtil.getName(that));
         }
         if ( inApi && mods.isPrivate() ) {
-            log(that, "private trait " + NodeUtil.getName(that) +
-                " most not appear in an API.");
+            log(that, "Private trait " + NodeUtil.getName(that) +
+                " must not appear in an API.");
         }
         super.forTraitDecl( that );
         inTrait = false;
@@ -112,9 +112,27 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                 NodeUtil.getName(that));
         }
         if ( inApi && mods.isPrivate() ) {
-            log(that, "private object " + NodeUtil.getName(that) +
-                " most not appear in an API.");
+            log(that, "Private object " + NodeUtil.getName(that) +
+                " must not appear in an API.");
         }
+        if ( NodeUtil.getParams(that).isSome() ) {
+            for ( Param p : NodeUtil.getParams(that).unwrap() ) {
+                Modifiers m = p.getMods();
+                if ( NodeUtil.isMutable(p) &&
+                     p.getIdType().isNone() )
+                    log(p, "The type of " + p.getName() + " is required.");
+                if ( inComponent ) {
+                    if (! Modifiers.ParamFldMod.containsAll(m) )
+                        log(p, m.remove(Modifiers.ParamFldMod) +
+                            " cannot modify an object parameter, " + p.getName());
+                } else {
+                    if (! Modifiers.ApiFldMod.containsAll(m) )
+                        log(p, m.remove(Modifiers.ApiFldMod) +
+                            " cannot modify an object parameter, " + p.getName());
+                }
+            }
+        }
+
         super.forObjectDecl( that );
         inObject = false;
     }

@@ -42,7 +42,7 @@ import java.io.Serializable;
  * AbsVarMod     ::= var | test
  * FldMod        ::= var | AbsFldMod
  * AbsFldMod     ::= ApiFldMod | wrapped | private
- * ApiFldMod     ::= hidden | settable | test
+ * ApiFldMod     ::= hidden | settable
  */
 public final class Modifiers implements Serializable {
     /*

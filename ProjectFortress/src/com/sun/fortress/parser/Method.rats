@@ -34,15 +34,11 @@ import Spacing;
 
 /* MdDecl ::=
      MdDef
-   | (abstract w)? Mods? AbsMdHeaderFront FnHeaderClause
+   | AbsMdDecl
  */
 FnDecl MdDecl =
      MdDef
-   / a1:(abstract w)? a2:Mods? a3:AbsMdHeaderFront a4:FnHeaderClause
-     { Modifiers mods = Modifiers.combine(Modifiers.possiblyAbstract(a1),a2);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       a3, a4);
-     };
+   / AbsMdDecl;
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
@@ -131,34 +127,22 @@ FnDecl AbsGetterSetterDecl =
      };
 
 /* Coercion ::=
-     coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses w
-     (widens w)? = w NoNewlineExpr
+     coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
+     w = w NoNewlineExpr
+   AbsCoercion ::=
+     coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
  */
 Decl Coercion =
      coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
-     a4:CoercionClauses w a5:(widens w)? equals w a6:NoNewlineExpr
+     a4:CoercionClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
      { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
        List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
        Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
        Span span = createSpan(yyStart+9,8);
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       NodeFactory.makeId(span,"coerce"),a1, params, a4, a6);
+                                      NodeFactory.makeId(span,"coerce"), a1,
+                                      params, a4, Option.wrap(a6));
      };
-
-/* AbsCoercion ::=
-   coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
- */
-Decl AbsCoercion =
-     coerce a1:(w StaticParams)? w openparen w a2:BindId w a3:IsType w closeparen
-     a4:CoercionClauses a5:(w widens)?
-     { if (a1 == null) a1 = Collections.<StaticParam>emptyList();
-       List<Param> params = Useful.list(NodeFactory.makeParam(a2, a3));
-       Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
-       Span span = createSpan(yyStart+9,8);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods,
-                                       NodeFactory.makeId(span, "coerce"),
-                                       a1, params, a4);
-    };
 
 /* CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)? */
 private FnHeaderClause CoercionClauses =

@@ -44,8 +44,10 @@ TraitDecl TraitDecl =
        if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
        yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
-                       a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
-                       a4, a3.getExcludes(), a3.getComprises());
+                                           a2.getStaticParams(),
+                                           a2.getExtendsClause(), a3.getWhere(),
+                                           a4, a3.getExcludes(),
+                                           a3.getComprises());
      };
 
 /* TraitHeaderFront ::= trait w Id (w StaticParams)? (w ExtendsWhere)? */
@@ -69,6 +71,9 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
      { yyValue = new TraitClauses();
        for (TraitClause t : (List<TraitClause>)a1s.list()) {
            yyValue.set(t);
+           if ( t instanceof Comprises &&
+                ((Comprises)t).hasEllipses() )
+               log(t.span(), "Comprises clauses can include \"...\" only in APIs.");
        }
      };
 
@@ -79,7 +84,7 @@ private TraitClauses TraitClauses = a1s:(w TraitClause)*
  */
 private TraitClause TraitClause =
      a1:Excludes  { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
-   / a1:Comprises { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
+   / a1:Comprises
    / a1:Where
      { yyValue = new Where(createSpan(yyStart,yyCount),
                            Option.<WhereClause>some(a1));
@@ -98,76 +103,24 @@ private TraitClause TraitClause =
    | Coercions
  */
 private List<Decl> GoInATrait =
-     a1:Coercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
-     }
-   / <ErrorProduction1>
-     GoFrontInATrait br Coercions (br GoBackInATrait)?
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction2>
-     GoFrontInATrait br GoBackInATrait br Coercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction3>
-     GoBackInATrait br Coercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction4>
-     GoBackInATrait br GoFrontInATrait
-     { log(createSpan(yyStart,yyCount),
-           "Field/getter/setter declarations should come before method declarations.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / a1:(Coercions br)? a2:GoFrontInATrait a3:(br GoBackInATrait)?
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
-       if (a3 != null) yyValue.addAll(a3);
-     }
-   / a1:(Coercions br)? a2:GoBackInATrait
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
+     a1:GoesInATrait a2s:(br GoesInATrait)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkMembers(writer, yyValue);
      };
 
-/* Coercions ::= Coercion (br Coercion)* */
-private List<Decl> Coercions = a1:Coercion a2s:(br Coercion)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* GoFrontInATrait ::= GoesFrontInATrait (br GoesFrontInATrait)* */
-private List<Decl> GoFrontInATrait =
-     a1:GoesFrontInATrait a2s:(br GoesFrontInATrait)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* GoesFrontInATrait ::= AbsVarDecl | GetterSetterDecl | PropertyDecl */
-private Decl GoesFrontInATrait =
-     AbsVarDecl
+/* GoesBackInATrait  ::= MdDecl | PropertyDecl */
+private Decl GoesInATrait =
+     Coercion
+   / AbsVarDecl
    / GetterSetterDecl
-   / PropertyDecl ;
-
-/* GoBackInATrait ::= GoesBackInATrait (br GoesBackInATrait)* */
-private List<Decl> GoBackInATrait =
-     a1:GoesBackInATrait a2s:(br GoesBackInATrait)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* GoesBackInATrait ::= MdDecl | PropertyDecl */
-private Decl GoesBackInATrait =
-     MdDecl
+   / MdDecl
    / PropertyDecl ;
 
 /* ObjectDecl ::= Mods? ObjectHeader (w GoInAnObject)? w end ((s object)? s Id)?
  */
 ObjectDecl ObjectDecl =
-     a1:Mods? a2:ObjectHeader a3:(w GoInAnObject)? w end
-     a4:((s object)? s Id)?
+     a1:Mods? a2:ObjectHeader a3:(w GoInAnObject)? w end a4:((s object)? s Id)?
      { Span span = createSpan(yyStart,yyCount);
        if (a4 != null && !a2.getName().getText().equals(a4.getText()))
            log(span, "An object declaration of " + a2.getName() +
@@ -176,10 +129,12 @@ ObjectDecl ObjectDecl =
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
        Option<Contract> contract = fhc.getContractClause();
-       yyValue = NodeFactory.makeObjectDecl
-           (span, a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
-            a3, a2.getParams(), fhc.getThrowsClause(), contract);
+       yyValue = NodeFactory.makeObjectDecl(span, a1, a2.getName(),
+                                            a2.getStaticParams(),
+                                            a2.getExtendsClause(),
+                                            fhc.getWhereClause(),
+                                            a3, a2.getParams(),
+                                            fhc.getThrowsClause(), contract);
      };
 
 /* ObjectHeader ::=
@@ -190,12 +145,7 @@ private ObjectHeader ObjectHeader =
      object w a1:OpName a2:(w StaticParams)? a3:(w ObjectValParam)?
      a4:(w ExtendsWhere)? a5:FnClauses
      { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid object name.\n" +
-           "A non-reserved word that is made up of a mixture" +
-           " of uppercase letters and underscores (but no " +
-           "digits), does not begin or end with an " +
-           "underscore, and contains at least two distinct " +
-           "letters is an operator name.");
+       log(span, a1 + " is not a valid object name.");
        yyValue = new ObjectHeader(NodeFactory.bogusId(span),
                                   Collections.<StaticParam>emptyList(),
                                   Option.<List<Param>>none(),
@@ -212,7 +162,7 @@ private ObjectHeader ObjectHeader =
 /* ObjectValParam ::= ( (w ObjectParams)? w ) */
 private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
      { if (a1 == null) yyValue = Collections.<Param>emptyList();
-       else yyValue = a1;
+       else            yyValue = a1;
      };
 
 /* ObjectParams  ::=
@@ -230,26 +180,11 @@ Param Varargs :=
      };
 
 Param Param :=
-     a1:ParamFldMods? a2:PlainParam
-     { if (a1 != null) {
-           if (a1.isMutable() && a2.getIdType().isNone()) {
-               log(NodeUtil.getSpan(a2),
-                   "Mutable fields should be declared with their types.");
-               yyValue = NodeFactory.makeParam(a2, a1);
-           } else yyValue = NodeFactory.makeParam(a2, a1);
-       } else yyValue = a2;
-     }
-   / <ErrorProduction2>
-     var w PlainParam
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Mutable variables should be declared with their types.");
-       yyValue = NodeFactory.bogusParam(span);
+     a1:Mods? a2:PlainParam
+     { if (a1 != null)
+             yyValue = NodeFactory.makeParam(a2, a1);
+       else yyValue = a2;
      };
-
-/* ParamWType ::= BindId w IsType */
-private Param PlainParamWType =
-    a1:BindId w a2:IsType
-    { yyValue = NodeFactory.makeParam(a1, a2); };
 
 /* GoInAnObject ::=
      (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
@@ -257,65 +192,18 @@ private Param PlainParamWType =
    | Coercions
  */
 List<Decl> GoInAnObject =
-     a1:Coercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
-     }
-   / <ErrorProduction1>
-     GoFrontInAnObject br Coercions (br GoBackInAnObject)?
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction2>
-     GoFrontInAnObject br GoBackInAnObject br Coercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction3>
-     GoBackInAnObject br Coercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction4>
-     GoBackInAnObject br GoFrontInAnObject
-     { log(createSpan(yyStart,yyCount),
-           "Field/getter/setter declarations should come before method declarations.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / a1:(Coercions br)? a2:GoFrontInAnObject a3:(br GoBackInAnObject)?
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
-       if (a3 != null) yyValue.addAll(a3);
-     }
-   / a1:(Coercions br)? a2:GoBackInAnObject
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
+     a1:GoesInAnObject a2s:(br GoesInAnObject)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkMembers(writer, yyValue);
      };
 
-/* GoFrontInAnObject ::= GoesFrontInAnObject (br GoesFrontInAnObject)* */
-private List<Decl> GoFrontInAnObject =
-     a1:GoesFrontInAnObject a2s:(br GoesFrontInAnObject)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* GoesFrontInAnObject ::= VarDecl | GetterSetterDef | PropertyDecl */
-private Decl GoesFrontInAnObject =
-     VarDecl
-   / GetterSetterDef
-   / PropertyDecl ;
-
-/* GoBackInAnObject ::= GoesBackInAnObject (br GoesBackInAnObject)* */
-private List<Decl> GoBackInAnObject =
-     a1:GoesBackInAnObject a2s:(br GoesBackInAnObject)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* GoesBackInAnObject ::= MdDef | PropertyDecl */
-private Decl GoesBackInAnObject =
-     MdDef
+private Decl GoesInAnObject =
+     Coercion
+   / VarDecl
+   / GetterSetterDef
+   / MdDef
    / PropertyDecl ;
 
 /* AbsTraitDecl ::=
@@ -332,39 +220,25 @@ TraitDecl AbsTraitDecl =
        }
        if (a1 == null) a1 = Modifiers.None;
        if (a4 == null) a4 = Collections.<Decl>emptyList();
-       yyValue = NodeFactory.makeTraitDecl
-           (span, a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(), a3.getWhere(),
-            a4, a3.getExcludes(), a3.getComprises());
+       yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
+                                           a2.getStaticParams(),
+                                           a2.getExtendsClause(), a3.getWhere(),
+                                           a4, a3.getExcludes(),
+                                           a3.getComprises());
      };
 
 /* Each trait clause cannot appear more than once. */
 /* AbsTraitClauses ::= (w AbsTraitClause)* */
-private TraitClauses AbsTraitClauses = a1s:(w AbsTraitClause)*
-     { yyValue = new TraitClauses();
-       for (TraitClause t : (List<TraitClause>)a1s.list()) {
-         yyValue.set(t);
-       }
-     };
-
 /* AbsTraitClause ::=
      Excludes
    | AbsComprises
    | Where
  */
-private TraitClause AbsTraitClause =
-     a1:Excludes
-     { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
-   / a1:AbsComprises
-     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1); }
-   / a1:Where
-     { yyValue = new Where(createSpan(yyStart,yyCount), Option.some(a1)); }
-   / <ErrorProduction>
-     ExtendsWhere
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Extends clauses should come before excludes/comprises/where clauses.");
-       yyValue = new Where(span, Option.<WhereClause>none());
+private TraitClauses AbsTraitClauses = a1s:(w TraitClause)*
+     { yyValue = new TraitClauses();
+       for (TraitClause t : (List<TraitClause>)a1s.list()) {
+         yyValue.set(t);
+       }
      };
 
 /* AbsGoInATrait ::=
@@ -373,69 +247,18 @@ private TraitClause AbsTraitClause =
    | AbsCoercions
  */
 private List<Decl> AbsGoInATrait =
-     a1:AbsCoercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
-     }
-   / <ErrorProduction1>
-     AbsGoFrontInATrait br AbsCoercions (br AbsGoBackInATrait)?
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction2>
-     AbsGoFrontInATrait br AbsGoBackInATrait br AbsCoercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction3>
-     AbsGoBackInATrait br AbsCoercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction4>
-     AbsGoBackInATrait br AbsGoFrontInATrait
-     { log(createSpan(yyStart,yyCount),
-           "Field/getter/setter declarations should come before method declarations.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / a1:(AbsCoercions br)? a2:AbsGoFrontInATrait a3:(br AbsGoBackInATrait)?
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
-       if (a3 != null) yyValue.addAll(a3);
-     }
-   / a1:(AbsCoercions br)? a2:AbsGoBackInATrait
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
+     a1:AbsGoesInATrait a2s:(br AbsGoesInATrait)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkAbsMembers(writer, yyValue);
      };
 
-/* AbsCoercions ::= AbsCoercion (br AbsCoercion)* */
-private List<Decl> AbsCoercions = a1:AbsCoercion a2s:(br AbsCoercion)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* AbsGoFrontInATrait ::= AbsGoesFrontInATrait (br AbsGoesFrontInATrait)* */
-private List<Decl> AbsGoFrontInATrait =
-     a1:AbsGoesFrontInATrait a2s:(br AbsGoesFrontInATrait)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* AbsGoesFrontInATrait ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
-private Decl AbsGoesFrontInATrait =
-     AbsVarDecl
+/* AbsGoesBackInATrait  ::= AbsMdDecl | PropertyDecl */
+private Decl AbsGoesInATrait =
+     Coercion
+   / AbsVarDecl
    / AbsGetterSetterDecl
-   / PropertyDecl ;
-
-/* AbsGoBackInATrait ::= AbsGoesBackInATrait (br AbsGoesBackInATrait)* */
-private List<Decl> AbsGoBackInATrait =
-     a1:AbsGoesBackInATrait a2s:(br AbsGoesBackInATrait)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* AbsGoesBackInATrait ::= AbsMdDecl | PropertyDecl */
-private Decl AbsGoesBackInATrait =
-     AbsMdDecl
+   / AbsMdDecl
    / PropertyDecl ;
 
 /* AbsObjectDecl ::= Mods? ObjectHeader (w AbsGoInAnObject)? w end
@@ -467,65 +290,16 @@ ObjectDecl AbsObjectDecl =
    | AbsCoercions
  */
 List<Decl> AbsGoInAnObject =
-     a1:AbsCoercions
-     { yyValue = new ArrayList<Decl>();
-       yyValue.addAll(a1);
-     }
-   / <ErrorProduction1>
-     AbsGoFrontInAnObject br AbsCoercions (br AbsGoBackInAnObject)?
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction2>
-     AbsGoFrontInAnObject br AbsGoBackInAnObject br AbsCoercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction3>
-     AbsGoBackInAnObject br AbsCoercions
-     { log(createSpan(yyStart,yyCount),
-           "Coercion declarations should come first.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / <ErrorProduction4>
-     AbsGoBackInAnObject br AbsGoFrontInAnObject
-     { log(createSpan(yyStart,yyCount),
-           "Field/getter/setter declarations should come before method declarations.");
-       yyValue = Collections.<Decl>emptyList();
-     }
-   / a1:(AbsCoercions br)? a2:AbsGoFrontInAnObject a3:(br AbsGoBackInAnObject)?
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
-       if (a3 != null) yyValue.addAll(a3);
-     }
-   / a1:(AbsCoercions br)? a2:AbsGoBackInAnObject
-     { yyValue = new ArrayList<Decl>();
-       if (a1 != null) yyValue.addAll(a1);
-       yyValue.addAll(a2);
+     a1:AbsGoesInAnObject a2s:(br AbsGoesInAnObject)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkAbsMembers(writer, yyValue);
      };
 
-/* AbsGoFrontInAnObject ::=
-     AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)*
- */
-private List<Decl> AbsGoFrontInAnObject =
-     a1:AbsGoesFrontInAnObject a2s:(br AbsGoesFrontInAnObject)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* AbsGoesFrontInAnObject ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
-private Decl AbsGoesFrontInAnObject =
-     AbsVarDecl
-   / AbsGetterSetterDecl
-   / PropertyDecl ;
-
-/* AbsGoBackInAnObject ::= AbsGoesBackInAnObject (br AbsGoesBackInAnObject)* */
-private List<Decl> AbsGoBackInAnObject =
-     a1:AbsGoesBackInAnObject a2s:(br AbsGoesBackInAnObject)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
-
 /* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
-private Decl AbsGoesBackInAnObject =
-     AbsMdDecl
+private Decl AbsGoesInAnObject =
+     Coercion
+   / AbsVarDecl
+   / AbsGetterSetterDecl
+   / AbsMdDecl
    / PropertyDecl ;
