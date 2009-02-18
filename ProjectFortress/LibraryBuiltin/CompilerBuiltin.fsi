@@ -44,4 +44,6 @@ end
 object FlatString extends String
 end FlatString
 
+println(s:String):()
+
 end

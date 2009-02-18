@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 native component CompilerBuiltin
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 export CompilerBuiltin
 
 private language="java"
@@ -38,7 +39,7 @@ private package="com.sun.fortress.interpreter.glue.prim"
     unpacking of values is done for you.
 **)
 builtinPrimitive[\T\](javaClass:String):T =
-  println("Implementation should not invoke builtinPrimitive " javaClass)
+  println("Implementation should not invoke builtinPrimitive ")
 
 trait Object extends Any
 end Object
@@ -48,5 +49,7 @@ end
 
 object FlatString extends String
 end FlatString
+
+println(s:String):() =  jPrintln(s) 
 
 end
