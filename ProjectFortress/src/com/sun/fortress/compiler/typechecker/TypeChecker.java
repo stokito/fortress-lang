@@ -281,10 +281,14 @@ public class TypeChecker extends NodeDepthFirstVisitor<TypeCheckerResult> {
     private TypeCheckerResult assertTrait(BaseType t, Node ast, String msg, Node error_loc) {
         TypeCheckerResult err_result = new TypeCheckerResult(ast, TypeError.make(msg, error_loc));
 
-        if( !(t instanceof TraitType) )
+        if( !(t instanceof TraitType || t instanceof AnyType) )
             return err_result;
 
-        Option<TypeConsIndex> type_cons_ = this.table.typeCons(((TraitType)t).getName());
+        Option<TypeConsIndex> type_cons_;
+        if ( t instanceof TraitType )
+            type_cons_ = this.table.typeCons(((TraitType)t).getName());
+        else // t instanceof AnyType
+            type_cons_ = this.table.typeCons(Types.ANY_NAME);
         if( type_cons_.isSome() && type_cons_.unwrap() instanceof ProperTraitIndex ) {
             return new TypeCheckerResult(ast);
         }

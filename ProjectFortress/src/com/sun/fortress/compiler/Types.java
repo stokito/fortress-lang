@@ -72,10 +72,10 @@ public final class Types {
 
     /**
      * It's necessary to set STRING when using the compiler libraries because the location of String
-     * in the compiler libraries differs from its location in the full libraries. 
+     * in the compiler libraries differs from its location in the full libraries.
      */
     public static void useCompilerLibraries() {
-    	STRING = makeTraitType(span, fortressBuiltin(), "String");
+   	STRING = makeTraitType(span, fortressBuiltin(), "String");
     }
 
     public static void useTypeCheckerLibraries() {
