@@ -17,6 +17,8 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
+FORTRESS_HOME="`${0%run}fortress_home`"
+
 if (uname | egrep CYGWIN > /dev/null) ; then
   SEP=";"
 else
