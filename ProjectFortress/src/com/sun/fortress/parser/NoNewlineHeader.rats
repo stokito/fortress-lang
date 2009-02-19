@@ -32,16 +32,12 @@ import Symbol;
 import Spacing;
 
 /* ExtendsWhere ::= extends w TraitTypeWheres */
-List<TraitTypeWhere> ExtendsWhere = extends w TraitTypeWheres ;
-
 /* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
-private List<TraitTypeWhere> TraitTypeWheres =
-     a1:TraitTypeWhere { yyValue = Useful.list(a1); }
-   / void:opencurly w TraitTypeWhereList w void:closecurly ;
-
 /* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
-private List<TraitTypeWhere> TraitTypeWhereList =
-     a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
+List<TraitTypeWhere> ExtendsWhere =
+     extends w a1:TraitTypeWhere { yyValue = Useful.list(a1); }
+   / extends w void:opencurly w a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
+     w void:closecurly
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* TraitTypeWhere ::= TraitType (w Where)? */
@@ -65,12 +61,10 @@ List<BaseType> Extends = extends w TraitTypes ;
 List<BaseType> Excludes = excludes w TraitTypes ;
 
 /* TraitTypes ::= TraitType | { w TraitTypeList w } */
+/* TraitTypeList ::= TraitType (w , w TraitType)* */
 List<BaseType> TraitTypes =
      a1:TraitType { yyValue = Useful.list(a1); }
-   / void:opencurly w TraitTypeList w void:closecurly ;
-
-/* TraitTypeList ::= TraitType (w , w TraitType)* */
-private List<BaseType> TraitTypeList = a1:TraitType a2s:(w comma w TraitType)*
+   / void:opencurly w a1:TraitType a2s:(w comma w TraitType)* w void:closecurly
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /*    Comprises ::= comprises w TraitTypes */
@@ -99,26 +93,24 @@ private Comprises ComprisingTypeList =
 /* Where ::=
      where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
    | where w { w WhereConstraintList w }
+   WhereBindingList ::= WhereBinding (w , w WhereBinding)*
  */
 transient WhereClause Where =
-     where w opendoublesquare w a1:WhereBindingList w closedoublesquare
-     a2:(w void:opencurly w WhereConstraintList w void:closecurly)?
-     { if (a2 == null)
-         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                   a1, Collections.<WhereConstraint>emptyList());
+     where w opendoublesquare w a1:WhereBinding a2s:(w comma w WhereBinding)* w
+     closedoublesquare a3:(w void:opencurly w WhereConstraintList w void:closecurly)?
+     { List<WhereBinding> bindings = Useful.cons(a1, a2s.list());
+       if (a3 == null)
+           yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
+                                                 bindings,
+                                                 Collections.<WhereConstraint>emptyList());
        else
-         yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                   a1, a2);
+           yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
+                                                 bindings, a3);
      }
    / where w opencurly w a1:WhereConstraintList w closecurly
      { yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
-                                 Collections.<WhereBinding>emptyList(), a1);
+                                             Collections.<WhereBinding>emptyList(), a1);
      };
-
-/* WhereBindingList ::= WhereBinding (w , w WhereBinding)* */
-transient List<WhereBinding> WhereBindingList =
-     a1:WhereBinding a2s:(w comma w WhereBinding)*
-     { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* WhereBinding ::=
      nat w Id
@@ -127,144 +119,76 @@ transient List<WhereBinding> WhereBindingList =
    | unit w Id
    | Id (w Extends)?
  */
+private transient IdOrOp IdOrOpName =
+     Id
+   / a1:OpName
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 transient WhereBinding WhereBinding =
-     nat w a1:Id
-     { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                              a1, supers, new KindNat());
+     nat w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindNat());
      }
-   / <ErrorProduction1> nat w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid nat parameter name.\n");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
-                                              new KindType());
+   / int w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindInt());
      }
-   / int w a1:Id
-     { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                              a1, supers, new KindInt());
+   / bool w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindBool());
      }
-   / <ErrorProduction2> int w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid int parameter name.\n");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
-                                              new KindType());
+   / unit w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindUnit());
      }
-   / bool w a1:Id
-     { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                              a1, supers, new KindBool());
-     }
-   / <ErrorProduction3> bool w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid bool parameter name.\n");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
-                                              new KindType());
-     }
-   / unit w a1:Id
-     { List<BaseType> supers = Collections.<BaseType>emptyList();
-       yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                              a1, supers, new KindUnit());
-     }
-   / <ErrorProduction4> unit w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid unit parameter name.\n");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
-                                              new KindType());
-     }
-   / <ErrorProduction5> a1:OpName w a2:Extends
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid type parameter name.\n");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
-                                              new KindType());
-     }
-   / a1:Id a2:(w a2:Extends)?
+   / a1:IdOrOpName a2:(w a2:Extends)?
      { if (a2 == null) a2 = Collections.<BaseType>emptyList();
-         yyValue = NodeFactory.makeWhereBinding(createSpan(yyStart,yyCount),
-                                                a1, a2, new KindType());
+       yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, a2, new KindType());
      }
-   / <ErrorProduction6> opendoublesquare
+   / <ErrorProduction> opendoublesquare
      { Span span = createSpan(yyStart,yyCount);
        log(span, "White square bracket is not a valid where-clause binding.");
-       yyValue = NodeFactory.makeWhereBinding(span, NodeFactory.bogusId(span),
-                                              Collections.<BaseType>emptyList(),
+       yyValue = NodeFactory.makeWhereBinding(writer, span,
+                                              NodeFactory.bogusId(span),
                                               new KindType());
      };
 
 /* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
 FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
-     { Option<Type> returnType = Option.wrap(a1);
+     { Option<Type> returnType = Option.<Type>wrap(a1);
        NodeUtil.checkWhereClauses(writer, a2.getWhereClause());
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), returnType);
      };
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
-FnHeaderClause FnClauses =
-     <ErrorProduction1>
-     w Throws w ExtendsWhere (w Where)? Contract
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
+/* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
+FnHeaderClause FnClauses = a1s:FnClause*
+     { yyValue = NodeFactory.makeFnClauses(writer, createSpan(yyStart,yyCount),
+                                           a1s.list()); };
+FnHeaderClause FnClause =
+     w a1:Throws
+     { yyValue = NodeFactory.makeThrowsClause(Option.<List<BaseType>>some(a1)); }
+   / w a1:Where
+     { yyValue = NodeFactory.makeWhereClause(Option.<WhereClause>some(a1)); }
+   / w a1:Requires
+     { yyValue = NodeFactory.makeRequiresClause(Option.<List<Expr>>some(a1)); }
+   / w a1:Ensures
+     { yyValue = NodeFactory.makeEnsuresClause(Option.<List<EnsuresClause>>some(a1)); }
+   / w a1:Invariant
+     { yyValue = NodeFactory.makeInvariantsClause(Option.<List<Expr>>some(a1)); }
+   / w ExtendsWhere
+     { log(createSpan(yyStart,yyCount),
            "Extends clauses should come before throws/where/contract clauses.");
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
-                                    Option.<WhereClause>none(),
-                                    Option.<Contract>none(),
-                                    Option.<Type>none());
-     }
-   / <ErrorProduction2>
-     w Throws w Where w ExtendsWhere Contract
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Extends clauses should come before throws/where/contract clauses.");
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
-                                    Option.<WhereClause>none(),
-                                    Option.<Contract>none(),
-                                    Option.<Type>none());
-     }
-   / <ErrorProduction3>
-     w Where w ExtendsWhere Contract
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Extends clauses should come before throws/where/contract clauses.");
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
-                                    Option.<WhereClause>none(),
-                                    Option.<Contract>none(),
-                                    Option.<Type>none());
-     }
-   / <ErrorProduction4>
-     w Where w Throws Contract
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Throws clauses should come before where clauses.");
-       yyValue = new FnHeaderClause(Option.<List<BaseType>>none(),
-                                    Option.<WhereClause>none(),
-                                    Option.<Contract>none(),
-                                    Option.<Type>none());
-     }
-   / a1:(w Throws)? a2:(w Where)? a3:Contract
-     { Option<List<BaseType>> throwsClause = Option.wrap(a1);
-       Option<WhereClause> where;
-       if (a2 == null)
-           where = Option.<WhereClause>none();
-       else
-           where = Option.<WhereClause>some(a2);
-       Option<Contract> contractClause = Option.wrap(a3);
-       yyValue = new FnHeaderClause(throwsClause, where, contractClause,
-                                    Option.<Type>none());
+       yyValue = NodeFactory.makeWhereClause(Option.<WhereClause>none());
      };
 
 /* Throws ::= throws w MayTraitTypes */
-List<BaseType> Throws = throws w MayTraitTypes ;
-
 /* MayTraitTypes ::= { w } | TraitTypes  */
-private List<BaseType> MayTraitTypes =
-     opencurly w closecurly { yyValue = Collections.<BaseType>emptyList(); }
-   / TraitTypes ;
+List<BaseType> Throws =
+     throws w opencurly w closecurly
+     { yyValue = Collections.<BaseType>emptyList(); }
+   / throws w TraitTypes ;
 
 /* Mods ::= (Mod w)+ */
 transient Modifiers Mods = a1s:(Mod w)+
@@ -292,12 +216,10 @@ transient Modifiers Mod =
    / wrapped  { yyValue = Modifiers.Wrapped; };
 
 /* StaticParams ::= [\ w StaticParamList w \] */
-List<StaticParam> StaticParams =
-     opendoublesquare w StaticParamList w closedoublesquare ;
-
 /* StaticParamList ::= StaticParam (w , w StaticParam)* */
-private List<StaticParam> StaticParamList =
-     a1:StaticParam a2s:(w comma w StaticParam)*
+List<StaticParam> StaticParams =
+     opendoublesquare w a1:StaticParam a2s:(w comma w StaticParam)* w
+     closedoublesquare
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* StaticParam ::=
@@ -310,112 +232,57 @@ private List<StaticParam> StaticParamList =
    | Id (w Extends)? (w absorbs w unit)?
 */
 private StaticParam StaticParam =
-     nat w a1:Id
-     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
+     nat w a1:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, new KindNat());
      }
-   / <ErrorProduction1>
-     nat w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid nat parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
+   / int w a1:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, new KindInt());
      }
-   / int w a1:Id
-     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 Option.<Type>none(), false,
-                                 new KindInt());
+   / bool w a1:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, new KindBool());
      }
-   / <ErrorProduction2>
-     int w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid int parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
+   / dim w a1:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, new KindDim());
      }
-   / bool w a1:Id
-     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 Option.<Type>none(), false,
-                                 new KindBool());
-     }
-   / <ErrorProduction3>
-     bool w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid bool parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
-     }
-   / dim w a1:Id
-     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 Option.<Type>none(), false,
-                                 new KindDim());
-     }
-   / <ErrorProduction4>
-     dim w a1:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid dim parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
-     }
-   / unit w a1:Id a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
-     { Option<Type> derived = Option.wrap(a2);
+   / unit w a1:IdOrOpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
+     { Option<Type> derived = Option.<Type>wrap(a2);
        boolean absorbs = (a3 == null) ? false : true;
-       yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 derived, absorbs,
-                                 new KindUnit());
-     }
-   / <ErrorProduction5>
-     unit w a1:OpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid unit parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, Collections.<BaseType>emptyList(),
+                                               derived, absorbs, new KindUnit());
      }
    / opr w a1:Op
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1,
-                                 Collections.<BaseType>emptyList(),
-                                 Option.<Type>none(), false,
-                                 new KindOp()); }
-   / <ErrorProduction6>
-     a1:OpName w a2:Extends a3:(w absorbs w unit)?
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, a1 + " is not a valid type parameter name.\n");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
                                              Collections.<BaseType>emptyList(),
                                              Option.<Type>none(), false,
-                                             new KindNat());
+                                             new KindOp());
+     }
+   / a1:IdOrOpName w a2:Extends a3:(w absorbs w unit)?
+     { boolean absorbs;
+       if (a3 == null) absorbs = false;
+       else            absorbs = true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, Option.<Type>none(),
+                                               absorbs, new KindType());
      }
    / a1:Id a2:(w Extends)? a3:(w absorbs w unit)?
      { if (a2 == null) a2 = Collections.<BaseType>emptyList();
        boolean absorbs;
        if (a3 == null) absorbs = false;
        else            absorbs = true;
-       yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), a1, a2,
-                                 Option.<Type>none(), absorbs,
-                                 new KindType());
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, Option.<Type>none(),
+                                               absorbs, new KindType());
      }
-   / <ErrorProduction7>
+   / <ErrorProduction>
      opendoublesquare
      { Span span = createSpan(yyStart,yyCount);
        log(span, "White square bracket is not a valid static parameter.");
-       yyValue = NodeFactory.makeStaticParam(span, NodeFactory.bogusId(span),
-                                             Collections.<BaseType>emptyList(),
-                                             Option.<Type>none(), false,
-                                             new KindNat());
+       yyValue = NodeFactory.makeStaticParamId(writer, span,
+                                               NodeFactory.bogusId(span),
+                                               new KindNat());
      };
