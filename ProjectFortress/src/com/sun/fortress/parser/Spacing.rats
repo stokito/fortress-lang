@@ -105,6 +105,17 @@ transient void sr = Space+;      // space required
 transient void nl = s Newline w ; // required newline in whitespace
 transient void br = nl / s semicolon w;      // line break
 
+transient private String WhitespaceString =
+     Space   { yyValue = " "; }
+   / Newline { yyValue = "\n"; };
+transient Boolean hasW =
+     a1s:WhitespaceString*
+     { if ( a1s == null || a1s.size() == 0 )
+           yyValue = false;
+       else
+           yyValue = true;
+     };
+
 /* RectSeparator ::= (w ;)+ w / nl / sr */
 transient Integer RectSeparator =
      a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
