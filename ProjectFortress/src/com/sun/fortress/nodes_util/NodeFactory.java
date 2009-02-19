@@ -1628,6 +1628,26 @@ public class NodeFactory {
                           PrecedenceMap.ONLY.canon("BIG " + op.getText()), big, op.isEnclosing() );
     }
 
+    public static StaticParam makeStaticParamId(BufferedWriter writer, Span span,
+                                                IdOrOp name, StaticParamKind k) {
+        return makeStaticParamId(writer, span, name,
+                                 Collections.<BaseType>emptyList(),
+                                 Option.<Type>none(), false, k);
+    }
+
+    public static StaticParam makeStaticParamId(BufferedWriter writer, Span span,
+                                                IdOrOp name, List<BaseType> tys,
+                                                Option<Type> ty, boolean b,
+                                                StaticParamKind k) {
+        if ( name instanceof Id )
+            return makeStaticParam(span, name, tys, ty, b, k);
+        else {
+            NodeUtil.log(writer, span,
+                         name + " is not a valid static prameter name.");
+            return makeStaticParam(span, bogusId(span), tys, ty, b, k);
+        }
+    }
+
     public static StaticParam makeStaticParam(Span span,
                                               IdOrOp name, List<BaseType> tys,
                                               Option<Type> ty, boolean b,
@@ -2024,10 +2044,22 @@ public class NodeFactory {
         return new WhereClause(makeSpanInfo(span), bindings, constraints);
     }
 
-    public static WhereBinding makeWhereBinding(Span span, Id name,
-                                                List<BaseType> supers,
+    public static WhereBinding makeWhereBinding(BufferedWriter writer, Span span,
+                                                IdOrOp name, StaticParamKind kind) {
+        return makeWhereBinding(writer, span, name,
+                                Collections.<BaseType>emptyList(), kind);
+    }
+
+    public static WhereBinding makeWhereBinding(BufferedWriter writer, Span span,
+                                                IdOrOp name, List<BaseType> supers,
                                                 StaticParamKind kind) {
-        return new WhereBinding(makeSpanInfo(span), name, supers, kind);
+        if ( name instanceof Id )
+            return new WhereBinding(makeSpanInfo(span), (Id)name, supers, kind);
+        else {
+            NodeUtil.log(writer, span,
+                         name + " is not a valid static parameter name.\n");
+            return new WhereBinding(makeSpanInfo(span), bogusId(span), supers, kind);
+        }
     }
 
     public static IfClause makeIfClause(Span span,
@@ -2162,4 +2194,118 @@ public class NodeFactory {
         NodeUtil.validId(writer, lvs);
         return lvs;
     }
+
+    public static FnHeaderClause makeFnClauses(BufferedWriter writer, Span span,
+                                               List<FnHeaderClause> clauses) {
+        Option<List<BaseType>> throwsC = Option.<List<BaseType>>none();
+        Option<WhereClause> whereC = Option.<WhereClause>none();
+        Option<List<Expr>> requiresC = Option.<List<Expr>>none();
+        Option<List<EnsuresClause>> ensuresC = Option.<List<EnsuresClause>>none();
+        Option<List<Expr>> invariantsC = Option.<List<Expr>>none();
+        boolean seenThrows = false;
+        boolean seenWhere = false;
+        boolean seenRequires = false;
+        boolean seenEnsures = false;
+        boolean seenInvariants = false;
+        for ( FnHeaderClause clause : clauses ) {
+            if ( clause.getThrowsClause().isSome() ) {
+                if ( seenThrows )
+                    NodeUtil.log(writer, span,
+                                 "Throws clause must not occur multiple times.");
+                throwsC = clause.getThrowsClause();
+                seenThrows = true;
+                if ( seenWhere || seenRequires || seenEnsures || seenInvariants )
+                    NodeUtil.log(writer, span,
+                                 "Throws clauses should come before where/contract clauses.");
+            } else if ( clause.getWhereClause().isSome() ) {
+                if ( seenWhere )
+                    NodeUtil.log(writer, NodeUtil.getSpan(clause.getWhereClause().unwrap()),
+                                 "Where clause must not occur multiple times.");
+                whereC = clause.getWhereClause();
+                seenWhere = true;
+                if ( seenRequires || seenEnsures || seenInvariants )
+                    NodeUtil.log(writer, NodeUtil.getSpan(clause.getWhereClause().unwrap()),
+                                 "Contract clauses should come after where clauses.");
+            } else if ( clause.getContractClause().isSome() ) {
+                Contract contract = clause.getContractClause().unwrap();
+                if ( contract.getRequiresClause().isSome() ) {
+                    if ( seenRequires )
+                        NodeUtil.log(writer, NodeUtil.getSpan(clause.getContractClause().unwrap()),
+                                     "Requires clause must not occur multiple times.");
+                    requiresC = contract.getRequiresClause();
+                    seenRequires = true;
+                    if ( seenEnsures || seenInvariants )
+                        NodeUtil.log(writer, NodeUtil.getSpan(clause.getWhereClause().unwrap()),
+                                     "Requires clauses should come before ensures/invariants clauses.");
+                } else if ( contract.getEnsuresClause().isSome() ) {
+                    if ( seenEnsures )
+                        NodeUtil.log(writer, NodeUtil.getSpan(clause.getContractClause().unwrap()),
+                                     "Ensures clause must not occur multiple times.");
+                    ensuresC = contract.getEnsuresClause();
+                    seenEnsures = true;
+                    if ( seenInvariants )
+                        NodeUtil.log(writer, NodeUtil.getSpan(clause.getWhereClause().unwrap()),
+                                     "Ensures clauses should come before invariants clauses.");
+                } else if ( contract.getInvariantsClause().isSome() ) {
+                    if ( seenInvariants )
+                        NodeUtil.log(writer, NodeUtil.getSpan(clause.getContractClause().unwrap()),
+                                     "Invariants clause must not occur multiple times.");
+                    invariantsC = contract.getInvariantsClause();
+                    seenInvariants = true;
+                }
+            }
+        }
+        Option<Contract> contractC;
+        if ( requiresC.isNone() && ensuresC.isNone() && invariantsC.isNone() )
+            contractC = Option.<Contract>none();
+        else
+            contractC = Option.<Contract>some(makeContract(span, requiresC,
+                                                           ensuresC, invariantsC));
+        return makeFnHeaderClause(throwsC, whereC, contractC, Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeThrowsClause(Option<List<BaseType>> throwsC) {
+        return makeFnHeaderClause(throwsC, Option.<WhereClause>none(),
+                                  Option.<Contract>none(), Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeWhereClause(Option<WhereClause> whereC) {
+        return makeFnHeaderClause(Option.<List<BaseType>>none(), whereC,
+                                  Option.<Contract>none(), Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeRequiresClause(Option<List<Expr>> requiresC) {
+        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+                                  Option.<WhereClause>none(),
+                                  Option.<Contract>some(makeContract(parserSpan, requiresC,
+                                                                     Option.<List<EnsuresClause>>none(),
+                                                                     Option.<List<Expr>>none())),
+                                  Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeEnsuresClause(Option<List<EnsuresClause>> ensuresC) {
+        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+                                  Option.<WhereClause>none(),
+                                  Option.<Contract>some(makeContract(parserSpan, Option.<List<Expr>>none(),
+                                                                     ensuresC, Option.<List<Expr>>none())),
+                                  Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeInvariantsClause(Option<List<Expr>> invariantsC) {
+        return makeFnHeaderClause(Option.<List<BaseType>>none(),
+                                  Option.<WhereClause>none(),
+                                  Option.<Contract>some(makeContract(parserSpan,
+                                                                     Option.<List<Expr>>none(),
+                                                                     Option.<List<EnsuresClause>>none(),
+                                                                     invariantsC)),
+                                  Option.<Type>none());
+    }
+
+    public static FnHeaderClause makeFnHeaderClause(Option<List<BaseType>> throwsC,
+                                                    Option<WhereClause> whereC,
+                                                    Option<Contract> contractC,
+                                                    Option<Type> ty) {
+        return new FnHeaderClause(throwsC, whereC, contractC, ty);
+    }
+
 }
