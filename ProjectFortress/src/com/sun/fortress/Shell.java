@@ -120,7 +120,7 @@ public final class Shell {
         System.err.println(" grammar [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" [run]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
+        System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
         System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
@@ -158,7 +158,7 @@ public final class Shell {
          "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
          "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
          "\n"+
-         "fortress [run] [-debug [type]* [#]] somefile.fss arg ...\n"+
+         "fortress [walk] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
          "  run method of somefile.fss.\n"+
          "\n"+
@@ -252,9 +252,9 @@ public final class Shell {
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 compilerPhases(args, Option.<String>none(), what);
-            } else if (what.equals("run")) {
+            } else if (what.equals("walk")) {
                 setPhase( PhaseOrder.ENVGEN );
-                run(args);
+                walk(args);
             } else if ( what.equals("api" ) ){
                 api(args, Option.<String>none(), Option.<String>none());
             } else if ( what.equals("compare" ) ){
@@ -288,12 +288,12 @@ public final class Shell {
                 compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
                 setPhase( PhaseOrder.ENVGEN );
-                runTests(args, false);
+                walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
-                // no "run" command.
+                // no "walk" command.
                 setPhase( PhaseOrder.ENVGEN );
-                run(Arrays.asList(tokens));
+                walk(Arrays.asList(tokens));
             } else if (what.equals("help")) {
                 printHelpMessage();
 
@@ -781,12 +781,12 @@ public final class Shell {
     }
 
     /**
-     * Run a file.
+     * Run a file through the Fortress interpreter.
      */
-    private static void run(List<String> args)
+    private static void walk(List<String> args)
         throws UserError, IOException, Throwable {
         if (args.size() == 0) {
-            throw new UserError("Need a file to run");
+            throw new UserError("Need a file to run through the Fortress interpreter.");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -800,15 +800,15 @@ public final class Shell {
                 Types.useCompilerLibraries();
             }
             else
-                invalidFlag(s, "run");
+                invalidFlag(s, "walk");
 
-            run(rest);
+            walk(rest);
         } else {
-            run(s, rest);
+            walk(s, rest);
         }
     }
 
-    private static void run(String fileName, List<String> args)
+    private static void walk(String fileName, List<String> args)
         throws UserError, Throwable {
         try {
             Iterable<? extends StaticError> errors = IterUtil.empty();
@@ -885,11 +885,11 @@ public final class Shell {
         return path;
     }
 
-    private static void runTests(List<String> args, boolean verbose)
+    private static void walkTests(List<String> args, boolean verbose)
         throws UserError, IOException, Throwable {
         boolean _verbose = verbose;
         if (args.size() == 0) {
-            throw new UserError("Need a file to run");
+            throw new UserError("Need a file to run through the Fortress interpreter.");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());
@@ -903,7 +903,7 @@ public final class Shell {
             }
             else
                 invalidFlag(s, "test");
-            runTests(rest, _verbose);
+            walkTests(rest, _verbose);
         } else {
             for (String file : args) {
                 try {
