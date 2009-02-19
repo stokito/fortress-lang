@@ -627,7 +627,7 @@ public final class Shell {
     public static void compilerPhases(List<String> args, Option<String> out, String phase)
         throws UserError, InterruptedException, IOException, RepositoryError {
         if (args.size() == 0) {
-            throw new UserError("compile command needs a file to compile");
+            throw new UserError("compilerPhases command needs a file to compile");
         }
         String s = args.get(0);
         List<String> rest = args.subList(1, args.size());

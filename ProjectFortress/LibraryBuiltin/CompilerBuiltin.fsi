@@ -33,13 +33,11 @@ api CompilerBuiltin
     generally easier to work with, and the boilerplate packing and
     unpacking of values is done for you.
 **)
-builtinPrimitive[\T\](javaClass:String):T
-
 trait Object extends Any
 end Object
 
 trait String
-end 
+end
 
 object FlatString extends String
 end FlatString
