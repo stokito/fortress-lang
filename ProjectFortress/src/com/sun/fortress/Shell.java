@@ -120,6 +120,7 @@ public final class Shell {
         System.err.println(" grammar [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
+        System.err.println(" link somecomponent");
         System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
@@ -157,6 +158,9 @@ public final class Shell {
          "\n"+
          "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
          "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
+         "\n"+
+         "fortress link somecomponent\n"+
+         "  Links compiled components implementing APIs imported by somecomponent.\n"+
          "\n"+
          "fortress [walk] [-debug [type]* [#]] somefile.fss arg ...\n"+
          "  Runs somefile.fss through the Fortress interpreter, passing arg ... to the\n"+
@@ -252,6 +256,12 @@ public final class Shell {
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
                 compilerPhases(args, Option.<String>none(), what);
+            } else if (what.equals("link")) {
+                WellKnownNames.useCompilerLibraries();
+                Types.useCompilerLibraries();
+                setTypeChecking(true);
+                setPhase( PhaseOrder.CODEGEN );
+                link(args);
             } else if (what.equals("walk")) {
                 setPhase( PhaseOrder.ENVGEN );
                 walk(args);
@@ -653,7 +663,7 @@ public final class Shell {
                 Path path = sourcePath( s, name );
 
                 String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-                Iterable<? extends StaticError> errors = compilerPhases(path, file_name, out );
+                Iterable<? extends StaticError> errors = compilerPhases(path, file_name, out, false);
                 int num_errors = IterUtil.sizeOf(errors);
                 if ( !IterUtil.isEmpty(errors) ) {
                     for (StaticError error: errors) {
@@ -688,12 +698,13 @@ public final class Shell {
     public static Iterable<? extends StaticError> compilerPhases(Path path,
                                                                  String file)
         throws UserError {
-        return compilerPhases(path, file, Option.<String>none());
+        return compilerPhases(path, file, Option.<String>none(), false);
     }
 
     private static Iterable<? extends StaticError> compilerPhases(Path path,
                                                                   String file,
-                                                                  Option<String> out)
+                                                                  Option<String> out,
+                                                                  boolean link)
         throws UserError {
         GraphRepository bcr = null;
         Debug.debug( Debug.Type.FORTRESS, 2, "Compiling file ", file );
@@ -708,11 +719,15 @@ public final class Shell {
                     ASTIO.writeJavaAst(a, // defaultRepository.getApi(name).ast(),
                             out.unwrap());
             } else if (isComponent(file)) {
-                Component c = (Component) bcr.getComponent(name).ast();
+                Component c;
+                if ( link )
+                    c = (Component) bcr.getLinkedComponent(name).ast();
+                else
+                    c = (Component) bcr.getComponent(name).ast();
                 if ( out.isSome() ) {
                     ASTIO.writeJavaAst(c, // defaultRepository.getComponent(name).ast(),
-                            out.unwrap());
-                    bcr.deleteComponent( name, true);
+                                       out.unwrap());
+                    bcr.deleteComponent( name, true );
                 }
             } else {
                 throw new UserError( "What kind of file is " + file +
@@ -778,6 +793,21 @@ public final class Shell {
         if ( ! message.equals(expected) )
             throw new UserError("Bad error message: " + message + "\n" +
                                 "Should be: " + expected);
+    }
+
+    /**
+     * Link compiled components implementing APIs imported by the given component.
+     */
+    private static void link(List<String> args) throws UserError, IOException {
+        if (args.size() == 0) {
+            throw new UserError("Need a file to link.");
+        } else if (args.size() > 1) {
+            printUsageMessage();
+            System.exit(-1);
+        }
+        String file = args.get(0) + ".fss" ;
+        compilerPhases( sourcePath(file, cuName(file)), file,
+                        Option.<String>none(), true );
     }
 
     /**
