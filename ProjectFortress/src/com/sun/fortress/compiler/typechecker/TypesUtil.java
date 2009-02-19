@@ -43,15 +43,12 @@ import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitTypeWhere;
-import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeAbstractVisitor;
-import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
@@ -59,7 +56,6 @@ import edu.rice.cs.plt.lambda.Box;
 import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
-
 import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 
 /**

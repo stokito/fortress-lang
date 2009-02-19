@@ -63,9 +63,9 @@ import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 import static com.sun.fortress.nodes_util.NodeFactory.*;
 import static edu.rice.cs.plt.tuple.Option.*;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
 /**
  * This class will replace all occurrences of a static parameter in a given
  * type with its instantiated static argument. A StaticTypeReplacer is created with

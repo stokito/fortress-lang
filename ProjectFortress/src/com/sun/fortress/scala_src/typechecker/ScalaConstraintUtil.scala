@@ -34,7 +34,7 @@ import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 /*
  * Helper methods for ConstraintFormula
  */
-object ConstraintUtil{
+object ScalaConstraintUtil{
   /*
    * Converts a boolean into a Constraint Formula
    */

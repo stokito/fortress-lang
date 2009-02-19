@@ -49,7 +49,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.Pair;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
+import static com.sun.fortress.compiler.typechecker.constraints.JavaConstraintUtil.*;
 
 public class TypeCheckerResult extends StaticPhaseResult {
     private Node ast;

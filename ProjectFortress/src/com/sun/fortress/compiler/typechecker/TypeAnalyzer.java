@@ -17,46 +17,85 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import java.util.*;
-
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
-import edu.rice.cs.plt.tuple.Triple;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.IndexedRelation;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Lambda2;
-
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.*;
-import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
-
+import static com.sun.fortress.compiler.Types.BOTTOM;
+import static com.sun.fortress.compiler.Types.CONJUNCTS;
+import static com.sun.fortress.compiler.Types.DISJUNCTS;
+import static com.sun.fortress.compiler.Types.MAKE_TUPLE;
+import static com.sun.fortress.compiler.Types.OBJECT;
+import static com.sun.fortress.compiler.Types.VOID;
+import static com.sun.fortress.compiler.Types.disjuncts;
+import static com.sun.fortress.compiler.Types.extractKeywords;
+import static com.sun.fortress.compiler.Types.makeDomain;
+import static com.sun.fortress.compiler.Types.makeIntersection;
+import static com.sun.fortress.compiler.Types.makeUnion;
+import static com.sun.fortress.compiler.Types.stripKeywords;
+import static com.sun.fortress.compiler.Types.varargDisjunct;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.containsVariable;
+import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.makeSubstitution;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import static com.sun.fortress.compiler.Types.*;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula.*;
-import static com.sun.fortress.nodes_util.NodeFactory.make_InferenceVarType;
-import static edu.rice.cs.plt.iter.IterUtil.cross;
-import static edu.rice.cs.plt.iter.IterUtil.collapse;
-import static edu.rice.cs.plt.iter.IterUtil.map;
-import static edu.rice.cs.plt.iter.IterUtil.zip;
-import static edu.rice.cs.plt.iter.IterUtil.singleton;
-import static edu.rice.cs.plt.iter.IterUtil.compose;
-import static edu.rice.cs.plt.iter.IterUtil.skipFirst;
-import static edu.rice.cs.plt.iter.IterUtil.first;
-import static edu.rice.cs.plt.iter.IterUtil.skipLast;
-import static edu.rice.cs.plt.iter.IterUtil.last;
 import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
 import static edu.rice.cs.plt.collect.CollectUtil.makeList;
-
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static edu.rice.cs.plt.iter.IterUtil.collapse;
+import static edu.rice.cs.plt.iter.IterUtil.compose;
+import static edu.rice.cs.plt.iter.IterUtil.cross;
+import static edu.rice.cs.plt.iter.IterUtil.first;
+import static edu.rice.cs.plt.iter.IterUtil.last;
+import static edu.rice.cs.plt.iter.IterUtil.map;
+import static edu.rice.cs.plt.iter.IterUtil.singleton;
+import static edu.rice.cs.plt.iter.IterUtil.skipFirst;
+import static edu.rice.cs.plt.iter.IterUtil.skipLast;
+import static edu.rice.cs.plt.iter.IterUtil.zip;
 import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
+
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.TypeAliasIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
+import com.sun.fortress.nodes.ASTNodeInfo;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.Effect;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.KeywordType;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
+import com.sun.fortress.nodes.NodeUpdateVisitor;
+import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.TupleType;
+import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeInfo;
+import com.sun.fortress.nodes.UnionType;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.WhereClause;
+import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.lambda.Lambda2;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 /**
  * Provides core type analysis algorithms in a specific type context.

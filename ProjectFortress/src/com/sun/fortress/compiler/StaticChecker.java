@@ -36,6 +36,7 @@ import com.sun.fortress.compiler.typechecker.TypeCheckerResult;
 import com.sun.fortress.compiler.typechecker.TypeEnv;
 import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.compiler.typechecker.TypesUtil;
+import com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
@@ -147,7 +148,7 @@ public class StaticChecker {
 //             System.out.println("end env");
 
             Node component_ast = component.ast();
-
+            ConstraintUtil.useJavaFormulas();
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
