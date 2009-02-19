@@ -18,9 +18,6 @@
 native component AnyType
 export AnyType
 
-private language="java"
-private package="com.sun.fortress.interpreter.glue.prim"
-
 trait Any end
 
 end
