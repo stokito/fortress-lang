@@ -33,7 +33,7 @@ import Spacing;
 
 /* Type ::= TypePrimary (w in w Expr)? */
 Type Type =
-     !(one) a1:TypePrimary a2:(w in w Expr)?
+     !(one) a1:TypePrimary a2:(w void:in w Expr)?
      { Type ty = TypeResolver.resolveOps(a1);
        Span span = NodeUtil.getSpan(ty);
        if (a2 == null)

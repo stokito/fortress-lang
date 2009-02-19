@@ -55,7 +55,10 @@ Id Id =
      <FIRST> a1:IdText { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
 
 /* IdOrOpName ::= Id | OpName */
-IdOrOp IdOrOpName = Id / OpName ;
+transient IdOrOp IdOrOpName =
+     Id
+   / a1:OpName
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 
 /* BindId ::= Id | _ */
 Id BindId =

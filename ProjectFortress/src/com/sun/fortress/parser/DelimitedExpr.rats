@@ -40,7 +40,7 @@ import Spacing;
    | object (w ExtendsWhere)? (w GoInAnObject)? w end
    | Do
    | label w Id w BlockElems w end w Id
-   | while w Expr w Do
+   | while w GeneratorClause w Do
    | for w GeneratorClauseList w DoFront w end
    | if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
    | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
@@ -48,7 +48,7 @@ import Spacing;
    | case w most w (Encloser / Op) w of w CaseClauses w end
    | typecase w TypecaseBindings w of w TypecaseClauses (br CaseElse)? w end
    | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
-       (w finally w BlockElems)? w end
+     (w finally w BlockElems)? w end
  */
 Expr DelimitedExpr =
      ArgExpr
@@ -59,22 +59,20 @@ Expr DelimitedExpr =
        yyValue = ExprFactory.makeObjectExpr(createSpan(yyStart,yyCount), a1, a2);
      }
    / Do
-   / label w a1:Id w a2:BlockElems w end w a3:Id
-     { if (!a1.getText().equals(a3.getText()))
-             log(NodeUtil.getSpan(a1),
-                 "Mismatched identifiers for label expressions:\n'" +
-                 a1 + "' at " + NodeUtil.getSpan(a1) + " and\n'" +
-                 a3 + "' at " + NodeUtil.getSpan(a3));
-       yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), a1, a2);
-     }
-   / <ErrorProduction>
-     label w a1:OpName w a2:BlockElems w end w a3:OpName
-     { Span span = createSpan(yyStart,yyCount);
-       if (a1.equals("in"))
-           log(span, "'in' is a reserved word, and cannot be used as a label.");
-       else
-           log(span, a1 + " is not a valid label name.\n");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+   / label w a1:IdOrOpName w a2:BlockElems w end w a3:IdOrOpName
+     { Span span = NodeUtil.getSpan(a1);
+       if (!a1.getText().equals(a3.getText()))
+           log(span, "Mismatched identifiers for label expressions:\n'" +
+               a1 + "' at " + span + " and\n'" +
+               a3 + "' at " + NodeUtil.getSpan(a3));
+       if ( a1 instanceof Op ) {
+           if (a1.getText().equals("in"))
+               log(span, "'in' is a reserved word, and cannot be used as a label.");
+           else
+               log(span, a1 + " is not a valid label name.\n");
+           yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount));
+       } else
+           yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), (Id)a1, a2);
      }
    / while w a1:GeneratorClause w a2:Do
      { yyValue = ExprFactory.makeWhile(createSpan(yyStart,yyCount), a1, a2); }
@@ -84,7 +82,7 @@ Expr DelimitedExpr =
      { IfClause ic = NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = Useful.list(ic);
        if (a3 != null) clauses.addAll(a3);
-       Option<Block> elseC = Option.wrap(a4);
+       Option<Block> elseC = Option.<Block>wrap(a4);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses, elseC);
      }
    / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
@@ -93,74 +91,69 @@ Expr DelimitedExpr =
        List<IfClause> clauses = Useful.list(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
-                                    Option.some(a4));
+                                    Option.<Block>some(a4));
      }
    / openparen w if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
-       (w end)? w closeparen
+     (w end)? w closeparen
      { IfClause ic = NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2);
        List<IfClause> clauses = Useful.list(ic);
        if (a3 != null) clauses.addAll(a3);
        yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
-                                    Option.some(a4));
+                                    Option.<Block>some(a4));
      }
-   / case w a1:Expr a2:(w (Encloser / Op))? w of w a3:CaseClauses
-     a4:(br CaseElse)? w end
-     { Option<FunctionalRef> compare;
-       if (a2 == null) compare = Option.<FunctionalRef>none();
-       else            compare = Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a2)));
-       Option<Block> _else;
-       if (a4 == null)
-           _else = Option.none();
-       else _else = Option.some(a4);
-       yyValue = ExprFactory.makeCaseExpr(createSpan(yyStart,yyCount),
-                                          Option.some(a1), compare, a3, _else);
-     }
-   / <ErrorProduction1>
-     case w Expr (w (Encloser / Op))? w do w CaseClauses (br CaseElse)? w end
+   / case w a1:Expr a2:(w (Encloser / Op))? w a3:(of / do / in) w a4:CaseClauses
+     a5:(br CaseElse)? w end
      { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "In a case expression, 'do' is used incorrectly.  Use 'of' instead.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+       Option<FunctionalRef> compare;
+       if (a2 == null)
+           compare = Option.<FunctionalRef>none();
+       else
+           compare = Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a2)));
+       Option<Block> _else;
+       if (a5 == null) _else = Option.<Block>none();
+       else            _else = Option.<Block>some(a5);
+       if ( ! a3.equals("of") )
+           log(span, "In a case expression, '" + a3 +
+               "' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeCaseExpr(span, Option.<Expr>some(a1),
+                                          compare, a4, _else);
      }
-   / case w most w a1:(Encloser / Op) w of w a2:CaseClauses w end
-     { Option<FunctionalRef> compare = Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
+   / case w most w a1:(Encloser / Op) w a2:(of / do / in) w a3:CaseClauses w end
+     { Span span = createSpan(yyStart,yyCount);
+       if ( ! a2.equals("of") )
+           log(span, "In an extremum expression, '" + a2 +
+               "' is used incorrectly.  Use 'of' instead.");
+       Option<FunctionalRef> compare = Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
        yyValue = ExprFactory.makeCaseExpr(createSpan(yyStart,yyCount),
-                                          Option.<Expr>none(), compare, a2,
+                                          Option.<Expr>none(), compare, a3,
                                           Option.<Block>none());
      }
-   / <ErrorProduction2>
-     case w most w (Encloser / Op) w do w CaseClauses w end
+   / typecase w a1:TypecaseBindings w a2:(of / do / in) w a3:TypecaseClauses
+     a4:(br CaseElse)? w end
      { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "In an extremum expression, 'do' is used incorrectly.  Use 'of' instead.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
-     }
-   / typecase w a1:TypecaseBindings w of w a2:TypecaseClauses a3:(br CaseElse)?
-     w end
-     { Option<Block> caseElse = Option.wrap(a3);
+       if ( ! a2.equals("of") )
+           log(span, "In a typecase expression, '" + a2 +
+               "' is used incorrectly.  Use 'of' instead.");
+       Option<Block> caseElse = Option.<Block>wrap(a4);
        yyValue = ExprFactory.makeTypecase(createSpan(yyStart,yyCount), false,
                                           Option.<Type>none(), a1.getA(),
-                                          a1.getB(), a2, caseElse);
+                                          a1.getB(), a3, caseElse);
      }
-   / <ErrorProduction3>
-     typecase w TypecaseBindings w do w TypecaseClauses (br CaseElse)? w end
+   / <ErrorProduction>
+     typecase w self w a1:(of / do / in) w TypecaseClauses (br CaseElse)? w end
      { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "In a typecase expression, 'do' is used incorrectly.  Use 'of' instead.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
-     }
-   / <ErrorProduction4>
-     typecase w self w of w TypecaseClauses (br CaseElse)? w end
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "In a typecase expression, 'self' is used incorrectly.  Use a binding such as 'x = self' instead.");
+       if ( ! a1.equals("of") )
+           log(span, "In a typecase expression, '" + a1 +
+               "' is used incorrectly.  Use 'of' instead.");
+       log(span, "In a typecase expression, 'self' is used incorrectly.  " +
+           "Use a binding such as 'x = self' instead.");
        yyValue = ExprFactory.makeVoidLiteralExpr(span);
      }
    / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
      a4:(w finally w BlockElems)? w end
-     { Option<Catch> catch_ = Option.wrap(a2);
+     { Option<Catch> catch_ = Option.<Catch>wrap(a2);
        if (a3 == null) a3 = Collections.<BaseType>emptyList();
-       Option<Block> finally_ = Option.wrap(a4);
+       Option<Block> finally_ = Option.<Block>wrap(a4);
        yyValue = ExprFactory.makeTry(createSpan(yyStart,yyCount), a1, catch_, a3,
                                      finally_);
      };
@@ -175,7 +168,7 @@ Do Do = a1s:(DoFront w also w)* a2:DoFront w end
 private Block DoFront =
      a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
      { Span span = createSpan(yyStart,yyCount);
-       Option<Expr> at = Option.wrap(a1);
+       Option<Expr> at = Option.<Expr>wrap(a1);
        boolean atomic = (a2 == null) ? false : true;
        List<Expr> es;
        if (a3 == null) es = Collections.<Expr>emptyList();
@@ -192,8 +185,7 @@ private Block DoFront =
 Expr ArgExpr =
      openparen w a1s:(Expr w comma w)* a2:(Expr w void:ellipses w comma w)?
      a3:KeywordExpr a4s:(w comma w KeywordExpr)* w closeparen
-     { List<Expr> es = a1s.list();
-       Option<Expr> vs = ((a2 != null) ? Option.some(a2)
+     { Option<Expr> vs = ((a2 != null) ? Option.<Expr>some(a2)
                                        : Option.<Expr>none());
        List<KeywordExpr> ks = new ArrayList<KeywordExpr>();
        ks.add(a3);
@@ -202,13 +194,12 @@ Expr ArgExpr =
        }
        yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
                                            false, Option.<Type>none(),
-                                           es, vs, ks, false);
+                                           a1s.list(), vs, ks, false);
      }
    / openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
-     { Option<Expr> vs = Option.some(a2);
-       yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+     { yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
                                            false, Option.<Type>none(),
-                                           a1s.list(), vs,
+                                           a1s.list(), Option.<Expr>some(a2),
                                            Collections.<KeywordExpr>emptyList(),
                                            false);
      }
@@ -217,13 +208,15 @@ Expr ArgExpr =
 /* TupleExpr ::= ( w (Expr w , w)+  Expr w ) */
 Expr TupleExpr =
      openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
-     { List<Expr> es = Useful.list(a1s.list(), a2);
-       yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount), es);
+     { yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                           Useful.list(a1s.list(), a2));
      };
 
 /* KeywordExpr ::= BindId w = w Expr */
 private KeywordExpr KeywordExpr = a1:BindId w equals w a2:Expr
-     { yyValue = NodeFactory.makeKeywordExpr(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeKeywordExpr(createSpan(yyStart,yyCount),
+                                             a1, a2);
+     };
 
 /* Parenthesized ::= ( w Expr w ) */
 Expr Parenthesized =
@@ -239,7 +232,7 @@ private IfClause Elif = elif w a1:GeneratorClause w then w a2:BlockElems
      { yyValue = NodeFactory.makeIfClause(createSpan(yyStart,yyCount), a1, a2); };
 
 /* Else ::= else w BlockElems */
-Block Else = else w yyValue:BlockElems;
+Block Else = else w BlockElems;
 
 /* CaseClause is defined in LocalDecl.rats */
 
@@ -250,20 +243,10 @@ private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
 /* CaseElse ::= else w => w BlockElems */
 Block CaseElse = else w match w BlockElems ;
 
-/* TypecaseBindings ::= TypecaseVars (w = w Expr)? */
+/* TypecaseBindings ::= BindIdOrBindIdTuple (w = w Expr)? */
 private com.sun.fortress.useful.Pair<List<Id>,Option<Expr>> TypecaseBindings =
-     a1:TypecaseVars a2:(w void:equals w Expr)?
-     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.wrap(a2)); };
-
-/* TypecaseVars ::=
-     BindId
-   | ( w BindId(w , w BindId)+ w )
- */
-private List<Id> TypecaseVars =
-     a1:BindId
-     { yyValue = Useful.list(a1); }
-   / openparen w a1:BindId a2s:(w comma w BindId)+ w closeparen
-     { yyValue = Useful.cons(a1, a2s.list()); };
+     a1:BindIdOrBindIdTuple a2:(w void:equals w Expr)?
+     { yyValue = new com.sun.fortress.useful.Pair(a1, Option.<Expr>wrap(a2)); };
 
 /* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
 private List<TypecaseClause> TypecaseClauses =
@@ -273,7 +256,9 @@ private List<TypecaseClause> TypecaseClauses =
 /* TypecaseClause ::= TypecaseTypes w => w BlockElems */
 TypecaseClause TypecaseClause =
      a1:TypecaseTypes w match w a2:BlockElems
-     { yyValue = NodeFactory.makeTypecaseClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeTypecaseClause(createSpan(yyStart,yyCount),
+                                                a1, a2);
+     };
 
 /* TypecaseTypes ::=
      ( w TypeList w )
@@ -293,7 +278,9 @@ private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
 
 /* CatchClause ::= TraitType w => w BlockElems */
 private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
-     { yyValue = NodeFactory.makeCatchClause(createSpan(yyStart,yyCount), a1, a2); };
+     { yyValue = NodeFactory.makeCatchClause(createSpan(yyStart,yyCount),
+                                             a1, a2);
+     };
 
 /* MapExpr ::= { StaticArgs? (w EntryList)? w } */
 Expr MapExpr =
@@ -316,45 +303,32 @@ Expr MapExpr =
               RightEncloser
  */
 Expr Comprehension =
-     <ErrorProduction1>
-     (BIG w)? opensquare wr StaticArgs w ArrayComprehensionClause
-     (br ArrayComprehensionClause)* w closesquare
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Space is not allowed immediately before left white square bracket.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
-     }
-   / <ErrorProduction2>
-     (BIG w)? opencurly wr StaticArgs w Entry wr bar wr GeneratorClauseList w closecurly
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Space is not allowed immediately before left white square bracket.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
-     }
-   / <ErrorProduction3>
-     (BIG w)? LeftEncloser wr StaticArgs w Expr wr bar wr GeneratorClauseList w RightEncloser
-     { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Space is not allowed immediately before left white square bracket.");
-       yyValue = ExprFactory.makeVoidLiteralExpr(span);
-     }
-   / (BIG w)? opensquare a1:StaticArgs? w a2:ArrayComprehensionClause
+     (BIG w)? opensquare a0:hasW a1:StaticArgs? w a2:ArrayComprehensionClause
      a3s:(br ArrayComprehensionClause)* w closesquare
-     { List<ArrayComprehensionClause> clauses = Useful.cons(a2,
-                                                                    a3s.list());
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a0.booleanValue() && a1 != null )
+           log(span, "Space is not allowed immediately " +
+               "before left white square bracket.");
        if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       yyValue = ExprFactory.makeArrayComprehension(createSpan(yyStart,yyCount),a1,clauses);
+       yyValue = ExprFactory.makeArrayComprehension(span, a1,
+                                                    Useful.cons(a2, a3s.list()));
      }
-   / (BIG w)? opencurly a1:StaticArgs? w a2:Entry wr bar wr
+   / (BIG w)? opencurly a0:hasW a1:StaticArgs? w a2:Entry wr bar wr
      a3:GeneratorClauseList w closecurly
      { Span span = createSpan(yyStart,yyCount);
+       if ( a0.booleanValue() && a1 != null )
+           log(span, "Space is not allowed immediately " +
+               "before left white square bracket.");
        Op opr = NodeFactory.makeEnclosing(span, "BIG {|->", "BIG }");
        if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       yyValue = ExprFactory.makeAccumulator(createSpan(yyStart,yyCount), a1, opr, a3, a2);
+       yyValue = ExprFactory.makeAccumulator(span, a1, opr, a3, a2);
      }
-   / (BIG w)? a1:LeftEncloser a2:StaticArgs? w a3:Expr wr bar wr
+   / (BIG w)? a1:LeftEncloser a0:hasW a2:StaticArgs? w a3:Expr wr bar wr
      a4:GeneratorClauseList w a5:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
+       if ( a0.booleanValue() && a2 != null )
+           log(span, "Space is not allowed immediately " +
+               "before left white square bracket.");
        Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText(),
                                           "BIG " + a5.getText());
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
@@ -389,9 +363,7 @@ com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
    / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w
      a3:Expr
      { List<Expr> exprs = Useful.list(a1);
-       for (Expr i : a2) {
-           exprs.add(i);
-       }
+       for (Expr i : a2) exprs.add(i);
        yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
      };
 

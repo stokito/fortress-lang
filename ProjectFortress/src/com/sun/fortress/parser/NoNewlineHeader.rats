@@ -119,10 +119,6 @@ transient WhereClause Where =
    | unit w Id
    | Id (w Extends)?
  */
-private transient IdOrOp IdOrOpName =
-     Id
-   / a1:OpName
-     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
 transient WhereBinding WhereBinding =
      nat w a1:IdOrOpName
      { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),

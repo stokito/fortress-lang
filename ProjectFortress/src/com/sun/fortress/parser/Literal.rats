@@ -43,21 +43,22 @@ Expr LiteralExpr =
    ;
 
 /* ArrayExpr ::= [ StaticArgs? w RectElements w ] */
-ArrayElements ArrayExpr =
-     void:opensquare a1:StaticArgs? w a2:RectElements w void:closesquare
-     { if (a1 == null) yyValue = ExprFactory.finalizeArrayExpr(a2);
-       else            yyValue = ExprFactory.addStaticArgsToArrayExpr(a1, a2);
-     };
-
 /* RectElements ::= NoSpaceExpr MultiDimCons* */
-private ArrayElements RectElements =
-     a1:NoSpaceExpr a2s:MultiDimCons*
-     { if (a2s == null || a2s.isEmpty()) {
-             List<ArrayExpr> list = new ArrayList<ArrayExpr>();
-             list.add(ExprFactory.makeArrayElement(a1));
-             yyValue = ExprFactory.makeArrayElements(NodeUtil.getSpan(a1), 1, list);
-         } else
-           yyValue = ExprFactory.multiDimCons(writer, a1, a2s.list());
+ArrayElements ArrayExpr =
+     void:opensquare a1:StaticArgs? w a2:NoSpaceExpr a3s:MultiDimCons* w
+     void:closesquare
+     { ArrayElements rectElements;
+       if (a3s == null || a3s.isEmpty()) {
+           List<ArrayExpr> list = new ArrayList<ArrayExpr>();
+           list.add(ExprFactory.makeArrayElement(a2));
+           rectElements = ExprFactory.makeArrayElements(NodeUtil.getSpan(a2),
+                                                        1, list);
+       } else
+           rectElements = ExprFactory.multiDimCons(writer, a2, a3s.list());
+       if (a1 == null)
+           yyValue = ExprFactory.finalizeArrayExpr(rectElements);
+       else
+           yyValue = ExprFactory.addStaticArgsToArrayExpr(a1, rectElements);
      };
 
 /* MultiDimCons ::= RectSeparator NoSpaceExpr */
@@ -77,9 +78,7 @@ NumberLiteralExpr NumericLiteralExpr =
      NumericLiteralWithRadix
    / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
      { String numeral = a1;
-       for (String n: a2s.list()) {
-           numeral += n;
-       }
+       for (String n: a2s.list()) numeral += n;
        Span span = createSpan(yyStart,yyCount);
        NodeUtil.validNumericLiteral(writer, span, numeral);
        if ( NodeUtil.validIntLiteral(numeral) )
@@ -90,9 +89,7 @@ NumberLiteralExpr NumericLiteralExpr =
 private NumberLiteralExpr NumericLiteralWithRadix =
      a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
      { String numeral = a1;
-       for (String n: a2s.list()) {
-           numeral += n;
-       }
+       for (String n: a2s.list()) numeral += n;
        Span span = createSpan(yyStart,yyCount);
        NodeUtil.validNumericLiteral(writer, span, numeral, a3);
        numeral += "_"+NodeUtil.radix2Number(a3);
@@ -104,9 +101,7 @@ private NumberLiteralExpr NumericLiteralWithRadix =
 private transient String NumericWord =
      a1s:NumericCharacter+
      { yyValue = "";
-       for (String n: a1s.list()) {
-           yyValue += n;
-       }
+       for (String n: a1s.list()) yyValue += n;
      };
 private transient String NumericCharacter = [0-9a-zA-Z];
 
