@@ -20,9 +20,9 @@ package com.sun.fortress.compiler.typechecker;
 import static com.sun.fortress.compiler.Types.ANY;
 import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.compiler.Types.VOID;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.falseFormula;
-import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.trueFormula;
 import static edu.rice.cs.plt.debug.DebugUtil.debug;
+import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
+
 
 import java.util.ArrayList;
 import java.util.Collections;

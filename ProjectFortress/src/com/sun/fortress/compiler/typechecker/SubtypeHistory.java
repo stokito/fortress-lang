@@ -17,45 +17,13 @@
 
 package com.sun.fortress.compiler.typechecker;
 
-import java.util.*;
-
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.tuple.Pair;
-import edu.rice.cs.plt.tuple.Triple;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.IndexedRelation;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.lambda.Lambda;
-import edu.rice.cs.plt.lambda.Lambda2;
-
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.nodes_util.NodeFactory;
-import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.compiler.GlobalEnvironment;
-import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
+import com.sun.fortress.nodes.Type;
 
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-
-import static com.sun.fortress.compiler.Types.*;
-import static com.sun.fortress.compiler.typechecker.TypeAnalyzerUtil.*;
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.iter.IterUtil;
 import static com.sun.fortress.compiler.typechecker.constraints.ConstraintUtil.*;
-import static com.sun.fortress.nodes_util.NodeFactory.make_InferenceVarType;
-import static edu.rice.cs.plt.iter.IterUtil.cross;
-import static edu.rice.cs.plt.iter.IterUtil.collapse;
-import static edu.rice.cs.plt.iter.IterUtil.map;
-import static edu.rice.cs.plt.iter.IterUtil.zip;
-import static edu.rice.cs.plt.iter.IterUtil.singleton;
-import static edu.rice.cs.plt.iter.IterUtil.compose;
-import static edu.rice.cs.plt.iter.IterUtil.skipFirst;
-import static edu.rice.cs.plt.iter.IterUtil.first;
-import static edu.rice.cs.plt.iter.IterUtil.skipLast;
-import static edu.rice.cs.plt.iter.IterUtil.last;
-import static edu.rice.cs.plt.collect.CollectUtil.makeLinkedList;
-import static edu.rice.cs.plt.collect.CollectUtil.makeList;
-
-import static edu.rice.cs.plt.debug.DebugUtil.debug;
 
 /** An immutable record of all subtyping invocations in the call stack. */
 // Package private -- accessed by ConstraintFormula
