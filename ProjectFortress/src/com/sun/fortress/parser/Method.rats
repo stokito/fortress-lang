@@ -127,5 +127,5 @@ Decl Coercion =
        Span span = createSpan(yyStart,yyCount);
        NodeUtil.checkCoercionClauses(writer, span, a4);
        yyValue = NodeFactory.mkFnDecl(span, mods, NodeFactory.makeId(span,"coerce"),
-                                      a1, params, a4, Option.wrap(a6));
+                                      a1, params, a4, Option.<Expr>wrap(a6));
      };

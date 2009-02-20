@@ -39,20 +39,20 @@ import Spacing;
  */
 VarDecl VarDecl =
      a1:Mods? a2:VarMayTypes w a3:InitVal
-     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), a3.getB());
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), a3.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>some(a3.getA()));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.wrap(a1),
+                                              Option.<Modifiers>wrap(a1),
                                               Option.<Type>none(), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>some(a3));
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.wrap(a1),
+                                              Option.<Modifiers>wrap(a1),
                                               Option.<Type>some(a3), a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
                                          Option.<Expr>some(a4.getA()));
@@ -63,7 +63,7 @@ VarDecl VarDecl =
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
        List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.wrap(a1), tys, a4.getB());
+                                              Option.<Modifiers>wrap(a1), tys, a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
                                          Option.<Expr>some(a4.getA()));
      };
@@ -100,13 +100,13 @@ com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
  */
 VarDecl AbsVarDecl =
      a1:Mods? a2:NoNewlineVarWTypes
-     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), false);
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
                                          Option.<Expr>none());
      }
    / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.wrap(a1),
+                                              Option.<Modifiers>wrap(a1),
                                               Option.<Type>some(a3), false);
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>none());
@@ -117,6 +117,6 @@ VarDecl AbsVarDecl =
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
        List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.wrap(a1), tys, false);
+                                              Option.<Modifiers>wrap(a1), tys, false);
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs, Option.<Expr>none());
      };

@@ -554,9 +554,9 @@ transient Contract Contract =
                                           Option.<List<Expr>>none());
      }
    / a1:(w Requires)? a2:(w Ensures)? a3:(w Invariant)?
-     { Option<List<Expr>> requires = Option.wrap(a1);
-       Option<List<EnsuresClause>> ensures = Option.wrap(a2);
-       Option<List<Expr>> invariant = Option.wrap(a3);
+     { Option<List<Expr>> requires = Option.<List<Expr>>wrap(a1);
+       Option<List<EnsuresClause>> ensures = Option.<List<EnsuresClause>>wrap(a2);
+       Option<List<Expr>> invariant = Option.<List<Expr>>wrap(a3);
        if (a1 == null && a2 == null && a3 == null) yyValue = null;
        else yyValue = NodeFactory.makeContract(createSpan(yyStart,yyCount), requires,
                                                ensures, invariant);
@@ -582,7 +582,7 @@ transient private List<EnsuresClause> EnsuresClauseList =
 
 /* EnsuresClause ::= Expr (w provided w Expr)? */
 transient private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
-     { Option<Expr> ensures = Option.wrap(a2);
+     { Option<Expr> ensures = Option.<Expr>wrap(a2);
        yyValue = NodeFactory.makeEnsuresClause(createSpan(yyStart,yyCount), a1, ensures);
      };
 

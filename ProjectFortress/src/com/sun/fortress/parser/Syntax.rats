@@ -76,7 +76,7 @@ private List<Id> QualifiedNameList = a1:QualifiedName a2s:(w comma w QualifiedNa
      { yyValue = Useful.cons(a1, a2s.list()); };
 
 /* Extends ::= extends w IdName */
-Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.some(a1); };
+Option<Id> Extends = extends w a1:QualifiedName { yyValue = Option.<Id>some(a1); };
 
 private GrammarMemberDecl NonterminalDef =
       name:Id w void:bar w void:colonequals w a4:SyntaxExtensionDef a4s:(w SyntaxExtensionDefOr)*
@@ -85,7 +85,7 @@ private GrammarMemberDecl NonterminalDef =
         yyValue = new NonterminalExtensionDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs); }
     /  header:NonterminalHeader w void:colon astType:(w TraitType)? w void:colonequals w a4:SyntaxDef a4s:(w SyntaxDefOr)*
       { Id name = header.getName();
-        Option<BaseType> astType1 = Option.wrap(astType);
+        Option<BaseType> astType1 = Option.<BaseType>wrap(astType);
         List<SyntaxDecl> syntaxDefs = a4s.list();
         syntaxDefs.add(0, a4);
         yyValue = new NonterminalDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs, header, astType1); }
@@ -95,7 +95,7 @@ private GrammarMemberDecl NonterminalDef =
 private GrammarMemberDecl NonterminalDecl =
        header:NonterminalHeader w void:colon w astType:TraitType
       { Id name = header.getName();
-        Option<BaseType> astType1 = Option.wrap(astType);
+        Option<BaseType> astType1 = Option.<BaseType>wrap(astType);
         List<SyntaxDecl> syntaxDefs = Collections.<SyntaxDecl>emptyList();
         yyValue = new NonterminalDef(NodeFactory.makeSpanInfo(createSpan(yyStart,yyCount)), name, syntaxDefs, header, astType1); };
 
@@ -105,7 +105,7 @@ private NonterminalHeader NonterminalHeader =
           if (params == null) params = new LinkedList<NonterminalParameter>();
           if (staticParams == null) staticParams = Collections.<StaticParam>emptyList();
           Option<Type> type1 = Option.<Type>none();
-          if (type != null) type1 = Option.some(type);
+          if (type != null) type1 = Option.<Type>some(type);
           Option<WhereClause> where;
           if (whereClauses == null)
               where = Option.<WhereClause>none();
@@ -137,12 +137,12 @@ private NonterminalParameter Decl =
 /* SyntaxDef ::= SyntaxSymbol*  w BlockExpr **/
 SyntaxDecl SyntaxDef =
      mods:ChoiceModifier? w a1s:SyntaxSymbols w void:separator w a2:PreTransformerDecl
-     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), Option.wrap(mods), a1s, a2); };
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount), Option.<String>wrap(mods), a1s, a2); };
 
 SyntaxDecl SyntaxExtensionDef =
      yyValue:SyntaxDef
      / mods:SuperChoiceModifier? w nt:Id w "from" w grammar:Id
-     { yyValue = NodeFactory.makeSuperSyntaxDef(createSpan(yyStart, yyCount), Option.wrap(mods), nt, grammar); };
+     { yyValue = NodeFactory.makeSuperSyntaxDef(createSpan(yyStart, yyCount), Option.<String>wrap(mods), nt, grammar); };
 
 SyntaxDecl SyntaxDefOr =
      void:bar w yyValue:SyntaxDef;
