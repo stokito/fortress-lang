@@ -75,8 +75,8 @@ FnHeaderFront OpHeaderFront :=
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
                                             opa1, opa4.getText(),
-                                            Option.wrap(big), opa2, opa3,
-                                            Option.wrap(opa5));
+                                            Option.<String>wrap(big), opa2, opa3,
+                                            Option.<Param>wrap(opa5));
      }
    / ... ;
 
@@ -94,8 +94,8 @@ FnHeaderFront AbsOpHeaderFront :=
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
                                             opa1, opa4.getText(),
-                                            Option.wrap(big), opa2, opa3,
-                                            Option.wrap(opa5));
+                                            Option.<String>wrap(big), opa2, opa3,
+                                            Option.<Param>wrap(opa5));
      }
    / ... ;
 

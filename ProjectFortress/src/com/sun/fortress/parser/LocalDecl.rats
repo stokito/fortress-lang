@@ -170,15 +170,15 @@ transient Param Keyword = a1:Param s equals w a2:NoNewlineExpr
  */
 LocalVarDecl LocalVarDecl =
      a1:Mods? a2:VarMayTypes s equals w a3:NoNewlineExpr
-     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), false);
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
    / a1:Mods? a2:NoNewlineVarWTypes s colonequals w a3:NoNewlineExpr
-     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), true);
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), true);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
      }
    / a1:Mods? a2:NoNewlineVarWTypes
-     { a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), false);
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2);
      }
    / a1:VarWoTypes s equals w a2:NoNewlineExpr
@@ -187,11 +187,11 @@ LocalVarDecl LocalVarDecl =
      { Option<Expr> init;
        if ( a4 != null ) {
            init = Option.<Expr>some(a4.getA());
-           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1),
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
                                     Option.<Type>some(a3), a4.getB());
        } else {
            init = Option.<Expr>none();
-           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1),
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
                                     Option.<Type>some(a3), false);
        }
        yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2,
@@ -205,10 +205,10 @@ LocalVarDecl LocalVarDecl =
        Option<Expr> init;
        if ( a4 != null ) {
            init = Option.<Expr>some(a4.getA());
-           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), tys, a4.getB());
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), tys, a4.getB());
        } else {
            init = Option.<Expr>none();
-           a2 = NodeFactory.makeLvs(writer, a2, Option.wrap(a1), tys, false);
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), tys, false);
        }
        yyValue = ExprFactory.makeLocalVarDecl(span, a2, init);
      };

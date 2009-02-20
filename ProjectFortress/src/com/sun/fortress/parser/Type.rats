@@ -42,7 +42,8 @@ Type Type =
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
                yyValue = NodeFactory.makeTaggedDimType(span, false, _ty.getElemType(),
-                                                       _ty.getDimExpr(), Option.some(a2));
+                                                       _ty.getDimExpr(),
+                                                       Option.<Expr>some(a2));
            } else {
                log(span, "A dimension type is expected.");
                yyValue = ty;
@@ -101,9 +102,9 @@ PureList<PostfixOpExpr> TypePrefix =
  */
 PureList<PostfixOpExpr> TightInfixPostfix =
      <Arrow> a1:TypeInfixOp a2:TypePrimary a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.<List<BaseType>>wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp a2:TypePrefix a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.<List<BaseType>>wrap(a3)))); }
    / a1:DimInfixOp a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1)); }
    / a1:DimInfixOp a2:TypePrefix
@@ -123,9 +124,9 @@ PureList<PostfixOpExpr> TightInfixPostfix =
  */
 PureList<PostfixOpExpr> LooseInfix =
      <Arrow> a1:TypeInfixOp wr a2:TypePrimary a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.<List<BaseType>>wrap(a3)))); }
    / <ArrowPrefix> a1:TypeInfixOp wr a2:TypePrefix a3:(w Throws)?
-     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.wrap(a3)))); }
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.<List<BaseType>>wrap(a3)))); }
    / <Infix> a1:DimInfixOp wr a2:TypePrimary
      { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); }
    / <InPrefix> a1:DimInfixOp wr a2:TypePrefix
@@ -167,7 +168,7 @@ Type Domain =
      a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
      { List<Type>   ts1 = a1s.list();
        Span span = createSpan(yyStart,yyCount);
-       Option<Type> ts2 = Option.wrap(a2);
+       Option<Type> ts2 = Option.<Type>wrap(a2);
        List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
        yyValue = NodeFactory.makeDomain(span, ts1, ts2, ts3);
@@ -175,7 +176,7 @@ Type Domain =
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
      { List<Type> ts1 = Useful.list(a1s.list());
        Span span = createSpan(yyStart,yyCount);
-       Option<Type> ts2 = Option.some(a2);
+       Option<Type> ts2 = Option.<Type>some(a2);
        yyValue = NodeFactory.makeDomain(span, ts1, ts2,
                                         Collections.<KeywordType>emptyList());
      };
@@ -247,7 +248,8 @@ constant inline Action<Type> ArrayTypeSize =
                    return base;
                } else
                    return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                                    (Type)base, Option.wrap(a1));
+                                                    (Type)base,
+                                                    Option.<Indices>wrap(a1));
            }};
      };
 
@@ -267,22 +269,22 @@ ExtentRange ExtentRange =
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "#");
        yyValue = NodeFactory.makeExtentRange(span,
-                                 Option.wrap(a1),
-                                 Option.wrap(a2),
-                                 Option.wrap(op));
+                                 Option.<StaticArg>wrap(a1),
+                                 Option.<StaticArg>wrap(a2),
+                                 Option.<Op>wrap(op));
      }
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "#");
        yyValue = NodeFactory.makeExtentRange(span,
-                                 Option.wrap(a1),
-                                 Option.wrap(a2),
-                                 Option.wrap(op));
+                                 Option.<StaticArg>wrap(a1),
+                                 Option.<StaticArg>wrap(a2),
+                                 Option.<Op>wrap(op));
      }
    / a1:StaticArg
      { yyValue = NodeFactory.makeExtentRange(createSpan(yyStart,yyCount),
                                  Option.<StaticArg>none(),
-                                 Option.some(a1),
+                                 Option.<StaticArg>some(a1),
                                  Option.<Op>none());
      };
 
@@ -432,7 +434,8 @@ constant inline Action<Type> ArrayTypeSizeTrait =
                    return base;
                } else
                    return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                                    (Type)base, Option.wrap(a1));
+                                                    (Type)base,
+                                                    Option.<Indices>wrap(a1));
            }};
      };
 

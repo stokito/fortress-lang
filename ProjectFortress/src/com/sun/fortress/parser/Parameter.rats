@@ -122,7 +122,7 @@ FnHeaderFront OpHeaderFront =
      { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
-                                            opa1, opa4.getText(), Option.wrap(big),
+                                            opa1, opa4.getText(), Option.<String>wrap(big),
                                             opa2, opa3);
      }
    / opr w a1:ValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
@@ -133,8 +133,8 @@ FnHeaderFront OpHeaderFront =
      }
    / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:ValParam
      { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
-                                            a1, Option.wrap(big), Option.wrap(a2),
-                                            a3);
+                                            a1, Option.<String>wrap(big),
+                                            Option.<List<StaticParam>>wrap(a2), a3);
      };
 
 /* AbsOpHeaderFront ::=
@@ -149,8 +149,8 @@ FnHeaderFront AbsOpHeaderFront =
      { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
        if (opa3 == null) opa3 = Collections.<Param>emptyList();
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
-                                            opa1, opa4.getText(), Option.wrap(big),
-                                            opa2, opa3);
+                                            opa1, opa4.getText(),
+                                            Option.<String>wrap(big), opa2, opa3);
      }
    / opr w a1:AbsValParam w a2:(Op / ExponentOp) a3:(w StaticParams)?
      { if (a3 == null)
@@ -159,7 +159,7 @@ FnHeaderFront AbsOpHeaderFront =
            yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(a2), a3, a1);
      }
    / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:AbsValParam
-      { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
-                                            a1, Option.wrap(big), Option.wrap(a2),
-                                            a3);
+     { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            a1, Option.<String>wrap(big),
+                                            Option.<List<StaticParam>>wrap(a2), a3);
      };

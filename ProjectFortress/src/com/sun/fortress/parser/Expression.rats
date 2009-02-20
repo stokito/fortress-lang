@@ -52,8 +52,8 @@ Expr ExprFront =
    / DelimitedExpr
    / <Flow> FlowExpr
    / <Fn> fn w a1:ValParam a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
-     { Option<Type> ty_opt = Option.wrap(a2);
-       Option<List<BaseType>> tys = Option.wrap(a3);
+     { Option<Type> ty_opt = Option.<Type>wrap(a2);
+       Option<List<BaseType>> tys = Option.<List<BaseType>>wrap(a3);
        yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1, ty_opt,
                                         tys, a4);
      };
@@ -135,7 +135,7 @@ constant inline Action<Expr> SubscriptAssign =
              else            es = a3;
              Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
                                                a1.getText(),a4.getText());
-             return ExprFactory.makeSubscriptExpr(span,base,es,Option.some(op),
+             return ExprFactory.makeSubscriptExpr(span,base,es,Option.<Op>some(op),
                                                   sargs);
             }};
      };
@@ -655,7 +655,7 @@ ExponentiationMI Exponentiation =
    / a1:caret a2:Exponent
      { Span span = createSpan(yyStart,yyCount);
        yyValue = ExprFactory.makeExponentiationMI(span, ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
-                                                  Option.some(a2));
+                                                  Option.<Expr>some(a2));
      }
    / a1:ExponentOp
      { yyValue = ExprFactory.makeExponentiationMI(NodeUtil.getSpan(a1),
@@ -687,8 +687,8 @@ Expr Exponent =
  */
 Expr FlowExpr =
      exit a1:(w Id)? a2:(w with w Expr)?
-     { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.some(a1);
-       Option<Expr> expr = Option.wrap(a2);
+     { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.<Id>some(a1);
+       Option<Expr> expr = Option.<Expr>wrap(a2);
        yyValue = ExprFactory.makeExit(createSpan(yyStart,yyCount), Option.<Type>none(), name, expr);
      }
    / <ErrorProduction1>
