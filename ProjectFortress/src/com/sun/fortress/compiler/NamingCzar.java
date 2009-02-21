@@ -249,15 +249,29 @@ public class NamingCzar {
          return bug ("unhandled type translation, Fortress type " + t);
 
      }
+     
+     public String apiNameToPackageName(APIName name) {
+         if (fj.definesApi(name)) {
+             return name.getText();
+         } else {
+             return "fortress."+name.getText();
+         }
+     }
 
     /**
      * @param componentName
-     * @return
+     * @return the name of the class implementing the compiled top-level
+     *         environment for component componentName.
      */
      public static String classNameForComponentEnvironment(APIName componentName) {
          return classNameForComponentEnvironment(NodeUtil.nameString(componentName));
      }
      
+     /**
+      * @param componentName
+      * @return the name of the class implementing the compiled top-level
+      *         environment for component componentName.
+      */
     public static String classNameForComponentEnvironment(String componentName) {
         componentName = componentName + TopLevelEnvGen.COMPONENT_ENV_SUFFIX;
         componentName = mangleClassIdentifier(componentName);  // Need to mangle the name if it contains "."
@@ -265,14 +279,22 @@ public class NamingCzar {
     }
 
     /**
+     * 
      * @param apiName
-     * @return
+     * @return the name of the class implementing the compiled top-level
+     *         environment for api apiName
      */
     public static String classNameForApiEnvironment(APIName apiName) {
         return classNameForApiEnvironment(NodeUtil.nameString(apiName));
     }
     
-    public static String classNameForApiEnvironment(String apiName) {
+    /**
+     * 
+     * @param apiName
+     * @return the name of the class implementing the compiled top-level
+     *         environment for apiName
+     */
+   public static String classNameForApiEnvironment(String apiName) {
         apiName = apiName + TopLevelEnvGen.API_ENV_SUFFIX;
         apiName = mangleClassIdentifier(apiName);  // Need to mangle the name if it contains "."
         return apiName;
@@ -284,6 +306,9 @@ public class NamingCzar {
     }
 
     /**
+     * Convert a string identifier into something that will be legal in a
+     * JVM.
+     * 
      * http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm
      * Dangerous characters are the union of all characters forbidden
      * or otherwise restricted by the JVM specification, plus their mates,

@@ -35,21 +35,21 @@ public class APIWrapper extends CUWrapper {
         // TODO Auto-generated constructor stub
     }
     
-    public CompilationUnit populateOne(ComponentWrapper exporter) {
+    public CompilationUnit populateOne(NonApiWrapper exporter) {
         if (visitState != IMPORTED)
             return bug("Component wrapper in wrong visit state: " + visitState);
 
         visitState = POPULATED;
 
-        be.setExporterAndApi(exporter, this);
+        getEnvBuilder().setExporterAndApi(exporter, this);
         
         CompilationUnit cu = comp_unit;
 
                                       // Caches information in dis!
-        be.visit(cu);
+        getEnvBuilder().visit(cu);
         // Reset the non-function names from the disambiguator.
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-        be.getEnvironment().visit(nameCollector);
+        getEnvBuilder().getEnvironment().visit(nameCollector);
         comp_unit = cu;
 
         return cu;

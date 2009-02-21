@@ -127,7 +127,7 @@ public class ForeignJava {
      * Given an API Name, what are the decls in it?
      * This includes both trait (class) decls and function (static method) decls.
      */
-    MultiMap<APIName, Decl> apiToStaticDecls = new MultiMap<APIName, Decl>();
+    public MultiMap<APIName, Decl> apiToStaticDecls = new MultiMap<APIName, Decl>();
 
     /**
      * Given a Java class, what items from it were requested?
@@ -144,12 +144,12 @@ public class ForeignJava {
      * Stores the FnDecl for a particular method -- also acts as an is-visited
      * marker.
      */
-    Bijection<String, FnDecl> methodToDecl = new HashBijection<String, FnDecl>();
+    public Bijection<String, FnDecl> methodToDecl = new HashBijection<String, FnDecl>();
     
     /**
      * Stores the TraitDecl for a trait.
      */
-    Bijection<Type, TraitDecl> classToTraitDecl = new HashBijection<Type, TraitDecl>();
+    public Bijection<Type, TraitDecl> classToTraitDecl = new HashBijection<Type, TraitDecl>();
 
     /* Special cases
      * 
@@ -210,7 +210,7 @@ public class ForeignJava {
         return NodeFactory.internalSpan;
     }
     private static Span span(MethodNode m) {
-        return NodeFactory.makeSpan(m.desc);
+        return NodeFactory.makeSpan(methodName(m));
     }
     private static Span span(APIName a) {
         return NodeFactory.makeSpan(a.getText());
@@ -436,7 +436,7 @@ public class ForeignJava {
     static Comparator<MethodNode> methodNodeComparator = new Comparator<MethodNode> () {
 
         public int compare(MethodNode o1, MethodNode o2) {
-            return o1.desc.compareTo(o2.desc);
+            return methodName(o1).compareTo(methodName(o2));
         }
         
     };
@@ -515,8 +515,9 @@ public class ForeignJava {
     }
 
     private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
-        if (methodToDecl.containsKey(m.desc))
-            return methodToDecl.get(m.desc);
+        String methodKey = methodName(m);
+        if (methodToDecl.containsKey(methodKey))
+            return methodToDecl.get(methodKey);
         
         Type rt = returnType(m);
         Type[] pts = argumentTypes(m);
@@ -539,8 +540,15 @@ public class ForeignJava {
             NodeFactory.makeId(fn_span, getName(m));
         FnDecl fndecl = NodeFactory.makeFnDecl(fn_span, Modifiers.None,
                 id, params,Option.some(return_type), Option.<Expr>none());
-        methodToDecl.put(m.desc, fndecl);
+        methodToDecl.put(methodKey, fndecl);
         return fndecl;
+    }
+    /**
+     * @param m
+     * @return
+     */
+    private static String methodName(MethodNode m) {
+        return m.name+m.desc;
     }
 
     private boolean isPublic(int modifiers) {
@@ -623,6 +631,15 @@ public class ForeignJava {
         }
     }
 
+    /**
+     * Node depends on next.  Compares the on-disk record of the dependence
+     * with the current version of the dependence, and return true iff there
+     * is any change or missing data.
+     * 
+     * @param node A thing (component or api) importing a Java package.
+     * @param next The api generated for the Java package.
+     * @return
+     */
     public boolean dependenceChanged(GraphNode node, GraphNode next) {
         APIName node_name = node.getName();
         APIName next_name = next.getName();
