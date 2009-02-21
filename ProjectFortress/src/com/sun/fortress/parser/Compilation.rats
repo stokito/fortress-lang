@@ -237,8 +237,7 @@ private List<Import> ImportedNames =
      }
    / <ErrorProduction>
      Id (w as w Id)?
-     { log(createSpan(yyStart,yyCount),
-           "Syntax Error: Try \"import api APIName\"");
+     { log(createSpan(yyStart,yyCount), "Try \"import api APIName\"");
        yyValue = Collections.<Import>emptyList();
      };
 
