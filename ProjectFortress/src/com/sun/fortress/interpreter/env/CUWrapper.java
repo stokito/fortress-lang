@@ -62,7 +62,7 @@ public class CUWrapper {
 
     HashMap<String, APIWrapper> exports = new  HashMap<String, APIWrapper>();
 
-    public BuildTopLevelEnvironments be;
+    private BuildTopLevelEnvironments be;
 
     /**
      * The names of libraries that are implicitly imported
@@ -181,23 +181,13 @@ public class CUWrapper {
         }
     }
 
-    /**
-     * Simple/stupid wrapper constructor for the non-general 1-1 case.
-     * @param comp
-     * @param apicw
-     */
-    public CUWrapper(Component comp, APIWrapper apicw, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
-        this(comp, linker, implicitLibs);
-
-        exports.put(NodeUtil.nameString(apicw.getCompilationUnit().getName()), apicw);
-    }
-
     public CUWrapper(Component comp, List<APIWrapper> api_list, HashMap<String, NonApiWrapper> linker, String[] implicitLibs) {
         this(comp, linker, implicitLibs);
         for (APIWrapper api : api_list)
             exports.put(NodeUtil.nameString(api.getCompilationUnit().getName()), api);
     }
 
+    // Called from ForeignComponentWrapper
     public CUWrapper(APIWrapper apicw, HashMap<String, NonApiWrapper> linker,
             String[] implicitLibs) {
         this.implicitLibs = implicitLibs;
@@ -345,6 +335,10 @@ public class CUWrapper {
 
     public List<Import> getImports() {
         return comp_unit.getImports();
+    }
+
+    public BuildTopLevelEnvironments getEnvBuilder() {
+        return be;
     }
 
 

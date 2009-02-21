@@ -73,6 +73,7 @@ public class ComponentWrapper extends NonApiWrapper {
             return  (Component) componentCache.get(graphRepository.pathTaggedComponent(comp.ast().getName()), comp.modifiedDate());
     }
 
+    // called from evalComponent
     public ComponentWrapper(ComponentIndex comp, HashMap<String, NonApiWrapper> linker,
             String[] implicitLibs, GraphRepository gr) {
         super((Component) comp.ast(), linker, implicitLibs);
@@ -82,13 +83,10 @@ public class ComponentWrapper extends NonApiWrapper {
         transformed = getCached(comp);
     }
 
+    // called from ensureApiImplemented
     public ComponentWrapper(ComponentIndex comp, APIWrapper api,
             HashMap<String, NonApiWrapper> linker, String[] implicitLibs, GraphRepository gr) {
-        super((Component) comp.ast(), api, linker, implicitLibs);
-        cacheDisabled = noCache;
-        componentCache = gr.getDerivedComponentCache(ProjectProperties.INTERPRETER_CACHE_DIR);
-        graphRepository = gr;
-       transformed = getCached(comp);
+        this(comp, Useful.list(api), linker, implicitLibs, gr);
    }
 
     /**
@@ -98,6 +96,7 @@ public class ComponentWrapper extends NonApiWrapper {
      * @param linker
      * @param implicitLibs
      */
+    // Called from CommandLineComponent and ComponentWrapper
     public ComponentWrapper(ComponentIndex comp, List<APIWrapper> api_list,
             HashMap<String, NonApiWrapper> linker, String[] implicitLibs, GraphRepository gr) {
         super((Component) comp.ast(), api_list, linker, implicitLibs);
@@ -128,18 +127,18 @@ public class ComponentWrapper extends NonApiWrapper {
             componentCache.forget(graphRepository.pathTaggedComponent(transformed.getName()));
         }
         cu = transformed;
-        be.visit(cu);
+        getEnvBuilder().visit(cu);
         // Reset the non-function names from the disambiguator.
         excludedImportNames = new BASet<String>(com.sun.fortress.useful.StringHashComparer.V);
-        be.getEnvironment().visit(nameCollector);
+        getEnvBuilder().getEnvironment().visit(nameCollector);
         comp_unit = cu;
 
         for (String implicitLibraryName : implicitLibs) {
-            be.importAPIName(implicitLibraryName);
+            getEnvBuilder().importAPIName(implicitLibraryName);
         }
 
         for (CUWrapper api: exports.values()) {
-            be.importAPIName(api.name());
+            getEnvBuilder().importAPIName(api.name());
         }
 
         for (APIWrapper api: exports.values()) {

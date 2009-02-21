@@ -793,6 +793,13 @@ public class Useful {
         return input.substring(0, a);
     }
 
+    /**
+     * Replaces all  occurrences of search in original with replace.
+     * @param original
+     * @param search
+     * @param replace
+     * @return
+     */
     public static String replace(String original, String search, String replace) {
         int searchLength = search.length();
         // One way of dealing with the empty string

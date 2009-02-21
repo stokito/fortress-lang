@@ -116,7 +116,7 @@ public class Driver {
     }
 
     public static ArrayList<ComponentWrapper> components;
-    public static ArrayList<NonApiWrapper> foreigns;
+    public static ArrayList<ForeignComponentWrapper> foreigns;
 
     public static void reset() {
         components = null;
@@ -140,7 +140,7 @@ public class Driver {
         Stack<NonApiWrapper> pile = new Stack<NonApiWrapper>();
         // ArrayList<ComponentWrapper>
         components = new ArrayList<ComponentWrapper>();
-        foreigns = new ArrayList<NonApiWrapper>();
+        foreigns = new ArrayList<ForeignComponentWrapper>();
 
         /*
          * This looks like gratuitous and useless error checking that
@@ -222,7 +222,7 @@ public class Driver {
 
                 ensureImportsImplemented(fr, linker, pile, imports);
             } else {
-                foreigns.add(naw);
+                foreigns.add((ForeignComponentWrapper)naw);
             }
         }
 
@@ -248,6 +248,10 @@ public class Driver {
             change |= injectLibraryTraits(components, natives);
         }
 
+        for (ForeignComponentWrapper cw: foreigns) {
+          
+            cw.populateOne();
+        }
         /*
          * After all apis etc have been imported, populate their environments.
          * First the component is populated, then (recursively, inside that
@@ -491,6 +495,7 @@ public class Driver {
 
             if (ForeignJava.only.definesApi(newapi.getName())) {
                 ForeignComponentWrapper fcw = new ForeignComponentWrapper(apicw, linker, WellKnownNames.defaultLibrary());
+                fcw.touchExports(true);
                 linker.put(apiname, fcw);
                 pile.push(fcw);
                 // no need to push for additional imports, at least not quite yet.
