@@ -41,7 +41,8 @@ Type Type =
        else {
            if (ty instanceof TaggedDimType) {
                TaggedDimType _ty = (TaggedDimType)ty;
-               yyValue = NodeFactory.makeTaggedDimType(span, false, _ty.getElemType(),
+               yyValue = NodeFactory.makeTaggedDimType(span, false,
+                                                       _ty.getElemType(),
                                                        _ty.getDimExpr(),
                                                        Option.<Expr>some(a2));
            } else {
@@ -136,7 +137,7 @@ PureList<PostfixOpExpr> LooseInfix =
 Type TypePrimaryFront =
     seed:TypeFront list:TypeTail+
     { yyValue = (Type)apply(list, (Type)seed); }
-  / yyValue:TypeFront ;
+  / TypeFront ;
 
 /* TypeFront ::=
      ParenthesizedType
@@ -166,18 +167,15 @@ private Type ParenthesizedType =
 Type Domain =
      openparen w a1s:(Type w comma w)* a2:(Type w void:ellipses w comma w)?
      a3:KeywordType a4s:(w comma w KeywordType)* w closeparen
-     { List<Type>   ts1 = a1s.list();
-       Span span = createSpan(yyStart,yyCount);
-       Option<Type> ts2 = Option.<Type>wrap(a2);
-       List<KeywordType> ts3 = a4s.list();
+     { List<KeywordType> ts3 = a4s.list();
        ts3.add(0, a3);
-       yyValue = NodeFactory.makeDomain(span, ts1, ts2, ts3);
+       yyValue = NodeFactory.makeDomain(createSpan(yyStart,yyCount),
+                                        a1s.list(), Option.<Type>wrap(a2), ts3);
      }
    / openparen w a1s:(Type w comma w)* a2:Type w ellipses w closeparen
-     { List<Type> ts1 = Useful.list(a1s.list());
-       Span span = createSpan(yyStart,yyCount);
-       Option<Type> ts2 = Option.<Type>some(a2);
-       yyValue = NodeFactory.makeDomain(span, ts1, ts2,
+     { yyValue = NodeFactory.makeDomain(createSpan(yyStart,yyCount),
+                                        Useful.list(a1s.list()),
+                                        Option.<Type>some(a2),
                                         Collections.<KeywordType>emptyList());
      };
 
@@ -188,8 +186,8 @@ private KeywordType KeywordType = a1:BindId w equals w a2:Type
 /* TupleType ::= ( w Type w , w TypeList w ) */
 TupleType TupleType =
      openparen w a1:Type w comma w a2:TypeList w closeparen
-     { List<Type> ts = Useful.cons(a1, a2);
-       yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount), ts);
+     { yyValue = NodeFactory.makeTupleType(createSpan(yyStart,yyCount),
+                                           Useful.cons(a1, a2));
      };
 
 /* TypeList ::= Type (w , w Type)* */
@@ -199,22 +197,17 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 /* TypeRef ::= DottedIdChain StaticArgs? */
 /* TypeRef ::= Id StaticArgs? */
 private Type TypeRef =
-     <ErrorProduction>
-     Id wr StaticArgs
+     "Unity"
+     { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,yyCount), false); }
+   / a1:Id a2:hasW a3:StaticArgs
      { Span span = createSpan(yyStart,yyCount);
-       log(span,
-           "Space is not allowed immediately before left white square bracket.");
-       yyValue = NodeFactory.makeVoidType(span);
+       if ( a2.booleanValue() )
+           log(span, "Space is not allowed immediately " +
+               "before left white square bracket.");
+       yyValue = NodeFactory.makeTraitType(span, a1, a3);
      }
-   / "Unity"
-     { Span span = createSpan(yyStart,yyCount);
-         yyValue = NodeFactory.makeDimBase(span, false);
-     }
-   / a1:Id a2:StaticArgs?
-     { if (a2 == null)
-            yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1);
-       else yyValue = NodeFactory.makeTraitType(createSpan(yyStart,yyCount),a1,a2);
-     };
+   / a1:Id
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); };
 
 /* VoidType ::= ( w ) */
 private Type VoidType =
@@ -241,10 +234,8 @@ constant inline Action<Type> ArrayTypeSize =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base)) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation or a vector type or an " +
-                       "array type should not be immediately followed by " +
-                       "a left square bracket.");
+                       "An exponentiation/vector type/array type should not be " +
+                       "immediately followed by a left square bracket.");
                    return base;
                } else
                    return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
@@ -255,8 +246,8 @@ constant inline Action<Type> ArrayTypeSize =
 
 /* ArraySize ::= ExtentRange (w , w ExtentRange)* */
 private Indices ArraySize = a1:ExtentRange a2s:(w comma w ExtentRange)*
-     { List<ExtentRange> es = Useful.cons(a1, a2s.list());
-       yyValue = NodeFactory.makeIndices(createSpan(yyStart,yyCount), es);
+     { yyValue = NodeFactory.makeIndices(createSpan(yyStart,yyCount),
+                                         Useful.cons(a1, a2s.list()));
      };
 
 /* ExtentRange ::=
@@ -269,23 +260,23 @@ ExtentRange ExtentRange =
      { Span span = createSpan(yyStart,yyCount);
        Op op = NodeFactory.makeOpInfix(span, "#");
        yyValue = NodeFactory.makeExtentRange(span,
-                                 Option.<StaticArg>wrap(a1),
-                                 Option.<StaticArg>wrap(a2),
-                                 Option.<Op>wrap(op));
+                                             Option.<StaticArg>wrap(a1),
+                                             Option.<StaticArg>wrap(a2),
+                                             Option.<Op>wrap(op));
      }
    / a1:(StaticArg w)? colon a2:(w StaticArg)?
      { Span span = createSpan(yyStart,yyCount);
-       Op op = NodeFactory.makeOpInfix(span, "#");
+       Op op = NodeFactory.makeOpInfix(span, ":");
        yyValue = NodeFactory.makeExtentRange(span,
-                                 Option.<StaticArg>wrap(a1),
-                                 Option.<StaticArg>wrap(a2),
-                                 Option.<Op>wrap(op));
+                                             Option.<StaticArg>wrap(a1),
+                                             Option.<StaticArg>wrap(a2),
+                                             Option.<Op>wrap(op));
      }
    / a1:StaticArg
      { yyValue = NodeFactory.makeExtentRange(createSpan(yyStart,yyCount),
-                                 Option.<StaticArg>none(),
-                                 Option.<StaticArg>some(a1),
-                                 Option.<Op>none());
+                                             Option.<StaticArg>none(),
+                                             Option.<StaticArg>some(a1),
+                                             Option.<Op>none());
      };
 
 /* Exponentiation ::=
@@ -293,49 +284,40 @@ ExtentRange ExtentRange =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> Exponentiation =
-     <ErrorProduction1>
-     caret wr IntExpr
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Space is not allowed immediately after '^'.");
-       yyValue = new Action<Type>() { public Type run(Type base) { return base; }};
-     }
-   / caret a1:IntExpr
+     caret a1:hasW a2:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               if (NodeUtil.isExponentiation((Type)base) ||
-                   NodeUtil.isExponentiation(a1)) {
+               Span span = createSpan(yyStart,yyCount);
+               if ( a1.booleanValue() )
+                   log(span, "Space is not allowed immediately after '^'.");
+               if ( NodeUtil.isExponentiation((Type)base) ||
+                    NodeUtil.isExponentiation(a2) ) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation should not be immediately followed " +
+                       "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
                    return base;
                } else if (base instanceof DimExpr) {
-                   return NodeFactory.makeDimExponent(createSpan(yyStart,yyCount),
-                                                      false, (DimExpr)base, a1);
+                   return NodeFactory.makeDimExponent(span, false, (DimExpr)base,
+                                                      a2);
                } else { // !(base instanceof DimExpr)
-                   return NodeFactory.makeDimExponent(createSpan(yyStart,yyCount),
-                                                      false, (Type)base, a1);
+                   return NodeFactory.makeDimExponent(span, false, (Type)base, a2);
                }
            }};
      }
-   / <ErrorProduction2>
-     caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Space is not allowed immediately after '^'.");
-       yyValue = new Action<Type>() { public Type run(Type base) { return base; }};
-     }
-   / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
+   / caret a1:hasW openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
+     closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               if (NodeUtil.isExponentiation((Type)base)) {
+               Span span = createSpan(yyStart,yyCount);
+               if ( a1.booleanValue() )
+                   log(span, "Space is not allowed immediately after '^'.");
+               if ( NodeUtil.isExponentiation((Type)base) ) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation should not be immediately followed " +
+                       "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
                    return base;
                } else
-                   return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                                     (Type)base,a1,a2s.list());
+                   return NodeFactory.makeMatrixType(span, (Type)base,a2,a3s.list());
            }};
      };
 
@@ -344,7 +326,7 @@ constant inline Action<Type> Exponentiation =
    | OpType
  */
 PureList<PostfixOpExpr> MayParenthesizedOpType =
-     openparen w yyValue:OpType w closeparen
+     openparen w OpType w closeparen
    / OpType ;
 
 /* ParenthesizedType ::= ( w MayParenthesizedOpType w ) */
@@ -353,8 +335,9 @@ constant inline Action<Type> ParenthesizedTypeLeft =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                DimExpr dim = TypeResolver.resolveOpsDim(a1);
-               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
-                                                    (Type)base, NodeFactory.makeInParentheses(dim),
+               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount),
+                                                    false, (Type)base,
+                                                    NodeFactory.makeInParentheses(dim),
                                                     Option.<Expr>none());
            }};
      };
@@ -363,8 +346,9 @@ constant inline Action<Type> IdLeft =
      a1:Id
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount), false,
-                                                    (Type)base, NodeFactory.makeDimRef(NodeUtil.getSpan(a1), a1),
+               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount),
+                                                    false, (Type)base,
+                                                    NodeFactory.makeDimRef(NodeUtil.getSpan(a1), a1),
                                                     Option.<Expr>none());
            }};
      };
@@ -427,10 +411,8 @@ constant inline Action<Type> ArrayTypeSizeTrait =
            public Type run(Type base) {
                if (NodeUtil.isExponentiation((Type)base)) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation or a vector type or an " +
-                       "array type should not be immediately followed by " +
-                       "a left square bracket.");
+                       "An exponentiation/vector type/array type should not be " +
+                       "immediately followed by a left square bracket.");
                    return base;
                } else
                    return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
@@ -444,44 +426,36 @@ constant inline Action<Type> ArrayTypeSizeTrait =
    | ^ ( w ExtentRange (w x w ExtentRange)* w )
  */
 constant inline Action<Type> ExponentiationTrait =
-     <ErrorProduction1>
-     caret wr IntExpr
-     { log(createSpan(yyStart,yyCount),
-           "Space is not allowed immediately after '^'.");
-       yyValue = new Action<Type>() { public Type run(Type base) { return base; }};
-     }
-   / caret a1:IntExpr
+     caret a1:hasW a2:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               if (NodeUtil.isExponentiation((Type)base) ||
-                   NodeUtil.isExponentiation(a1)) {
+               Span span = createSpan(yyStart,yyCount);
+               if ( a1.booleanValue() )
+                   log(span, "Space is not allowed immediately after '^'.");
+               if ( NodeUtil.isExponentiation((Type)base) ||
+                    NodeUtil.isExponentiation(a2) ) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation should not be immediately followed " +
+                       "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
                    return base;
                } else
-                   return TypeResolver.makeMatrixType(createSpan(yyStart,yyCount),
-                                                      (Type)base, a1);
+                   return TypeResolver.makeMatrixType(span, (Type)base, a2);
            }};
      }
-   / <ErrorProduction2>
-     caret wr openparen w ExtentRange (w cross w ExtentRange)* w closeparen
-     { log(createSpan(yyStart,yyCount),
-           "Space is not allowed immediately after '^'.");
-       yyValue = new Action<Type>() { public Type run(Type base) { return base; }};
-     }
-   / caret openparen w a1:ExtentRange a2s:(w cross w ExtentRange)* w closeparen
+   / caret a1:hasW openparen w a2:ExtentRange a3s:(w cross w ExtentRange)* w
+     closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               if (NodeUtil.isExponentiation((Type)base)) {
+               Span span = createSpan(yyStart,yyCount);
+               if ( a1.booleanValue() )
+                   log(span, "Space is not allowed immediately after '^'.");
+               if ( NodeUtil.isExponentiation((Type)base) ) {
                    log(NodeUtil.getSpan((Type)base),
-                       "Syntax Error: an " +
-                       "exponentiation should not be immediately followed " +
+                       "An exponentiation should not be immediately followed " +
                        "by an exponentiation.");
                    return base;
                } else
-                   return NodeFactory.makeMatrixType(createSpan(yyStart,yyCount),
-                                                     (Type)base,a1,a2s.list());
+                   return NodeFactory.makeMatrixType(span, (Type)base,
+                                                     a2, a3s.list());
            }};
      };
