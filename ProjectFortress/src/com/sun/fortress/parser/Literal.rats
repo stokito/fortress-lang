@@ -136,17 +136,11 @@ private transient String RadixNames =
 
 CharLiteralExpr CharLiteralExpr =
      <FIRST> "'" a1:CharLiteralContent "'"
-     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
-                                                 a1);
-     }
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
    / "`" a1:CharLiteralContent "'"
-     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
-                                                 a1);
-     }
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
    / "\u2018" a1:CharLiteralContent "\u2019"
-     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount),
-                                                 a1);
-     }
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
    / <ErrorProduction1> "'" a1:CharLiteralContent "\u2019"
      { Span span = createSpan(yyStart,yyCount);
        log(span, "The opening and closing marks of a character literal must match.");
@@ -166,16 +160,12 @@ CharLiteralExpr CharLiteralExpr =
 StringLiteralExpr StringLiteralExpr =
      <FIRST> ["] a1:StringLiteralContent* ["]
      { String str = "";
-       for (String c : (List<String>)a1.list()) {
-           str = str.concat(c);
-       }
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
        yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
      }
    / "\u201c" a1:StringLiteralContent* "\u201d"
      { String str = "";
-       for (String c : (List<String>)a1.list()) {
-           str = str.concat(c);
-       }
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
        yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
      }
    / <ErrorProduction1> ["] a1:StringLiteralContent* "\u201d"

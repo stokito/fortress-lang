@@ -44,11 +44,9 @@ List<DimUnitDecl> DimUnitDecl =
      { Span span = createSpan(yyStart,yyCount);
        DimDecl dim;
        Type ty;
-       boolean si_unit;
-       if (a3.equals("SI_unit")) si_unit = true;
-       else                      si_unit = false;
+       boolean si_unit = (a3.equals("SI_unit")) ? true : false;
        List<Id> ids = new ArrayList<Id>();
-       for (Id a5Elt : a5s.list()) { ids.add(a5Elt); }
+       for (Id a5Elt : a5s.list()) ids.add(a5Elt);
        if ( a1 instanceof Id ) {
            dim = NodeFactory.makeDimDecl(span, (Id)a1, Option.<Type>wrap(a2));
            ty = NodeFactory.makeVarType(NodeUtil.getSpan(a1), (Id)a1);
@@ -72,31 +70,28 @@ List<DimUnitDecl> DimUnitDecl =
    / dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)?
      a3:(w default w IdOrOpName)?
      { Span span = createSpan(yyStart,yyCount);
-       DimDecl dim;
        Id dimId;
-       Id unitId;
        if ( a1 instanceof Id ) {
            dimId = (Id)a1;
        } else {
            log(span, a1 + " is not a valid dimension name.");
            dimId = NodeFactory.bogusId(span);
        }
+       Id unitId;
        if ( a3 instanceof Id ) {
            unitId = (Id)a3;
        } else {
            log(span, a3 + " is not a valid unit name.");
            unitId = NodeFactory.bogusId(span);
        }
-       dim = NodeFactory.makeDimDecl(span, dimId, Option.<Type>wrap(a2),
-                                     Option.<Id>wrap(unitId));
-       yyValue = Useful.list((DimUnitDecl)dim);
+       yyValue = Useful.list((DimUnitDecl)NodeFactory.makeDimDecl(span, dimId,
+                                                                  Option.<Type>wrap(a2),
+                                                                  Option.<Id>wrap(unitId)));
      }
    / a1:(unit / SI_unit) w a2:IdOrOpName a3s:(wr Id)*
      a4:(w void:colon w NoNewlineType)? a5:(w void:equals w NoNewlineExpr)?
      { Span span = createSpan(yyStart,yyCount);
-       boolean si_unit;
-       if (a1.equals("SI_unit")) si_unit = true;
-       else                      si_unit = false;
+       boolean si_unit = (a1.equals("SI_unit")) ? true : false;
        List<Id> ids = new ArrayList<Id>();
        if ( a2 instanceof Id )
            ids.add((Id)a2);
@@ -104,11 +99,10 @@ List<DimUnitDecl> DimUnitDecl =
            log(span, a2 + " is not a valid unit name.");
            ids.add(NodeFactory.bogusId(span));
        }
-       for (Id a3Elt : a3s.list()) { ids.add(a3Elt); }
-       UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids,
-                                                Option.<Type>wrap(a4),
-                                                Option.<Expr>wrap(a5));
-       yyValue = Useful.list((DimUnitDecl)unit);
+       for (Id a3Elt : a3s.list()) ids.add(a3Elt);
+       yyValue = Useful.list((DimUnitDecl)NodeFactory.makeUnitDecl(span, si_unit, ids,
+                                                                   Option.<Type>wrap(a4),
+                                                                   Option.<Expr>wrap(a5)));
      };
 
 /* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
@@ -160,6 +154,5 @@ PropertyDecl PropertyDecl =
            }
        }
        if (a2 == null) a2 = Collections.<Param>emptyList();
-       yyValue = NodeFactory.makePropertyDecl(createSpan(yyStart,yyCount),
-                                              id, a2, a3);
+       yyValue = NodeFactory.makePropertyDecl(span, id, a2, a3);
      };

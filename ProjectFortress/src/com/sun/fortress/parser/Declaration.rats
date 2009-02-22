@@ -30,9 +30,7 @@ import Syntax;
 
 /* Decls ::= Decl (br Decl)* */
 List<Decl> Decls = a1:Decl a2s:(br Decl)*
-     { for (List<Decl> ds : a2s.list()) {
-         a1.addAll(ds);
-       }
+     { for (List<Decl> ds : a2s.list())  a1.addAll(ds);
        yyValue = a1;
      };
 
@@ -58,9 +56,7 @@ List<Decl> Decl =
 
 /* AbsDecls ::= AbsDecl (br AbsDecl)* */
 List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
-     { for (List<Decl> ds : a2s.list()) {
-         a1.addAll(ds);
-       }
+     { for (List<Decl> ds : a2s.list())  a1.addAll(ds);
        yyValue = a1;
      };
 
@@ -84,5 +80,4 @@ List<Decl> AbsDecl =
    / a1:TypeAlias     { yyValue = Useful.list((Decl)a1); }
    / a1:TestDecl      { yyValue = Useful.list((Decl)a1); }
    / a1:PropertyDecl  { yyValue = Useful.list((Decl)a1); }
-   / a1:GrammarDef    { yyValue = Useful.list((Decl)a1); }
-   ;
+   / a1:GrammarDef    { yyValue = Useful.list((Decl)a1); };

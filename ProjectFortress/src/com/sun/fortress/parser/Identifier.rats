@@ -52,7 +52,8 @@ transient String idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest
 private String IdText  = a1:id &{ NodeUtil.validId(a1) } ;
 
 Id Id =
-     <FIRST> a1:IdText { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
+     <FIRST> a1:IdText
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
 
 /* IdOrOpName ::= Id | OpName */
 transient IdOrOp IdOrOpName =
@@ -120,9 +121,7 @@ APIName APIName =
      { Span span = createSpan(yyStart,yyCount);
        List<Id> ids = new ArrayList<Id>(a2s.list().size()+1);
        ids.add(NodeFactory.makeId(span, a1));
-       for ( String name : a2s.list() ) {
-           ids.add(NodeFactory.makeId(span, name));
-       }
+       for ( String name : a2s.list() ) ids.add(NodeFactory.makeId(span, name));
        Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();
@@ -139,9 +138,7 @@ APIName APIName =
      { Span span = createSpan(yyStart,yyCount);
        List<Id> ids = new ArrayList<Id>(a2s.list().size()+1);
        ids.add(NodeFactory.makeId(span, a1));
-       for ( String name : a2s.list() ) {
-           ids.add(NodeFactory.makeId(span, name));
-       }
+       for ( String name : a2s.list() ) ids.add(NodeFactory.makeId(span, name));
        Id bogusId = NodeFactory.bogusId(span);
        for (Id _id : ids) {
            String id = _id.getText();

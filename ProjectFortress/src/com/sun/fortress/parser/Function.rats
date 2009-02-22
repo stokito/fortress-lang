@@ -38,7 +38,7 @@ import Spacing;
 Decl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3,a4);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);
      }
    / AbsFnDecl ;
 
@@ -49,7 +49,7 @@ Decl FnDecl =
 FnDecl AbsFnDecl =
      a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
      { if (a1 == null) a1 = Modifiers.None;
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,a2,a3);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3);
      }
    / FnSig ;
 
@@ -88,7 +88,6 @@ FnDecl FnSig =
      a1:SimpleName w colon w a2:NoNewlineType
      { final Modifiers mods = Modifiers.None;
        final List<Param>  params = Collections.<Param>emptyList();
-
        if (!(a2 instanceof ArrowType)) {
            Span span = NodeUtil.getSpan(a2);
            log(span, "Abstract function declaration should have an arrow type.");
@@ -100,16 +99,17 @@ FnDecl FnSig =
            TupleType _d = (TupleType)d;
            for (Type argT : _d.getElements()) {
                Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
-               params.add(NodeFactory.makeParam(NodeUtil.getSpan(argT), mods, name, argT));
+               params.add(NodeFactory.makeParam(NodeUtil.getSpan(argT),
+                                                mods, name, argT));
            }
            if (_d.getVarargs().isSome()) {
                Type argT = _d.getVarargs().unwrap();
                Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
-               params.add(NodeFactory.makeVarargsParam(NodeUtil.getSpan(argT), mods, name, argT));
+               params.add(NodeFactory.makeVarargsParam(NodeUtil.getSpan(argT),
+                                                       mods, name, argT));
            }
            assert(_d.getKeywords().isEmpty()): "Keyword parameters present"
                + " in a FnSig: " + _d;
-
        } else {
            Id name = NodeFactory.makeId(NodeUtil.getSpan(d), "_");
            params.add(NodeFactory.makeParam(NodeUtil.getSpan(d), mods, name, d));
@@ -124,5 +124,5 @@ FnDecl FnSig =
        }
        */
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
-                                       params, ((ArrowType)a2).getRange());
+                                      params, ((ArrowType)a2).getRange());
      };
