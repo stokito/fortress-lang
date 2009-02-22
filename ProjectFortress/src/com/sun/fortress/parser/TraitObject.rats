@@ -54,10 +54,9 @@ TraitDecl TraitDecl =
 private TraitHeader TraitHeaderFront =
      <ErrorProduction>
      trait w a1:OpName a2:(w StaticParams)? a3:(w ExtendsWhere)?
-      { Span span = createSpan(yyStart,yyCount);
+     { Span span = createSpan(yyStart,yyCount);
        log(span, a1 + " is not a valid trait name.");
-       Id id = NodeFactory.bogusId(span);
-       yyValue = new TraitHeader(id, a2, a3);
+       yyValue = new TraitHeader(NodeFactory.bogusId(span), a2, a3);
      }
    / trait w a1:Id a2:(w StaticParams)? a3:(w ExtendsWhere)?
      { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
@@ -129,13 +128,13 @@ ObjectDecl ObjectDecl =
        if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Option<Contract> contract = fhc.getContractClause();
        yyValue = NodeFactory.makeObjectDecl(span, a1, a2.getName(),
                                             a2.getStaticParams(),
                                             a2.getExtendsClause(),
                                             fhc.getWhereClause(),
                                             a3, a2.getParams(),
-                                            fhc.getThrowsClause(), contract);
+                                            fhc.getThrowsClause(),
+                                            fhc.getContractClause());
      };
 
 /* ObjectHeader ::=
@@ -155,18 +154,15 @@ private ObjectHeader ObjectHeader =
      }
    / object w a1:Id a2:(w StaticParams)? a3:(w ObjectValParam)?
      a4:(w ExtendsWhere)? a5:FnClauses
-     { Option<List<Param>> ps = Option.<List<Param>>wrap(a3);
-       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
        NodeUtil.checkWhereClauses(writer, a5.getWhereClause());
-       yyValue = new ObjectHeader(a1, a2, ps, a4, a5);
+       yyValue = new ObjectHeader(a1, a2, Option.<List<Param>>wrap(a3), a4, a5);
      };
 
 /* ObjectValParam ::= ( (w ObjectParams)? w ) */
 private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
-     { if (a1 == null) yyValue = Collections.<Param>emptyList();
-       else            yyValue = a1;
-     };
+     { yyValue = (a1 == null) ? Collections.<Param>emptyList() : a1; };
 
 /* ObjectParams  ::=
      (ObjectParam w , w)* ObjectKeyword (w , w ObjectKeyword)*
@@ -184,10 +180,7 @@ Param Varargs :=
 
 Param Param :=
      a1:Mods? a2:PlainParam
-     { if (a1 != null)
-             yyValue = NodeFactory.makeParam(a2, a1);
-       else yyValue = a2;
-     };
+     { yyValue = (a1 != null) ? NodeFactory.makeParam(a2, a1) : a2; };
 
 /* GoInAnObject ::=
      (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
@@ -239,9 +232,7 @@ TraitDecl AbsTraitDecl =
  */
 private TraitClauses AbsTraitClauses = a1s:(w TraitClause)*
      { yyValue = new TraitClauses();
-       for (TraitClause t : (List<TraitClause>)a1s.list()) {
-         yyValue.set(t);
-       }
+       for (TraitClause t : (List<TraitClause>)a1s.list()) yyValue.set(t);
      };
 
 /* AbsGoInATrait ::=
@@ -278,13 +269,14 @@ ObjectDecl AbsObjectDecl =
        if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<Decl>emptyList();
        FnHeaderClause fhc = a2.getFnHeaderClause();
-       Option<Contract> contract = fhc.getContractClause();
        Option<List<Param>> params = a2.getParams();
        NodeUtil.checkNoWrapped(writer, params);
-       yyValue = NodeFactory.makeObjectDecl
-           (span, a1, a2.getName(),
-            a2.getStaticParams(), a2.getExtendsClause(), fhc.getWhereClause(),
-            a3, params, fhc.getThrowsClause(), contract);
+       yyValue = NodeFactory.makeObjectDecl(span, a1, a2.getName(),
+                                            a2.getStaticParams(),
+                                            a2.getExtendsClause(),
+                                            fhc.getWhereClause(), a3, params,
+                                            fhc.getThrowsClause(),
+                                            fhc.getContractClause());
      };
 
 /* AbsGoInAnObject ::=

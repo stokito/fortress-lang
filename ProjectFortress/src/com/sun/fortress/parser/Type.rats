@@ -232,14 +232,14 @@ constant inline Action<Type> ArrayTypeSize =
      opensquare a1:(w ArraySize)? w closesquare
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if (NodeUtil.isExponentiation((Type)base)) {
-                   log(NodeUtil.getSpan((Type)base),
-                       "An exponentiation/vector type/array type should not be " +
-                       "immediately followed by a left square bracket.");
+                   log(span, "An exponentiation/vector type/array type should " +
+                       "not be immediately followed by a left square bracket.");
                    return base;
                } else
-                   return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                                    (Type)base,
+                   return NodeFactory.makeArrayType(span, (Type)base,
                                                     Option.<Indices>wrap(a1));
            }};
      };
@@ -287,14 +287,14 @@ constant inline Action<Type> Exponentiation =
      caret a1:hasW a2:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Span span = createSpan(yyStart,yyCount);
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if ( a1.booleanValue() )
                    log(span, "Space is not allowed immediately after '^'.");
                if ( NodeUtil.isExponentiation((Type)base) ||
                     NodeUtil.isExponentiation(a2) ) {
-                   log(NodeUtil.getSpan((Type)base),
-                       "An exponentiation should not be immediately followed " +
-                       "by an exponentiation.");
+                   log(span, "An exponentiation should not be immediately " +
+                       "followed by an exponentiation.");
                    return base;
                } else if (base instanceof DimExpr) {
                    return NodeFactory.makeDimExponent(span, false, (DimExpr)base,
@@ -308,16 +308,17 @@ constant inline Action<Type> Exponentiation =
      closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Span span = createSpan(yyStart,yyCount);
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if ( a1.booleanValue() )
                    log(span, "Space is not allowed immediately after '^'.");
                if ( NodeUtil.isExponentiation((Type)base) ) {
-                   log(NodeUtil.getSpan((Type)base),
-                       "An exponentiation should not be immediately followed " +
-                       "by an exponentiation.");
+                   log(span, "An exponentiation should not be immediately " +
+                       "followed by an exponentiation.");
                    return base;
                } else
-                   return NodeFactory.makeMatrixType(span, (Type)base,a2,a3s.list());
+                   return NodeFactory.makeMatrixType(span, (Type)base, a2,
+                                                     a3s.list());
            }};
      };
 
@@ -335,8 +336,9 @@ constant inline Action<Type> ParenthesizedTypeLeft =
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
                DimExpr dim = TypeResolver.resolveOpsDim(a1);
-               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount),
-                                                    false, (Type)base,
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
+               return NodeFactory.makeTaggedDimType(span, false, (Type)base,
                                                     NodeFactory.makeInParentheses(dim),
                                                     Option.<Expr>none());
            }};
@@ -346,8 +348,9 @@ constant inline Action<Type> IdLeft =
      a1:Id
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               return NodeFactory.makeTaggedDimType(createSpan(yyStart,yyCount),
-                                                    false, (Type)base,
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            NodeUtil.getSpan(a1));
+               return NodeFactory.makeTaggedDimType(span, false, (Type)base,
                                                     NodeFactory.makeDimRef(NodeUtil.getSpan(a1), a1),
                                                     Option.<Expr>none());
            }};
@@ -409,14 +412,15 @@ constant inline Action<Type> ArrayTypeSizeTrait =
      opensquare a1:(w ArraySize)? w closesquare
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if (NodeUtil.isExponentiation((Type)base)) {
-                   log(NodeUtil.getSpan((Type)base),
+                   log(span,
                        "An exponentiation/vector type/array type should not be " +
                        "immediately followed by a left square bracket.");
                    return base;
                } else
-                   return NodeFactory.makeArrayType(createSpan(yyStart,yyCount),
-                                                    (Type)base,
+                   return NodeFactory.makeArrayType(span, (Type)base,
                                                     Option.<Indices>wrap(a1));
            }};
      };
@@ -429,14 +433,14 @@ constant inline Action<Type> ExponentiationTrait =
      caret a1:hasW a2:IntExpr
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Span span = createSpan(yyStart,yyCount);
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if ( a1.booleanValue() )
                    log(span, "Space is not allowed immediately after '^'.");
                if ( NodeUtil.isExponentiation((Type)base) ||
                     NodeUtil.isExponentiation(a2) ) {
-                   log(NodeUtil.getSpan((Type)base),
-                       "An exponentiation should not be immediately followed " +
-                       "by an exponentiation.");
+                   log(span, "An exponentiation should not be immediately " +
+                       "followed by an exponentiation.");
                    return base;
                } else
                    return TypeResolver.makeMatrixType(span, (Type)base, a2);
@@ -446,13 +450,13 @@ constant inline Action<Type> ExponentiationTrait =
      closeparen
      { yyValue = new Action<Type>() {
            public Type run(Type base) {
-               Span span = createSpan(yyStart,yyCount);
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan((Type)base),
+                                            createSpan(yyStart,yyCount));
                if ( a1.booleanValue() )
                    log(span, "Space is not allowed immediately after '^'.");
                if ( NodeUtil.isExponentiation((Type)base) ) {
-                   log(NodeUtil.getSpan((Type)base),
-                       "An exponentiation should not be immediately followed " +
-                       "by an exponentiation.");
+                   log(span, "An exponentiation should not be immediately " +
+                       "followed by an exponentiation.");
                    return base;
                } else
                    return NodeFactory.makeMatrixType(span, (Type)base,

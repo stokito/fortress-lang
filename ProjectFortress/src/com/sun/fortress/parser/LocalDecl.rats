@@ -71,9 +71,9 @@ private Expr BlockElem =
  */
 private LetExpr LocalVarFnDecl =
      a1:LocalFnDecl a2s:(br LocalFnDecl)*
-     { List<FnDecl> fns = Useful.cons(a1, a2s.list());
-       yyValue = ExprFactory.makeLetFn(createSpan(yyStart,yyCount),
-                           Collections.<Expr>emptyList(), fns);
+     { yyValue = ExprFactory.makeLetFn(createSpan(yyStart,yyCount),
+                                       Collections.<Expr>emptyList(),
+                                       Useful.cons(a1, a2s.list()));
      }
    / LocalVarDecl ;
 
@@ -83,8 +83,8 @@ private FnDecl LocalFnDecl =
      w a6:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
        if (a3 == null) a3 = Collections.<StaticParam>emptyList();
-       FnHeaderFront hd = new FnHeaderFront(a2, a3, a4);
-       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),a1,hd,a5,a6);
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1,
+                                      new FnHeaderFront(a2, a3, a4), a5, a6);
      };
 
 transient List<Param> ValParam =
@@ -134,8 +134,8 @@ transient List<Param> Params =
 /* Param ::= BindId (w IsType)? */
 transient Param Param =
      a1:BindId a2:(s void:colon s NoNewlineType)?
-     { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
-       else            yyValue = NodeFactory.makeParam(a1);
+     { yyValue = (a2 != null) ? NodeFactory.makeParam(a1, a2)
+                              : NodeFactory.makeParam(a1);
      };
 
 /* Varargs ::= BindId s : s NoNewlineType s ... */
@@ -225,10 +225,8 @@ List<LValue> VarMayTypes =
 
 /* VarMayType ::= BindId (s : s NoNewlineType)? */
 LValue VarMayType = a1:BindId a2:(s void:colon s NoNewlineType)?
-     { if (a2 == null)
-           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
-       else
-           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
+     { yyValue = (a2 == null) ? NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1)
+                              : NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
      };
 
 /* VarWoTypes ::=
