@@ -50,7 +50,8 @@ VarDecl VarDecl =
        yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
                                          lvs, Option.<Expr>some(a3));
      }
-   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w a4:InitVal
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w
+     a4:InitVal
      { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
                                               Option.<Modifiers>wrap(a1),
                                               Option.<Type>some(a3), a4.getB());
@@ -63,7 +64,8 @@ VarDecl VarDecl =
        if (a2.size() != tys.size())
            log(span, "Mismatched numbers of variables and types.");
        List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
-                                              Option.<Modifiers>wrap(a1), tys, a4.getB());
+                                              Option.<Modifiers>wrap(a1),
+                                              tys, a4.getB());
        yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
                                          Option.<Expr>some(a4.getA()));
      };
