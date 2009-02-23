@@ -1,0 +1,19 @@
+Plan to use interfaces:
+
+  For each node, abstract or concrete, generate a interface that the node implements.
+  This should be relatively simple as nothing in the node heirarchy has to change.
+  The current names should be the interface name and the concrete version can be some
+  variant of the original. Something like
+  Expr : interface
+  ClassExpr : class
+
+  interface Expr extends ASTNode
+  class ClassExpr implements Expr
+
+Backstory:
+  Syntax abstraction nodes (TemplateGap, Ellipses, and SyntaxTransformation) piggy back
+  on concrete classes but abuse their parents by having empty constructors. This is fine
+  until serialization time when those empty fields are written to disk. The serialization
+  code gets confused and things break. The solution is for the syntax abstraction nodes
+  to implement interfaces such that they don't contain any extraneous fields at all
+  but can still masquerade as their parent class.
