@@ -40,6 +40,7 @@ import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.useful._
+import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
@@ -259,10 +260,6 @@ object ExportChecker {
     private def error(errors: JavaList[StaticError], loc: String, msg: String) =
         errors.add(TypeError.make(msg, loc.toString()))
 
-    /* Transforms a Java option to a Scala option */
-    private def toOption[T](opt: JavaOption[T]): Option[T] =
-        if ( opt.isNone ) None
-        else Some( opt.unwrap )
 
     /* Returns true if two optional types are the same.
      * Should be able to handle arbitrary type equality testing.
