@@ -15,19 +15,18 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ObjectParams
-
+component XXXWildcardField
 export Executable
 
-object O(var mutable: ZZ32)
-  x = do mutable := 3; 0 end
-  y = mutable := 5
+_ = println "Top-level _"
+
+trait T
+  _ : ZZ32
 end
 
-object P
-  var mutable:ZZ32 := 3
+object O
+  _ = println "Object field _"
 end
 
-run(args:String...) = do println O(1).mutable; println O(1).x end
-
+run() = ()
 end

@@ -50,7 +50,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         try {
             if ( ! ( that instanceof ASTNode ) )
                 bug(that, "Only ASTNodes are supported.");
-            writer.write( NodeUtil.getSpan((ASTNode)that) + " : " + message + "\n" );
+            writer.write( NodeUtil.getSpan((ASTNode)that) + "\n    " + message + "\n" );
         } catch (IOException error) {
             error("Writing to a log file for the syntax checker failed!");
         }
@@ -161,6 +161,12 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
                 if ( lvb.getIdType().isNone() ) // type is required
                     log(lvb, "The type of " + lvb.getName() + " is required.");
             }
+            // Top-level _ declarations are allowed only in components
+            // not in objects/traits/APIs.
+            if ( lvb.getName().getText().equals("_") &&
+                 (inApi || inTrait || inObject) )
+                log(lvb, "Fields or top-level declarations in APIs " +
+                    "cannot be named '_'.");
         }
 
         Modifiers mods = NodeUtil.getMods(writer, that);
