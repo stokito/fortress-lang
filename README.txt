@@ -145,7 +145,7 @@ Once you have built the interpreter, you can call it from any directory,
 on any Fortress file, simply by typing one of the following commands at a
 command line:
 
-    fortress [run] [-test] [-debug] somefile.fss arg...
+    fortress [walk] [-test] [-debug interpreter] somefile.fss arg...
     fortress help
 
 The first time you run a Fortress program, the static checker is
@@ -160,14 +160,14 @@ Similarly, a file with the suffix .fss should contain a single
 component definition.  The name of the component should match the name
 of the file.
 
-A command of the form "fortress run somefile.fss" checks whether a
+A command of the form "fortress walk somefile.fss" checks whether a
 cached and up to date result of compiling the given file exists.  If
 so, it runs the cached file.  Otherwise, it processes the given file
 and runs the result.  This command can be abbreviated as "fortress
 somefile.fss".  If the optional flag -test is given, all test
 functions defined in the given file are run instead.  If the optional
-flag -debug is given, stack traces from the underlying interpreter are
-displayed when errors are signaled.
+flag "-debug interpreter" is given, stack traces from the underlying
+interpreter are displayed when errors are signaled.
 
 If all else fails, look at the script bin/fortress to see if your system
 has peculiarities (for example cygwin requires ; separators in the
