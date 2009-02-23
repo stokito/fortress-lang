@@ -35,23 +35,20 @@ import Spacing;
 /* MdDecl ::=
      MdDef
    | AbsMdDecl
+   AbsMdDecl ::= Mods? AbsMdHeaderFront FnHeaderClause
  */
 FnDecl MdDecl =
      MdDef
-   / AbsMdDecl;
+   / a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
+     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
+                                      Modifiers.nonNull(a1), a2, a3);
+     };
 
 /* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
 FnDecl MdDef =
      a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
                                       Modifiers.nonNull(a1), a2, a3, a4);
-     };
-
-/* AbsMdDecl ::= Mods? AbsMdHeaderFront FnHeaderClause */
-FnDecl AbsMdDecl =
-     a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
-     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
-                                      Modifiers.nonNull(a1), a2, a3);
      };
 
 /* MdHeaderFront ::=
@@ -82,28 +79,6 @@ FnHeaderFront AbsNamedMdHeaderFront =
      a1:Id a2:(w StaticParams)? w a3:AbsValParam
      { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
        yyValue = new FnHeaderFront(a1, a2, a3);
-     };
-
-/* GetterSetterDecl ::=
-     GetterSetterDef
-   | AbsGetterSetterDecl
- */
-FnDecl GetterSetterDecl =
-     GetterSetterDef
-   / AbsGetterSetterDecl ;
-
-/* GetterSetterDef ::= Mods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
-FnDecl GetterSetterDef =
-     a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
-     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
-                                      Modifiers.nonNull(a1), a2, a3, a4);
-     };
-
-/* AbsGetterSetterDecl ::= Mods? AbsMdHeaderFront FnHeaderClause */
-FnDecl AbsGetterSetterDecl =
-     a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
-     { yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount),
-                                      Modifiers.nonNull(a1), a2, a3);
      };
 
 /* Coercion ::=
