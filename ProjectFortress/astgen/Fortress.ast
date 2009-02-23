@@ -306,6 +306,15 @@ interface Node() extends HasAt;
                  * functional declaration in components
                  * FnDecl ::= FnMods? FnHeaderFront FnHeaderClause = Expr
                  * e.g.) swap (x, y) = (y, x)
+                 * 
+                 * umambiguousName stores a name distinct from all other declarations
+                 * (even if they have the same name in the source code). This distinct name
+                 * is likely to be derived from this node's source location.
+                 *        
+                 * implementsUnambiguousName is used to store the
+                 * unambiguousName of a declaration in an exported API that is matched
+                 * by this declaration. If this declaration doesn't match an exported
+                 * declaration, the field is set to Option.none.
                  */
                 FnDecl(FnHeader header, Id unambiguousName,
                        Option<Expr> body, Option<Id> implementsUnambiguousName)

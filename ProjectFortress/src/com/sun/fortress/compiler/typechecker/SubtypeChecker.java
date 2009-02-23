@@ -31,8 +31,6 @@ import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.*;
 import com.sun.fortress.exceptions.ProgramError;
 
-import static java.lang.Boolean.TRUE;
-import static java.lang.Boolean.FALSE;
 import static com.sun.fortress.nodes_util.NodeUtil.getName;
 import static com.sun.fortress.nodes_util.NodeUtil.nameString;
 import static com.sun.fortress.compiler.Types.*;
@@ -46,6 +44,9 @@ import static com.sun.fortress.exceptions.ProgramError.error;
  */
 @Deprecated
 public abstract class SubtypeChecker {
+
+    private static final Boolean TRUE = Boolean.TRUE;
+    private static final Boolean FALSE = Boolean.FALSE;
 
     protected final TraitTable _table;
     protected final SubtypeCache _cache;
