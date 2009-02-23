@@ -74,8 +74,21 @@ List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
 List<Decl> AbsDecl =
      a1:AbsTraitDecl  { yyValue = Useful.list((Decl)a1); }
    / a1:AbsObjectDecl { yyValue = Useful.list((Decl)a1); }
+   / a1:VarDecl
+     { log(NodeUtil.getSpan(a1),
+           "A variable declaration with an initializing expression " +
+           "is not allowed in an API.");
+       yyValue = new ArrayList<Decl>();
+     }
    / a1:AbsVarDecl    { yyValue = Useful.list((Decl)a1); }
-   / a1:AbsFnDecl     { yyValue = Useful.list((Decl)a1); }
+   / a1:FnDecl
+     { if ( a1.getBody().isSome() ) {
+           log(NodeUtil.getSpan(a1),
+               "A function declaration with an initializing expression " +
+               "is not allowed in an API.");
+           yyValue = new ArrayList<Decl>();
+        } else yyValue = Useful.list((Decl)a1);
+     }
    / DimUnitDecl
    / a1:TypeAlias     { yyValue = Useful.list((Decl)a1); }
    / a1:TestDecl      { yyValue = Useful.list((Decl)a1); }

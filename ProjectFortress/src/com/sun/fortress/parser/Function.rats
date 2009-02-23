@@ -35,7 +35,7 @@ import Spacing;
      Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
    | AbsFnDecl
  */
-Decl FnDecl =
+FnDecl FnDecl =
      a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
      { if (a1 == null) a1 = Modifiers.None;
        yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);

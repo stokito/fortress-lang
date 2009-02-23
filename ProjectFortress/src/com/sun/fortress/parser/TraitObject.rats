@@ -113,7 +113,6 @@ private List<Decl> GoInATrait =
 private Decl GoesInATrait =
      Coercion
    / AbsVarDecl
-   / GetterSetterDecl
    / MdDecl
    / PropertyDecl ;
 
@@ -198,7 +197,6 @@ List<Decl> GoInAnObject =
 private Decl GoesInAnObject =
      Coercion
    / VarDecl
-   / GetterSetterDef
    / MdDef
    / PropertyDecl ;
 
@@ -250,9 +248,18 @@ private List<Decl> AbsGoInATrait =
 /* AbsGoesBackInATrait  ::= AbsMdDecl | PropertyDecl */
 private Decl AbsGoesInATrait =
      Coercion
+   / yyValue:VarDecl
+     { log(NodeUtil.getSpan(yyValue),
+           "A field declaration with an initializing expression " +
+           "is not allowed in an API.");
+     }
    / AbsVarDecl
-   / AbsGetterSetterDecl
-   / AbsMdDecl
+   / yyValue:MdDecl
+     { if ( ((FnDecl)yyValue).getBody().isSome() )
+           log(NodeUtil.getSpan(yyValue),
+               "A method declaration with a body expression " +
+               "is not allowed in an API.");
+     }
    / PropertyDecl ;
 
 /* AbsObjectDecl ::= Mods? ObjectHeader (w AbsGoInAnObject)? w end
@@ -294,7 +301,16 @@ List<Decl> AbsGoInAnObject =
 /* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
 private Decl AbsGoesInAnObject =
      Coercion
+   / yyValue:VarDecl
+     { log(NodeUtil.getSpan(yyValue),
+           "A field declaration with an initializing expression " +
+           "is not allowed in an API.");
+     }
    / AbsVarDecl
-   / AbsGetterSetterDecl
-   / AbsMdDecl
+   / yyValue:MdDecl
+     { if ( ((FnDecl)yyValue).getBody().isSome() )
+           log(NodeUtil.getSpan(yyValue),
+               "A method declaration with a body expression " +
+               "is not allowed in an API.");
+     }
    / PropertyDecl ;
