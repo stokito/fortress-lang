@@ -46,4 +46,33 @@ public class WrapperGeneratorJUTest extends TestCaseWrapper {
             throw new RuntimeException(t);
         }
     }
+
+    // This doesn't work yet.  Need to change from fortress.java.lang.Math to java.lang.Math 
+    // and put the nativewrapper_cache on the bootclasspath.
+//     public void testMath() {
+//      MyClassLoader loader = new MyClassLoader();
+//         Class c = FortressTransformer.transform(loader, "java.lang.Math");
+//         Class[] parameterTypes = new Class[2];
+//         try {
+//             System.out.println("Step 1");
+//             Class ffloat = Class.forName("com.sun.fortress.interpreter.evaluator.values.FFloat"); 
+//             System.out.println("Step 2");
+//             parameterTypes[0] = ffloat;
+//             parameterTypes[1] = ffloat;
+//             Method m = c.getMethod("hypot", parameterTypes);
+//             System.out.println("Step 3: method = " + m);
+//             Object args[] = new FFloat[2];
+//             args[0] =  FFloat.make(4.0);
+//             args[1] =  FFloat.make(3.0);
+//             System.out.println("Step 4: args");
+//             FFloat res = (FFloat) m.invoke(null, args);
+//             System.out.println("Step 5: res = " + res);
+//             System.out.println("res = " + res + " Should be 5 ");
+//         } catch (Throwable t) {
+//             System.out.println("Caught throwable " + t);
+//             throw new RuntimeException(t);
+//         }
+//     }
+
+        
 }

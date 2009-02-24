@@ -17,14 +17,8 @@
 package com.sun.fortress.compiler.nativeInterface;
 
 import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FLong;
-import com.sun.fortress.interpreter.evaluator.values.FChar;
-import com.sun.fortress.interpreter.evaluator.values.FFloat;
-import com.sun.fortress.interpreter.evaluator.values.FBool;
+import com.sun.fortress.interpreter.evaluator.values.*;
 
-/* This only handles some base types and strings.  We need to beef it up. */
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -57,8 +51,49 @@ public class SignatureParser {
 
     // private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
 
-            
-    // For now only one dimensional arrays
+    public static boolean unsayable(String s) {
+        if (s.charAt(0) != '(') error(s);
+        int index = 1;
+        int ch = s.charAt(index);
+
+        while (ch != ')') {
+            switch(ch) {
+                // We can't represent bytes, shorts or arrays yet.
+            case 'B': 
+            case 'S': 
+            case '[': return true;
+            case 'F': 
+            case 'D': 
+            case 'C': 
+            case 'I': 
+            case 'J': 
+            case 'Z': index++; break;
+            case 'L': index = s.indexOf(';', index) + 1; break;
+            default: error(s);
+            }
+            ch = s.charAt(index);
+        }
+
+        index++;
+        ch = s.charAt(index);
+
+        switch(ch) {
+        case 'B': 
+        case 'S': 
+        case '[': return true;
+        case 'F': 
+        case 'D': 
+        case 'V': 
+        case 'C':
+        case 'I':
+        case 'J':
+        case 'Z': 
+        case 'L': break;
+        default: return true;
+        }
+        return false;
+    }
+
     /**
      * Converts s, the signature of an existing Java method, into
      * the 
@@ -74,14 +109,13 @@ public class SignatureParser {
 
         while (ch != ')') {
             switch(ch) {
-            case 'B': error(s);
+            case 'B':
             case 'S': error(s);
             case '[': error(s);
-            case 'D': error(s);
             break; // Superfluous, but just in case you thought error returned.
-            
             case 'C': 
-            case 'F': 
+            case 'D': 
+            case 'F':
             case 'I': 
             case 'J': 
             case 'Z': 
@@ -115,14 +149,13 @@ public class SignatureParser {
         case 'B': error(s);
         case 'S': error(s);
         case '[': error(s);
-        case 'D': error(s);
         break; // Superfluous, but just in case you thought error returned.
-
-        case 'V': 
         case 'C':
-        case 'F': 
+        case 'D': 
+        case 'F':
         case 'I':
         case 'J':
+        case 'V': 
         case 'Z':   
         {
             String arg_desc = String.valueOf((char)ch);
@@ -171,10 +204,11 @@ public class SignatureParser {
 
     String getFortressifiedSignature() {
         String result = "(";
-        // Don't forget the commas"
-        for (String s : fortressArguments) 
+        for (String s : fortressArguments) {
             result = result + s;
+        }
         result = result + ")" + fortressResult;
+
         return result;
     }
         
@@ -182,6 +216,6 @@ public class SignatureParser {
         return signature;
     }
 
-    void error(String s) {throw new RuntimeException("Bad Signature " + s);}
+    static void error(String s) {throw new RuntimeException("Bad Signature " + s);}
 
 }

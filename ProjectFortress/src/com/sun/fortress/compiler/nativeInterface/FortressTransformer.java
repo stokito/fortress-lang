@@ -24,17 +24,25 @@ import org.objectweb.asm.*;
 public class FortressTransformer {
     @SuppressWarnings("unchecked")
 
-    
-        public static Class transform(MyClassLoader loader, String className) {
+        public static Class transform(MyClassLoader loader, String inputClassName) {
+
+        String outputClassName;
+        // If we are reading in a java.* class, we need to write it out as a 
+        // com.sun.fortress.java.* class.  If it is already a com.sun.fortress.* class
+        // then we leave it alone.
+        if (inputClassName.startsWith("java"))
+            outputClassName = "com.sun.fortress." + inputClassName;
+        else outputClassName = inputClassName;
+
         Class result = null;
         try {
-            ClassReader cr = new ClassReader(className);
+            ClassReader cr = new ClassReader(inputClassName);
             ClassWriter cw = new ClassWriter(1);
-            FortressMethodAdapter fa = new FortressMethodAdapter(cw);
+            FortressMethodAdapter fa = new FortressMethodAdapter(cw, outputClassName);
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
-            loader.writeClass(className, b2);
-            Class c = loader.findClass(className);
+            loader.writeClass(outputClassName, b2);
+            Class c = loader.findClass(outputClassName);
             result = c;
              
         } catch (Throwable e) {
