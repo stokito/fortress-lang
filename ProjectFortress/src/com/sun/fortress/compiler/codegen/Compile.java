@@ -60,6 +60,7 @@ public class Compile extends NodeAbstractVisitor_void {
         className = n;
         aliasTable = new HashMap<String, String>();
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, className, null, "java/lang/Object", null);
+        System.out.println("Compile: Compiling " + n);
         generateInitMethod();
         generateMainMethod();
     }

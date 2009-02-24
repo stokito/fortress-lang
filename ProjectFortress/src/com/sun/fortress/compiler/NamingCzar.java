@@ -206,7 +206,8 @@ public class NamingCzar {
      static {
          bl(fortLib, "Boolean", "FBool");
          bl(fortLib, "Char", "FChar");
-         bl(fortLib, "RR32", "FFloat");
+         bl(fortLib, "RR32", "FRR32");
+         bl(fortLib, "RR64", "FFloat");
          bl(fortLib, "ZZ32", "FInt");
          bl(fortLib, "ZZ64", "FLong");
          bl(fortLib, "String", "FString");
@@ -235,12 +236,12 @@ public class NamingCzar {
 
          } else if (t instanceof BaseType) {
              if (t instanceof AnyType) {
-                 return interpreterValues + "FValue";
+                 return interpreterValues + "FValue;";
              } else if (t instanceof BottomType) {
                  return bug("Not sure how bottom type translates into Java");
              } else if (t instanceof NamedType) {
                  if (t instanceof TraitType) {
-                     return interpreterValues + "FValue";
+                     return interpreterValues + "FValue;";
                  } else if (t instanceof VarType) {
                      return bug("Need a binding to translate a VarType into Java");
                  }

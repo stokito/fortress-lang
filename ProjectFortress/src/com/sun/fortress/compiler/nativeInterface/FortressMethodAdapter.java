@@ -20,34 +20,103 @@ import java.util.*;
 
 import org.objectweb.asm.*;
 
-import com.sun.fortress.interpreter.evaluator.values.FString;
-import com.sun.fortress.interpreter.evaluator.values.FInt;
-import com.sun.fortress.interpreter.evaluator.values.FLong;
+import com.sun.fortress.interpreter.evaluator.values.*;
 
+class fortressConverter {
+    String shortName;
+    String fortressRuntimeType;
+    String toJavaTypeMethod;
+    String toJavaTypeMethodDesc;
+    String constructor;
+    String constructorType;
+
+    private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
+
+    fortressConverter(String _fortressRuntimeType, 
+                      String _toJavaTypeMethod,  
+                      String _toJavaTypeMethodDesc,
+                      String _constructor,
+                      String _constructorType) {
+        
+        shortName = _fortressRuntimeType;
+        fortressRuntimeType = "L" + prefix + _fortressRuntimeType + ";";
+        toJavaTypeMethod = _toJavaTypeMethod;
+        toJavaTypeMethodDesc = _toJavaTypeMethodDesc;
+        constructor = _constructor;
+        constructorType = _constructorType;
+    }
+
+}
 
 public class FortressMethodAdapter extends ClassAdapter {
 
     String className = "temp";
     private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
+    private HashMap conversionTable;
 
-    public FortressMethodAdapter(ClassVisitor cv) {
+    private void initializeEntry(String fortressRuntimeType, 
+                                 String toJavaTypeMethod,  
+                                 String toJavaTypeMethodDesc,
+                                 String constructor,
+                                 String constructorType) {
+        conversionTable.put(fortressRuntimeType,
+                            new fortressConverter(fortressRuntimeType,
+                                                  toJavaTypeMethod,
+                                                  toJavaTypeMethodDesc,
+                                                  constructor,
+                                                  constructorType));
+    }
+
+    private void initializeTables() {
+        conversionTable = new HashMap();
+        initializeEntry("FString", "toString", "()Ljava/lang/String;", "<init>", "L(java/lang/String;)LFstring;");
+        initializeEntry("FLong", "getLong", "()J", "make", "(J)L" + prefix + "FLong;");
+        initializeEntry("FInt", "getInt", "()I", "make", "(I)L" + prefix + "FInt;");
+        initializeEntry("FFloat", "getFloat", "()D", "make", "(D)L" + prefix + "FFloat;");
+        initializeEntry("FRR32", "getRR32", "()F", "make", "(F)L" + prefix + "FRR32;");
+        initializeEntry("FBool", "getBool", "()Z", "make", "(Z)L" + prefix + "FBool;");
+    }
+
+    // Strip off the leading L + prefix, and trailing ;"
+
+    private String strip(String s) {
+        String header = "L" + prefix;
+        String trailer = ";";
+        int end = s.lastIndexOf(";");
+        int start = header.length();
+        return s.substring(start,end);
+    }
+
+    private String addWrap(String s) {
+        return "L" + prefix + s + ";" ;
+    }
+
+    public FortressMethodAdapter(ClassVisitor cv, String outputClassName) {
         super(cv);
+        className = outputClassName.replace('.','/');
+        initializeTables();
     }
 
     public void visit(int version, int access, String name, String signature, 
                       String superName, String[] interfaces) {
-        cv.visit(version, access, name, signature, superName, interfaces);
-        className = name;
+        System.out.println("visit:" + name + " generate " + className);
+        cv.visit(version, access, className, signature, superName, interfaces);
     }
 
     public MethodVisitor visitMethod(int access, 
                                      String name, String desc, 
                                      String signature, String[] exceptions) {
-        if (!name.equals("<init>")) {
+        // Don't know how to do these, or if we need them...
+        if (name.equals("<init>") || name.equals("<clinit>"))
+            System.out.println("Don't visit Method " + name);
+        else if (SignatureParser.unsayable(desc))
+            System.out.println("Don't visit Method with unsayable desc" + name);                
+        else {
             generateNewBody(access, desc, signature, exceptions, name, name);
         }
         return super.visitMethod(access, name, desc, signature, exceptions);
     }
+
 
     private void generateNewBody(int access,
                                  String desc, String signature,
@@ -65,36 +134,38 @@ public class FortressMethodAdapter extends ClassAdapter {
         List<String> args = sp.getFortressArguments();
         for (String s : args) {
             mv.visitVarInsn(Opcodes.ALOAD, count++);
-            if (s.equals("L" + prefix + "FString;")) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, prefix + "FString", "toString", 
-                                   "()Ljava/lang/String;");
-            } else if (s.equals("L" + prefix + "FLong")) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, prefix + "FLong", "toLong",
-                                   "()J");
-            } else if (s.equals("L" + prefix + "FInt;")) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, prefix + "FInt", "toInt",
-                                   "()I");
-            }
+            String stripped = strip(s);
+            fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
+            if (converter == null)
+                throw new RuntimeException("Can't generate header for method " + name + " problem =" + s);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+                               prefix + stripped,
+                               converter.toJavaTypeMethod,
+                               converter.toJavaTypeMethodDesc);
         }
+
+        System.out.println("className = " + className + " name = " + name + " access = " + access);
+
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
                            className,
                            name,
                            sp.getSignature());
 
-        //     mv.visitVarInsn(Opcodes.LSTORE, count);
-        if (sp.getFortressResult().equals("L" + prefix + "FString;")) 
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, prefix + "FString", 
-                               "<init>", "(Ljava/lang/String;)LFString;");
-        else if (sp.getFortressResult().equals("L" + prefix + "FLong;"))
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, prefix + "FLong",
-                               "<init>", "(J)LFLong;");
-        else if (sp.getFortressResult().equals("L" + prefix + "FInt;"))
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "FInt",
-                               "<init>", "(I)LFInt;");
-        else if (sp.getFortressResult().equals("L" + prefix + "FVoid;")) {
+        String result = sp.getFortressResult();
+        String stripped = strip(result);
+        
+        if (result.equals("L" + prefix + "FVoid;")) {
             mv.visitFieldInsn(Opcodes.GETSTATIC, prefix + "FVoid",
                               "V", "L" + prefix + "FVoid;");
+        } else {
+            fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
+            if (converter == null)
+                throw new RuntimeException("Can't generate return type for method " + name + " value " + result);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, prefix + strip(result),
+                               converter.constructor,
+                               converter.constructorType);
         }
+
         mv.visitInsn(Opcodes.ARETURN);
         mv.visitMaxs(2,1);
         mv.visitEnd();

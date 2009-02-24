@@ -44,6 +44,7 @@ public class MyClassLoader extends ClassLoader {
     @SuppressWarnings("unchecked")
     public Class findClass(String className) {
         String fileName = repository + className.replace('.', '/') + ".class";
+        System.out.println("findClass " + className + " fileName = " + fileName);
         byte[] b;
         Class result = null;
         try {
