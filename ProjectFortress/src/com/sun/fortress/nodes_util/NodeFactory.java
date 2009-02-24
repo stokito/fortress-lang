@@ -1997,8 +1997,15 @@ public class NodeFactory {
                              Collections.<StaticArg>emptyList(), params);
     }
 
-    public static WhereExtends makeWhereExtends(Span span, Id name, List<BaseType> supers) {
-        return new WhereExtends(makeSpanInfo(span), name, supers);
+    public static WhereExtends makeWhereExtends(BufferedWriter writer, Span span,
+                                                IdOrOp name, List<BaseType> supers) {
+        if ( name instanceof Id )
+            return new WhereExtends(makeSpanInfo(span), (Id)name, supers);
+        else {
+            NodeUtil.log(writer, span,
+                         name + " is not a valid static parameter name.\n");
+            return new WhereExtends(makeSpanInfo(span), bogusId(span), supers);
+        }
     }
 
     public static WhereTypeAlias makeWhereTypeAlias(Span span, TypeAlias alias) {
@@ -2018,8 +2025,15 @@ public class NodeFactory {
         return new BoolConstraintExpr(makeSpanInfo(span), c);
     }
 
-    public static UnitConstraint makeUnitConstraint(Span span, Id id) {
-        return new UnitConstraint(makeSpanInfo(span), id);
+    public static UnitConstraint makeUnitConstraint(BufferedWriter writer,
+                                                    Span span, IdOrOp id) {
+        if ( id instanceof Id )
+            return new UnitConstraint(makeSpanInfo(span), (Id)id);
+        else {
+            NodeUtil.log(writer, span,
+                         id + " is not a valid static parameter name.\n");
+            return new UnitConstraint(makeSpanInfo(span), bogusId(span));
+        }
     }
 
     public static IntConstraint makeIntConstraint(Span span, IntExpr left, IntExpr right, Op op) {
@@ -2308,4 +2322,113 @@ public class NodeFactory {
         return new FnHeaderClause(throwsC, whereC, contractC, ty);
     }
 
+    private static boolean isNOT(FunctionalRef op) {
+        IdOrOp name = op.getOriginalName();
+        if ( name instanceof Op ) return name.getText().equals("NOT");
+        else return false;
+    }
+
+    private static boolean isBoolBinaryOp(FunctionalRef op) {
+        String[] all = new String[]{"OR", "AND", "->", "="};
+        List<String> ops = new ArrayList<String>(Arrays.asList(all));
+        IdOrOp name = op.getOriginalName();
+        if ( name instanceof Op ) return ops.contains( name.getText() );
+        else return false;
+    }
+
+    public static BoolExpr makeBoolExpr(final BufferedWriter writer, Expr expr) {
+        return expr.accept(new NodeAbstractVisitor<BoolExpr>() {
+            public BoolExpr forVarRef(VarRef e) {
+                Span span = NodeUtil.getSpan(e);
+                Id name = e.getVarId();
+                if ( name.getText().equals("true") )
+                    return makeBoolBase(span, false, true);
+                else if ( name.getText().equals("false") )
+                    return makeBoolBase(span, false, false);
+                else
+                    return makeBoolRef(span, name);
+            }
+            public BoolExpr forOpExpr(OpExpr e) {
+                FunctionalRef op = e.getOp();
+                Span span = NodeUtil.getSpan(e);
+                Span opSpan = NodeUtil.getSpan(op);
+                String name = op.getOriginalName().getText();
+                List<Expr> args = e.getArgs();
+                if ( args.size() == 1 && isNOT(op) ) {
+                    return makeBoolUnaryOp(span, false, args.get(0).accept(this),
+                                           makeOpPrefix(opSpan, name));
+                } else if ( args.size() == 2 && isBoolBinaryOp(op) ) {
+                    return makeBoolBinaryOp(span, args.get(0).accept(this),
+                                            args.get(1).accept(this),
+                                            makeOpInfix(opSpan, name));
+                } else {
+                    NodeUtil.log(writer, opSpan,
+                                 "Invalid operator for boolean static parameters.");
+                    return makeBoolBase(span, false, false);
+                }
+            }
+            public BoolExpr forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr e) {
+                FunctionalRef op = e.getInfix_op();
+                Span span = NodeUtil.getSpan(e);
+                Span opSpan = NodeUtil.getSpan(op);
+                String name = op.getOriginalName().getText();
+                List<Expr> args = e.getArgs();
+                if ( args.size() > 2 &&
+                     // if an associative operator on boolean static parameters
+                     ( name.equals("AND") || name.equals("OR") ) ) {
+                    Op newOp = makeOpInfix(opSpan, name);
+                    BoolExpr left = args.get(0).accept(this);
+                    BoolExpr right = args.get(1).accept(this);
+                    Span newSpan = NodeUtil.spanTwo(left, right);
+                    BoolExpr result = makeBoolBinaryOp(newSpan, left, right, newOp);
+                    for ( Expr expr : args.subList(2, args.size()) ) {
+                        left = result;
+                        right = expr.accept(this);
+                        newSpan = NodeUtil.spanTwo(left, right);
+                        result = makeBoolBinaryOp(newSpan, left, right, newOp);
+                    }
+                    return result;
+                } else {
+                    NodeUtil.log(writer, span,
+                                 "Invalid operator for boolean static parameters.");
+                    return makeBoolBase(span, false, false);
+                }
+            }
+            public BoolExpr forChainExpr(ChainExpr e) {
+                Span span = NodeUtil.getSpan(e);
+                BoolExpr left = e.getFirst().accept(this);
+                BoolExpr right;
+                List<BoolExpr> bexprs = new ArrayList<BoolExpr>();
+                for ( Link link : e.getLinks() ) {
+                    right = link.getExpr().accept(this);
+                    FunctionalRef op = link.getOp();
+                    Span opSpan = NodeUtil.getSpan(op);
+                    String name = op.getOriginalName().getText();
+                    // if not a chainable operator on boolean static parameters
+                    if ( ! name.equals("=") ) {
+                        NodeUtil.log(writer, opSpan,
+                                     "Invalid operator for boolean static parameters.");
+                        return makeBoolBase(span, false, false);
+                    }
+                    bexprs.add(makeBoolBinaryOp(NodeUtil.spanTwo(left, right),
+                                                left, right,
+                                                makeOpInfix(opSpan, name)));
+                    left = right;
+                }
+                if ( bexprs.isEmpty() ) {
+                    NodeUtil.log(writer, span,
+                                 "Invalid operator for boolean static parameters.");
+                    return makeBoolBase(span, false, false);
+                }
+                BoolExpr result = bexprs.get(0);
+                for ( BoolExpr be : bexprs.subList(1, bexprs.size()) ) {
+                    Span newSpan = NodeUtil.spanTwo(result, be);
+                    result = makeBoolBinaryOp(newSpan, result, be,
+                                              makeOpInfix(newSpan, "AND"));
+                }
+                return result;
+            }
+
+        });
+    }
 }

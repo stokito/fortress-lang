@@ -1207,7 +1207,7 @@ public class Resolver {
   //    | `Layer (op',oes',stack') ->
   //        resolve_ops_enclosing oes (`Layer (op',oe::oes',stack'))
   private static Expr pushEnclosing(PostfixOpExpr opExpr, PureList<PrecedenceOpExpr> opExprs,
-                    EnclosingStack stack) throws ReadError {
+                                    EnclosingStack stack) throws ReadError {
     if (stack instanceof Bottom) {
       Bottom _stack = (Bottom)stack;
       PureList<PostfixOpExpr> stackList = _stack.getList();
