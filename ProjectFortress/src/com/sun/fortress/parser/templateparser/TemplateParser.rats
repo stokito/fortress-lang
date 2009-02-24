@@ -187,6 +187,10 @@ body {
         return new Span(slStart, slEnd);
     }
 
+    private SpanInfo makeSpanInfo(int start, int end) {
+        return NodeFactory.makeSpanInfo(createSpan(start, end));
+    }
+
     private BufferedWriter writer = getWriter();
     private BufferedWriter getWriter() {
         try {
