@@ -213,6 +213,7 @@ transient String IMPLIES = "IMPLIES":op / "\u2192":op;
 transient String DOT = "DOT":OpName / "\u00b7":op;
 transient String slash = "/":singleOp / "\u002f":singleOp;
 transient String rightarrow = "->" / "\u2192";
+transient String underscore = "_";
 
 transient void closeangle = "|>" / "\u27e9";
 transient void closedoublesquare = "\\]" / "\u27e7";
@@ -227,7 +228,6 @@ transient void openparen = !(leftEncloser) "(";
 transient void plus = "+":singleOp / "\u002b":singleOp;
 transient void pound = "#":singleOp / "\u0023":singleOp;
 transient void star = !("**") "*":singleOp;
-transient void underscore = "_";
 
 transient void comma = ",";
 transient void dot   = ".";
