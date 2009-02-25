@@ -42,7 +42,7 @@ public class Compile extends NodeAbstractVisitor_void {
     String packageName = "";
     String javaLangObject = "java/lang/Object";
 
-    private String makeClassName(TraitDecl t) {
+    private String makeClassName(TraitObjectDecl t) {
         return packageName + className + "$" + NodeUtil.getName(t).getText();
     }
 
@@ -97,8 +97,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     private void sayWhat(ASTNode x) {
-        throw new CompilerError(NodeUtil.getSpan(x),
-                                "Can't compile " + x);
+        throw new CompilerError(NodeUtil.getSpan(x), "Can't compile " + x);
     }
 
     private void sayWhat(ASTNode x, String message) {
@@ -134,17 +133,17 @@ public class Compile extends NodeAbstractVisitor_void {
         for ( Import i : x.getImports() ) i.accept(this);
         // generate code only for top-level functions and variables
         for ( Decl d : x.getDecls() ) {
-            if ( // d instanceof VarDecl || -- NOT YET IMPLEMENTED
-                 d instanceof FnDecl )
+            if ( d instanceof VarDecl || d instanceof FnDecl )
                 d.accept(this);
         }
         dumpClass( packageName + className );
 
         // generate code only for traits and objects
         for ( Decl d : x.getDecls() ) {
-            if ( // d instanceof ObjectDecl || -- NOT YET IMPLEMENTED
-                 d instanceof TraitDecl )
+            if ( d instanceof ObjectDecl || d instanceof TraitDecl )
                 d.accept(this);
+            else if ( ! (d instanceof VarDecl || d instanceof FnDecl) )
+                sayWhat(d);
         }
     }
 
@@ -186,51 +185,102 @@ public class Compile extends NodeAbstractVisitor_void {
             header.getDecls().isEmpty() &&        // no members
             header.getMods() == Modifiers.None && // no modifiers
             ( extendsC.isEmpty() || extendsC.size() == 1); // 0 or 1 super trait
-        String parent = "";
-        if ( extendsC.isEmpty() ) {
-            parent = javaLangObject;
-        } else { // if ( extendsC.size() == 1 )
-            BaseType parentType = extendsC.get(0).getBaseType();
-            if ( parentType instanceof AnyType )
-                parent = "fortress/AnyType$Any";
-            else if ( parentType instanceof TraitType ) {
-                Id name = ((TraitType)parentType).getName();
-                Option<APIName> apiName = name.getApiName();
-                if ( apiName.isNone() ) parent = name.toString();
-                else { // if ( apiName.isSome() )
-                    String api = apiName.unwrap().getText();
-                    if ( WellKnownNames.exportsDefaultLibrary( api ) )
-                        parent += "fortress.";
-                    parent += api + "$" + name.getText();
-                }
-            } else
-                sayWhat( parentType, "Invalid type in an extends clause." );
-        }
-        String classFile = makeClassName(x);
         if ( canCompile ) {
+            String parent = "";
+            if ( extendsC.isEmpty() ) {
+                parent = javaLangObject;
+            } else { // if ( extendsC.size() == 1 )
+                BaseType parentType = extendsC.get(0).getBaseType();
+                if ( parentType instanceof AnyType )
+                    parent = "fortress/AnyType$Any";
+                else if ( parentType instanceof TraitType ) {
+                    Id name = ((TraitType)parentType).getName();
+                    Option<APIName> apiName = name.getApiName();
+                    if ( apiName.isNone() ) parent = name.toString();
+                    else { // if ( apiName.isSome() )
+                        String api = apiName.unwrap().getText();
+                        if ( WellKnownNames.exportsDefaultLibrary( api ) )
+                            parent += "fortress.";
+                        parent += api + "$" + name.getText();
+                    }
+                } else
+                    sayWhat( parentType, "Invalid type in an extends clause." );
+            }
+            String classFile = makeClassName(x);
             cw = new ClassWriter(0);
             cw.visit( Opcodes.V1_5,
                       Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
                       classFile, null, javaLangObject, new String[] { parent });
             dumpClass( classFile );
-        }
+        } else sayWhat( x );
+    }
+
+    public void forObjectDecl(ObjectDecl x) {
+        TraitTypeHeader header = x.getHeader();
+        List<TraitTypeWhere> extendsC = header.getExtendsClause();
+        boolean canCompile =
+            x.getParams().isNone() &&             // no parameters
+            header.getStaticParams().isEmpty() && // no static parameter
+            header.getWhereClause().isNone() &&   // no where clause
+            header.getThrowsClause().isNone() &&  // no throws clause
+            header.getContract().isNone() &&      // no contract
+            header.getDecls().isEmpty() &&        // no members
+            header.getMods() == Modifiers.None && // no modifiers
+            ( extendsC.isEmpty() || extendsC.size() == 1 ); // 0 or 1 super trait
+        if ( canCompile ) {
+            String parent = "";
+            if ( extendsC.isEmpty() ) {
+                parent = javaLangObject;
+            } else { // if ( extendsC.size() == 1 )
+                BaseType parentType = extendsC.get(0).getBaseType();
+                if ( parentType instanceof AnyType )
+                    parent = "fortress/AnyType$Any";
+                else if ( parentType instanceof TraitType ) {
+                    Id name = ((TraitType)parentType).getName();
+                    Option<APIName> apiName = name.getApiName();
+                    if ( apiName.isNone() ) parent = name.toString();
+                    else { // if ( apiName.isSome() )
+                        String api = apiName.unwrap().getText();
+                        if ( WellKnownNames.exportsDefaultLibrary( api ) )
+                            parent += "fortress.";
+                        parent += api + "$" + name.getText();
+                    }
+                } else
+                    sayWhat( parentType, "Invalid type in an extends clause." );
+            }
+            String classFile = makeClassName(x);
+            cw = new ClassWriter(0);
+            cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+                      classFile, null, javaLangObject, new String[] { parent });
+            dumpClass( classFile );
+        } else sayWhat( x );
     }
 
     public void forFnDecl(FnDecl x) {
-        IdOrOpOrAnonymousName name = x.getHeader().getName();
-        Option<Expr> body = x.getBody();
-        if ( ! body.isSome() ) {
-            sayWhat(x, "Abstract function declarations are not supported.");
-        } else if ( name instanceof Id ) {
-            mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
-                                ((Id)name).getText(), "()V", null, null);
-            mv.visitCode();
-            body.unwrap().accept(this);
-            mv.visitMaxs(2,1);
-            mv.visitEnd();
-        } else {
-            sayWhat(x, "Operator declarations are not supported.");
-        }
+        FnHeader header = x.getHeader();
+        boolean canCompile =
+            header.getStaticParams().isEmpty() && // no static parameter
+            header.getWhereClause().isNone() &&   // no where clause
+            header.getThrowsClause().isNone() &&  // no throws clause
+            header.getContract().isNone() &&      // no contract
+            header.getParams().isEmpty() &&       // no parameters
+            header.getMods() == Modifiers.None;   // no modifiers
+        if ( canCompile ) {
+            Option<Expr> body = x.getBody();
+            IdOrOpOrAnonymousName name = header.getName();
+            //Option<Type> returnType = header.getReturnType();
+
+            if ( ! body.isSome() ) {
+                sayWhat(x, "Abstract function declarations are not supported.");
+            } else if ( name instanceof Id ) {
+                mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
+                                    ((Id)name).getText(), "()V", null, null);
+                mv.visitCode();
+                body.unwrap().accept(this);
+                mv.visitMaxs(2,1);
+                mv.visitEnd();
+            } else sayWhat(x, "Operator declarations are not supported.");
+        } else sayWhat( x );
     }
 
     public void forDo(Do x) {

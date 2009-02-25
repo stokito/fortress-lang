@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler.phases;
 
+import edu.rice.cs.plt.iter.IterUtil;
+
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.codegen.*;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
@@ -24,9 +26,6 @@ import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.useful.Debug;
-
-
-import edu.rice.cs.plt.iter.IterUtil;
 
 public class CodeGenerationPhase extends Phase {
 
@@ -40,17 +39,15 @@ public class CodeGenerationPhase extends Phase {
         AnalyzeResult previous = parentPhase.getResult();
 
         // Generate bytecodes for as much as we can.
-
-        Debug.debug(Debug.Type.CODEGEN, 1, "Before invoking Compile: components=" + previous.components());
-        //Debug.debug(Debug.Type.CODEGEN, 1, "Before invoking Compile: apis      =" + previous.apis());
+        Debug.debug(Debug.Type.CODEGEN, 1,
+                    "Before invoking Compile: components=" + previous.components());
 
         for (Component comp : previous.componentIterator()) {
-            Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + comp.getName() + ")");
+            Debug.debug(Debug.Type.CODEGEN, 1,
+                        "CodeGenerationPhase: Compile(" + comp.getName() + ")");
             String compName = comp.getName().getText();
-            //            if (compName.equals("Compiled0")) {
-                Compile c = new Compile(comp.getName().getText());
-                comp.accept(c);
-                //            }
+            Compile c = new Compile(comp.getName().getText());
+            comp.accept(c);
         }
 
         return new AnalyzeResult(previous.apis(), previous.components(),
