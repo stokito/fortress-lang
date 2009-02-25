@@ -99,29 +99,26 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forComponent(Component x) {
-        CanCompile c = new CanCompile();
-        if (x.accept(c)) {
-            boolean exportsExecutable = false;
-            for ( APIName export : x.getExports() ) {
-                if ( WellKnownNames.exportsMain(export.getText()) )
-                    exportsExecutable = true;
-            }
-
-            cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                     className, null, "java/lang/Object", null);
-
-            // If this component exports an executable API,
-            // generate the main and run methods.
-            if ( exportsExecutable ) {
-                generateInitMethod();
-                generateMainMethod();
-            }
-
-            for ( Import i : x.getImports() ) i.accept(this);
-            for ( Decl   d : x.getDecls()   ) d.accept(this);
-
-            dumpClass();
+        boolean exportsExecutable = false;
+        for ( APIName export : x.getExports() ) {
+            if ( WellKnownNames.exportsMain(export.getText()) )
+                exportsExecutable = true;
         }
+
+        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+                 className, null, "java/lang/Object", null);
+
+        // If this component exports an executable API,
+        // generate the main and run methods.
+        if ( exportsExecutable ) {
+            generateInitMethod();
+            generateMainMethod();
+        }
+
+        for ( Import i : x.getImports() ) i.accept(this);
+        for ( Decl   d : x.getDecls()   ) d.accept(this);
+
+        dumpClass();
     }
 
     public void forImportNames(ImportNames x) {
