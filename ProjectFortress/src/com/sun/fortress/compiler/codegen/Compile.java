@@ -39,10 +39,15 @@ public class Compile extends NodeAbstractVisitor_void {
     String className;
     HashMap<String, String> aliasTable;
     String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
+    String packageName = "";
+
+    private String makeClassName(TraitDecl t) {
+        return packageName + className + "$" + NodeUtil.getName(t).getText();
+    }
 
     @SuppressWarnings("unchecked")
-    public void writeClass(String repository, byte[] bytes) {
-        String fileName = repository + className.replace('.', '/') + ".class";
+    public void writeClass(String repository, String file, byte[] bytes) {
+        String fileName = repository + file.replace('.', '/') + ".class";
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
         try {
             ProjectProperties.ensureDirectoryExists(directoryName);
@@ -73,15 +78,21 @@ public class Compile extends NodeAbstractVisitor_void {
         mv.visitEnd();
     }
 
-    public Compile(String n) {
-        cw = new ClassWriter(0);
-        className = n;
-        aliasTable = new HashMap<String, String>();
+    public Compile() {
+        // Should be called only by
+        // com.sun.fortress.compiler.nativeInterface.FortressTransformer.transform
+        // Should be deleted after moving Compile.writeClass to a better place.
     }
 
-    public void dumpClass() {
+    public Compile(String n) {
+        className = n;
+        aliasTable = new HashMap<String, String>();
+        Debug.debug( Debug.Type.COMPILER, 1, "Compile: Compiling " + className );
+    }
+
+    public void dumpClass( String file ) {
         cw.visitEnd();
-        writeClass(cache, cw.toByteArray());
+        writeClass(cache, file, cw.toByteArray());
     }
 
     private void sayWhat(ASTNode x) {
@@ -99,26 +110,41 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forComponent(Component x) {
+        cw = new ClassWriter(0);
         boolean exportsExecutable = false;
+        boolean exportsDefaultLibrary = false;
         for ( APIName export : x.getExports() ) {
             if ( WellKnownNames.exportsMain(export.getText()) )
                 exportsExecutable = true;
+            if ( WellKnownNames.exportsDefaultLibrary(export.getText()) )
+                exportsDefaultLibrary = true;
         }
-
+        // If this component implements a default library,
+        // generate "package fortress;"
+        if ( exportsDefaultLibrary ) packageName = "fortress/";
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 className, null, "java/lang/Object", null);
-
+                 packageName + className, null, "java/lang/Object", null);
         // If this component exports an executable API,
         // generate the main and run methods.
         if ( exportsExecutable ) {
             generateInitMethod();
             generateMainMethod();
         }
-
         for ( Import i : x.getImports() ) i.accept(this);
-        for ( Decl   d : x.getDecls()   ) d.accept(this);
+        // generate code only for top-level functions and variables
+        for ( Decl d : x.getDecls() ) {
+            if ( // d instanceof VarDecl || -- NOT YET IMPLEMENTED
+                 d instanceof FnDecl )
+                d.accept(this);
+        }
+        dumpClass( packageName + className );
 
-        dumpClass();
+        // generate code only for traits and objects
+        for ( Decl d : x.getDecls() ) {
+            if ( // d instanceof ObjectDecl || -- NOT YET IMPLEMENTED
+                 d instanceof TraitDecl )
+                d.accept(this);
+        }
     }
 
     public void forImportNames(ImportNames x) {
@@ -161,11 +187,13 @@ public class Compile extends NodeAbstractVisitor_void {
             ( extendsC.isEmpty() || extendsC.size() == 1); // 0 or 1 super trait
         String parent = ( extendsC.isEmpty() ) ? "java/lang/Object"
                         : extendsC.get(0).getBaseType().toString();
+        String classFile = makeClassName(x);
         if ( canCompile ) {
+            cw = new ClassWriter(0);
             cw.visit( Opcodes.V1_5,
-                      Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
-                      "fortress/" + NodeUtil.getName(x).getText(), null,
-                      parent, null);
+                      Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_STATIC + Opcodes.ACC_INTERFACE,
+                      classFile, null, parent, null);
+            dumpClass( classFile );
         }
     }
 

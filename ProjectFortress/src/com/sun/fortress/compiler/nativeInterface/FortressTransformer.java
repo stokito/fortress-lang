@@ -42,8 +42,7 @@ public class FortressTransformer {
             FortressMethodAdapter fa = new FortressMethodAdapter(cw, outputClassName);
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
-            Compile compile = new Compile(outputClassName);
-            compile.writeClass(repository, b2);
+            (new Compile()).writeClass(repository, outputClassName, b2);
         } catch (Throwable e) {
             e.printStackTrace();
         }

@@ -88,7 +88,7 @@ public class Disambiguator {
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);
             List<StaticError> newErrs = new ArrayList<StaticError>();
             NonterminalDisambiguator pd = new NonterminalDisambiguator(env, globalEnv, newErrs);
-            Debug.debug( Debug.Type.COMPILER, 3, "Disambiguate grammar members for api " + index );
+            Debug.debug( Debug.Type.SYNTAX, 3, "Disambiguate grammar members for api " + index );
             Api pdResult = (Api) index.ast().accept(pd);
             results.add(pdResult);
             if (!newErrs.isEmpty()) {
