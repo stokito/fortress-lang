@@ -42,3 +42,19 @@ class OptionsJUTest() extends TestCase {
            "Java somes are not mapped to Scala somes")
   }
 }
+
+object JavaSome {
+  def apply[T](wrapped:T):JavaOption[T] = JavaOption.some(wrapped)
+
+  def unapply[T](opt:JavaOption[T]) =
+    if (opt.isNone) None
+    else Some(opt.unwrap)
+}
+
+object JavaNone {
+  def apply[T]():JavaOption[T] = JavaOption.none()
+
+  def unapply[T](opt:JavaOption[T]) =
+    if (opt.isNone) Some()
+    else None
+}
