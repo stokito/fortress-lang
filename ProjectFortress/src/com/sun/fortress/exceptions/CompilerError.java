@@ -41,7 +41,7 @@ public class CompilerError extends RuntimeException {
     }
 
     public CompilerError(Span span, String message) {
-        super(span.toString() + message);
+        super("\n" + span.toString() + "\n    " + message);
         this.span = span;
     }
 
