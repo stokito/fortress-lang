@@ -40,6 +40,7 @@ public class Compile extends NodeAbstractVisitor_void {
     HashMap<String, String> aliasTable;
     String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
     String packageName = "";
+    String javaLangObject = "java/lang/Object";
 
     private String makeClassName(TraitDecl t) {
         return packageName + className + "$" + NodeUtil.getName(t).getText();
@@ -72,7 +73,7 @@ public class Compile extends NodeAbstractVisitor_void {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, javaLangObject, "<init>", "()V");
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
@@ -123,7 +124,7 @@ public class Compile extends NodeAbstractVisitor_void {
         // generate "package fortress;"
         if ( exportsDefaultLibrary ) packageName = "fortress/";
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageName + className, null, "java/lang/Object", null);
+                 packageName + className, null, javaLangObject, null);
         // If this component exports an executable API,
         // generate the main and run methods.
         if ( exportsExecutable ) {
@@ -185,14 +186,32 @@ public class Compile extends NodeAbstractVisitor_void {
             header.getDecls().isEmpty() &&        // no members
             header.getMods() == Modifiers.None && // no modifiers
             ( extendsC.isEmpty() || extendsC.size() == 1); // 0 or 1 super trait
-        String parent = ( extendsC.isEmpty() ) ? "java/lang/Object"
-                        : extendsC.get(0).getBaseType().toString();
+        String parent = "";
+        if ( extendsC.isEmpty() ) {
+            parent = javaLangObject;
+        } else { // if ( extendsC.size() == 1 )
+            BaseType parentType = extendsC.get(0).getBaseType();
+            if ( parentType instanceof AnyType )
+                parent = "fortress/AnyType$Any";
+            else if ( parentType instanceof TraitType ) {
+                Id name = ((TraitType)parentType).getName();
+                Option<APIName> apiName = name.getApiName();
+                if ( apiName.isNone() ) parent = name.toString();
+                else { // if ( apiName.isSome() )
+                    String api = apiName.unwrap().getText();
+                    if ( WellKnownNames.exportsDefaultLibrary( api ) )
+                        parent += "fortress.";
+                    parent += api + "$" + name.getText();
+                }
+            } else
+                sayWhat( parentType, "Invalid type in an extends clause." );
+        }
         String classFile = makeClassName(x);
         if ( canCompile ) {
             cw = new ClassWriter(0);
             cw.visit( Opcodes.V1_5,
-                      Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_STATIC + Opcodes.ACC_INTERFACE,
-                      classFile, null, parent, null);
+                      Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
+                      classFile, null, javaLangObject, new String[] { parent });
             dumpClass( classFile );
         }
     }
