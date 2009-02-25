@@ -37,13 +37,11 @@ public class Compile extends NodeAbstractVisitor_void {
     MethodVisitor mv;
     AnnotationVisitor av0;
     String className;
-
     HashMap<String, String> aliasTable;
-
-    String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
+    String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
 
     @SuppressWarnings("unchecked")
-    public void writeClass(byte[] bytes) {
+    public void writeClass(String repository, byte[] bytes) {
         String fileName = repository + className.replace('.', '/') + ".class";
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
         try {
@@ -83,7 +81,7 @@ public class Compile extends NodeAbstractVisitor_void {
 
     public void dumpClass() {
         cw.visitEnd();
-        writeClass(cw.toByteArray());
+        writeClass(cache, cw.toByteArray());
     }
 
     private void sayWhat(ASTNode x) {
