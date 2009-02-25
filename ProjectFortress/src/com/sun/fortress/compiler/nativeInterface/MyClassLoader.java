@@ -43,24 +43,6 @@ public class MyClassLoader extends ClassLoader {
     }
 
     @SuppressWarnings("unchecked")
-    public Class findClass(String className) {
-        String fileName = repository + className.replace('.', '/') + ".class";
-        Debug.debug( Debug.Type.COMPILER, 1,
-                     "findClass " + className + " fileName = " + fileName);
-        byte[] b;
-        Class result = null;
-        try {
-            FileInputStream in = new FileInputStream(fileName);
-            int l = in.available();
-            b = new byte[l];
-            in.read(b);
-            result = defineClass(className, b, 0, l);
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
-        return result;
-    }
-
     public void writeClass(String className, byte[] bytes) {
         String fileName = repository + className.replace('.', '/') + ".class";
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
