@@ -362,7 +362,7 @@ SyntaxSymbol Item =
 
 /* CharacterClass ::= Char (: Char)? */
 CharacterSymbol CharacterClass =
-     a1:Char a2:(void:colon Char)
+     a1:Char a2:(void:colon Char)?
      { if (a2 != null)
            yyValue = new CharacterInterval(makeSpanInfo(yyStart,yyCount), a1, a2);
        else yyValue = new CharSymbol(makeSpanInfo(yyStart,yyCount), a1);
