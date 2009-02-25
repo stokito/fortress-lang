@@ -17,12 +17,13 @@
 
 package com.sun.fortress.compiler.nativeInterface;
 
-import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Debug;
 
 public class MyClassLoader extends ClassLoader {
-    
+
     String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
 
     public MyClassLoader() {
@@ -33,7 +34,7 @@ public class MyClassLoader extends ClassLoader {
         super(parent);
         // TODO Auto-generated constructor stub
     }
-    
+
     public Class defineClass(String name, byte[] b) {
         return defineClass(name, b, 0, b.length);
     }
@@ -44,7 +45,8 @@ public class MyClassLoader extends ClassLoader {
     @SuppressWarnings("unchecked")
     public Class findClass(String className) {
         String fileName = repository + className.replace('.', '/') + ".class";
-        System.out.println("findClass " + className + " fileName = " + fileName);
+        Debug.debug( Debug.Type.COMPILER, 1,
+                     "findClass " + className + " fileName = " + fileName);
         byte[] b;
         Class result = null;
         try {
@@ -58,7 +60,7 @@ public class MyClassLoader extends ClassLoader {
         }
         return result;
     }
-    
+
     public void writeClass(String className, byte[] bytes) {
         String fileName = repository + className.replace('.', '/') + ".class";
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
