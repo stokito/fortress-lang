@@ -17,22 +17,22 @@
 
 package com.sun.fortress.scala_src.useful
 import _root_.scala.{List => ScalaList}
-import _root_.java.util.{LinkedList => JavaLinkedList}
-import _root_.java.util.{List => JavaList}
+import _root_.java.util.{LinkedList => JLinkedList}
+import _root_.java.util.{List => JList}
 import _root_.junit.framework.TestCase
 
 object Lists {
-  def toJavaList[T](xs:ScalaList[T]):JavaLinkedList[T] = {
+  def toJavaList[T](xs:ScalaList[T]):JLinkedList[T] = {
     xs match {
-      case ScalaList() => new JavaLinkedList[T]
+      case ScalaList() => new JLinkedList[T]
       case y :: ys => {
-        var result = toJavaList(ys)
+        val result = toJavaList(ys)
         result.addFirst(y)
         result
       }
     }
   }
-  def toScalaList[T](xs:JavaList[T]) = {
+  def toScalaList[T](xs:JList[T]) = {
     var result = ScalaList[T]()
     val rightmost = xs.size - 1
     for (i <- 0 to rightmost) {
@@ -41,10 +41,20 @@ object Lists {
     result
   }
   
-  def map[S,T](list: JavaList[S], fun: S=>T ): JavaList[T] = toJavaList(toScalaList(list).map(fun))
+  def map[S,T](list: JList[S], fun: S=>T ): JList[T] = toJavaList(toScalaList(list).map(fun))
   
 }
 
+object JavaList {
+  def apply[T](xs:T*) = {
+    val result = new JLinkedList[T]
+    for (x <- xs.elements) {
+      result.addLast(x)
+    }
+    result
+  }
+  def unapplySeq[T](xs:JList[T]) = Some(Lists.toScalaList(xs))
+}
 
 class ListsJUTest() extends TestCase {
   def testEmptyToJavaList() = {

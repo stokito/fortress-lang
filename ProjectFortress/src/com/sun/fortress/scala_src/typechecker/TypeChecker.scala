@@ -29,7 +29,8 @@ import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options
-import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.JavaSome
+import com.sun.fortress.scala_src.useful.JavaNone
 import edu.rice.cs.plt.tuple.Option
 import scala.collection.mutable.LinkedList
 
@@ -39,6 +40,8 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
   private def signal(msg:String,node:Node) = { errors = errors ::: List(TypeError.make(msg,node)) }
 
+  private def inferredType(expr:Expr) = expr.getInfo.getExprType
+
   private def checkSubtype(subtype:Type,supertype:Type,senv:SubtypeChecker,node:Node,error:String) = {
     val judgement = senv.subtype(subtype,supertype).booleanValue
     if (! judgement) signal(error,node)
@@ -46,30 +49,30 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
   }
 
   def check(node:Node,env:TypeEnv,senv:SubtypeChecker):Node = node match {
-    case Component(info,name,imports,decls,is_native,exports)  => 
-      Component(info,name,imports,map(decls,(n:Decl)=>check(n,env,senv).asInstanceOf),is_native,exports)
+    case Component(info,name,imports,decls,isNative,exports)  => 
+      Component(info,name,imports,map(decls,(n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
 
-    case f@FnDecl(info,header,unambiguousName,body,implementsUnambiguousName) if body.isNone => f
+    case f@FnDecl(info,header,unambiguousName,JavaNone(_),implementsUnambiguousName) => f
 
-    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),unambiguousName,body,implementsUnambiguousName) => {
+    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),unambiguousName,JavaSome(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newSenv = senv.extend(statics,wheres)
 
-      val newContract = toOption(contract) match {
-        case Some(c) => Options.some(check(c,newEnv,newSenv))
-        case None => Options.none()
+      val newContract = contract match {
+        case JavaSome(c) => JavaSome(check(c,newEnv,newSenv))
+        case JavaNone(_) => contract
       }
-      val newBody = some(checkExpr(body.unwrap,newEnv,newSenv,returnType))
+      val newBody = checkExpr(body,newEnv,newSenv,returnType)
 
-      val newReturnType = toOption(newBody.unwrap.getInfo.getExprType) match {
-        case Some(typ) => toOption(returnType) match {
-          case None => some(typ)
+      val newReturnType = inferredType(newBody) match {
+        case JavaSome(typ) => returnType match {
+          case JavaNone(_) => JavaSome(typ)
           case _ => returnType
         }
         case _ => returnType
       }
       NodeFactory.makeFnDecl(NodeUtil.getSpan(f),NodeUtil.getMods(f),NodeUtil.getName(f),statics,params,
-                             newReturnType,NodeUtil.getThrowsClause(f),wheres,newContract.asInstanceOf,newBody)
+                             newReturnType,NodeUtil.getThrowsClause(f),wheres,newContract.asInstanceOf,JavaSome(newBody))
     }
 
     
