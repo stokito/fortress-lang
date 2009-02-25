@@ -20,12 +20,13 @@ import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
 import com.sun.fortress.compiler.codegen.Compile;
+import com.sun.fortress.repository.ProjectProperties;
 
 public class FortressTransformer {
+    static String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
+
     @SuppressWarnings("unchecked")
-
-        public static void transform(String inputClassName) {
-
+    public static void transform(String inputClassName) {
         String outputClassName;
         // If we are reading in a java.* class, we need to write it out as a
         // com.sun.fortress.java.* class.  If it is already a com.sun.fortress.* class
@@ -42,7 +43,7 @@ public class FortressTransformer {
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
             Compile compile = new Compile(outputClassName);
-            compile.writeClass(b2);
+            compile.writeClass(repository, b2);
         } catch (Throwable e) {
             e.printStackTrace();
         }
