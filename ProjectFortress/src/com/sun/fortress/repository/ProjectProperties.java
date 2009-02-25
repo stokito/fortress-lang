@@ -248,6 +248,7 @@ public class ProjectProperties {
     public static final String ANALYZED_CACHE_DIR = get("fortress.analyzed.cache", "${CACHES}/analyzed_cache");
     public static final String ANALYZED_CACHE_DEPENDS_DIR = get("fortress.analyzed.cache.depends", "${CACHES}/analyzed_cache/depends");
     public static final String SYNTAX_CACHE_DIR = get("fortress.syntax.cache", "${CACHES}/syntax_cache");
+    public static final String ENVIRONMENT_CACHE_DIR = get("fortress.environment.cache", "${CACHES}/environment_cache");
     public static final String BYTECODE_CACHE_DIR = get("fortress.bytecode.cache", "${CACHES}/bytecode_cache");
     public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache", "${CACHES}/nativewrapper_cache");
 
@@ -260,6 +261,7 @@ public class ProjectProperties {
         ensureDirectoryExists(ANALYZED_CACHE_DIR);
         ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
         ensureDirectoryExists(SYNTAX_CACHE_DIR);
+        ensureDirectoryExists(ENVIRONMENT_CACHE_DIR);
         ensureDirectoryExists(BYTECODE_CACHE_DIR);
         ensureDirectoryExists(NATIVE_WRAPPER_CACHE_DIR);
     }

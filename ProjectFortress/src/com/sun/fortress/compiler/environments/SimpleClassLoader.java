@@ -53,7 +53,7 @@ public class SimpleClassLoader extends ClassLoader {
     	}
 
         SimpleClassLoader classLoader = aLoader; // new SimpleClassLoader();
-        File classfile = new File(ProjectProperties.BYTECODE_CACHE_DIR +
+        File classfile = new File(ProjectProperties.ENVIRONMENT_CACHE_DIR +
                                   File.separator + className + ".class");
         byte[] bytecode = new byte[(int) classfile.length()];
         FileInputStream classStream = new FileInputStream(classfile);
