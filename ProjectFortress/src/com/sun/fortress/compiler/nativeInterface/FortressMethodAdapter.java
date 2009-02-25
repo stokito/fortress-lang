@@ -16,11 +16,11 @@
 ******************************************************************************/
 
 package com.sun.fortress.compiler.nativeInterface;
+
 import java.util.*;
-
 import org.objectweb.asm.*;
-
 import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.useful.Debug;
 
 class fortressConverter {
     String shortName;
@@ -32,12 +32,12 @@ class fortressConverter {
 
     private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
 
-    fortressConverter(String _fortressRuntimeType, 
-                      String _toJavaTypeMethod,  
+    fortressConverter(String _fortressRuntimeType,
+                      String _toJavaTypeMethod,
                       String _toJavaTypeMethodDesc,
                       String _constructor,
                       String _constructorType) {
-        
+
         shortName = _fortressRuntimeType;
         fortressRuntimeType = "L" + prefix + _fortressRuntimeType + ";";
         toJavaTypeMethod = _toJavaTypeMethod;
@@ -54,8 +54,8 @@ public class FortressMethodAdapter extends ClassAdapter {
     private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
     private HashMap conversionTable;
 
-    private void initializeEntry(String fortressRuntimeType, 
-                                 String toJavaTypeMethod,  
+    private void initializeEntry(String fortressRuntimeType,
+                                 String toJavaTypeMethod,
                                  String toJavaTypeMethodDesc,
                                  String constructor,
                                  String constructorType) {
@@ -97,20 +97,22 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeTables();
     }
 
-    public void visit(int version, int access, String name, String signature, 
+    public void visit(int version, int access, String name, String signature,
                       String superName, String[] interfaces) {
-        System.out.println("visit:" + name + " generate " + className);
+        Debug.debug( Debug.Type.COMPILER, 1,
+                     "visit:" + name + " generate " + className);
         cv.visit(version, access, className, signature, superName, interfaces);
     }
 
-    public MethodVisitor visitMethod(int access, 
-                                     String name, String desc, 
+    public MethodVisitor visitMethod(int access,
+                                     String name, String desc,
                                      String signature, String[] exceptions) {
         // Don't know how to do these, or if we need them...
         if (name.equals("<init>") || name.equals("<clinit>"))
-            System.out.println("Don't visit Method " + name);
+            Debug.debug( Debug.Type.COMPILER, 1, "Don't visit Method " + name);
         else if (SignatureParser.unsayable(desc))
-            System.out.println("Don't visit Method with unsayable desc" + name);                
+            Debug.debug( Debug.Type.COMPILER, 1,
+                         "Don't visit Method with unsayable desc" + name);
         else {
             generateNewBody(access, desc, signature, exceptions, name, name);
         }
@@ -124,8 +126,8 @@ public class FortressMethodAdapter extends ClassAdapter {
                                  String name, String newName) {
 
         SignatureParser sp = new SignatureParser(desc);
-        MethodVisitor mv = cv.visitMethod(access, name, 
-                                          sp.getFortressifiedSignature(), 
+        MethodVisitor mv = cv.visitMethod(access, name,
+                                          sp.getFortressifiedSignature(),
                                           signature, exceptions);
         mv.visitCode();
         Label l0 = new Label();
@@ -138,22 +140,23 @@ public class FortressMethodAdapter extends ClassAdapter {
             fortressConverter converter = (fortressConverter) conversionTable.get(stripped);
             if (converter == null)
                 throw new RuntimeException("Can't generate header for method " + name + " problem =" + s);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                                prefix + stripped,
                                converter.toJavaTypeMethod,
                                converter.toJavaTypeMethodDesc);
         }
 
-        System.out.println("className = " + className + " name = " + name + " access = " + access);
+        Debug.debug( Debug.Type.COMPILER, 1,
+                     "className = " + className + " name = " + name + " access = " + access);
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                            className,
                            name,
                            sp.getSignature());
 
         String result = sp.getFortressResult();
         String stripped = strip(result);
-        
+
         if (result.equals("L" + prefix + "FVoid;")) {
             mv.visitFieldInsn(Opcodes.GETSTATIC, prefix + "FVoid",
                               "V", "L" + prefix + "FVoid;");

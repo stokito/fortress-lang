@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-native component CompilerBuiltin
+component CompilerBuiltin
 import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln as jPrintln}
 export CompilerBuiltin
 
