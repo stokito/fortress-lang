@@ -45,15 +45,15 @@ object Lists {
   
 }
 
-object JavaList {
-  def apply[T](xs:T*) = {
+class JavaList[T] {
+  def apply(xs:T*) = {
     val result = new JLinkedList[T]
     for (x <- xs.elements) {
       result.addLast(x)
     }
     result
   }
-  def unapplySeq[T](xs:JList[T]) = Some(Lists.toScalaList(xs))
+  def unapplySeq(xs:JList[T]) = Some(Lists.toScalaList(xs))
 }
 
 class ListsJUTest() extends TestCase {

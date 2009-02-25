@@ -27,11 +27,14 @@ import com.sun.fortress.compiler.index.CompilationUnitIndex
 import com.sun.fortress.compiler.typechecker.SubtypeChecker
 import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
+import com.sun.fortress.compiler.Types
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options
 import com.sun.fortress.scala_src.useful.JavaSome
 import com.sun.fortress.scala_src.useful.JavaNone
-import edu.rice.cs.plt.tuple.Option
+import com.sun.fortress.scala_src.useful.JavaList
+import edu.rice.cs.plt.tuple.{Option => JavaOption}
+import _root_.java.util.{List => JList}
 import scala.collection.mutable.LinkedList
 
 class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
@@ -72,15 +75,25 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
         case _ => returnType
       }
       NodeFactory.makeFnDecl(NodeUtil.getSpan(f),NodeUtil.getMods(f),NodeUtil.getName(f),statics,params,
-                             newReturnType,NodeUtil.getThrowsClause(f),wheres,newContract.asInstanceOf,JavaSome(newBody))
+                             newReturnType,throws,wheres,newContract.asInstanceOf,JavaSome(newBody))
     }
-
     
+    /* Matches if block is not an atomic block. */
+    case Block(ExprInfo(span,parenthesized,resultType),loc,false,withinDo,exprs) => {
+      val newExprs:JList[Expr] = map(exprs,(e:Expr)=>checkExpr(e,env,senv).asInstanceOf)
+      val newResultType:JavaOption[Type] = 
+        if (newExprs.isEmpty) JavaSome(Types.VOID)
+        else inferredType(newExprs.get(newExprs.size - 1))
+
+      Block(ExprInfo(span,parenthesized,newResultType),loc,false,withinDo,newExprs)
+    }
       
     case _ => node
   }
 
-  def checkExpr(expr: Expr,env: TypeEnv,senv:SubtypeChecker,expected:Option[Type]):Expr = expr match {
+  def checkExpr(expr: Expr,env: TypeEnv,senv:SubtypeChecker):Expr = checkExpr(expr,env,senv,JavaNone())
+
+  def checkExpr(expr: Expr,env: TypeEnv,senv:SubtypeChecker,expected:JavaOption[Type]):Expr = expr match {
     case _ => expr
   }
 
