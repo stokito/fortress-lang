@@ -89,20 +89,20 @@ import com.sun.fortress.useful.VersionMismatch;
 import edu.rice.cs.plt.tuple.Option;
 
 public class ForeignJava {
-    
+
     public static final ForeignJava only = new ForeignJava();
-    
+
     private ForeignJava() {
-        
+
     }
-  
+
    /** given an API Name, what Java classes does it use (include)?  (Existing
      * Java class, not its compiled Fortress wrapper class.)
      * This is a subset of all the classes available in the package
      * corresponding to the API Name.
      */
     MultiMap<APIName, org.objectweb.asm.Type> classesIncludedInForeignAPI = new MultiMap<APIName, org.objectweb.asm.Type>();
-   
+
     /**
      * given an API Name, what Java classes is it actually importing?
      * This is (potentially) a subset of the API-importing-foreign-API composed
@@ -122,7 +122,7 @@ public class ForeignJava {
      * Given a foreign API Name, what other (foreign) APIs does it import?
      */
     MapOfMapOfSet<APIName, APIName, Id> generatedImports = new MapOfMapOfSet<APIName, APIName, Id>();
-    
+
     /**
      * Given an API Name, what are the decls in it?
      * This includes both trait (class) decls and function (static method) decls.
@@ -137,22 +137,22 @@ public class ForeignJava {
      * 3) Nothing at all; an opaque import.
      */
     MultiMap<org.objectweb.asm.Type, String> itemsFromClasses = new MultiMap<org.objectweb.asm.Type, String>();
-    
+
     Map<APIName, ApiIndex> cachedFakeApis = new HashMap<APIName, ApiIndex>();
-    
+
     /**
      * Stores the FnDecl for a particular method -- also acts as an is-visited
      * marker.
      */
     public Bijection<String, FnDecl> methodToDecl = new HashBijection<String, FnDecl>();
-    
+
     /**
      * Stores the TraitDecl for a trait.
      */
     public Bijection<Type, TraitDecl> classToTraitDecl = new HashBijection<Type, TraitDecl>();
 
     /* Special cases
-     * 
+     *
      * Boolean
      * Byte
      * Character
@@ -161,24 +161,24 @@ public class ForeignJava {
      * Long
      * Float
      * Double
-     * 
+     *
      * all of the above, .TYPE (the primitives)
-     * 
-     * 
+     *
+     *
      * String
      */
-    
+
     static ClassNode findClass(String s) throws IOException {
         ClassReader cr = new ClassReader(s);
         ClassNode cn = new ClassNode();
         cr.accept(cn, ClassReader.SKIP_DEBUG|ClassReader.SKIP_FRAMES|ClassReader.SKIP_CODE);
-        return cn; 
+        return cn;
     }
-    
+
    static CheapSerializer<Type> typeSerializer = new CheapSerializer<Type>() {
 
-       
-       
+
+
     @Override
     public Type read(InputStream i) throws IOException {
         return Type.getType(CheapSerializer.STRING.read(i));
@@ -193,19 +193,19 @@ public class ForeignJava {
 
     @Override
     public void version(OutputStream o) throws IOException {
-        o.write(V);        
+        o.write(V);
     }
 
     @Override
     public void version(InputStream o) throws IOException, VersionMismatch {
-        check(o,V);        
+        check(o,V);
     }
-        
+
     };
-    
+
     static CheapSerializer<Map<Type, Long>> dependenceSerializer =
         new CheapSerializer.MAP<Type, Long>(typeSerializer, CheapSerializer.LONG);
-    
+
     private static Span span() {
         return NodeFactory.internalSpan;
     }
@@ -221,22 +221,19 @@ public class ForeignJava {
     private static Span span(Type t) {
         return NodeFactory.makeSpan(t.getDescriptor());
     }
-    
- 
-    static MyClassLoader loader = new MyClassLoader();
-    
+
     static org.objectweb.asm.Type type(ClassNode cl) {
         return org.objectweb.asm.Type.getObjectType(cl.name);
     }
-    
+
     static org.objectweb.asm.Type returnType(MethodNode meth) {
         return org.objectweb.asm.Type.getReturnType(meth.desc);
    }
-   
+
     static org.objectweb.asm.Type[] argumentTypes(MethodNode meth) {
         return org.objectweb.asm.Type.getArgumentTypes(meth.desc);
    }
-   
+
     static String getName(MethodNode m) {
         return m.name;
     }
@@ -249,7 +246,7 @@ public class ForeignJava {
     static String getSimpleName(ClassNode cl) {
         return getSimpleName(cl.name);
     }
-    
+
     static String getPackageName(String internal_name) {
         int last_slash = internal_name.lastIndexOf("/");
         String package_name = internal_name.substring(0, last_slash);
@@ -259,7 +256,7 @@ public class ForeignJava {
     static String getPackageName(ClassNode cl) {
         return getPackageName(cl.name);
     }
-    
+
     static APIName packageToAPIName(String s) {
         return NodeFactory.makeAPIName(span(s), s);
     }
@@ -268,7 +265,7 @@ public class ForeignJava {
         //
         // Need to record dependence of importer on the class implied by i.
         //
-        
+
         APIName pkg_name = ins.getApiName();
         String pkg_name_string = pkg_name.getText();
         List<AliasedSimpleName> names = ins.getAliasedNames();
@@ -295,31 +292,31 @@ public class ForeignJava {
              * Aclass.AField
              * Aclass.AnInner*.{AStaticFunction,AField}
              */
-            
+
             /*
              * More hints.
              * The api part of the name, corresponds to a package name.
              * So, if it is an inner class, that dot has to come
              * in the suffix.
-             * 
+             *
              * Inner classes expect a dollar sign where the dot
              * appears in the Java text.
              */
-            
+
             /*
              * There can be static inner classes,
              * static functions,
              * and static fields,
              * all with the same dotted name.
-             * 
+             *
              * For now, try the static inner class first,
              * then the function,
              * then the fields.
              */
-            
-            
+
+
             int last_dot = suffix.length();
-            
+
             /* Try replacing fewer and fewer dots with $; prefer the
              * "classiest" answer.
              */
@@ -345,7 +342,7 @@ public class ForeignJava {
              */
             String imported_item = suffix.substring(last_dot);
             if (imported_item.length() == 0) {
-                
+
             } else if (imported_item.startsWith(".", 0)) {
                 imported_item = imported_item.substring(1);
             } else {
@@ -357,7 +354,7 @@ public class ForeignJava {
              */
             // TODO
             recurOnClass(comp, pkg_name, imported_class, imported_item);
-            
+
         } /* for name : names */
 
 //        System.err.println("classesIncludedInForeignAPI="+classesIncludedInForeignAPI);
@@ -375,11 +372,11 @@ public class ForeignJava {
         com.sun.fortress.nodes.Type t = NamingCzar.only.fortressTypeForForeignJavaType(imported_type);
         if (t != null)
             return t;
-        
+
         String internal_name = imported_type.getInternalName();
         String package_name = getPackageName(internal_name);
         String simple_name = getSimpleName(internal_name);
-        
+
         APIName api_name = packageToAPIName(package_name);
         Id name = NodeFactory.makeId(span(package_name), simple_name);
 
@@ -388,13 +385,13 @@ public class ForeignJava {
          * is harmless.
          */
         generatedImports.putItem(importing_package, api_name, name);
-        
+
         /*
          * Ensure that the API and class appear.
          */
         classesIncludedInForeignAPI.putItem(api_name,imported_type);
-        
-        
+
+
         /*
          *  Has there (not) been any reference to this class previously?
          *  If no reference, then record that it is needed (opaquely) and
@@ -406,7 +403,7 @@ public class ForeignJava {
             // Construct a minimal trait declaration for this class.
             classToTraitType(imported_type, api_name, name, Collections.<Decl>emptyList());
         };
-        
+
         // LOSE THE DOTTED REFERENCE, at least for now.
         // name = NodeFactory.makeId(api_name, name);
         // Note: a TraitType is a reference to a trait.
@@ -426,21 +423,21 @@ public class ForeignJava {
         classToTraitDecl.put(imported_class, td);
         apiToStaticDecls.putItem(api_name, td);
         classesIncludedInForeignAPI.putItem(api_name, imported_class);
-        
+
         /* Invalidate any old entry.
          * Let's hope this does not cause problems down the line.
          */
         cachedFakeApis.remove(api_name);
     }
-    
+
     static Comparator<MethodNode> methodNodeComparator = new Comparator<MethodNode> () {
 
         public int compare(MethodNode o1, MethodNode o2) {
             return methodName(o1).compareTo(methodName(o2));
         }
-        
+
     };
-    
+
     private long subsetHash(org.objectweb.asm.Type t, ClassNode cn) {
         long h = t.hashCode();
         BASet<MethodNode> methods =
@@ -459,28 +456,28 @@ public class ForeignJava {
         }
         return h;
     }
-    
+
     private void recurOnClass(CompilationUnit comp, APIName pkg_name, ClassNode imported_class, String imported_item) {
         org.objectweb.asm.Type t = type(imported_class);
         APIName importer = comp.getName();
-        
+
         if (comp instanceof Api)
             classesImportedByAPI.putItem(importer, t, subsetHash(t, imported_class));
         else
             classesImportedByComp.putItem(importer, t, subsetHash(t, imported_class));
 
         Set<String> old = itemsFromClasses.get(t);
-        
+
         /*
          * Import of a class, non-opaquely.
          * Keep track of which items, specifically, are imported.
          * Note that the empty string is a valid item, it means "the class itself".
          */
-        if (old != null && old.size() > 0) { 
+        if (old != null && old.size() > 0) {
             itemsFromClasses.putItem(t, imported_item);
             return;
         }
-        
+
         /*
          * Class not seen before (except perhaps as an opaque import)
          * Recursively visit all of its parts.
@@ -491,9 +488,9 @@ public class ForeignJava {
 //        Field[] fields = imported_class.getDeclaredFields();
 //        Class[] interfaces = imported_class.getInterfaces();
 //        Class super_class = imported_class.getSuperclass();
-        
+
         ArrayList<Decl> trait_decls = new ArrayList<Decl>();
-        
+
         for (MethodNode m : methods) {
             int access = m.access;
             if (isPublic(access)) {
@@ -508,22 +505,22 @@ public class ForeignJava {
                 }
             }
         }
-        
+
         Id name = NodeFactory.makeId(span(), getSimpleName(imported_class));
         classToTraitType(t, pkg_name, name, trait_decls);
-        
+
     }
 
     private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
         String methodKey = methodName(m);
         if (methodToDecl.containsKey(methodKey))
             return methodToDecl.get(methodKey);
-        
+
         Type rt = returnType(m);
         Type[] pts = argumentTypes(m);
         // To construct a FnDecl, need to get names for all the other types
         com.sun.fortress.nodes.Type return_type = recurOnOpaqueClass(importing_package, rt);
-        
+
         List<Param> params = new ArrayList<Param>(pts.length);
         int i = 0;
         for (Type pt : pts) {
@@ -533,7 +530,7 @@ public class ForeignJava {
             Param p = NodeFactory.makeParam(id, type);
             params.add(p);
         }
-        
+
         Span fn_span = span(m);
         Id id = is_static ?
                 NodeFactory.makeId(fn_span, getSimpleName(cl)+"."+ getName(m)) :
@@ -554,7 +551,7 @@ public class ForeignJava {
     private boolean isPublic(int modifiers) {
         return 0 != (modifiers & Opcodes.ACC_PUBLIC);
     }
-    
+
     private boolean isStatic(int modifiers) {
         return 0 != (modifiers & Opcodes.ACC_STATIC);
     }
@@ -572,20 +569,20 @@ public class ForeignJava {
         if (result == null) {
 
             Set<Type> classes = classesIncludedInForeignAPI.get(name);
-            
+
             // Need to generate wrappers for all these classes,
             // if they do not already exist.
             for (Type t : classes) {
-                FortressTransformer.transform(loader, t.getClassName());
+                FortressTransformer.transform(t.getClassName());
             }
-                
+
             List<Import> imports = new ArrayList<Import>();
             IMultiMap<APIName, Id> gi = generatedImports.get(name);
             if (gi != null)
                 for (APIName a : gi.keySet()) {
                     importAnApi(imports, a, gi.get(a));
                 }
-            
+
             List<Decl> decls = new ArrayList<Decl>();
             for (Decl d : apiToStaticDecls.get(name)) {
                 decls.add(d);
@@ -600,29 +597,29 @@ public class ForeignJava {
     }
 
     private void importAnApi(List<Import> imports, APIName a, Set<Id> items) {
-        
+
         List<AliasedSimpleName> lasn = new ArrayList<AliasedSimpleName>();
         lasn = Useful.applyToAllAppending(items, new F<Id, AliasedSimpleName>() {
             @Override
             public AliasedSimpleName apply(Id x) {
                 return NodeFactory.makeAliasedSimpleName(x);
             } }, lasn);
-        
+
         ImportNames imp_names = NodeFactory.makeImportNames(span(), Option.some("java"), a, lasn);
-       
+
         imports.add(imp_names);
     }
-    
+
     public Map<APIName, ApiIndex> augmentApiMap(Map<APIName, ApiIndex> map) {
         for (APIName a : classesIncludedInForeignAPI.keySet()) {
             map.put(a, fakeApi(a));
         }
-        
+
         // dumpGenerated();
-        
+
         return map;
     }
-    
+
     public void dumpGenerated() {
         for (APIName a : classesIncludedInForeignAPI.keySet()) {
             System.out.println(a);
@@ -635,7 +632,7 @@ public class ForeignJava {
      * Node depends on next.  Compares the on-disk record of the dependence
      * with the current version of the dependence, and return true iff there
      * is any change or missing data.
-     * 
+     *
      * @param node A thing (component or api) importing a Java package.
      * @param next The api generated for the Java package.
      * @return
@@ -643,25 +640,25 @@ public class ForeignJava {
     public boolean dependenceChanged(GraphNode node, GraphNode next) {
         APIName node_name = node.getName();
         APIName next_name = next.getName();
-        
-        Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld = 
+
+        Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld =
             (node instanceof ApiGraphNode) ? classesImportedByAPIOld : classesImportedByCompOld;
-        
+
         MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = classImportedByCurrent(node);
-        
+
         if (! classesImportedByOld.containsKey(node_name)) {
             // read the data from disk.
             readDependenceDataForAST(classesImportedByOld, node);
         }
-        
+
         Map<Type, Long> oldmap = classesImportedByOld.get(node_name);
         Map<Type, Long> newmap = classesImportedByNew.get(node_name);
-        
+
         if (oldmap == null || newmap == null)
             return true;
-        
+
         // need to implement proper test.
-        
+
         return ! oldmap.equals(newmap);
     }
 
@@ -670,19 +667,19 @@ public class ForeignJava {
             if (!hasForeignDependence(node))
                 return;
             String s = dependsFileName(node);
-            OutputStream o = 
+            OutputStream o =
                     new FileOutputStream(s);
             MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = classImportedByCurrent(node);
 
             dependenceSerializer.version(o);
             dependenceSerializer.write(o, classesImportedByNew.get(node.getName()));
-            
+
             o.close();
         } catch (IOException ex) {
 
         }
     }
-    
+
     static private void readDependenceDataForAST(Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld, GraphNode node) throws Error {
         InputStream i;
         String s = dependsFileName(node);
@@ -692,7 +689,7 @@ public class ForeignJava {
             try {
             dependenceSerializer.version(i);
             Map<Type, Long> object = dependenceSerializer.read(i);
-            
+
             classesImportedByOld.put(node.getName(),  object);
             } finally {
                 i.close();
@@ -705,21 +702,21 @@ public class ForeignJava {
         } catch (VersionMismatch e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } 
+        }
         if (! found)
             classesImportedByOld.put(node.getName(),  Collections.<Type, Long>emptyMap());
 
     }
-    
+
     boolean hasForeignDependence(GraphNode node) {
         MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = classImportedByCurrent(node);
-        
+
         return classesImportedByNew.containsKey(node.getName());
     }
 
     private MapOfMap<APIName, org.objectweb.asm.Type, Long> classImportedByCurrent(
             GraphNode node) {
-        MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew = 
+        MapOfMap<APIName, org.objectweb.asm.Type, Long> classesImportedByNew =
             (node instanceof ApiGraphNode) ? classesImportedByAPI : classesImportedByComp;
         return classesImportedByNew;
     }
