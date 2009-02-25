@@ -16,11 +16,11 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen;
 
+import java.io.FileOutputStream;
 import java.util.*;
 import org.objectweb.asm.*;
 import edu.rice.cs.plt.tuple.Option;
 
-import com.sun.fortress.compiler.nativeInterface.MyClassLoader;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.interpreter.evaluator.types.*;
@@ -28,6 +28,7 @@ import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Debug;
 
 public class Compile extends NodeAbstractVisitor_void {
@@ -36,9 +37,23 @@ public class Compile extends NodeAbstractVisitor_void {
     MethodVisitor mv;
     AnnotationVisitor av0;
     String className;
-    MyClassLoader loader;
 
     HashMap<String, String> aliasTable;
+
+    String repository = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
+
+    @SuppressWarnings("unchecked")
+    public void writeClass(byte[] bytes) {
+        String fileName = repository + className.replace('.', '/') + ".class";
+        String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
+        try {
+            ProjectProperties.ensureDirectoryExists(directoryName);
+            FileOutputStream out = new FileOutputStream(fileName);
+            out.write(bytes);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
 
     private void generateMainMethod() {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
@@ -61,7 +76,6 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public Compile(String n) {
-        loader = new MyClassLoader();
         cw = new ClassWriter(0);
         className = n;
         aliasTable = new HashMap<String, String>();
@@ -69,7 +83,7 @@ public class Compile extends NodeAbstractVisitor_void {
 
     public void dumpClass() {
         cw.visitEnd();
-        loader.writeClass(className, cw.toByteArray());
+        writeClass(cw.toByteArray());
     }
 
     private void sayWhat(ASTNode x) {
@@ -212,7 +226,7 @@ public class Compile extends NodeAbstractVisitor_void {
                            "make",
                            "(I)Lcom/sun/fortress/interpreter/evaluator/values/Fnt");
     }
-                           
+
 
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
