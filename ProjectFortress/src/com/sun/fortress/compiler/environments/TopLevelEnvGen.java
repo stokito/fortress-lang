@@ -734,7 +734,7 @@ public class TopLevelEnvGen {
                             String classSuffix, HashSet<StaticError> errors) {
         for (APIName componentName : compiledCompUnits.keySet()) {
             Pair<String,byte[]> compOutput = compiledCompUnits.get(componentName);
-            String fileName = ProjectProperties.BYTECODE_CACHE_DIR + File.separator + compOutput.getA() + ".class";
+            String fileName = ProjectProperties.ENVIRONMENT_CACHE_DIR + File.separator + compOutput.getA() + ".class";
              outputClassFile(compOutput.getB(), fileName, errors);
         }
     }
