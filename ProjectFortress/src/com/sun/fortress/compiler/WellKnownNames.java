@@ -17,6 +17,9 @@
 
 package com.sun.fortress.compiler;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.VarDecl;
@@ -87,7 +90,12 @@ public class WellKnownNames {
     public static String[] defaultLibrary() { return _defaultLibrary; }
 
     public static boolean exportsMain(String apiName) {
-        return (apiName.equals(_executableApi) || apiName.equals(_simpleExecutableApi));
+        return ( apiName.equals(_executableApi) ||
+                 apiName.equals(_simpleExecutableApi) );
+    }
+
+    public static boolean exportsDefaultLibrary(String apiName) {
+        return new LinkedList<String>(Arrays.asList(defaultLibrary())).contains( apiName );
     }
 
     /**
