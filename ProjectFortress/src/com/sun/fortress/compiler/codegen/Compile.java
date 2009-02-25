@@ -189,6 +189,31 @@ public class Compile extends NodeAbstractVisitor_void {
         }
     }
 
+    public void forFloatLiteralExpr(FloatLiteralExpr x) {
+        mv.visitLdcInsn(x.getText());
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           "java/lang/Float",
+                           "parseFloat",
+                           "(Ljava/lang/String;)F");
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           "com/sun.fortress/interpreter/evaluator/values/FFLoat",
+                           "make",
+                           "(F)Lcom/sun/fortress/interpreter/evaluator/values/FFloat");
+    }
+
+    public void forIntLiteralExpr(IntLiteralExpr x) {
+        mv.visitLdcInsn(x.getText());
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           "java/lang/Int",
+                           "parseInt",
+                           "(Ljava/lang/String;)I");
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           "com/sun.fortress/interpreter/evaluator/values/FInt",
+                           "make",
+                           "(I)Lcom/sun/fortress/interpreter/evaluator/values/Fnt");
+    }
+                           
+
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
         String name = x.getOriginalName().getText();

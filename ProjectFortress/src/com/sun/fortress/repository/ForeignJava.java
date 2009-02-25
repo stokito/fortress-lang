@@ -576,7 +576,7 @@ public class ForeignJava {
             // Need to generate wrappers for all these classes,
             // if they do not already exist.
             for (Type t : classes) {
-                Class c = FortressTransformer.transform(loader, t.getClassName());
+                FortressTransformer.transform(loader, t.getClassName());
             }
                 
             List<Import> imports = new ArrayList<Import>();
