@@ -46,23 +46,23 @@ object ScalaConstraintUtil{
   /*
    * Gives a constraint with ivar<:ubound
    */
-  def upperBound(ivar: _InferenceVarType, ubound: Type, history: SubtypeHistory): ConstraintFormula = history.subtypeNormal(ANY,ubound).isTrue match{
+  def upperBound(ivar: _InferenceVarType, ubound: Type, newhistory: SubtypeHistory): ConstraintFormula = newhistory.subtypeNormal(ANY,ubound).isTrue match{
     case true => CnTrue
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
       val ubounds = empty.update(ivar,ubound)
-      CnAnd(ubounds,empty)
+      CnAnd(ubounds,empty,newhistory)
   }
 
   /*
    * Gives a constraint with lbound<:ivar
    */
-  def lowerBound(ivar: _InferenceVarType, lbound: Type, history: SubtypeHistory): ConstraintFormula = history.subtypeNormal(lbound,BOTTOM).isTrue match{
+  def lowerBound(ivar: _InferenceVarType, lbound: Type, newhistory: SubtypeHistory): ConstraintFormula = newhistory.subtypeNormal(lbound,BOTTOM).isTrue match{
     case true => CnTrue
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
       val lbounds = empty.update(ivar,lbound)
-      CnAnd(empty,lbounds)
+      CnAnd(empty,lbounds,newhistory)
   }
   def trueFormula(): ConstraintFormula = CnTrue
 
