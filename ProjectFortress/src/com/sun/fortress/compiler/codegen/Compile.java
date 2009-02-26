@@ -263,8 +263,7 @@ public class Compile extends NodeAbstractVisitor_void {
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getParams().isEmpty() &&       // no parameters
-            header.getMods() == Modifiers.None;   // no modifiers
+            header.getParams().isEmpty();         // no parameters
         if ( canCompile ) {
             Option<Expr> body = x.getBody();
             IdOrOpOrAnonymousName name = header.getName();
