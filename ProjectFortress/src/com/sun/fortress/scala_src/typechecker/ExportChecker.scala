@@ -230,7 +230,7 @@ object ExportChecker {
             case 1 => paramToType(params.get(0))
             case _ =>
             NodeFactory.makeTupleType(NodeUtil.spanAll(params),
-                                      Lists.toJavaList(Lists.toScalaList(params).map(p => paramToType(p))))
+                                      Lists.toJavaList(Lists.toList(params).map(p => paramToType(p))))
         }
 
     /* Returns the type of the given parameter. */
@@ -313,8 +313,8 @@ object ExportChecker {
         (left, right) match {
             case (None, None) => true
             case (Some(APIName(_, idsLeft, _)), Some(APIName(_, idsRight, _))) =>
-                List.forall2(Lists.toScalaList(idsLeft),
-                             Lists.toScalaList(idsRight))((l,r) => equalIds(l,r))
+                List.forall2(Lists.toList(idsLeft),
+                             Lists.toList(idsRight))((l,r) => equalIds(l,r))
             case _ => false
         }
 
@@ -337,8 +337,8 @@ object ExportChecker {
      * Only checks the parameter types and the return types for now.
      */
     private def equalFnHeaders(left: FnHeader, right: FnHeader): Boolean =
-        equalListParams(Lists.toScalaList(left.getParams),
-                        Lists.toScalaList(right.getParams)) &&
+        equalListParams(Lists.toList(left.getParams),
+                        Lists.toList(right.getParams)) &&
         equalOptTypes(toOption(left.getReturnType),
                       toOption(right.getReturnType))
 }

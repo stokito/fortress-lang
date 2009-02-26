@@ -16,15 +16,16 @@
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.useful
-import _root_.scala.{List => ScalaList}
 import _root_.java.util.{LinkedList => JLinkedList}
 import _root_.java.util.{List => JList}
 import _root_.junit.framework.TestCase
+import scala.collection.jcl.Conversions
 
 object Lists {
-  def toJavaList[T](xs:ScalaList[T]):JLinkedList[T] = {
+
+  def toJavaList[T](xs:List[T]):JLinkedList[T] = {
     xs match {
-      case ScalaList() => new JLinkedList[T]
+      case List() => new JLinkedList[T]
       case y :: ys => {
         val result = toJavaList(ys)
         result.addFirst(y)
@@ -32,16 +33,12 @@ object Lists {
       }
     }
   }
-  def toScalaList[T](xs:JList[T]) = {
-    var result = ScalaList[T]()
-    val rightmost = xs.size - 1
-    for (i <- 0 to rightmost) {
-      result = xs.get(rightmost - i) :: result
-    }
-    result
-  }
+
   
-  def map[S,T](list: JList[S], fun: S=>T ): JList[T] = toJavaList(toScalaList(list).map(fun))
+  def toList[T](xs:JList[T]) = List()++Conversions.convertList(xs)
+
+  
+  def map[S,T](list: JList[S], fun: S=>T ): JList[T] = toJavaList(toList(list).map(fun))
   
 }
 
@@ -53,12 +50,12 @@ class JavaList[T] {
     }
     result
   }
-  def unapplySeq(xs:JList[T]) = Some(Lists.toScalaList(xs))
+  def unapplySeq(xs:JList[T]) = Some(Lists.toList(xs))
 }
 
 class ListsJUTest() extends TestCase {
   def testEmptyToJavaList() = {
-    val xs = ScalaList[Int]()
+    val xs = List[Int]()
     assert(Lists.toJavaList(xs).isEmpty,
            "Empty Scala lists are not mapped to empty Java lists")
   }
