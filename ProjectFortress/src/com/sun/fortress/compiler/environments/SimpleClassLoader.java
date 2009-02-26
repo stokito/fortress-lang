@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.environments;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,6 +43,28 @@ public class SimpleClassLoader extends ClassLoader {
         reloadEnvs.add(name);
     }
 
+    /**
+     * @param className
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws Error
+     */
+    private static byte[] getTheBytes(String className)
+            throws FileNotFoundException, IOException, Error {
+                
+        FileInputStream classStream = new FileInputStream(ProjectProperties.ENVIRONMENT_CACHE_DIR +
+                File.separator + className + ".class");
+        int expected_length = classStream.available();
+        byte[] bytecode = new byte[expected_length];
+        int read = classStream.read(bytecode);
+        if (read != expected_length) {
+            throw new Error("Expected to read " + expected_length + " bytes but read " + read + " bytes instead.");
+        }
+        return bytecode;
+    }
+    
+
     public static BaseEnv loadEnvironment(String fortressFileName, boolean isApi)
                                     throws IOException, InstantiationException, IllegalAccessException {
     	String className = fortressFileName;
@@ -52,25 +75,38 @@ public class SimpleClassLoader extends ClassLoader {
     		className = NamingCzar.classNameForComponentEnvironment(className);
     	}
 
+       
+        byte[] bytecode = getTheBytes(className);
+        
         SimpleClassLoader classLoader = aLoader; // new SimpleClassLoader();
-        File classfile = new File(ProjectProperties.ENVIRONMENT_CACHE_DIR +
-                                  File.separator + className + ".class");
-        byte[] bytecode = new byte[(int) classfile.length()];
-        FileInputStream classStream = new FileInputStream(classfile);
-        int read = classStream.read(bytecode);
-        if (read != classfile.length()) {
-            throw new Error("Expected to read " + classfile.length() + " bytes but read " + read + " bytes instead.");
-        }
+        
         if (reloadEnvs.contains(fortressFileName)) {
             classLoader = new SimpleClassLoader();
+            aLoader = classLoader;
             reloadEnvs.clear();
         }
-        Class<?> generatedClass = classLoader.findLoadedClass(className);
-        if (generatedClass == null)
-            generatedClass = classLoader.defineClass(className, bytecode);
-        BaseEnv envObject = (BaseEnv) generatedClass.newInstance();
+        
+        BaseEnv envObject = (BaseEnv) defineAsNecessaryAndAllocate(className, bytecode);
 
         return(envObject);
     }
 
+    /**
+     * @param className
+     * @param bytecode
+     * @param classLoader
+     * @return
+     */
+    public static Class<?> defineAsNecessary(String className, byte[] bytecode) {
+        Class<?> generatedClass = aLoader.findLoadedClass(className);
+        if (generatedClass == null)
+            generatedClass = aLoader.defineClass(className, bytecode);
+        return generatedClass;
+    }
+    
+    public static Object defineAsNecessaryAndAllocate(String className, byte[] bytecode) throws InstantiationException, IllegalAccessException {
+        return defineAsNecessary(className, bytecode).newInstance();
+    }
+
+ 
 }

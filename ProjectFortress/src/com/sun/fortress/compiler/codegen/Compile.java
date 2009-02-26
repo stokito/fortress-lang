@@ -49,6 +49,14 @@ public class Compile extends NodeAbstractVisitor_void {
     @SuppressWarnings("unchecked")
     public void writeClass(String repository, String file, byte[] bytes) {
         String fileName = repository + file.replace('.', '/') + ".class";
+        writeClass(bytes, fileName);
+    }
+
+    /**
+     * @param bytes
+     * @param fileName
+     */
+    public static void writeClass(byte[] bytes, String fileName) {
         String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
         try {
             ProjectProperties.ensureDirectoryExists(directoryName);
