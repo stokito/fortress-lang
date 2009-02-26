@@ -101,10 +101,11 @@ end
 
 singleton[\Key,Val\](k:Key,v:Val): Map[\Key,Val\]
 
-mapping[\Key,Val\](): Map[\Key,Val\]
 mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]
 
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
+
+opr {[\Key,Val\] }: Map[\Key,Val\]
 
 opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\]
 

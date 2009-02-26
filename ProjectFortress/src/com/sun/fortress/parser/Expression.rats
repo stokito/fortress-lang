@@ -639,7 +639,7 @@ Expr Exponent =
 /* FlowExpr ::=
      exit (w Id)? (w with w Expr)?
    | Accumulator StaticArgs? (w [ w GeneratorClauseList w ])? w Expr
-   | BIG w { w |-> StaticArgs? w } w Expr
+   | BIG w LeftEncloser w |-> StaticArgs? w RightEncloser w Expr
    | BIG w LeftEncloser StaticArgs? w RightEncloser w Expr
    | atomic w AtomicBack
    | tryatomic w AtomicBack
@@ -665,11 +665,12 @@ Expr FlowExpr =
        else
            yyValue = ExprFactory.makeAccumulator(span, a3, a1, a4, a5);
      }
-   / BIG w opencurly w mapsto a1:StaticArgs? w closecurly w a2:Expr
+   / BIG w a1:LeftEncloser w mapsto a2:StaticArgs? w a3:RightEncloser w a4:Expr
      { Span span = createSpan(yyStart,yyCount);
-       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       Op opr = NodeFactory.makeEnclosing(span, "BIG {|->", "BIG }");
-       yyValue = ExprFactory.makeOpExpr(span, opr, a2, a1);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText() + "|->",
+                                          "BIG " + a3.getText());
+       yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
      }
    / BIG w a1:LeftEncloser a2:hasW a3:StaticArgs? w a4:RightEncloser w a5:Expr
      { Span span = createSpan(yyStart,yyCount);

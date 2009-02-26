@@ -25,15 +25,15 @@ export Executable
 
 (* Control flow analysis helper table ******************************************)
 (* function name |-> function id *)
-fids  : Map[\String, ZZ32\] := mapping[\String, ZZ32\]()
+fids  : Map[\String, ZZ32\] := {[\String, ZZ32\]}
 (* function id   |-> function declaration *)
-fdecls: Map[\ZZ32, FnDecl\] := mapping[\ZZ32, FnDecl\]()
+fdecls: Map[\ZZ32, FnDecl\] := {[\ZZ32, FnDecl\]}
 (* function id   |-> function expression *)
-fexprs: Map[\ZZ32, FnExpr\] := mapping[\ZZ32, FnExpr\]()
+fexprs: Map[\ZZ32, FnExpr\] := {[\ZZ32, FnExpr\]}
 (* function id   |-> function body *)
-bodies: Map[\ZZ32, Expr\]   := mapping[\ZZ32, Expr\]()
+bodies: Map[\ZZ32, Expr\]   := {[\ZZ32, Expr\]}
 (* function id   |-> parameter name *)
-params: Map[\ZZ32, String\] := mapping[\ZZ32, String\]()
+params: Map[\ZZ32, String\] := {[\ZZ32, String\]}
 emptySet: Set[\ZZ32\] = set[\ZZ32\]()
 
 (* For a given function id,
@@ -50,14 +50,14 @@ fidToFunction(id: ZZ32) =
 
 (* Initialize the helper tables before analyzing the program *******************)
 init() = do
-  atomic cfa_eqns := mapping[\ZZ32, Set[\ZZ32\]\]()
+  atomic cfa_eqns := {[\ZZ32, Set[\ZZ32\]\]}
   atomic new_eqn  := true
   atomic iteration:= 0
-  atomic fids   := mapping[\String, ZZ32\]()
-  atomic fdecls := mapping[\ZZ32, FnDecl\]()
-  atomic fexprs := mapping[\ZZ32, FnExpr\]()
-  atomic bodies := mapping[\ZZ32, Expr\]()
-  atomic params := mapping[\ZZ32, String\]()
+  atomic fids   := {[\String, ZZ32\]}
+  atomic fdecls := {[\ZZ32, FnDecl\]}
+  atomic fexprs := {[\ZZ32, FnExpr\]}
+  atomic bodies := {[\ZZ32, Expr\]}
+  atomic params := {[\ZZ32, String\]}
 end
 
 init(p: Program) = do
@@ -145,7 +145,7 @@ dumpEquationsTables() =
 
 (* Control flow analysis table *************************************************)
 (* function id |-> { function id } *)
-cfa_eqns: Map[\ZZ32, Set[\ZZ32\]\] := mapping[\ZZ32, Set[\ZZ32\]\]()
+cfa_eqns: Map[\ZZ32, Set[\ZZ32\]\] := {[\ZZ32, Set[\ZZ32\]\]}
 new_eqn: Boolean := true
 
 (* Add a (id, s) pair to the cfa_eqns table. *)

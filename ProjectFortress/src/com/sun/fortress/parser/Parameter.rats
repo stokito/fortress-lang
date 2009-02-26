@@ -99,14 +99,16 @@ transient Param AbsPlainParam =
 transient Param AbsParam = AbsPlainParam ;
 
 /* OpHeaderFront ::=
-     opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)?
+     opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
      (w Params)? w (RightEncloser | Encloser)
    | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
  */
 transient Op LeftOp =
-     opencurly w mapsto
-     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), "{|->"); }
+     a1:LeftEncloser w mapsto
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
+                                             a1.getText() + "|->");
+     }
    / LeftEncloser
    / Encloser ;
 transient Op SingleOp =
@@ -138,7 +140,7 @@ FnHeaderFront OpHeaderFront =
      };
 
 /* AbsOpHeaderFront ::=
-     opr (w BIG)? w ({ w |-> | LeftEncloser | Encloser) (w StaticParams)?
+     opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
      (w AbsParams)? w (RightEncloser | Encloser)
    | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
    | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam

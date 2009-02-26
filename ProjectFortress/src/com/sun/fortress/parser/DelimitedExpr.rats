@@ -274,23 +274,25 @@ private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
                                              a1, a2);
      };
 
-/* MapExpr ::= { StaticArgs? (w EntryList)? w } */
+/* MapExpr ::= LeftEncloser StaticArgs? w EntryList w RightEncloser */
 Expr MapExpr =
-     void:opencurly a1:StaticArgs? a2:(w EntryList)? w void:closecurly
-     { if (a2 == null) a2 = Collections.<Expr>emptyList();
+     a1:LeftEncloser a2:StaticArgs? w a3:EntryList w a4:RightEncloser
+     { if (a3 == null) a3 = Collections.<Expr>emptyList();
        Span span = createSpan(yyStart,yyCount);
        Op open  = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyStart+1),
-                                              "{|->");
-       Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1), "}");
-       if (a1 == null)
-            yyValue = ASTUtil.enclosing(span, open, a2, close);
-       else yyValue = ASTUtil.enclosing(span, open, a1, a2, close);
+                                              a1.getText() + "|->");
+       Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1),
+                                              a4.getText());
+       if (a2 == null)
+            yyValue = ASTUtil.enclosing(span, open, a3, close);
+       else yyValue = ASTUtil.enclosing(span, open, a2, a3, close);
      };
 
 /* Comprehension ::=
      (BIG w)? [ StaticArgs? w ArrayComprehensionClause
               (br ArrayComprehensionClause)* w ]
-   | (BIG w)? { StaticArgs? w Entry wr | wr GeneratorClauseList w }
+   | (BIG w)? LeftEncloser StaticArgs? w Entry wr | wr GeneratorClauseList w
+              RightEncloser
    | (BIG w)? LeftEncloser StaticArgs? w Expr wr | wr GeneratorClauseList w
               RightEncloser
  */
@@ -305,15 +307,16 @@ Expr Comprehension =
        yyValue = ExprFactory.makeArrayComprehension(span, a1,
                                                     Useful.cons(a2, a3s.list()));
      }
-   / (BIG w)? opencurly a0:hasW a1:StaticArgs? w a2:Entry wr bar wr
-     a3:GeneratorClauseList w closecurly
+   / (BIG w)? a1:LeftEncloser a0:hasW a2:StaticArgs? w a3:Entry wr bar wr
+     a4:GeneratorClauseList w a5:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
-       if ( a0.booleanValue() && a1 != null )
+       if ( a0.booleanValue() && a2 != null )
            log(span, "Space is not allowed immediately " +
                "before left white square bracket.");
-       Op opr = NodeFactory.makeEnclosing(span, "BIG {|->", "BIG }");
-       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
-       yyValue = ExprFactory.makeAccumulator(span, a1, opr, a3, a2);
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText() + "|->",
+                                          "BIG " + a5.getText());
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       yyValue = ExprFactory.makeAccumulator(span, a2, opr, a4, a3);
      }
    / (BIG w)? a1:LeftEncloser a0:hasW a2:StaticArgs? w a3:Expr wr bar wr
      a4:GeneratorClauseList w a5:RightEncloser

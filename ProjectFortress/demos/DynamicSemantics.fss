@@ -46,14 +46,14 @@ val(expr: FnExpr, sigma: Map[\String, RuntimeValue\]) = FnValue(expr, sigma)
 
 (* Function table **************************************************************)
 (* function name |-> function expression *)
-fdecls: Map[\String, FnExpr\] := mapping[\String, FnExpr\]()
+fdecls: Map[\String, FnExpr\] := {[\String, FnExpr\]}
 
 (* Initialize the helper table *)
-initDynamic() = atomic fdecls := mapping[\String, FnExpr\]()
+initDynamic() = atomic fdecls := {[\String, FnExpr\]}
 
 (* Dynamic environment *********************************************************)
 (* variable name |-> runtime value *)
-emptyEnv: Map[\String, RuntimeValue\] = mapping[\String, RuntimeValue\]()
+emptyEnv: Map[\String, RuntimeValue\] = {[\String, RuntimeValue\]}
 
 (* Evaluate a given expression in a given environment *)
 (* True is a value which does not require further evaluation. *)

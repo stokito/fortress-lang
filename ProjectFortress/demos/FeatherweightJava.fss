@@ -214,7 +214,7 @@ run(args) = do
   cst2 = Cast(obj, x)
   v' = Invk(x, "n", <|n asif Expr|>)
   CT_ = ClassTable(t)
-  theta0 = mapping[\String, Expr\]()
+  theta0 = {[\String, Expr\]}
   theta1 = {[\String,Expr\]"x" |-> n asif Expr, "y" |-> newObj}
 
   assert((CT_, theta0) VDASH (n -> n))
