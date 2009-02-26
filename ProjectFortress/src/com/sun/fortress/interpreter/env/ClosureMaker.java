@@ -22,6 +22,8 @@ import java.util.*;
 import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.environments.SimpleClassLoader;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
@@ -31,6 +33,17 @@ import com.sun.fortress.useful.Useful;
 
 public class ClosureMaker  implements Opcodes {
 
+    public static Fcn closureForTopLevelFunction(APIName apiname,  FnDecl fd ) throws InstantiationException, IllegalAccessException, Exception {
+        String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
+        String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
+        String classname_for_our_wrapper = pkg_slashes + "__wrapper";
+        
+        return (Fcn) SimpleClassLoader.defineAsNecessaryAndAllocate(
+                classname_for_our_wrapper,
+                forTopLevelFunction(apiname, fd)
+                );
+    }
+    
     public static byte[] forTopLevelFunction (APIName apiname,  FnDecl fd ) throws Exception {
 
         // As far as I can imagine at this point, all Java names are Ids

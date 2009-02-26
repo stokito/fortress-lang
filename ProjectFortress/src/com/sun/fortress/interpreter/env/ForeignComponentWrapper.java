@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
+import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.interpreter.rewrite.InterpreterNameRewriter;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
@@ -41,6 +42,7 @@ import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
@@ -87,7 +89,9 @@ public class ForeignComponentWrapper extends NonApiWrapper {
                 // static method of a class.
                 FnDecl fd = (FnDecl) d;
                 try {
-                    byte[] bytes = ClosureMaker.forTopLevelFunction(apiname, fd);
+                    String fname = NodeUtil.nameAsMethod(fd);
+                    Fcn closure = ClosureMaker.closureForTopLevelFunction(apiname, fd);
+                    e.putValue(fname,closure);
                 } catch (Exception ex) {
                     return error(ex);
                 }
