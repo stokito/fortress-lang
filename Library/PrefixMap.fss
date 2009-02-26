@@ -396,7 +396,7 @@ prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\
 
 
 
-emptyPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](Nothing[\V\],mapping[\E,PrefixMap[\E,F,V\]\]())
+emptyPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](Nothing[\V\],{[\E,PrefixMap[\E,F,V\]\]})
 
 
 
@@ -404,7 +404,7 @@ singletonPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](x
     if (h,t) <- x.extractLeft() then
         prefixMap[\E,F,V\](Nothing[\V\], singleton[\E,PrefixMap[\E,F,V\]\](h,singletonPrefixMap[\E,F,V\](t,v)))
     else
-        fastPrefixMap[\E,F,V\](Just[\V\](v), mapping[\E,PrefixMap[\E,F,V\]\]())
+        fastPrefixMap[\E,F,V\](Just[\V\](v), {[\E,PrefixMap[\E,F,V\]\]})
     end
 end
 

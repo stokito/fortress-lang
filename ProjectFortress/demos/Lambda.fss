@@ -21,7 +21,7 @@ import List.{...}
 import File.{...}
 export Executable
 
-emptyMap = mapping[\String,Term\]()
+emptyMap = {[\String,Term\]}
 
 globalEnv: Map[\String,Term\] := emptyMap
 

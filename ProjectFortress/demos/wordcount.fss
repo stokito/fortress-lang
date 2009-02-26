@@ -38,7 +38,7 @@ maybeAddWord(word:String,
                         CaseInsensitiveString(word))
 
 getWords(s:String):Map[\CaseInsensitiveString, ZZ32\] = do
-    var database:Map[\CaseInsensitiveString,ZZ32\] := mapping[\CaseInsensitiveString,ZZ32\]()
+    var database:Map[\CaseInsensitiveString,ZZ32\] := {[\CaseInsensitiveString,ZZ32\]}
     var count:ZZ32 := 1
     var current:ZZ32 := 0
     var start:ZZ32 := 0
@@ -65,7 +65,7 @@ getWords(s:String):Map[\CaseInsensitiveString, ZZ32\] = do
 end
 
 makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
-    var database:Map[\ZZ32,List[\String\]\] := mapping[\ZZ32,List[\String\]\]()
+    var database:Map[\ZZ32,List[\String\]\] := {[\ZZ32,List[\String\]\]}
     database := database.add(y, <|[\String\] x |>)
     database
 end

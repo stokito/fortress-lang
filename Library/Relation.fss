@@ -126,7 +126,7 @@ object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends Equality[\Relation[\T\]\]
 end
 
 relation[\T\]() =
-  Relation[\T\](mapping[\T,Set[\T\]\]())
+  Relation[\T\]({[\T,Set[\T\]\]})
 
 relation[\T\](domain: Set[\T\], f: T -> Set[\T\]): Relation[\T\] =
   Relation[\T\] {[\T,Set[\T\]\] key |-> f(key) | key <- domain }
@@ -148,7 +148,7 @@ opr BIG RELATION[\T\](g: Generator[\(T,T)\]) =
 
 object RelationReduction[\T\] extends CommutativeMonoidReduction[\Map[\T,Set[\T\]\]\]
   getter asString() = "Relation reduction"
-  empty() = mapping[\T,Set[\T\]\]()
+  empty() = {[\T,Set[\T\]\]}
   join(left: Map[\T,Set[\T\]\], right: Map[\T,Set[\T\]\]) =
     relationUnion(left, right)
 end
