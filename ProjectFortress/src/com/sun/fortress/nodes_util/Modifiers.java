@@ -370,6 +370,10 @@ public final class Modifiers implements Serializable {
         return containsAny(GetterSetter);
     }
 
+    public boolean isEmpty() {
+        return ( this == None || bits == 0 );
+    }
+
     /**
      * Encodes modifiers as a quoted but otherwise rather succint string designed for machine consumption.
      */

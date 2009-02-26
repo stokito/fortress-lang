@@ -229,6 +229,29 @@ public class NodeUtil {
         return f.getHeader().getParams();
     }
 
+    public static Type getParamType(Param p) {
+        if ( p.getIdType().isSome() )
+            return p.getIdType().unwrap();
+        else if ( p.getVarargsType().isSome() )
+            return NodeFactory.makeVarargsType(getSpan(p),
+                                               p.getVarargsType().unwrap());
+        else
+            return bug(getSpan(p) + "\n    Type is not inferred.");
+    }
+
+    public static Type getParamType(FnDecl f) {
+        List<Param> params = getParams(f);
+        if ( params.isEmpty() ) return NodeFactory.makeVoidType(getSpan(f));
+        else if ( params.size() == 1 ) return getParamType(params.get(0));
+        else { // if ( params.size() > 1 )
+            List<Type> types = new ArrayList<Type>( params.size() );
+            for ( Param p : params ) {
+                types.add( getParamType(p) );
+            }
+            return NodeFactory.makeTupleType(getSpan(f), types);
+        }
+    }
+
     public static Option<Type> getReturnType(FnDecl f) {
         return f.getHeader().getReturnType();
     }
