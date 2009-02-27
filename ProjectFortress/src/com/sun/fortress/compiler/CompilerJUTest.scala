@@ -213,6 +213,8 @@ class CompilerJUTest() extends TestCaseWrapper {
 
   def testCompiled0s() = {
     val expected =
+      STATIC_TESTS_DIR + "/Compiled0.s.fss:17:1-24:3\n" +
+      "    Components should have at least one export statement.\n" +
       STATIC_TESTS_DIR + "/Compiled0.s.fss:18:1-24:3\n" +
       "    Nested component definitions are not allowed."
     Shell.assertStaticErrors(compile("Compiled0.s.fss"), expected)
