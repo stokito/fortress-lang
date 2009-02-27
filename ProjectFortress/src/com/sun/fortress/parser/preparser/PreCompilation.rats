@@ -45,44 +45,48 @@ void closeParser = w EndOfFile
 CompilationUnit Program =
      yyValue:CompilationUnit
      { Span span = createSpan(yyStart,yyCount);
-       String filename = span.getBegin().getFileName();
+       String file = span.getBegin().getFileName();
        String cuname = yyValue.getName().toString();
-       if (!Shell.checkCompilationUnitName(filename,
-                                           cuname))
+       if (!Shell.checkCompilationUnitName(file, cuname))
            log(NodeUtil.getSpan(yyValue.getName()),
                "    Component/API names must match their enclosing file names." +
-               "\n    File name: " + filename +
+               "\n    File name: " + file +
                "\n    Component/API name: " + cuname);
      }
-   / <ErrorProduction1>
-     Exports (w semicolon)? w Imports (w semicolon)? (_)*
+   / a1:ImportOrExports (w semicolon)? w DeclsRestWithoutEnd
      { Span span = createSpan(yyStart,yyCount);
-       log(span, "Import statements should come before export statements.");
-       yyValue = NodeFactory.makeComponent(span, NodeFactory.makeAPIName(span));
-     }
-   / a1:(yyValue:Imports (w semicolon)? w)? a2:Exports (w semicolon)?
-     w DeclsRestWithoutEnd
-     { if (a1 == null) a1 = Collections.<Import>emptyList();
-       List<Decl> a3 = Collections.<Decl>emptyList();
-       Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = NodeFactory.makeComponent(span, name, a1, a3, a2);
+       List<Import>  imports = a1.getA();
+       List<APIName> exports = a1.getB();
+       List<Decl> a2 = Collections.<Decl>emptyList();
+       if ( ! exports.isEmpty() )
+           yyValue = NodeFactory.makeComponent(span, name, imports, a2, exports);
+       else {
+           log(span, "Components should have at least one export statement.");
+           yyValue = NodeFactory.makeComponent(span, name, imports, a2,
+                                               Collections.<APIName>emptyList());
+       }
      }
-   / a1:Imports (w semicolon)? w AbsDeclsRest (w semicolon)?
+   / a1:ImportOrExports (w semicolon)? w AbsDeclsRest (w semicolon)?
      { List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = NodeFactory.makeApi(span, name, a1, a2);
+       if ( ! a1.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
      }
-   / a1:(yyValue:Imports (w semicolon)? w)? AbsDeclsRest (w semicolon)?
-     { if (a1 == null) a1 = Collections.<Import>emptyList();
+   / a1:(yyValue:ImportOrExports (w semicolon)? w)? AbsDeclsRest (w semicolon)?
+     { List<Import> imports = (a1 == null) ? Collections.<Import>emptyList()
+                                           : a1.getA();
        List<Decl> a2 = Collections.<Decl>emptyList();
        Span span = createSpan(yyStart,yyCount);
        String file = span.begin.getFileName();
        APIName name = NodeFactory.makeAPINameFromPath(span, file, "\\.");
-       yyValue = NodeFactory.makeApi(span, name, a1, a2);
+       if ( a1 != null && ! a1.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       yyValue = NodeFactory.makeApi(span, name, imports, a2);
      };
 
 /* CompilationUnit ::=
@@ -98,84 +102,65 @@ private CompilationUnit CompilationUnit =
      (w Decls w ;?)? w end ((s component)? s APIName)?
  */
 private Component Component =
-     <ErrorProduction1>
-     (native w)? component w a1:APIName w Exports (w semicolon)?
-     w Imports (w semicolon)? (_)*
+     a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)?
+     w a4:DeclsRest
      { Span span = createSpan(yyStart,yyCount);
-       log(span, "Import statements should come before export statements.");
-       yyValue = NodeFactory.makeComponent(span, a1);
-     }
-   / <ErrorProduction2>
-     (native w)? component w a1:APIName (w Imports (w semicolon)?)? w end
-     { Span span = createSpan(yyStart,yyCount);
-       log(span, "Components should have at least one export statement.");
-       yyValue = NodeFactory.makeComponent(span, a1);
-     }
-   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
-     a4:Exports (w semicolon)? w end a6:((s component)? s yyValue:APIName)?
-     { Span span = createSpan(yyStart,yyCount);
-       if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2))) {
-           log(span, "A component declaration of " + a2 +
-               " has the different name " + a6 + " at the end.");
-           yyValue = NodeFactory.makeComponent(span, a2);
-       }
-       if (a3 == null) a3 = Collections.<Import>emptyList();
-       List<Decl> a5 = Collections.<Decl>emptyList();
-       if (a1 == null)
-           yyValue = NodeFactory.makeComponent(span, a2, a3, a5, a4);
-       else
-           yyValue = NodeFactory.makeComponent(span, a2, a3, a5, true, a4);
-     }
-   / a1:(native w)? component w a2:APIName a3:(w yyValue:Imports (w semicolon)?)? w
-     a4:Exports (w semicolon)? w a5:DeclsRest
-     { Span span = createSpan(yyStart,yyCount);
-       if (a3 == null) a3 = Collections.<Import>emptyList();
-       List<Decl> decls = Collections.<Decl>emptyList();
-       if ( a5.isSome() && a5.equals(NodeUtil.nameString(a2)) ) {
-           log(span, "A component declaration of " + a2 +
-               " has the different name " + a5.unwrap() + " at the end.");
-           yyValue = NodeFactory.makeComponent(span, a2);
-       }
-       if (a1 == null)
-           yyValue = NodeFactory.makeComponent(span, a2, a3, decls, a4);
-       else
-           yyValue = NodeFactory.makeComponent(span, a2, a3, decls, true, a4);
-     }
-   / <ErrorProduction3>
-     (native w)? component w a1:APIName (w Imports (w semicolon)?)?
-     w DeclsRest
-     { Span span = createSpan(yyStart,yyCount);
-       if ( ! withError )
+       if ( a3 == null ||
+            a3 != null && a3.getB().isEmpty() )
            log(span, "Components should have at least one export statement.");
-       yyValue = NodeFactory.makeComponent(span, a1);
+       List<Import>  imports = ( a3 == null ) ? Collections.<Import>emptyList()
+                                              : a3.getA();
+       List<APIName> exports = ( a3 == null ) ? Collections.<APIName>emptyList()
+                                              : a3.getB();
+       List<Decl> decls = Collections.<Decl>emptyList();
+       if ( a4.isSome() && a4.equals(NodeUtil.nameString(a2)) )
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a4.unwrap() + " at the end.");
+       if ( a1 == null )
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, exports);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, true, exports);
      };
 
-/* Api ::= api w APIName (w Imports w ;?)? (w AbsDecls w ;?)? w end
+/* Api ::= api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
            ((s api)? s APIName)?
+   Imports ::= Import (br Import)*
  */
 private Api Api =
-     <ErrorProduction1>
-     native w api w a1:APIName (_)*
+     a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)? w (_)*
      { Span span = createSpan(yyStart,yyCount);
-       log(span, "The \"native\" modifier is only for components not for APIs.");
-       yyValue = NodeFactory.makeApi(span, a1);
-     }
-   / api w a1:APIName a2:(w yyValue:Imports (w semicolon)?)? w (_)*
-     { Span span = createSpan(yyStart,yyCount);
-       if (a2 == null) a2 = Collections.<Import>emptyList();
+       if ( a0 != null )
+           log(span, "The native modifier is only for components not for APIs.");
+       if ( a2 != null && ! a2.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       List<Import> imports = (a2 == null) ? Collections.<Import>emptyList()
+                                           : a2.getA();
        List<Decl> a3 = Collections.<Decl>emptyList();
-       yyValue = NodeFactory.makeApi(span, a1, a2, a3);
+       yyValue = NodeFactory.makeApi(span, a1, imports, a3);
      };
 
-/* Imports ::= Import (br Import)* */
-private List<Import> Imports = a1:Import a2s:(br Import)*
-     { for (List<Import> i : a2s.list()) {
-         for (Import j : i) {
-           a1.add(j);
-         }
+/* ImportOrExports ::= ImportOrExport (br ImportOrExport)* */
+private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExports =
+     a1:ImportOrExport a2s:(br ImportOrExport)*
+     { List<Import>  imports = a1.getA();
+       List<APIName> exports = a1.getB();
+       for ( com.sun.fortress.useful.Pair<List<Import>,List<APIName>> pair : a2s.list()) {
+           imports.addAll(pair.getA());
+           exports.addAll(pair.getB());
        }
-       yyValue = a1;
+       yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(imports, exports);
      };
+
+/* ImportOrExport ::= Import / Export */
+private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExport =
+    a1:Import
+    { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(Useful.list(a1),
+                                                                             new ArrayList<APIName>());
+    }
+  / a1:Export
+    { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(new ArrayList<Import>(),
+                                                                             Useful.list(a1));
+    };
 
 /* Import ::=
      import (w ForeignLang)? w api w AliasedAPINames
@@ -438,14 +423,6 @@ private AliasedAPIName AliasedAPIName =
 private List<AliasedAPIName> AliasedAPINameList =
      a1:AliasedAPIName a2s:(w comma w AliasedAPIName)*
      { yyValue = Useful.cons(a1, a2s.list()); };
-
-/* Exports ::= Export (br Export)* */
-private List<APIName> Exports = a1:Export a2s:(br Export)*
-     { yyValue = a1;
-       for (List<APIName> export : a2s.list()) {
-           a1.addAll(export);
-       }
-     };
 
 /* Export ::= export w APINames */
 private List<APIName> Export = export w APINames ;

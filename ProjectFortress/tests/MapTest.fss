@@ -16,9 +16,9 @@
  ******************************************************************************)
 
 component MapTest
-import Map.{...}
 (*) import String.{...}
 export Executable
+import Map.{...}
 
 database:Map[\String,ZZ32\] := {[\String,ZZ32\]}
 
