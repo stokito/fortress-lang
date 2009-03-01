@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.codegen;
 import java.io.FileOutputStream;
 import java.util.*;
 import org.objectweb.asm.*;
+import org.objectweb.asm.Type;
 import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.WellKnownNames;
@@ -39,68 +40,82 @@ public class Compile extends NodeAbstractVisitor_void {
     AnnotationVisitor av0;
     String className;
     HashMap<String, String> aliasTable;
-    String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
-    String packageName = "";
+    static String dollar = "$";
+    static Character dot = '.';
+    static Character slash = '/';
+    static String packageName = "";
+    String cache = ProjectProperties.BYTECODE_CACHE_DIR + slash;
 
-    // fortress types
-    String fortressAny = "fortress/AnyType$Any";
+    // Classes: internal names
+    // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
+    String internalFloat  = Type.getInternalName(float.class);
+    String internalInt    = Type.getInternalName(int.class);
+    String internalObject = Type.getInternalName(Object.class);
+    String internalString = Type.getInternalName(String.class);
 
-    // interpreter types
-    private String makeInterpreterType(String type) {
-        return "com/sun/fortress/interpreter/evaluator/values/" + type;
-    }
-    String interpreterFloat  = makeInterpreterType("FFLoat");
-    String interpreterInt    = makeInterpreterType("FInt");
-    String interpreterString = makeInterpreterType("FString");
-    String interpreterVoid   = makeInterpreterType("FVoid");
-
-    // java types
-    private String makeJavaType(String type) {
-        return "java/lang/" + type;
-    }
-    String javaLangFloat  = makeJavaType("Float");
-    String javaLangInt    = makeJavaType("Int");
-    String javaLangObject = makeJavaType("Object");
-    String javaLangString = makeJavaType("String");
-
-    // bytecode types
-    private String makeMethodType(String param, String result) {
-        return "(" + param + ")" + result;
-    }
-    private String javaToByte(String type) {
+    // Classes: type descriptors
+    // (Section 2.1.3 in ASM 3.0: A Java bytecode engineering library)
+    private String internalToDesc(String type) {
         return "L" + type + ";";
     }
-    String floatT = "F";
-    String intT = "I";
-    String voidT = "V";
-    String stringArrayToVoid = makeMethodType("[" + javaToByte(javaLangString), voidT);
-    String voidToVoid        = makeMethodType("", voidT);
+    private String makeMethodDesc(String param, String result) {
+        return "(" + param + ")" + result;
+    }
+    private String makeArrayDesc(String element) {
+        return "[" + element;
+    }
+    String descFloat  = Type.getDescriptor(float.class);
+    String descInt    = Type.getDescriptor(int.class);
+    String descString = internalToDesc(internalString);
+    String descVoid   = Type.getDescriptor(void.class);
+    String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
+    String voidToVoid        = makeMethodDesc("", descVoid);
 
-    private String emitType(com.sun.fortress.nodes.Type domain,
-                            com.sun.fortress.nodes.Type range) {
-        String emitDomain = NodeUtil.isVoidType(domain) ? ""    : emitType(domain);
-        String emitRange  = NodeUtil.isVoidType(range)  ? voidT : emitType(range);
-        return makeMethodType(emitDomain, emitRange);
+    // fortress types
+    String fortressPackage = "fortress";
+    String fortressAny = fortressPackage + slash + WellKnownNames.anyTypeLibrary() +
+                         dollar + WellKnownNames.anyTypeName;
+
+    // fortress interpreter types: internal names
+    private String makeFortressInternal(String type) {
+        return "com/sun/fortress/interpreter/evaluator/values/F" + type;
+    }
+    String internalFortressFloat  = makeFortressInternal("FLoat");
+    String internalFortressInt    = makeFortressInternal("Int");
+    String internalFortressString = makeFortressInternal("String");
+    String internalFortressVoid   = makeFortressInternal("Void");
+
+    // fortress interpreter types: type descriptors
+    String descFortressFloat  = internalToDesc(internalFortressFloat);
+    String descFortressInt    = internalToDesc(internalFortressInt);
+    String descFortressString = internalToDesc(internalFortressString);
+    String descFortressVoid   = internalToDesc(internalFortressVoid);
+
+    private String emitFnDeclDesc(com.sun.fortress.nodes.Type domain,
+                                  com.sun.fortress.nodes.Type range) {
+        String emitDomain = NodeUtil.isVoidType(domain) ? ""       : emitDesc(domain);
+        String emitRange  = NodeUtil.isVoidType(range)  ? descVoid : emitDesc(range);
+        return makeMethodDesc(emitDomain, emitRange);
     }
 
-    private String emitType(com.sun.fortress.nodes.Type type) {
+    private String emitDesc(com.sun.fortress.nodes.Type type) {
         return type.accept(new NodeAbstractVisitor<String>() {
             public void defaultCase(ASTNode x) {
                 sayWhat( x );
             }
             public String forArrowType(ArrowType t) {
-                return makeMethodType(emitType(t.getDomain()),
-                                      emitType(t.getRange()));
+                return makeMethodDesc(emitDesc(t.getDomain()),
+                                      emitDesc(t.getRange()));
             }
             public String forTupleType(TupleType t) {
-                if ( NodeUtil.isVoidType(t) )
-                    return javaToByte(interpreterVoid);
-                else
-                    return sayWhat( t );
+                if ( NodeUtil.isVoidType(t) ) return descFortressVoid;
+                else                          return sayWhat( t );
             }
             public String forTraitType(TraitType t) {
                 if ( t.getName().getText().equals("String") )
-                    return javaToByte(interpreterString);
+                    return descFortressString;
+                else if ( t.getName().getText().equals("Float") )
+                    return descFortressFloat;
                 else
                     return sayWhat( t );
             }
@@ -108,12 +123,12 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     private String makeClassName(TraitObjectDecl t) {
-        return packageName + className + "$" + NodeUtil.getName(t).getText();
+        return packageName + className + dollar + NodeUtil.getName(t).getText();
     }
 
     @SuppressWarnings("unchecked")
     public void writeClass(String repository, String file, byte[] bytes) {
-        String fileName = repository + file.replace('.', '/') + ".class";
+        String fileName = repository + file.replace(dot, slash) + ".class";
         writeClass(bytes, fileName);
     }
 
@@ -122,7 +137,7 @@ public class Compile extends NodeAbstractVisitor_void {
      * @param fileName
      */
     public static void writeClass(byte[] bytes, String fileName) {
-        String directoryName = fileName.substring(0, fileName.lastIndexOf('/'));
+        String directoryName = fileName.substring(0, fileName.lastIndexOf(slash));
         try {
             ProjectProperties.ensureDirectoryExists(directoryName);
             FileOutputStream out = new FileOutputStream(fileName);
@@ -146,7 +161,7 @@ public class Compile extends NodeAbstractVisitor_void {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", voidToVoid, null, null);
         mv.visitCode();
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, javaLangObject, "<init>", voidToVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, internalObject, "<init>", voidToVoid);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
@@ -194,9 +209,9 @@ public class Compile extends NodeAbstractVisitor_void {
         }
         // If this component implements a default library,
         // generate "package fortress;"
-        if ( exportsDefaultLibrary ) packageName = "fortress/";
+        if ( exportsDefaultLibrary ) packageName = fortressPackage + slash;
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                 packageName + className, null, javaLangObject, null);
+                 packageName + className, null, internalObject, null);
         // If this component exports an executable API,
         // generate the main and run methods.
         if ( exportsExecutable ) {
@@ -229,7 +244,7 @@ public class Compile extends NodeAbstractVisitor_void {
                     Option<IdOrOpOrAnonymousName> aliasId = n.getAlias();
                     if (aliasId.isSome())
                         aliasTable.put(NodeUtil.nameString(aliasId.unwrap()),
-                                       apiName + "." +
+                                       apiName + dot +
                                        NodeUtil.nameString(n.getName()));
                 }
             }
@@ -261,7 +276,7 @@ public class Compile extends NodeAbstractVisitor_void {
         if ( canCompile ) {
             String parent = "";
             if ( extendsC.isEmpty() ) {
-                parent = javaLangObject;
+                parent = internalObject;
             } else { // if ( extendsC.size() == 1 )
                 BaseType parentType = extendsC.get(0).getBaseType();
                 if ( parentType instanceof AnyType )
@@ -273,8 +288,8 @@ public class Compile extends NodeAbstractVisitor_void {
                     else { // if ( apiName.isSome() )
                         String api = apiName.unwrap().getText();
                         if ( WellKnownNames.exportsDefaultLibrary( api ) )
-                            parent += "fortress.";
-                        parent += api + "$" + name.getText();
+                            parent += fortressPackage + dot;
+                        parent += api + dollar + name.getText();
                     }
                 } else
                     sayWhat( parentType, "Invalid type in an extends clause." );
@@ -283,7 +298,7 @@ public class Compile extends NodeAbstractVisitor_void {
             cw = new ClassWriter(0);
             cw.visit( Opcodes.V1_5,
                       Opcodes.ACC_PUBLIC + Opcodes.ACC_ABSTRACT + Opcodes.ACC_INTERFACE,
-                      classFile, null, javaLangObject, new String[] { parent });
+                      classFile, null, internalObject, new String[] { parent });
             dumpClass( classFile );
         } else sayWhat( x );
     }
@@ -303,7 +318,7 @@ public class Compile extends NodeAbstractVisitor_void {
         if ( canCompile ) {
             String parent = "";
             if ( extendsC.isEmpty() ) {
-                parent = javaLangObject;
+                parent = internalObject;
             } else { // if ( extendsC.size() == 1 )
                 BaseType parentType = extendsC.get(0).getBaseType();
                 if ( parentType instanceof AnyType )
@@ -315,8 +330,8 @@ public class Compile extends NodeAbstractVisitor_void {
                     else { // if ( apiName.isSome() )
                         String api = apiName.unwrap().getText();
                         if ( WellKnownNames.exportsDefaultLibrary( api ) )
-                            parent += "fortress.";
-                        parent += api + "$" + name.getText();
+                            parent += fortressPackage + dot;
+                        parent += api + dollar + name.getText();
                     }
                 } else
                     sayWhat( parentType, "Invalid type in an extends clause." );
@@ -324,7 +339,7 @@ public class Compile extends NodeAbstractVisitor_void {
             String classFile = makeClassName(x);
             cw = new ClassWriter(0);
             cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
-                      classFile, null, javaLangObject, new String[] { parent });
+                      classFile, null, internalObject, new String[] { parent });
             dumpClass( classFile );
         } else sayWhat( x );
     }
@@ -349,8 +364,8 @@ public class Compile extends NodeAbstractVisitor_void {
             } else if ( name instanceof Id ) {
                 mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
                                     ((Id)name).getText(),
-                                    emitType(NodeUtil.getParamType(x),
-                                             returnType.unwrap()),
+                                    emitFnDeclDesc(NodeUtil.getParamType(x),
+                                                   returnType.unwrap()),
                                     null, null);
                 mv.visitCode();
                 body.unwrap().accept(this);
@@ -377,11 +392,9 @@ public class Compile extends NodeAbstractVisitor_void {
         String name = x.getOriginalName().getText();
         if ( aliasTable.containsKey(name) ) {
             String n = aliasTable.get(name);
-            // Cheating here.  Need to figure out the type of the function.
-            // Also cheating by assuming class is everything before the dot.
-            int lastDot = n.lastIndexOf('.');
-            String _class = n.substring(0, lastDot);
-            String internal_class = _class.replace('.', '/');
+            // Cheating by assuming class is everything before the dot.
+            int lastDot = n.lastIndexOf(dot);
+            String internal_class = n.substring(0, lastDot).replace(dot, slash);
             String _method = n.substring(lastDot+1);
             Debug.debug( Debug.Type.COMPILER, 1,
                          "class = " + internal_class + " method = " + _method );
@@ -392,7 +405,7 @@ public class Compile extends NodeAbstractVisitor_void {
                 com.sun.fortress.nodes.Type arrow = type.unwrap();
                 if ( arrow instanceof ArrowType )
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
-                                       _method, emitType((ArrowType)arrow));
+                                       _method, emitDesc(arrow));
                 else // if ( ! arrow instanceof ArrowType )
                     sayWhat( x, "The type of a function reference " +
                              "is not an arrow type." );
@@ -408,26 +421,25 @@ public class Compile extends NodeAbstractVisitor_void {
 
     public void forFloatLiteralExpr(FloatLiteralExpr x) {
         mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, javaLangFloat, "parseFloat",
-                           makeMethodType(javaToByte(javaLangString), floatT));
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, interpreterFloat, "make",
-                           makeMethodType(floatT, javaToByte(interpreterFloat)));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFloat, "parseFloat",
+                           makeMethodDesc(descString, descFloat));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressFloat, "make",
+                           makeMethodDesc(descFloat, descFortressFloat));
     }
 
     public void forIntLiteralExpr(IntLiteralExpr x) {
         mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, javaLangInt, "parseInt",
-                           makeMethodType(javaToByte(javaLangString), intT));
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, interpreterInt, "make",
-                           makeMethodType(intT, javaToByte(interpreterInt)));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
+                           makeMethodDesc(descString, descInt));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressInt, "make",
+                           makeMethodDesc(descInt, descFortressInt));
     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
         // We make a FString and push it on the stack.
         mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, interpreterString, "make",
-                           makeMethodType(javaToByte(javaLangString),
-                                          javaToByte(interpreterString)));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressString, "make",
+                           makeMethodDesc(descString, descFortressString));
     }
 }
