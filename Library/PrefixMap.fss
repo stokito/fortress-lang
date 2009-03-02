@@ -413,10 +413,7 @@ end
 prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g:Generator[\(F,V)\]):PrefixMap[\E,F,V\] = g.generate[\PrefixMap[\E,F,V\]\](DisjointPrefixMapUnion[\E,F,V\], singletonPrefixMap[\E,F,V\])
 
 
-(*) Can't make this work :-(
-(**
-opr {/ |->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] fs:(F,V)... /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](fs)
- **)
+opr {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] fs:(F,V)... /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](fs)
 
 
 (*) These clash with Map

@@ -1423,8 +1423,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             left = left.startsWith("BIG") ? left.substring(4, left.length()) : left;
             String closing = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
             String sargs = inOxfordBrackets(staticArgs_result);
-            if ( left.equals("{|->") ) {
-                s.append( "{" );
+            if ( left.endsWith("|->") ) {
+                s.append( left.substring(0, left.length()-3) );
                 s.append( sargs );
                 s.append( " " );
                 s.append( handleMapElem(that.getBody(),
@@ -1836,10 +1836,10 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                         }
                         staticArgs = inOxfordBrackets(_sargs);
                     }
-                    if ( left.equals("{|->") ) {
+                    if ( left.endsWith("|->") ) {
                         StringBuilder s = new StringBuilder();
 
-                        s.append( "{" );
+                        s.append( left.substring(0, left.length()-3) );
                         s.append( staticArgs );
                         s.append( " " );
                         List<Expr> exprs = that.getArgs();
@@ -1852,7 +1852,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                             s.append( handleMapElem(IterUtil.last(exprs),
                                                     that, visitor) );
                         }
-                        s.append( " }" );
+                        s.append( right );
                         return s.toString();
                     } else {
                         return (left + staticArgs +
