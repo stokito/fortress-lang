@@ -202,7 +202,12 @@ public abstract class NonPrimitive extends Simple_fcn {
 
     private Environment buildEnvFromParams(List<FValue> args, Environment env) throws Error {
         // TODO Here is where we deal with rest parameters.
-        args = fixupArgCount(args);
+        List<FValue> argsTemp = fixupArgCount(args);
+        if ( argsTemp == null )
+            return bug("The number of parameters (" + params.size() +
+                       ") does not match with the number of arguments (" +
+                       args.size() + ").");
+        args = argsTemp;
         Iterator<FValue> argsIter = args.iterator();
         FValue arg = null;
         int i = 0;
