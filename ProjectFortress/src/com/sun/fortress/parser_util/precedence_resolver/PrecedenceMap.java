@@ -421,10 +421,11 @@ public class PrecedenceMap {
         if (l.equals("(.<") && r.equals(">.)")) return true;
         /* "((.>" is paired with "<.))" */
         if (l.equals("((.>") && r.equals("<.))")) return true;
+        if (l.startsWith("BIG ") && r.startsWith("BIG "))
+            return matchedBrackets(l.substring(4), r.substring(4));
 	/* "{|->" is paired with "}" */
-        if (l.equals("{|->") && r.equals("}")) return true;
-	/* "BIG {|->" is paired with "BIG }" */
-        if (l.equals("BIG {|->") && r.equals("BIG }")) return true;
+        if (l.endsWith("|->"))
+            return matchedBrackets(l.substring(0, l.length()-3), r);
 
         CanonOp le = rep.get(l);
         CanonOp re = rep.get(r);
