@@ -127,7 +127,6 @@ public final class Shell {
         System.err.println(" api [-out file] [-prepend prependFile] [-debug [type]* [#]] somefile.fss");
         System.err.println(" compare [-debug [type]* [#]] somefile.fss anotherfile.fss");
         System.err.println(" unparse [-unqualified] [-unmangle] [-out file] [-debug [type]* [#]] somefile.tf{s,i}");
-        System.err.println(" codegen [-debug [type]* [#]] somefile.fss");
         System.err.println("");
         System.err.println(" help");
     }
@@ -184,9 +183,6 @@ public final class Shell {
          "  If -unqualified is given, identifiers are dumped without their API prefixes.\n"+
          "  If -unmangle is given, internally mangled identifiers are unmangled.\n"+
          "  If -out file is given, a message about the file being written to will be printed.\n"+
-         "\n"+
-         "fortress codegen [-debug [type]* [#]] somefile.tf{i,s}\n"+
-         "  Generate a java class file which has runs indepently of the interpreter\n"+
          "\n"+
          "\n"+
          "More details on each flag:\n"+
