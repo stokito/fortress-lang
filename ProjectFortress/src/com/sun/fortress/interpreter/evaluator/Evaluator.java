@@ -30,7 +30,6 @@ import java.util.concurrent.Callable;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.FortressError;
 import com.sun.fortress.exceptions.FortressException;
-import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.NamedLabelException;
 import com.sun.fortress.exceptions.ProgramError;
@@ -1193,8 +1192,6 @@ public class Evaluator extends EvaluatorBase<FValue> {
                                HasAt site) {
         try {
             return DottedMethodApplication.invokeMethod(receiver,mname,mname,args);
-        } catch (InterpreterBug ex) {
-            return bug(site, ex.getMessage());
         } catch (FortressException ex) {
             throw ex.setWhere(site);
         } catch (StackOverflowError soe) {
