@@ -16,15 +16,10 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen.stubs;
 
-
-import com.sun.fortress.nodes.*;
 import com.sun.fortress.interpreter.evaluator.types.*;
 import com.sun.fortress.interpreter.evaluator.values.*;
-import java.util.*;
-import org.objectweb.asm.*;
-import edu.rice.cs.plt.tuple.Option;
 
-public class Compile1Stub {
+public class Compiled1Stub {
 
     public static void main(String args[]) {
         run();

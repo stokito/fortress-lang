@@ -39,7 +39,6 @@ public class Compile extends NodeAbstractVisitor_void {
     MethodVisitor mv;
     AnnotationVisitor av0;
     String className;
-    Boolean debug = true;
     HashMap<String, String> aliasTable;
     static String dollar = "$";
     static Character dot = '.';
@@ -96,9 +95,8 @@ public class Compile extends NodeAbstractVisitor_void {
 
     private String emitFnDeclDesc(com.sun.fortress.nodes.Type domain,
                                   com.sun.fortress.nodes.Type range) {
-        String emitDomain = NodeUtil.isVoidType(domain) ? ""     : emitDesc(domain);
-        String emitRange  = NodeUtil.isVoidType(range)  ? descFortressVoid : emitDesc(range);
-        return makeMethodDesc(emitDomain, emitRange);
+        return makeMethodDesc(NodeUtil.isVoidType(domain) ? "" : emitDesc(domain),
+                              emitDesc(range));
     }
 
     private String emitDesc(com.sun.fortress.nodes.Type type) {
@@ -221,7 +219,6 @@ public class Compile extends NodeAbstractVisitor_void {
 
         // If this component exports an executable API,
         // generate the main and run methods.
-
         if ( exportsExecutable ) {
             generateMainMethod();
         }
@@ -310,14 +307,6 @@ public class Compile extends NodeAbstractVisitor_void {
         } else sayWhat( x );
     }
 
-    public void forDo(Do x) {
-        List<Block> fronts = x.getFronts();
-        for (Block b : fronts) {
-            b.accept(this);
-        }
-    }
-
-
     public void forObjectDecl(ObjectDecl x) {
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
@@ -360,14 +349,15 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forFnDecl(FnDecl x) {
-        Id unambiguousName = x.getUnambiguousName();
         FnHeader header = x.getHeader();
+        int paramsSize = header.getParams().size();
         boolean canCompile =
             header.getStaticParams().isEmpty() && // no static parameter
             header.getWhereClause().isNone() &&   // no where clause
             header.getThrowsClause().isNone() &&  // no throws clause
             header.getContract().isNone() &&      // no contract
-            header.getMods().isEmpty();           // no modifiers
+            header.getMods().isEmpty() &&         // no modifiers
+            ( paramsSize < 2 );
 
         if ( canCompile ) {
             Option<Expr> body = x.getBody();
@@ -383,8 +373,9 @@ public class Compile extends NodeAbstractVisitor_void {
                                     emitFnDeclDesc(NodeUtil.getParamType(x),
                                                    returnType.unwrap()),
                                     null, null);
-                // For now assuming one parameter.
-                mv.visitVarInsn(Opcodes.ALOAD, 0);                
+                // For now, only support zero or one parameter.
+                if ( paramsSize == 1 )
+                    mv.visitVarInsn(Opcodes.ALOAD, 0);
                 mv.visitCode();
                 body.unwrap().accept(this);
                 mv.visitMaxs(2, 1);
@@ -393,15 +384,16 @@ public class Compile extends NodeAbstractVisitor_void {
         } else sayWhat( x );
     }
 
+    public void forDo(Do x) {
+        for ( Block b : x.getFronts() ) {
+            b.accept(this);
+        }
+    }
+
     public void forBlock(Block x) {
         for ( Expr e : x.getExprs() ) {
             e.accept(this);
         }
-    }
-
-    public void forVoidLiteralExpr(VoidLiteralExpr x) {
-        mv.visitFieldInsn(Opcodes.GETSTATIC, "com/sun/fortress/interpreter/evaluator/values/FVoid",
-                          "V", "Lcom/sun/fortress/interpreter/evaluator/values/FVoid;");
     }
 
     // Setting up the alias table which we will refer to at runtime.
@@ -429,18 +421,20 @@ public class Compile extends NodeAbstractVisitor_void {
             }
         } else {
             List<IdOrOp> names = x.getNames();
-            // For now assuming only 1
-            for (IdOrOp stupidName : names) {
-                String nameString = stupidName.getText();
-                Option<APIName> apiName = stupidName.getApiName();
-                if (apiName.isSome()) {
-                    APIName foo = apiName.unwrap();
-                    String apiString = foo.getText();
+            // For now, assuming only 1
+            if ( names.size() == 1) {
+                IdOrOp fnName = names.get(0);
+                Option<APIName> apiName = fnName.getApiName();
+                if ( apiName.isSome() ) {
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                       "fortress/" + apiString, nameString,
-                                       "(Lcom/sun/fortress/interpreter/evaluator/values/FString;)Lcom/sun/fortress/interpreter/evaluator/values/FVoid;");
-                }
-            }
+                                       fortressPackage + slash + apiName.unwrap().getText(),
+                                       fnName.getText(),
+                                       makeMethodDesc(descFortressString,
+                                                      descFortressVoid));
+                } else // if ( apiName.isNone() )
+                    sayWhat( x, "API name is not disambiguated." );
+            } else // if ( names.size() != 1 )
+                sayWhat( x, "Overloaded function references are not supported." );
         }
     }
 
@@ -448,6 +442,14 @@ public class Compile extends NodeAbstractVisitor_void {
         x.getArgument().accept(this);
         x.getFunction().accept(this);
         mv.visitInsn(Opcodes.RETURN);
+    }
+
+    public void forIntLiteralExpr(IntLiteralExpr x) {
+        mv.visitLdcInsn(x.getText());
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
+                           makeMethodDesc(descString, descInt));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressInt, "make",
+                           makeMethodDesc(descInt, descFortressInt));
     }
 
     public void forFloatLiteralExpr(FloatLiteralExpr x) {
@@ -459,19 +461,16 @@ public class Compile extends NodeAbstractVisitor_void {
 
     }
 
-    public void forIntLiteralExpr(IntLiteralExpr x) {
-        mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
-                           makeMethodDesc(descString, descInt));
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressInt, "make",
-                           makeMethodDesc(descInt, descFortressInt));
-    }
-
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
         // We make a FString and push it on the stack.
         mv.visitLdcInsn(x.getText());
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressString, "make",
                            makeMethodDesc(descString, descFortressString));
+    }
+
+    public void forVoidLiteralExpr(VoidLiteralExpr x) {
+        mv.visitFieldInsn(Opcodes.GETSTATIC, internalFortressVoid,
+                          descVoid, descFortressVoid);
     }
 }

@@ -120,7 +120,7 @@ public final class Shell {
         System.err.println(" grammar [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" typecheck [-compiler-lib] [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
         System.err.println(" compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}");
-        System.err.println(" link somecomponent");
+        System.err.println(" link [-debug [type]* [#]] somecomponent");
         System.err.println(" [walk]  [-compiler-lib] [-debug [type]* [#]] somefile.fss arg...");
         System.err.println(" test [-verbose] [-debug [type]* [#]] somefile.fss...");
         System.err.println("");
@@ -158,7 +158,7 @@ public final class Shell {
          "fortress compile [-out file] [-debug [type]* [#]] somefile.fs{s,i}\n"+
          "  Compiles somefile. If compilation succeeds no message will be printed.\n"+
          "\n"+
-         "fortress link somecomponent\n"+
+         "fortress link [-debug [type]* [#]] somecomponent\n"+
          "  Links compiled components implementing APIs imported by somecomponent.\n"+
          "\n"+
          "fortress [walk] [-debug [type]* [#]] somefile.fss arg ...\n"+
@@ -797,13 +797,22 @@ public final class Shell {
     private static void link(List<String> args) throws UserError, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to link.");
-        } else if (args.size() > 1) {
-            printUsageMessage();
-            System.exit(-1);
         }
-        String file = args.get(0) + ".fss" ;
-        compilerPhases( sourcePath(file, cuName(file)), file,
-                        Option.<String>none(), true );
+        String s = args.get(0);
+        List<String> rest = args.subList(1, args.size());
+
+        if (s.startsWith("-")) {
+            if (s.equals("-debug")){
+            	rest = Debug.parseOptions(rest);
+            }
+            else
+                invalidFlag(s, "walk");
+            link(rest);
+        } else {
+            String file = args.get(0) + ".fss" ;
+            compilerPhases( sourcePath(file, cuName(file)), file,
+                            Option.<String>none(), true );
+        }
     }
 
     /**

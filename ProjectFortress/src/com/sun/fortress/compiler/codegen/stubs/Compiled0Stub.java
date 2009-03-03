@@ -16,17 +16,9 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen.stubs;
 
-
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.interpreter.evaluator.types.*;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nativeHelpers.simplePrintln;
-import java.util.*;
-import org.objectweb.asm.*;
-import edu.rice.cs.plt.tuple.Option;
 
-
-public class Compile0Stub {
+public class Compiled0Stub {
 
     public static void main(String args[]) {
         run();
