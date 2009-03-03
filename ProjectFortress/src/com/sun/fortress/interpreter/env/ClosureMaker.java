@@ -22,32 +22,46 @@ import java.util.*;
 import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.codegen.Compile;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.repository.ForeignJava;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.NotFound;
 import com.sun.fortress.useful.Useful;
 
 public class ClosureMaker  implements Opcodes {
 
-    public static Fcn closureForTopLevelFunction(APIName apiname,  FnDecl fd ) throws InstantiationException, IllegalAccessException, Exception {
+    public static Applicable closureForTopLevelFunction(APIName apiname,  FnDecl fd ) throws InstantiationException, IllegalAccessException, Exception {
         String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
         String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
-        String classname_for_our_wrapper = pkg_slashes + "__wrapper";
-        
-        return (Fcn) SimpleClassLoader.defineAsNecessaryAndAllocate(
+        Id name = (Id) fd.getHeader().getName();
+        String aClass;
+        String aMethod;
+            try {
+                 aClass = Useful.extractBeforeMatch(name.getText(), ".");
+                 aMethod = Useful.extractAfterMatch(name.getText(), ".");
+            } catch (NotFound nf) {
+                return error("Foreign import name " + name.getText() +
+                        " ought to have a dot in it");
+            }
+
+        String classname_for_our_wrapper = pkg_slashes +"/"+ aClass+ "$$closure";
+        // As far as I can imagine at this point, all Java names are Ids
+        byte[] bytecodes = forTopLevelFunction(apiname, fd, classname_for_our_wrapper, aClass, aMethod);
+        Compile.writeClass(bytecodes, ProjectProperties.BYTECODE_CACHE_DIR + "/" + classname_for_our_wrapper + ".class");
+        return (Applicable) SimpleClassLoader.defineAsNecessaryAndAllocate(
                 classname_for_our_wrapper,
-                forTopLevelFunction(apiname, fd)
+                bytecodes
                 );
     }
     
-    public static byte[] forTopLevelFunction (APIName apiname,  FnDecl fd ) throws Exception {
+    public static byte[] forTopLevelFunction (APIName apiname,  FnDecl fd, String closureClass,  String aClass, String aMethod) throws Exception {
 
-        // As far as I can imagine at this point, all Java names are Ids
-        Id name = (Id) fd.getHeader().getName();
         Id ua_name = fd.getUnambiguousName();
         /*
          This is a cheat; ought to be more algorithmic, so this will
@@ -73,20 +87,10 @@ public class ClosureMaker  implements Opcodes {
         */
         String pkg_dots = NamingCzar.only.apiNameToPackageName(apiname);
         String pkg_slashes = Useful.replace(pkg_dots, ".", "/");
-        String aClass;
-        String aMethod;
-            try {
-                 aClass = Useful.extractBeforeMatch(name.getText(), ".");
-                 aMethod = Useful.extractAfterMatch(name.getText(), ".");
-            } catch (NotFound nf) {
-                return error("Foreign import name " + name.getText() +
-                        " ought to have a dot in it");
-            }
         int nargs = fd.getHeader().getParams().size();
         
         String nativeHelper = "com/sun/fortress/interpreter/glue/NativeFn" + nargs;
         String nativeWrapperClass = pkg_slashes + "/" + aClass;
-        String closureClass = nativeWrapperClass + "$$Closure";
         String LclosureClass = "L" + closureClass + ";";
         String fvalue = "Lcom/sun/fortress/interpreter/evaluator/values/FValue;";
         

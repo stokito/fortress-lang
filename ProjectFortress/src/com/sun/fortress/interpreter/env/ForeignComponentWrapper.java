@@ -30,10 +30,12 @@ import com.sun.fortress.interpreter.evaluator.BuildApiEnvironment;
 import com.sun.fortress.interpreter.evaluator.Environment;
 import com.sun.fortress.interpreter.evaluator.values.FValue;
 import com.sun.fortress.interpreter.evaluator.values.Fcn;
+import com.sun.fortress.interpreter.evaluator.values.FunctionClosure;
 import com.sun.fortress.interpreter.rewrite.InterpreterNameRewriter;
 import com.sun.fortress.interpreter.rewrite.RewriteInPresenceOfTypeInfoVisitor;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Api;
+import com.sun.fortress.nodes.Applicable;
 import com.sun.fortress.nodes.CompilationUnit;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Decl;
@@ -90,8 +92,8 @@ public class ForeignComponentWrapper extends NonApiWrapper {
                 FnDecl fd = (FnDecl) d;
                 try {
                     String fname = NodeUtil.nameAsMethod(fd);
-                    Fcn closure = ClosureMaker.closureForTopLevelFunction(apiname, fd);
-                    e.putValue(fname,closure);
+                    Applicable closure = ClosureMaker.closureForTopLevelFunction(apiname, fd);
+                    e.putValue(fname,new FunctionClosure(e, closure));
                 } catch (Exception ex) {
                     return error(ex);
                 }
@@ -111,7 +113,7 @@ public class ForeignComponentWrapper extends NonApiWrapper {
     }
     
     public Environment getEnvironment() {
-        throw new Error("not implemented");
+        return e;
     }
 
 }
