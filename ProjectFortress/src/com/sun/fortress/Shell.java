@@ -806,7 +806,7 @@ public final class Shell {
             	rest = Debug.parseOptions(rest);
             }
             else
-                invalidFlag(s, "walk");
+                invalidFlag(s, "link");
             link(rest);
         } else {
             String file = args.get(0) + ".fss" ;

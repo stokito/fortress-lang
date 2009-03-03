@@ -210,7 +210,10 @@ public class Compile extends NodeAbstractVisitor_void {
         }
         // If this component implements a default library,
         // generate "package fortress;"
-        if ( exportsDefaultLibrary ) packageName = fortressPackage + slash;
+        if ( exportsDefaultLibrary )
+            packageName = fortressPackage + slash;
+        else
+            packageName = "";
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                  packageName + className, null, internalObject, null);
 
