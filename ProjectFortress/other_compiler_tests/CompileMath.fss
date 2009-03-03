@@ -15,32 +15,12 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-api CompilerBuiltin
+component CompileMath
+import java java.lang.{Math.random as jrandom}
+export SimpleExecutable
 
-trait Object extends Any
-end Object
-
-trait String
-end
-
-object FlatString extends String
-end FlatString
-
-println(s:String):()
-
-trait Number
-end
-
-object ZZ32 extends Number
-end
-
-object ZZ64 extends Number
-end
-
-object RR32 extends Number
-end
-
-object RR64 extends Number
+run() = do
+   println("Hello World");
 end
 
 end
