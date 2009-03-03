@@ -28,21 +28,13 @@ public class FortressTransformer {
     @SuppressWarnings("unchecked")
     public static void transform(String inputClassName) {
         String outputClassName;
-        // If we are reading in a java.* class, we need to write it out as a
-        // com.sun.fortress.java.* class.  If it is already a com.sun.fortress.* class
-        // then we leave it alone.
-//         if (inputClassName.startsWith("java"))
-//             outputClassName = "com.sun.fortress." + inputClassName;
-//         else outputClassName = inputClassName;
-
-        outputClassName = inputClassName;
         try {
             ClassReader cr = new ClassReader(inputClassName);
             ClassWriter cw = new ClassWriter(1);
-            FortressMethodAdapter fa = new FortressMethodAdapter(cw, outputClassName);
+            FortressMethodAdapter fa = new FortressMethodAdapter(cw, inputClassName);
             cr.accept(fa, 0);
             byte[] b2 = cw.toByteArray();
-            (new Compile()).writeClass(repository, outputClassName, b2);
+            (new Compile()).writeClass(repository, inputClassName, b2);
         } catch (Throwable e) {
             e.printStackTrace();
         }
