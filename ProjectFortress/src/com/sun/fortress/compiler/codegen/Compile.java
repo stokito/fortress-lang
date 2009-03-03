@@ -39,6 +39,7 @@ public class Compile extends NodeAbstractVisitor_void {
     MethodVisitor mv;
     AnnotationVisitor av0;
     String className;
+    Boolean debug = true;
     HashMap<String, String> aliasTable;
     static String dollar = "$";
     static Character dot = '.';
@@ -91,10 +92,12 @@ public class Compile extends NodeAbstractVisitor_void {
     String descFortressString = internalToDesc(internalFortressString);
     String descFortressVoid   = internalToDesc(internalFortressVoid);
 
+    String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
+
     private String emitFnDeclDesc(com.sun.fortress.nodes.Type domain,
                                   com.sun.fortress.nodes.Type range) {
-        String emitDomain = NodeUtil.isVoidType(domain) ? ""       : emitDesc(domain);
-        String emitRange  = NodeUtil.isVoidType(range)  ? descVoid : emitDesc(range);
+        String emitDomain = NodeUtil.isVoidType(domain) ? ""     : emitDesc(domain);
+        String emitRange  = NodeUtil.isVoidType(range)  ? descFortressVoid : emitDesc(range);
         return makeMethodDesc(emitDomain, emitRange);
     }
 
@@ -151,7 +154,7 @@ public class Compile extends NodeAbstractVisitor_void {
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
                             stringArrayToVoid, null, null);
         mv.visitCode();
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", voidToVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, "run", voidToFortressVoid);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 1);
         mv.visitEnd();
@@ -212,10 +215,14 @@ public class Compile extends NodeAbstractVisitor_void {
         if ( exportsDefaultLibrary ) packageName = fortressPackage + slash;
         cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                  packageName + className, null, internalObject, null);
+
+        // Always generate the init method
+        generateInitMethod();
+
         // If this component exports an executable API,
         // generate the main and run methods.
+
         if ( exportsExecutable ) {
-            generateInitMethod();
             generateMainMethod();
         }
         for ( Import i : x.getImports() ) i.accept(this);
@@ -303,6 +310,14 @@ public class Compile extends NodeAbstractVisitor_void {
         } else sayWhat( x );
     }
 
+    public void forDo(Do x) {
+        List<Block> fronts = x.getFronts();
+        for (Block b : fronts) {
+            b.accept(this);
+        }
+    }
+
+
     public void forObjectDecl(ObjectDecl x) {
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
@@ -345,6 +360,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forFnDecl(FnDecl x) {
+        Id unambiguousName = x.getUnambiguousName();
         FnHeader header = x.getHeader();
         boolean canCompile =
             header.getStaticParams().isEmpty() && // no static parameter
@@ -367,6 +383,8 @@ public class Compile extends NodeAbstractVisitor_void {
                                     emitFnDeclDesc(NodeUtil.getParamType(x),
                                                    returnType.unwrap()),
                                     null, null);
+                // For now assuming one parameter.
+                mv.visitVarInsn(Opcodes.ALOAD, 0);                
                 mv.visitCode();
                 body.unwrap().accept(this);
                 mv.visitMaxs(2, 1);
@@ -375,16 +393,15 @@ public class Compile extends NodeAbstractVisitor_void {
         } else sayWhat( x );
     }
 
-    public void forDo(Do x) {
-        for ( Block b : x.getFronts() ) {
-            b.accept(this);
-        }
-    }
-
     public void forBlock(Block x) {
         for ( Expr e : x.getExprs() ) {
             e.accept(this);
         }
+    }
+
+    public void forVoidLiteralExpr(VoidLiteralExpr x) {
+        mv.visitFieldInsn(Opcodes.GETSTATIC, "com/sun/fortress/interpreter/evaluator/values/FVoid",
+                          "V", "Lcom/sun/fortress/interpreter/evaluator/values/FVoid;");
     }
 
     // Setting up the alias table which we will refer to at runtime.
@@ -410,6 +427,20 @@ public class Compile extends NodeAbstractVisitor_void {
                     sayWhat( x, "The type of a function reference " +
                              "is not an arrow type." );
             }
+        } else {
+            List<IdOrOp> names = x.getNames();
+            // For now assuming only 1
+            for (IdOrOp stupidName : names) {
+                String nameString = stupidName.getText();
+                Option<APIName> apiName = stupidName.getApiName();
+                if (apiName.isSome()) {
+                    APIName foo = apiName.unwrap();
+                    String apiString = foo.getText();
+                    mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                                       "fortress/" + apiString, nameString,
+                                       "(Lcom/sun/fortress/interpreter/evaluator/values/FString;)Lcom/sun/fortress/interpreter/evaluator/values/FVoid;");
+                }
+            }
         }
     }
 
@@ -425,6 +456,7 @@ public class Compile extends NodeAbstractVisitor_void {
                            makeMethodDesc(descString, descFloat));
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressFloat, "make",
                            makeMethodDesc(descFloat, descFortressFloat));
+
     }
 
     public void forIntLiteralExpr(IntLiteralExpr x) {
