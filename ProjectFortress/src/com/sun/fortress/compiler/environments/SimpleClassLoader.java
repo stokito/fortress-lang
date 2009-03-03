@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.interpreter.evaluator.BaseEnv;
 import com.sun.fortress.repository.CacheBasedRepository;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
 
 public class SimpleClassLoader extends ClassLoader {
 
@@ -98,9 +99,11 @@ public class SimpleClassLoader extends ClassLoader {
      * @return
      */
     public static Class<?> defineAsNecessary(String className, byte[] bytecode) {
+        className = Useful.replace(className, "/", ".");
         Class<?> generatedClass = aLoader.findLoadedClass(className);
-        if (generatedClass == null)
+        if (generatedClass == null) {
             generatedClass = aLoader.defineClass(className, bytecode);
+        }
         return generatedClass;
     }
     
