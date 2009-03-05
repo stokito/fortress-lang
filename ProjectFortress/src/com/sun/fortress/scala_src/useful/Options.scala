@@ -25,6 +25,11 @@ object Options {
     if (opt.isNone) None
     else Some(opt.unwrap)
 
+  def toJavaOption[T](op: Option[T]): JavaOption[T] = op match {
+    case Some(wrap) => some(wrap)
+    case None => none()
+  }
+  
   def some[T](wrapped:T):JavaOption[T] = JavaOption.some(wrapped)
   def none[T]():JavaOption[T] = JavaOption.none()
 }

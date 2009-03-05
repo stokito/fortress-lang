@@ -189,12 +189,12 @@ public class ScalaAstGenerator extends CodeGenerator {
 
                 // A list, set, or other subtype of java.lang.Iterable.
                 public String forSequenceClass(SequenceClassName t) {
-                    return sub("_root_.java.util.List[@type]", "@type", t.elementType().accept(this));
+                    return sub("List[@type]", "@type", t.elementType().accept(this));
                 }
 
                 // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument. 
                 public String forOptionClass(OptionClassName t) {
-                    return sub("edu.rice.cs.plt.tuple.Option[@type]", "@type", t.elementType().accept(this));
+                    return sub("Option[@type]", "@type", t.elementType().accept(this));
                 }
 
                 // A tuple (see definition in TupleName documentation). 
@@ -208,7 +208,7 @@ public class ScalaAstGenerator extends CodeGenerator {
 
                     // Handle types for which ASTGen provides no hooks,
                     // but that we still want to treat specially.
-                    if (t.className().equals("Map")) { name.append("_root_.java.util.Map"); }
+                    if (t.className().equals("Map")) { name.append("Map"); }
                     else if (t.className().equals("BigInteger")) { name.append("_root_.java.math." + t.className()); }
                     else if (t.className().equals("Object")) { name.append("_root_.java.lang." + t.className()); }
                     else if (t.className().equals("Span")) { name.append("com.sun.fortress.nodes_util." + t.className()); }
@@ -346,7 +346,7 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("@name", "@name", field.getGetterName()));
+                buffer.append(sub("javaify(@name).asInstanceOf", "@name", field.getGetterName()));
             }
             buffer.append(")");
             return buffer.toString();
@@ -366,8 +366,8 @@ public class ScalaAstGenerator extends CodeGenerator {
             for ( Field field : box.allFields(ast)) {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
-
-                buffer.append(sub("@receiver.@getter()", "@receiver", receiverName, "@getter", field.getGetterName()));
+                
+                buffer.append(sub("scalaify(@receiver.@getter()).asInstanceOf[@type]", "@receiver", receiverName, "@getter", field.getGetterName(),"@type", fieldType(field.type())));
             }
             buffer.append(")");
             return buffer.toString();
@@ -494,7 +494,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             }
             writer.println(sub("}"));
         }
-
+/*
         // Generate walker.
         writer.println();
         writer.println("trait Walker {");
@@ -516,6 +516,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         writer.println("      }");
         writer.println("   }");
         writer.println("}");
+        */
     }
 
     /** 
@@ -563,7 +564,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                      "import com.sun.fortress.nodes_util._\n" +
                      "import com.sun.fortress.useful.HasAt\n" +
                      "import _root_.scala.collection.mutable.ListBuffer\n" +
-                     "import _root_.java.math.BigInteger\n");
+                     "import _root_.java.math.BigInteger\n" +
+                     "import com.sun.fortress.scala_src.useful.ASTGenHelper._\n");
     }
 
     public void generateAdditionalCode() {

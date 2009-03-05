@@ -17,6 +17,8 @@
 
 package com.sun.fortress.compiler.typechecker;
 
+import static com.sun.fortress.scala_src.useful.Options.*;
+import static com.sun.fortress.scala_src.useful.Lists.*;
 import static com.sun.fortress.compiler.Types.BOTTOM;
 import static com.sun.fortress.compiler.Types.CONJUNCTS;
 import static com.sun.fortress.compiler.Types.DISJUNCTS;
@@ -160,7 +162,11 @@ public class TypeAnalyzer {
      * Extend this type analyzer with the given static parameters and WhereClause constraints.
      */
     public TypeAnalyzer extend(List<StaticParam> params, Option<WhereClause> whereClause) {
-     return new TypeAnalyzer(this, params, whereClause);
+        return new TypeAnalyzer(this, params, whereClause);
+    }
+    
+    public TypeAnalyzer extend(scala.List<StaticParam> params, scala.Option<WhereClause> whereClause){
+        return extend(toJavaList(params),toJavaOption(whereClause));
     }
 
     /**

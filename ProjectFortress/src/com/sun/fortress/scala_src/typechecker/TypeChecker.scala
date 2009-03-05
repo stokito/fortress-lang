@@ -24,18 +24,12 @@ import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.compiler.index.CompilationUnitIndex
-import com.sun.fortress.compiler.typechecker.SubtypeChecker
+import com.sun.fortress.compiler.typechecker.TypeAnalyzer
 import com.sun.fortress.compiler.typechecker.TraitTable
 import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
-import com.sun.fortress.scala_src.useful.Lists._
-import com.sun.fortress.scala_src.useful.Options
-import com.sun.fortress.scala_src.useful.JavaSome
-import com.sun.fortress.scala_src.useful.JavaNone
-import com.sun.fortress.scala_src.useful.JavaList
-import edu.rice.cs.plt.tuple.{Option => JavaOption}
-import _root_.java.util.{List => JList}
 import scala.collection.mutable.LinkedList
+import com.sun.fortress.scala_src.useful.ASTGenHelper._
 
 class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
@@ -43,60 +37,65 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
   private def signal(msg:String,node:Node) = { errors = errors ::: List(TypeError.make(msg,node)) }
 
-  private def inferredType(expr:Expr) = expr.getInfo.getExprType
+  private def inferredType(expr:Expr): Option[Type] = scalaify(expr.getInfo.getExprType).asInstanceOf
 
-  private def checkSubtype(subtype:Type,supertype:Type,senv:SubtypeChecker,node:Node,error:String) = {
-    val judgement = senv.subtype(subtype,supertype).booleanValue
+  private def checkSubtype(subtype:Type,supertype:Type,senv:TypeAnalyzer,node:Node,error:String) = {
+    val judgement = senv.subtype(subtype,supertype).isTrue
     if (! judgement) signal(error,node)
     judgement
   }
 
-  def check(node:Node,env:TypeEnv,senv:SubtypeChecker):Node = node match {
+  def check(node:Node,env:TypeEnv,senv:TypeAnalyzer):Node = node match {
     case Component(info,name,imports,decls,isNative,exports)  => 
-      Component(info,name,imports,map(decls,(n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
+      Component(info,name,imports,decls.map((n:Decl)=>check(n,env,senv).asInstanceOf),isNative,exports)
 
-    case f@FnDecl(info,header,unambiguousName,JavaNone(_),implementsUnambiguousName) => f
+    case f@FnDecl(info,header,unambiguousName,None,implementsUnambiguousName) => f
 
-    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),unambiguousName,JavaSome(body),implementsUnambiguousName) => {
+    case f@FnDecl(info,FnHeader(statics,mods,name,wheres,throws,contract,params,returnType),unambiguousName,Some(body),implementsUnambiguousName) => {
       val newEnv = env.extendWithStaticParams(statics).extendWithParams(params)
       val newSenv = senv.extend(statics,wheres)
 
       val newContract = contract match {
-        case JavaSome(c) => JavaSome(check(c,newEnv,newSenv))
-        case JavaNone(_) => contract
+        case Some(c) => Some(check(c,newEnv,newSenv))
+        case None => contract
       }
       val newBody = checkExpr(body,newEnv,newSenv,returnType)
 
       val newReturnType = inferredType(newBody) match {
-        case JavaSome(typ) => returnType match {
-          case JavaNone(_) => JavaSome(typ)
+        case Some(typ) => returnType match {
+          case None => Some(typ)
           case _ => returnType
         }
         case _ => returnType
       }
-      NodeFactory.makeFnDecl(NodeUtil.getSpan(f),NodeUtil.getMods(f),NodeUtil.getName(f),statics,params,
-                             newReturnType,throws,wheres,newContract.asInstanceOf,JavaSome(newBody))
+      FnDecl(info, FnHeader(statics,mods,name,wheres,throws,newContract.asInstanceOf,params,newReturnType), unambiguousName, Some(newBody), implementsUnambiguousName)
     }
     
     /* Matches if block is not an atomic block. */
     case Block(ExprInfo(span,parenthesized,resultType),loc,false,withinDo,exprs) => {
-      val newExprs:JList[Expr] = map(exprs,(e:Expr)=>checkExpr(e,env,senv).asInstanceOf)
-      val newResultType:JavaOption[Type] = 
-        if (newExprs.isEmpty) JavaSome(Types.VOID)
-        else inferredType(newExprs.get(newExprs.size - 1))
-
+      var newExprs = List[Expr]()
+      val newResultType:Option[Type] = 
+        if (newExprs.isEmpty)
+          Some(Types.VOID)
+        else {
+          for (e <- exprs.take(exprs.size-1)){
+            newExprs=checkExpr(e,env,senv,Some(Types.VOID))::newExprs
+          }
+          val lastExpr = checkExpr(exprs.last,env,senv)
+          newExprs=(lastExpr::newExprs).reverse
+          inferredType(lastExpr)
+        }
       Block(ExprInfo(span,parenthesized,newResultType),loc,false,withinDo,newExprs)
     }
       
     case _ => node
   }
 
-  def checkExpr(expr: Expr,env: TypeEnv,senv:SubtypeChecker):Expr = checkExpr(expr,env,senv,JavaNone())
+  def checkExpr(expr: Expr,env: TypeEnv,senv:TypeAnalyzer):Expr = checkExpr(expr,env,senv,None)
 
-  def checkExpr(expr: Expr,env: TypeEnv,senv:SubtypeChecker,expected:JavaOption[Type]):Expr = expr match {
+  def checkExpr(expr: Expr,env: TypeEnv,senv:TypeAnalyzer,expected:Option[Type]):Expr = expr match {
     case _ => expr
   }
-
-
+  
 
 }
