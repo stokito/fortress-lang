@@ -31,6 +31,7 @@ import com.sun.fortress.compiler.Types
 import scala.collection.mutable.LinkedList
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
 import com.sun.fortress.nodes_util.ExprFactory
+import com.sun.fortress.useful.NI
 
 class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
@@ -90,25 +91,36 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
     }
       
 
-    // tight juxt, known function application
+    /* Juxt, known function application, this was a hack to deal with desugaring generator expression
+     * For now we are going to see if we can solve this in a more elegant fashion
+     */
     case j@Juxt(ExprInfo(span,parenthesized,typ), multi, infix, front::arg::Nil, true, true) => {
+      /*
       val freshArrow = ArrowType(TypeInfo(span,false,List(),None),
                                  _InferenceVarType(TypeInfo(span,false,List(),None), new _root_.java.lang.Object()),
                                  _InferenceVarType(TypeInfo(span,false,List(),None),new _root_.java.lang.Object()),
                                  Effect(SpanInfo(span),None,false))
-      _RewriteFnApp(ExprInfo(span,parenthesized,Some(freshArrow)),checkExpr(front,env,senv),checkExpr(arg,env,senv))
+      checkExpr(_RewriteFnApp(ExprInfo(span,parenthesized,Some(freshArrow)),checkExpr(front,env,senv),checkExpr(arg,env,senv)),env,senv)
+      */
+      NI.nyi()
     }
 
-    // tight juxt, known not a function application
-    case Juxt(info, multi, infix, front::arg::Nil, false, true) => {
-      def converter(e:Expr) = {
+    /* 
+     * tight juxt
+     */
+    case Juxt(info, multi, infix, front::rest, false, true) => {
+      def converter(e:Expr): MathItem = {
         if (NodeUtil.isParenthesized(e) || (e.isInstanceOf[TupleExpr]) || (e.isInstanceOf[VoidLiteralExpr]))
           ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
         else
           ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
       }
-      MathPrimary(info,multi,infix,checkExpr(front,env,senv),List(converter(arg)))
+      checkExpr(MathPrimary(info,multi,infix,checkExpr(front,env,senv),rest.map(converter)),env,senv)
     }
+    
+    /*
+     * loose juxt
+     */
     case Juxt(info, multi, infix, exprs, isApp, false) => {
       Juxt(info,multi,infix,exprs.map((e:Expr)=>checkExpr(e,env,senv)),isApp,false)
     }
