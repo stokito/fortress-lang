@@ -17,28 +17,32 @@
 
 package com.sun.fortress.nodes_util;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.util.*;
-import java.math.BigInteger;
-import edu.rice.cs.plt.iter.IterUtil;
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.tuple.Option;
-import edu.rice.cs.plt.lambda.Lambda;
-
-import com.sun.fortress.nodes.*;
-import com.sun.fortress.parser_util.*;
-import com.sun.fortress.useful.*;
-
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
-import com.sun.fortress.compiler.WellKnownNames;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.parser_util.FnHeaderClause;
+import com.sun.fortress.parser_util.FnHeaderFront;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
+import com.sun.fortress.useful.Useful;
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
+import edu.rice.cs.plt.tuple.Option;
+import com.sun.fortress.scala_src.useful.Sets;
+
 
 public class NodeFactory {
     public static int lexicalDepth = -2147483648;
-
     public static Span internalSpan = makeSpan("Compiler internal generated.");
     public static Span parserSpan = makeSpan("Parser generated.");
     public static Span macroSpan = makeSpan("Syntactic abstraction generated.");
@@ -905,6 +909,10 @@ public class NodeFactory {
         return makeUnionType(span, false,
                              CollectUtil.makeList(types));
     }
+    
+    public static UnionType makeUnionType(scala.collection.Set<Type> types){
+    	return makeUnionType(Sets.toJavaSet(types));
+    }
 
     public static UnionType makeUnionType(Span span, boolean parenthesized,
                                           List<Type> elements) {
@@ -997,6 +1005,10 @@ public class NodeFactory {
         else
             span = NodeUtil.spanAll(types);
         return makeIntersectionType(span, false, CollectUtil.makeList(types));
+    }
+    
+    public static IntersectionType makeIntersectionType(scala.collection.Set<Type> types){
+    	return makeIntersectionType(Sets.toJavaSet(types));
     }
 
     public static IntersectionType makeIntersectionType(Span span,

@@ -30,6 +30,7 @@ import com.sun.fortress.compiler.typechecker.TypeEnv
 import com.sun.fortress.compiler.Types
 import scala.collection.mutable.LinkedList
 import com.sun.fortress.scala_src.useful.ASTGenHelper._
+import com.sun.fortress.nodes_util.ExprFactory
 
 class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
 
@@ -88,30 +89,30 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
       Block(ExprInfo(span,parenthesized,newResultType),loc,false,withinDo,newExprs)
     }
       
-/*
+
     // tight juxt, known function application
-    case j@Juxt(ExprInfo(span,parenthesized,typ), multi, infixJuxt, front::arg::Nil, true, true) => {
-      val freshArrow = NodeFactory.makeArrowType(span,
-                                                 NodeFactory.make_InferenceVarType(span),
-                                                 NodeFactory.make_InferenceVarType(span))
-      val fnApp = ExprFactory.make_RewriteFnApp(freshArrow,front,arg)
-      _RewriteFnApp(ExprInfo(span,parenthesized,freshArrow),checkExpr(front,env,senv),checkExpr(arg,env,senv))
+    case j@Juxt(ExprInfo(span,parenthesized,typ), multi, infix, front::arg::Nil, true, true) => {
+      val freshArrow = ArrowType(TypeInfo(span,false,List(),None),
+                                 _InferenceVarType(TypeInfo(span,false,List(),None), new _root_.java.lang.Object()),
+                                 _InferenceVarType(TypeInfo(span,false,List(),None),new _root_.java.lang.Object()),
+                                 Effect(SpanInfo(span),None,false))
+      _RewriteFnApp(ExprInfo(span,parenthesized,Some(freshArrow)),checkExpr(front,env,senv),checkExpr(arg,env,senv))
     }
 
     // tight juxt, known not a function application
-    case Juxt(info, multi, infixJuxt, front::arg::Nil, false, true) => {
+    case Juxt(info, multi, infix, front::arg::Nil, false, true) => {
       def converter(e:Expr) = {
-        if (NodeUtil.isParenthesized(e) || e instanceof TupleExpr || e instanceof VoidLiteralExpr)
-          ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(e),e)
+        if (NodeUtil.isParenthesized(e) || (e.isInstanceOf[TupleExpr]) || (e.isInstanceOf[VoidLiteralExpr]))
+          ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
         else
-          ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(e),e)
+          ParenthesisDelimitedMI(SpanInfo(NodeUtil.getSpan(e)),e)
       }
-      MathPrimary(info,multi,infix,checkExpr(front,env,senv),rest.map(converter))
+      MathPrimary(info,multi,infix,checkExpr(front,env,senv),List(converter(arg)))
     }
     case Juxt(info, multi, infix, exprs, isApp, false) => {
       Juxt(info,multi,infix,exprs.map((e:Expr)=>checkExpr(e,env,senv)),isApp,false)
     }
-*/
+
     case _ => node
   }
 

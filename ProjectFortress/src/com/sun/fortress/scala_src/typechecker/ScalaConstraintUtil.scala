@@ -51,7 +51,8 @@ object ScalaConstraintUtil{
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
       val ubounds = empty.update(ivar,ubound)
-      CnAnd(ubounds,empty,newhistory)
+      //CnAnd(ubounds,empty,newhistory)
+      CnTrue
   }
 
   /*
@@ -62,10 +63,11 @@ object ScalaConstraintUtil{
     case false =>
       val empty: Map[_InferenceVarType,Type] = HashMap.empty;
       val lbounds = empty.update(ivar,lbound)
-      CnAnd(empty,lbounds,newhistory)
+      //CnAnd(empty,lbounds,newhistory)
+      CnTrue
   }
   def trueFormula(): ConstraintFormula = CnTrue
 
   def falseFormula(): ConstraintFormula = CnFalse
-
+  
 }

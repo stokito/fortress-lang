@@ -29,6 +29,7 @@ import com.sun.fortress.compiler.typechecker.SubtypeHistory;
 import com.sun.fortress.nodes.NodeUpdateVisitor;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes._InferenceVarType;
+import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.UsefulPLT;
 
 public class JavaConstraintUtil {

@@ -276,6 +276,7 @@ public class ConjunctiveFormula extends ConstraintFormula {
 							new ReplacedConstraintFormula(new ConjunctiveFormula(new_uppers, new_lowers, this.history), new_ivar, to_remove);
 	}
 
+	
 	// Returns a solved constraint formula, solved by doing the steps in 20.2 of spec1 beta
 	@Override
 	public ConstraintFormula solve() {
