@@ -88,6 +88,30 @@ class TypeChecker(current: CompilationUnitIndex, traits: TraitTable) {
       Block(ExprInfo(span,parenthesized,newResultType),loc,false,withinDo,newExprs)
     }
       
+/*
+    // tight juxt, known function application
+    case j@Juxt(ExprInfo(span,parenthesized,typ), multi, infixJuxt, front::arg::Nil, true, true) => {
+      val freshArrow = NodeFactory.makeArrowType(span,
+                                                 NodeFactory.make_InferenceVarType(span),
+                                                 NodeFactory.make_InferenceVarType(span))
+      val fnApp = ExprFactory.make_RewriteFnApp(freshArrow,front,arg)
+      _RewriteFnApp(ExprInfo(span,parenthesized,freshArrow),checkExpr(front,env,senv),checkExpr(arg,env,senv))
+    }
+
+    // tight juxt, known not a function application
+    case Juxt(info, multi, infixJuxt, front::arg::Nil, false, true) => {
+      def converter(e:Expr) = {
+        if (NodeUtil.isParenthesized(e) || e instanceof TupleExpr || e instanceof VoidLiteralExpr)
+          ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(e),e)
+        else
+          ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(e),e)
+      }
+      MathPrimary(info,multi,infix,checkExpr(front,env,senv),rest.map(converter))
+    }
+    case Juxt(info, multi, infix, exprs, isApp, false) => {
+      Juxt(info,multi,infix,exprs.map((e:Expr)=>checkExpr(e,env,senv)),isApp,false)
+    }
+*/
     case _ => node
   }
 
