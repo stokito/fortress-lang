@@ -293,8 +293,8 @@ object ExportChecker {
              */
             case (TupleType(_, elmsL, varargsL, kwdL),
                   TupleType(_, elmsR, varargsR, kwdR)) =>
-                elmsL.isEmpty && varargsL.isNone && kwdL.isEmpty &&
-                elmsR.isEmpty && varargsR.isNone && kwdR.isEmpty
+                elmsL.isEmpty && varargsL.isEmpty && kwdL.isEmpty &&
+                elmsR.isEmpty && varargsR.isEmpty && kwdR.isEmpty
             case _ => false
         }
 
@@ -303,7 +303,7 @@ object ExportChecker {
         (left, right) match {
             case (Id(_, apiLeft,  textLeft),
                   Id(_, apiRight, textRight)) =>
-                equalOptAPINames(toOption(apiLeft), toOption(apiRight)) &&
+                equalOptAPINames(apiLeft, apiRight) &&
                 textLeft == textRight
         }
 
@@ -313,8 +313,8 @@ object ExportChecker {
         (left, right) match {
             case (None, None) => true
             case (Some(APIName(_, idsLeft, _)), Some(APIName(_, idsRight, _))) =>
-                List.forall2(Lists.toList(idsLeft),
-                             Lists.toList(idsRight))((l,r) => equalIds(l,r))
+                List.forall2(idsLeft,
+                             idsRight)((l,r) => equalIds(l,r))
             case _ => false
         }
 

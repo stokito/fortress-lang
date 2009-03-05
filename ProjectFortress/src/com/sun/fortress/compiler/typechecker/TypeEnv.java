@@ -20,14 +20,15 @@ package com.sun.fortress.compiler.typechecker;
 import static com.sun.fortress.nodes_util.NodeFactory.makeEffect;
 import static com.sun.fortress.nodes_util.NodeFactory.makeId;
 import static com.sun.fortress.nodes_util.NodeFactory.makeKeywordType;
+import static com.sun.fortress.nodes_util.NodeFactory.typeSpan;
 import static edu.rice.cs.plt.tuple.Option.none;
 import static edu.rice.cs.plt.tuple.Option.some;
 import static edu.rice.cs.plt.tuple.Option.wrap;
+import static com.sun.fortress.scala_src.useful.Lists.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,51 +39,37 @@ import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.index.Variable;
-import com.sun.fortress.nodes.AnonymousFnName;
 import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.BoolArg;
-import com.sun.fortress.nodes.BoolRef;
+import com.sun.fortress.nodes.AnonymousFnName;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.ConstructorFnName;
-import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.DimRef;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.IntArg;
-import com.sun.fortress.nodes.IntRef;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KeywordType;
+import com.sun.fortress.nodes.KindBool;
+import com.sun.fortress.nodes.KindDim;
+import com.sun.fortress.nodes.KindInt;
+import com.sun.fortress.nodes.KindNat;
+import com.sun.fortress.nodes.KindOp;
+import com.sun.fortress.nodes.KindType;
+import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.LocalVarDecl;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
 import com.sun.fortress.nodes.Op;
-import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
-import com.sun.fortress.nodes.KindType;
-import com.sun.fortress.nodes.KindInt;
-import com.sun.fortress.nodes.KindNat;
-import com.sun.fortress.nodes.KindBool;
-import com.sun.fortress.nodes.KindDim;
-import com.sun.fortress.nodes.KindUnit;
-import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes.TypeArg;
-import com.sun.fortress.nodes.UnitArg;
-import com.sun.fortress.nodes.UnitRef;
 import com.sun.fortress.nodes._InferenceVarType;
 import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
-import com.sun.fortress.nodes_util.Span;
-import com.sun.fortress.nodes_util.Modifiers;
-import static com.sun.fortress.nodes_util.NodeFactory.typeSpan;
-
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.tuple.Option;
 
@@ -402,9 +389,17 @@ public abstract class TypeEnv {
         else { return new ParamTypeEnv(params, this); }
     }
 
+    public final TypeEnv extendWithParams(scala.List<Param> params) {
+    	return extendWithParams(toJavaList(params));
+    }
+    
     public final TypeEnv extendWithStaticParams(List<StaticParam> params) {
     	if( params.size() == 0 ) {return this; }
     	else { return new StaticParamTypeEnv(params,this); }
+    }
+    
+    public final TypeEnv extendWithStaticParams(scala.List<StaticParam> params) {
+    	return extendWithStaticParams(toJavaList(params));
     }
 
     public final TypeEnv extendWithTypeConses(Map<Id, TypeConsIndex> typeConses) {
