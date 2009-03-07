@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -392,12 +392,12 @@ public abstract class TypeEnv {
     public final TypeEnv extendWithParams(scala.List<Param> params) {
     	return extendWithParams(toJavaList(params));
     }
-    
+
     public final TypeEnv extendWithStaticParams(List<StaticParam> params) {
     	if( params.size() == 0 ) {return this; }
     	else { return new StaticParamTypeEnv(params,this); }
     }
-    
+
     public final TypeEnv extendWithStaticParams(scala.List<StaticParam> params) {
     	return extendWithStaticParams(toJavaList(params));
     }

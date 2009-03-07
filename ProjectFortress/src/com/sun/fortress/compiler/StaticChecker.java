@@ -139,19 +139,15 @@ public class StaticChecker {
 
     public static TypeCheckerResult checkComponent(ComponentIndex component,
                                                    GlobalEnvironment env,
-                                                   FortressRepository repository)
-    {
-//         System.out.println("checkComponent");
+                                                   FortressRepository repository) {
          if (Shell.getTypeChecking() == true) {
-//             System.out.println("env:");
-//             env.print();
-//             System.out.println("end env");
-
             Node component_ast = component.ast();
             ConstraintUtil.useJavaFormulas();
+
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
-            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
+            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
+                                                                 System.currentTimeMillis());
 
             TypeEnv typeEnv = TypeEnv.make(component);
 
@@ -176,7 +172,8 @@ public class StaticChecker {
             component_ast = (Component)result.ast().accept(rep);
 
             // then typecheck again!!!
-            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast, System.currentTimeMillis());
+            component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
+                                                                 System.currentTimeMillis());
 
             typeEnv = TypeEnv.make(component);
 
@@ -202,17 +199,24 @@ public class StaticChecker {
 
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // Check the set of exported APIs in this component.
-            List<StaticError> errors = ExportChecker.checkExports(component, env, repository);
-            if ( ! errors.isEmpty() ) {
-                for ( StaticError error : errors ) {
-                    result = TypeCheckerResult.addError(result, error);
-                }
-            }
-   
-            
+            List<StaticError> errors =
+                ExportChecker.checkExports(component, env, repository);
+            result = addErrors(errors, result);
+
             return result;
          } else {
              return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
          }
     }
+
+    private static TypeCheckerResult addErrors(List<StaticError> errors,
+                                               TypeCheckerResult result) {
+        if ( ! errors.isEmpty() ) {
+            for ( StaticError error : errors ) {
+                result = TypeCheckerResult.addError(result, error);
+            }
+        }
+        return result;
+    }
+
 }
