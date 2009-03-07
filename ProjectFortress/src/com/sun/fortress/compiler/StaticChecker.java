@@ -43,6 +43,7 @@ import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.repository.FortressRepository;
 import com.sun.fortress.scala_src.typechecker.ExportChecker;
+import com.sun.fortress.scala_src.typechecker.OverloadingChecker;
 import edu.rice.cs.plt.iter.IterUtil;
 
 /**
@@ -143,70 +144,51 @@ public class StaticChecker {
          if (Shell.getTypeChecking() == true) {
             Node component_ast = component.ast();
             ConstraintUtil.useJavaFormulas();
-
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
-
-            TypeEnv typeEnv = TypeEnv.make(component);
-
-            // Add all top-level function names to the component-level environment.
-            typeEnv = typeEnv.extendWithFunctions(component.functions());
-
-            // Iterate over top-level variables, adding each to the component-level environment.
-            typeEnv = typeEnv.extend(component.variables());
-
-            // Add all top-level object names declared in the component-level environment.
-            typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
-
-            TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
-                                                      typeEnv,
-                                                      component,
-                                                      false);
             // typecheck...
-            TypeCheckerResult result = component_ast.accept(typeChecker);
-
+            TypeCheckerResult result = typeCheck(component, env, component_ast, false);
             // then replace inference variables...
             InferenceVarReplacer rep = new InferenceVarReplacer(result.getIVarResults());
             component_ast = (Component)result.ast().accept(rep);
-
             // then typecheck again!!!
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
-
-            typeEnv = TypeEnv.make(component);
-
-            // Add all top-level function names to the component-level environment.
-            typeEnv = typeEnv.extendWithFunctions(component.functions());
-
-            // Iterate over top-level variables, adding each to the component-level environment.
-            typeEnv = typeEnv.extend(component.variables());
-
-            // Add all top-level object names declared in the component-level environment.
-            typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
-
-            typeChecker = new TypeChecker(new TraitTable(component, env),
-                                          typeEnv,
-                                          component,
-                                          true);
-
-            result = component_ast.accept(typeChecker);
-
+            result = typeCheck(component, env, component_ast, true);
             // There should be no Inference vars left at this point
             if( TypesUtil.containsInferenceVarTypes(result.ast()) )
                 bug("Result of typechecking still contains inference varaibles. " + result.ast());
-
             result.setAst(result.ast().accept(new TypeNormalizer()));
-            // Check the set of exported APIs in this component.
+            // Check overloadings in this component.
             List<StaticError> errors =
-                ExportChecker.checkExports(component, env, repository);
+                OverloadingChecker.checkOverloading(component, env, repository);
             result = addErrors(errors, result);
-
+            // Check the set of exported APIs in this component.
+            errors = ExportChecker.checkExports(component, env, repository);
+            result = addErrors(errors, result);
             return result;
          } else {
              return new TypeCheckerResult(component.ast(), IterUtil.<StaticError>empty());
          }
+    }
+
+    private static TypeCheckerResult typeCheck(ComponentIndex component,
+                                               GlobalEnvironment env,
+                                               Node component_ast,
+                                               boolean postInference) {
+        TypeEnv typeEnv = TypeEnv.make(component);
+        // Add all top-level function names to the component-level environment.
+        typeEnv = typeEnv.extendWithFunctions(component.functions());
+        // Iterate over top-level variables,
+        // adding each to the component-level environment.
+        typeEnv = typeEnv.extend(component.variables());
+        // Add all top-level object names to the component-level environment.
+        typeEnv = typeEnv.extendWithTypeConses(component.typeConses());
+        TypeChecker typeChecker = new TypeChecker(new TraitTable(component, env),
+                                                  typeEnv, component, postInference);
+        return component_ast.accept(typeChecker);
     }
 
     private static TypeCheckerResult addErrors(List<StaticError> errors,
