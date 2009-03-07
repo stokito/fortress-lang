@@ -5,14 +5,14 @@
 
     U.S. Government Rights - Commercial software.
     Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement scalaAnd applicable provisions of the FAR scalaAnd its supplements.
+    license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo scalaAnd Java are trademarks scalaOr registered
-    trademarks of Sun Microsystems, Inc. in the U.S. scalaAnd other countries.
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.typechecker
@@ -38,7 +38,7 @@ import com.sun.fortress.scala_src.useful.Maps
  * constraints are kept in disjunctive normal form. In scalaOrder to keep the size of
  * the scalaOr method eliminates redundant constraints. Further information can be found
  * in Section 3.2.2 of Dan Smith's paper Java Type Inference is Broken.
- * 
+ *
  * Currently it also works as a wrapper to interface with the Java Constraint Formulas
  */
 
@@ -60,17 +60,17 @@ sealed abstract class ScalaConstraint extends ConstraintFormula{
    * inference variables that satisfies the constraints.
    */
   def scalaSolve(): Option[Map[_InferenceVarType,Type]]
-  
+
   override def and(c: ConstraintFormula, h: SubtypeHistory):ConstraintFormula = c match{
     case c2:ScalaConstraint => scalaAnd(c2,h)
     case _ => bug("Can't and a scala formula with a java formula")
   }
-  
+
   override def or(c: ConstraintFormula, h: SubtypeHistory):ConstraintFormula = c match{
     case c2:ScalaConstraint => scalaOr(c2,h)
     case _ => bug("Can't or a scala formula with a java formula")
   }
-  
+
   override def solve() = bug("Use scalaSolve for scala formulas")
 }
 
@@ -184,14 +184,14 @@ case class CnAnd(uppers: MultiMap[_InferenceVarType, Type], lowers: MultiMap[_In
     val unifiedLowers = unify(boundedLowers)
     None
   }
-  
+
   private def unify(bounds: MultiMap[_InferenceVarType,Type]):MultiMap[_InferenceVarType,Type] = bounds
-  
+
   private def boundAllVariables(uBounds :MultiMap[_InferenceVarType,Type], lBounds :MultiMap[_InferenceVarType,Type]): (MultiMap[_InferenceVarType,Type],MultiMap[_InferenceVarType,Type]) = {
     //make sure to search bounds fo)r unbounded inference variables
     (uBounds,lBounds)
   }
-  
+
   private def findAndRemoveCycles(uBounds :MultiMap[_InferenceVarType,Type], lBounds :MultiMap[_InferenceVarType,Type]): (MultiMap[_InferenceVarType,Type],MultiMap[_InferenceVarType,Type]) = {
     //finds first cycle in uBounds, removes it from uBounds and lBounds, recurses
     for(ivar <- uBounds.keys){
@@ -214,7 +214,7 @@ case class CnAnd(uppers: MultiMap[_InferenceVarType, Type], lowers: MultiMap[_In
     //when all cycles are gone return
     (uBounds,lBounds)
   }
-  
+
   private def findCycle(typ: Type, bounds :MultiMap[_InferenceVarType,Type], history: Set[_InferenceVarType]): Option[Set[_InferenceVarType]] = typ match {
     case ivar:_InferenceVarType =>
       if(history.contains(ivar))
@@ -232,7 +232,7 @@ case class CnAnd(uppers: MultiMap[_InferenceVarType, Type], lowers: MultiMap[_In
       }
     case _ => None
   }
-  
+
   private def removeCycle(cycle: Set[_InferenceVarType], bounds: MultiMap[_InferenceVarType,Type]): MultiMap[_InferenceVarType,Type]  = {
     if(cycle.isEmpty)
       bounds
@@ -259,9 +259,9 @@ case class CnAnd(uppers: MultiMap[_InferenceVarType, Type], lowers: MultiMap[_In
       //remove redundant constraints
       newBounds.remove(chosen,chosen)
       newBounds
-    }  
+    }
   }
-  
+
   /**
    * Merges the bounds from two conjunctive formulas
    */
@@ -338,7 +338,7 @@ case class CnOr( conjuncts: List[CnAnd], history: SubtypeHistory) extends ScalaC
     None
   }
 
-  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint = 
+  override def applySubstitution(substitution: Lambda[Type,Type]): ScalaConstraint =
     CnOr(conjuncts.map((c:CnAnd) => c.applySubstitution(substitution)),history)
 
 }

@@ -49,36 +49,52 @@ import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.parser_util.IdentifierUtil
 import com.sun.fortress.useful.HasAt
 
+/* Check the set of exported APIs in this component.
+ * Implements the semantics of export statements described
+ * in Section 20.2.2 "Export Statements"
+ * in the Fortress language specification Version 1.0.
+ */
+
+/* From the spec:
+ * "Export statements specify the APIs that a component exports.
+ *  One important restriction on components is that
+ *  no API may be both imported and exported by the same component.
+ *  This restriction helps to avoid some (but not all)
+ *  accidental cyclic dependencies."
+ *
+ * -- checked by com.sun.fortress.compiler.Disambiguator.checkExports
+ */
 object ExportChecker {
 
-    /* Check the set of exported APIs in this component.
-     * Implements the semantics of export statements
-     * described in Section 20.2.2 in the Fortress language
-     * specification Version 1.0.
-     */
+    /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent */
     def checkExports(component: ComponentIndex,
                      globalEnv: GlobalEnvironment,
                      repository: FortressRepository): JavaList[StaticError] = {
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
         var missingDecls = List[Node]()
+        /* From the spec:
+         * "A component must provide a declaration, or a set of declarations,
+         *  that satisfies every top-level declaration in any API
+         *  that it exports, as described below.
+         *  A component may include declarations that do not participate in
+         *  satisfying any exported declaration (i.e., a declaration of
+         *  any exported API)."
+         */
         for ( e <- Conversions.convertSet(component.exports) ) {
-            /* A component must provide a declaration, or a set of declarations,
-             * that satisfies every top-level declaration in any API
-             * that it exports, as described below.
-             */
             val api = try { globalEnv.api(e) }
                       catch { case _ => repository.getApi(e) }
             val apiName = api.ast.getName
-            /* A top-level variable declaration declaring a single variable
-             * is satisfied by any top-level variable declaration that declares
-             * the name with the same type (in the component, the type may be
-             * inferred).  A top-level variable declaration declaring
-             * multiple variables is satisfied by a set of declarations (possibly
-             * just one) that declare all the names with their respective types
-             * (which again, may be inferred).  In either case, the mutability
-             * of a variable must be the same in the exported and satisfying
-             * declarations.
+            /* From the spec:
+             * "A top-level variable declaration declaring a single variable
+             *  is satisfied by any top-level variable declaration that declares
+             *  the name with the same type (in the component, the type may be
+             *  inferred).  A top-level variable declaration declaring
+             *  multiple variables is satisfied by a set of declarations (possibly
+             *  just one) that declare all the names with their respective types
+             *  (which again, may be inferred).  In either case, the modifiers
+             *  including the mutability of a variable must be the same in
+             *  the exported and satisfying declarations."
              */
             val vsInComp = component.variables.keySet
             for ( v <- Conversions.convertSet(api.variables.keySet) ) {
@@ -90,68 +106,58 @@ object ExportChecker {
                             // should be with the same type and the same mutability
                             if ( ! equalOptTypes(toOption(lvalueInAPI.getIdType),
                                                  toOption(lvalueInComp.getIdType)) ||
+                                 ! lvalueInAPI.getMods.equals(lvalueInComp.getMods) ||
                                  lvalueInAPI.isMutable != lvalueInComp.isMutable )
                                 missingDecls = lvalueInAPI :: missingDecls
-                        case _ => // non-DeclaredVariable
+                        case _ => // non-DeclaredVariable:
+                                  //   ParamVariable or SingletonVariable
                     }
                 } else {
                     api.variables.get(v) match {
                         case DeclaredVariable(lvalue) =>
                             missingDecls = lvalue :: missingDecls
                         case _ => // non-DeclaredVariable
+                                  //   ParamVariable or SingletonVariable
                     }
                 }
             }
 
-            /* For functional declarations, recall that several functional
-             * declarations may define the same entity (i.e., they may be
-             * overloaded).  Given a set of overloaded declarations,
-             * it is not permitted to export some of them and not others.
+            /* From the spec:
+             * "For functional declarations, recall that several functional
+             *  declarations may define the same entity (i.e., they may be
+             *  overloaded).  Given a set of overloaded declarations,
+             *  it is not permitted to export some of them and not others."
              */
             val fnsInAPI  = api.functions
             val fnsInComp = component.functions
             val idsInAPI  = fnsInAPI.firstSet
             val idsInComp = fnsInComp.firstSet
             for ( f <- Conversions.convertSet(idsInAPI) ;
-                  if isDeclaredFunction(f) ) {
+                  if isDeclaredName(f) ) {
                 // f should be in this component
                 if ( idsInComp.contains(f) ) {
                     val declsInAPI  = fnsInAPI.matchFirst(f)
                     val declsInComp = fnsInComp.matchFirst(f)
-                    // No overloading for now.
-                    (declsInAPI.size, declsInComp.size) match {
-                        case (1, 1) =>
-                            (declsInAPI.iterator.next,
-                             declsInComp.iterator.next) match {
-                                case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
-                                      DeclaredFunction(FnDecl(_,r,_,_,_))) =>
-                                    if ( ! equalFnHeaders(l, r) )
-                                        missingDecls = fd :: missingDecls
-                                // If they are not DeclaredFunction, skip.
-                                case _ =>
-                            }
-                        // If there is a set of overloaded declarations in the component
-                        case (1, n) =>
-                            checkOverloading(f, declsInComp, errors)
-                            (declsInAPI.iterator.next,
-                             coverOverloading(declsInComp)) match {
-                                case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
-                                      DeclaredFunction(FnDecl(_,r,_,_,_))) =>
-                                    if ( ! equalFnHeaders(l, r) )
-                                        missingDecls = fd :: missingDecls
-                                // If they are not DeclaredFunction, skip.
-                                case _ =>
-                            }
-                        // If there is a set of overloaded declarations in the API,
-                        // skip.
+                    checkOverloading(f, declsInAPI, errors)
+                    checkOverloading(f, declsInComp, errors)
+ // <---------------------------
+                    (coverOverloading(declsInAPI),
+                     coverOverloading(declsInComp)) match {
+                        case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
+                              DeclaredFunction(FnDecl(_,r,_,_,_))) =>
+                            if ( ! equalFnHeaders(l, r) )
+ // <---------------------------
+                                missingDecls = fd :: missingDecls
+                        // If they are not DeclaredFunction, skip.
                         case _ =>
                     }
                 } else {
-                    // No overloading for now.
-                    fnsInAPI.matchFirst(f).iterator.next match {
-                        case DeclaredFunction(fd) =>
-                            missingDecls = fd :: missingDecls
-                        case _ =>
+                    for ( d <- Conversions.convertSet(fnsInAPI.matchFirst(f)) ) {
+                        d match {
+                            case DeclaredFunction(fd) =>
+                                missingDecls = fd :: missingDecls
+                            case _ =>
+                        }
                     }
                 }
             }
@@ -249,8 +255,9 @@ object ExportChecker {
      */
     private def coverOverloading(set: JavaSet[JavaFunction]) = set.iterator.next
 
-    private def isDeclaredFunction(f: IdOrOpOrAnonymousName) = f match {
+    private def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
         case Id(_,_,str) => IdentifierUtil.validId(str)
+        case Op(_,_,str,_,_) => NodeUtil.validOp(str)
         case _ => false
     }
 

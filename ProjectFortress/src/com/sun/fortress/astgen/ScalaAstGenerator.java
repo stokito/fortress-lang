@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -77,12 +77,12 @@ public class ScalaAstGenerator extends CodeGenerator {
      * Given a NodeInterface, construct its extends clause as a string.
      */
     private String extendsClause(NodeInterface box) {
-        List<TypeName> interfaces = box.interfaces(); 
+        List<TypeName> interfaces = box.interfaces();
 
-        if (interfaces.isEmpty()) { 
-            return ""; 
+        if (interfaces.isEmpty()) {
+            return "";
         }
-        if (interfaces.size() == 1) { 
+        if (interfaces.size() == 1) {
             return "extends " + fieldType(interfaces.get(0));
         }
 
@@ -99,7 +99,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         return buffer.toString();
     }
 
-    /** 
+    /**
      * Given a NodeClass, construct its extends clause as a string.
      */
     private String extendsClause(NodeClass box) {
@@ -111,7 +111,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             // Parent has fields that we need to initialize during construction.
             superFields = parent.unwrap().allFields(ast);
         }
-        
+
         Iterable<Field> allFields = box.allFields(ast);
         Iterable<Field> declaredFields = box.declaredFields(ast);
 
@@ -138,7 +138,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             names.add(fieldType(name));
         }
 
-        // Add superinterfaces to extends clause as mixins. 
+        // Add superinterfaces to extends clause as mixins.
         for ( String name : names ){
             buffer.append( " with " );
             buffer.append( name );
@@ -147,14 +147,14 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
 
-    /** 
+    /**
      * Given a TypeName, return a string representation of the corresponding
      * type in Scala.
      */
     private String fieldType(TypeName type) {
         return type.accept(new TypeNameVisitor<String>() {
 
-                // A type declared in the AST.  Has 0 type arguments.        
+                // A type declared in the AST.  Has 0 type arguments.
                 public String forTreeNode(ClassName t) {
                     return "com.sun.fortress.nodes." + t.name();
                 }
@@ -172,17 +172,17 @@ public class ScalaAstGenerator extends CodeGenerator {
                     throw new RuntimeException("Unknown primitive " + name);
                 }
 
-                // A String.  Has 0 type arguments. 
+                // A String.  Has 0 type arguments.
                 public String forString(ClassName t) {
                     return "String";
                 }
 
-                // An array of primitives. 
+                // An array of primitives.
                 public String forPrimitiveArray(PrimitiveArrayName t) {
                     throw new RuntimeException("Can't handle primitive array");
                 }
 
-                // An array of reference types (non-primitives). 
+                // An array of reference types (non-primitives).
                 public String forReferenceArray(ReferenceArrayName t) {
                     throw new RuntimeException("Can't handle reference array");
                 }
@@ -192,17 +192,17 @@ public class ScalaAstGenerator extends CodeGenerator {
                     return sub("List[@type]", "@type", t.elementType().accept(this));
                 }
 
-                // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument. 
+                // An edu.rice.cs.plt.tuple.Option.  Has 1 type argument.
                 public String forOptionClass(OptionClassName t) {
                     return sub("Option[@type]", "@type", t.elementType().accept(this));
                 }
 
-                // A tuple (see definition in TupleName documentation). 
+                // A tuple (see definition in TupleName documentation).
                 public String forTupleClass(TupleClassName t) {
                     throw new RuntimeException("Can't handle tuple");
                 }
 
-                // A type for which none of the other cases apply. 
+                // A type for which none of the other cases apply.
                 public String forGeneralClass(ClassName t) {
                     StringBuffer name = new StringBuffer();
 
@@ -216,13 +216,13 @@ public class ScalaAstGenerator extends CodeGenerator {
                     else { name.append("com.sun.fortress.nodes." + t.className()); }
 
                     // Handle type arguments.
-                    // Note: This will not work with nested generic types. 
-                    // ASTGen does not provide a facility for recursive deconstruction 
-                    // of nested generic type arguments. 
+                    // Note: This will not work with nested generic types.
+                    // ASTGen does not provide a facility for recursive deconstruction
+                    // of nested generic type arguments.
                     boolean first = true;
                     for (TypeArgumentName arg : t.typeArguments()) {
                         if (first) {
-                            name.append("["); 
+                            name.append("[");
                             first = false;
                         } else {
                             name.append(", ");
@@ -238,8 +238,8 @@ public class ScalaAstGenerator extends CodeGenerator {
             });
     }
 
-    /** 
-     * Given a list of fields, return the corresponding 
+    /**
+     * Given a list of fields, return the corresponding
      * field declarations in String form.
      */
     private String traitFields( List<Field> fields ) {
@@ -250,14 +250,14 @@ public class ScalaAstGenerator extends CodeGenerator {
                 buffer.append( "\n" );
                 first = false;
             }
-            buffer.append(sub("  def @name:@type\n", 
-                              "@name", field.getGetterName(), 
+            buffer.append(sub("  def @name:@type\n",
+                              "@name", field.getGetterName(),
                               "@type", fieldType(field.type())));
         }
         return buffer.toString();
     }
 
-    /** 
+    /**
      * Given a NodeInterface, return its fields in String form.
      */
     private String fields(NodeInterface box) {
@@ -265,7 +265,7 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
     /**
-     * Given a NodeClass, return its fields in String form. 
+     * Given a NodeClass, return its fields in String form.
      */
     private String fields(NodeClass box) {
         return "(" + fieldsNoParens(box, true) + ")";
@@ -285,22 +285,22 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (firstPass) { firstPass = false; }
                 else { buffer.append(", "); }
 
-                buffer.append(sub("@name:@type", 
-                                  "@name", field.getGetterName(), 
+                buffer.append(sub("@name:@type",
+                                  "@name", field.getGetterName(),
                                   "@type", fieldType(field.type())));
             }
             return buffer.toString();
         }
     }
 
-    /** 
-     * Return a string including all field declarations, including inherited declarations. 
+    /**
+     * Return a string including all field declarations, including inherited declarations.
      */
     public String allFields(NodeClass box) {
         return "(" + allFieldsNoParens(box, true) + ")";
     }
 
-    /** 
+    /**
      * Return a string including all field declarations, including inherited declarations,
      * without enclosing parentheses.
      */
@@ -313,8 +313,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (firstPass) {  firstPass = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("@name:@type", 
-                                  "@name", field.getGetterName(), 
+                buffer.append(sub("@name:@type",
+                                  "@name", field.getGetterName(),
                                   "@type", fieldType(field.type())));
             }
 
@@ -322,10 +322,10 @@ public class ScalaAstGenerator extends CodeGenerator {
             // If the defined supertype is not a class, there is a bug in Fortress.ast or ASTGen.
             try {
                 buffer.append
-                    (fieldsNoParens((NodeClass)ast.typeForName(box.superClass()).unwrap(), 
+                    (fieldsNoParens((NodeClass)ast.typeForName(box.superClass()).unwrap(),
                                     firstPass));
             } catch (OptionUnwrapException e) {
-                throw new RuntimeException("Missing supertype definition in Fortress.ast: " + 
+                throw new RuntimeException("Missing supertype definition in Fortress.ast: " +
                                            box.superClass());
             }
             return buffer;
@@ -366,7 +366,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             for ( Field field : box.allFields(ast)) {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
-                
+
                 buffer.append(sub("scalaify(@receiver.@getter()).asInstanceOf[@type]", "@receiver", receiverName, "@getter", field.getGetterName(),"@type", fieldType(field.type())));
             }
             buffer.append(")");
@@ -375,10 +375,10 @@ public class ScalaAstGenerator extends CodeGenerator {
     }
 
     /**
-     * Given a String denoting a wrapper function and a NodeType, return a String consisting 
-     * of a sequence of calls to the wrapper function, passing each field of the given type to 
-     * the wrapper function in turn. Calls are separated by commas and enclosed in 
-     * parentheses. 
+     * Given a String denoting a wrapper function and a NodeType, return a String consisting
+     * of a sequence of calls to the wrapper function, passing each field of the given type to
+     * the wrapper function in turn. Calls are separated by commas and enclosed in
+     * parentheses.
      */
     private String wrappedFieldCalls(String wrapper, NodeType box) {
         return wrappedFieldCalls("", wrapper, box);
@@ -386,10 +386,10 @@ public class ScalaAstGenerator extends CodeGenerator {
 
 
     /**
-     * Given a String denoting a receiver, a String denoting a wrapper function, and a NodeType, 
-     * return a String consisting of a sequence of calls to the wrapper function, passing each 
-     * field of the given type to the wrapper function in turn. Calls are separated by commas 
-     * and wrapped in parentheses. 
+     * Given a String denoting a receiver, a String denoting a wrapper function, and a NodeType,
+     * return a String consisting of a sequence of calls to the wrapper function, passing each
+     * field of the given type to the wrapper function in turn. Calls are separated by commas
+     * and wrapped in parentheses.
      */
     private String wrappedFieldCalls(String receiver, String wrapper, NodeType box) {
         if ( mkList(box.allFields(ast)).isEmpty() ){
@@ -405,8 +405,8 @@ public class ScalaAstGenerator extends CodeGenerator {
                 if (first) { first = false; }
                 else { buffer.append( ", " ); }
 
-                buffer.append(sub("@wrapper(@receiver@name).asInstanceOf", 
-                                  "@wrapper", wrapper, 
+                buffer.append(sub("@wrapper(@receiver@name).asInstanceOf",
+                                  "@wrapper", wrapper,
                                   "@receiver", receiver,
                                   "@name", field.getGetterName()));
             }
@@ -414,7 +414,7 @@ public class ScalaAstGenerator extends CodeGenerator {
             return buffer.toString();
         }
     }
-    
+
 
     /**
      * A nice function for string replacement.
@@ -426,12 +426,12 @@ public class ScalaAstGenerator extends CodeGenerator {
 
         Map<String,String> map = new HashMap<String,String>();
 
-        return sub(String.format(s.replaceAll(args[0], "%1\\$s"), args[1]), 
+        return sub(String.format(s.replaceAll(args[0], "%1\\$s"), args[1]),
                    Arrays.asList(args).subList(2, args.length).toArray(new String[0]));
     }
 
     /**
-     * Iterable -> List 
+     * Iterable -> List
      */
     private <T> List<T> mkList(Iterable<T> iter) {
         List<T> list = new ArrayList<T>();
@@ -454,10 +454,10 @@ public class ScalaAstGenerator extends CodeGenerator {
             return false;
         }
         if (name.startsWith("_SyntaxTransformation")) {
-            return true; 
+            return true;
         }
         if (name.startsWith("_Ellipses")) {
-            return true; 
+            return true;
         }
         /* TODO: this won't be needed once TemplateGap's are removed from Fortress.ast */
         if ( name.startsWith( "TemplateGap" ) ){
@@ -487,8 +487,8 @@ public class ScalaAstGenerator extends CodeGenerator {
             writer.println(sub("   def unapply(node:com.sun.fortress.nodes.@name) = ", "@name", c.name()));
             writer.println(sub("      Some(@getterCalls)", "@getterCalls", getterCalls("node", c)));
 
-            // For concrete classes, generate a simulated constructor with an apply method. 
-            if (! c.isAbstract()) { 
+            // For concrete classes, generate a simulated constructor with an apply method.
+            if (! c.isAbstract()) {
                 writer.println(sub("   def apply@fields = ", "@fields", fields(c)));
                 writer.println(sub("      new com.sun.fortress.nodes.@name@fieldsNoTypes", "@name", c.name(), "@fieldsNoTypes", fieldsNoTypes(c)));
             }
@@ -502,13 +502,13 @@ public class ScalaAstGenerator extends CodeGenerator {
         writer.println("       node match {");
         for (NodeClass c : sort(ast.classes())) {
             if (ignoreClass(c.name())) { continue; }
-            if ( c.isAbstract() ){ continue; } 
+            if ( c.isAbstract() ){ continue; }
 
-            writer.println(sub( "         case @name@fieldsNoTypes =>", 
-                                "@name", c.name(), 
+            writer.println(sub( "         case @name@fieldsNoTypes =>",
+                                "@name", c.name(),
                                 "@fieldsNoTypes", fieldsNoTypes(c)));
             writer.println(sub("             @name@fieldsNoTypes",
-                               "@name", c.name(), 
+                               "@name", c.name(),
                                "@fieldsNoTypes", wrappedFieldCalls("walk", c)));
         }
         writer.println("         case xs:List[_] => xs.map(walk _)");
@@ -519,7 +519,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         */
     }
 
-    /** 
+    /**
      * Given a String denoting a file name, and a preamble (e.g., a copyright notice)
      * write out the contents of the preamble along with all Scala code to that file.
      */
@@ -551,16 +551,16 @@ public class ScalaAstGenerator extends CodeGenerator {
             try {
                 if (out != null) { out.close(); }
                 if (writer != null) { writer.close(); }
-            } catch (IOException ie) { 
-                ie.printStackTrace(); 
+            } catch (IOException ie) {
+                ie.printStackTrace();
             }
         }
     }
 
     private void generateScalaFile() {
-        generateFile("FortressAst.scala", 
+        generateFile("FortressAst.scala",
                      "package com.sun.fortress.scala_src.nodes\n" +
-                     "import com.sun.fortress.scala_src.useful._\n" + 
+                     "import com.sun.fortress.scala_src.useful._\n" +
                      "import com.sun.fortress.nodes_util._\n" +
                      "import com.sun.fortress.useful.HasAt\n" +
                      "import _root_.scala.collection.mutable.ListBuffer\n" +
@@ -576,7 +576,7 @@ public class ScalaAstGenerator extends CodeGenerator {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter( string );
         writer.println("/* THIS FILE WAS AUTOMATICALLY GENERATED BY");
-        writer.println(sub("   @class FROM Fortress.ast */", 
+        writer.println(sub("   @class FROM Fortress.ast */",
                            "@class", this.getClass().getName()));
         return string.toString();
     }
