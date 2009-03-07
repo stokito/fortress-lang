@@ -80,7 +80,7 @@ public class Compile extends NodeAbstractVisitor_void {
     private String makeFortressInternal(String type) {
         return "com/sun/fortress/interpreter/evaluator/values/F" + type;
     }
-    String internalFortressFloat  = makeFortressInternal("FLoat");
+    String internalFortressFloat  = makeFortressInternal("Float");
     String internalFortressInt    = makeFortressInternal("Int");
     String internalFortressString = makeFortressInternal("String");
     String internalFortressVoid   = makeFortressInternal("Void");

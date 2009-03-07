@@ -240,6 +240,21 @@ public final class Shell {
             System.exit(-1);
         }
 
+        int return_code = subMain(tokens);
+
+
+        if (return_code != 0)
+            System.exit(return_code);
+    }
+
+    /**
+     * @param tokens
+     * @return
+     * @throws InterruptedException
+     * @throws Throwable
+     */
+    public static int subMain(String[] tokens) throws InterruptedException,
+            Throwable {
         int return_code = 0;
 
         // Now match the assembled string.
@@ -251,7 +266,7 @@ public final class Shell {
                 Types.useCompilerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.CODEGEN );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("link")) {
                 WellKnownNames.useCompilerLibraries();
                 Types.useCompilerLibraries();
@@ -266,32 +281,32 @@ public final class Shell {
             } else if ( what.equals("compare" ) ){
                 compare(args);
             } else if ( what.equals("parse" ) ){
-                parse(args, Option.<String>none());
+                return_code = parse(args, Option.<String>none());
             } else if ( what.equals("unparse" ) ){
                 unparse(args, Option.<String>none(), false, false);
             } else if ( what.equals( "disambiguate" ) ){
                 setPhase( PhaseOrder.DISAMBIGUATE );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "desugar" ) ){
                 setTypeChecking(true);
                 setObjExprDesugaring(true);
                 setPhase( PhaseOrder.DESUGAR );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if ( what.equals( "grammar" ) ){
                 setPhase( PhaseOrder.GRAMMAR );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 WellKnownNames.useTypeCheckerLibraries();
                 Types.useTypeCheckerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
-                compilerPhases(args, Option.<String>none(), what);
+                return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
                 setPhase( PhaseOrder.ENVGEN );
                 walkTests(args, false);
@@ -320,10 +335,7 @@ public final class Shell {
         }
 
         Init.allowForLeakChecks();
-
-
-        if (return_code != 0)
-            System.exit(return_code);
+        return return_code;
     }
 
     private static void invalidFlag(String flag, String command)
@@ -479,7 +491,7 @@ public final class Shell {
      * Parse a file. If the file parses ok it will say "Ok".
      * If you want a dump then give -out somefile.
      */
-    private static void parse(List<String> args, Option<String> out)
+    private static int parse(List<String> args, Option<String> out)
         throws UserError, InterruptedException, IOException {
         if (args.size() == 0) {
             throw new UserError("Need a file to parse");
@@ -498,13 +510,14 @@ public final class Shell {
             else
                 invalidFlag(s, "parse");
 
-            parse( rest, out );
+            return parse( rest, out );
         } else {
-            parse( s, out );
+            return parse( s, out );
         }
     }
 
-    private static void parse( String file, Option<String> out) throws UserError, IOException {
+    private static int parse( String file, Option<String> out) throws UserError, IOException {
+        int return_code = 0;
         try{
             CompilationUnit unit = Parser.parseFileConvertExn(new File(file));
             System.out.println( "Ok" );
@@ -524,7 +537,7 @@ public final class Shell {
             } else {
                 System.err.println(turnOnDebugMessage);
             }
-            System.exit(1);
+            return_code = 1;
         } catch (ProgramError e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
@@ -533,10 +546,11 @@ public final class Shell {
             } else {
                 System.err.println(turnOnDebugMessage);
             }
-            System.exit(1);
+            return_code = 1;
         } catch ( FileNotFoundException f ){
             throw new UserError(file + " not found");
         }
+        return return_code;
     }
 
     /**
@@ -630,8 +644,9 @@ public final class Shell {
      * Compile a file.
      * If you want a dump then give -out somefile.
      */
-    public static void compilerPhases(List<String> args, Option<String> out, String phase)
+    public static int compilerPhases(List<String> args, Option<String> out, String phase)
         throws UserError, InterruptedException, IOException, RepositoryError {
+        int return_code = 0;
         if (args.size() == 0) {
             throw new UserError("compilerPhases command needs a file to compile");
         }
@@ -652,7 +667,7 @@ public final class Shell {
             }
             else
                 invalidFlag(s, phase);
-            compilerPhases(rest, out, phase);
+            return_code = compilerPhases(rest, out, phase);
         } else {
             try {
                 APIName name = NodeUtil.apiName( s );
@@ -673,7 +688,7 @@ public final class Shell {
                             (num_errors == 1 ? "." : "s.");
                     }
                     System.err.println(err_string);
-                    System.exit(-1);
+                    return_code = -1;
                 }
             } catch (ProgramError e) {
                 System.err.println(e.getMessage());
@@ -683,9 +698,10 @@ public final class Shell {
                 } else {
                     System.err.println(turnOnDebugMessage);
                 }
-                System.exit(1);
+                return_code = 1;
             }
         }
+        return return_code;
     }
 
     /**
@@ -809,9 +825,19 @@ public final class Shell {
                 invalidFlag(s, "link");
             link(rest);
         } else {
+            if (! s.endsWith(".fss")) {
+                s = s + ".fss";
+            }
+            		
+            APIName name = NodeUtil.apiName( s );
+            Path path = sourcePath( s, name );
+            String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
+           
             String file = args.get(0) + ".fss" ;
-            compilerPhases( sourcePath(file, cuName(file)), file,
-                            Option.<String>none(), true );
+ //           compilerPhases( sourcePath(file, cuName(file)), file,
+ //                   Option.<String>none(), true );
+            compilerPhases( path, file_name, 
+                    Option.<String>none(), true );
         }
     }
 

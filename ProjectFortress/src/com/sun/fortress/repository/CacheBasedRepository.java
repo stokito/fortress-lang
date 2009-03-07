@@ -17,9 +17,6 @@
 
 package com.sun.fortress.repository;
 
-import static com.sun.fortress.useful.ConvenientStrings.DOT;
-import static com.sun.fortress.useful.ConvenientStrings.SEP;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
