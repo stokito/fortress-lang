@@ -41,7 +41,7 @@ public class SystemJUTest {
         //$JUnit-BEGIN$
        // suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
-        return FileTests.suite(testDir, failsOnly, false);
+        return FileTests.interpreterSuite(testDir, failsOnly, false);
     }
 
 }

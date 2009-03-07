@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -22,19 +22,23 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import com.sun.fortress.repository.ProjectProperties;
 
-public class NotPassingYet {
+public class CompilerJUTest {
 
-    public static void main(String[] args) {
-        junit.swingui.TestRunner.run(NotPassingYet.class);
+
+    public static void main(String[] args) throws IOException {
+
+        junit.textui.TestRunner.run(suite());
     }
 
     public static Test suite() throws IOException {
-        String testDir = ProjectProperties.BASEDIR + "not_passing_yet";
-        TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
+        String testDir = ProjectProperties.BASEDIR + "compiler_tests";
+        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
+        
+       // TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.interpreterSuite(testDir, true, true));
+       // suite.addTest(FileTests.suite(testDir, failsOnly, false));
         //$JUnit-END$
-        return suite;
+        return FileTests.compilerSuite(testDir, failsOnly, false);
     }
 
 }

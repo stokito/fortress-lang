@@ -46,7 +46,7 @@ public class DemoTests {
         }
         TestSuite suite = new TestSuite("Test all .fss files in 'demos'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir, false, false));
+        suite.addTest(FileTests.interpreterSuite(testDir, false, false));
         //$JUnit-END$
         return suite;
     }

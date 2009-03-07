@@ -61,7 +61,7 @@ public class SyntaxAbstractionJUTestAll extends TestCase {
     }
 
     private static void assertSucceeds(TestSuite suite, String testname) throws IOException {
-        suite.addTest(new FileTests.FSSTest(STATIC_TESTS_DIR,
+        suite.addTest(new FileTests.InterpreterTest(STATIC_TESTS_DIR,
                                             STATIC_TESTS_DIR,
                                             testname, true, false));
     }

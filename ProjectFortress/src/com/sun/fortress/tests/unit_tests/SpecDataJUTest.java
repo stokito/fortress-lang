@@ -36,9 +36,9 @@ public class SpecDataJUTest {
         boolean failsOnly = ! ("1".equals(ProjectProperties.get("FORTRESS_JUNIT_VERBOSE")));
         TestSuite suite = new TestSuite("Test all .fss files in 'SpecData/examples'.");
         //$JUnit-BEGIN$
-        suite.addTest(FileTests.suite(testDir1, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir2, failsOnly, false));
-        suite.addTest(FileTests.suite(testDir3, failsOnly, false));
+        suite.addTest(FileTests.interpreterSuite(testDir1, failsOnly, false));
+        suite.addTest(FileTests.interpreterSuite(testDir2, failsOnly, false));
+        suite.addTest(FileTests.interpreterSuite(testDir3, failsOnly, false));
         //$JUnit-END$
         return suite;
     }

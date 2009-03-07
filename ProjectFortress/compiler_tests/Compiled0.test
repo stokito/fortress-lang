@@ -1,0 +1,4 @@
+compile
+link
+run
+output=Hello World
