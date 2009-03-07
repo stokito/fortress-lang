@@ -39,9 +39,10 @@ import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.repository.FortressRepository
+import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Options._
-import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.typechecker.OverloadingChecker._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.nodes_util.NodeUtil
@@ -138,8 +139,6 @@ object ExportChecker {
                 if ( idsInComp.contains(f) ) {
                     val declsInAPI  = fnsInAPI.matchFirst(f)
                     val declsInComp = fnsInComp.matchFirst(f)
-                    checkOverloading(f, declsInAPI, errors)
-                    checkOverloading(f, declsInComp, errors)
  // <---------------------------
                     (coverOverloading(declsInAPI),
                      coverOverloading(declsInComp)) match {
@@ -199,74 +198,11 @@ object ExportChecker {
         errors
     }
 
-    /* Checks the validity of the overloaded function declarations.
-     * Nothing fancy here yet.
-     * Signals errors only for the declarations with the same types for now.
-     */
-    private def checkOverloading(name: IdOrOpOrAnonymousName,
-                                 set: JavaSet[JavaFunction],
-                                 errors: JavaList[StaticError]) = {
-        var signatures = List[((Type,Type),Span)]()
-        for ( f <- Conversions.convertSet(set) ) {
-            val result = f.getReturnType
-            val param = paramsToType(f.parameters, f.getSpan)
-            signatures.find(p => p._1 == (param,result)) match {
-                case Some((_,span)) =>
-                    error(errors, mergeSpan(span, f.getSpan),
-                          "There are multiple declarations of " +
-                          name + " with the same signature: " +
-                          param + " -> " + result)
-                case _ =>
-                    signatures = ((param, result), f.getSpan) :: signatures
-            }
-        }
-    }
-
-    private def mergeSpan(first: Span, second: Span): String = {
-        if (first.toString < second.toString)
-            first.toString + "\n" + second.toString
-        else
-            second.toString + "\n" + first.toString
-    }
-
-    /* Returns the type of the given list of parameters. */
-    private def paramsToType(params: JavaList[Param], span: Span): Type =
-        params.size match {
-            case 0 => NodeFactory.makeVoidType(span)
-            case 1 => paramToType(params.get(0))
-            case _ =>
-            NodeFactory.makeTupleType(NodeUtil.spanAll(params),
-                                      Lists.toJavaList(Lists.toList(params).map(p => paramToType(p))))
-        }
-
-    /* Returns the type of the given parameter. */
-    private def paramToType(param: Param): Type =
-        (toOption(param.getIdType), toOption(param.getVarargsType)) match {
-            case (Some(ty), _) => ty
-            case (_, Some(ty)) => ty
-            case _ => InterpreterBug.bug(param,
-                                         "Type checking couldn't infer the type of " + param)
-        }
-
-    /* Returns the function declaration covering the given set of
-     * the overloaded declarations.
-     * Invariant: set.size > 1
-     * Nothing fancy here yet.  Returns the first element for now.
-     */
-    private def coverOverloading(set: JavaSet[JavaFunction]) = set.iterator.next
-
-    private def isDeclaredName(f: IdOrOpOrAnonymousName) = f match {
-        case Id(_,_,str) => IdentifierUtil.validId(str)
-        case Op(_,_,str,_,_) => NodeUtil.validOp(str)
-        case _ => false
-    }
-
     private def error(errors: JavaList[StaticError], loc: HasAt, msg: String) =
         errors.add(TypeError.make(msg, loc))
 
     private def error(errors: JavaList[StaticError], loc: String, msg: String) =
         errors.add(TypeError.make(msg, loc.toString()))
-
 
     /* Returns true if two optional types are the same.
      * Should be able to handle arbitrary type equality testing.
