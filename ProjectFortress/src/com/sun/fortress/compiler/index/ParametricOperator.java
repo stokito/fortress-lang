@@ -53,6 +53,8 @@ public class ParametricOperator extends FunctionalMethod {
 
     public FnDecl ast() { return _ast; }
 
+    public Op name() { return _name; }
+
     @Override
     public Span getSpan() { return NodeUtil.getSpan(_ast); }
 

@@ -22,8 +22,8 @@ import _root_.java.util.{List => JavaList}
 import _root_.java.util.{Set => JavaSet}
 import scala.collection.jcl.Conversions
 
-import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
