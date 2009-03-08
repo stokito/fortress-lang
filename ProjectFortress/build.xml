@@ -74,17 +74,11 @@ maintain proper indentation.
   <property name="xtc" location="${basedir}/third_party/xtc"/>
   <property name="unsigned" location="${basedir}/third_party/unsigned"/>
 
-  <!-- Scala jar files 
+  <!-- Scala jar files -->
   <property name="scala-compiler.jar"
             value="${basedir}/third_party/scala/scala-compiler-2.7.2.jar"/>
   <property name="scala-library.jar"
             value="${basedir}/third_party/scala/scala-library-2.7.2.jar"/>
-  -->
-  
-  <property name="scala-compiler.jar"
-            value="/Applications/eclipse-3.4.1/plugins/scala.tools.nsc_2.8.0.r17250-b20090306020955.jar"/>
-  <property name="scala-library.jar"
-            value="/Applications/eclipse-3.4.1/plugins/scala.library_2.8.0.r17250-b20090306020955.jar"/>
 
   <!-- ASTGen -->
   <property name="generate-sourcefile" value="${astgen.src}/Fortress.ast" />
