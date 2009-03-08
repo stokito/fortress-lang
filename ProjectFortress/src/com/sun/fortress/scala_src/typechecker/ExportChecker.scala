@@ -23,11 +23,11 @@ import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
-import scala.collection.jcl.Conversions
 
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.ParametricOperator
 import com.sun.fortress.compiler.index.{Constructor => JavaConstructor}
 import com.sun.fortress.compiler.index.{DeclaredFunction => JavaDeclaredFunction}
 import com.sun.fortress.compiler.index.{DeclaredVariable => JavaDeclaredVariable}
@@ -42,6 +42,7 @@ import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker._
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
@@ -73,7 +74,14 @@ object ExportChecker {
                      repository: FortressRepository): JavaList[StaticError] = {
         val errors = new ArrayList[StaticError]()
         val componentName = component.ast.getName
-        var missingDecls = List[Node]()
+        var missingDecls  = List[Node]()
+        var multipleDecls = List[(String,String)]()
+        var declaredVariables           = Map[IdOrOpOrAnonymousName,APIName]()
+        var declaredFunctions           = Map[IdOrOpOrAnonymousName,APIName]()
+        var declaredParametricOperators = Map[IdOrOpOrAnonymousName,APIName]()
+        var declaredTypeConses          = Map[IdOrOpOrAnonymousName,APIName]()
+        var declaredDimensions          = Map[IdOrOpOrAnonymousName,APIName]()
+        var declaredUnits               = Map[IdOrOpOrAnonymousName,APIName]()
         /* From the spec:
          * "A component must provide a declaration, or a set of declarations,
          *  that satisfies every top-level declaration in any API
@@ -82,10 +90,71 @@ object ExportChecker {
          *  satisfying any exported declaration (i.e., a declaration of
          *  any exported API)."
          */
-        for ( e <- Conversions.convertSet(component.exports) ) {
+        for ( e <- toSet(component.exports) ) {
             val api = try { globalEnv.api(e) }
                       catch { case _ => repository.getApi(e) }
             val apiName = api.ast.getName
+
+            /* Multiple APIs exported by a single component cannot include
+             * declarations with the same name and kind.
+             */
+            val apiVariables = toSet(api.variables.keySet)
+            for ( v <- apiVariables ) {
+                if ( declaredVariables.keySet.contains(v) )
+                    multipleDecls = (declaredVariables.get(v).get + "." + v,
+                                     apiName + "." + v) :: multipleDecls
+                else {
+                    val kv = (v, apiName)
+                    declaredVariables = declaredVariables + kv
+                }
+            }
+            for ( f <- toSet(api.functions.firstSet) ) {
+                if ( declaredFunctions.keySet.contains(f) )
+                    multipleDecls = (declaredFunctions.get(f).get + "." + f,
+                                     apiName + "." + f) :: multipleDecls
+                else {
+                    val kv = (f, apiName)
+                    declaredFunctions = declaredFunctions + kv
+                }
+            }
+            for ( o <- toSet(api.parametricOperators) ) {
+                val name = o.name
+                if ( declaredParametricOperators.keySet.contains(name) )
+                    multipleDecls = (declaredParametricOperators.get(name).get + "." + name,
+                                     apiName + "." + name) :: multipleDecls
+                else {
+                    val kv = (name, apiName)
+                    declaredParametricOperators = declaredParametricOperators + kv
+                }
+            }
+            for ( t <- toSet(api.typeConses.keySet) ) {
+                if ( declaredTypeConses.keySet.contains(t) )
+                    multipleDecls = (declaredTypeConses.get(t).get + "." + t,
+                                     apiName + "." + t) :: multipleDecls
+                else {
+                    val kv = (t, apiName)
+                    declaredTypeConses = declaredTypeConses + kv
+                }
+            }
+            for ( d <- toSet(api.dimensions.keySet) ) {
+                if ( declaredDimensions.keySet.contains(d) )
+                    multipleDecls = (declaredDimensions.get(d).get + "." + d,
+                                     apiName + "." + d) :: multipleDecls
+                else {
+                    val kv = (d, apiName)
+                    declaredDimensions = declaredDimensions + kv
+                }
+            }
+            for ( u <- toSet(api.units.keySet) ) {
+                if ( declaredUnits.keySet.contains(u) )
+                    multipleDecls = (declaredUnits.get(u).get + "." + u,
+                                     apiName + "." + u) :: multipleDecls
+                else {
+                    val kv = (u, apiName)
+                    declaredUnits = declaredUnits + kv
+                }
+            }
+
             /* From the spec:
              * "A top-level variable declaration declaring a single variable
              *  is satisfied by any top-level variable declaration that declares
@@ -98,7 +167,7 @@ object ExportChecker {
              *  the exported and satisfying declarations."
              */
             val vsInComp = component.variables.keySet
-            for ( v <- Conversions.convertSet(api.variables.keySet) ) {
+            for ( v <- apiVariables ) {
                 // v should be in this component
                 if ( vsInComp.contains(v) ) {
                     (api.variables.get(v), component.variables.get(v)) match {
@@ -131,27 +200,24 @@ object ExportChecker {
              */
             val fnsInAPI  = api.functions
             val fnsInComp = component.functions
-            val idsInAPI  = fnsInAPI.firstSet
-            val idsInComp = fnsInComp.firstSet
-            for ( f <- Conversions.convertSet(idsInAPI) ;
+            for ( f <- toSet(fnsInAPI.firstSet) ;
                   if isDeclaredName(f) ) {
                 // f should be in this component
-                if ( idsInComp.contains(f) ) {
-                    val declsInAPI  = fnsInAPI.matchFirst(f)
-                    val declsInComp = fnsInComp.matchFirst(f)
- // <---------------------------
-                    (coverOverloading(declsInAPI),
-                     coverOverloading(declsInComp)) match {
+                if ( fnsInComp.firstSet.contains(f) ) {
+                    // Assumes that coverOverloading returns
+                    // a function declaration that covers
+                    // the given set of overloaded function declarations.
+                    (coverOverloading(fnsInAPI.matchFirst(f)),
+                     coverOverloading(fnsInComp.matchFirst(f))) match {
                         case (DeclaredFunction(fd@FnDecl(_,l,_,_,_)),
                               DeclaredFunction(FnDecl(_,r,_,_,_))) =>
                             if ( ! equalFnHeaders(l, r) )
- // <---------------------------
                                 missingDecls = fd :: missingDecls
                         // If they are not DeclaredFunction, skip.
                         case _ =>
                     }
                 } else {
-                    for ( d <- Conversions.convertSet(fnsInAPI.matchFirst(f)) ) {
+                    for ( d <- toSet(fnsInAPI.matchFirst(f)) ) {
                         d match {
                             case DeclaredFunction(fd) =>
                                 missingDecls = fd :: missingDecls
@@ -160,6 +226,7 @@ object ExportChecker {
                     }
                 }
             }
+
             // Collect the error messages for the missing declarations.
             if ( ! missingDecls.isEmpty ) {
                 var message = "" + missingDecls.head
@@ -169,6 +236,16 @@ object ExportChecker {
                       "Component " + componentName + " exports API " + apiName +
                       "\n    but does not define all declarations in " + apiName +
                       ".\n    Missing declarations: {" + message + "}")
+            }
+
+            // Collect the error messages for the multiple declarations.
+            if ( ! multipleDecls.isEmpty ) {
+                var message = "" + multipleDecls.head
+                for ( f <- multipleDecls.tail )
+                    message += ",\n                           " + f
+                error(errors, componentName, "Component " + componentName +
+                      " defines multiple declarations.\n" +
+                      "    Multiple declarations: {" + message + "}")
             }
 
             /* for the other kinds of top-level declarations
