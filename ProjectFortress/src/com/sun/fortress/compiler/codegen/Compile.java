@@ -24,8 +24,6 @@ import edu.rice.cs.plt.tuple.Option;
 
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.exceptions.CompilerError;
-import com.sun.fortress.interpreter.evaluator.types.*;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -50,6 +48,10 @@ public class Compile extends NodeAbstractVisitor_void {
     // (Section 2.1.2 in ASM 3.0: A Java bytecode engineering library)
     String internalFloat  = Type.getInternalName(float.class);
     String internalInt    = Type.getInternalName(int.class);
+    String internalDouble    = Type.getInternalName(double.class);
+    String internalLong    = Type.getInternalName(long.class);
+    String internalBoolean    = Type.getInternalName(boolean.class);
+    String internalChar    = Type.getInternalName(char.class);
     String internalObject = Type.getInternalName(Object.class);
     String internalString = Type.getInternalName(String.class);
 
@@ -66,6 +68,10 @@ public class Compile extends NodeAbstractVisitor_void {
     }
     String descFloat  = Type.getDescriptor(float.class);
     String descInt    = Type.getDescriptor(int.class);
+    String descDouble = Type.getDescriptor(double.class);
+    String descLong = Type.getDescriptor(long.class);
+    String descBoolean = Type.getDescriptor(boolean.class);
+    String descChar = Type.getDescriptor(char.class);
     String descString = internalToDesc(internalString);
     String descVoid   = Type.getDescriptor(void.class);
     String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
@@ -78,16 +84,25 @@ public class Compile extends NodeAbstractVisitor_void {
 
     // fortress interpreter types: internal names
     private String makeFortressInternal(String type) {
-        return "com/sun/fortress/interpreter/evaluator/values/F" + type;
+        return "com/sun/fortress/compiler/runtimeValues/F" + type;
     }
-    String internalFortressFloat  = makeFortressInternal("Float");
-    String internalFortressInt    = makeFortressInternal("Int");
+
+    String internalFortressZZ32  = makeFortressInternal("ZZ32");
+    String internalFortressZZ64  = makeFortressInternal("ZZ64");
+    String internalFortressRR32  = makeFortressInternal("RR32");
+    String internalFortressRR64  = makeFortressInternal("RR64");
+    String internalFortressBool  = makeFortressInternal("Bool");
+    String internalFortressChar  = makeFortressInternal("Char");
     String internalFortressString = makeFortressInternal("String");
     String internalFortressVoid   = makeFortressInternal("Void");
 
     // fortress interpreter types: type descriptors
-    String descFortressFloat  = internalToDesc(internalFortressFloat);
-    String descFortressInt    = internalToDesc(internalFortressInt);
+    String descFortressZZ32  = internalToDesc(internalFortressZZ32);
+    String descFortressZZ64  = internalToDesc(internalFortressZZ64);
+    String descFortressRR32  = internalToDesc(internalFortressRR32);
+    String descFortressRR64  = internalToDesc(internalFortressRR64);
+    String descFortressBool  = internalToDesc(internalFortressBool);
+    String descFortressChar  = internalToDesc(internalFortressChar);
     String descFortressString = internalToDesc(internalFortressString);
     String descFortressVoid   = internalToDesc(internalFortressVoid);
 
@@ -105,7 +120,9 @@ public class Compile extends NodeAbstractVisitor_void {
                 sayWhat( x );
             }
             public String forArrowType(ArrowType t) {
-                return makeMethodDesc(emitDesc(t.getDomain()),
+                if (NodeUtil.isVoidType(t.getDomain()))
+                    return makeMethodDesc("", emitDesc(t.getRange()));
+                else return makeMethodDesc(emitDesc(t.getDomain()),
                                       emitDesc(t.getRange()));
             }
             public String forTupleType(TupleType t) {
@@ -115,8 +132,18 @@ public class Compile extends NodeAbstractVisitor_void {
             public String forTraitType(TraitType t) {
                 if ( t.getName().getText().equals("String") )
                     return descFortressString;
-                else if ( t.getName().getText().equals("Float") )
-                    return descFortressFloat;
+                else if ( t.getName().getText().equals("ZZ32") )
+                    return descFortressZZ32;
+                else if ( t.getName().getText().equals("ZZ64") )
+                    return descFortressZZ64;
+                else if ( t.getName().getText().equals("RR32") )
+                    return descFortressRR32;
+                else if ( t.getName().getText().equals("RR64") )
+                    return descFortressRR64;
+                else if ( t.getName().getText().equals("Bool"))
+                    return descFortressBool;
+                else if ( t.getName().getText().equals("Char"))
+                    return descFortressChar;
                 else
                     return sayWhat( t );
             }
@@ -352,6 +379,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forFnDecl(FnDecl x) {
+        Debug.debug( Debug.Type.COMPILER, 1,"forFnDecl " + x);
         FnHeader header = x.getHeader();
         int paramsSize = header.getParams().size();
         boolean canCompile =
@@ -381,6 +409,7 @@ public class Compile extends NodeAbstractVisitor_void {
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
                 mv.visitCode();
                 body.unwrap().accept(this);
+                mv.visitInsn(Opcodes.RETURN);
                 mv.visitMaxs(2, 1);
                 mv.visitEnd();
             } else sayWhat(x, "Operator declarations are not supported.");
@@ -394,6 +423,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forBlock(Block x) {
+        Debug.debug( Debug.Type.COMPILER, 1,"forBlock " + x);
         for ( Expr e : x.getExprs() ) {
             e.accept(this);
         }
@@ -401,6 +431,7 @@ public class Compile extends NodeAbstractVisitor_void {
 
     // Setting up the alias table which we will refer to at runtime.
     public void forFnRef(FnRef x) {
+        Debug.debug( Debug.Type.COMPILER, 1,"forFnRef " + x);
         String name = x.getOriginalName().getText();
         if ( aliasTable.containsKey(name) ) {
             String n = aliasTable.get(name);
@@ -418,9 +449,14 @@ public class Compile extends NodeAbstractVisitor_void {
                 if ( arrow instanceof ArrowType )
                     mv.visitMethodInsn(Opcodes.INVOKESTATIC, internal_class,
                                        _method, emitDesc(arrow));
-                else // if ( ! arrow instanceof ArrowType )
-                    sayWhat( x, "The type of a function reference " +
+                else {  // if ( ! arrow instanceof ArrowType ) 
+                    Debug.debug( Debug.Type.COMPILER, 1,
+                                 "class = " + internal_class + " method = " + _method +
+                                 " type = " + arrow);
+
+                sayWhat( x, "The type of a function reference " +
                              "is not an arrow type." );
+                }
             }
         } else {
             List<IdOrOp> names = x.getNames();
@@ -444,25 +480,24 @@ public class Compile extends NodeAbstractVisitor_void {
     public void for_RewriteFnApp(_RewriteFnApp x) {
         x.getArgument().accept(this);
         x.getFunction().accept(this);
-        mv.visitInsn(Opcodes.RETURN);
     }
 
-    public void forIntLiteralExpr(IntLiteralExpr x) {
-        mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
-                           makeMethodDesc(descString, descInt));
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressInt, "make",
-                           makeMethodDesc(descInt, descFortressInt));
-    }
+//     public void forIntLiteralExpr(IntLiteralExpr x) {
+//         mv.visitLdcInsn(x.getText());
+//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalInt, "parseInt",
+//                            makeMethodDesc(descString, descInt));
+//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressZZ32, "make",
+//                            makeMethodDesc(descInt, descFortressZZ32));
+//     }
 
-    public void forFloatLiteralExpr(FloatLiteralExpr x) {
-        mv.visitLdcInsn(x.getText());
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFloat, "parseFloat",
-                           makeMethodDesc(descString, descFloat));
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressFloat, "make",
-                           makeMethodDesc(descFloat, descFortressFloat));
+//     public void forFloatLiteralExpr(FloatLiteralExpr x) {
+//         mv.visitLdcInsn(x.getText());
+//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFloat, "parseFloat",
+//                            makeMethodDesc(descString, descFloat));
+//         mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressRR64, "make",
+//                            makeMethodDesc(descFloat, descFortressFloat));
 
-    }
+//     }
 
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
@@ -473,7 +508,7 @@ public class Compile extends NodeAbstractVisitor_void {
     }
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {
-        mv.visitFieldInsn(Opcodes.GETSTATIC, internalFortressVoid,
-                          descVoid, descFortressVoid);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, internalFortressVoid, "make",
+                           makeMethodDesc("", descFortressVoid));
     }
 }

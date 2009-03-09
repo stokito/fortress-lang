@@ -85,7 +85,7 @@ public class NamingCzar {
         1. FortressLibrary.ZZ32
            what we call it in Fortress
 
-        2. L/com/sun/fortress/interpreter/evaluator/values/FInt
+        2. L/com/sun/fortress/compiler/runtimeValues/FZZ32
            the signature encoding of the Java type that we use to represent that.
 
         3. I
@@ -171,7 +171,8 @@ public class NamingCzar {
          specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
      }
 
-     static final String interpreterValues = "Lcom/sun/fortress/interpreter/evaluator/values/";
+    static final String runtimeValues = "Lcom/sun/fortress/compiler/runtimeValues/";
+
 
      /**
       * Given a Fortress type (expressed as AST node for a Type),
@@ -188,11 +189,11 @@ public class NamingCzar {
      static Map<com.sun.fortress.nodes.Type, String> specialFortressTypes = new HashMap<com.sun.fortress.nodes.Type, String>();
 
      static void bl(APIName api, String str, String cl) {
-         b(api,str, interpreterValues+cl+";");
+         b(api,str, runtimeValues+cl+";");
      }
 
      static void bl(com.sun.fortress.nodes.Type t, String cl) {
-         b(t, interpreterValues+cl+";");
+         b(t, runtimeValues+cl+";");
      }
 
      static void b(APIName api, String str, String cl) {
@@ -204,12 +205,12 @@ public class NamingCzar {
      }
 
      static {
-         bl(fortLib, "Boolean", "FBool");
+         bl(fortLib, "Boolean", "FBoolean");
          bl(fortLib, "Char", "FChar");
          bl(fortLib, "RR32", "FRR32");
-         bl(fortLib, "RR64", "FFloat");
-         bl(fortLib, "ZZ32", "FInt");
-         bl(fortLib, "ZZ64", "FLong");
+         bl(fortLib, "RR64", "FRR64");
+         bl(fortLib, "ZZ32", "FZZ32");
+         bl(fortLib, "ZZ64", "FZZ64");
          bl(fortLib, "String", "FString");
          bl(NodeFactory.makeVoidType(span), "FVoid");
      }
@@ -236,12 +237,12 @@ public class NamingCzar {
 
          } else if (t instanceof BaseType) {
              if (t instanceof AnyType) {
-                 return interpreterValues + "FValue;";
+                 return runtimeValues + "FValue;";
              } else if (t instanceof BottomType) {
                  return bug("Not sure how bottom type translates into Java");
              } else if (t instanceof NamedType) {
                  if (t instanceof TraitType) {
-                     return interpreterValues + "FValue;";
+                     return runtimeValues + "FValue;";
                  } else if (t instanceof VarType) {
                      return bug("Need a binding to translate a VarType into Java");
                  }

@@ -17,9 +17,8 @@
 package com.sun.fortress.compiler.codegen.stubs;
 
 import com.sun.fortress.nodes.*;
-import com.sun.fortress.interpreter.evaluator.types.*;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.nativeHelpers.*;
+import com.sun.fortress.compiler.runtimeValues.*;
 
 import java.util.*;
 import org.objectweb.asm.*;
@@ -28,6 +27,6 @@ import edu.rice.cs.plt.tuple.Option;
 public class CompilerBuiltinStub {
 
     public static void println(FString s) {
-        simplePrintln.nativePrintln(s.getString());
+        simplePrintln.nativePrintln(s.toString());
     }
 }
