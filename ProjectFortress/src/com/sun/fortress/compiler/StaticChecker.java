@@ -158,8 +158,9 @@ public class StaticChecker {
                                                                  System.currentTimeMillis());
             result = typeCheck(component, env, component_ast, true);
             // There should be no Inference vars left at this point
-            if( TypesUtil.containsInferenceVarTypes(result.ast()) )
-                bug("Result of typechecking still contains inference varaibles. " + result.ast());
+            if( TypesUtil.assertAfterTypeChecking(result.ast()) )
+                bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType " +
+                    "and/or TraitType with a non-empty staticParams field." + result.ast());
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // Check overloadings in this component.
             List<StaticError> errors =

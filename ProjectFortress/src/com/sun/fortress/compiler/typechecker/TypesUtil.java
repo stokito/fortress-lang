@@ -30,10 +30,12 @@ import java.util.Set;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.compiler.typechecker.constraints.ConstraintFormula;
 import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrayType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.MatrixType;
 import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.NodeDepthFirstVisitor;
@@ -42,6 +44,7 @@ import com.sun.fortress.nodes.ObjectExpr;
 import com.sun.fortress.nodes.WhereClause;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes.TypeAbstractVisitor;
@@ -381,6 +384,47 @@ public class TypesUtil {
      */
     public static boolean containsInferenceVarTypes(Node ast) {
         return containsInferenceVarTypes(ast, null);
+    }
+
+    /**
+     * Does the given ast contain any AST nodes
+     * that should be removed after type checking?
+     *
+     * After type checking, the following nodes should be removed:
+     *     ArrayType
+     *     MatrixType
+     *     _InferenceVarType
+     * and TraitType should not have a non-empty staticParams field.
+     */
+    public static boolean assertAfterTypeChecking(Node ast) {
+        final Set<_InferenceVarType> ivars;
+        final Box<Boolean> result_ = new Box<Boolean>() {
+            Boolean b = Boolean.FALSE;
+            public void set(Boolean arg0) { b = arg0; }
+            public Boolean value() { return b; }
+        };
+
+        ast.accept(new NodeDepthFirstVisitor_void() {
+            @Override
+            public void forArrayType(ArrayType that) {
+                result_.set(Boolean.TRUE);
+            }
+            @Override
+            public void forMatrixType(MatrixType that) {
+                result_.set(Boolean.TRUE);
+            }
+            @Override
+            public void forTraitType(TraitType that) {
+                if ( ! that.getStaticParams().isEmpty() )
+                    result_.set(Boolean.TRUE);
+            }
+            @Override
+            public void for_InferenceVarType(_InferenceVarType that) {
+                result_.set(Boolean.TRUE);
+            }
+        });
+
+        return result_.value();
     }
 
     /**
