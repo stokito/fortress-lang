@@ -297,7 +297,6 @@ public final class Shell {
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck")) {
                 /* TODO: remove the next line once type checking is permanently turned on */
-                WellKnownNames.useTypeCheckerLibraries();
                 Types.useTypeCheckerLibraries();
                 setTypeChecking(true);
                 setPhase( PhaseOrder.TYPECHECK );
@@ -828,15 +827,15 @@ public final class Shell {
             if (! s.endsWith(".fss")) {
                 s = s + ".fss";
             }
-            		
+
             APIName name = NodeUtil.apiName( s );
             Path path = sourcePath( s, name );
             String file_name = name.toString() + (s.endsWith(".fss") ? ".fss" : ".fsi");
-           
+
             String file = args.get(0) + ".fss" ;
  //           compilerPhases( sourcePath(file, cuName(file)), file,
  //                   Option.<String>none(), true );
-            compilerPhases( path, file_name, 
+            compilerPhases( path, file_name,
                     Option.<String>none(), true );
         }
     }

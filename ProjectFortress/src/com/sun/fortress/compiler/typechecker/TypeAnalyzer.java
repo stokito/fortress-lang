@@ -139,15 +139,15 @@ public class TypeAnalyzer {
     /** Verify that the given name is defined and is a TraitIndex. */
     private void assertTraitIndex(Id name) {
         // this will fail if the name is undefined:
-     Option<TypeConsIndex> ind = _table.typeCons(name);
-     if(ind.isNone()){
-       throw new IllegalArgumentException("Trait " + name +
-             "in the given TraitTable.");
-     }
+        Option<TypeConsIndex> ind = _table.typeCons(name);
+        if(ind.isNone()){
+            throw new IllegalArgumentException("Trait " + name +
+                                               " in the given TraitTable.");
+        }
         TypeConsIndex index = ind.unwrap();
         if (!(index instanceof TraitIndex)) {
             throw new IllegalArgumentException("Trait " + name + " is not a trait " +
-                                               "in the given TraitTable.");
+                                               " in the given TraitTable.");
         }
     }
 
@@ -164,7 +164,7 @@ public class TypeAnalyzer {
     public TypeAnalyzer extend(List<StaticParam> params, Option<WhereClause> whereClause) {
         return new TypeAnalyzer(this, params, whereClause);
     }
-    
+
     public TypeAnalyzer extend(scala.List<StaticParam> params, scala.Option<WhereClause> whereClause){
         return extend(toJavaList(params),toJavaOption(whereClause));
     }
@@ -1233,4 +1233,3 @@ public class TypeAnalyzer {
     }
 
 }
-

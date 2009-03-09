@@ -80,8 +80,6 @@ public class WellKnownNames {
     public final static String calleeViolationException = "CalleeViolation";
     public final static String labelException = "LabelException";
 
-    public static String compilerLibrary() { return _compilerLibrary; }
-    public static String compilerBuiltin() { return _compilerBuiltin; }
     public static String fortressLibrary() { return _fortressLibrary; }
     public static String fortressBuiltin() { return _fortressBuiltin; }
     public static String anyTypeLibrary() { return _anyTypeLibrary; }
@@ -105,13 +103,6 @@ public class WellKnownNames {
     public static void useCompilerLibraries() {
         _fortressLibrary = "CompilerLibrary";
         _fortressBuiltin = "CompilerBuiltin";
-        _defaultLibrary =
-            new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
-    }
-
-    public static void useTypeCheckerLibraries() {
-        _fortressLibrary = "TypeCheckerLibrary";
-        _fortressBuiltin = "TypeCheckerBuiltin";
         _defaultLibrary =
             new String[] { anyTypeLibrary(), fortressLibrary(), fortressBuiltin() };
     }
