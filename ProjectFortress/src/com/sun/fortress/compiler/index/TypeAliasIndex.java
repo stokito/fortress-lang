@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -28,15 +28,17 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.useful.NI;
 
 public class TypeAliasIndex extends TypeConsIndex {
-    
+
     private final TypeAlias _ast;
-    
+
     public TypeAliasIndex(TypeAlias ast) {
         _ast = ast;
     }
-    
+
+    public TypeAlias ast() { return _ast; }
+
     public List<StaticParam> staticParameters() { return _ast.getStaticParams(); }
-    
+
     public Type type() { return _ast.getTypeDef(); }
 
 	@Override

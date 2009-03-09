@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -26,14 +26,16 @@ import com.sun.fortress.useful.NI;
 
 public class Dimension extends TypeConsIndex {
     private final DimDecl ast;
-    
+
     public Dimension(DimDecl _ast) {
         ast = _ast;
     }
-    
+
+    public DimDecl ast() { return ast; }
+
     @Override
-    public List<StaticParam> staticParameters() { 
-        return new ArrayList<StaticParam>(); 
+    public List<StaticParam> staticParameters() {
+        return new ArrayList<StaticParam>();
     }
 
 	@Override
