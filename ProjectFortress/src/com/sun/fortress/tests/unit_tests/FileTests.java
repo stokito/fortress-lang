@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.StringTokenizer;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -708,14 +709,28 @@ public class FileTests {
                       int l = s.lastIndexOf(".test");
                       String testname = s.substring(0, l);
                       
-                      
-                      
-                      if (props.get("compile") != null)
-                          compileTests.add(new CompileTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                      if (props.get("link") != null)
-                          linkTests.add(new LinkTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
-                      if (props.get("run") != null)
-                          runTests.add(new TestTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                      String testNames = props.get("tests");
+                      if (testNames == null)
+                          testNames = "";
+                      else
+                          testNames = testNames.trim();
+
+
+                      if (testNames.length() > 0) {
+                          StringTokenizer st = new StringTokenizer(testNames);
+                          while  (st.hasMoreTokens()) {
+                              String token = st.nextToken(); 
+                              standardCompilerTests(props, dir, dirname, token,
+                                      expect_failure, failsOnly, compileTests, linkTests,
+                                      runTests);
+                          }
+                      }
+                      else {
+
+                          standardCompilerTests(props, dir, dirname, testname,
+                                  expect_failure, failsOnly, compileTests, linkTests,
+                                  runTests);
+                      }
                   } else {
                       System.out.println("Not compiling file " + s);
                       decrement = false;
@@ -739,6 +754,30 @@ public class FileTests {
                 suite.addTest(test);
         }
         return suite;
+    }
+
+    /**
+     * @param props
+     * @param dir
+     * @param dirname
+     * @param testname
+     * @param expect_failure
+     * @param failsOnly
+     * @param compileTests
+     * @param linkTests
+     * @param runTests
+     * @throws IOException
+     */
+    private static void standardCompilerTests(StringMap props, File dir,
+            String dirname, String testname, boolean expect_failure,
+            boolean failsOnly, List<Test> compileTests, List<Test> linkTests,
+            List<Test> runTests) throws IOException {
+        if (props.get("compile") != null)
+              compileTests.add(new CompileTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+          if (props.get("link") != null)
+              linkTests.add(new LinkTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+          if (props.get("run") != null)
+              runTests.add(new TestTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
     }
 
     /**
