@@ -16,4 +16,4 @@
 compile
 link
 run
-output=Hello World
+run_out_contains=Hello, World!

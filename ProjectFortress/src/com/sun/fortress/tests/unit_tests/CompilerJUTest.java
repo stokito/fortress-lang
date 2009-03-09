@@ -32,13 +32,10 @@ public class CompilerJUTest {
 
     public static Test suite() throws IOException {
         String testDir = ProjectProperties.BASEDIR + "compiler_tests";
-        boolean failsOnly = ! ("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
         
-       // TestSuite suite = new TestSuite("Test all .fss files in 'tests'.");
-        //$JUnit-BEGIN$
-       // suite.addTest(FileTests.suite(testDir, failsOnly, false));
-        //$JUnit-END$
-        return FileTests.compilerSuite(testDir, failsOnly, false);
+        boolean failsOnly = ! ProjectProperties.getBoolean("fortress.junit.verbose", false);
+        
+         return FileTests.compilerSuite(testDir, failsOnly, false);
     }
 
 }
