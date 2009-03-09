@@ -1,5 +1,5 @@
 (******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -36,6 +36,7 @@ api PrefixMap
 import List.{...}
 import Map.{...}
 import PrefixSet.{...}
+import CovariantCollection.{...}
 trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],
         V\]
     extends { Generator[\(F, V)\], Equality[\PrefixMap[\E, F, V\]\] }
@@ -105,6 +106,16 @@ singletonPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],
 
 prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],
         V\](g: Generator[\(F, V)\]): PrefixMap[\E, F, V\]
+
+opr {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],
+        V\] fs: (F, V)... /}: PrefixMap[\E, F, V\]
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],
+        V\] g: Generator[\(F, V)\] /}: PrefixMap[\E, F, V\]
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],
+        V\]  /}: Comprehension[\(F, V), PrefixMap[\E, F, V\], AnyCovColl,
+        AnyCovColl\]
 
 object SeqPrefixMapGenerator[\E extends StandardTotalOrder[\E\],
         F extends List[\E\],

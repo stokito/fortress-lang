@@ -36,6 +36,7 @@ component PrefixMap
 import List.{...}
 import Map.{...}
 import PrefixSet.{...}
+import CovariantCollection.{...}
 export PrefixMap
 
 
@@ -414,6 +415,12 @@ prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g:Generato
 
 
 opr {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] fs:(F,V)... /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](fs)
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] g:Generator[\(F,V)\] /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](g)
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] /}:Comprehension[\(F,V),PrefixMap[\E,F,V\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\(F,V),PrefixMap[\E,F,V\]\](fn cc => prefixMap[\E,F,V\](cc.toArray()))
+
 
 
 (*) These clash with Map
