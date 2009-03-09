@@ -14,3 +14,4 @@
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 compile
+compile_exception_contains=FileNotFoundException

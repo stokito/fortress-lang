@@ -75,28 +75,87 @@ public class FileTests {
         /**
          * If true, only print test output for unexpected results.
          */
-        boolean unexpectedOnly;
-        boolean expectFailure;
+        final boolean unexpectedOnly;
+        final boolean knownFailure;
+        final boolean shouldFail;
 
-        boolean printSuccess;
-        boolean printFailure;
+        final boolean printSuccess;
+        final boolean printFailure;
 
-        public BaseTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
+        public BaseTest(String path, String d, String s, boolean unexpected_only,
+                boolean knownFailure,
+                boolean shouldFail) {
             super("testFile");
             this.f = d + "/" + s;
             this.dir = d;
             this.path = path;
             this.name = s;
             this.unexpectedOnly = unexpected_only;
-            this.printSuccess = !unexpected_only || expect_failure;
-            this.printFailure = !unexpected_only || !expect_failure;
-            this.expectFailure = expect_failure;
+            
+            this.printSuccess = !unexpected_only || knownFailure;
+            this.printFailure = !unexpected_only || !knownFailure;
+            this.knownFailure = knownFailure;
+            this.shouldFail = shouldFail;
         }
 
         public String getName() {
             return f;
         }
 
+        /**
+         * Returns true if this test should be regarded as a "Failure",
+         * regardless of the XXX test name or not.  This can be used to
+         * test that a particular exception was thrown, for example; not only
+         * should (say) XXXbadNumber thrown an exception, it should throw
+         * a NumberFormatException.  Thus, the exc string could be tested
+         * to see that it contains "NumberFormatException".
+         * 
+         * 
+         * @param out
+         * @param err
+         * @param exc
+         * @return
+         */
+        public  String testFailed(String out, String err, String exc) {
+            return null;
+        }
+        
+        /**
+         * Looks for properties of the from pfx+"out_contains", pfx+"out_matches",
+         * etc for out, err, exception, returns true if an expected condition fails.
+         * 
+         * @param pfx
+         * @param props
+         * @param out
+         * @param err
+         * @param exc
+         * @return
+         */
+        protected String generalTestFailed(String pfx, StringMap props, String out, String err, String exc) {
+            String s = null;
+            
+            if (s == null)
+                s = generalTestFailed(pfx, props, "out",  out);
+                
+            if (s == null)
+                s = generalTestFailed(pfx, props, "err",  err);
+            
+            if (s == null)
+                s = generalTestFailed(pfx, props, "exception",  exc) ;
+            return s;
+            
+        }
+
+        private String generalTestFailed(String pfx, StringMap props,
+                String which, String contents) {
+            String what = pfx+which+"_contains";
+            String test = props.get(what);
+            if (test != null && test.length() > 0 && !contents.contains(test)) return what+"="+test;
+            test = props.get(pfx+which+"_matches");
+            if (test != null && test.length() > 0 && !contents.matches(test)) return what+"="+test;
+            return null;
+        }
+        
     }
 
     /**
@@ -106,13 +165,15 @@ public class FileTests {
      */
     public abstract static class SourceFileTest extends BaseTest {
         public SourceFileTest(String path, String d, String s,
-                boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, expect_failure);
+                boolean unexpected_only, 
+                boolean knownFailure,
+                boolean shouldFail) {
+            super(path, d, s, unexpected_only, knownFailure, shouldFail);
         }
 
         public abstract String tag();
         
-        public void testFile() throws Throwable {
+         public void testFile() throws Throwable {
             // Useful when a test is running forever
             //            System.out.println(this.name);
             //            System.out.flush();
@@ -147,31 +208,32 @@ public class FileTests {
                 }
             }
             catch (Throwable ex) {
+                String outs = wt_out.getString();
+                String errs = wt_err.getString();
+                String exFirstLine = ex.toString();
+                String trueFailure = testFailed(outs, errs, exFirstLine);
                 if (f.contains("XXX")) {
-                    // "Failed", but correctly
-                    // !unexpectedOnly || expectFailure
-                    wt_err.flush(printSuccess);
-                    wt_out.flush(printSuccess);
-                    String exFirstLine = ex.toString();
-                    int crLoc = exFirstLine.indexOf("\n");
-                    if (crLoc == -1) crLoc = exFirstLine.length();
-                    exFirstLine = exFirstLine.substring(0, crLoc);
-                    System.out.println(" OK Saw expected exception");
-                    return;
+                    if (trueFailure != null) {
+                        unexpectedExceptionBoilerplate(wt_err, wt_out, ex, " Did not satisfy " + trueFailure);
+                        return;
+                       
+                    } else {
+                        // "Failed", but correctly
+                        // !unexpectedOnly || expectFailure
+                        wt_err.flush(printSuccess);
+                        wt_out.flush(printSuccess);
+                        int crLoc = exFirstLine.indexOf("\n");
+                        if (crLoc == -1) crLoc = exFirstLine.length();
+                        exFirstLine = exFirstLine.substring(0, crLoc);
+                        if (printSuccess)
+                            System.out.println(exFirstLine);
+                        System.out.println(" OK Saw expected exception");
+                        return;
+                    }
                 }
                 else {
-                    // Failed, really
-                    if (printFailure) System.out.println();
-                    wt_err.flush(printFailure);
-                    wt_out.flush(printFailure);
-                    if (printFailure) {
-                        System.out.println(" UNEXPECTED exception ");
-                        ex.printStackTrace();
-                        fail();
-                    } else {
-                        System.out.println(" UNEXPECTED exception");
-                        fail(ex.getMessage());
-                    }
+                    unexpectedExceptionBoilerplate(wt_err, wt_out, ex, " UNEXPECTED exception ");
+                    // return;
                 }
             } finally {
                             //fr.clear();
@@ -181,13 +243,15 @@ public class FileTests {
 
             String outs = wt_out.getString();
             String errs = wt_err.getString();
+ 
             boolean anyFails = outs.contains("fail") || outs.contains("FAIL") ||
+                      errs.contains("fail") || errs.contains("FAIL") || rc != 0;
             
-            errs.contains("fail") || errs.contains("FAIL") || rc != 0;
+            String trueFailure = testFailed(outs, errs, "");
 
             if (f.contains("XXX")) {
                 // NOTE expect to see this on STANDARD OUTPUT, not ERROR.
-                if (anyFails) {
+                if (anyFails && trueFailure == null) {
                     wt_err.flush(printSuccess);
                     wt_out.flush(printSuccess);
                     // Saw a failure, that is good.
@@ -196,18 +260,52 @@ public class FileTests {
                     if (printFailure) System.out.println();
                     wt_err.flush(printFailure);
                     wt_out.flush(printFailure);
-                    System.out.println(" Missing expected failure " );
-                    // Expected exception, saw none.
-                    fail("Expected failure or exception, saw none.");
+                    if (trueFailure != null) {
+                        System.out.println(" Saw failure, but did not satisfy " + trueFailure);
+                        // Expected exception, saw none.
+                        fail("Saw wrong failure.");                        
+                    } else {
+                        System.out.println(" Missing expected failure " );
+                        // Expected exception, saw none.
+                        fail("Expected failure or exception, saw none.");
+                    }
                 }
             } else {
+                // This logic is a little confusing.
+                // Failure is failure.  TrueFailure contains the better message.
+                if (anyFails && trueFailure == null)
+                    trueFailure = "FAIL or fail should not appear in output";
+                
                 long duration = (System.nanoTime() - start) / 1000000;
-                    System.out.println(anyFails ? " FAIL" : " OK (time = " + duration + "ms)");
-                    wt_err.flush(anyFails ? printFailure : printSuccess);
-                    wt_out.flush(anyFails ? printFailure : printSuccess);
+                    System.out.println(trueFailure != null ? " FAIL" : " OK (time = " + duration + "ms)");
+                    wt_err.flush(trueFailure != null ? printFailure : printSuccess);
+                    wt_out.flush(trueFailure != null ? printFailure : printSuccess);
 
-                    assertFalse("Saw failure string", anyFails);
+                    assertTrue("Must satisfy " + trueFailure, trueFailure == null);
 
+            }
+        }
+
+        /**
+         * @param wt_err
+         * @param wt_out
+         * @param ex
+         * @param s
+         * @throws IOException
+         */
+        private void unexpectedExceptionBoilerplate(
+                WireTappedPrintStream wt_err, WireTappedPrintStream wt_out,
+                Throwable ex, String s) throws IOException {
+            if (printFailure) System.out.println();
+            wt_err.flush(printFailure);
+            wt_out.flush(printFailure);
+            if (printFailure) {
+                System.out.println(s);
+                ex.printStackTrace();
+                fail();
+            } else {
+                System.out.println(s);
+                fail(ex.getMessage());
             }
         }
 
@@ -218,21 +316,25 @@ public class FileTests {
     public static class TestTest extends BaseTest {
 
         private final StringMap props;
-        
+
         public TestTest(StringMap props, String path, String d, String s,
-                boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, expect_failure);
+                boolean unexpected_only, boolean knownFailure) {
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX"));
             this.props = props;
         }
-        
+
         public void testFile() throws Throwable {
-            String scriptName = ProjectProperties.FORTRESS_AUTOHOME + "/bin/run";
+            String scriptName = ProjectProperties.FORTRESS_AUTOHOME
+                    + "/bin/run";
             Runtime runtime = Runtime.getRuntime();
-            System.out.print(" run  ") ; System.out.print(f); System.out.print(" "); System.out.flush();
+            System.out.print(" run  ");
+            System.out.print(f);
+            System.out.print(" ");
+            System.out.flush();
 
             ProcessBuilder pb = new ProcessBuilder(scriptName, name);
             Map<String, String> env = pb.environment();
-            if (! env.containsKey("FORTRESS_HOME")) {
+            if (!env.containsKey("FORTRESS_HOME")) {
                 env.put("FORTRESS_HOME", ProjectProperties.FORTRESS_AUTOHOME);
             }
             Process p = pb.start();
@@ -247,37 +349,52 @@ public class FileTests {
             StreamForwarder f_out = new StreamForwarder(out, cached_out, true);
             StreamForwarder f_err = new StreamForwarder(err, cached_err, true);
 
-                f_out.join();
-                f_err.join();
-                int exitValue = p.waitFor();
-                String s_out = cached_out.toString();
-                String s_err = cached_err.toString();
+            f_out.join();
+            f_err.join();
+            int exitValue = p.waitFor();
+            String s_out = cached_out.toString();
+            String s_err = cached_err.toString();
 
-                boolean fail_exit = exitValue != 0;
-                // We've decided that exit codes are definitive.
-                boolean fail_out =  false && s_out.contains("FAIL");
-                boolean fail_err =  false && s_err.contains("FAIL");
-                boolean failed = fail_exit || fail_out || fail_err;
-                String fail_cause = !failed ? "" : (
-                        (fail_exit ? "Exit code != 0" : "") +
-                        (fail_out ? " Stdout contained FAIL" : "") +
-                        (fail_err ? " Stderr contained FAIL" : "")
-                ).trim();
+            boolean fail_exit = exitValue != 0;
+            // We've decided that exit codes are definitive.
+            boolean fail_out = false && s_out.contains("FAIL");
+            boolean fail_err = false && s_err.contains("FAIL");
+            boolean failed = fail_exit || fail_out || fail_err;
+            String fail_cause = !failed ? ""
+                    : ((fail_exit ? "Exit code != 0" : "")
+                            + (fail_out ? " Stdout contained FAIL" : "") + (fail_err ? " Stderr contained FAIL"
+                            : "")).trim();
 
-                if (failed && printFailure || !failed && printSuccess) {
-                    System.out.print(s_out);
-                    System.out.print(s_err);
-                }
+            String trueFailure = testFailed(s_out, s_err, "");
+            
+            if (trueFailure != null) {
+                fail_cause = "Failed to satisfy " + trueFailure;
+                failed = true;
+            }
+            
+            // OY, pass/fail dsylexia here.
+            
+            if (failed && printFailure || !failed && printSuccess) {
+                System.out.print(s_out);
+                System.out.print(s_err);
+            }
 
-                if (expectFailure != failed) {
-                    System.out.println(failed ? "UNEXPECTED failure ("+ fail_cause+")" : "Did not see expected failure");
-                    fail();
-                } else {
-                    System.out.println(failed ? "Saw expected failure ("+ fail_cause+")" : "Passed");
-                }
+            if (trueFailure != null) {
+                System.out.println("Failed to satisfy " + trueFailure);
+                fail();
+                
+            } else if (shouldFail != failed) {
+                System.out.println(failed ? "UNEXPECTED failure (" + fail_cause
+                        + ")" : "Did not see expected failure");
+                fail();
+            } else {
+                System.out.println(failed ? "Saw expected failure ("
+                        + fail_cause + ")" : "Passed");
+            }
+        }
 
-
-
+        public String testFailed(String out, String err, String exc) {
+            return generalTestFailed("run_", props, out, err, exc);
 
         }
     }
@@ -286,8 +403,8 @@ public class FileTests {
     
     public static class ShellTest extends BaseTest {
 
-        public ShellTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, s.startsWith("XXX") ? !expect_failure : expect_failure);
+        public ShellTest(String path, String d, String s, boolean unexpected_only, boolean knownFailure) {
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX") );
         }
 
         public void testFile() throws Throwable {
@@ -334,24 +451,22 @@ public class FileTests {
                     System.out.print(s_err);
                 }
 
-                if (expectFailure != failed) {
+                if (shouldFail != failed) {
                     System.out.println(failed ? "UNEXPECTED failure ("+ fail_cause+")" : "Did not see expected failure");
                     fail();
                 } else {
                     System.out.println(failed ? "Saw expected failure ("+ fail_cause+")" : "Passed");
                 }
-
-
-
-
         }
     }
     
     public static class CompileTest extends SourceFileTest {
 
-        public CompileTest(String path, String d, String s,
-                boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, expect_failure);
+        private final StringMap props;
+       public CompileTest(StringMap props, String path, String d, String s,
+                boolean unexpected_only, boolean knownFailure) {
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX") );
+            this.props = props;
         }
 
         @Override
@@ -369,13 +484,20 @@ public class FileTests {
             return "compile";
         }
         
+        public  String testFailed(String out, String err, String exc) {
+            return generalTestFailed("compile_", props, out, err, exc);
+        }
+        
     }
 
     public static class LinkTest extends SourceFileTest {
 
-        public LinkTest(String path, String d, String s,
-                boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, expect_failure);
+        private final StringMap props;
+       public LinkTest(StringMap props, String path, String d, String s,
+                boolean unexpected_only, boolean knownFailure) {
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX") );
+            this.props = props;
+
         }
 
         @Override
@@ -395,12 +517,17 @@ public class FileTests {
             return "link";
         }
         
+        public  String testFailed(String out, String err, String exc) {
+            return generalTestFailed("link_", props, out, err, exc);
+
+        }
+        
     }
 
     public static class InterpreterTest extends SourceFileTest {
 
-        public InterpreterTest(String path, String d, String s, boolean unexpected_only, boolean expect_failure) {
-            super(path, d, s, unexpected_only, expect_failure);
+        public InterpreterTest(String path, String d, String s, boolean unexpected_only, boolean knownFailure) {
+            super(path, d, s, unexpected_only, knownFailure, s.startsWith("XXX"));
         }
 
         
@@ -517,6 +644,23 @@ public class FileTests {
         return suite;
     }
 
+    /**
+     * Generates a suite of tests from directory dir_name, using "foo.test" files
+     * to determine the content of the test.  failsOnly means to only print failing
+     * tests (either normal tests that fail, or XXX tests that succeed).
+     * 
+     * WARNING: expect_failure  is not treated consistently.
+     * 
+     * It either means, "the test fails, and that is a good thing",
+     * or it means, "the test fails, it is a bad thing, but we are working on it
+     * and do not want to be bothered by something we already know is a problem".
+     * 
+     * @param dir_name
+     * @param failsOnly
+     * @param expect_failure
+     * @return
+     * @throws IOException
+     */
     public static TestSuite compilerSuite(
             String dir_name,
             boolean failsOnly,
@@ -563,10 +707,13 @@ public class FileTests {
                       
                       int l = s.lastIndexOf(".test");
                       String testname = s.substring(0, l);
+                      
+                      
+                      
                       if (props.get("compile") != null)
-                          compileTests.add(new CompileTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                          compileTests.add(new CompileTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                       if (props.get("link") != null)
-                          linkTests.add(new LinkTest(dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
+                          linkTests.add(new LinkTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                       if (props.get("run") != null)
                           runTests.add(new TestTest(props, dir.getCanonicalPath(), dirname, testname, failsOnly, expect_failure));
                   } else {
