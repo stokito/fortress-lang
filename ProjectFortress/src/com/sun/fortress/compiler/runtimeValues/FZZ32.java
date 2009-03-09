@@ -1,4 +1,4 @@
-(*******************************************************************************
+/*******************************************************************************
     Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
@@ -13,15 +13,15 @@
 
     Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
- ******************************************************************************)
+ ******************************************************************************/
 
-component CompileMath
-import java java.lang.{Math.random as jrandom}
-import java com.sun.fortress.nativeHelpers.{simplePrintRR64.nativePrintRR64 as jPrintRR64}
-export SimpleExecutable
+package com.sun.fortress.compiler.runtimeValues;
 
-run() = do
-   jPrintRR64(jrandom());
-end
+public class FZZ32 {
+    int val;
 
-end
+    FZZ32(int x) { val = x; }
+    public String toString() { return "" + val;}
+    public int getValue() {return val;}
+    public static FZZ32 make(int x) {return new FZZ32(x);}
+}

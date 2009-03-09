@@ -16,8 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.codegen.stubs;
 
-import com.sun.fortress.interpreter.evaluator.types.*;
-import com.sun.fortress.interpreter.evaluator.values.*;
+import com.sun.fortress.compiler.runtimeValues.FString;
 
 public class Compiled1Stub {
 
