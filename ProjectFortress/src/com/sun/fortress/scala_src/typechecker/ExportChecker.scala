@@ -31,16 +31,20 @@ import com.sun.fortress.compiler.index.ParametricOperator
 import com.sun.fortress.compiler.index.{Constructor => JavaConstructor}
 import com.sun.fortress.compiler.index.{DeclaredFunction => JavaDeclaredFunction}
 import com.sun.fortress.compiler.index.{DeclaredVariable => JavaDeclaredVariable}
+import com.sun.fortress.compiler.index.{Dimension => JavaDimension}
 import com.sun.fortress.compiler.index.{Function => JavaFunction}
 import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.{ParamVariable => JavaParamVariable}
 import com.sun.fortress.compiler.index.{SingletonVariable => JavaSingletonVariable}
+import com.sun.fortress.compiler.index.{TypeAliasIndex => JavaTypeAliasIndex}
+import com.sun.fortress.compiler.index.{Unit => JavaUnit}
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful._
+import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.typechecker.OverloadingChecker._
@@ -55,6 +59,24 @@ import com.sun.fortress.useful.HasAt
  * Implements the semantics of export statements described
  * in Section 20.2.2 "Export Statements"
  * in the Fortress language specification Version 1.0.
+ *
+ * The following top-level declarations are not checked yet:
+ *     type aliases
+ *     dimensions
+ *     units
+ *
+ * The following types are ignored for now:
+ *     TaggedDimType
+ *     TaggedUnitType
+ *
+ * The following static arguments are ignored for now:
+ *     IntArg
+ *     BoolArg
+ *     OpArg
+ *     DimArg
+ *     UnitArg
+ *
+ * Where clauses, contracts, and default expressions are ignored for now.
  */
 
 /* From the spec:
@@ -120,8 +142,8 @@ object ExportChecker {
             for ( o <- toSet(api.parametricOperators) ) {
                 val name = o.name
                 if ( declaredParametricOperators.keySet.contains(name) )
-                    multipleDecls = (declaredParametricOperators.get(name).get + "." + name,
-                                     apiName + "." + name) :: multipleDecls
+                    multipleDecls = (declaredParametricOperators.get(name).get + "." +
+                                     name, apiName + "." + name) :: multipleDecls
                 else {
                     val kv = (name, apiName)
                     declaredParametricOperators = declaredParametricOperators + kv
@@ -227,6 +249,35 @@ object ExportChecker {
                 }
             }
 
+            /* From the spec:
+             * "A trait or object declaration is satisfied by a declaration that
+             *  has the same header, and contains, for each field declaration
+             *  and non-abstract method declaration in the exported declaration,
+             *  a satisfying declaration (or a set of declarations).
+             *  When a trait has an abstract method declared, a satisfying trait
+             *  declaration is allowed to provide a concrete declaration.
+             *
+             *  A satisfying trait or object declaration may contain method and
+             *  field declarations not exported by the API but these
+             *  might not be overloaded with method or field declarations provided
+             *  by (contained in or inherited by) any declarations
+             *  exported by the API."
+             */
+            val typesInAPI  = api.typeConses
+            val typesInComp = component.typeConses
+            /*
+            for ( t <- toSet(typesInAPI.firstSet) ;
+                  if isDeclaredName(t) ) {
+                // t should be in this component
+                if ( typesInComp.firstSet.contains(t) ) {
+                } else {
+                    for ( t <- toSet(typesInAPI.matchFirst(t)) ) {
+                        t match
+                    }
+                }
+            }
+            */
+
             // Collect the error messages for the missing declarations.
             if ( ! missingDecls.isEmpty ) {
                 var message = "" + missingDecls.head
@@ -247,30 +298,6 @@ object ExportChecker {
                       " defines multiple declarations.\n" +
                       "    Multiple declarations: {" + message + "}")
             }
-
-            /* for the other kinds of top-level declarations
-             *
-            Set<ParametricOperator> parametricOperators = api.parametricOperators;
-            Map<Id, TypeConsIndex> typeConses = api.typeConses;
-            Map<Id, Dimension> dimensions = api.dimensions;
-            Map<Id, Unit> units = api.units;
-            */
-
-            /* from the spec
-             *
-             * A trait or object declaration is satisfied by a declaration that
-             * has the same header, and contains, for each field declaration
-             * and non-abstract method declaration in the exported declaration,
-             * a satisfying declaration (or a set of declarations).
-             * When a trait has an abstract method declared, a satisfying trait
-             * declaration is allowed to provide a concrete declaration.
-             *
-             * A satisfying trait or object declaration may contain method and
-             * field declarations not exported by the API but these
-             * might not be overloaded with method or field declarations provided
-             * by (contained in or inherited by) any declarations
-             * exported by the API.
-             */
         }
         errors
     }
@@ -281,86 +308,169 @@ object ExportChecker {
     private def error(errors: JavaList[StaticError], loc: String, msg: String) =
         errors.add(TypeError.make(msg, loc.toString()))
 
-    /* Returns true if two optional types are the same.
-     * Should be able to handle arbitrary type equality testing.
-     * Only works for NamedType for now.
-     */
-    private def equalOptTypes(left: Option[Type], right: Option[Type]): Boolean =
-        (left, right) match {
-            case (None, None) => true
-            case (Some(tyLeft), Some(tyRight)) => equalTypes(tyLeft, tyRight)
-            case _ => false
-        }
-
-    /* Returns true if two types are the same.
-     * Should be able to handle arbitrary type equality testing.
-     * Only works for NamedType for now.
+    /* Returns true if two types are same.
+     * If any of the following types are compared, returns false:
+     *
+     *     ArrayType        : removed after type checking
+     *     MatrixType       : removed after type checking
+     *     _InferenceVarType: removed after type checking
+     *     TaggedDimType    : not supported yet
+     *     TaggedUnitType   : not supported yet
+     *     IntersectionType : not in APIs
+     *     UnionType        : not in APIs
+     *     FixedPointType   : not in APIs
+     *     LabelType        : not in APIs
+     *     TraitType with non-type static arguments : not supported yet
      */
     private def equalTypes(left: Type, right: Type): Boolean =
         (left, right) match {
-            case (VarType(_,nameLeft,_), VarType(_,nameRight,_)) =>
-                equalIds(nameLeft, nameRight)
-            /* Should be able to handle TraitTypes with static arguments.
-             * Only works for TraitTypes without any static arguments for now.
-             */
-            case (TraitType(_, nameLeft,  argsLeft,  paramsLeft),
-                  TraitType(_, nameRight, argsRight, paramsRight)) =>
-                equalIds( nameLeft, nameRight ) &&
-                argsLeft.isEmpty && argsRight.isEmpty &&
-                paramsLeft.isEmpty && paramsRight.isEmpty
-            /* Should be able to handle any TupleTypes.
-             * Only works for void types.
-             */
+            case (AnyType(_), AnyType(_)) => true
+            case (BottomType(_), BottomType(_)) => true
+            case (VarType(_, nameL, _), VarType(_, nameR, _)) =>
+                equalIds(nameL, nameR)
+            case (TraitType(_, nameL, argsL, paramsL),
+                  TraitType(_, nameR, argsR, paramsR)) =>
+                equalIds(nameL, nameR) &&
+                equalListStaticArgs(argsL, argsR) &&
+                equalListStaticParams(paramsL, paramsR)
             case (TupleType(_, elmsL, varargsL, kwdL),
                   TupleType(_, elmsR, varargsR, kwdR)) =>
-                elmsL.isEmpty && varargsL.isEmpty && kwdL.isEmpty &&
-                elmsR.isEmpty && varargsR.isEmpty && kwdR.isEmpty
+                equalListTypes(elmsL, elmsR) &&
+                equalOptTypes(varargsL, varargsR) &&
+                equalListKeywordTypes(kwdL, kwdR)
+            case (ArrowType(_, domL, ranL, effL),
+                  ArrowType(_, domR, ranR, effR)) =>
+                  equalTypes(domL, domR) &&
+                  equalTypes(ranL, ranR) &&
+                  equalEffects(effL, effR)
+            case _ => false
+        }
+
+    /* Returns true if two optional types are same. */
+    private def equalOptTypes(left: Option[Type], right: Option[Type]): Boolean =
+        (left, right) match {
+            case (None, None) => true
+            case (Some(tyL), Some(tyR)) => equalTypes(tyL, tyR)
+            case _ => false
+        }
+
+    /* Returns true if two lists of types are same. */
+    private def equalListTypes(left: List[Type], right: List[Type]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalTypes(l,r))
+
+    /* Returns true if two optional lists of types are same. */
+    private def equalOptListTypes(left: Option[List[Type]],
+                                  right: Option[List[Type]]): Boolean =
+        (left, right) match {
+            case (None, None) => true
+            case (Some(tyL), Some(tyR)) => equalListTypes(tyL, tyR)
+            case _ => false
+        }
+
+    /* Returns true if two lists of keyword types are same. */
+    private def equalListKeywordTypes(left: List[KeywordType],
+                                      right: List[KeywordType]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalKeywordTypes(l,r))
+
+    /* Returns true if two keyword types are same. */
+    private def equalKeywordTypes(left: KeywordType, right: KeywordType): Boolean =
+        (left, right) match {
+            case (KeywordType(_, nameL, typeL), KeywordType(_, nameR, typeR)) =>
+                equalIds(nameL, nameR) && equalTypes(typeL, typeR)
+        }
+
+    /* Returns true if two effects are same. */
+    private def equalEffects(left: Effect, right: Effect): Boolean =
+        (left, right) match {
+            case (Effect(_, throwsL, ioL), Effect(_, throwsR, ioR)) =>
+                equalOptListTypes(throwsL, throwsR) &&
+                ioL == ioR
+        }
+
+    /* Returns true if two IdOrOps denote the same type. */
+    private def equalIdOrOps(left: IdOrOp, right: IdOrOp): Boolean =
+        (left, right) match {
+            case (idl@Id(_,_,_), idr@Id(_,_,_)) => equalIds(idl, idr)
+            case (Op(_, apiL, textL, fixityL, enclosingL),
+                  Op(_, apiR, textR, fixityR, enclosingR)) =>
+                equalOptAPINames(apiL, apiR) && textL == textR &&
+                fixityL == fixityR && enclosingL == enclosingR
             case _ => false
         }
 
     /* Returns true if two Ids denote the same type. */
     private def equalIds(left: Id, right: Id): Boolean =
         (left, right) match {
-            case (Id(_, apiLeft,  textLeft),
-                  Id(_, apiRight, textRight)) =>
-                equalOptAPINames(apiLeft, apiRight) &&
-                textLeft == textRight
+            case (Id(_, apiL, textL), Id(_, apiR, textR)) =>
+                equalOptAPINames(apiL, apiR) && textL == textR
         }
 
-    /* Returns true if two optional APINames are the same. */
+    /* Returns true if two optional APINames are same. */
     private def equalOptAPINames(left: Option[APIName],
                                  right: Option[APIName]): Boolean =
         (left, right) match {
             case (None, None) => true
-            case (Some(APIName(_, idsLeft, _)), Some(APIName(_, idsRight, _))) =>
-                List.forall2(idsLeft,
-                             idsRight)((l,r) => equalIds(l,r))
+            case (Some(APIName(_, idsL, _)), Some(APIName(_, idsR, _))) =>
+                List.forall2(idsL, idsR)((l,r) => equalIds(l,r))
             case _ => false
         }
 
-    /* Returns true if two Params are the same.
-     * Should check the modifiers and default expressions
-     * Only checks the types for now.
-     */
-    private def equalParams(left: Param, right: Param): Boolean =
-        equalOptTypes(toOption(left.getIdType), toOption(right.getIdType)) &&
-        equalOptTypes(toOption(left.getVarargsType), toOption(right.getVarargsType))
+    /* Returns true if two FnHeaders are same. */
+    private def equalFnHeaders(left: FnHeader, right: FnHeader): Boolean =
+        (left, right) match {
+            case (FnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
+                           paramsL, retTyL),
+                  FnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
+                           paramsR, retTyR)) =>
+                equalListStaticParams(sparamsL, sparamsR) && modsL.equals(modsR) &&
+                equalOptListTypes(throwsL, throwsR) &&
+                equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR)
+    }
 
-    /* Returns true if two lists of Params are the same. */
+    /* Returns true if two lists of static parameters are same. */
+    private def equalListStaticParams(left: List[StaticParam],
+                                      right: List[StaticParam]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalStaticParams(l,r))
+
+    /* Returns true if two static parameters are same. */
+    private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
+        (left, right) match {
+            case (StaticParam(_, nameL, extendsL, dimL, absorbsL, kindL),
+                  StaticParam(_, nameR, extendsR, dimR, absorbsR, kindR)) =>
+                equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
+                equalOptTypes(dimL, dimR) &&
+                absorbsL == absorbsR && kindL == kindR
+        }
+
+    /* Returns true if two lists of static arguments are same. */
+    private def equalListStaticArgs(left: List[StaticArg],
+                                    right: List[StaticArg]): Boolean =
+        left.length == right.length &&
+        List.forall2(left, right)((l,r) => equalStaticArgs(l,r))
+
+    /* Returns true if two static arguments are same. */
+    private def equalStaticArgs(left: StaticArg, right: StaticArg): Boolean =
+        (left, right) match {
+            case (TypeArg(_, typeL), TypeArg(_, typeR)) => equalTypes(typeL, typeR)
+            case _ => false
+        }
+
+    /* Returns true if two Params are same. */
+    private def equalParams(left: Param, right: Param): Boolean =
+        (left, right) match {
+            case (Param(_, nameL, modsL, typeL, initL, varargsL),
+                  Param(_, nameR, modsR, typeR, initR, varargsR)) =>
+                modsL.equals(modsR) &&
+                equalOptTypes(typeL, typeR) && equalOptTypes(varargsL, varargsR)
+        }
+
+    /* Returns true if two lists of Params are same. */
     private def equalListParams(left: List[Param], right: List[Param]): Boolean =
         left.length == right.length &&
         List.forall2(left, right)((l,r) => equalParams(l,r))
-
-    /* Returns true if two FnHeaders are the same.
-     * Should check the static parameters, modifiers, where clauses,
-     * throws clauses, and contracts.
-     * Only checks the parameter types and the return types for now.
-     */
-    private def equalFnHeaders(left: FnHeader, right: FnHeader): Boolean =
-        equalListParams(Lists.toList(left.getParams),
-                        Lists.toList(right.getParams)) &&
-        equalOptTypes(toOption(left.getReturnType),
-                      toOption(right.getReturnType))
 }
 
 /* Extractor Objects
@@ -426,3 +536,39 @@ object FunctionalMethod {
     def apply(fndecl:FnDecl, id:Id) =
         new JavaFunctionalMethod(fndecl, id)
 }
+
+/* com.sun.fortress.compiler.index.TypeConsIndex
+ *     comprises { TraitIndex, TypeAliasIndex, Dimension, Unit }
+ * TraitIndex
+ *     comprises { ProperTraitIndex, ObjectTraitIndex }
+ */
+/*
+object ProperTraitIndex {
+    def unapply(type:JavaProperTraitIndex) =
+        Some(())
+    def apply() =
+        new JavaProperTraitIndex()
+}
+
+
+object ObjectTraitIndex {
+    def unapply(object:JavaObjectTraitIndex) =
+        Some((object.ast))
+    def apply(:TypeAlias) = new JavaTypeAliasIndex(typeAlias)
+}
+
+object TypeAliasIndex {
+    def unapply(type:JavaTypeAliasIndex) = Some((type.ast))
+    def apply(typeAlias:TypeAlias) = new JavaTypeAliasIndex(typeAlias)
+}
+
+object Dimension {
+    def unapply(dim:JavaDimension) = Some((dim.ast))
+    def apply(dimDecl:DimDecl) = new JavaDimension(dimDecl)
+}
+
+object Unit {
+    def unapply(unit:JavaUnit) = Some((unit.ast))
+    def apply(unitDecl:UnitDecl) = new JavaUnit(unitDecl)
+}
+*/
