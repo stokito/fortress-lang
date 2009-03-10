@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
+    Copyright 2009 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -25,12 +25,19 @@ import java.util.Comparator;
  *
  * @author dr2chase
  */
-public final class StringComparer implements Comparator<String> {
+public class StringComparer implements Comparator<String> {
 
     public int compare(String arg0, String arg1) {
         return arg0.compareTo(arg1);
     }
 
+    final static class Reversed extends StringComparer {
+        public int compare(String arg0, String arg1) {
+            return -arg0.compareTo(arg1);
+        }
+    }
+    
     public final static StringComparer V = new StringComparer();
+    public final static StringComparer Vreversed = new Reversed();
 
 }
