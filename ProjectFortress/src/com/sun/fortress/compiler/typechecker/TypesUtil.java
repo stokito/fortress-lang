@@ -394,7 +394,6 @@ public class TypesUtil {
      *     ArrayType
      *     MatrixType
      *     _InferenceVarType
-     * and TraitType should not have a non-empty staticParams field.
      */
     public static boolean assertAfterTypeChecking(Node ast) {
         final Set<_InferenceVarType> ivars;
@@ -412,11 +411,6 @@ public class TypesUtil {
             @Override
             public void forMatrixType(MatrixType that) {
                 result_.set(Boolean.TRUE);
-            }
-            @Override
-            public void forTraitType(TraitType that) {
-                if ( ! that.getStaticParams().isEmpty() )
-                    result_.set(Boolean.TRUE);
             }
             @Override
             public void for_InferenceVarType(_InferenceVarType that) {

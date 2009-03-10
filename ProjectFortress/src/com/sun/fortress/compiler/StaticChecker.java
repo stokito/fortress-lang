@@ -141,11 +141,12 @@ public class StaticChecker {
     public static TypeCheckerResult checkComponent(ComponentIndex component,
                                                    GlobalEnvironment env,
                                                    FortressRepository repository) {
-         if (Shell.getTypeChecking() == true) {
+        if (Shell.getTypeChecking() == true) {
             Node component_ast = component.ast();
             ConstraintUtil.useJavaFormulas();
             // Replace implicit types with explicit ones.
             component_ast = component_ast.accept(new InferenceVarInserter());
+            component_ast = component_ast.accept(new TypeNormalizer());
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
             // typecheck...
@@ -157,11 +158,11 @@ public class StaticChecker {
             component = IndexBuilder.builder.buildComponentIndex((Component)component_ast,
                                                                  System.currentTimeMillis());
             result = typeCheck(component, env, component_ast, true);
+            result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
             if( TypesUtil.assertAfterTypeChecking(result.ast()) )
-                bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType " +
-                    "and/or TraitType with a non-empty staticParams field." + result.ast());
-            result.setAst(result.ast().accept(new TypeNormalizer()));
+                bug("Result of typechecking still contains ArrayType/MatrixType/_InferenceVarType.\n" +
+                    result.ast());
             // Check overloadings in this component.
             List<StaticError> errors =
                 OverloadingChecker.checkOverloading(component, env, repository);
