@@ -36,4 +36,13 @@ end
 object ZZ32 extends Number
 end
 
+object ZZ64 extends Number
+end
+
+object RR32 extends Number
+end
+
+object RR64 extends Number
+end
+
 end

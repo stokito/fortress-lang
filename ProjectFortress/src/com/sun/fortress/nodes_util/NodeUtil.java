@@ -36,6 +36,10 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.*;
 import com.sun.fortress.compiler.Parser;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.index.ObjectTraitIndex;
+import com.sun.fortress.compiler.index.ProperTraitIndex;
+import com.sun.fortress.compiler.index.TraitIndex;
+import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.shell.UserError;
 import com.sun.fortress.parser_util.FnHeaderFront;
@@ -167,6 +171,36 @@ public class NodeUtil {
 
     public static List<TraitTypeWhere> getExtendsClause(TraitObjectDecl t) {
         return t.getHeader().getExtendsClause();
+    }
+
+    public static List<BaseType> getExcludesClause(TraitObjectDecl t) {
+        if ( t instanceof TraitDecl )
+            return ((TraitDecl)t).getExcludesClause();
+        else
+            return bug("TraitDecl expected, but got " + t);
+    }
+
+    public static Option<List<BaseType>> getComprisesClause(TraitObjectDecl t) {
+        if ( t instanceof TraitDecl )
+            return ((TraitDecl)t).getComprisesClause();
+        else
+            return bug("TraitDecl expected, but got " + t);
+    }
+
+    public static boolean isComprisesEllipses(TraitObjectDecl t) {
+        if ( t instanceof TraitDecl )
+            return ((TraitDecl)t).isComprisesEllipses();
+        else {
+            bug("TraitDecl expected, but got " + t);
+            return false;
+        }
+    }
+
+    public static Option<List<Param>> getParams(TraitObjectDecl o) {
+        if ( o instanceof ObjectDecl )
+            return ((ObjectDecl)o).getParams();
+        else
+            return bug("ObjectDecl expected, but got " + o);
     }
 
     /* Getters for TraitDecl */
@@ -1384,6 +1418,25 @@ public class NodeUtil {
             return new FnHeaderFront(op, params);
         else
             return new FnHeaderFront(op, sparams.unwrap(), params);
+    }
+
+    public static boolean isTraitOrObject(TypeConsIndex t) {
+        return (t instanceof TraitIndex);
+    }
+
+    public static boolean isTrait(TypeConsIndex t) {
+        return (t instanceof ProperTraitIndex);
+    }
+
+    public static boolean isObject(TypeConsIndex t) {
+        return (t instanceof ObjectTraitIndex);
+    }
+
+    public static TraitObjectDecl getDecl(TypeConsIndex t) {
+        if ( isTraitOrObject(t) )
+            return ((TraitIndex)t).ast();
+        else
+            return bug("TraitIndex expected, but got " + t);
     }
 
 }
