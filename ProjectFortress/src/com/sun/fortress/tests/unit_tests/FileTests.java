@@ -872,13 +872,15 @@ public class FileTests {
         return testCount;
     }
 
+    private static long default_seed = System.currentTimeMillis();
+    
     /**
      * @param files
      * @return
      */
     private static Iterable<String> shuffledFileList(File dir) {
         String[] files = dir.list();
-        long default_seed = System.currentTimeMillis();
+        
         long seed = default_seed;
         try {
             seed = ProjectProperties.getLong("fortress.unittests.seed",
